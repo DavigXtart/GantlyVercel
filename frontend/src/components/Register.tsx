@@ -4,9 +4,10 @@ import { authService } from '../services/api';
 interface RegisterProps {
   onRegister: () => void;
   onSwitchToLogin: () => void;
+  sessionId?: string | null;
 }
 
-export default function Register({ onRegister, onSwitchToLogin }: RegisterProps) {
+export default function Register({ onRegister, onSwitchToLogin, sessionId }: RegisterProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,7 +20,7 @@ export default function Register({ onRegister, onSwitchToLogin }: RegisterProps)
     setLoading(true);
 
     try {
-      await authService.register(name, email, password);
+      await authService.register(name, email, password, sessionId || undefined);
       onRegister();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al registrarse');

@@ -5,6 +5,7 @@ import TestsList from './components/TestsList';
 import AdminPanel from './components/AdminPanel';
 import Landing from './components/Landing';
 import TestFlow from './components/TestFlow';
+import InitialTestFlow from './components/InitialTestFlow';
 import { authService } from './services/api';
 
 function App() {
@@ -12,6 +13,8 @@ function App() {
   const [showRegister, setShowRegister] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [showLanding, setShowLanding] = useState(true);
+  const [showInitialTest, setShowInitialTest] = useState(false);
+  const [initialTestSessionId, setInitialTestSessionId] = useState<string | null>(null);
   const [selectedTestId, setSelectedTestId] = useState<number | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
@@ -55,10 +58,18 @@ function App() {
   const handleRegister = () => {
     setIsAuthenticated(true);
     setShowLanding(false);
+    setShowRegister(false);
+    setInitialTestSessionId(null);
   };
 
   const handleGetStarted = () => {
     setShowLanding(false);
+    setShowInitialTest(true);
+  };
+
+  const handleInitialTestComplete = (sessionId: string) => {
+    setInitialTestSessionId(sessionId);
+    setShowInitialTest(false);
     setShowRegister(true);
   };
 
@@ -69,6 +80,23 @@ function App() {
 
   if (showLanding) {
     return <Landing onGetStarted={handleGetStarted} onLogin={handleShowLogin} />;
+  }
+
+  if (showInitialTest) {
+    return (
+      <div>
+        <nav>
+          <div className="container" style={{ maxWidth: '1200px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3>Psico App</h3>
+            <button onClick={() => { setShowInitialTest(false); setShowLanding(true); }} className="btn-secondary">Volver</button>
+          </div>
+        </nav>
+        <InitialTestFlow 
+          onComplete={handleInitialTestComplete}
+          onBack={() => { setShowInitialTest(false); setShowLanding(true); }}
+        />
+      </div>
+    );
   }
 
   const handleSelectTest = (id: number) => {
@@ -99,7 +127,11 @@ function App() {
 
   if (!isAuthenticated) {
     if (showRegister) {
-      return <Register onRegister={handleRegister} onSwitchToLogin={() => { setShowRegister(false); setShowLogin(true); }} />;
+      return <Register 
+        onRegister={handleRegister} 
+        onSwitchToLogin={() => { setShowRegister(false); setShowLogin(true); }} 
+        sessionId={initialTestSessionId}
+      />;
     }
     if (showLogin) {
       return <Login onLogin={handleLogin} onSwitchToRegister={() => { setShowLogin(false); setShowRegister(true); }} />;

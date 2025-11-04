@@ -46,6 +46,22 @@ public class TestController {
 				qMap.put("text", q.getText());
 				qMap.put("type", q.getType());
 				qMap.put("position", q.getPosition());
+
+				// Subfactor y factor
+				if (q.getSubfactor() != null) {
+					Map<String, Object> sf = new HashMap<>();
+					sf.put("id", q.getSubfactor().getId());
+					sf.put("code", q.getSubfactor().getCode());
+					sf.put("name", q.getSubfactor().getName());
+					if (q.getSubfactor().getFactor() != null) {
+						Map<String, Object> f = new HashMap<>();
+						f.put("id", q.getSubfactor().getFactor().getId());
+						f.put("code", q.getSubfactor().getFactor().getCode());
+						f.put("name", q.getSubfactor().getFactor().getName());
+						sf.put("factor", f);
+					}
+					qMap.put("subfactor", sf);
+				}
 				
 				// Cargar respuestas ordenadas por posición
 				List<AnswerEntity> answers = answerRepository.findByQuestionOrderByPositionAsc(q);

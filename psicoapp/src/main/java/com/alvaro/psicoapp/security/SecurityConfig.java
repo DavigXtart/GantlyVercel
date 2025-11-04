@@ -31,6 +31,7 @@ public class SecurityConfig {
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers("/api/auth/**").permitAll()
 				.requestMatchers("/api/tests/**").permitAll() // Tests visibles para todos
+				.requestMatchers("/api/initial-test/**").permitAll() // Test inicial público
 				.requestMatchers("/api/flow/**").authenticated() // Flujo de respuestas requiere autenticación
 				.requestMatchers("/actuator/**").permitAll()
 				.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui.html", "/webjars/**").permitAll()

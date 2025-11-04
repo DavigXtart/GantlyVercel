@@ -65,11 +65,35 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
     }
   };
 
-  const handleAnswer = (questionId: number, answerId?: number, numericValue?: number) => {
-    setAnswers(prev => ({
-      ...prev,
+  const handleAnswer = (questionId: number, answerId?: number, numericValue?: number, autoAdvance: boolean = true) => {
+    const newAnswers = {
+      ...answers,
       [questionId]: { answerId, numericValue }
-    }));
+    };
+    
+    setAnswers(newAnswers);
+    
+    // Avanzar automáticamente solo si autoAdvance es true (para respuestas tipo SINGLE/MULTI)
+    if (autoAdvance) {
+      setTimeout(() => {
+        if (!test) return;
+        
+        const currentIndex = test.questions.findIndex(q => q.id === questionId);
+        if (currentIndex !== -1 && currentIndex < test.questions.length - 1) {
+          // No es la última pregunta, avanzar
+          setCurrentQuestionIndex(currentIndex + 1);
+        } else if (currentIndex === test.questions.length - 1) {
+          // Es la última pregunta, verificar si todas están respondidas
+          const allAnswered = test.questions.every(q => newAnswers[q.id]);
+          if (allAnswered) {
+            // Todas respondidas, mostrar confirmación para enviar
+            if (confirm('¿Has completado todas las preguntas. ¿Deseas enviar el test?')) {
+              handleSubmitWithAnswers(newAnswers);
+            }
+          }
+        }
+      }, 300); // Pequeño delay para mejor UX
+    }
   };
 
   const handleNext = () => {
@@ -82,6 +106,28 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
+    }
+  };
+
+  const handleSubmitWithAnswers = async (answersToSubmit: Record<number, { answerId?: number; numericValue?: number }>) => {
+    if (!test) return;
+    
+    try {
+      setSubmitting(true);
+      const submitData = test.questions.map(q => ({
+        questionId: q.id,
+        answerId: answersToSubmit[q.id]?.answerId,
+        numericValue: answersToSubmit[q.id]?.numericValue
+      }));
+      
+      await testService.submitAnswers(testId, submitData);
+      alert('¡Test completado exitosamente!');
+      onComplete();
+    } catch (err: any) {
+      console.error('Error enviando respuestas:', err);
+      alert('Error al enviar las respuestas: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -99,23 +145,7 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
       return;
     }
 
-    try {
-      setSubmitting(true);
-      const submitData = test.questions.map(q => ({
-        questionId: q.id,
-        answerId: answers[q.id]?.answerId,
-        numericValue: answers[q.id]?.numericValue
-      }));
-      
-      await testService.submitAnswers(submitData);
-      alert('¡Test completado exitosamente!');
-      onComplete();
-    } catch (err: any) {
-      console.error('Error enviando respuestas:', err);
-      alert('Error al enviar las respuestas: ' + (err.response?.data?.message || err.message));
-    } finally {
-      setSubmitting(false);
-    }
+    await handleSubmitWithAnswers(answers);
   };
 
   if (loading) {
@@ -184,11 +214,6 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                   onClick={() => handleAnswer(currentQuestion.id, answer.id)}
                 >
                   {answer.text}
-                  {answer.value !== undefined && answer.value !== null && (
-                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)', marginLeft: '8px' }}>
-                      (Valor: {answer.value})
-                    </span>
-                  )}
                 </div>
               ))}
             </div>
@@ -220,7 +245,7 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                   min="0"
                   max="10"
                   value={currentAnswer?.numericValue || ''}
-                  onChange={(e) => handleAnswer(currentQuestion.id, undefined, parseFloat(e.target.value) || undefined)}
+                  onChange={(e) => handleAnswer(currentQuestion.id, undefined, parseFloat(e.target.value) || undefined, false)}
                   placeholder="Ingresa un valor (0-10)"
                   style={{
                     width: '200px',
@@ -261,19 +286,19 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                 ← Anterior
               </button>
             )}
-            {!isLastQuestion ? (
+            {!isLastQuestion && currentQuestion.type === 'SCALE' && currentAnswer && (
               <button
                 className="btn"
                 onClick={handleNext}
-                disabled={!currentAnswer}
               >
                 Siguiente →
               </button>
-            ) : (
+            )}
+            {isLastQuestion && allAnswered && (
               <button
                 className="btn"
                 onClick={handleSubmit}
-                disabled={!allAnswered || submitting}
+                disabled={submitting}
               >
                 {submitting ? 'Enviando...' : 'Finalizar Test'}
               </button>

@@ -1,7 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { adminService } from '../services/api';
 import TestManager from './TestManager';
 import UsersManager from './UsersManager';
+
+type Answer = { id: number; text: string; value?: number; position: number };
+type Question = { id: number; text: string; type: string; position: number; answers: Answer[]; subfactor?: { id: number; code: string; name: string; factor?: { id: number; code: string; name: string } } };
+
+// Eliminado AdminInsights
+
+// (imports removidos: ya están al inicio del archivo)
 
 interface Test {
   id: number;
@@ -137,14 +144,6 @@ export default function AdminPanel() {
           <h1>Panel de Administración</h1>
           <p>Gestiona todos los tests, preguntas, respuestas y usuarios</p>
         </div>
-        <button 
-          className="btn" 
-          onClick={() => setShowCreateForm(!showCreateForm)}
-          disabled={loading}
-          style={{ width: 'auto', padding: '12px 24px' }}
-        >
-          {showCreateForm ? '✕ Cancelar' : '+ Nuevo Test'}
-        </button>
       </div>
 
       {/* Tabs */}
@@ -152,12 +151,14 @@ export default function AdminPanel() {
         <button 
           className={`admin-tab ${activeTab === 'tests' ? 'active' : ''}`}
           onClick={() => setActiveTab('tests')}
+          style={{ flex: 1, padding: '12px 24px' }}
         >
           📋 Tests
         </button>
         <button 
           className={`admin-tab ${activeTab === 'users' ? 'active' : ''}`}
           onClick={() => setActiveTab('users')}
+          style={{ flex: 1, padding: '12px 24px' }}
         >
           👥 Usuarios
         </button>
@@ -167,8 +168,24 @@ export default function AdminPanel() {
         <UsersManager />
       )}
 
+      
+
       {activeTab === 'tests' && (
         <>
+      <div className="card" style={{ marginBottom: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2>Gestión de Tests</h2>
+          <button 
+            className="btn" 
+            onClick={() => setShowCreateForm(!showCreateForm)}
+            disabled={loading}
+            style={{ width: 'auto', padding: '12px 24px' }}
+          >
+            {showCreateForm ? '✕ Cancelar' : '+ Nuevo Test'}
+          </button>
+        </div>
+      </div>
+
       {showCreateForm && (
         <div className="card admin-form-card">
           <h2>Crear Nuevo Test</h2>

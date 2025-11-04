@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { adminService } from '../services/api';
+import { adminService, resultsService } from '../services/api';
+import PieChart from './PieChart';
 
 interface User {
   id: number;
@@ -37,9 +38,14 @@ export default function UsersManager() {
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [userDetails, setUserDetails] = useState<UserDetail | null>(null);
   const [loading, setLoading] = useState(false);
+  const [tests, setTests] = useState<any[]>([]);
+  const [selectedTestForStats, setSelectedTestForStats] = useState<number | null>(null);
+  const [userStats, setUserStats] = useState<any | null>(null);
+  const [overallStats, setOverallStats] = useState<any | null>(null);
 
   useEffect(() => {
     loadUsers();
+    loadTests();
   }, []);
 
   useEffect(() => {
@@ -61,11 +67,62 @@ export default function UsersManager() {
     }
   };
 
+  const loadTests = async () => {
+    try {
+      const data = await adminService.listTests();
+      setTests(data || []);
+    } catch (err) {
+      console.error('Error cargando tests:', err);
+    }
+  };
+
+  const loadUserStats = async (userId: number, testId: number) => {
+    try {
+      setLoading(true);
+      const data = await resultsService.getUserTest(userId, testId);
+      setUserStats(data);
+    } catch (err) {
+      console.error('Error cargando estadísticas de usuario:', err);
+      alert('Error al cargar estadísticas');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const loadUserDetails = async (userId: number) => {
     try {
       setLoading(true);
       const data = await adminService.getUserDetails(userId);
       setUserDetails(data);
+      // precalcular media general de factores entre tests completados por el usuario
+      try {
+        const testIds = (data?.tests || []).map((t: any) => t.testId);
+        if (testIds.length > 0) {
+          const results = await Promise.all(
+            testIds.map((tid: number) => resultsService.getUserTest(userId, tid).catch(() => null))
+          );
+          const factors: Record<string, { name: string; sum: number; count: number }> = {};
+          for (const r of results) {
+            if (!r || !r.factors) continue;
+            for (const f of r.factors) {
+              const key = f.factorCode || f.factorName || String(f.factorId);
+              if (!factors[key]) factors[key] = { name: f.factorName || key, sum: 0, count: 0 };
+              factors[key].sum += Number(f.percentage) || 0;
+              factors[key].count += 1;
+            }
+          }
+          const averaged = Object.entries(factors).map(([code, v]) => ({
+            code,
+            name: v.name,
+            percentage: v.count > 0 ? v.sum / v.count : 0,
+          }));
+          setOverallStats({ factors: averaged });
+        } else {
+          setOverallStats(null);
+        }
+      } catch (e) {
+        console.warn('No se pudo calcular media general', e);
+      }
     } catch (err) {
       console.error('Error cargando detalles del usuario:', err);
       alert('Error al cargar los detalles del usuario');
@@ -94,21 +151,42 @@ export default function UsersManager() {
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
             <div>
-              <h2>Detalles del Usuario</h2>
-              <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>
-                {userDetails.name} ({userDetails.email})
-              </p>
+              <h2>{userDetails.name}</h2>
+              <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>{userDetails.email}</p>
             </div>
-            <button 
-              className="btn-secondary" 
-              onClick={() => {
-                setSelectedUserId(null);
-                setUserDetails(null);
-              }}
-              style={{ width: 'auto', padding: '12px 24px' }}
-            >
-              ← Volver
-            </button>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button 
+                className="btn-secondary" 
+                onClick={() => {
+                  setSelectedUserId(null);
+                  setUserDetails(null);
+                }}
+                style={{ width: 'auto', padding: '12px 24px' }}
+              >
+                ← Volver
+              </button>
+              <button
+                className="btn"
+                onClick={async () => {
+                  try {
+                    const blob = new Blob([await resultsService.exportUserAll(userDetails.id)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    const safeName = userDetails.name.replace(/[^a-zA-Z0-9]/g, '_');
+                    a.download = `resultados_${safeName}.xlsx`;
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                  } catch (e) {
+                    console.error(e);
+                    alert('Error al exportar los datos del paciente');
+                  }
+                }}
+                style={{ width: 'auto', padding: '12px 24px' }}
+              >
+                Exportar paciente
+              </button>
+            </div>
           </div>
 
           <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: 'var(--bg-primary)', borderRadius: '12px' }}>
@@ -116,6 +194,116 @@ export default function UsersManager() {
             <p><strong>Fecha de registro:</strong> {formatDate(userDetails.createdAt)}</p>
             <p><strong>Tests completados:</strong> {userDetails.tests.length}</p>
           </div>
+
+          {overallStats && overallStats.factors && overallStats.factors.length > 0 && (
+            <div className="card" style={{ marginBottom: '24px' }}>
+              <h3>Media general (todos los tests) - Factores</h3>
+              <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap', marginTop: '12px' }}>
+                <PieChart
+                  data={overallStats.factors.map((f: any) => ({
+                    label: f.code || f.name,
+                    value: Number(f.percentage) || 0,
+                  }))}
+                  size={240}
+                  thickness={30}
+                  centerLabel="Media"
+                />
+                <div style={{ minWidth: 240 }}>
+                  {overallStats.factors.map((f: any, i: number) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 14 }}>
+                      <span>{f.code || f.name}</span>
+                      <span>{Math.round(f.percentage)}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="card" style={{ marginBottom: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3>Estadísticas por Test</h3>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <select
+                  value={selectedTestForStats ?? ''}
+                  onChange={(e) => {
+                    const testId = e.target.value ? Number(e.target.value) : null;
+                    setSelectedTestForStats(testId);
+                    if (testId && userDetails) {
+                      loadUserStats(userDetails.id, testId);
+                    } else {
+                      setUserStats(null);
+                    }
+                  }}
+                  style={{ padding: '10px', border: '1px solid var(--border)', borderRadius: '8px' }}
+                >
+                  <option value="">Selecciona test…</option>
+                  {tests.map((t: any) => (
+                    <option key={t.id} value={t.id}>{t.title || t.code}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            {!selectedTestForStats && (
+              <p style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>Selecciona un test para ver sus estadísticas.</p>
+            )}
+            {selectedTestForStats && loading && (
+              <p style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>Cargando estadísticas...</p>
+            )}
+            {selectedTestForStats && !loading && userStats && (
+              <div style={{ marginTop: '16px' }}>
+                {userStats.subfactors && userStats.subfactors.length > 0 && (
+                  <div style={{ marginBottom: '24px' }}>
+                    <h4>Subfactores (gráfico)</h4>
+                    <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <PieChart
+                        data={userStats.subfactors.map((sf: any) => ({
+                          label: sf.subfactorName || sf.subfactorCode,
+                          value: Number(sf.percentage) || 0,
+                        }))}
+                        size={220}
+                        thickness={28}
+                        centerLabel="Subfactores"
+                      />
+                      <div style={{ minWidth: 220 }}>
+                        {userStats.subfactors.map((sf: any, i: number) => (
+                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 14 }}>
+                            <span>{sf.subfactorName || sf.subfactorCode}</span>
+                            <span>{Math.round(sf.percentage)}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {userStats.factors && userStats.factors.length > 0 && (
+                  <div>
+                    <h4>Factores (gráfico)</h4>
+                    <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <PieChart
+                        data={userStats.factors.map((f: any) => ({
+                          label: f.factorCode || f.factorName,
+                          value: Number(f.percentage) || 0,
+                        }))}
+                        size={220}
+                        thickness={28}
+                        centerLabel="Factores"
+                      />
+                      <div style={{ minWidth: 220 }}>
+                        {userStats.factors.map((f: any, i: number) => (
+                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 14 }}>
+                            <span>{f.factorCode || f.factorName}</span>
+                            <span>{Math.round(f.percentage)}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
 
           {userDetails.tests.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
@@ -183,6 +371,7 @@ export default function UsersManager() {
             </div>
           )}
         </div>
+
       </div>
     );
   }

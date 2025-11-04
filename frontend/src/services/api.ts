@@ -28,8 +28,8 @@ api.interceptors.response.use(
 );
 
 export const authService = {
-  register: async (name: string, email: string, password: string) => {
-    await api.post('/auth/register', { name, email, password });
+  register: async (name: string, email: string, password: string, sessionId?: string) => {
+    await api.post('/auth/register', { name, email, password, sessionId });
   },
   login: async (email: string, password: string) => {
     const { data } = await api.post<{ token: string }>('/auth/login', { email, password });
@@ -51,8 +51,46 @@ export const testService = {
     const { data } = await api.get(`/tests/${id}`);
     return data;
   },
-  submitAnswers: async (answers: { questionId: number; answerId?: number; numericValue?: number }[]) => {
-    await api.post('/flow/submit', { answers });
+  submitAnswers: async (testId: number, answers: { questionId: number; answerId?: number; numericValue?: number }[]) => {
+    await api.post('/flow/submit', { answers, testId });
+  },
+};
+
+export const initialTestService = {
+  createSession: async () => {
+    const { data } = await api.post('/initial-test/session');
+    return data.sessionId;
+  },
+  getTest: async (sessionId: string) => {
+    const { data } = await api.get(`/initial-test?sessionId=${sessionId}`);
+    return data;
+  },
+  submitAnswers: async (sessionId: string, answers: { questionId: number; answerId?: number; numericValue?: number }[]) => {
+    const { data } = await api.post(`/initial-test/submit?sessionId=${sessionId}`, { answers });
+    return data;
+  },
+  getStatus: async (sessionId: string) => {
+    const { data } = await api.get(`/initial-test/status?sessionId=${sessionId}`);
+    return data;
+  },
+};
+
+export const resultsService = {
+  getMyResults: async (testId: number) => {
+    const { data } = await api.get('/results/my-results', { params: { testId } });
+    return data;
+  },
+  getUserTest: async (userId: number, testId: number) => {
+    const { data } = await api.get(`/results/user/${userId}/test/${testId}`);
+    return data;
+  },
+  exportUserTest: async (userId: number, testId: number) => {
+    const { data } = await api.get(`/results/user/${userId}/test/${testId}/export`, { responseType: 'arraybuffer' });
+    return data as ArrayBuffer;
+  },
+  exportUserAll: async (userId: number) => {
+    const { data } = await api.get(`/results/user/${userId}/export`, { responseType: 'arraybuffer' });
+    return data as ArrayBuffer;
   },
 };
 
@@ -82,13 +120,32 @@ export const adminService = {
     const { data } = await api.get(`/admin/tests/${testId}/questions`);
     return data;
   },
-  createQuestion: async (testId: number, text: string, type: string, position: number, answers?: Array<{ text: string; value: number; position: number }>) => {
-    const { data } = await api.post('/admin/questions', { testId, text, type, position, answers });
+  getTestStructure: async (testId: number) => {
+    const { data } = await api.get(`/admin/tests/${testId}/structure`);
     return data;
   },
-  updateQuestion: async (id: number, updates: { text?: string; type?: string; position?: number }) => {
+  initDefaultStructure: async (testId: number) => {
+    const { data } = await api.post(`/admin/tests/${testId}/init-structure`);
+    return data;
+  },
+  createFactor: async (testId: number, code: string, name: string, description?: string, position?: number) => {
+    const { data } = await api.post('/admin/factors', { testId, code, name, description, position });
+    return data;
+  },
+  createSubfactor: async (testId: number, code: string, name: string, description?: string, factorId?: number, position?: number) => {
+    const { data } = await api.post('/admin/subfactors', { testId, code, name, description, factorId, position });
+    return data;
+  },
+  createQuestion: async (testId: number, text: string, type: string, position: number, answers?: Array<{ text: string; value: number; position: number }>, subfactorId?: number) => {
+    const { data } = await api.post('/admin/questions', { testId, text, type, position, answers, subfactorId });
+    return data;
+  },
+  updateQuestion: async (id: number, updates: { text?: string; type?: string; position?: number; subfactorId?: number }) => {
     const { data } = await api.put(`/admin/questions/${id}`, updates);
     return data;
+  },
+  setQuestionSubfactor: async (id: number, subfactorId?: number) => {
+    await api.put(`/admin/questions/${id}/subfactor`, { subfactorId });
   },
   deleteQuestion: async (id: number) => {
     await api.delete(`/admin/questions/${id}`);

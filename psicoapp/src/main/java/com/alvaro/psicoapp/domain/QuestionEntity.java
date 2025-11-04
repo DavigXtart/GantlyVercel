@@ -22,6 +22,10 @@ public class QuestionEntity {
 	@Column(nullable = false)
 	private Integer position;
 
+	@ManyToOne
+	@JoinColumn(name = "subfactor_id")
+	private SubfactorEntity subfactor; // Subfactor al que pertenece esta pregunta
+
 	public Long getId() { return id; }
 	public void setId(Long id) { this.id = id; }
 	public TestEntity getTest() { return test; }
@@ -32,4 +36,6 @@ public class QuestionEntity {
 	public void setType(String type) { this.type = type; }
 	public Integer getPosition() { return position; }
 	public void setPosition(Integer position) { this.position = position; }
+	public SubfactorEntity getSubfactor() { return subfactor; }
+	public void setSubfactor(SubfactorEntity subfactor) { this.subfactor = subfactor; }
 }
