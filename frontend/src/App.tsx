@@ -87,7 +87,14 @@ function App() {
       <div>
         <nav>
           <div className="container" style={{ maxWidth: '1200px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3>Psico App</h3>
+            <h3 
+              onClick={() => { setShowInitialTest(false); setShowLanding(true); }}
+              style={{ cursor: 'pointer', userSelect: 'none', transition: 'opacity 0.2s' }}
+              onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+            >
+              PSYmatch
+            </h3>
             <button onClick={() => { setShowInitialTest(false); setShowLanding(true); }} className="btn-secondary">Volver</button>
           </div>
         </nav>
@@ -112,7 +119,14 @@ function App() {
       <div>
         <nav>
           <div className="container" style={{ maxWidth: '1200px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3>Psico App</h3>
+            <h3 
+              onClick={() => { setShowLanding(true); setSelectedTestId(null); }}
+              style={{ cursor: 'pointer', userSelect: 'none', transition: 'opacity 0.2s' }}
+              onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+            >
+              PSYmatch
+            </h3>
             <button onClick={handleBackToList} className="btn-secondary">Volver</button>
           </div>
         </nav>
@@ -142,8 +156,15 @@ function App() {
   return (
     <div>
       <nav>
-        <div className="container" style={{ maxWidth: '1200px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3>Psico App</h3>
+          <div className="container" style={{ maxWidth: '1200px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 
+            onClick={() => { setShowLanding(true); setShowAdmin(false); }}
+            style={{ cursor: 'pointer', userSelect: 'none', transition: 'opacity 0.2s' }}
+            onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+          >
+            PSYmatch
+          </h3>
           <div style={{ display: 'flex', gap: '12px' }}>
             {isAdmin && !showAdmin && (
               <button onClick={() => setShowAdmin(true)} className="btn-secondary">Panel Admin</button>

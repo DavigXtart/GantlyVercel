@@ -73,7 +73,7 @@ public class AdminController {
 		// Crear factores
 		FactorEntity f1 = new FactorEntity();
 		f1.setTest(test);
-		f1.setCode("COMPETENCIAS_SOCIALES");
+		f1.setCode("sociales");
 		f1.setName("Competencias sociales");
 		f1.setDescription("Competencias relacionadas con la interacción social");
 		f1.setPosition(1);
@@ -81,7 +81,7 @@ public class AdminController {
 		
 		FactorEntity f2 = new FactorEntity();
 		f2.setTest(test);
-		f2.setCode("COMPETENCIAS_AUTONOMIA");
+		f2.setCode("autonomia");
 		f2.setName("Competencias de autonomía e independencia");
 		f2.setDescription("Competencias relacionadas con la autonomía e independencia");
 		f2.setPosition(2);
@@ -89,7 +89,7 @@ public class AdminController {
 		
 		FactorEntity f3 = new FactorEntity();
 		f3.setTest(test);
-		f3.setCode("COMPETENCIAS_APERTURA");
+		f3.setCode("apertura");
 		f3.setName("Competencias de apertura y adaptación");
 		f3.setDescription("Competencias relacionadas con la apertura y adaptación");
 		f3.setPosition(3);
@@ -97,7 +97,7 @@ public class AdminController {
 		
 		FactorEntity f4 = new FactorEntity();
 		f4.setTest(test);
-		f4.setCode("COMPETENCIAS_AUTOCONTROL");
+		f4.setCode("autocontrol");
 		f4.setName("Competencias de autocontrol");
 		f4.setDescription("Competencias relacionadas con el autocontrol");
 		f4.setPosition(4);
@@ -105,7 +105,7 @@ public class AdminController {
 		
 		FactorEntity f5 = new FactorEntity();
 		f5.setTest(test);
-		f5.setCode("COMPETENCIAS_ANSIEDAD");
+		f5.setCode("ansiedad");
 		f5.setName("Competencias de gestión de la ansiedad");
 		f5.setDescription("Competencias relacionadas con la gestión de la ansiedad");
 		f5.setPosition(5);
@@ -284,7 +284,7 @@ public class AdminController {
 		// Crear factores
 		FactorEntity f1 = new FactorEntity();
 		f1.setTest(test);
-		f1.setCode("COMPETENCIAS_SOCIALES");
+		f1.setCode("sociales");
 		f1.setName("Competencias sociales");
 		f1.setDescription("Competencias relacionadas con la interacción social");
 		f1.setPosition(1);
@@ -292,7 +292,7 @@ public class AdminController {
 		
 		FactorEntity f2 = new FactorEntity();
 		f2.setTest(test);
-		f2.setCode("COMPETENCIAS_AUTONOMIA");
+		f2.setCode("autonomia");
 		f2.setName("Competencias de autonomía e independencia");
 		f2.setDescription("Competencias relacionadas con la autonomía e independencia");
 		f2.setPosition(2);
@@ -300,7 +300,7 @@ public class AdminController {
 		
 		FactorEntity f3 = new FactorEntity();
 		f3.setTest(test);
-		f3.setCode("COMPETENCIAS_APERTURA");
+		f3.setCode("apertura");
 		f3.setName("Competencias de apertura y adaptación");
 		f3.setDescription("Competencias relacionadas con la apertura y adaptación");
 		f3.setPosition(3);
@@ -308,7 +308,7 @@ public class AdminController {
 		
 		FactorEntity f4 = new FactorEntity();
 		f4.setTest(test);
-		f4.setCode("COMPETENCIAS_AUTOCONTROL");
+		f4.setCode("autocontrol");
 		f4.setName("Competencias de autocontrol");
 		f4.setDescription("Competencias relacionadas con el autocontrol");
 		f4.setPosition(4);
@@ -316,7 +316,7 @@ public class AdminController {
 		
 		FactorEntity f5 = new FactorEntity();
 		f5.setTest(test);
-		f5.setCode("COMPETENCIAS_ANSIEDAD");
+		f5.setCode("ansiedad");
 		f5.setName("Competencias de gestión de la ansiedad");
 		f5.setDescription("Competencias relacionadas con la gestión de la ansiedad");
 		f5.setPosition(5);

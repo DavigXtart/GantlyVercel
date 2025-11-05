@@ -35,18 +35,18 @@ SET @test_id = (SELECT id FROM tests WHERE code = 'INITIAL' LIMIT 1);
 
 -- Crear factores generales según la nueva estructura
 INSERT INTO factors (test_id, code, name, description, position) VALUES
-(@test_id, 'COMPETENCIAS_SOCIALES', 'Competencias sociales', 'Competencias relacionadas con la interacción social', 1),
-(@test_id, 'COMPETENCIAS_AUTONOMIA', 'Competencias de autonomía e independencia', 'Competencias relacionadas con la autonomía e independencia', 2),
-(@test_id, 'COMPETENCIAS_APERTURA', 'Competencias de apertura y adaptación', 'Competencias relacionadas con la apertura y adaptación', 3),
-(@test_id, 'COMPETENCIAS_AUTOCONTROL', 'Competencias de autocontrol', 'Competencias relacionadas con el autocontrol', 4),
-(@test_id, 'COMPETENCIAS_ANSIEDAD', 'Competencias de gestión de la ansiedad', 'Competencias relacionadas con la gestión de la ansiedad', 5);
+(@test_id, 'sociales', 'Competencias sociales', 'Competencias relacionadas con la interacción social', 1),
+(@test_id, 'autonomia', 'Competencias de autonomía e independencia', 'Competencias relacionadas con la autonomía e independencia', 2),
+(@test_id, 'apertura', 'Competencias de apertura y adaptación', 'Competencias relacionadas con la apertura y adaptación', 3),
+(@test_id, 'autocontrol', 'Competencias de autocontrol', 'Competencias relacionadas con el autocontrol', 4),
+(@test_id, 'ansiedad', 'Competencias de gestión de la ansiedad', 'Competencias relacionadas con la gestión de la ansiedad', 5);
 
 -- Obtener IDs de los factores
-SET @factor_sociales = (SELECT id FROM factors WHERE code = 'COMPETENCIAS_SOCIALES' AND test_id = @test_id LIMIT 1);
-SET @factor_autonomia = (SELECT id FROM factors WHERE code = 'COMPETENCIAS_AUTONOMIA' AND test_id = @test_id LIMIT 1);
-SET @factor_apertura = (SELECT id FROM factors WHERE code = 'COMPETENCIAS_APERTURA' AND test_id = @test_id LIMIT 1);
-SET @factor_autocontrol = (SELECT id FROM factors WHERE code = 'COMPETENCIAS_AUTOCONTROL' AND test_id = @test_id LIMIT 1);
-SET @factor_ansiedad = (SELECT id FROM factors WHERE code = 'COMPETENCIAS_ANSIEDAD' AND test_id = @test_id LIMIT 1);
+SET @factor_sociales = (SELECT id FROM factors WHERE code = 'sociales' AND test_id = @test_id LIMIT 1);
+SET @factor_autonomia = (SELECT id FROM factors WHERE code = 'autonomia' AND test_id = @test_id LIMIT 1);
+SET @factor_apertura = (SELECT id FROM factors WHERE code = 'apertura' AND test_id = @test_id LIMIT 1);
+SET @factor_autocontrol = (SELECT id FROM factors WHERE code = 'autocontrol' AND test_id = @test_id LIMIT 1);
+SET @factor_ansiedad = (SELECT id FROM factors WHERE code = 'ansiedad' AND test_id = @test_id LIMIT 1);
 
 -- Crear subfactores para Competencias sociales
 INSERT INTO subfactors (test_id, code, name, description, factor_id, position) VALUES
