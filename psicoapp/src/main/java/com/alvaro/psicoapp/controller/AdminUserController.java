@@ -124,6 +124,40 @@ public class AdminUserController {
             return ResponseEntity.status(500).body(Map.of("error", className, "message", errorMsg, "type", e.getClass().getName()));
         }
     }
+
+    @DeleteMapping("/assign/{userId}")
+    @Transactional
+    public ResponseEntity<?> unassignPsychologist(@PathVariable Long userId) {
+        try {
+            var userOpt = userRepository.findById(userId);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Usuario no existe"));
+            }
+            
+            UserEntity user = userOpt.get();
+            if (!"USER".equals(user.getRole())) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Solo se pueden desvincular usuarios con rol USER"));
+            }
+
+            // Eliminar relación existente
+            int deleted = userPsychologistRepository.deleteByUserId(userId);
+            
+            // Limpiar el caché de entidades
+            entityManager.clear();
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "userId", userId,
+                "deleted", deleted > 0
+            ));
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            String errorMsg = e.getMessage() != null ? e.getMessage() : "Error desconocido";
+            String className = e.getClass().getSimpleName();
+            return ResponseEntity.status(500).body(Map.of("error", className, "message", errorMsg, "type", e.getClass().getName()));
+        }
+    }
 }
 
 

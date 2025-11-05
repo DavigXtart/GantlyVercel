@@ -174,6 +174,9 @@ export const adminService = {
   assignPsychologist: async (userId: number, psychologistId: number) => {
     await api.post('/admin/users/assign', { userId, psychologistId });
   },
+  unassignPsychologist: async (userId: number) => {
+    await api.delete(`/admin/users/assign/${userId}`);
+  },
 };
 
 // Perfil de usuario

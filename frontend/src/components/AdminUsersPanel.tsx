@@ -8,6 +8,7 @@ export default function AdminUsersPanel() {
   const [psychs, setPsychs] = useState<User[]>([]);
   const [assign, setAssign] = useState<{ [userId: number]: number | undefined }>({});
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const load = async () => {
     setLoading(true);
@@ -62,9 +63,71 @@ export default function AdminUsersPanel() {
     }
   };
 
+  const onUnassign = async (userId: number) => {
+    try {
+      await adminService.unassignPsychologist(userId);
+      await load();
+    } catch (e: any) {
+      let msg = 'Error desconocido';
+      if (e?.response?.data) {
+        const data = e.response.data;
+        if (typeof data === 'string') {
+          msg = data;
+        } else if (data.message) {
+          msg = data.message;
+        } else if (data.error) {
+          msg = `${data.error}: ${data.message || 'Error desconocido'}`;
+        } else {
+          msg = JSON.stringify(data);
+        }
+      } else if (e?.message) {
+        msg = e.message;
+      }
+      alert(`No se pudo desvincular: ${msg}`);
+      console.error('Error desvinculando:', e);
+    }
+  };
+
+  const onSelectChange = async (userId: number, value: string) => {
+    const psychologistId = value ? Number(value) : undefined;
+    setAssign({ ...assign, [userId]: psychologistId });
+    
+    // Si se deselecciona (value vacío) y había un psicólogo asignado, desvincular
+    if (!value && users.find(u => u.id === userId)?.psychologistId) {
+      await onUnassign(userId);
+    }
+  };
+
+  // Filtrar usuarios por nombre o correo
+  const filteredUsers = users.filter(user => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return user.name.toLowerCase().includes(query) || user.email.toLowerCase().includes(query);
+  });
+
   return (
     <div className="container" style={{ maxWidth: '1200px' }}>
       <h3>Gestión de usuarios</h3>
+      <div style={{ marginBottom: 16 }}>
+        <input
+          type="text"
+          placeholder="Buscar por nombre o correo..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{
+            width: '100%',
+            maxWidth: '400px',
+            padding: '10px 16px',
+            fontSize: '15px',
+            border: '1px solid var(--border)',
+            borderRadius: '8px',
+            outline: 'none',
+            transition: 'border-color 0.2s'
+          }}
+          onFocus={(e) => e.target.style.borderColor = 'var(--accent)'}
+          onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
+        />
+      </div>
       {loading && <div>Cargando...</div>}
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
@@ -77,7 +140,14 @@ export default function AdminUsersPanel() {
           </tr>
         </thead>
         <tbody>
-          {users.map(u => (
+          {filteredUsers.length === 0 ? (
+            <tr>
+              <td colSpan={5} style={{ padding: 16, textAlign: 'center', color: '#666' }}>
+                {searchQuery ? 'No se encontraron usuarios que coincidan con la búsqueda' : 'No hay usuarios'}
+              </td>
+            </tr>
+          ) : (
+            filteredUsers.map(u => (
             <tr key={u.id} style={{ borderTop: '1px solid #eee' }}>
               <td style={{ padding: 8 }}>{u.name}</td>
               <td style={{ padding: 8 }}>{u.email}</td>
@@ -90,7 +160,7 @@ export default function AdminUsersPanel() {
               </td>
               <td style={{ padding: 8 }}>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <select value={assign[u.id] ?? ''} onChange={(e) => setAssign({ ...assign, [u.id]: e.target.value ? Number(e.target.value) : undefined })}>
+                  <select value={assign[u.id] ?? ''} onChange={(e) => onSelectChange(u.id, e.target.value)}>
                     <option value="">-- Selecciona --</option>
                     {psychs.map(p => (
                       <option key={p.id} value={p.id}>{p.name} ({p.email})</option>
@@ -104,7 +174,8 @@ export default function AdminUsersPanel() {
               </td>
               <td style={{ padding: 8 }}></td>
             </tr>
-          ))}
+            ))
+          )}
         </tbody>
       </table>
     </div>
