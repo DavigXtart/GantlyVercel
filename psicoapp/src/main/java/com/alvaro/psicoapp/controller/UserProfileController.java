@@ -27,6 +27,7 @@ public class UserProfileController {
     }
 
     @GetMapping
+    @Transactional(readOnly = true)
     public ResponseEntity<Map<String, Object>> getMe(Principal principal) {
         Map<String, Object> res = new HashMap<>();
         if (principal == null) return ResponseEntity.ok(res);
@@ -37,6 +38,9 @@ public class UserProfileController {
         res.put("role", user.getRole());
         res.put("avatarUrl", user.getAvatarUrl());
         res.put("darkMode", user.getDarkMode());
+        res.put("gender", user.getGender());
+        res.put("age", user.getAge());
+        res.put("createdAt", user.getCreatedAt() != null ? user.getCreatedAt().toString() : null);
         return ResponseEntity.ok(res);
     }
 
@@ -66,6 +70,13 @@ public class UserProfileController {
         var user = userRepository.findByEmail(principal.getName()).orElseThrow();
         if (body.containsKey("name")) user.setName(String.valueOf(body.get("name")));
         if (body.containsKey("darkMode")) user.setDarkMode(Boolean.valueOf(String.valueOf(body.get("darkMode"))));
+        if (body.containsKey("gender")) user.setGender(String.valueOf(body.get("gender")));
+        if (body.containsKey("age")) {
+            Object ageObj = body.get("age");
+            if (ageObj != null) {
+                user.setAge(Integer.valueOf(ageObj.toString()));
+            }
+        }
         userRepository.save(user);
         return ResponseEntity.ok().build();
     }

@@ -30,6 +30,7 @@ com\alvaro\psicoapp\controller\AdminUserController.class
 com\alvaro\psicoapp\controller\AdminController$SetSubfactorReq.class
 com\alvaro\psicoapp\domain\FactorResultEntity.class
 com\alvaro\psicoapp\security\SecurityConfig.class
+com\alvaro\psicoapp\config\WebSocketAuthInterceptor.class
 com\alvaro\psicoapp\controller\AdminController$TestCreate.class
 com\alvaro\psicoapp\domain\TaskEntity.class
 com\alvaro\psicoapp\repository\SubfactorRepository.class

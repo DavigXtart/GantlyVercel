@@ -183,9 +183,9 @@ export const adminService = {
 export const profileService = {
   me: async () => {
     const { data } = await api.get('/profile');
-    return data as { id: number; name: string; email: string; role: string; avatarUrl?: string; darkMode?: boolean };
+    return data as { id: number; name: string; email: string; role: string; avatarUrl?: string; darkMode?: boolean; gender?: string; age?: number; createdAt?: string };
   },
-  update: async (updates: { name?: string; darkMode?: boolean }) => {
+  update: async (updates: { name?: string; darkMode?: boolean; gender?: string | null; age?: number | null }) => {
     await api.put('/profile', updates);
   },
   uploadAvatar: async (file: File) => {
@@ -233,7 +233,12 @@ export const calendarService = {
     return data as Array<any>;
   },
   book: async (appointmentId: number) => {
-    await api.post(`/calendar/book/${appointmentId}`);
+    const { data } = await api.post(`/calendar/book/${appointmentId}`);
+    return data;
+  },
+  myAppointments: async () => {
+    const { data } = await api.get('/calendar/my-appointments');
+    return data as Array<{ id: number; startTime: string; endTime: string; status: string; psychologist?: { id: number; name: string; email: string } }>;
   }
 };
 
