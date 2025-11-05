@@ -30,6 +30,12 @@ public class UserEntity {
 	@Column(length = 20)
 	private String role = "USER"; // USER o ADMIN
 
+	@Column(name = "avatar_url", length = 500)
+	private String avatarUrl;
+
+	@Column(name = "dark_mode")
+	private Boolean darkMode = false;
+
 	public Long getId() { return id; }
 	public void setId(Long id) { this.id = id; }
 	public String getName() { return name; }
@@ -46,4 +52,8 @@ public class UserEntity {
 	public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 	public String getRole() { return role; }
 	public void setRole(String role) { this.role = role; }
+	public String getAvatarUrl() { return avatarUrl; }
+	public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+	public Boolean getDarkMode() { return darkMode; }
+	public void setDarkMode(Boolean darkMode) { this.darkMode = darkMode; }
 }

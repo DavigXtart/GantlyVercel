@@ -7,6 +7,9 @@ import Landing from './components/Landing';
 import TestFlow from './components/TestFlow';
 import InitialTestFlow from './components/InitialTestFlow';
 import { authService } from './services/api';
+import UserDashboard from './components/UserDashboard';
+import PsychDashboard from './components/PsychDashboard';
+import AdminUsersPanel from './components/AdminUsersPanel';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -16,43 +19,38 @@ function App() {
   const [showInitialTest, setShowInitialTest] = useState(false);
   const [initialTestSessionId, setInitialTestSessionId] = useState<string | null>(null);
   const [selectedTestId, setSelectedTestId] = useState<number | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [showAdmin, setShowAdmin] = useState(false);
+  const [role, setRole] = useState<'USER'|'ADMIN'|'PSYCHOLOGIST'|null>(null);
+  const [adminTab, setAdminTab] = useState<'tests'|'users'>('users');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
       setIsAuthenticated(true);
       setShowLanding(false);
-      checkAdminRole();
+      checkRole();
     }
   }, []);
 
-  const checkAdminRole = async () => {
+  const checkRole = async () => {
     try {
       const userData: any = await authService.me();
-      console.log('User data:', userData); // Debug
-      if (userData && userData.role === 'ADMIN') {
-        setIsAdmin(true);
-      } else {
-        setIsAdmin(false); // Asegurar que solo ADMIN ve el panel
-      }
+      setRole(userData?.role || null);
     } catch (err) {
       console.error('Error verificando rol:', err);
-      setIsAdmin(false);
+      setRole(null);
     }
   };
 
   const handleLogin = () => {
     setIsAuthenticated(true);
-    checkAdminRole(); // Verificar rol después de login
+    checkRole();
   };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     setIsAuthenticated(false);
     setSelectedTestId(null);
-    setShowAdmin(false);
+    setRole(null);
   };
 
   const handleRegister = () => {
@@ -153,12 +151,13 @@ function App() {
     return null;
   }
 
+  // Navegación principal autenticado según rol
   return (
     <div>
       <nav>
-          <div className="container" style={{ maxWidth: '1200px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="container" style={{ maxWidth: '1200px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 
-            onClick={() => { setShowLanding(true); setShowAdmin(false); }}
+            onClick={() => {}}
             style={{ cursor: 'pointer', userSelect: 'none', transition: 'opacity 0.2s' }}
             onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
             onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
@@ -166,17 +165,38 @@ function App() {
             PSYmatch
           </h3>
           <div style={{ display: 'flex', gap: '12px' }}>
-            {isAdmin && !showAdmin && (
-              <button onClick={() => setShowAdmin(true)} className="btn-secondary">Panel Admin</button>
-            )}
-            {showAdmin && (
-              <button onClick={() => setShowAdmin(false)} className="btn-secondary">Tests</button>
+            {role === 'ADMIN' && (
+              <>
+                <button className={`btn-secondary ${adminTab==='users'?'active':''}`} onClick={() => setAdminTab('users')}>Roles</button>
+                <button className={`btn-secondary ${adminTab==='tests'?'active':''}`} onClick={() => setAdminTab('tests')}>Gestión de tests</button>
+              </>
             )}
             <button onClick={handleLogout} className="btn-secondary">Cerrar sesión</button>
           </div>
         </div>
       </nav>
-      {showAdmin ? <AdminPanel /> : <TestsList onSelectTest={handleSelectTest} />}
+
+      {/* ADMIN: sólo panel admin */}
+      {role === 'ADMIN' && (
+        <div>
+          {adminTab === 'users' ? <AdminUsersPanel /> : <AdminPanel />}
+        </div>
+      )}
+
+      {/* USER: Mi perfil */}
+      {role === 'USER' && (
+        <UserDashboard />
+      )}
+
+      {/* PSYCHOLOGIST: Mi perfil */}
+      {role === 'PSYCHOLOGIST' && (
+        <PsychDashboard />
+      )}
+
+      {/* Si no tenemos el rol aún */}
+      {!role && (
+        <div className="container" style={{ maxWidth: '1200px', marginTop: 24 }}>Cargando...</div>
+      )}
     </div>
   );
 }

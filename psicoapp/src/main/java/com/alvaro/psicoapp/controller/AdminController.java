@@ -17,12 +17,14 @@ public class AdminController {
 	private final UserAnswerRepository userAnswerRepository;
 	private final SubfactorRepository subfactorRepository;
 	private final FactorRepository factorRepository;
+	private final UserPsychologistRepository userPsychologistRepository;
 
 	public AdminController(TestRepository testRepository, QuestionRepository questionRepository, 
 	                     AnswerRepository answerRepository, UserRepository userRepository,
 	                     UserAnswerRepository userAnswerRepository,
 	                     SubfactorRepository subfactorRepository,
-	                     FactorRepository factorRepository) {
+	                     FactorRepository factorRepository,
+	                     UserPsychologistRepository userPsychologistRepository) {
 		this.testRepository = testRepository;
 		this.questionRepository = questionRepository;
 		this.answerRepository = answerRepository;
@@ -30,6 +32,7 @@ public class AdminController {
 		this.userAnswerRepository = userAnswerRepository;
 		this.subfactorRepository = subfactorRepository;
 		this.factorRepository = factorRepository;
+		this.userPsychologistRepository = userPsychologistRepository;
 	}
 
 	// GET: Listar todos los tests
@@ -515,6 +518,7 @@ public class AdminController {
 
 	// GET: Listar todos los usuarios
 	@GetMapping("/users")
+	@org.springframework.transaction.annotation.Transactional(readOnly = true)
 	public List<Map<String, Object>> listUsers() {
 		return userRepository.findAll().stream().map(user -> {
 			Map<String, Object> userMap = new HashMap<>();
@@ -529,6 +533,16 @@ public class AdminController {
 				.map(ua -> ua.getQuestion().getTest().getId())
 				.collect(Collectors.toSet());
 			userMap.put("testsCompleted", testIds.size());
+			// Obtener psicólogo asignado si existe
+			var rel = userPsychologistRepository.findByUserId(user.getId());
+			if (rel.isPresent()) {
+				var psych = rel.get().getPsychologist();
+				userMap.put("psychologistId", psych.getId());
+				userMap.put("psychologistName", psych.getName());
+			} else {
+				userMap.put("psychologistId", null);
+				userMap.put("psychologistName", null);
+			}
 			return userMap;
 		}).collect(Collectors.toList());
 	}

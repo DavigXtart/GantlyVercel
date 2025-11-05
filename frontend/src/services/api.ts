@@ -150,26 +150,10 @@ export const adminService = {
   deleteQuestion: async (id: number) => {
     await api.delete(`/admin/questions/${id}`);
   },
-  // Answers
-  getAnswers: async (questionId: number) => {
-    const { data } = await api.get(`/admin/questions/${questionId}/answers`);
-    return data;
-  },
-  createAnswer: async (questionId: number, text: string, value: number, position: number) => {
-    const { data } = await api.post('/admin/answers', { questionId, text, value, position });
-    return data;
-  },
-  updateAnswer: async (id: number, updates: { text?: string; value?: number; position?: number }) => {
-    const { data } = await api.put(`/admin/answers/${id}`, updates);
-    return data;
-  },
-  deleteAnswer: async (id: number) => {
-    await api.delete(`/admin/answers/${id}`);
-  },
   // Users
   listUsers: async () => {
     const { data } = await api.get('/admin/users');
-    return data;
+    return data as Array<{ id: number; name: string; email: string; role: string; psychologistId?: number | null; psychologistName?: string | null }>;
   },
   getUserDetails: async (userId: number) => {
     const { data } = await api.get(`/admin/users/${userId}`);
@@ -179,6 +163,83 @@ export const adminService = {
     const { data } = await api.get(`/admin/tests/${testId}/user-answers`);
     return data;
   },
+  // Roles y asignaciones
+  setUserRole: async (userId: number, role: 'USER'|'ADMIN'|'PSYCHOLOGIST') => {
+    await api.post('/admin/users/role', { userId, role });
+  },
+  listPsychologists: async () => {
+    const { data } = await api.get('/admin/users/psychologists');
+    return data as Array<{ id: number; name: string; email: string }>;
+  },
+  assignPsychologist: async (userId: number, psychologistId: number) => {
+    await api.post('/admin/users/assign', { userId, psychologistId });
+  },
+};
+
+// Perfil de usuario
+export const profileService = {
+  me: async () => {
+    const { data } = await api.get('/profile');
+    return data as { id: number; name: string; email: string; role: string; avatarUrl?: string; darkMode?: boolean };
+  },
+  update: async (updates: { name?: string; darkMode?: boolean }) => {
+    await api.put('/profile', updates);
+  },
+  uploadAvatar: async (file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    const { data } = await api.post('/profile/avatar', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+    return data as { avatarUrl: string };
+  },
+  myPsychologist: async () => {
+    const { data } = await api.get('/profile/my-psychologist');
+    return data as { status: 'PENDING'|'ASSIGNED'; psychologist?: { id: number; name: string; email: string; avatarUrl?: string } };
+  }
+};
+
+// Tareas
+export const tasksService = {
+  list: async () => {
+    const { data } = await api.get('/tasks');
+    return data as Array<any>;
+  },
+  create: async (payload: { userId: number; psychologistId: number; title: string; description?: string }) => {
+    const { data } = await api.post('/tasks', payload);
+    return data as any;
+  },
+  uploadFile: async (taskId: number, file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    const { data } = await api.post(`/tasks/${taskId}/files`, form, { headers: { 'Content-Type': 'multipart/form-data' } });
+    return data as any;
+  }
+};
+
+// Calendario
+export const calendarService = {
+  createSlot: async (start: string, end: string) => {
+    const { data } = await api.post('/calendar/slots', { start, end });
+    return data as any;
+  },
+  mySlots: async (from: string, to: string) => {
+    const { data } = await api.get('/calendar/slots', { params: { from, to } });
+    return data as Array<any>;
+  },
+  availability: async (from: string, to: string) => {
+    const { data } = await api.get('/calendar/availability', { params: { from, to } });
+    return data as Array<any>;
+  },
+  book: async (appointmentId: number) => {
+    await api.post(`/calendar/book/${appointmentId}`);
+  }
+};
+
+// Psicólogo
+export const psychService = {
+  patients: async () => {
+    const { data } = await api.get('/psych/patients');
+    return data as Array<{ id: number; name: string; email: string; avatarUrl?: string }>;
+  }
 };
 
 export default api;

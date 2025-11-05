@@ -33,6 +33,12 @@ public class SecurityConfig {
 				.requestMatchers("/api/tests/**").permitAll() // Tests visibles para todos
 				.requestMatchers("/api/initial-test/**").permitAll() // Test inicial público
 				.requestMatchers("/api/flow/**").authenticated() // Flujo de respuestas requiere autenticación
+				.requestMatchers("/api/profile/**").authenticated()
+				.requestMatchers("/api/tasks/**").authenticated()
+				.requestMatchers("/api/calendar/**").authenticated()
+				.requestMatchers("/api/psych/**").authenticated()
+				.requestMatchers("/api/chat/**").authenticated()
+				.requestMatchers("/ws/**", "/topic/**", "/app/**").permitAll()
 				.requestMatchers("/actuator/**").permitAll()
 				.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui.html", "/webjars/**").permitAll()
 				.requestMatchers("/api/admin/**").access((authentication, context) -> {
