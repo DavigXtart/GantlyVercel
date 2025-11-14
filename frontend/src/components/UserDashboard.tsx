@@ -30,6 +30,12 @@ export default function UserDashboard() {
     loadAvailability(); // Cargar disponibilidad y citas al inicio
   }, []);
 
+  useEffect(() => {
+    if (tab === 'calendario') {
+      loadAvailability();
+    }
+  }, [tab]);
+
   const onAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     try {
@@ -570,24 +576,6 @@ export default function UserDashboard() {
             <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Calendario de Disponibilidad
             </h3>
-            <button
-              onClick={loadAvailability}
-              style={{
-                padding: '10px 20px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontSize: '14px',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-            >
-              🔄 Refrescar
-            </button>
           </div>
           <CalendarWeek
             mode="USER"

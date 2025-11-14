@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { testService } from '../services/api';
+import PSYmatchLogo from './PSYmatchLogo';
 
 interface Question {
   id: number;
@@ -29,6 +30,35 @@ interface TestFlowProps {
   onComplete: () => void;
 }
 
+type Mood = 'serenity' | 'focus' | 'energy';
+
+const moodPalette: Record<
+  Mood,
+  { bg: string; accent: string; accentSoft: string; border: string; glow: string }
+> = {
+  serenity: {
+    bg: 'linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #0f172a 100%)',
+    accent: '#38bdf8',
+    accentSoft: 'rgba(56, 189, 248, 0.12)',
+    border: 'rgba(148, 163, 184, 0.35)',
+    glow: '0 0 22px rgba(56, 189, 248, 0.35)'
+  },
+  focus: {
+    bg: 'linear-gradient(135deg, #111827 0%, #1f2937 50%, #111827 100%)',
+    accent: '#818cf8',
+    accentSoft: 'rgba(129, 140, 248, 0.12)',
+    border: 'rgba(129, 140, 248, 0.35)',
+    glow: '0 0 22px rgba(129, 140, 248, 0.35)'
+  },
+  energy: {
+    bg: 'linear-gradient(135deg, #0f172a 0%, #164e63 45%, #0f172a 100%)',
+    accent: '#34d399',
+    accentSoft: 'rgba(52, 211, 153, 0.12)',
+    border: 'rgba(52, 211, 153, 0.35)',
+    glow: '0 0 22px rgba(52, 211, 153, 0.35)'
+  }
+};
+
 export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) {
   const [test, setTest] = useState<TestDetails | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -36,6 +66,9 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [questionTransition, setQuestionTransition] = useState(false);
+  const [mood, setMood] = useState<Mood>('serenity');
+
+  const palette = moodPalette[mood];
 
   useEffect(() => {
     loadTest();
@@ -46,6 +79,17 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
     const timer = setTimeout(() => setQuestionTransition(false), 300);
     return () => clearTimeout(timer);
   }, [currentQuestionIndex]);
+
+  useEffect(() => {
+    const moods: Mood[] = ['serenity', 'focus', 'energy'];
+    const interval = setInterval(() => {
+      setMood((prev) => {
+        const idx = moods.indexOf(prev);
+        return moods[(idx + 1) % moods.length];
+      });
+    }, 12000);
+    return () => clearInterval(interval);
+  }, []);
 
   const loadTest = async () => {
     try {
@@ -206,21 +250,20 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
   const progress = ((currentQuestionIndex + 1) / test.questions.length) * 100;
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #f0f9ff 0%, #ecfdf5 50%, #fef3c7 100%)',
-      backgroundSize: '200% 200%',
-      animation: 'gradient-shift 15s ease infinite',
-      padding: '40px 20px',
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        background: palette.bg,
+        transition: 'background 1.2s ease',
+        padding: '48px 20px 64px',
+        position: 'relative',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center'
+      }}
+    >
       <style>{`
-        @keyframes gradient-shift {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
         @keyframes slideIn {
           from {
             opacity: 0;
@@ -232,362 +275,388 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
           }
         }
         @keyframes pulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.02); }
+          0%, 100% { transform: scale(1); opacity: 0.8; }
+          50% { transform: scale(1.08); opacity: 1; }
         }
         @keyframes shimmer {
           0% { transform: translateX(-100%); }
           100% { transform: translateX(100%); }
         }
+        @keyframes floating {
+          0%, 100% { transform: translateY(0); opacity: 0.45; }
+          50% { transform: translateY(-12px); opacity: 0.7; }
+        }
+        @keyframes rotate {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
       `}</style>
 
-      {/* Decorative elements */}
-      <div style={{
-        position: 'absolute',
-        top: '-100px',
-        right: '-100px',
-        width: '300px',
-        height: '300px',
-        borderRadius: '50%',
-        background: 'rgba(37, 99, 235, 0.1)',
-        filter: 'blur(60px)',
-      }} />
-      <div style={{
-        position: 'absolute',
-        bottom: '-100px',
-        left: '-100px',
-        width: '300px',
-        height: '300px',
-        borderRadius: '50%',
-        background: 'rgba(6, 182, 212, 0.1)',
-        filter: 'blur(60px)',
-      }} />
+      {/* Ambient gradient layers */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: `radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.22), transparent 55%),
+                       radial-gradient(circle at 80% 10%, rgba(56, 189, 248, 0.18), transparent 60%),
+                       radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.18), transparent 55%)`,
+          transition: 'opacity 1s ease',
+          opacity: mood === 'serenity' ? 1 : 0.9,
+          pointerEvents: 'none'
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: `radial-gradient(circle at 20% 25%, rgba(129, 140, 248, 0.18), transparent 60%),
+                       radial-gradient(circle at 70% 80%, rgba(78, 205, 196, 0.16), transparent 55%)`,
+          transition: 'opacity 1s ease',
+          opacity: mood === 'focus' ? 1 : 0,
+          pointerEvents: 'none'
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: `radial-gradient(circle at 30% 30%, rgba(34, 197, 94, 0.2), transparent 60%),
+                       radial-gradient(circle at 70% 70%, rgba(59, 130, 246, 0.2), transparent 55%)`,
+          transition: 'opacity 1s ease',
+          opacity: mood === 'energy' ? 1 : 0,
+          pointerEvents: 'none'
+        }}
+      />
 
-      <div style={{ maxWidth: '900px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-        {/* Header con progreso mejorado */}
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(20px)',
-          borderRadius: '24px',
-          padding: '32px',
-          marginBottom: '32px',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-          animation: 'slideIn 0.4s ease-out',
-        }}>
-          <h1 style={{
-            fontSize: 'clamp(28px, 4vw, 40px)',
-            fontWeight: 700,
-            marginBottom: '8px',
-            background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #06b6d4 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            letterSpacing: '-0.02em',
-          }}>
-            {test.title || test.code || `Test #${test.id}`}
-          </h1>
-          {test.description && (
-            <p style={{ color: '#64748b', marginTop: '8px', fontSize: '16px' }}>{test.description}</p>
-          )}
-          
-          {/* Barra de progreso mejorada */}
-          <div style={{ marginTop: '32px' }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '12px',
-            }}>
-              <span style={{ fontSize: '14px', fontWeight: 600, color: '#475569' }}>
-                Progreso
-              </span>
-              <span style={{
-                fontSize: '14px',
-                fontWeight: 600,
-                color: '#2563eb',
-                background: 'rgba(37, 99, 235, 0.1)',
-                padding: '4px 12px',
-                borderRadius: '12px',
-              }}>
-                {currentQuestionIndex + 1} / {test.questions.length}
-              </span>
+      {/* Floating particles */}
+      {[...Array(6)].map((_, idx) => (
+        <div
+          key={idx}
+          style={{
+            position: 'absolute',
+            width: `${18 + idx * 6}px`,
+            height: `${18 + idx * 6}px`,
+            borderRadius: '50%',
+            background: 'rgba(255, 255, 255, 0.06)',
+            top: `${10 + idx * 12}%`,
+            left: `${15 + idx * 10}%`,
+            filter: 'blur(0.8px)',
+            animation: `floating ${12 + idx * 2}s ease-in-out ${idx}s infinite`
+          }}
+        />
+      ))}
+
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '1040px',
+          position: 'relative',
+          zIndex: 1,
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1fr)',
+          gap: '28px'
+        }}
+      >
+        {/* Top navigation */}
+        <div
+          style={{
+            background: 'rgba(15, 23, 42, 0.45)',
+            border: `1px solid ${palette.border}`,
+            borderRadius: '20px',
+            padding: '20px 28px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: palette.glow
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <PSYmatchLogo size="small" />
+            <div>
+              <h4 style={{ margin: 0, fontSize: '14px', letterSpacing: '0.12em', color: 'rgba(226, 232, 240, 0.7)', textTransform: 'uppercase' }}>
+                Programa de evaluación
+              </h4>
+              <h2 style={{ margin: '4px 0 0', fontSize: '22px', fontWeight: 600, color: 'rgba(248, 250, 252, 0.95)' }}>
+                {test.title || test.code || `Test #${test.id}`}
+              </h2>
             </div>
-            <div style={{
-              width: '100%',
-              height: '12px',
-              background: 'rgba(203, 213, 225, 0.3)',
-              borderRadius: '10px',
-              overflow: 'hidden',
-              position: 'relative',
-            }}>
+          </div>
+          <button
+            onClick={onBack}
+            style={{
+              padding: '12px 20px',
+              borderRadius: '999px',
+              border: `1px solid ${palette.border}`,
+              background: 'transparent',
+              color: 'rgba(226, 232, 240, 0.85)',
+              fontSize: '13px',
+              fontWeight: 600,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              cursor: 'pointer'
+            }}
+          >
+            Salir
+          </button>
+        </div>
+
+        {/* Progress */}
+        <div
+          style={{
+            background: 'rgba(15, 23, 42, 0.45)',
+            border: `1px solid ${palette.border}`,
+            borderRadius: '20px',
+            padding: '28px 32px',
+            display: 'grid',
+            gridTemplateColumns: 'minmax(280px, 420px) minmax(0, 1fr)',
+            gap: '24px',
+            alignItems: 'center',
+            boxShadow: palette.glow
+          }}
+        >
+          <div>
+            <h3 style={{ margin: 0, fontSize: '16px', letterSpacing: '0.12em', color: 'rgba(226, 232, 240, 0.65)', textTransform: 'uppercase' }}>Estado</h3>
+            <p style={{ margin: '10px 0 0', fontSize: '22px', fontWeight: 600, color: 'rgba(248, 250, 252, 0.95)' }}>
+              Pregunta {currentQuestionIndex + 1} de {test.questions.length}
+            </p>
+            <p style={{ margin: '6px 0 0', fontSize: '14px', color: 'rgba(226, 232, 240, 0.6)' }}>{test.description}</p>
+          </div>
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', color: 'rgba(226, 232, 240, 0.65)', fontSize: '13px' }}>
+              <span>{Math.round(progress)}% completado</span>
+              <span>{test.questions.length - (currentQuestionIndex + 1)} en espera</span>
+            </div>
+            <div style={{ position: 'relative', height: '12px', borderRadius: '999px', overflow: 'hidden', background: 'rgba(148, 163, 184, 0.2)' }}>
               <div
                 style={{
-                  height: '100%',
-                  background: 'linear-gradient(90deg, #2563eb 0%, #06b6d4 50%, #10b981 100%)',
-                  backgroundSize: '200% 100%',
                   width: `${progress}%`,
-                  transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-                  borderRadius: '10px',
-                  boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)',
-                  position: 'relative',
+                  height: '100%',
+                  background: `linear-gradient(90deg, ${palette.accent} 0%, rgba(34, 197, 94, 0.85) 100%)`,
+                  transition: 'width 0.45s cubic-bezier(0.4, 0, 0.2, 1)'
                 }}
-              >
-                <div style={{
+              />
+              <div
+                style={{
                   position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)',
-                  animation: 'shimmer 2s infinite',
-                }} />
-              </div>
+                  inset: 0,
+                  background: 'linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.4), rgba(255,255,255,0))',
+                  mixBlendMode: 'overlay',
+                  animation: 'shimmer 1.6s infinite'
+                }}
+              />
             </div>
           </div>
         </div>
 
-        {/* Card de pregunta */}
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(20px)',
-          borderRadius: '24px',
-          padding: '48px',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-          animation: questionTransition ? 'slideIn 0.3s ease-out' : 'none',
-          marginBottom: '32px',
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            marginBottom: '32px',
-          }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #2563eb, #06b6d4)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontSize: '20px',
-              fontWeight: 700,
-              boxShadow: '0 4px 16px rgba(37, 99, 235, 0.3)',
-            }}>
-              {currentQuestionIndex + 1}
+        {/* Question */}
+        <div
+          style={{
+            background: 'rgba(15, 23, 42, 0.55)',
+            border: `1px solid ${palette.border}`,
+            borderRadius: '24px',
+            padding: '48px',
+            boxShadow: palette.glow,
+            animation: questionTransition ? 'slideIn 0.35s ease-out' : 'none',
+            position: 'relative'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '28px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div
+                style={{
+                  width: '54px',
+                  height: '54px',
+                  borderRadius: '16px',
+                  background: palette.accentSoft,
+                  border: `1px solid ${palette.border}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: palette.accent,
+                  fontSize: '20px',
+                  fontWeight: 700
+                }}
+              >
+                {currentQuestionIndex + 1}
+              </div>
+              <div>
+                <h2 style={{ margin: 0, fontSize: 'clamp(24px, 2.6vw, 32px)', fontWeight: 600, color: 'rgba(248, 250, 252, 0.96)' }}>
+                  {currentQuestion.text}
+                </h2>
+                <p style={{ margin: '6px 0 0', color: 'rgba(226, 232, 240, 0.7)', fontSize: '14px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                  Tu respuesta es confidencial
+                </p>
+              </div>
             </div>
-            <h2 style={{
-              fontSize: 'clamp(24px, 3vw, 32px)',
-              fontWeight: 600,
-              color: '#0f172a',
-              lineHeight: '1.3',
-              margin: 0,
-            }}>
-              {currentQuestion.text}
-            </h2>
+            <div style={{ display: 'flex', gap: '18px' }}>
+              <button
+                onClick={handlePrevious}
+                disabled={currentQuestionIndex === 0}
+                style={{
+                  padding: '12px 18px',
+                  borderRadius: '14px',
+                  border: `1px solid ${palette.border}`,
+                  background: 'transparent',
+                  color: 'rgba(226, 232, 240, 0.75)',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  letterSpacing: '0.08em',
+                  cursor: currentQuestionIndex === 0 ? 'not-allowed' : 'pointer',
+                  opacity: currentQuestionIndex === 0 ? 0.4 : 1
+                }}
+              >
+                ← Anterior
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={currentQuestionIndex === test.questions.length - 1}
+                style={{
+                  padding: '12px 18px',
+                  borderRadius: '14px',
+                  border: 'none',
+                  background: palette.accentSoft,
+                  color: palette.accent,
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  letterSpacing: '0.08em',
+                  cursor: currentQuestionIndex === test.questions.length - 1 ? 'not-allowed' : 'pointer',
+                  opacity: currentQuestionIndex === test.questions.length - 1 ? 0.35 : 1
+                }}
+              >
+                Siguiente →
+              </button>
+            </div>
           </div>
 
           {/* Respuestas */}
           {currentQuestion.type === 'SINGLE' && currentQuestion.answers && currentQuestion.answers.length > 0 && (
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px',
-            }}>
+            <div style={{ display: 'grid', gap: '14px' }}>
               {currentQuestion.answers.map((answer, index) => {
                 const isSelected = currentAnswer?.answerId === answer.id;
                 return (
-                  <div
+                  <button
                     key={answer.id}
                     onClick={() => handleAnswer(currentQuestion.id, answer.id)}
                     style={{
-                      padding: '20px 24px',
-                      borderRadius: '16px',
-                      border: isSelected ? '2px solid #2563eb' : '2px solid #e5e7eb',
+                      padding: '20px 26px',
+                      borderRadius: '18px',
+                      border: `1px solid ${isSelected ? palette.border : 'rgba(148, 163, 184, 0.25)'}`,
                       background: isSelected
-                        ? 'linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(6, 182, 212, 0.1))'
-                        : 'white',
+                        ? `radial-gradient(circle at 0% 0%, rgba(59,130,246,0.32), transparent 65%), rgba(15,23,42,0.68)`
+                        : 'rgba(15, 23, 42, 0.65)',
+                      color: 'rgba(248, 250, 252, 0.92)',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
                       cursor: 'pointer',
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                      position: 'relative',
-                      overflow: 'hidden',
-                      animation: `slideIn 0.3s ease-out ${index * 0.05}s both`,
-                      transform: isSelected ? 'translateX(8px)' : 'translateX(0)',
-                      boxShadow: isSelected
-                        ? '0 4px 20px rgba(37, 99, 235, 0.15)'
-                        : '0 2px 8px rgba(0, 0, 0, 0.04)',
+                      transition: 'all 0.25s ease',
+                      boxShadow: isSelected ? palette.glow : 'none',
+                      backdropFilter: 'blur(6px)',
+                      transform: isSelected ? 'translateX(6px)' : 'translateX(0)',
+                      animation: `slideIn 0.35s ease ${index * 0.04}s both`
                     }}
                     onMouseEnter={(e) => {
                       if (!isSelected) {
-                        e.currentTarget.style.borderColor = '#2563eb';
-                        e.currentTarget.style.background = 'rgba(37, 99, 235, 0.05)';
+                        e.currentTarget.style.borderColor = palette.border;
+                        e.currentTarget.style.background = 'rgba(15, 23, 42, 0.72)';
                         e.currentTarget.style.transform = 'translateX(4px)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isSelected) {
-                        e.currentTarget.style.borderColor = '#e5e7eb';
-                        e.currentTarget.style.background = 'white';
+                        e.currentTarget.style.borderColor = 'rgba(148, 163, 184, 0.25)';
+                        e.currentTarget.style.background = 'rgba(15, 23, 42, 0.65)';
                         e.currentTarget.style.transform = 'translateX(0)';
                       }
                     }}
                   >
-                    {isSelected && (
-                      <div style={{
-                        position: 'absolute',
-                        left: 0,
-                        top: 0,
-                        bottom: 0,
-                        width: '4px',
-                        background: 'linear-gradient(180deg, #2563eb, #06b6d4)',
-                        borderRadius: '0 4px 4px 0',
-                      }} />
-                    )}
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '16px',
-                    }}>
-                      <div style={{
+                    <span style={{ fontSize: '18px', fontWeight: 500, textAlign: 'left' }}>{answer.text}</span>
+                    <span
+                      style={{
                         width: '24px',
                         height: '24px',
                         borderRadius: '50%',
-                        border: isSelected ? '2px solid #2563eb' : '2px solid #cbd5e1',
-                        background: isSelected ? '#2563eb' : 'transparent',
+                        border: `2px solid ${isSelected ? palette.accent : 'rgba(148, 163, 184, 0.4)'}`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        flexShrink: 0,
-                        transition: 'all 0.3s',
-                      }}>
-                        {isSelected && (
-                          <div style={{
-                            width: '10px',
-                            height: '10px',
-                            borderRadius: '50%',
-                            background: 'white',
-                            animation: 'bounce-in 0.3s ease-out',
-                          }} />
-                        )}
-                      </div>
-                      <span style={{
-                        fontSize: '18px',
-                        color: isSelected ? '#1e3a8a' : '#475569',
-                        fontWeight: isSelected ? 500 : 400,
-                      }}>
-                        {answer.text}
-                      </span>
-                    </div>
-                  </div>
+                        transition: 'all 0.25s ease',
+                        background: isSelected ? palette.accent : 'transparent',
+                        color: isSelected ? '#0f172a' : 'transparent'
+                      }}
+                    >
+                      ✓
+                    </span>
+                  </button>
                 );
               })}
             </div>
           )}
 
           {currentQuestion.type === 'MULTI' && currentQuestion.answers && currentQuestion.answers.length > 0 && (
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px',
-            }}>
+            <div style={{ display: 'grid', gap: '14px' }}>
               {currentQuestion.answers.map((answer, index) => {
                 const isSelected = currentAnswer?.answerId === answer.id;
                 return (
-                  <div
+                  <button
                     key={answer.id}
                     onClick={() => handleAnswer(currentQuestion.id, isSelected ? undefined : answer.id)}
                     style={{
-                      padding: '20px 24px',
-                      borderRadius: '16px',
-                      border: isSelected ? '2px solid #2563eb' : '2px solid #e5e7eb',
+                      padding: '20px 26px',
+                      borderRadius: '18px',
+                      border: `1px solid ${isSelected ? palette.border : 'rgba(148, 163, 184, 0.25)'}`,
                       background: isSelected
-                        ? 'linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(6, 182, 212, 0.1))'
-                        : 'white',
+                        ? `radial-gradient(circle at 0% 0%, rgba(34,197,94,0.32), transparent 65%), rgba(15,23,42,0.68)`
+                        : 'rgba(15, 23, 42, 0.65)',
                       cursor: 'pointer',
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      transition: 'all 0.25s ease',
                       position: 'relative',
-                      overflow: 'hidden',
-                      animation: `slideIn 0.3s ease-out ${index * 0.05}s both`,
-                      transform: isSelected ? 'translateX(8px)' : 'translateX(0)',
-                      boxShadow: isSelected
-                        ? '0 4px 20px rgba(37, 99, 235, 0.15)'
-                        : '0 2px 8px rgba(0, 0, 0, 0.04)',
+                      boxShadow: isSelected ? palette.glow : 'none',
+                      backdropFilter: 'blur(6px)',
+                      transform: isSelected ? 'translateX(6px)' : 'translateX(0)',
+                      animation: `slideIn 0.35s ease ${index * 0.04}s both`
                     }}
                     onMouseEnter={(e) => {
                       if (!isSelected) {
-                        e.currentTarget.style.borderColor = '#2563eb';
-                        e.currentTarget.style.background = 'rgba(37, 99, 235, 0.05)';
+                        e.currentTarget.style.borderColor = palette.border;
+                        e.currentTarget.style.background = 'rgba(15, 23, 42, 0.72)';
                         e.currentTarget.style.transform = 'translateX(4px)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isSelected) {
-                        e.currentTarget.style.borderColor = '#e5e7eb';
-                        e.currentTarget.style.background = 'white';
+                        e.currentTarget.style.borderColor = 'rgba(148, 163, 184, 0.25)';
+                        e.currentTarget.style.background = 'rgba(15, 23, 42, 0.65)';
                         e.currentTarget.style.transform = 'translateX(0)';
                       }
                     }}
                   >
-                    {isSelected && (
-                      <div style={{
-                        position: 'absolute',
-                        left: 0,
-                        top: 0,
-                        bottom: 0,
-                        width: '4px',
-                        background: 'linear-gradient(180deg, #2563eb, #06b6d4)',
-                        borderRadius: '0 4px 4px 0',
-                      }} />
-                    )}
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '16px',
-                    }}>
-                      <div style={{
+                    <span style={{ fontSize: '18px', fontWeight: 500, textAlign: 'left' }}>{answer.text}</span>
+                    <span
+                      style={{
                         width: '24px',
                         height: '24px',
                         borderRadius: '6px',
-                        border: isSelected ? '2px solid #2563eb' : '2px solid #cbd5e1',
-                        background: isSelected ? '#2563eb' : 'transparent',
+                        border: `2px solid ${isSelected ? palette.accent : 'rgba(148, 163, 184, 0.4)'}`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        flexShrink: 0,
-                        transition: 'all 0.3s',
-                      }}>
-                        {isSelected && (
-                          <span style={{ color: 'white', fontSize: '16px', fontWeight: 700 }}>✓</span>
-                        )}
-                      </div>
-                      <span style={{
-                        fontSize: '18px',
-                        color: isSelected ? '#1e3a8a' : '#475569',
-                        fontWeight: isSelected ? 500 : 400,
-                      }}>
-                        {answer.text}
-                      </span>
-                    </div>
-                  </div>
+                        transition: 'all 0.25s ease',
+                        background: isSelected ? palette.accent : 'transparent',
+                        color: isSelected ? '#0f172a' : 'transparent'
+                      }}
+                    >
+                      ✓
+                    </span>
+                  </button>
                 );
               })}
             </div>
           )}
 
           {currentQuestion.type === 'SCALE' && (
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '24px',
-              padding: '40px',
-            }}>
-              <div style={{
-                display: 'flex',
-                gap: '12px',
-                flexWrap: 'wrap',
-                justifyContent: 'center',
-              }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', padding: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(54px, 1fr))', gap: '12px' }}>
                 {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => {
                   const isSelected = currentAnswer?.numericValue === value;
                   return (
@@ -595,32 +664,27 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                       key={value}
                       onClick={() => handleAnswer(currentQuestion.id, undefined, value, false)}
                       style={{
-                        width: '60px',
-                        height: '60px',
-                        borderRadius: '50%',
-                        border: isSelected ? '3px solid #2563eb' : '2px solid #e5e7eb',
-                        background: isSelected
-                          ? 'linear-gradient(135deg, #2563eb, #06b6d4)'
-                          : 'white',
-                        color: isSelected ? 'white' : '#475569',
-                        fontSize: '20px',
-                        fontWeight: 700,
+                        padding: '14px 0',
+                        borderRadius: '16px',
+                        border: `1px solid ${isSelected ? palette.border : 'rgba(148,163,184,0.25)'}`,
+                        background: isSelected ? palette.accentSoft : 'rgba(15, 23, 42, 0.65)',
+                        color: 'rgba(248, 250, 252, 0.92)',
+                        fontSize: '18px',
+                        fontWeight: 600,
                         cursor: 'pointer',
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                        boxShadow: isSelected
-                          ? '0 4px 20px rgba(37, 99, 235, 0.3)'
-                          : '0 2px 8px rgba(0, 0, 0, 0.04)',
-                        transform: isSelected ? 'scale(1.1)' : 'scale(1)',
+                        transition: 'all 0.25s ease',
+                        boxShadow: isSelected ? palette.glow : 'none',
+                        transform: isSelected ? 'scale(1.08)' : 'scale(1)'
                       }}
                       onMouseEnter={(e) => {
                         if (!isSelected) {
-                          e.currentTarget.style.borderColor = '#2563eb';
+                          e.currentTarget.style.borderColor = palette.border;
                           e.currentTarget.style.transform = 'scale(1.05)';
                         }
                       }}
                       onMouseLeave={(e) => {
                         if (!isSelected) {
-                          e.currentTarget.style.borderColor = '#e5e7eb';
+                          e.currentTarget.style.borderColor = 'rgba(148,163,184,0.25)';
                           e.currentTarget.style.transform = 'scale(1)';
                         }
                       }}
@@ -630,15 +694,24 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                   );
                 })}
               </div>
-              <p style={{
-                fontSize: '16px',
-                color: '#64748b',
-                fontWeight: 500,
-              }}>
-                {currentAnswer?.numericValue !== undefined
-                  ? `Seleccionaste: ${currentAnswer.numericValue}`
-                  : 'Selecciona un valor del 0 al 10'}
-              </p>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '14px 20px',
+                  borderRadius: '16px',
+                  border: `1px solid ${palette.border}`,
+                  background: 'rgba(15, 23, 42, 0.55)',
+                  color: 'rgba(226, 232, 240, 0.75)',
+                  fontSize: '15px'
+                }}
+              >
+                <span>Puntaje actual</span>
+                <strong style={{ fontSize: '18px', color: palette.accent }}>
+                  {currentAnswer?.numericValue !== undefined ? currentAnswer.numericValue : '—'}
+                </strong>
+              </div>
             </div>
           )}
 
@@ -649,131 +722,84 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
           )}
         </div>
 
-        {/* Botones de navegación */}
-        <div style={{
-          display: 'flex',
-          gap: '16px',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}>
-          <button
-            onClick={onBack}
-            style={{
-              padding: '14px 28px',
-              fontSize: '16px',
-              fontWeight: 500,
-              background: 'transparent',
-              color: '#64748b',
-              border: '2px solid #e5e7eb',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              transition: 'all 0.3s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#cbd5e1';
-              e.currentTarget.style.color = '#475569';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = '#e5e7eb';
-              e.currentTarget.style.color = '#64748b';
-            }}
-          >
-            Cancelar
-          </button>
-          
-          <div style={{ display: 'flex', gap: '12px' }}>
-            {currentQuestionIndex > 0 && (
-              <button
-                onClick={handlePrevious}
-                style={{
-                  padding: '14px 28px',
-                  fontSize: '16px',
-                  fontWeight: 500,
-                  background: 'white',
-                  color: '#2563eb',
-                  border: '2px solid #2563eb',
-                  borderRadius: '12px',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s',
-                  boxShadow: '0 2px 8px rgba(37, 99, 235, 0.1)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#2563eb';
-                  e.currentTarget.style.color = 'white';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(37, 99, 235, 0.2)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'white';
-                  e.currentTarget.style.color = '#2563eb';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(37, 99, 235, 0.1)';
-                }}
-              >
-                ← Anterior
-              </button>
-            )}
-            {!isLastQuestion && currentQuestion.type === 'SCALE' && currentAnswer && (
-              <button
-                onClick={handleNext}
-                style={{
-                  padding: '14px 32px',
-                  fontSize: '16px',
-                  fontWeight: 600,
-                  background: 'linear-gradient(135deg, #2563eb, #06b6d4)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '12px',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s',
-                  boxShadow: '0 4px 16px rgba(37, 99, 235, 0.3)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 24px rgba(37, 99, 235, 0.4)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(37, 99, 235, 0.3)';
-                }}
-              >
-                Siguiente →
-              </button>
-            )}
-            {isLastQuestion && allAnswered && (
+        {/* Bottom actions */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '18px',
+            background: 'rgba(15, 23, 42, 0.45)',
+            border: `1px solid ${palette.border}`,
+            borderRadius: '20px',
+            padding: '22px 32px',
+            boxShadow: palette.glow
+          }}
+        >
+          <div style={{ color: 'rgba(226, 232, 240, 0.65)', fontSize: '13px', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+            {isLastQuestion ? 'Listo para enviar' : 'Responde con sinceridad'}
+          </div>
+          <div style={{ display: 'flex', gap: '14px' }}>
+            <button
+              onClick={onBack}
+              style={{
+                padding: '12px 22px',
+                borderRadius: '999px',
+                border: `1px solid ${palette.border}`,
+                background: 'transparent',
+                color: 'rgba(226, 232, 240, 0.75)',
+                fontSize: '13px',
+                fontWeight: 600,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                cursor: 'pointer'
+              }}
+            >
+              Guardar y salir
+            </button>
+            {isLastQuestion && allAnswered ? (
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
                 style={{
-                  padding: '14px 32px',
-                  fontSize: '16px',
-                  fontWeight: 600,
-                  background: submitting
-                    ? '#94a3b8'
-                    : 'linear-gradient(135deg, #10b981, #059669)',
-                  color: 'white',
+                  padding: '12px 28px',
+                  borderRadius: '999px',
                   border: 'none',
-                  borderRadius: '12px',
+                  background: submitting
+                    ? 'rgba(148, 163, 184, 0.4)'
+                    : `linear-gradient(135deg, ${palette.accent}, rgba(34, 197, 94, 0.9))`,
+                  color: '#0f172a',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
                   cursor: submitting ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.3s',
-                  boxShadow: submitting
-                    ? 'none'
-                    : '0 4px 16px rgba(16, 185, 129, 0.3)',
-                }}
-                onMouseEnter={(e) => {
-                  if (!submitting) {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 6px 24px rgba(16, 185, 129, 0.4)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!submitting) {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 16px rgba(16, 185, 129, 0.3)';
-                  }
+                  boxShadow: submitting ? 'none' : palette.glow,
+                  transition: 'all 0.25s ease'
                 }}
               >
-                {submitting ? 'Enviando...' : '✨ Finalizar Test'}
+                {submitting ? 'Enviando…' : 'Enviar evaluación'}
+              </button>
+            ) : (
+              <button
+                onClick={handleNext}
+                disabled={currentQuestionIndex === test.questions.length - 1}
+                style={{
+                  padding: '12px 28px',
+                  borderRadius: '999px',
+                  border: 'none',
+                  background: palette.accentSoft,
+                  color: palette.accent,
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  cursor: currentQuestionIndex === test.questions.length - 1 ? 'not-allowed' : 'pointer',
+                  opacity: currentQuestionIndex === test.questions.length - 1 ? 0.35 : 1,
+                  transition: 'all 0.25s ease'
+                }}
+              >
+                Continuar
               </button>
             )}
           </div>

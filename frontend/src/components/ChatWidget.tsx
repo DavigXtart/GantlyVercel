@@ -27,7 +27,6 @@ export default function ChatWidget({ mode, otherId }: Props) {
   const [sending, setSending] = useState(false);
   const [otherUser, setOtherUser] = useState<any>(null);
   const clientRef = useRef<Client | null>(null);
-  const bottomRef = useRef<HTMLDivElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -262,7 +261,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
     client.onStompError = (frame) => {
       console.error('❌ STOMP error:', frame);
       console.error('❌ Comando:', frame.command);
-      console.error('❌ Mensaje:', frame.message);
+      console.error('❌ Mensaje:', frame.headers['message']);
       console.error('❌ Headers:', frame.headers);
       setConnected(false);
     };

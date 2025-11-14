@@ -1,4 +1,3 @@
-import React from 'react';
 import psymatchLogo from '../assets/psymatch-removebg-preview.png';
 
 interface LogoProps {

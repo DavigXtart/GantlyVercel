@@ -14,3 +14,4 @@ public interface TestResultRepository extends JpaRepository<TestResultEntity, Lo
 	List<TestResultEntity> findBySubfactor(SubfactorEntity subfactor);
 }
 
+   

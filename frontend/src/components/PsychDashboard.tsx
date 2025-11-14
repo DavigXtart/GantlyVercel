@@ -10,7 +10,6 @@ export default function PsychDashboard() {
   const [me, setMe] = useState<any>(null);
   const [patients, setPatients] = useState<any[]>([]);
   const [slots, setSlots] = useState<any[]>([]);
-  const [newSlot, setNewSlot] = useState<{ start: string; end: string }>({ start: '', end: '' });
   const [tasks, setTasks] = useState<any[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<number | null>(null);
   const [editing, setEditing] = useState(false);
@@ -28,6 +27,7 @@ export default function PsychDashboard() {
 
   useEffect(() => {
     loadData();
+    loadMySlots();
   }, []);
 
   const loadMySlots = async () => {
@@ -38,17 +38,11 @@ export default function PsychDashboard() {
     setSlots(list);
   };
 
-  const createSlot = async () => {
-    if (!newSlot.start || !newSlot.end) return;
-    try {
-      await calendarService.createSlot(newSlot.start, newSlot.end);
-      setNewSlot({ start: '', end: '' });
-      await loadMySlots();
-      alert('Slot creado exitosamente');
-    } catch (e) {
-      alert('Error al crear el slot');
+  useEffect(() => {
+    if (tab === 'calendario') {
+      loadMySlots();
     }
-  };
+  }, [tab]);
 
   const onAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -592,24 +586,6 @@ export default function PsychDashboard() {
             <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Gestión de Calendario
             </h3>
-            <button
-              onClick={loadMySlots}
-              style={{
-                padding: '10px 20px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontSize: '14px',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-            >
-              🔄 Refrescar
-            </button>
           </div>
           <div style={{
             background: '#ffffff',

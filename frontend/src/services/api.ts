@@ -1,10 +1,21 @@
 import axios from 'axios';
 
 const API_URL = 'http://localhost:8080/api';
+const API_BASE_URL = API_URL.replace(/\/$/, '').replace(/\/api$/, '');
 
 const api = axios.create({
   baseURL: API_URL,
 });
+
+const resolveAssetUrl = (value?: string | null): string | undefined => {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  const base = API_BASE_URL;
+  if (!base) return trimmed;
+  return `${base}${trimmed.startsWith('/') ? trimmed : `/${trimmed}`}`;
+};
 
 // Interceptor para añadir token a las peticiones
 api.interceptors.request.use(config => {
@@ -29,7 +40,9 @@ api.interceptors.response.use(
 
 export const authService = {
   register: async (name: string, email: string, password: string, sessionId?: string) => {
-    await api.post('/auth/register', { name, email, password, sessionId });
+    const { data } = await api.post<{ token: string }>('/auth/register', { name, email, password, sessionId });
+    localStorage.setItem('token', data.token);
+    return data.token;
   },
   login: async (email: string, password: string) => {
     const { data } = await api.post<{ token: string }>('/auth/login', { email, password });
@@ -150,10 +163,34 @@ export const adminService = {
   deleteQuestion: async (id: number) => {
     await api.delete(`/admin/questions/${id}`);
   },
+  getAnswers: async (questionId: number) => {
+    const { data } = await api.get(`/admin/questions/${questionId}/answers`);
+    return data as Array<{ id: number; text: string; value?: number; position: number }>;
+  },
+  createAnswer: async (questionId: number, text: string, value: number, position: number) => {
+    const { data } = await api.post('/admin/answers', { questionId, text, value, position });
+    return data as { id: number; text: string; value?: number; position: number };
+  },
+  updateAnswer: async (answerId: number, updates: { text?: string; value?: number; position?: number }) => {
+    const { data } = await api.put(`/admin/answers/${answerId}`, updates);
+    return data as { id: number; text: string; value?: number; position: number };
+  },
+  deleteAnswer: async (answerId: number) => {
+    await api.delete(`/admin/answers/${answerId}`);
+  },
   // Users
   listUsers: async () => {
     const { data } = await api.get('/admin/users');
-    return data as Array<{ id: number; name: string; email: string; role: string; psychologistId?: number | null; psychologistName?: string | null }>;
+    return (data as Array<{
+      id: number;
+      name: string;
+      email: string;
+      role: string;
+      createdAt?: string;
+      testsCompleted?: number;
+      psychologistId?: number | null;
+      psychologistName?: string | null;
+    }>);
   },
   getUserDetails: async (userId: number) => {
     const { data } = await api.get(`/admin/users/${userId}`);
@@ -183,7 +220,8 @@ export const adminService = {
 export const profileService = {
   me: async () => {
     const { data } = await api.get('/profile');
-    return data as { id: number; name: string; email: string; role: string; avatarUrl?: string; darkMode?: boolean; gender?: string; age?: number; createdAt?: string };
+    const user = data as { id: number; name: string; email: string; role: string; avatarUrl?: string | null; darkMode?: boolean; gender?: string; age?: number; createdAt?: string };
+    return { ...user, avatarUrl: resolveAssetUrl(user.avatarUrl) };
   },
   update: async (updates: { name?: string; darkMode?: boolean; gender?: string | null; age?: number | null }) => {
     await api.put('/profile', updates);
@@ -192,11 +230,16 @@ export const profileService = {
     const form = new FormData();
     form.append('file', file);
     const { data } = await api.post('/profile/avatar', form, { headers: { 'Content-Type': 'multipart/form-data' } });
-    return data as { avatarUrl: string };
+    const response = data as { avatarUrl: string };
+    return { avatarUrl: resolveAssetUrl(response.avatarUrl) };
   },
   myPsychologist: async () => {
     const { data } = await api.get('/profile/my-psychologist');
-    return data as { status: 'PENDING'|'ASSIGNED'; psychologist?: { id: number; name: string; email: string; avatarUrl?: string } };
+    const result = data as { status: 'PENDING'|'ASSIGNED'; psychologist?: { id: number; name: string; email: string; avatarUrl?: string | null } };
+    if (result.psychologist) {
+      result.psychologist.avatarUrl = resolveAssetUrl(result.psychologist.avatarUrl) ?? undefined;
+    }
+    return result;
   }
 };
 
@@ -246,7 +289,11 @@ export const calendarService = {
 export const psychService = {
   patients: async () => {
     const { data } = await api.get('/psych/patients');
-    return data as Array<{ id: number; name: string; email: string; avatarUrl?: string }>;
+    const list = data as Array<{ id: number; name: string; email: string; avatarUrl?: string | null }>;
+    return list.map((patient) => ({
+      ...patient,
+      avatarUrl: resolveAssetUrl(patient.avatarUrl) ?? undefined,
+    }));
   }
 };
 

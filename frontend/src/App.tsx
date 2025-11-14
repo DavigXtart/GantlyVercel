@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import Login from './components/Login';
 import Register from './components/Register';
-import TestsList from './components/TestsList';
 import AdminPanel from './components/AdminPanel';
 import Landing from './components/Landing';
 import TestFlow from './components/TestFlow';
@@ -10,12 +9,14 @@ import { authService } from './services/api';
 import UserDashboard from './components/UserDashboard';
 import PsychDashboard from './components/PsychDashboard';
 import AdminUsersPanel from './components/AdminUsersPanel';
+import About from './components/About';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [showLanding, setShowLanding] = useState(true);
+  const [showAbout, setShowAbout] = useState(false);
   const [showInitialTest, setShowInitialTest] = useState(false);
   const [initialTestSessionId, setInitialTestSessionId] = useState<string | null>(null);
   const [selectedTestId, setSelectedTestId] = useState<number | null>(null);
@@ -43,6 +44,12 @@ function App() {
 
   const handleLogin = () => {
     setIsAuthenticated(true);
+    setShowLanding(false);
+    setShowAbout(false);
+    setShowLogin(false);
+    setShowRegister(false);
+    setShowInitialTest(false);
+    setInitialTestSessionId(null);
     checkRole();
   };
 
@@ -51,17 +58,28 @@ function App() {
     setIsAuthenticated(false);
     setSelectedTestId(null);
     setRole(null);
+    setShowLanding(true);
+    setShowAbout(false);
+    setShowLogin(false);
+    setShowRegister(false);
+    setShowInitialTest(false);
+    setInitialTestSessionId(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleRegister = () => {
     setIsAuthenticated(true);
     setShowLanding(false);
+    setShowAbout(false);
+    setShowLogin(false);
     setShowRegister(false);
     setInitialTestSessionId(null);
+    checkRole();
   };
 
   const handleGetStarted = () => {
     setShowLanding(false);
+    setShowAbout(false);
     setShowInitialTest(true);
   };
 
@@ -69,15 +87,41 @@ function App() {
     setInitialTestSessionId(sessionId);
     setShowInitialTest(false);
     setShowRegister(true);
+    setShowAbout(false);
   };
 
   const handleShowLogin = () => {
     setShowLanding(false);
+    setShowAbout(false);
     setShowLogin(true);
   };
 
+  const handleShowAbout = () => {
+    setShowLanding(false);
+    setShowAbout(true);
+    setShowLogin(false);
+    setShowRegister(false);
+    setShowInitialTest(false);
+    setSelectedTestId(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const goToLanding = () => {
+    setShowLanding(true);
+    setShowAbout(false);
+    setShowLogin(false);
+    setShowRegister(false);
+    setShowInitialTest(false);
+    setSelectedTestId(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  if (showAbout) {
+    return <About onBack={goToLanding} onLogin={handleShowLogin} onGetStarted={handleGetStarted} />;
+  }
+
   if (showLanding) {
-    return <Landing onGetStarted={handleGetStarted} onLogin={handleShowLogin} />;
+    return <Landing onGetStarted={handleGetStarted} onLogin={handleShowLogin} onShowAbout={handleShowAbout} />;
   }
 
   if (showInitialTest) {
@@ -104,10 +148,6 @@ function App() {
     );
   }
 
-  const handleSelectTest = (id: number) => {
-    setSelectedTestId(id);
-  };
-
   const handleBackToList = () => {
     setSelectedTestId(null);
   };
@@ -118,7 +158,7 @@ function App() {
         <nav>
           <div className="container" style={{ maxWidth: '1200px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h3 
-              onClick={() => { setShowLanding(true); setSelectedTestId(null); }}
+              onClick={goToLanding}
               style={{ cursor: 'pointer', userSelect: 'none', transition: 'opacity 0.2s' }}
               onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
               onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
@@ -157,7 +197,7 @@ function App() {
       <nav>
         <div className="container" style={{ maxWidth: '1200px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 
-            onClick={() => {}}
+            onClick={goToLanding}
             style={{ cursor: 'pointer', userSelect: 'none', transition: 'opacity 0.2s' }}
             onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
             onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}

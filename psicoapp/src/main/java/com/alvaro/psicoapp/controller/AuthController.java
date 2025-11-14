@@ -20,9 +20,9 @@ public class AuthController {
 	}
 
 	@PostMapping("/register")
-	public ResponseEntity<Void> register(@RequestBody AuthDtos.RegisterRequest req) {
-		authService.register(req.name, req.email, req.password, req.sessionId);
-		return ResponseEntity.ok().build();
+	public ResponseEntity<AuthDtos.TokenResponse> register(@RequestBody AuthDtos.RegisterRequest req) {
+		String token = authService.register(req.name, req.email, req.password, req.sessionId);
+		return ResponseEntity.ok(new AuthDtos.TokenResponse(token));
 	}
 
 	@PostMapping("/login")

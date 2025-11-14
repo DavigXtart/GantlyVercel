@@ -1,14 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { adminService } from '../services/api';
 import TestManager from './TestManager';
 import UsersManager from './UsersManager';
-
-type Answer = { id: number; text: string; value?: number; position: number };
-type Question = { id: number; text: string; type: string; position: number; answers: Answer[]; subfactor?: { id: number; code: string; name: string; factor?: { id: number; code: string; name: string } } };
-
-// Eliminado AdminInsights
-
-// (imports removidos: ya están al inicio del archivo)
 
 interface Test {
   id: number;
@@ -26,6 +19,7 @@ export default function AdminPanel() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingTest, setEditingTest] = useState<Test | null>(null);
   const [activeTab, setActiveTab] = useState<'tests' | 'users'>('tests');
+  const [testSearch, setTestSearch] = useState('');
 
   useEffect(() => {
     loadTests();
@@ -124,6 +118,16 @@ export default function AdminPanel() {
       setLoading(false);
     }
   };
+
+  const filteredTests = tests.filter(test => {
+    if (!testSearch.trim()) return true;
+    const query = testSearch.toLowerCase();
+    return (
+      test.title.toLowerCase().includes(query) ||
+      test.code.toLowerCase().includes(query) ||
+      (test.description || '').toLowerCase().includes(query)
+    );
+  });
 
   if (selectedTestId) {
     return (
@@ -301,11 +305,33 @@ export default function AdminPanel() {
       )}
 
       <div className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <h2>Tests ({tests.length})</h2>
-          <button className="btn-secondary" onClick={loadTests} disabled={loading} style={{ width: 'auto', padding: '8px 16px' }}>
-            🔄 Actualizar
-          </button>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <div>
+            <h2>Tests ({tests.length})</h2>
+            {testSearch.trim() && (
+              <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary)' }}>
+                Mostrando {filteredTests.length} coincidencia(s)
+              </p>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <input
+              type="text"
+              placeholder="Buscar por título, código o descripción..."
+              value={testSearch}
+              onChange={(e) => setTestSearch(e.target.value)}
+              style={{
+                padding: '10px 14px',
+                borderRadius: '10px',
+                border: '1px solid var(--border)',
+                fontSize: '15px',
+                minWidth: '220px'
+              }}
+            />
+            <button className="btn-secondary" onClick={loadTests} disabled={loading} style={{ width: 'auto', padding: '8px 16px' }}>
+              🔄 Actualizar
+            </button>
+          </div>
         </div>
 
         {loading && tests.length === 0 ? (
@@ -315,9 +341,13 @@ export default function AdminPanel() {
             <p>No hay tests creados aún.</p>
             <p>Crea tu primer test usando el botón "Nuevo Test"</p>
           </div>
+        ) : filteredTests.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
+            <p>No se encontraron tests que coincidan con “{testSearch}”.</p>
+          </div>
         ) : (
           <div className="tests-grid-admin">
-            {tests.filter((t: any) => t && t.id).map(test => (
+            {filteredTests.filter((t: any) => t && t.id).map(test => (
               <div key={test.id} className="test-card-admin">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                   <div style={{ flex: 1 }}>

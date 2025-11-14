@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { initialTestService } from '../services/api';
+import PSYmatchLogo from './PSYmatchLogo';
 
 interface Question {
   id: number;
@@ -89,26 +90,10 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           // Es la última pregunta, verificar si todas están respondidas
           const allAnswered = test.questions.every(q => newAnswers[q.id]);
           if (allAnswered) {
-            // Todas respondidas, mostrar confirmación para enviar
-            if (confirm('¿Has completado todas las preguntas. ¿Deseas enviar el test?')) {
-              handleSubmitWithAnswers(newAnswers);
-            }
+            handleSubmitWithAnswers(newAnswers);
           }
         }
       }, 300); // Pequeño delay para mejor UX
-    }
-  };
-
-  const handleNext = () => {
-    if (!test) return;
-    if (currentQuestionIndex < test.questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
     }
   };
 
@@ -124,7 +109,6 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
       }));
       
       await initialTestService.submitAnswers(sessionId, submitData);
-      alert('¡Test inicial completado! Ahora puedes crear tu cuenta.');
       onComplete(sessionId);
     } catch (err: any) {
       console.error('Error enviando respuestas:', err);
@@ -144,28 +128,66 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
       return;
     }
 
-    if (!confirm('¿Estás seguro de que deseas enviar tus respuestas? No podrás modificarlas después.')) {
-      return;
-    }
-
     await handleSubmitWithAnswers(answers);
   };
 
   if (loading) {
     return (
-      <div className="container">
-        <div className="loading">Cargando test inicial...</div>
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #0f172a 100%)',
+          color: '#e2e8f0'
+        }}
+      >
+        Cargando evaluación inicial...
       </div>
     );
   }
 
   if (!test || !test.questions || test.questions.length === 0) {
     return (
-      <div className="container">
-        <div className="card">
-          <h2>Test inicial no disponible</h2>
-          <p>El test inicial no está configurado aún.</p>
-          <button className="btn-secondary" onClick={onBack} style={{ marginTop: '16px' }}>
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #0f172a 100%)',
+          color: '#e2e8f0'
+        }}
+      >
+        <div
+          style={{
+            background: 'rgba(15, 23, 42, 0.75)',
+            border: '1px solid rgba(148, 163, 184, 0.25)',
+            borderRadius: '24px',
+            padding: '32px 40px',
+            maxWidth: '480px',
+            textAlign: 'center'
+          }}
+        >
+          <h2 style={{ margin: '0 0 12px', fontSize: '26px' }}>Test no disponible</h2>
+          <p style={{ margin: '0 0 24px', color: 'rgba(226, 232, 240, 0.75)' }}>
+            El test inicial aún no está configurado.
+          </p>
+          <button
+            onClick={onBack}
+            style={{
+              padding: '12px 28px',
+              borderRadius: '999px',
+              border: '1px solid rgba(148, 163, 184, 0.35)',
+              background: 'transparent',
+              color: '#e2e8f0',
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              fontSize: '13px',
+              cursor: 'pointer'
+            }}
+          >
             Volver
           </button>
         </div>
@@ -177,101 +199,246 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
   const currentAnswer = answers[currentQuestion.id];
   const isLastQuestion = currentQuestionIndex === test.questions.length - 1;
   const allAnswered = test.questions.every(q => answers[q.id]);
+  const progress = ((currentQuestionIndex + 1) / test.questions.length) * 100;
 
   return (
-    <div className="container" style={{ maxWidth: '800px' }}>
-      <div className="card">
-        <div style={{ marginBottom: '24px' }}>
-          <h1>{test.title}</h1>
-          {test.description && <p style={{ color: '#6b7280', marginTop: '8px' }}>{test.description}</p>}
-        </div>
+    <div
+      style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #0f172a 0%, #15243d 45%, #0f172a 100%)',
+        padding: '60px 24px 80px',
+        position: 'relative',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center'
+      }}
+    >
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+        @keyframes fadeSlide {
+          from { opacity: 0; transform: translateY(18px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
 
-        {/* Barra de progreso */}
-        <div style={{ marginBottom: '32px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '14px', color: '#6b7280' }}>
-            <span>Pregunta {currentQuestionIndex + 1} de {test.questions.length}</span>
-            <span>{Math.round(((currentQuestionIndex + 1) / test.questions.length) * 100)}%</span>
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.22), transparent 55%), radial-gradient(circle at 80% 10%, rgba(56, 189, 248, 0.18), transparent 60%), radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.18), transparent 55%)',
+          pointerEvents: 'none'
+        }}
+      />
+
+      {/* Top navigation */}
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '960px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '32px',
+          position: 'relative',
+          zIndex: 2
+        }}
+      >
+        <PSYmatchLogo size="small" />
+        <button
+          onClick={onBack}
+          style={{
+            padding: '12px 24px',
+            borderRadius: '999px',
+            border: '1px solid rgba(148, 163, 184, 0.35)',
+            background: 'transparent',
+            color: 'rgba(226, 232, 240, 0.8)',
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            fontSize: '13px',
+            cursor: 'pointer'
+          }}
+        >
+          Guardar y salir
+        </button>
+      </div>
+
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '960px',
+          position: 'relative',
+          zIndex: 2,
+          display: 'grid',
+          gap: '24px'
+        }}
+      >
+        {/* Progress */}
+        <div
+          style={{
+            background: 'rgba(15, 23, 42, 0.55)',
+            border: '1px solid rgba(148, 163, 184, 0.25)',
+            borderRadius: '22px',
+            padding: '28px 32px',
+            boxShadow: '0 12px 32px rgba(15, 23, 42, 0.35)'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+            <div>
+              <h2 style={{ margin: 0, fontSize: '26px', color: 'rgba(248, 250, 252, 0.96)' }}>{test.title}</h2>
+              <p style={{ margin: '8px 0 0', color: 'rgba(226, 232, 240, 0.65)', fontSize: '14px', maxWidth: '560px' }}>
+                {test.description}
+              </p>
+            </div>
+            <span
+              style={{
+                padding: '10px 16px',
+                borderRadius: '999px',
+                border: '1px solid rgba(148, 163, 184, 0.35)',
+                color: 'rgba(248, 250, 252, 0.85)',
+                fontSize: '13px',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase'
+              }}
+            >
+              Pregunta {currentQuestionIndex + 1} / {test.questions.length}
+            </span>
           </div>
-          <div style={{ width: '100%', height: '8px', background: '#e5e7eb', borderRadius: '4px', overflow: 'hidden' }}>
+          <div
+            style={{
+              width: '100%',
+              height: '12px',
+              borderRadius: '999px',
+              overflow: 'hidden',
+              background: 'rgba(148, 163, 184, 0.24)'
+            }}
+          >
             <div
               style={{
-                width: `${((currentQuestionIndex + 1) / test.questions.length) * 100}%`,
+                width: `${progress}%`,
                 height: '100%',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                transition: 'width 0.3s ease'
+                background: 'linear-gradient(90deg, #38bdf8 0%, #818cf8 45%, #34d399 100%)',
+                transition: 'width 0.45s ease'
               }}
             />
           </div>
         </div>
 
-        {/* Pregunta actual */}
-        <div style={{ marginBottom: '32px' }}>
-          <h2 style={{ fontSize: '24px', marginBottom: '24px', lineHeight: '1.4' }}>
+        {/* Question */}
+        <div
+          style={{
+            background: 'rgba(15, 23, 42, 0.6)',
+            border: '1px solid rgba(148, 163, 184, 0.25)',
+            borderRadius: '24px',
+            padding: '42px',
+            boxShadow: '0 16px 40px rgba(15, 23, 42, 0.35)',
+            animation: 'fadeSlide 0.4s ease'
+          }}
+        >
+          <h3
+            style={{
+              margin: '0 0 24px',
+              fontSize: 'clamp(22px, 3vw, 32px)',
+              color: 'rgba(248, 250, 252, 0.96)',
+              lineHeight: 1.3
+            }}
+          >
             {currentQuestion.text}
-          </h2>
-
-          {/* Respuestas */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {currentQuestion.answers.map((answer) => (
-              <button
-                key={answer.id}
-                onClick={() => handleAnswer(currentQuestion.id, answer.id, answer.value || undefined)}
-                style={{
-                  padding: '16px',
-                  border: '2px solid',
-                  borderColor: currentAnswer?.answerId === answer.id ? '#667eea' : '#e5e7eb',
-                  borderRadius: '8px',
-                  background: currentAnswer?.answerId === answer.id ? '#f3f4f6' : 'white',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  fontSize: '16px',
-                  transition: 'all 0.2s',
-                  position: 'relative',
-                }}
-                onMouseEnter={(e) => {
-                  if (currentAnswer?.answerId !== answer.id) {
-                    e.currentTarget.style.borderColor = '#cbd5e1';
-                    e.currentTarget.style.background = '#f9fafb';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (currentAnswer?.answerId !== answer.id) {
-                    e.currentTarget.style.borderColor = '#e5e7eb';
-                    e.currentTarget.style.background = 'white';
-                  }
-                }}
-              >
-                {currentAnswer?.answerId === answer.id && (
-                  <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '18px' }}>✓</span>
-                )}
-                <span style={{ marginLeft: currentAnswer?.answerId === answer.id ? '24px' : '0' }}>{answer.text}</span>
-              </button>
-            ))}
+          </h3>
+          <div style={{ display: 'grid', gap: '14px' }}>
+            {currentQuestion.answers.map((answer, idx) => {
+              const isSelected = currentAnswer?.answerId === answer.id;
+              return (
+                <button
+                  key={answer.id}
+                  onClick={() => handleAnswer(currentQuestion.id, answer.id, answer.value || undefined)}
+                  style={{
+                    padding: '18px 24px',
+                    borderRadius: '16px',
+                    border: `1px solid ${isSelected ? 'rgba(59, 130, 246, 0.6)' : 'rgba(148, 163, 184, 0.18)'}`,
+                    background: isSelected ? 'rgba(59, 130, 246, 0.18)' : 'rgba(15, 23, 42, 0.8)',
+                    color: 'rgba(248, 250, 252, 0.92)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.25s ease',
+                    transform: isSelected ? 'translateX(6px)' : 'translateX(0)',
+                    boxShadow: isSelected ? '0 12px 28px rgba(59, 130, 246, 0.25)' : 'none',
+                    animation: `fadeSlide 0.35s ease ${idx * 0.04}s both`
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.borderColor = 'rgba(59, 130, 246, 0.35)';
+                      e.currentTarget.style.background = 'rgba(15, 23, 42, 0.72)';
+                      e.currentTarget.style.transform = 'translateX(4px)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.borderColor = 'rgba(148, 163, 184, 0.18)';
+                      e.currentTarget.style.background = 'rgba(15, 23, 42, 0.8)';
+                      e.currentTarget.style.transform = 'translateX(0)';
+                    }
+                  }}
+                >
+                  <span style={{ fontSize: '18px', fontWeight: 500, textAlign: 'left' }}>{answer.text}</span>
+                  <span
+                    style={{
+                      width: '24px',
+                      height: '24px',
+                      borderRadius: '50%',
+                      border: `2px solid ${isSelected ? '#38bdf8' : 'rgba(148, 163, 184, 0.35)'}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: isSelected ? '#38bdf8' : 'transparent',
+                      color: isSelected ? '#0f172a' : 'transparent',
+                      transition: 'all 0.25s ease'
+                    }}
+                  >
+                    ✓
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Botones de navegación */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
-          <button
-            className="btn-secondary"
-            onClick={handlePrevious}
-            disabled={currentQuestionIndex === 0}
-            style={{ opacity: currentQuestionIndex === 0 ? 0.5 : 1 }}
-          >
-            Anterior
-          </button>
-
+        {/* Bottom bar */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            background: 'rgba(15, 23, 42, 0.55)',
+            border: '1px solid rgba(148, 163, 184, 0.25)',
+            borderRadius: '20px',
+            padding: '20px 32px',
+            boxShadow: '0 12px 32px rgba(15, 23, 42, 0.35)'
+          }}
+        >
           {isLastQuestion && allAnswered && (
             <button
-              className="btn"
               onClick={handleSubmit}
               disabled={submitting}
               style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                cursor: submitting ? 'not-allowed' : 'pointer'
+                padding: '12px 28px',
+                borderRadius: '999px',
+                border: 'none',
+                background: submitting ? 'rgba(148, 163, 184, 0.45)' : 'linear-gradient(135deg, #38bdf8, #34d399)',
+                color: '#0f172a',
+                fontSize: '14px',
+                fontWeight: 700,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                cursor: submitting ? 'not-allowed' : 'pointer',
+                boxShadow: submitting ? 'none' : '0 12px 28px rgba(34, 197, 94, 0.3)'
               }}
             >
-              {submitting ? 'Enviando...' : 'Completar Test'}
+              {submitting ? 'Enviando…' : 'Enviar evaluación'}
             </button>
           )}
         </div>

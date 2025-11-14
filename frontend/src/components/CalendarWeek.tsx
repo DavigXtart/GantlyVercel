@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 type Slot = { id: number; startTime: string; endTime: string; status: 'FREE'|'BOOKED'|'CANCELLED'; user?: { name: string } };
 

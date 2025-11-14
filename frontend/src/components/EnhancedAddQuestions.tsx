@@ -59,8 +59,13 @@ export default function EnhancedAddQuestions({ testId, onBack }: AddQuestionsPro
 
   const loadAnswers = async () => {
     if (!selectedQuestionId) return;
-    // Cargar respuestas para la pregunta seleccionada
-    setAnswersForQuestion([]); // Por ahora vacío, necesitarías un endpoint para esto
+    try {
+      const answers = await adminService.getAnswers(selectedQuestionId);
+      setAnswersForQuestion(answers || []);
+    } catch (err) {
+      console.error('Error cargando respuestas:', err);
+      setAnswersForQuestion([]);
+    }
   };
 
   return (

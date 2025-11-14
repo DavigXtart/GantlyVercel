@@ -16,7 +16,7 @@ interface Question {
 interface Answer {
   id: number;
   text: string;
-  value: number;
+  value?: number | null;
   position: number;
 }
 
@@ -61,8 +61,6 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
   const [showStructureSection, setShowStructureSection] = useState(false);
   const [showFactorForm, setShowFactorForm] = useState(false);
   const [showSubfactorForm, setShowSubfactorForm] = useState(false);
-  const [editingFactor, setEditingFactor] = useState<{ id: number; code: string; name: string; description?: string; position: number } | null>(null);
-  const [editingSubfactor, setEditingSubfactor] = useState<{ id: number; code: string; name: string; description?: string; factorId?: number; position: number } | null>(null);
   const [selectedFactorForSubfactor, setSelectedFactorForSubfactor] = useState<number | ''>('');
 
   useEffect(() => {
@@ -318,7 +316,7 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
     }
   };
 
-  const deleteAnswer = async (answerId: number, questionId: number) => {
+  const deleteAnswer = async (answerId: number) => {
     if (!confirm('¿Estás seguro de eliminar esta respuesta?')) {
       return;
     }
@@ -622,7 +620,7 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
             </div>
             <div className="form-group">
               <label>Valor (puntuación) *</label>
-              <input name="value" type="number" required defaultValue={editingAnswer.answer.value} />
+              <input name="value" type="number" required defaultValue={editingAnswer.answer.value ?? 0} />
             </div>
             <div className="form-group">
               <label>Posición *</label>
@@ -954,7 +952,7 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
                                 </button>
                                 <button 
                                   className="btn-danger" 
-                                  onClick={() => deleteAnswer(answer.id, question.id)}
+                                onClick={() => deleteAnswer(answer.id)}
                                   disabled={loading}
                                   style={{ padding: '6px 12px', fontSize: '13px' }}
                                 >

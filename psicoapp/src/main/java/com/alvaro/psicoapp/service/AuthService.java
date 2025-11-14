@@ -31,7 +31,7 @@ public class AuthService {
 	}
 
 	@Transactional
-	public void register(String name, String email, String password, String sessionId) {
+	public String register(String name, String email, String password, String sessionId) {
 		if (userRepository.existsByEmail(email)) throw new IllegalArgumentException("Email ya registrado");
 		
 		// Verificar que el test inicial fue completado si se proporciona sessionId
@@ -65,6 +65,7 @@ public class AuthService {
 				sessionService.deleteSession(sessionId);
 			}
 		}
+		return jwtService.generateToken(u.getEmail());
 	}
 
 	public String login(String email, String password) {

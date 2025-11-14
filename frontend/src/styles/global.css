@@ -78,6 +78,16 @@ p {
   transition: all 0.2s;
 }
 
+.btn-compact {
+  width: auto;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
 .btn:hover {
   background: var(--accent-hover);
 }
@@ -302,26 +312,30 @@ nav button {
 /* Grid de tests para admin */
 .tests-grid-admin {
   display: grid;
-  gap: 20px;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 }
 
 .test-card-admin {
-  padding: 24px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  padding: 16px 18px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
   transition: all 0.2s;
-  background: var(--bg-secondary);
+  background: linear-gradient(135deg, #fafbff 0%, #f5f7fb 100%);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
 }
 
 .test-card-admin:hover {
-  border-color: var(--accent);
-  box-shadow: var(--shadow);
+  border-color: rgba(59, 130, 246, 0.35);
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.18);
+  transform: translateY(-2px);
 }
 
 .test-card-admin h3 {
-  font-size: 20px;
-  margin-bottom: 8px;
+  font-size: 16px;
+  margin-bottom: 4px;
+  font-weight: 600;
+  color: #0f172a;
 }
 
 .status-badge {
@@ -479,26 +493,37 @@ nav button {
 /* Grid de usuarios */
 .users-grid {
   display: grid;
-  gap: 20px;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 }
 
 .user-card-admin {
-  padding: 24px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  padding: 16px 18px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
   transition: all 0.2s;
-  background: var(--bg-secondary);
+  background: linear-gradient(135deg, #fdfefe 0%, #f5f7fb 100%);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
 }
 
 .user-card-admin:hover {
-  border-color: var(--accent);
-  box-shadow: var(--shadow);
+  border-color: rgba(59, 130, 246, 0.35);
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.18);
+  transform: translateY(-2px);
 }
 
 .user-card-admin h3 {
-  font-size: 20px;
-  margin-bottom: 8px;
+  font-size: 16px;
+  margin-bottom: 4px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.user-card-admin .btn {
+  width: auto;
+  padding: 8px 14px;
+  font-size: 14px;
+  border-radius: 20px;
 }
 
 /* Responsive */

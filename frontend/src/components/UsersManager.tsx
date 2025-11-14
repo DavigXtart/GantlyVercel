@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { adminService, resultsService } from '../services/api';
-import PieChart from './PieChart';
+import BarChart from './BarChart';
 
 interface User {
   id: number;
   name: string;
   email: string;
   role: string;
-  createdAt: string;
-  testsCompleted: number;
+  createdAt?: string;
+  testsCompleted?: number;
 }
 
 interface UserDetail {
@@ -42,6 +42,16 @@ export default function UsersManager() {
   const [selectedTestForStats, setSelectedTestForStats] = useState<number | null>(null);
   const [userStats, setUserStats] = useState<any | null>(null);
   const [overallStats, setOverallStats] = useState<any | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredUsers = users.filter(user => {
+    if (!searchTerm.trim()) return true;
+    const query = searchTerm.toLowerCase();
+    return (
+      (user.name || '').toLowerCase().includes(query) ||
+      (user.email || '').toLowerCase().includes(query)
+    );
+  });
 
   useEffect(() => {
     loadUsers();
@@ -131,7 +141,8 @@ export default function UsersManager() {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '—';
     try {
       return new Date(dateString).toLocaleString('es-ES', {
         year: 'numeric',
@@ -199,22 +210,14 @@ export default function UsersManager() {
             <div className="card" style={{ marginBottom: '24px' }}>
               <h3>Media general (todos los tests) - Factores</h3>
               <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap', marginTop: '12px' }}>
-                <PieChart
-                  data={overallStats.factors.map((f: any) => ({
-                    label: f.code || f.name,
-                    value: Number(f.percentage) || 0,
-                  }))}
-                  size={240}
-                  thickness={30}
-                  centerLabel="Media"
-                />
-                <div style={{ minWidth: 240 }}>
-                  {overallStats.factors.map((f: any, i: number) => (
-                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 14 }}>
-                      <span>{f.code || f.name}</span>
-                      <span>{Math.round(f.percentage)}%</span>
-                    </div>
-                  ))}
+                <div style={{ flex: 1, minWidth: 260 }}>
+                  <BarChart
+                    data={overallStats.factors.map((f: any) => ({
+                      label: f.code || f.name,
+                      value: Number(f.percentage) || 0,
+                    }))}
+                    maxValue={100}
+                  />
                 </div>
               </div>
             </div>
@@ -256,23 +259,15 @@ export default function UsersManager() {
                   <div style={{ marginBottom: '24px' }}>
                     <h4>Subfactores (gráfico)</h4>
                     <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
-                      <PieChart
+                    <div style={{ flex: 1, minWidth: 260 }}>
+                      <BarChart
                         data={userStats.subfactors.map((sf: any) => ({
                           label: sf.subfactorName || sf.subfactorCode,
                           value: Number(sf.percentage) || 0,
                         }))}
-                        size={220}
-                        thickness={28}
-                        centerLabel="Subfactores"
+                        maxValue={100}
                       />
-                      <div style={{ minWidth: 220 }}>
-                        {userStats.subfactors.map((sf: any, i: number) => (
-                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 14 }}>
-                            <span>{sf.subfactorName || sf.subfactorCode}</span>
-                            <span>{Math.round(sf.percentage)}%</span>
-                          </div>
-                        ))}
-                      </div>
+                    </div>
                     </div>
                   </div>
                 )}
@@ -280,23 +275,15 @@ export default function UsersManager() {
                   <div>
                     <h4>Factores (gráfico)</h4>
                     <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
-                      <PieChart
+                    <div style={{ flex: 1, minWidth: 260 }}>
+                      <BarChart
                         data={userStats.factors.map((f: any) => ({
                           label: f.factorCode || f.factorName,
                           value: Number(f.percentage) || 0,
                         }))}
-                        size={220}
-                        thickness={28}
-                        centerLabel="Factores"
+                        maxValue={100}
                       />
-                      <div style={{ minWidth: 220 }}>
-                        {userStats.factors.map((f: any, i: number) => (
-                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 14 }}>
-                            <span>{f.factorCode || f.factorName}</span>
-                            <span>{Math.round(f.percentage)}%</span>
-                          </div>
-                        ))}
-                      </div>
+                    </div>
                     </div>
                   </div>
                 )}
@@ -379,16 +366,38 @@ export default function UsersManager() {
   return (
     <div>
       <div className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <h2>Usuarios Registrados ({users.length})</h2>
-          <button 
-            className="btn-secondary" 
-            onClick={loadUsers} 
-            disabled={loading}
-            style={{ width: 'auto', padding: '8px 16px' }}
-          >
-            🔄 Actualizar
-          </button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', gap: '16px', flexWrap: 'wrap' }}>
+          <div>
+            <h2>Usuarios Registrados ({users.length})</h2>
+            {searchTerm.trim() && (
+              <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary)' }}>
+                Mostrando {filteredUsers.length} coincidencia(s)
+              </p>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <input
+              type="text"
+              placeholder="Buscar usuario por nombre o email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{
+                padding: '10px 14px',
+                borderRadius: '10px',
+                border: '1px solid var(--border)',
+                fontSize: '15px',
+                minWidth: '220px'
+              }}
+            />
+            <button 
+              className="btn-secondary" 
+              onClick={loadUsers} 
+              disabled={loading}
+              style={{ width: 'auto', padding: '8px 16px' }}
+            >
+              🔄 Actualizar
+            </button>
+          </div>
         </div>
 
         {loading && users.length === 0 ? (
@@ -397,9 +406,13 @@ export default function UsersManager() {
           <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
             <p>No hay usuarios registrados aún.</p>
           </div>
+        ) : filteredUsers.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
+            <p>No se encontraron usuarios que coincidan con “{searchTerm}”.</p>
+          </div>
         ) : (
           <div className="users-grid">
-            {users.map(user => (
+            {filteredUsers.map(user => (
               <div key={user.id} className="user-card-admin">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                   <div style={{ flex: 1 }}>
@@ -414,18 +427,17 @@ export default function UsersManager() {
                 </div>
                 <div style={{ marginBottom: '16px' }}>
                   <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
-                    <strong>Tests completados:</strong> {user.testsCompleted}
+                    <strong>Tests completados:</strong> {user.testsCompleted ?? 0}
                   </p>
                   <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
                     Registrado: {formatDate(user.createdAt)}
                   </p>
                 </div>
                 <button 
-                  className="btn" 
+                  className="btn btn-compact" 
                   onClick={() => setSelectedUserId(user.id)}
-                  style={{ width: '100%', padding: '10px 16px', fontSize: '15px' }}
                 >
-                  Ver Detalles
+                  Ver detalles
                 </button>
               </div>
             ))}
