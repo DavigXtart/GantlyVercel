@@ -5,9 +5,10 @@ interface LandingProps {
   onGetStarted: () => void;
   onLogin: () => void;
   onShowAbout: () => void;
+  onShowSoyProfesional: () => void;
 }
 
-export default function Landing({ onGetStarted, onLogin, onShowAbout }: LandingProps) {
+export default function Landing({ onGetStarted, onLogin, onShowAbout, onShowSoyProfesional }: LandingProps) {
   const [scrollProgress, setScrollProgress] = useState(0);
   const observerRef = useRef<any>(null);
 
@@ -105,6 +106,23 @@ export default function Landing({ onGetStarted, onLogin, onShowAbout }: LandingP
             onMouseLeave={(e) => { e.currentTarget.style.color = '#3d5a4e'; }}
           >
             Sobre nosotros
+          </button>
+          <button
+            onClick={onShowSoyProfesional}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#3d5a4e',
+              fontSize: '15px',
+              fontWeight: 500,
+              cursor: 'pointer',
+              transition: 'color 0.3s',
+              fontFamily: "'Inter', sans-serif",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = '#5a9270'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = '#3d5a4e'; }}
+          >
+            Soy profesional
           </button>
           <button
             onClick={onLogin}

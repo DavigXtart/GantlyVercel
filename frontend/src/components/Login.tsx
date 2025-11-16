@@ -31,137 +31,219 @@ export default function Login({ onLogin, onSwitchToRegister }: LoginProps) {
     <div
       style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0b1629 0%, #101a32 40%, #0b1629 100%)',
+        background: 'linear-gradient(135deg, #e8ece9 0%, #d4e0d8 50%, #e0e8e3 100%)',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        padding: '60px 24px',
+        padding: '80px 24px',
         position: 'relative',
-        overflow: 'hidden'
+        fontFamily: "'Inter', sans-serif",
       }}
     >
-      <style>{`
-        @keyframes glow {
-          0%, 100% { transform: translateY(0); opacity: 0.5; }
-          50% { transform: translateY(-8px); opacity: 0.9; }
-        }
-      `}</style>
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'radial-gradient(circle at 20% 30%, rgba(37, 99, 235, 0.22), transparent 55%), radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.18), transparent 60%), radial-gradient(circle at 50% 85%, rgba(34, 197, 94, 0.18), transparent 55%)',
-          pointerEvents: 'none'
-        }}
-      />
-      {[...Array(5)].map((_, idx) => (
-        <div
-          key={idx}
-          style={{
-            position: 'absolute',
-            width: `${120 + idx * 40}px`,
-            height: `${120 + idx * 40}px`,
-            borderRadius: '50%',
-            border: '1px solid rgba(148, 163, 184, 0.08)',
-            top: `${10 + idx * 15}%`,
-            left: `${5 + idx * 12}%`,
-            animation: `glow ${12 + idx * 2}s ease-in-out ${idx}s infinite`
-          }}
-        />
-      ))}
       <div
         style={{
           width: '100%',
-          maxWidth: '1040px',
+          maxWidth: '1000px',
           display: 'grid',
-          gridTemplateColumns: 'minmax(300px, 420px) minmax(320px, 420px)',
-          gap: '36px',
+          gridTemplateColumns: 'minmax(300px, 1fr) minmax(320px, 1fr)',
+          gap: '48px',
           position: 'relative',
-          zIndex: 1
+          zIndex: 1,
         }}
       >
+        {/* Panel izquierdo - Información */}
         <div
           style={{
-            background: 'rgba(15, 23, 42, 0.65)',
-            border: '1px solid rgba(148, 163, 184, 0.2)',
-            borderRadius: '28px',
-            padding: '46px 44px',
-            color: 'rgba(226, 232, 240, 0.88)',
+            background: 'rgba(255, 255, 255, 0.9)',
+            border: '1px solid rgba(90, 146, 112, 0.2)',
+            borderRadius: '24px',
+            padding: '48px 40px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '18px',
-            boxShadow: '0 24px 50px rgba(15, 23, 42, 0.45)'
+            gap: '24px',
+            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
           }}
         >
-          <div style={{ letterSpacing: '0.14em', textTransform: 'uppercase', fontSize: '13px', color: '#93c5fd' }}>
-            Acceso profesional
+          <div style={{ 
+            fontFamily: "'Nunito', sans-serif",
+            fontSize: '32px', 
+            fontWeight: 700, 
+            color: '#5a9270',
+            letterSpacing: '-0.02em',
+            marginBottom: '8px',
+          }}>
+            Psymatch
           </div>
-          <h1 style={{ margin: 0, fontSize: '34px', lineHeight: 1.2, color: '#f8fafc' }}>
-            Bienvenido de nuevo a PSYmatch
+          <h1 style={{ 
+            margin: 0, 
+            fontSize: '36px', 
+            lineHeight: 1.3, 
+            color: '#1a2e22',
+            fontFamily: "'Nunito', sans-serif",
+            fontWeight: 700,
+          }}>
+            Bienvenido de nuevo
           </h1>
-          <p style={{ margin: 0, fontSize: '16px', lineHeight: 1.7, color: 'rgba(226, 232, 240, 0.7)' }}>
-            Conecta con tus evaluaciones, seguimiento emocional y citas. Tu espacio seguro para gestionar el acompañamiento psicológico.
+          <p style={{ 
+            margin: 0, 
+            fontSize: '17px', 
+            lineHeight: 1.7, 
+            color: '#3a5a4a',
+            marginBottom: '8px',
+          }}>
+            Conecta con tu espacio de bienestar emocional. Accede a tus evaluaciones, seguimiento personalizado y sesiones con profesionales de la psicología.
           </p>
-          <div style={{ marginTop: '24px', display: 'grid', gap: '12px', fontSize: '15px', color: 'rgba(226, 232, 240, 0.75)' }}>
-            <div>• Analíticas en tiempo real</div>
-            <div>• Comunicación confidencial con especialistas</div>
-            <div>• Historial y planes personalizados</div>
+          <div style={{ 
+            marginTop: '24px', 
+            display: 'flex', 
+            flexDirection: 'column',
+            gap: '16px', 
+            fontSize: '16px', 
+            color: '#3a5a4a',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ 
+                width: '24px', 
+                height: '24px', 
+                borderRadius: '50%', 
+                background: '#d4e0d8',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}>✓</div>
+              <span>Evaluaciones personalizadas</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ 
+                width: '24px', 
+                height: '24px', 
+                borderRadius: '50%', 
+                background: '#d4e0d8',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}>✓</div>
+              <span>Seguimiento emocional confidencial</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ 
+                width: '24px', 
+                height: '24px', 
+                borderRadius: '50%', 
+                background: '#d4e0d8',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}>✓</div>
+              <span>Planes adaptados a ti</span>
+            </div>
           </div>
-          <div style={{ marginTop: 'auto', fontSize: '14px', color: 'rgba(226, 232, 240, 0.65)' }}>
+          <div style={{ 
+            marginTop: 'auto', 
+            fontSize: '15px', 
+            color: '#3a5a4a',
+            paddingTop: '24px',
+            borderTop: '1px solid rgba(90, 146, 112, 0.15)',
+          }}>
             ¿No tienes cuenta?{' '}
             <button
               onClick={onSwitchToRegister}
               style={{
                 border: 'none',
                 background: 'transparent',
-                color: '#60a5fa',
+                color: '#5a9270',
                 fontWeight: 600,
                 cursor: 'pointer',
-                textDecoration: 'underline'
+                textDecoration: 'none',
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '15px',
               }}
+              onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}
             >
-              Crear acceso
+              Crear cuenta
             </button>
           </div>
         </div>
 
+        {/* Panel derecho - Formulario */}
         <div
           style={{
-            background: 'rgba(15, 23, 42, 0.78)',
-            border: '1px solid rgba(148, 163, 184, 0.16)',
-            borderRadius: '28px',
-            padding: '44px',
-            boxShadow: '0 18px 40px rgba(15, 23, 42, 0.38)',
-            backdropFilter: 'blur(12px)'
+            background: 'rgba(255, 255, 255, 0.95)',
+            border: '1px solid rgba(90, 146, 112, 0.2)',
+            borderRadius: '24px',
+            padding: '48px 40px',
+            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
           }}
         >
-          <h2 style={{ margin: '0 0 6px', fontSize: '24px', color: '#f1f5f9' }}>Iniciar sesión</h2>
-          <p style={{ margin: '0 0 24px', fontSize: '15px', color: 'rgba(226, 232, 240, 0.62)' }}>
-            Ingresa tus credenciales corporativas para continuar.
+          <h2 style={{ 
+            margin: '0 0 8px', 
+            fontSize: '28px', 
+            color: '#1a2e22',
+            fontFamily: "'Nunito', sans-serif",
+            fontWeight: 700,
+          }}>
+            Iniciar sesión
+          </h2>
+          <p style={{ 
+            margin: '0 0 32px', 
+            fontSize: '16px', 
+            color: '#3a5a4a',
+          }}>
+            Ingresa tus datos para acceder a tu espacio personal.
           </p>
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontSize: '13px',letterSpacing:'0.08em',color:'rgba(226,232,240,0.6)',textTransform:'uppercase' }}>Email</label>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <label style={{ 
+                fontSize: '14px',
+                color: '#3a5a4a',
+                fontWeight: 500,
+                fontFamily: "'Inter', sans-serif",
+              }}>
+                Email
+              </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="nombre@empresa.com"
+                placeholder="tu@email.com"
                 style={{
-                  padding: '16px 18px',
-                  borderRadius: '14px',
-                  border: '1px solid rgba(148, 163, 184, 0.25)',
-                  background: 'rgba(15, 23, 42, 0.55)',
-                  color: '#f8fafc',
-                  fontSize: '15px'
+                  padding: '14px 18px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(90, 146, 112, 0.3)',
+                  background: '#f8f9fa',
+                  color: '#1a2e22',
+                  fontSize: '15px',
+                  fontFamily: "'Inter', sans-serif",
+                  transition: 'all 0.3s',
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = '#5a9270';
+                  e.currentTarget.style.background = '#fff';
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(90, 146, 112, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
+                  e.currentTarget.style.background = '#f8f9fa';
+                  e.currentTarget.style.boxShadow = 'none';
                 }}
               />
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontSize: '13px',letterSpacing:'0.08em',color:'rgba(226,232,240,0.6)',textTransform:'uppercase' }}>Contraseña</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <label style={{ 
+                fontSize: '14px',
+                color: '#3a5a4a',
+                fontWeight: 500,
+                fontFamily: "'Inter', sans-serif",
+              }}>
+                Contraseña
+              </label>
               <input
                 type="password"
                 value={password}
@@ -169,12 +251,24 @@ export default function Login({ onLogin, onSwitchToRegister }: LoginProps) {
                 required
                 placeholder="••••••••"
                 style={{
-                  padding: '16px 18px',
-                  borderRadius: '14px',
-                  border: '1px solid rgba(148, 163, 184, 0.25)',
-                  background: 'rgba(15, 23, 42, 0.55)',
-                  color: '#f8fafc',
-                  fontSize: '15px'
+                  padding: '14px 18px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(90, 146, 112, 0.3)',
+                  background: '#f8f9fa',
+                  color: '#1a2e22',
+                  fontSize: '15px',
+                  fontFamily: "'Inter', sans-serif",
+                  transition: 'all 0.3s',
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = '#5a9270';
+                  e.currentTarget.style.background = '#fff';
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(90, 146, 112, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
+                  e.currentTarget.style.background = '#f8f9fa';
+                  e.currentTarget.style.boxShadow = 'none';
                 }}
               />
             </div>
@@ -184,10 +278,11 @@ export default function Login({ onLogin, onSwitchToRegister }: LoginProps) {
                 style={{
                   padding: '14px 16px',
                   borderRadius: '12px',
-                  background: 'rgba(239, 68, 68, 0.12)',
-                  border: '1px solid rgba(248, 113, 113, 0.35)',
-                  color: '#fecaca',
-                  fontSize: '14px'
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  color: '#dc2626',
+                  fontSize: '14px',
+                  fontFamily: "'Inter', sans-serif",
                 }}
               >
                 {error}
@@ -198,24 +293,33 @@ export default function Login({ onLogin, onSwitchToRegister }: LoginProps) {
               type="submit"
               disabled={loading}
               style={{
-                marginTop: '12px',
-                padding: '16px 20px',
-                borderRadius: '999px',
+                marginTop: '8px',
+                padding: '14px 24px',
+                borderRadius: '24px',
                 border: 'none',
-                background: loading
-                  ? 'rgba(148, 163, 184, 0.4)'
-                  : 'linear-gradient(135deg, #38bdf8 0%, #2563eb 50%, #1e3a8a 100%)',
-                color: '#0f172a',
-                fontSize: '15px',
-                fontWeight: 700,
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
+                background: loading ? '#cbd5d1' : '#5a9270',
+                color: '#ffffff',
+                fontSize: '16px',
+                fontWeight: 600,
                 cursor: loading ? 'not-allowed' : 'pointer',
-                boxShadow: loading ? 'none' : '0 12px 32px rgba(37, 99, 235, 0.35)',
-                transition: 'transform 0.3s ease'
+                boxShadow: loading ? 'none' : '0 4px 12px rgba(90, 146, 112, 0.3)',
+                transition: 'all 0.3s',
+                fontFamily: "'Inter', sans-serif",
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.background = '#4a8062';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.background = '#5a9270';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
+                }
               }}
             >
-              {loading ? 'Validando acceso…' : 'Entrar a PSYmatch'}
+              {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
             </button>
           </form>
         </div>

@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
+import Lottie from 'lottie-react';
+import JSZip from 'jszip';
 import { initialTestService } from '../services/api';
-import PSYmatchLogo from './PSYmatchLogo';
+import backgroundPng from '../assets/Adobe Express - file (1).png';
+import airBalloonLottieUrl from '../assets/Air Balloony.lottie?url';
 
 interface Question {
   id: number;
@@ -36,9 +39,98 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
   const [answers, setAnswers] = useState<Record<number, { answerId?: number; numericValue?: number }>>({});
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [airBalloonData, setAirBalloonData] = useState<any>(null);
 
   useEffect(() => {
     initializeTest();
+    // Cargar animaciones Lottie (archivos ZIP comprimidos)
+    const loadLottieFile = async (url: string, setData: (data: any) => void, name: string) => {
+      try {
+        console.log(`Cargando ${name} desde ${url}`);
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const arrayBuffer = await response.arrayBuffer();
+        console.log(`${name}: Archivo descargado, tamaño: ${arrayBuffer.byteLength} bytes`);
+        const zip = await JSZip.loadAsync(arrayBuffer);
+        console.log(`${name}: ZIP descomprimido, archivos:`, Object.keys(zip.files));
+        
+        // Los archivos .lottie contienen un manifest.json que indica el archivo de animación
+        let jsonFile = null;
+        const manifestFile = zip.file('manifest.json');
+        
+        if (manifestFile) {
+          const manifestData = await manifestFile.async('string');
+          const manifest = JSON.parse(manifestData);
+          console.log(`${name}: Manifest encontrado:`, manifest);
+          
+          // El manifest tiene información sobre el archivo de animación
+          // Puede estar en manifest.animations[0].file o similar
+          if (manifest.animations && manifest.animations.length > 0) {
+            const animationInfo = manifest.animations[0];
+            console.log(`${name}: Información de animación:`, animationInfo);
+            console.log(`${name}: Tipo de animationInfo:`, typeof animationInfo);
+            console.log(`${name}: Keys de animationInfo:`, typeof animationInfo === 'object' ? Object.keys(animationInfo) : 'N/A');
+            
+            // El archivo puede estar en diferentes propiedades
+            let animationFile = null;
+            if (typeof animationInfo === 'string') {
+              animationFile = animationInfo;
+            } else if (typeof animationInfo === 'object' && animationInfo !== null) {
+              // Intentar todas las propiedades posibles
+              animationFile = animationInfo.file || 
+                             animationInfo.id || 
+                             animationInfo.uuid ||
+                             animationInfo.path ||
+                             animationInfo.name ||
+                             (animationInfo.animations && animationInfo.animations[0]) ||
+                             Object.values(animationInfo).find(v => typeof v === 'string' && v.length > 10);
+            }
+            
+            if (animationFile && typeof animationFile === 'string') {
+              // Buscar el archivo en la carpeta animations/ si existe
+              let filePath = animationFile;
+              if (!filePath.includes('/')) {
+                filePath = `animations/${filePath}`;
+              }
+              if (!filePath.endsWith('.json')) {
+                filePath = `${filePath}.json`;
+              }
+              jsonFile = zip.file(filePath);
+              console.log(`${name}: Buscando archivo de animación: ${filePath}`);
+            } else {
+              console.log(`${name}: No se pudo extraer el nombre del archivo del manifest`);
+            }
+          }
+        }
+        
+        // Si no encontramos el archivo a través del manifest, buscar cualquier JSON excepto manifest.json
+        if (!jsonFile) {
+          const jsonFiles = Object.keys(zip.files).filter(fname => 
+            fname.endsWith('.json') && fname !== 'manifest.json'
+          );
+          if (jsonFiles.length > 0) {
+            console.log(`${name}: Usando archivo JSON: ${jsonFiles[0]}`);
+            jsonFile = zip.file(jsonFiles[0]);
+          }
+        }
+        
+        if (jsonFile) {
+          const jsonData = await jsonFile.async('string');
+          const parsedData = JSON.parse(jsonData);
+          setData(parsedData);
+          console.log(`${name}: Animación cargada correctamente`);
+        } else {
+          console.error(`No se encontró archivo JSON de animación en ${name}`);
+          console.log(`${name}: Archivos disponibles:`, Object.keys(zip.files));
+        }
+      } catch (err) {
+        console.error(`Error cargando ${name}:`, err);
+      }
+    };
+    
+    loadLottieFile(airBalloonLottieUrl, setAirBalloonData, 'Air Balloon');
   }, []);
 
   const initializeTest = async () => {
@@ -139,11 +231,67 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #0f172a 100%)',
-          color: '#e2e8f0'
+          position: 'relative',
+          fontFamily: "'Inter', sans-serif",
         }}
       >
-        Cargando evaluación inicial...
+        {/* Background PNG */}
+        <img 
+          src={backgroundPng} 
+          alt="background" 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: 0,
+            pointerEvents: 'none',
+          }}
+        />
+        
+        {/* Lottie Animations */}
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1,
+            pointerEvents: 'none',
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              top: '10%',
+              right: '5%',
+              width: '200px',
+              height: '200px',
+            }}
+          >
+            {airBalloonData && <Lottie animationData={airBalloonData} loop={true} />}
+          </div>
+        </div>
+        
+        <div
+          style={{
+            background: 'rgba(250, 232, 214, 0.85)',
+            border: '1px solid rgba(90, 146, 112, 0.2)',
+            borderRadius: '24px',
+            padding: '48px 40px',
+            textAlign: 'center',
+            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
+            position: 'relative',
+            zIndex: 2,
+          }}
+        >
+          <p style={{ fontSize: '18px', color: '#3a5a4a', fontWeight: 500, margin: 0 }}>
+            Cargando evaluación inicial...
+          </p>
+        </div>
       </div>
     );
   }
@@ -156,36 +304,102 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #0f172a 100%)',
-          color: '#e2e8f0'
+          position: 'relative',
+          fontFamily: "'Inter', sans-serif",
         }}
       >
+        {/* Background PNG */}
+        <img 
+          src={backgroundPng} 
+          alt="background" 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: 0,
+            pointerEvents: 'none',
+          }}
+        />
+        
+        {/* Lottie Animations */}
         <div
           style={{
-            background: 'rgba(15, 23, 42, 0.75)',
-            border: '1px solid rgba(148, 163, 184, 0.25)',
-            borderRadius: '24px',
-            padding: '32px 40px',
-            maxWidth: '480px',
-            textAlign: 'center'
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1,
+            pointerEvents: 'none',
           }}
         >
-          <h2 style={{ margin: '0 0 12px', fontSize: '26px' }}>Test no disponible</h2>
-          <p style={{ margin: '0 0 24px', color: 'rgba(226, 232, 240, 0.75)' }}>
+          <div
+            style={{
+              position: 'absolute',
+              top: '10%',
+              right: '5%',
+              width: '200px',
+              height: '200px',
+            }}
+          >
+            {airBalloonData && <Lottie animationData={airBalloonData} loop={true} />}
+          </div>
+        </div>
+        
+        <div
+          style={{
+            background: 'rgba(250, 232, 214, 0.85)',
+            border: '1px solid rgba(90, 146, 112, 0.2)',
+            borderRadius: '24px',
+            padding: '48px 40px',
+            maxWidth: '480px',
+            textAlign: 'center',
+            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
+            position: 'relative',
+            zIndex: 2,
+          }}
+        >
+          <h2 style={{ 
+            margin: '0 0 12px', 
+            fontSize: '26px',
+            color: '#1a2e22',
+            fontFamily: "'Nunito', sans-serif",
+            fontWeight: 700,
+          }}>
+            Test no disponible
+          </h2>
+          <p style={{ 
+            margin: '0 0 24px', 
+            color: '#3a5a4a',
+            fontSize: '16px',
+          }}>
             El test inicial aún no está configurado.
           </p>
           <button
             onClick={onBack}
             style={{
-              padding: '12px 28px',
-              borderRadius: '999px',
-              border: '1px solid rgba(148, 163, 184, 0.35)',
-              background: 'transparent',
-              color: '#e2e8f0',
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              fontSize: '13px',
-              cursor: 'pointer'
+              padding: '12px 24px',
+              borderRadius: '24px',
+              border: 'none',
+              background: '#5a9270',
+              color: '#ffffff',
+              fontSize: '15px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(90, 146, 112, 0.3)',
+              transition: 'all 0.3s',
+              fontFamily: "'Inter', sans-serif",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#4a8062';
+              e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#5a9270';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
             }}
           >
             Volver
@@ -205,35 +419,71 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
     <div
       style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0f172a 0%, #15243d 45%, #0f172a 100%)',
-        padding: '60px 24px 80px',
+        padding: '80px 24px 80px',
         position: 'relative',
-        overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center'
+        alignItems: 'center',
+        fontFamily: "'Inter', sans-serif",
+        overflow: 'hidden',
       }}
     >
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
-        }
-        @keyframes fadeSlide {
-          from { opacity: 0; transform: translateY(18px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
-
-      <div
+      {/* Background PNG */}
+      <img 
+        src={backgroundPng} 
+        alt="background" 
         style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.22), transparent 55%), radial-gradient(circle at 80% 10%, rgba(56, 189, 248, 0.18), transparent 60%), radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.18), transparent 55%)',
-          pointerEvents: 'none'
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          zIndex: 0,
+          pointerEvents: 'none',
+        }}
+        onLoad={() => {
+          console.log('Imagen de fondo cargada correctamente');
         }}
       />
-
+      
+      {/* Lottie Animations */}
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 1,
+          pointerEvents: 'none',
+        }}
+      >
+        {/* Air Balloon Lottie */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '10%',
+            right: '5%',
+            width: '200px',
+            height: '200px',
+            zIndex: 10,
+          }}
+        >
+          {airBalloonData ? (
+            <Lottie animationData={airBalloonData} loop={true} />
+          ) : (
+            <div style={{ 
+              width: '100%', 
+              height: '100%', 
+              background: 'rgba(255,0,0,0.1)',
+              border: '1px dashed red' 
+            }}>
+              Cargando globo...
+            </div>
+          )}
+        </div>
+      </div>
       {/* Top navigation */}
       <div
         style={{
@@ -244,22 +494,41 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           alignItems: 'center',
           marginBottom: '32px',
           position: 'relative',
-          zIndex: 2
+          zIndex: 2,
         }}
       >
-        <PSYmatchLogo size="small" />
+        <div style={{
+          fontFamily: "'Nunito', sans-serif",
+          fontSize: '28px',
+          fontWeight: 700,
+          color: '#5a9270',
+          letterSpacing: '-0.02em',
+        }}>
+          Psymatch
+        </div>
         <button
           onClick={onBack}
           style={{
-            padding: '12px 24px',
-            borderRadius: '999px',
-            border: '1px solid rgba(148, 163, 184, 0.35)',
-            background: 'transparent',
-            color: 'rgba(226, 232, 240, 0.8)',
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-            fontSize: '13px',
-            cursor: 'pointer'
+            padding: '10px 24px',
+            borderRadius: '24px',
+            border: '1px solid rgba(90, 146, 112, 0.3)',
+            background: 'rgba(250, 232, 214, 0.85)',
+            color: '#3a5a4a',
+            fontSize: '15px',
+            fontWeight: 500,
+            cursor: 'pointer',
+            transition: 'all 0.3s',
+            fontFamily: "'Inter', sans-serif",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(250, 232, 214, 1)';
+            e.currentTarget.style.borderColor = '#5a9270';
+            e.currentTarget.style.color = '#5a9270';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(250, 232, 214, 0.85)';
+            e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
+            e.currentTarget.style.color = '#3a5a4a';
           }}
         >
           Guardar y salir
@@ -273,55 +542,70 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           position: 'relative',
           zIndex: 2,
           display: 'grid',
-          gap: '24px'
+          gap: '24px',
         }}
       >
         {/* Progress */}
         <div
           style={{
-            background: 'rgba(15, 23, 42, 0.55)',
-            border: '1px solid rgba(148, 163, 184, 0.25)',
-            borderRadius: '22px',
-            padding: '28px 32px',
-            boxShadow: '0 12px 32px rgba(15, 23, 42, 0.35)'
+            background: 'rgba(250, 232, 214, 0.85)',
+            border: '1px solid rgba(90, 146, 112, 0.2)',
+            borderRadius: '24px',
+            padding: '32px 40px',
+            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)'
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
-            <div>
-              <h2 style={{ margin: 0, fontSize: '26px', color: 'rgba(248, 250, 252, 0.96)' }}>{test.title}</h2>
-              <p style={{ margin: '8px 0 0', color: 'rgba(226, 232, 240, 0.65)', fontSize: '14px', maxWidth: '560px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
+            <div style={{ flex: 1 }}>
+              <h2 style={{ 
+                margin: 0, 
+                fontSize: '28px', 
+                color: '#1a2e22',
+                fontFamily: "'Nunito', sans-serif",
+                fontWeight: 700,
+              }}>
+                {test.title}
+              </h2>
+              <p style={{ 
+                margin: '8px 0 0', 
+                color: '#3a5a4a', 
+                fontSize: '16px', 
+                maxWidth: '560px',
+                lineHeight: 1.6,
+              }}>
                 {test.description}
               </p>
             </div>
-            <span
+            <div
               style={{
-                padding: '10px 16px',
-                borderRadius: '999px',
-                border: '1px solid rgba(148, 163, 184, 0.35)',
-                color: 'rgba(248, 250, 252, 0.85)',
-                fontSize: '13px',
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase'
+                padding: '8px 16px',
+                borderRadius: '20px',
+                background: '#d4e0d8',
+                color: '#3a5a4a',
+                fontSize: '14px',
+                fontWeight: 600,
+                fontFamily: "'Inter', sans-serif",
               }}
             >
-              Pregunta {currentQuestionIndex + 1} / {test.questions.length}
-            </span>
+              Pregunta {currentQuestionIndex + 1} de {test.questions.length}
+            </div>
           </div>
           <div
             style={{
               width: '100%',
-              height: '12px',
+              height: '10px',
               borderRadius: '999px',
               overflow: 'hidden',
-              background: 'rgba(148, 163, 184, 0.24)'
+              background: '#e0e8e3'
             }}
           >
             <div
               style={{
                 width: `${progress}%`,
                 height: '100%',
-                background: 'linear-gradient(90deg, #38bdf8 0%, #818cf8 45%, #34d399 100%)',
-                transition: 'width 0.45s ease'
+                background: '#5a9270',
+                transition: 'width 0.45s ease',
+                borderRadius: '999px',
               }}
             />
           </div>
@@ -330,25 +614,26 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
         {/* Question */}
         <div
           style={{
-            background: 'rgba(15, 23, 42, 0.6)',
-            border: '1px solid rgba(148, 163, 184, 0.25)',
+            background: 'rgba(250, 232, 214, 0.9)',
+            border: '1px solid rgba(90, 146, 112, 0.2)',
             borderRadius: '24px',
-            padding: '42px',
-            boxShadow: '0 16px 40px rgba(15, 23, 42, 0.35)',
-            animation: 'fadeSlide 0.4s ease'
+            padding: '48px 40px',
+            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
           }}
         >
           <h3
             style={{
-              margin: '0 0 24px',
-              fontSize: 'clamp(22px, 3vw, 32px)',
-              color: 'rgba(248, 250, 252, 0.96)',
-              lineHeight: 1.3
+              margin: '0 0 32px',
+              fontSize: 'clamp(24px, 3vw, 32px)',
+              color: '#1a2e22',
+              lineHeight: 1.4,
+              fontFamily: "'Nunito', sans-serif",
+              fontWeight: 600,
             }}
           >
             {currentQuestion.text}
           </h3>
-          <div style={{ display: 'grid', gap: '14px' }}>
+          <div style={{ display: 'grid', gap: '16px' }}>
             {currentQuestion.answers.map((answer, idx) => {
               const isSelected = currentAnswer?.answerId === answer.id;
               return (
@@ -358,50 +643,53 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
                   style={{
                     padding: '18px 24px',
                     borderRadius: '16px',
-                    border: `1px solid ${isSelected ? 'rgba(59, 130, 246, 0.6)' : 'rgba(148, 163, 184, 0.18)'}`,
-                    background: isSelected ? 'rgba(59, 130, 246, 0.18)' : 'rgba(15, 23, 42, 0.8)',
-                    color: 'rgba(248, 250, 252, 0.92)',
+                    border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.3)'}`,
+                    background: isSelected ? '#d4e0d8' : '#f8f9fa',
+                    color: '#1a2e22',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     cursor: 'pointer',
-                    transition: 'all 0.25s ease',
-                    transform: isSelected ? 'translateX(6px)' : 'translateX(0)',
-                    boxShadow: isSelected ? '0 12px 28px rgba(59, 130, 246, 0.25)' : 'none',
-                    animation: `fadeSlide 0.35s ease ${idx * 0.04}s both`
+                    transition: 'all 0.3s ease',
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '16px',
+                    textAlign: 'left',
+                    boxShadow: isSelected ? '0 4px 12px rgba(90, 146, 112, 0.2)' : 'none',
                   }}
                   onMouseEnter={(e) => {
                     if (!isSelected) {
-                      e.currentTarget.style.borderColor = 'rgba(59, 130, 246, 0.35)';
-                      e.currentTarget.style.background = 'rgba(15, 23, 42, 0.72)';
-                      e.currentTarget.style.transform = 'translateX(4px)';
+                      e.currentTarget.style.borderColor = '#5a9270';
+                      e.currentTarget.style.background = 'rgba(250, 232, 214, 0.6)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.15)';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isSelected) {
-                      e.currentTarget.style.borderColor = 'rgba(148, 163, 184, 0.18)';
-                      e.currentTarget.style.background = 'rgba(15, 23, 42, 0.8)';
-                      e.currentTarget.style.transform = 'translateX(0)';
+                      e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
+                      e.currentTarget.style.background = '#f8f9fa';
+                      e.currentTarget.style.boxShadow = 'none';
                     }
                   }}
                 >
-                  <span style={{ fontSize: '18px', fontWeight: 500, textAlign: 'left' }}>{answer.text}</span>
-                  <span
+                  <span style={{ fontSize: '16px', fontWeight: 500, flex: 1 }}>{answer.text}</span>
+                  <div
                     style={{
                       width: '24px',
                       height: '24px',
                       borderRadius: '50%',
-                      border: `2px solid ${isSelected ? '#38bdf8' : 'rgba(148, 163, 184, 0.35)'}`,
+                      border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.4)'}`,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      background: isSelected ? '#38bdf8' : 'transparent',
-                      color: isSelected ? '#0f172a' : 'transparent',
-                      transition: 'all 0.25s ease'
+                      background: isSelected ? '#5a9270' : 'transparent',
+                      color: isSelected ? '#ffffff' : 'transparent',
+                      transition: 'all 0.3s ease',
+                      flexShrink: 0,
+                      marginLeft: '16px',
                     }}
                   >
-                    ✓
-                  </span>
+                    {isSelected && '✓'}
+                  </div>
                 </button>
               );
             })}
@@ -413,11 +701,11 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           style={{
             display: 'flex',
             justifyContent: 'flex-end',
-            background: 'rgba(15, 23, 42, 0.55)',
-            border: '1px solid rgba(148, 163, 184, 0.25)',
-            borderRadius: '20px',
-            padding: '20px 32px',
-            boxShadow: '0 12px 32px rgba(15, 23, 42, 0.35)'
+            background: 'rgba(250, 232, 214, 0.85)',
+            border: '1px solid rgba(90, 146, 112, 0.2)',
+            borderRadius: '24px',
+            padding: '24px 32px',
+            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)'
           }}
         >
           {isLastQuestion && allAnswered && (
@@ -425,20 +713,32 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
               onClick={handleSubmit}
               disabled={submitting}
               style={{
-                padding: '12px 28px',
-                borderRadius: '999px',
+                padding: '14px 32px',
+                borderRadius: '24px',
                 border: 'none',
-                background: submitting ? 'rgba(148, 163, 184, 0.45)' : 'linear-gradient(135deg, #38bdf8, #34d399)',
-                color: '#0f172a',
-                fontSize: '14px',
-                fontWeight: 700,
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
+                background: submitting ? '#cbd5d1' : '#5a9270',
+                color: '#ffffff',
+                fontSize: '16px',
+                fontWeight: 600,
                 cursor: submitting ? 'not-allowed' : 'pointer',
-                boxShadow: submitting ? 'none' : '0 12px 28px rgba(34, 197, 94, 0.3)'
+                boxShadow: submitting ? 'none' : '0 4px 12px rgba(90, 146, 112, 0.3)',
+                transition: 'all 0.3s',
+                fontFamily: "'Inter', sans-serif",
+              }}
+              onMouseEnter={(e) => {
+                if (!submitting) {
+                  e.currentTarget.style.background = '#4a8062';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!submitting) {
+                  e.currentTarget.style.background = '#5a9270';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
+                }
               }}
             >
-              {submitting ? 'Enviando…' : 'Enviar evaluación'}
+              {submitting ? 'Enviando...' : 'Enviar evaluación'}
             </button>
           )}
         </div>

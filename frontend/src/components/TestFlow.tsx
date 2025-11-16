@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
+import Lottie from 'lottie-react';
+import JSZip from 'jszip';
 import { testService } from '../services/api';
-import PSYmatchLogo from './PSYmatchLogo';
+import backgroundPng from '../assets/Adobe Express - file (1).png';
+import airBalloonLottieUrl from '../assets/Air Balloony.lottie?url';
 
 interface Question {
   id: number;
@@ -30,66 +33,105 @@ interface TestFlowProps {
   onComplete: () => void;
 }
 
-type Mood = 'serenity' | 'focus' | 'energy';
-
-const moodPalette: Record<
-  Mood,
-  { bg: string; accent: string; accentSoft: string; border: string; glow: string }
-> = {
-  serenity: {
-    bg: 'linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #0f172a 100%)',
-    accent: '#38bdf8',
-    accentSoft: 'rgba(56, 189, 248, 0.12)',
-    border: 'rgba(148, 163, 184, 0.35)',
-    glow: '0 0 22px rgba(56, 189, 248, 0.35)'
-  },
-  focus: {
-    bg: 'linear-gradient(135deg, #111827 0%, #1f2937 50%, #111827 100%)',
-    accent: '#818cf8',
-    accentSoft: 'rgba(129, 140, 248, 0.12)',
-    border: 'rgba(129, 140, 248, 0.35)',
-    glow: '0 0 22px rgba(129, 140, 248, 0.35)'
-  },
-  energy: {
-    bg: 'linear-gradient(135deg, #0f172a 0%, #164e63 45%, #0f172a 100%)',
-    accent: '#34d399',
-    accentSoft: 'rgba(52, 211, 153, 0.12)',
-    border: 'rgba(52, 211, 153, 0.35)',
-    glow: '0 0 22px rgba(52, 211, 153, 0.35)'
-  }
-};
-
 export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) {
   const [test, setTest] = useState<TestDetails | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, { answerId?: number; numericValue?: number }>>({});
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [questionTransition, setQuestionTransition] = useState(false);
-  const [mood, setMood] = useState<Mood>('serenity');
-
-  const palette = moodPalette[mood];
+  const [airBalloonData, setAirBalloonData] = useState<any>(null);
 
   useEffect(() => {
     loadTest();
+    // Cargar animaciones Lottie (archivos ZIP comprimidos)
+    const loadLottieFile = async (url: string, setData: (data: any) => void, name: string) => {
+      try {
+        console.log(`Cargando ${name} desde ${url}`);
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const arrayBuffer = await response.arrayBuffer();
+        console.log(`${name}: Archivo descargado, tamaño: ${arrayBuffer.byteLength} bytes`);
+        const zip = await JSZip.loadAsync(arrayBuffer);
+        console.log(`${name}: ZIP descomprimido, archivos:`, Object.keys(zip.files));
+        
+        // Los archivos .lottie contienen un manifest.json que indica el archivo de animación
+        let jsonFile = null;
+        const manifestFile = zip.file('manifest.json');
+        
+        if (manifestFile) {
+          const manifestData = await manifestFile.async('string');
+          const manifest = JSON.parse(manifestData);
+          console.log(`${name}: Manifest encontrado:`, manifest);
+          
+          // El manifest tiene información sobre el archivo de animación
+          // Puede estar en manifest.animations[0].file o similar
+          if (manifest.animations && manifest.animations.length > 0) {
+            const animationInfo = manifest.animations[0];
+            console.log(`${name}: Información de animación:`, animationInfo);
+            console.log(`${name}: Tipo de animationInfo:`, typeof animationInfo);
+            console.log(`${name}: Keys de animationInfo:`, typeof animationInfo === 'object' ? Object.keys(animationInfo) : 'N/A');
+            
+            // El archivo puede estar en diferentes propiedades
+            let animationFile = null;
+            if (typeof animationInfo === 'string') {
+              animationFile = animationInfo;
+            } else if (typeof animationInfo === 'object' && animationInfo !== null) {
+              // Intentar todas las propiedades posibles
+              animationFile = animationInfo.file || 
+                             animationInfo.id || 
+                             animationInfo.uuid ||
+                             animationInfo.path ||
+                             animationInfo.name ||
+                             (animationInfo.animations && animationInfo.animations[0]) ||
+                             Object.values(animationInfo).find(v => typeof v === 'string' && v.length > 10);
+            }
+            
+            if (animationFile && typeof animationFile === 'string') {
+              // Buscar el archivo en la carpeta animations/ si existe
+              let filePath = animationFile;
+              if (!filePath.includes('/')) {
+                filePath = `animations/${filePath}`;
+              }
+              if (!filePath.endsWith('.json')) {
+                filePath = `${filePath}.json`;
+              }
+              jsonFile = zip.file(filePath);
+              console.log(`${name}: Buscando archivo de animación: ${filePath}`);
+            } else {
+              console.log(`${name}: No se pudo extraer el nombre del archivo del manifest`);
+            }
+          }
+        }
+        
+        // Si no encontramos el archivo a través del manifest, buscar cualquier JSON excepto manifest.json
+        if (!jsonFile) {
+          const jsonFiles = Object.keys(zip.files).filter(fname => 
+            fname.endsWith('.json') && fname !== 'manifest.json'
+          );
+          if (jsonFiles.length > 0) {
+            console.log(`${name}: Usando archivo JSON: ${jsonFiles[0]}`);
+            jsonFile = zip.file(jsonFiles[0]);
+          }
+        }
+        
+        if (jsonFile) {
+          const jsonData = await jsonFile.async('string');
+          const parsedData = JSON.parse(jsonData);
+          setData(parsedData);
+          console.log(`${name}: Animación cargada correctamente`);
+        } else {
+          console.error(`No se encontró archivo JSON de animación en ${name}`);
+          console.log(`${name}: Archivos disponibles:`, Object.keys(zip.files));
+        }
+      } catch (err) {
+        console.error(`Error cargando ${name}:`, err);
+      }
+    };
+    
+    loadLottieFile(airBalloonLottieUrl, setAirBalloonData, 'Air Balloon');
   }, [testId]);
-
-  useEffect(() => {
-    setQuestionTransition(true);
-    const timer = setTimeout(() => setQuestionTransition(false), 300);
-    return () => clearTimeout(timer);
-  }, [currentQuestionIndex]);
-
-  useEffect(() => {
-    const moods: Mood[] = ['serenity', 'focus', 'energy'];
-    const interval = setInterval(() => {
-      setMood((prev) => {
-        const idx = moods.indexOf(prev);
-        return moods[(idx + 1) % moods.length];
-      });
-    }, 12000);
-    return () => clearInterval(interval);
-  }, []);
 
   const loadTest = async () => {
     try {
@@ -199,43 +241,170 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #f0f9ff 0%, #ecfdf5 100%)',
+        position: 'relative',
+        fontFamily: "'Inter', sans-serif",
       }}>
-        <div style={{
-          textAlign: 'center',
-          padding: '40px',
-          background: 'white',
-          borderRadius: '24px',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-        }}>
-          <div style={{
-            width: '60px',
-            height: '60px',
-            border: '4px solid #e5e7eb',
-            borderTop: '4px solid #2563eb',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto 20px',
-          }} />
-          <p style={{ fontSize: '18px', color: '#64748b', fontWeight: 500 }}>Cargando test...</p>
+        {/* Background PNG */}
+        <img 
+          src={backgroundPng} 
+          alt="background" 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: 0,
+            pointerEvents: 'none',
+          }}
+        />
+        
+        {/* Lottie Animations */}
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1,
+            pointerEvents: 'none',
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              top: '10%',
+              right: '5%',
+              width: '200px',
+              height: '200px',
+            }}
+          >
+            {airBalloonData && <Lottie animationData={airBalloonData} loop={true} />}
+          </div>
         </div>
-        <style>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
+        
+        <div style={{
+          background: 'rgba(250, 232, 214, 0.85)',
+          border: '1px solid rgba(90, 146, 112, 0.2)',
+          borderRadius: '24px',
+          padding: '48px 40px',
+          textAlign: 'center',
+          boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
+          position: 'relative',
+          zIndex: 2,
+        }}>
+          <p style={{ fontSize: '18px', color: '#3a5a4a', fontWeight: 500, margin: 0 }}>
+            Cargando test...
+          </p>
+        </div>
       </div>
     );
   }
 
   if (!test || !test.questions || test.questions.length === 0) {
     return (
-      <div className="container">
-        <div className="card">
-          <h2>Test no disponible</h2>
-          <p>Este test no tiene preguntas aún.</p>
-          <button className="btn-secondary" onClick={onBack} style={{ marginTop: '16px' }}>
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+        fontFamily: "'Inter', sans-serif",
+      }}>
+        {/* Background PNG */}
+        <img 
+          src={backgroundPng} 
+          alt="background" 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: 0,
+            pointerEvents: 'none',
+          }}
+        />
+        
+        {/* Lottie Animations */}
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1,
+            pointerEvents: 'none',
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              top: '10%',
+              right: '5%',
+              width: '200px',
+              height: '200px',
+            }}
+          >
+            {airBalloonData && <Lottie animationData={airBalloonData} loop={true} />}
+          </div>
+        </div>
+        
+        <div style={{
+          background: 'rgba(250, 232, 214, 0.85)',
+          border: '1px solid rgba(90, 146, 112, 0.2)',
+          borderRadius: '24px',
+          padding: '48px 40px',
+          maxWidth: '480px',
+          textAlign: 'center',
+          boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
+          position: 'relative',
+          zIndex: 2,
+        }}>
+          <h2 style={{
+            margin: '0 0 12px',
+            fontSize: '26px',
+            color: '#1a2e22',
+            fontFamily: "'Nunito', sans-serif",
+            fontWeight: 700,
+          }}>
+            Test no disponible
+          </h2>
+          <p style={{
+            margin: '0 0 24px',
+            color: '#3a5a4a',
+            fontSize: '16px',
+          }}>
+            Este test no tiene preguntas aún.
+          </p>
+          <button
+            onClick={onBack}
+            style={{
+              padding: '12px 24px',
+              borderRadius: '24px',
+              border: 'none',
+              background: '#5a9270',
+              color: '#ffffff',
+              fontSize: '15px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(90, 146, 112, 0.3)',
+              transition: 'all 0.3s',
+              fontFamily: "'Inter', sans-serif",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#4a8062';
+              e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#5a9270';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
+            }}
+          >
             Volver
           </button>
         </div>
@@ -253,105 +422,77 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
     <div
       style={{
         minHeight: '100vh',
-        background: palette.bg,
-        transition: 'background 1.2s ease',
-        padding: '48px 20px 64px',
+        padding: '80px 24px 80px',
         position: 'relative',
-        overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center'
+        alignItems: 'center',
+        fontFamily: "'Inter', sans-serif",
+        overflow: 'hidden',
       }}
     >
-      <style>{`
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); opacity: 0.8; }
-          50% { transform: scale(1.08); opacity: 1; }
-        }
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        @keyframes floating {
-          0%, 100% { transform: translateY(0); opacity: 0.45; }
-          50% { transform: translateY(-12px); opacity: 0.7; }
-        }
-        @keyframes rotate {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
-
-      {/* Ambient gradient layers */}
-      <div
+      {/* Background PNG */}
+      <img 
+        src={backgroundPng} 
+        alt="background" 
         style={{
-          position: 'absolute',
-          inset: 0,
-          background: `radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.22), transparent 55%),
-                       radial-gradient(circle at 80% 10%, rgba(56, 189, 248, 0.18), transparent 60%),
-                       radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.18), transparent 55%)`,
-          transition: 'opacity 1s ease',
-          opacity: mood === 'serenity' ? 1 : 0.9,
-          pointerEvents: 'none'
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          zIndex: 0,
+          pointerEvents: 'none',
+        }}
+        onLoad={() => {
+          console.log('Imagen de fondo cargada correctamente');
         }}
       />
+      
+      {/* Lottie Animations */}
       <div
         style={{
-          position: 'absolute',
-          inset: 0,
-          background: `radial-gradient(circle at 20% 25%, rgba(129, 140, 248, 0.18), transparent 60%),
-                       radial-gradient(circle at 70% 80%, rgba(78, 205, 196, 0.16), transparent 55%)`,
-          transition: 'opacity 1s ease',
-          opacity: mood === 'focus' ? 1 : 0,
-          pointerEvents: 'none'
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 1,
+          pointerEvents: 'none',
         }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: `radial-gradient(circle at 30% 30%, rgba(34, 197, 94, 0.2), transparent 60%),
-                       radial-gradient(circle at 70% 70%, rgba(59, 130, 246, 0.2), transparent 55%)`,
-          transition: 'opacity 1s ease',
-          opacity: mood === 'energy' ? 1 : 0,
-          pointerEvents: 'none'
-        }}
-      />
-
-      {/* Floating particles */}
-      {[...Array(6)].map((_, idx) => (
+      >
+        {/* Air Balloon Lottie */}
         <div
-          key={idx}
           style={{
             position: 'absolute',
-            width: `${18 + idx * 6}px`,
-            height: `${18 + idx * 6}px`,
-            borderRadius: '50%',
-            background: 'rgba(255, 255, 255, 0.06)',
-            top: `${10 + idx * 12}%`,
-            left: `${15 + idx * 10}%`,
-            filter: 'blur(0.8px)',
-            animation: `floating ${12 + idx * 2}s ease-in-out ${idx}s infinite`
+            top: '10%',
+            right: '5%',
+            width: '200px',
+            height: '200px',
+            zIndex: 10,
           }}
-        />
-      ))}
-
+        >
+          {airBalloonData ? (
+            <Lottie animationData={airBalloonData} loop={true} />
+          ) : (
+            <div style={{ 
+              width: '100%', 
+              height: '100%', 
+              background: 'rgba(255,0,0,0.1)',
+              border: '1px dashed red' 
+            }}>
+              Cargando globo...
+            </div>
+          )}
+        </div>
+      </div>
       <div
         style={{
           width: '100%',
-          maxWidth: '1040px',
+          maxWidth: '960px',
           position: 'relative',
-          zIndex: 1,
+          zIndex: 2,
           display: 'grid',
           gridTemplateColumns: 'minmax(0, 1fr)',
           gap: '28px'
@@ -360,40 +501,70 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
         {/* Top navigation */}
         <div
           style={{
-            background: 'rgba(15, 23, 42, 0.45)',
-            border: `1px solid ${palette.border}`,
-            borderRadius: '20px',
-            padding: '20px 28px',
+            background: 'rgba(250, 232, 214, 0.85)',
+            border: '1px solid rgba(90, 146, 112, 0.2)',
+            borderRadius: '24px',
+            padding: '24px 32px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            boxShadow: palette.glow
+            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <PSYmatchLogo size="small" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <div style={{
+              fontFamily: "'Nunito', sans-serif",
+              fontSize: '28px',
+              fontWeight: 700,
+              color: '#5a9270',
+              letterSpacing: '-0.02em',
+            }}>
+              Psymatch
+            </div>
             <div>
-              <h4 style={{ margin: 0, fontSize: '14px', letterSpacing: '0.12em', color: 'rgba(226, 232, 240, 0.7)', textTransform: 'uppercase' }}>
-                Programa de evaluación
-              </h4>
-              <h2 style={{ margin: '4px 0 0', fontSize: '22px', fontWeight: 600, color: 'rgba(248, 250, 252, 0.95)' }}>
+              <h2 style={{ 
+                margin: 0, 
+                fontSize: '24px', 
+                fontWeight: 700, 
+                color: '#1a2e22',
+                fontFamily: "'Nunito', sans-serif",
+              }}>
                 {test.title || test.code || `Test #${test.id}`}
               </h2>
+              {test.description && (
+                <p style={{ 
+                  margin: '4px 0 0', 
+                  fontSize: '15px', 
+                  color: '#3a5a4a',
+                }}>
+                  {test.description}
+                </p>
+              )}
             </div>
           </div>
           <button
             onClick={onBack}
             style={{
-              padding: '12px 20px',
-              borderRadius: '999px',
-              border: `1px solid ${palette.border}`,
-              background: 'transparent',
-              color: 'rgba(226, 232, 240, 0.85)',
-              fontSize: '13px',
-              fontWeight: 600,
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              cursor: 'pointer'
+              padding: '10px 24px',
+              borderRadius: '24px',
+              border: '1px solid rgba(90, 146, 112, 0.3)',
+              background: 'rgba(250, 232, 214, 0.85)',
+              color: '#3a5a4a',
+              fontSize: '15px',
+              fontWeight: 500,
+              cursor: 'pointer',
+              transition: 'all 0.3s',
+              fontFamily: "'Inter', sans-serif",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(250, 232, 214, 1)';
+              e.currentTarget.style.borderColor = '#5a9270';
+              e.currentTarget.style.color = '#5a9270';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(250, 232, 214, 0.85)';
+              e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
+              e.currentTarget.style.color = '#3a5a4a';
             }}
           >
             Salir
@@ -403,106 +574,117 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
         {/* Progress */}
         <div
           style={{
-            background: 'rgba(15, 23, 42, 0.45)',
-            border: `1px solid ${palette.border}`,
-            borderRadius: '20px',
-            padding: '28px 32px',
-            display: 'grid',
-            gridTemplateColumns: 'minmax(280px, 420px) minmax(0, 1fr)',
-            gap: '24px',
-            alignItems: 'center',
-            boxShadow: palette.glow
+            background: 'rgba(250, 232, 214, 0.85)',
+            border: '1px solid rgba(90, 146, 112, 0.2)',
+            borderRadius: '24px',
+            padding: '32px 40px',
+            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)'
           }}
         >
-          <div>
-            <h3 style={{ margin: 0, fontSize: '16px', letterSpacing: '0.12em', color: 'rgba(226, 232, 240, 0.65)', textTransform: 'uppercase' }}>Estado</h3>
-            <p style={{ margin: '10px 0 0', fontSize: '22px', fontWeight: 600, color: 'rgba(248, 250, 252, 0.95)' }}>
-              Pregunta {currentQuestionIndex + 1} de {test.questions.length}
-            </p>
-            <p style={{ margin: '6px 0 0', fontSize: '14px', color: 'rgba(226, 232, 240, 0.6)' }}>{test.description}</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
+            <div style={{ flex: 1 }}>
+              <div
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '20px',
+                  background: '#d4e0d8',
+                  color: '#3a5a4a',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  fontFamily: "'Inter', sans-serif",
+                  display: 'inline-block',
+                  marginBottom: '12px',
+                }}
+              >
+                Pregunta {currentQuestionIndex + 1} de {test.questions.length}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', color: '#3a5a4a', fontSize: '14px', fontFamily: "'Inter', sans-serif" }}>
+                <span>{Math.round(progress)}% completado</span>
+                <span>{test.questions.length - (currentQuestionIndex + 1)} restantes</span>
+              </div>
+            </div>
           </div>
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', color: 'rgba(226, 232, 240, 0.65)', fontSize: '13px' }}>
-              <span>{Math.round(progress)}% completado</span>
-              <span>{test.questions.length - (currentQuestionIndex + 1)} en espera</span>
-            </div>
-            <div style={{ position: 'relative', height: '12px', borderRadius: '999px', overflow: 'hidden', background: 'rgba(148, 163, 184, 0.2)' }}>
-              <div
-                style={{
-                  width: `${progress}%`,
-                  height: '100%',
-                  background: `linear-gradient(90deg, ${palette.accent} 0%, rgba(34, 197, 94, 0.85) 100%)`,
-                  transition: 'width 0.45s cubic-bezier(0.4, 0, 0.2, 1)'
-                }}
-              />
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  background: 'linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.4), rgba(255,255,255,0))',
-                  mixBlendMode: 'overlay',
-                  animation: 'shimmer 1.6s infinite'
-                }}
-              />
-            </div>
+          <div
+            style={{
+              width: '100%',
+              height: '10px',
+              borderRadius: '999px',
+              overflow: 'hidden',
+              background: '#e0e8e3'
+            }}
+          >
+            <div
+              style={{
+                width: `${progress}%`,
+                height: '100%',
+                background: '#5a9270',
+                transition: 'width 0.45s ease',
+                borderRadius: '999px',
+              }}
+            />
           </div>
         </div>
 
         {/* Question */}
         <div
           style={{
-            background: 'rgba(15, 23, 42, 0.55)',
-            border: `1px solid ${palette.border}`,
+            background: 'rgba(250, 232, 214, 0.9)',
+            border: '1px solid rgba(90, 146, 112, 0.2)',
             borderRadius: '24px',
-            padding: '48px',
-            boxShadow: palette.glow,
-            animation: questionTransition ? 'slideIn 0.35s ease-out' : 'none',
-            position: 'relative'
+            padding: '48px 40px',
+            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '28px', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-              <div
-                style={{
-                  width: '54px',
-                  height: '54px',
-                  borderRadius: '16px',
-                  background: palette.accentSoft,
-                  border: `1px solid ${palette.border}`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: palette.accent,
-                  fontSize: '20px',
-                  fontWeight: 700
-                }}
-              >
-                {currentQuestionIndex + 1}
-              </div>
-              <div>
-                <h2 style={{ margin: 0, fontSize: 'clamp(24px, 2.6vw, 32px)', fontWeight: 600, color: 'rgba(248, 250, 252, 0.96)' }}>
-                  {currentQuestion.text}
-                </h2>
-                <p style={{ margin: '6px 0 0', color: 'rgba(226, 232, 240, 0.7)', fontSize: '14px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                  Tu respuesta es confidencial
-                </p>
-              </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '32px', alignItems: 'flex-start', gap: '24px', flexWrap: 'wrap' }}>
+            <div style={{ flex: 1 }}>
+              <h2 style={{ 
+                margin: '0 0 8px', 
+                fontSize: 'clamp(24px, 3vw, 32px)', 
+                fontWeight: 600, 
+                color: '#1a2e22',
+                fontFamily: "'Nunito', sans-serif",
+                lineHeight: 1.4,
+              }}>
+                {currentQuestion.text}
+              </h2>
+              <p style={{ 
+                margin: 0, 
+                color: '#3a5a4a', 
+                fontSize: '14px',
+                fontFamily: "'Inter', sans-serif",
+              }}>
+                Tu respuesta es confidencial
+              </p>
             </div>
-            <div style={{ display: 'flex', gap: '18px' }}>
+            <div style={{ display: 'flex', gap: '12px' }}>
               <button
                 onClick={handlePrevious}
                 disabled={currentQuestionIndex === 0}
                 style={{
-                  padding: '12px 18px',
-                  borderRadius: '14px',
-                  border: `1px solid ${palette.border}`,
-                  background: 'transparent',
-                  color: 'rgba(226, 232, 240, 0.75)',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  letterSpacing: '0.08em',
+                  padding: '10px 18px',
+                  borderRadius: '20px',
+                  border: '1px solid rgba(90, 146, 112, 0.3)',
+                  background: currentQuestionIndex === 0 ? '#f8f9fa' : 'rgba(250, 232, 214, 0.85)',
+                  color: currentQuestionIndex === 0 ? '#cbd5d1' : '#3a5a4a',
+                  fontSize: '14px',
+                  fontWeight: 500,
                   cursor: currentQuestionIndex === 0 ? 'not-allowed' : 'pointer',
-                  opacity: currentQuestionIndex === 0 ? 0.4 : 1
+                  transition: 'all 0.3s',
+                  fontFamily: "'Inter', sans-serif",
+                }}
+                onMouseEnter={(e) => {
+                  if (currentQuestionIndex !== 0) {
+                    e.currentTarget.style.background = 'rgba(250, 232, 214, 1)';
+                    e.currentTarget.style.borderColor = '#5a9270';
+                    e.currentTarget.style.color = '#5a9270';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (currentQuestionIndex !== 0) {
+                    e.currentTarget.style.background = 'rgba(250, 232, 214, 0.85)';
+                    e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
+                    e.currentTarget.style.color = '#3a5a4a';
+                  }
                 }}
               >
                 ← Anterior
@@ -511,16 +693,28 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                 onClick={handleNext}
                 disabled={currentQuestionIndex === test.questions.length - 1}
                 style={{
-                  padding: '12px 18px',
-                  borderRadius: '14px',
+                  padding: '10px 18px',
+                  borderRadius: '20px',
                   border: 'none',
-                  background: palette.accentSoft,
-                  color: palette.accent,
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  letterSpacing: '0.08em',
+                  background: currentQuestionIndex === test.questions.length - 1 ? '#cbd5d1' : '#5a9270',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontWeight: 500,
                   cursor: currentQuestionIndex === test.questions.length - 1 ? 'not-allowed' : 'pointer',
-                  opacity: currentQuestionIndex === test.questions.length - 1 ? 0.35 : 1
+                  transition: 'all 0.3s',
+                  fontFamily: "'Inter', sans-serif",
+                }}
+                onMouseEnter={(e) => {
+                  if (currentQuestionIndex !== test.questions.length - 1) {
+                    e.currentTarget.style.background = '#4a8062';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (currentQuestionIndex !== test.questions.length - 1) {
+                    e.currentTarget.style.background = '#5a9270';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }
                 }}
               >
                 Siguiente →
@@ -530,7 +724,7 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
 
           {/* Respuestas */}
           {currentQuestion.type === 'SINGLE' && currentQuestion.answers && currentQuestion.answers.length > 0 && (
-            <div style={{ display: 'grid', gap: '14px' }}>
+            <div style={{ display: 'grid', gap: '16px' }}>
               {currentQuestion.answers.map((answer, index) => {
                 const isSelected = currentAnswer?.answerId === answer.id;
                 return (
@@ -538,55 +732,55 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                     key={answer.id}
                     onClick={() => handleAnswer(currentQuestion.id, answer.id)}
                     style={{
-                      padding: '20px 26px',
-                      borderRadius: '18px',
-                      border: `1px solid ${isSelected ? palette.border : 'rgba(148, 163, 184, 0.25)'}`,
-                      background: isSelected
-                        ? `radial-gradient(circle at 0% 0%, rgba(59,130,246,0.32), transparent 65%), rgba(15,23,42,0.68)`
-                        : 'rgba(15, 23, 42, 0.65)',
-                      color: 'rgba(248, 250, 252, 0.92)',
+                      padding: '18px 24px',
+                      borderRadius: '16px',
+                      border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.3)'}`,
+                      background: isSelected ? '#d4e0d8' : '#f8f9fa',
+                      color: '#1a2e22',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       cursor: 'pointer',
-                      transition: 'all 0.25s ease',
-                      boxShadow: isSelected ? palette.glow : 'none',
-                      backdropFilter: 'blur(6px)',
-                      transform: isSelected ? 'translateX(6px)' : 'translateX(0)',
-                      animation: `slideIn 0.35s ease ${index * 0.04}s both`
+                      transition: 'all 0.3s ease',
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: '16px',
+                      textAlign: 'left',
+                      boxShadow: isSelected ? '0 4px 12px rgba(90, 146, 112, 0.2)' : 'none',
                     }}
                     onMouseEnter={(e) => {
                       if (!isSelected) {
-                        e.currentTarget.style.borderColor = palette.border;
-                        e.currentTarget.style.background = 'rgba(15, 23, 42, 0.72)';
-                        e.currentTarget.style.transform = 'translateX(4px)';
+                        e.currentTarget.style.borderColor = '#5a9270';
+                        e.currentTarget.style.background = 'rgba(250, 232, 214, 0.6)';
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.15)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isSelected) {
-                        e.currentTarget.style.borderColor = 'rgba(148, 163, 184, 0.25)';
-                        e.currentTarget.style.background = 'rgba(15, 23, 42, 0.65)';
-                        e.currentTarget.style.transform = 'translateX(0)';
+                        e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
+                        e.currentTarget.style.background = '#f8f9fa';
+                        e.currentTarget.style.boxShadow = 'none';
                       }
                     }}
                   >
-                    <span style={{ fontSize: '18px', fontWeight: 500, textAlign: 'left' }}>{answer.text}</span>
-                    <span
+                    <span style={{ fontSize: '16px', fontWeight: 500, flex: 1 }}>{answer.text}</span>
+                    <div
                       style={{
                         width: '24px',
                         height: '24px',
                         borderRadius: '50%',
-                        border: `2px solid ${isSelected ? palette.accent : 'rgba(148, 163, 184, 0.4)'}`,
+                        border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.4)'}`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        transition: 'all 0.25s ease',
-                        background: isSelected ? palette.accent : 'transparent',
-                        color: isSelected ? '#0f172a' : 'transparent'
+                        background: isSelected ? '#5a9270' : 'transparent',
+                        color: isSelected ? '#ffffff' : 'transparent',
+                        transition: 'all 0.3s ease',
+                        flexShrink: 0,
+                        marginLeft: '16px',
                       }}
                     >
-                      ✓
-                    </span>
+                      {isSelected && '✓'}
+                    </div>
                   </button>
                 );
               })}
@@ -594,7 +788,7 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
           )}
 
           {currentQuestion.type === 'MULTI' && currentQuestion.answers && currentQuestion.answers.length > 0 && (
-            <div style={{ display: 'grid', gap: '14px' }}>
+            <div style={{ display: 'grid', gap: '16px' }}>
               {currentQuestion.answers.map((answer, index) => {
                 const isSelected = currentAnswer?.answerId === answer.id;
                 return (
@@ -602,52 +796,55 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                     key={answer.id}
                     onClick={() => handleAnswer(currentQuestion.id, isSelected ? undefined : answer.id)}
                     style={{
-                      padding: '20px 26px',
-                      borderRadius: '18px',
-                      border: `1px solid ${isSelected ? palette.border : 'rgba(148, 163, 184, 0.25)'}`,
-                      background: isSelected
-                        ? `radial-gradient(circle at 0% 0%, rgba(34,197,94,0.32), transparent 65%), rgba(15,23,42,0.68)`
-                        : 'rgba(15, 23, 42, 0.65)',
+                      padding: '18px 24px',
+                      borderRadius: '16px',
+                      border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.3)'}`,
+                      background: isSelected ? '#d4e0d8' : '#f8f9fa',
+                      color: '#1a2e22',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
                       cursor: 'pointer',
-                      transition: 'all 0.25s ease',
-                      position: 'relative',
-                      boxShadow: isSelected ? palette.glow : 'none',
-                      backdropFilter: 'blur(6px)',
-                      transform: isSelected ? 'translateX(6px)' : 'translateX(0)',
-                      animation: `slideIn 0.35s ease ${index * 0.04}s both`
+                      transition: 'all 0.3s ease',
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: '16px',
+                      textAlign: 'left',
+                      boxShadow: isSelected ? '0 4px 12px rgba(90, 146, 112, 0.2)' : 'none',
                     }}
                     onMouseEnter={(e) => {
                       if (!isSelected) {
-                        e.currentTarget.style.borderColor = palette.border;
-                        e.currentTarget.style.background = 'rgba(15, 23, 42, 0.72)';
-                        e.currentTarget.style.transform = 'translateX(4px)';
+                        e.currentTarget.style.borderColor = '#5a9270';
+                        e.currentTarget.style.background = 'rgba(250, 232, 214, 0.6)';
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.15)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isSelected) {
-                        e.currentTarget.style.borderColor = 'rgba(148, 163, 184, 0.25)';
-                        e.currentTarget.style.background = 'rgba(15, 23, 42, 0.65)';
-                        e.currentTarget.style.transform = 'translateX(0)';
+                        e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
+                        e.currentTarget.style.background = '#f8f9fa';
+                        e.currentTarget.style.boxShadow = 'none';
                       }
                     }}
                   >
-                    <span style={{ fontSize: '18px', fontWeight: 500, textAlign: 'left' }}>{answer.text}</span>
-                    <span
+                    <span style={{ fontSize: '16px', fontWeight: 500, flex: 1 }}>{answer.text}</span>
+                    <div
                       style={{
                         width: '24px',
                         height: '24px',
                         borderRadius: '6px',
-                        border: `2px solid ${isSelected ? palette.accent : 'rgba(148, 163, 184, 0.4)'}`,
+                        border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.4)'}`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        transition: 'all 0.25s ease',
-                        background: isSelected ? palette.accent : 'transparent',
-                        color: isSelected ? '#0f172a' : 'transparent'
+                        background: isSelected ? '#5a9270' : 'transparent',
+                        color: isSelected ? '#ffffff' : 'transparent',
+                        transition: 'all 0.3s ease',
+                        flexShrink: 0,
+                        marginLeft: '16px',
                       }}
                     >
-                      ✓
-                    </span>
+                      {isSelected && '✓'}
+                    </div>
                   </button>
                 );
               })}
@@ -656,7 +853,7 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
 
           {currentQuestion.type === 'SCALE' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', padding: '12px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(54px, 1fr))', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(60px, 1fr))', gap: '12px' }}>
                 {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => {
                   const isSelected = currentAnswer?.numericValue === value;
                   return (
@@ -664,28 +861,30 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                       key={value}
                       onClick={() => handleAnswer(currentQuestion.id, undefined, value, false)}
                       style={{
-                        padding: '14px 0',
+                        padding: '16px 0',
                         borderRadius: '16px',
-                        border: `1px solid ${isSelected ? palette.border : 'rgba(148,163,184,0.25)'}`,
-                        background: isSelected ? palette.accentSoft : 'rgba(15, 23, 42, 0.65)',
-                        color: 'rgba(248, 250, 252, 0.92)',
+                        border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.3)'}`,
+                        background: isSelected ? '#d4e0d8' : '#f8f9fa',
+                        color: isSelected ? '#1a2e22' : '#3a5a4a',
                         fontSize: '18px',
                         fontWeight: 600,
                         cursor: 'pointer',
-                        transition: 'all 0.25s ease',
-                        boxShadow: isSelected ? palette.glow : 'none',
-                        transform: isSelected ? 'scale(1.08)' : 'scale(1)'
+                        transition: 'all 0.3s ease',
+                        fontFamily: "'Inter', sans-serif",
+                        boxShadow: isSelected ? '0 4px 12px rgba(90, 146, 112, 0.2)' : 'none',
                       }}
                       onMouseEnter={(e) => {
                         if (!isSelected) {
-                          e.currentTarget.style.borderColor = palette.border;
-                          e.currentTarget.style.transform = 'scale(1.05)';
+                          e.currentTarget.style.borderColor = '#5a9270';
+                          e.currentTarget.style.background = 'rgba(250, 232, 214, 0.6)';
+                          e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.15)';
                         }
                       }}
                       onMouseLeave={(e) => {
                         if (!isSelected) {
-                          e.currentTarget.style.borderColor = 'rgba(148,163,184,0.25)';
-                          e.currentTarget.style.transform = 'scale(1)';
+                          e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
+                          e.currentTarget.style.background = '#f8f9fa';
+                          e.currentTarget.style.boxShadow = 'none';
                         }
                       }}
                     >
@@ -699,16 +898,18 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '14px 20px',
+                  padding: '16px 24px',
                   borderRadius: '16px',
-                  border: `1px solid ${palette.border}`,
-                  background: 'rgba(15, 23, 42, 0.55)',
-                  color: 'rgba(226, 232, 240, 0.75)',
-                  fontSize: '15px'
+                  border: '1px solid rgba(90, 146, 112, 0.2)',
+                  background: 'rgba(250, 232, 214, 0.7)',
+                  color: '#3a5a4a',
+                  fontSize: '16px',
+                  fontFamily: "'Inter', sans-serif",
+                  fontWeight: 500,
                 }}
               >
                 <span>Puntaje actual</span>
-                <strong style={{ fontSize: '18px', color: palette.accent }}>
+                <strong style={{ fontSize: '20px', color: '#5a9270', fontWeight: 700 }}>
                   {currentAnswer?.numericValue !== undefined ? currentAnswer.numericValue : '—'}
                 </strong>
               </div>
@@ -716,7 +917,13 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
           )}
 
           {currentQuestion.type !== 'SINGLE' && currentQuestion.type !== 'MULTI' && currentQuestion.type !== 'SCALE' && (
-            <p style={{ color: '#64748b', fontStyle: 'italic', textAlign: 'center', padding: '40px' }}>
+            <p style={{ 
+              color: '#3a5a4a', 
+              fontStyle: 'italic', 
+              textAlign: 'center', 
+              padding: '40px',
+              fontFamily: "'Inter', sans-serif",
+            }}>
               Tipo de pregunta no soportado: {currentQuestion.type}
             </p>
           )}
@@ -729,30 +936,45 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
             justifyContent: 'space-between',
             alignItems: 'center',
             gap: '18px',
-            background: 'rgba(15, 23, 42, 0.45)',
-            border: `1px solid ${palette.border}`,
-            borderRadius: '20px',
-            padding: '22px 32px',
-            boxShadow: palette.glow
+            background: 'rgba(250, 232, 214, 0.85)',
+            border: '1px solid rgba(90, 146, 112, 0.2)',
+            borderRadius: '24px',
+            padding: '24px 32px',
+            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
+            flexWrap: 'wrap',
           }}
         >
-          <div style={{ color: 'rgba(226, 232, 240, 0.65)', fontSize: '13px', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+          <div style={{ 
+            color: '#3a5a4a', 
+            fontSize: '15px',
+            fontFamily: "'Inter', sans-serif",
+          }}>
             {isLastQuestion ? 'Listo para enviar' : 'Responde con sinceridad'}
           </div>
-          <div style={{ display: 'flex', gap: '14px' }}>
+          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
             <button
               onClick={onBack}
               style={{
-                padding: '12px 22px',
-                borderRadius: '999px',
-                border: `1px solid ${palette.border}`,
-                background: 'transparent',
-                color: 'rgba(226, 232, 240, 0.75)',
-                fontSize: '13px',
-                fontWeight: 600,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                cursor: 'pointer'
+                padding: '12px 24px',
+                borderRadius: '24px',
+                border: '1px solid rgba(90, 146, 112, 0.3)',
+                background: 'rgba(250, 232, 214, 0.85)',
+                color: '#3a5a4a',
+                fontSize: '15px',
+                fontWeight: 500,
+                cursor: 'pointer',
+                transition: 'all 0.3s',
+                fontFamily: "'Inter', sans-serif",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(250, 232, 214, 1)';
+                e.currentTarget.style.borderColor = '#5a9270';
+                e.currentTarget.style.color = '#5a9270';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(250, 232, 214, 0.85)';
+                e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
+                e.currentTarget.style.color = '#3a5a4a';
               }}
             >
               Guardar y salir
@@ -762,41 +984,60 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                 onClick={handleSubmit}
                 disabled={submitting}
                 style={{
-                  padding: '12px 28px',
-                  borderRadius: '999px',
+                  padding: '14px 32px',
+                  borderRadius: '24px',
                   border: 'none',
-                  background: submitting
-                    ? 'rgba(148, 163, 184, 0.4)'
-                    : `linear-gradient(135deg, ${palette.accent}, rgba(34, 197, 94, 0.9))`,
-                  color: '#0f172a',
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
+                  background: submitting ? '#cbd5d1' : '#5a9270',
+                  color: '#ffffff',
+                  fontSize: '16px',
+                  fontWeight: 600,
                   cursor: submitting ? 'not-allowed' : 'pointer',
-                  boxShadow: submitting ? 'none' : palette.glow,
-                  transition: 'all 0.25s ease'
+                  boxShadow: submitting ? 'none' : '0 4px 12px rgba(90, 146, 112, 0.3)',
+                  transition: 'all 0.3s',
+                  fontFamily: "'Inter', sans-serif",
+                }}
+                onMouseEnter={(e) => {
+                  if (!submitting) {
+                    e.currentTarget.style.background = '#4a8062';
+                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!submitting) {
+                    e.currentTarget.style.background = '#5a9270';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
+                  }
                 }}
               >
-                {submitting ? 'Enviando…' : 'Enviar evaluación'}
+                {submitting ? 'Enviando...' : 'Enviar evaluación'}
               </button>
             ) : (
               <button
                 onClick={handleNext}
                 disabled={currentQuestionIndex === test.questions.length - 1}
                 style={{
-                  padding: '12px 28px',
-                  borderRadius: '999px',
+                  padding: '14px 32px',
+                  borderRadius: '24px',
                   border: 'none',
-                  background: palette.accentSoft,
-                  color: palette.accent,
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
+                  background: currentQuestionIndex === test.questions.length - 1 ? '#cbd5d1' : '#5a9270',
+                  color: '#ffffff',
+                  fontSize: '16px',
+                  fontWeight: 600,
                   cursor: currentQuestionIndex === test.questions.length - 1 ? 'not-allowed' : 'pointer',
-                  opacity: currentQuestionIndex === test.questions.length - 1 ? 0.35 : 1,
-                  transition: 'all 0.25s ease'
+                  transition: 'all 0.3s',
+                  fontFamily: "'Inter', sans-serif",
+                }}
+                onMouseEnter={(e) => {
+                  if (currentQuestionIndex !== test.questions.length - 1) {
+                    e.currentTarget.style.background = '#4a8062';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (currentQuestionIndex !== test.questions.length - 1) {
+                    e.currentTarget.style.background = '#5a9270';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }
                 }}
               >
                 Continuar
