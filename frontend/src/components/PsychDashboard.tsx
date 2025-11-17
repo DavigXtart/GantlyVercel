@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { profileService, psychService, calendarService, tasksService } from '../services/api';
+import { profileService, psychService, calendarService, tasksService, adminService, assignedTestsService, testService } from '../services/api';
 import ChatWidget from './ChatWidget';
 import CalendarWeek from './CalendarWeek';
 
-type Tab = 'perfil' | 'pacientes' | 'calendario' | 'tareas' | 'chat';
+type Tab = 'perfil' | 'pacientes' | 'calendario' | 'tareas' | 'chat' | 'tests-asignados';
 
 export default function PsychDashboard() {
   const [tab, setTab] = useState<Tab>('perfil');
@@ -11,18 +11,77 @@ export default function PsychDashboard() {
   const [patients, setPatients] = useState<any[]>([]);
   const [slots, setSlots] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
+  const [assignedTests, setAssignedTests] = useState<any[]>([]);
+  const [availableTests, setAvailableTests] = useState<any[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<number | null>(null);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({ name: '', gender: '', age: '' });
+  const [showTaskForm, setShowTaskForm] = useState(false);
+  const [taskForm, setTaskForm] = useState({ userId: '', title: '', description: '', dueDate: '' });
+  const [showAssignTestForm, setShowAssignTestForm] = useState(false);
+  const [assignTestForm, setAssignTestForm] = useState({ userId: '', testId: '' });
+  const [taskFiles, setTaskFiles] = useState<Record<number, any[]>>({});
+  const [expandedTasks, setExpandedTasks] = useState<Set<number>>(new Set());
+  const [expandedPatients, setExpandedPatients] = useState<Set<number>>(new Set());
 
   const loadData = async () => {
-    const m = await profileService.me();
-    setMe(m);
-    setEditForm({ name: m?.name || '', gender: m?.gender || '', age: m?.age?.toString() || '' });
-    const p = await psychService.patients();
-    setPatients(p);
-    const t = await tasksService.list();
-    setTasks(t);
+    try {
+      const m = await profileService.me();
+      setMe(m);
+      setEditForm({ name: m?.name || '', gender: m?.gender || '', age: m?.age?.toString() || '' });
+      const p = await psychService.patients();
+      setPatients(p);
+      const t = await tasksService.list();
+      setTasks(t);
+    } catch (error: any) {
+      console.error('Error cargando datos:', error);
+      alert('Error al cargar los datos. Por favor recarga la página.');
+    }
+    
+    // Cargar tests asignados de forma asíncrona y no bloqueante
+    setTimeout(async () => {
+      try {
+        const at = await assignedTestsService.list();
+        setAssignedTests(at || []);
+      } catch (error: any) {
+        console.error('Error cargando tests asignados (no crítico):', error);
+        setAssignedTests([]);
+      }
+    }, 100);
+    
+    // Cargar tests disponibles de forma asíncrona y no bloqueante
+    setTimeout(async () => {
+      try {
+        const tests = await testService.list();
+        const activeTests = (tests || []).filter((t: any) => t.active !== false);
+        setAvailableTests(activeTests);
+      } catch (error: any) {
+        console.error('Error cargando tests disponibles (no crítico):', error);
+        setAvailableTests([]);
+      }
+    }, 200);
+  };
+
+  const loadTaskFiles = async (taskId: number) => {
+    try {
+      const files = await tasksService.getFiles(taskId);
+      setTaskFiles((prev) => ({ ...prev, [taskId]: files }));
+    } catch (error) {
+      console.error('Error cargando archivos de tarea:', error);
+    }
+  };
+
+  const toggleTaskExpanded = (taskId: number) => {
+    const newExpanded = new Set(expandedTasks);
+    if (newExpanded.has(taskId)) {
+      newExpanded.delete(taskId);
+    } else {
+      newExpanded.add(taskId);
+      if (!taskFiles[taskId]) {
+        loadTaskFiles(taskId);
+      }
+    }
+    setExpandedTasks(newExpanded);
   };
 
   useEffect(() => {
@@ -44,13 +103,31 @@ export default function PsychDashboard() {
     }
   }, [tab]);
 
+  useEffect(() => {
+    if (tab === 'tareas' && tasks.length > 0) {
+      // Cargar archivos de todas las tareas solo una vez
+      tasks.forEach(t => {
+        if (!taskFiles[t.id]) {
+          loadTaskFiles(t.id);
+        }
+      });
+    }
+  }, [tab, tasks.length]); // Solo dependemos de la longitud, no del array completo
+
   const onAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor selecciona un archivo de imagen');
+      return;
+    }
     try {
-      const res = await profileService.uploadAvatar(e.target.files[0]);
+      const res = await profileService.uploadAvatar(file);
       setMe({ ...me, avatarUrl: res.avatarUrl });
-    } catch (error) {
-      alert('Error al subir el avatar');
+      alert('Avatar actualizado exitosamente');
+    } catch (error: any) {
+      console.error('Error al subir avatar:', error);
+      alert('Error al subir el avatar: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
     }
   };
 
@@ -93,6 +170,7 @@ export default function PsychDashboard() {
           { id: 'perfil', label: '👤 Mi Perfil', icon: '👤' },
           { id: 'pacientes', label: '👥 Mis Pacientes', icon: '👥' },
           { id: 'tareas', label: '📋 Tareas', icon: '📋' },
+          { id: 'tests-asignados', label: '📝 Tests Asignados', icon: '📝' },
           { id: 'calendario', label: '📅 Calendario', icon: '📅' },
           { id: 'chat', label: '💬 Chat', icon: '💬' }
         ].map(t => (
@@ -148,18 +226,40 @@ export default function PsychDashboard() {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
               <div style={{ position: 'relative' }}>
-                <img
-                  src={me?.avatarUrl || 'https://via.placeholder.com/120'}
-                  alt="avatar"
+                {me?.avatarUrl ? (
+                  <img
+                    src={me.avatarUrl.startsWith('http') ? me.avatarUrl : `http://localhost:8080${me.avatarUrl}`}
+                    alt="avatar"
+                    style={{
+                      width: '120px',
+                      height: '120px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: '4px solid rgba(255, 255, 255, 0.3)',
+                      boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)'
+                    }}
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.nextElementSibling?.setAttribute('style', 'display: flex');
+                    }}
+                  />
+                ) : null}
+                <div
                   style={{
                     width: '120px',
                     height: '120px',
                     borderRadius: '50%',
-                    objectFit: 'cover',
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    display: me?.avatarUrl ? 'none' : 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '48px',
                     border: '4px solid rgba(255, 255, 255, 0.3)',
                     boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)'
                   }}
-                />
+                >
+                  👤
+                </div>
                 <label style={{
                   position: 'absolute',
                   bottom: '0',
@@ -498,9 +598,154 @@ export default function PsychDashboard() {
           padding: '32px',
           border: '1px solid #e5e7eb'
         }}>
-          <h3 style={{ margin: '0 0 24px 0', fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            Tareas
-          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              Tareas
+            </h3>
+            <button
+              onClick={() => setShowTaskForm(true)}
+              style={{
+                padding: '10px 20px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontSize: '14px',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              ➕ Nueva Tarea
+            </button>
+          </div>
+          
+          {showTaskForm && (
+            <div style={{
+              marginBottom: '24px',
+              padding: '24px',
+              background: '#f9fafb',
+              borderRadius: '12px',
+              border: '2px solid #e5e7eb'
+            }}>
+              <h4 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 600 }}>Crear Nueva Tarea</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <select
+                  value={taskForm.userId}
+                  onChange={(e) => setTaskForm({ ...taskForm, userId: e.target.value })}
+                  style={{
+                    padding: '10px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    fontSize: '14px'
+                  }}
+                >
+                  <option value="">Selecciona un paciente</option>
+                  {patients.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  placeholder="Título de la tarea"
+                  value={taskForm.title}
+                  onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
+                  style={{
+                    padding: '10px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    fontSize: '14px'
+                  }}
+                />
+                <textarea
+                  placeholder="Descripción (opcional)"
+                  value={taskForm.description}
+                  onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
+                  style={{
+                    padding: '10px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    fontSize: '14px',
+                    minHeight: '80px',
+                    resize: 'vertical'
+                  }}
+                />
+                <input
+                  type="datetime-local"
+                  value={taskForm.dueDate}
+                  onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
+                  style={{
+                    padding: '10px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    fontSize: '14px'
+                  }}
+                />
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={async () => {
+                      if (!taskForm.userId || !taskForm.title) {
+                        alert('Por favor completa todos los campos requeridos');
+                        return;
+                      }
+                      if (!me || !me.id) {
+                        alert('Error: No se pudo obtener la información del psicólogo. Por favor recarga la página.');
+                        return;
+                      }
+                      try {
+                        await tasksService.create({
+                          userId: parseInt(taskForm.userId),
+                          psychologistId: me.id,
+                          title: taskForm.title,
+                          description: taskForm.description || undefined,
+                          dueDate: taskForm.dueDate ? new Date(taskForm.dueDate).toISOString() : undefined
+                        });
+                        await loadData();
+                        setShowTaskForm(false);
+                        setTaskForm({ userId: '', title: '', description: '', dueDate: '' });
+                        alert('Tarea creada exitosamente');
+                      } catch (error: any) {
+                        console.error('Error al crear la tarea:', error);
+                        alert('Error al crear la tarea: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
+                      }
+                    }}
+                    style={{
+                      padding: '10px 20px',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontSize: '14px'
+                    }}
+                  >
+                    Crear
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowTaskForm(false);
+                      setTaskForm({ userId: '', title: '', description: '', dueDate: '' });
+                    }}
+                    style={{
+                      padding: '10px 20px',
+                      background: '#e5e7eb',
+                      color: '#1f2937',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontSize: '14px'
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           {tasks.length === 0 ? (
             <div style={{
               padding: '60px 40px',
@@ -523,7 +768,7 @@ export default function PsychDashboard() {
                 <div
                   key={t.id}
                   style={{
-                    padding: '20px',
+                    padding: '24px',
                     background: t.createdBy === 'PSYCHOLOGIST' ? '#f0f9ff' : '#f9fafb',
                     border: `2px solid ${t.createdBy === 'PSYCHOLOGIST' ? '#0ea5e9' : '#e5e7eb'}`,
                     borderRadius: '12px',
@@ -540,7 +785,7 @@ export default function PsychDashboard() {
                 >
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px' }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
                         <div style={{
                           padding: '4px 8px',
                           background: t.createdBy === 'PSYCHOLOGIST' ? '#0ea5e9' : '#6b7280',
@@ -558,24 +803,548 @@ export default function PsychDashboard() {
                         )}
                         {t.createdAt && (
                           <div style={{ fontSize: '12px', color: '#9ca3af' }}>
-                            {new Date(t.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            📅 Creada: {new Date(t.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </div>
+                        )}
+                        {t.dueDate && (
+                          <div style={{
+                            padding: '4px 8px',
+                            background: new Date(t.dueDate) < new Date() ? '#fee2e2' : '#fef3c7',
+                            color: new Date(t.dueDate) < new Date() ? '#dc2626' : '#d97706',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: 600
+                          }}>
+                            ⏰ Vence: {new Date(t.dueDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                           </div>
                         )}
                       </div>
-                      <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '8px' }}>
+                      <div style={{ fontSize: '20px', fontWeight: 700, color: '#1f2937', marginBottom: '12px' }}>
                         {t.title}
                       </div>
-                      {t.description && (
-                        <div style={{ fontSize: '14px', color: '#6b7280', lineHeight: '1.6' }}>
-                          {t.description}
+                      <div style={{ 
+                        fontSize: '15px', 
+                        color: '#4b5563', 
+                        lineHeight: '1.7', 
+                        marginBottom: '20px',
+                        padding: '16px',
+                        background: 'white',
+                        borderRadius: '8px',
+                        border: '1px solid #e5e7eb'
+                      }}>
+                        {t.description || 'Sin descripción'}
+                      </div>
+                      
+                      {/* Sección de archivos siempre visible */}
+                      <div style={{ marginTop: '20px', padding: '16px', background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                          <h5 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#1f2937' }}>📎 Archivos adjuntos</h5>
+                          <label style={{
+                            padding: '8px 16px',
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                          >
+                            ➕ Subir archivo
+                            <input
+                              type="file"
+                              style={{ display: 'none' }}
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  try {
+                                    await tasksService.uploadFile(t.id, file);
+                                    await loadTaskFiles(t.id);
+                                    alert('Archivo subido exitosamente');
+                                  } catch (error: any) {
+                                    console.error('Error al subir archivo:', error);
+                                    alert('Error al subir el archivo: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
+                                  }
+                                }
+                              }}
+                            />
+                          </label>
                         </div>
-                      )}
+                        {taskFiles[t.id] && taskFiles[t.id].length > 0 ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {taskFiles[t.id].map((file: any) => (
+                              <div key={file.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'white', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+                                  <span style={{ fontSize: '20px' }}>📄</span>
+                                  <div>
+                                    <div style={{ fontSize: '14px', fontWeight: 500, color: '#1f2937' }}>{file.originalName}</div>
+                                    <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '2px' }}>
+                                      {(file.fileSize / 1024).toFixed(1)} KB • Subido por {file.uploaderName}
+                                    </div>
+                                  </div>
+                                </div>
+                                <a
+                                  href={`http://localhost:8080${file.filePath}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{
+                                    padding: '6px 12px',
+                                    background: '#667eea',
+                                    color: 'white',
+                                    textDecoration: 'none',
+                                    borderRadius: '6px',
+                                    fontSize: '12px',
+                                    fontWeight: 600,
+                                    transition: 'all 0.2s'
+                                  }}
+                                  onMouseEnter={(e) => e.currentTarget.style.background = '#5568d3'}
+                                  onMouseLeave={(e) => e.currentTarget.style.background = '#667eea'}
+                                >
+                                  Descargar
+                                </a>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div style={{ fontSize: '14px', color: '#9ca3af', textAlign: 'center', padding: '20px' }}>
+                            No hay archivos adjuntos aún
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Tests Asignados */}
+      {tab === 'tests-asignados' && (
+        <div style={{
+          background: '#ffffff',
+          borderRadius: '12px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          padding: '32px',
+          border: '1px solid #e5e7eb'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              Tests Asignados
+            </h3>
+            <button
+              onClick={async () => {
+                setShowAssignTestForm(true);
+                // Asegurar que los tests estén cargados
+                try {
+                  console.log('Cargando tests al abrir formulario...');
+                  const tests = await testService.list();
+                  console.log('Tests recibidos del servidor:', tests);
+                  console.log('Número de tests recibidos:', tests?.length || 0);
+                  
+                  // Filtrar tests activos
+                  const activeTests = (tests || []).filter((t: any) => {
+                    if (t.active === false) {
+                      console.log(`Test ${t.id} (${t.title}) excluido: active=false`);
+                      return false;
+                    }
+                    console.log(`Test ${t.id} (${t.title}) incluido: active=${t.active}`);
+                    return true;
+                  });
+                  
+                  console.log('Tests activos después del filtro:', activeTests);
+                  console.log('Número de tests activos:', activeTests.length);
+                  setAvailableTests(activeTests);
+                  
+                  if (activeTests.length === 0) {
+                    alert('No hay tests disponibles para asignar. Verifica que haya tests activos en el sistema.');
+                  }
+                } catch (error: any) {
+                  console.error('Error cargando tests:', error);
+                  alert('Error al cargar los tests. Por favor intenta de nuevo.');
+                }
+              }}
+              style={{
+                padding: '10px 20px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontSize: '14px',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              ➕ Asignar Test
+            </button>
+          </div>
+
+          {showAssignTestForm && (
+            <div style={{
+              marginBottom: '24px',
+              padding: '24px',
+              background: '#f9fafb',
+              borderRadius: '12px',
+              border: '2px solid #e5e7eb'
+            }}>
+              <h4 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 600 }}>Asignar Test a Paciente</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: 600, color: '#1f2937' }}>
+                    Paciente:
+                  </label>
+                  <select
+                    value={assignTestForm.userId}
+                    onChange={(e) => setAssignTestForm({ ...assignTestForm, userId: e.target.value })}
+                    style={{
+                      padding: '10px',
+                      borderRadius: '8px',
+                      border: '1px solid #e5e7eb',
+                      fontSize: '14px',
+                      width: '100%'
+                    }}
+                  >
+                    <option value="">Selecciona un paciente</option>
+                    {patients.length === 0 ? (
+                      <option value="" disabled>No hay pacientes asignados</option>
+                    ) : (
+                      patients.map(p => (
+                        <option key={p.id} value={p.id}>{p.name} ({p.email})</option>
+                      ))
+                    )}
+                  </select>
+                  {patients.length === 0 && (
+                    <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>
+                      ⚠️ No tienes pacientes asignados. Pide al administrador que asigne pacientes a tu perfil.
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: 600, color: '#1f2937' }}>
+                    Test:
+                  </label>
+                  <select
+                    value={assignTestForm.testId}
+                    onChange={(e) => setAssignTestForm({ ...assignTestForm, testId: e.target.value })}
+                    style={{
+                      padding: '10px',
+                      borderRadius: '8px',
+                      border: '1px solid #e5e7eb',
+                      fontSize: '14px',
+                      width: '100%'
+                    }}
+                  >
+                    <option value="">Selecciona un test</option>
+                    {availableTests.length === 0 ? (
+                      <option value="" disabled>Cargando tests...</option>
+                    ) : (
+                      availableTests.map((t: any) => (
+                        <option key={t.id} value={t.id}>{t.title} {t.code ? `(${t.code})` : ''}</option>
+                      ))
+                    )}
+                  </select>
+                  {availableTests.length === 0 && (
+                    <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>
+                      ⚠️ No hay tests disponibles. Verifica que haya tests activos en el sistema.
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={async () => {
+                      if (!assignTestForm.userId || !assignTestForm.testId) {
+                        alert('Por favor selecciona un paciente y un test');
+                        return;
+                      }
+                      try {
+                        const userId = parseInt(assignTestForm.userId);
+                        const testId = parseInt(assignTestForm.testId);
+                        
+                        console.log('Asignando test:', { userId, testId });
+                        console.log('Valores del formulario:', assignTestForm);
+                        
+                        if (isNaN(userId) || isNaN(testId)) {
+                          alert('Error: Los valores seleccionados no son válidos');
+                          return;
+                        }
+                        
+                        const result = await assignedTestsService.assign({
+                          userId,
+                          testId
+                        });
+                        
+                        console.log('Test asignado exitosamente:', result);
+                        alert('Test asignado exitosamente');
+                        await loadData();
+                        setShowAssignTestForm(false);
+                        setAssignTestForm({ userId: '', testId: '' });
+                      } catch (error: any) {
+                        console.error('Error al asignar el test:', error);
+                        console.error('Detalles del error:', error.response?.data || error.message);
+                        console.error('Status code:', error.response?.status);
+                        
+                        let errorMessage = 'Error desconocido al asignar el test';
+                        if (error.response?.data) {
+                          // El backend puede devolver { error: "mensaje" } o { message: "mensaje" }
+                          errorMessage = error.response.data.error || error.response.data.message || JSON.stringify(error.response.data);
+                        } else if (error.message) {
+                          errorMessage = error.message;
+                        }
+                        
+                        alert(`Error al asignar el test: ${errorMessage}`);
+                      }
+                    }}
+                    style={{
+                      padding: '10px 20px',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontSize: '14px'
+                    }}
+                  >
+                    Asignar
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowAssignTestForm(false);
+                      setAssignTestForm({ userId: '', testId: '' });
+                    }}
+                    style={{
+                      padding: '10px 20px',
+                      background: '#e5e7eb',
+                      color: '#1f2937',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontSize: '14px'
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(() => {
+            // Agrupar tests por paciente
+            const testsByPatient = new Map<number, any[]>();
+            assignedTests.forEach(at => {
+              const userId = at.userId;
+              if (!testsByPatient.has(userId)) {
+                testsByPatient.set(userId, []);
+              }
+              testsByPatient.get(userId)!.push(at);
+            });
+
+            if (testsByPatient.size === 0) {
+              return (
+                <div style={{
+                  padding: '60px 40px',
+                  textAlign: 'center',
+                  background: '#f9fafb',
+                  borderRadius: '12px',
+                  border: '2px dashed #d1d5db'
+                }}>
+                  <div style={{ fontSize: '48px', marginBottom: '16px' }}>📝</div>
+                  <div style={{ fontSize: '18px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>
+                    No hay tests asignados
+                  </div>
+                  <div style={{ fontSize: '14px', color: '#9ca3af' }}>
+                    Asigna tests a tus pacientes para que los completen
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {Array.from(testsByPatient.entries()).map(([userId, patientTests]) => {
+                  const patient = patients.find(p => p.id === userId) || { id: userId, name: patientTests[0]?.userName || 'Usuario', email: patientTests[0]?.userEmail || '' };
+                  const isExpanded = expandedPatients.has(userId);
+                  const completedCount = patientTests.filter(t => t.completedAt).length;
+                  const pendingCount = patientTests.length - completedCount;
+
+                  return (
+                    <div
+                      key={userId}
+                      style={{
+                        border: '2px solid #e5e7eb',
+                        borderRadius: '12px',
+                        overflow: 'hidden',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <div
+                        style={{
+                          padding: '20px',
+                          background: isExpanded ? '#f3f4f6' : '#ffffff',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '16px'
+                        }}
+                        onClick={() => {
+                          const newExpanded = new Set(expandedPatients);
+                          if (newExpanded.has(userId)) {
+                            newExpanded.delete(userId);
+                          } else {
+                            newExpanded.add(userId);
+                          }
+                          setExpandedPatients(newExpanded);
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = '#f9fafb';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = isExpanded ? '#f3f4f6' : '#ffffff';
+                        }}
+                      >
+                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ fontSize: '24px' }}>👤</div>
+                          <div>
+                            <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937' }}>
+                              {patient.name}
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                              {patient.email}
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                              {patientTests.length} test{patientTests.length !== 1 ? 's' : ''}
+                            </div>
+                            {completedCount > 0 && (
+                              <div style={{
+                                padding: '4px 8px',
+                                background: '#22c55e',
+                                color: 'white',
+                                borderRadius: '6px',
+                                fontSize: '11px',
+                                fontWeight: 600
+                              }}>
+                                ✅ {completedCount} completado{completedCount !== 1 ? 's' : ''}
+                              </div>
+                            )}
+                            {pendingCount > 0 && (
+                              <div style={{
+                                padding: '4px 8px',
+                                background: '#f59e0b',
+                                color: 'white',
+                                borderRadius: '6px',
+                                fontSize: '11px',
+                                fontWeight: 600
+                              }}>
+                                ⏳ {pendingCount} pendiente{pendingCount !== 1 ? 's' : ''}
+                              </div>
+                            )}
+                          </div>
+                          <div style={{ fontSize: '20px', color: '#9ca3af' }}>
+                            {isExpanded ? '▼' : '▶'}
+                          </div>
+                        </div>
+                      </div>
+                      {isExpanded && (
+                        <div style={{ padding: '16px', background: '#ffffff', borderTop: '1px solid #e5e7eb' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            {patientTests.map(at => (
+                              <div
+                                key={at.id}
+                                style={{
+                                  padding: '16px',
+                                  background: at.completedAt ? '#f0fdf4' : '#fef3c7',
+                                  border: `2px solid ${at.completedAt ? '#22c55e' : '#f59e0b'}`,
+                                  borderRadius: '8px',
+                                  display: 'flex',
+                                  alignItems: 'flex-start',
+                                  justifyContent: 'space-between',
+                                  gap: '16px'
+                                }}
+                              >
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                    <div style={{
+                                      padding: '4px 8px',
+                                      background: at.completedAt ? '#22c55e' : '#f59e0b',
+                                      color: 'white',
+                                      borderRadius: '6px',
+                                      fontSize: '11px',
+                                      fontWeight: 600
+                                    }}>
+                                      {at.completedAt ? '✅ Completado' : '⏳ Pendiente'}
+                                    </div>
+                                    {at.assignedAt && (
+                                      <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                                        Asignado: {new Date(at.assignedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                      </div>
+                                    )}
+                                    {at.completedAt && (
+                                      <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                                        Completado: {new Date(at.completedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div style={{ fontSize: '16px', fontWeight: 600, color: '#1f2937', marginBottom: '4px' }}>
+                                    {at.testTitle || at.test?.title || 'Test'}
+                                  </div>
+                                  {at.testCode && (
+                                    <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                                      Código: {at.testCode}
+                                    </div>
+                                  )}
+                                </div>
+                                {!at.completedAt && (
+                                  <button
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      if (confirm('¿Estás seguro de que deseas desasignar este test?')) {
+                                        try {
+                                          await assignedTestsService.unassign(at.id);
+                                          await loadData();
+                                        } catch (error) {
+                                          alert('Error al desasignar el test');
+                                        }
+                                      }
+                                    }}
+                                    style={{
+                                      padding: '6px 12px',
+                                      background: '#ef4444',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '6px',
+                                      fontWeight: 600,
+                                      cursor: 'pointer',
+                                      fontSize: '11px'
+                                    }}
+                                  >
+                                    Desasignar
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
       )}
 

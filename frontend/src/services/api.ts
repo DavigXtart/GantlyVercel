@@ -89,12 +89,16 @@ export const initialTestService = {
 };
 
 export const resultsService = {
-  getMyResults: async (testId: number) => {
-    const { data } = await api.get('/results/my-results', { params: { testId } });
+  getMyResults: async () => {
+    const { data } = await api.get('/results/my-results');
     return data;
   },
   getUserTest: async (userId: number, testId: number) => {
     const { data } = await api.get(`/results/user/${userId}/test/${testId}`);
+    return data;
+  },
+  getTestDetails: async (testId: number) => {
+    const { data } = await api.get(`/results/test/${testId}`);
     return data;
   },
   exportUserTest: async (userId: number, testId: number) => {
@@ -249,14 +253,37 @@ export const tasksService = {
     const { data } = await api.get('/tasks');
     return data as Array<any>;
   },
-  create: async (payload: { userId: number; psychologistId: number; title: string; description?: string }) => {
+  create: async (payload: { userId: number; psychologistId: number; title: string; description?: string; dueDate?: string }) => {
     const { data } = await api.post('/tasks', payload);
     return data as any;
+  },
+  getFiles: async (taskId: number) => {
+    const { data } = await api.get(`/tasks/${taskId}/files`);
+    return data as Array<any>;
   },
   uploadFile: async (taskId: number, file: File) => {
     const form = new FormData();
     form.append('file', file);
     const { data } = await api.post(`/tasks/${taskId}/files`, form, { headers: { 'Content-Type': 'multipart/form-data' } });
+    return data as any;
+  }
+};
+
+// Tests asignados
+export const assignedTestsService = {
+  list: async () => {
+    const { data } = await api.get('/assigned-tests');
+    return data as Array<any>;
+  },
+  assign: async (payload: { userId: number; testId: number }) => {
+    const { data } = await api.post('/assigned-tests', payload);
+    return data as any;
+  },
+  unassign: async (id: number) => {
+    await api.delete(`/assigned-tests/${id}`);
+  },
+  markCompleted: async (id: number) => {
+    const { data } = await api.post(`/assigned-tests/${id}/complete`);
     return data as any;
   }
 };

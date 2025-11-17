@@ -35,9 +35,11 @@ public class SecurityConfig {
 				.requestMatchers("/api/flow/**").authenticated() // Flujo de respuestas requiere autenticación
 				.requestMatchers("/api/profile/**").authenticated()
 				.requestMatchers("/api/tasks/**").authenticated()
+				.requestMatchers("/api/assigned-tests/**").authenticated() // Tests asignados requieren autenticación
 				.requestMatchers("/api/calendar/**").authenticated()
 				.requestMatchers("/api/psych/**").authenticated()
 				.requestMatchers("/api/chat/**").authenticated()
+				.requestMatchers("/api/results/**").authenticated()
 				.requestMatchers("/ws/**", "/topic/**", "/app/**").permitAll()
 				.requestMatchers("/actuator/**").permitAll()
 				.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui.html", "/webjars/**").permitAll()

@@ -29,21 +29,33 @@ function App() {
     try {
       const userData: any = await authService.me();
       setRole(userData?.role || null);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error verificando rol:', err);
+      // Si hay un error de autenticación, limpiar el token
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        localStorage.removeItem('token');
+        setIsAuthenticated(false);
+        setShowLanding(true);
+      }
       setRole(null);
     }
   };
 
   // Referencia para evitar actualizar el historial cuando se hace popstate
   const isNavigatingBack = useRef(false);
+  const roleCheckInProgress = useRef(false);
+  const lastProcessedTestIdRef = useRef<number | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
       setIsAuthenticated(true);
       setShowLanding(false);
-      checkRole();
+      // Intentar verificar el rol, pero no bloquear si el backend no está disponible
+      checkRole().catch((err) => {
+        // Si el backend no está disponible, no es crítico - el usuario puede seguir usando la app
+        console.warn('Backend no disponible, pero continuando...', err);
+      });
     } else {
       // Si no hay token, asegurarse de que esté en la landing
       setShowLanding(true);
@@ -52,58 +64,57 @@ function App() {
       setShowLogin(false);
       setShowRegister(false);
       setShowInitialTest(false);
+      setRole(null);
     }
   }, []);
 
   // Manejar el historial del navegador de forma más simple y segura
   useEffect(() => {
     // Solo manejar el historial después de que el componente se haya renderizado
+    if (isNavigatingBack.current) {
+      isNavigatingBack.current = false;
+      return;
+    }
+
+    // Determinar qué página mostrar según el estado
+    let currentPath = '/';
+    if (showAbout) {
+      currentPath = '/about';
+    } else if (showSoyProfesional) {
+      currentPath = '/soy-profesional';
+    } else if (showLogin) {
+      currentPath = '/login';
+    } else if (showRegister) {
+      currentPath = '/register';
+    } else if (showInitialTest) {
+      currentPath = '/initial-test';
+    } else if (isAuthenticated && !showLanding && !showAbout && !showSoyProfesional && !showLogin && !showRegister && !showInitialTest) {
+      currentPath = '/dashboard';
+    } else {
+      currentPath = '/';
+    }
+
+    // Solo actualizar si el path es diferente (con un pequeño delay para evitar loops)
+    // IMPORTANTE: Preservar el hash si existe (para rutas de tests)
     const timer = setTimeout(() => {
-      // Si estamos navegando hacia atrás (popstate), no actualizar el historial
-      if (isNavigatingBack.current) {
-        isNavigatingBack.current = false;
-        return;
-      }
-
-      // Determinar qué página mostrar según el estado
-      let currentPath = '/';
-      if (showAbout) {
-        currentPath = '/about';
-      } else if (showSoyProfesional) {
-        currentPath = '/soy-profesional';
-      } else if (showLogin) {
-        currentPath = '/login';
-      } else if (showRegister) {
-        currentPath = '/register';
-      } else if (showInitialTest) {
-        currentPath = '/initial-test';
-      } else if (isAuthenticated && !showLanding && !showAbout && !showSoyProfesional && !showLogin && !showRegister && !showInitialTest) {
-        currentPath = '/dashboard';
-      } else {
-        currentPath = '/';
-      }
-
-      // Inicializar el historial si no existe
-      if (!window.history.state || !window.history.state.page) {
-        window.history.replaceState({ page: currentPath }, '', currentPath);
-        return;
-      }
-
-      // Solo actualizar si el path es diferente
       const browserPath = window.location.pathname;
       const currentState = window.history.state;
+      const currentHash = window.location.hash; // Preservar el hash
+      
+      // Si hay un hash de test, NO actualizar el historial para no perderlo
+      if (currentHash && currentHash.startsWith('#/test/')) {
+        return; // No hacer nada, dejar el hash intacto
+      }
       
       if (currentPath !== browserPath || (currentState && currentState.page !== currentPath)) {
-        // Si estamos en la landing y vamos a otra página, añadir la nueva página al historial
-        if (currentPath !== '/' && browserPath === '/' && currentState && currentState.page === '/') {
-          window.history.pushState({ page: currentPath }, '', currentPath);
-        } 
-        // Si ya estamos en una página diferente, actualizar el historial
-        else {
-          window.history.pushState({ page: currentPath }, '', currentPath);
+        const urlToUse = currentPath + (currentHash || ''); // Incluir hash si existe
+        if (!currentState || !currentState.page) {
+          window.history.replaceState({ page: currentPath }, '', urlToUse);
+        } else {
+          window.history.pushState({ page: currentPath }, '', urlToUse);
         }
       }
-    }, 100); // Pequeño delay para asegurar que el render se complete
+    }, 50);
 
     return () => clearTimeout(timer);
   }, [showLanding, showAbout, showSoyProfesional, showLogin, showRegister, showInitialTest, isAuthenticated]);
@@ -151,6 +162,71 @@ function App() {
     setSelectedTestId(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
+
+  const handleShowRegister = useCallback(() => {
+    setShowLanding(false);
+    setShowAbout(false);
+    setShowSoyProfesional(false);
+    setShowLogin(false);
+    setShowRegister(true);
+    setShowInitialTest(false);
+    setSelectedTestId(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  // Escuchar cambios en el hash para rutas de tests
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    let lastProcessedHash = window.location.hash;
+
+    const checkHashRoute = () => {
+      const hash = window.location.hash;
+      
+      // Si el hash no cambió, no hacer nada
+      if (hash === lastProcessedHash) {
+        return;
+      }
+      
+      lastProcessedHash = hash;
+      
+      if (hash && hash.startsWith('#/test/')) {
+        const testIdMatch = hash.match(/#\/test\/(\d+)/);
+        if (testIdMatch) {
+          const testId = parseInt(testIdMatch[1]);
+          if (!isNaN(testId) && testId > 0 && testId !== lastProcessedTestIdRef.current) {
+            lastProcessedTestIdRef.current = testId;
+            setSelectedTestId(testId);
+          }
+        }
+      }
+    };
+
+    // Verificar al cargar
+    checkHashRoute();
+
+    // Escuchar cambios en el hash
+    const handleHashChange = () => {
+      checkHashRoute();
+    };
+
+    // Verificar periódicamente (solo si hay un hash de test)
+    const intervalId = setInterval(() => {
+      const hash = window.location.hash;
+      if (hash && hash.startsWith('#/test/')) {
+        checkHashRoute();
+      }
+    }, 100);
+
+    window.addEventListener('hashchange', handleHashChange);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, [isAuthenticated]);
+
+  // NO limpiar el hash automáticamente - dejarlo para que el usuario pueda usar el botón atrás del navegador
 
   // Escuchar el evento popstate (botón atrás/adelante del navegador)
   useEffect(() => {
@@ -247,6 +323,17 @@ function App() {
     setShowInitialTest(true);
   };
 
+  const handleStartInitialTest = useCallback(() => {
+    setShowLanding(false);
+    setShowAbout(false);
+    setShowSoyProfesional(false);
+    setShowLogin(false);
+    setShowRegister(false);
+    setShowInitialTest(true);
+    setSelectedTestId(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
   const handleInitialTestComplete = (sessionId: string) => {
     setInitialTestSessionId(sessionId);
     setShowInitialTest(false);
@@ -295,20 +382,28 @@ function App() {
     if (showRegister) {
       return <Register 
         onRegister={handleRegister} 
-        onSwitchToLogin={() => { setShowRegister(false); setShowLogin(true); }} 
+        onSwitchToLogin={handleShowLogin}
         sessionId={initialTestSessionId}
       />;
     }
     if (showLogin) {
-      return <Login onLogin={handleLogin} onSwitchToRegister={() => { setShowLogin(false); setShowRegister(true); }} />;
+      return <Login onLogin={handleLogin} onSwitchToRegister={handleShowRegister} />;
     }
     // Si no hay ninguna vista específica, mostrar la landing (por defecto)
-    return <Landing onGetStarted={handleGetStarted} onLogin={handleShowLogin} onShowAbout={handleShowAbout} onShowSoyProfesional={handleShowSoyProfesional} />;
+    return <Landing 
+      onGetStarted={handleGetStarted} 
+      onLogin={handleShowLogin} 
+      onShowAbout={handleShowAbout} 
+      onShowSoyProfesional={handleShowSoyProfesional}
+    />;
   }
 
   // Usuario autenticado
   const handleBackToList = () => {
+    lastProcessedTestIdRef.current = null;
     setSelectedTestId(null);
+    // Limpiar el hash cuando se sale del test
+    window.history.replaceState(null, '', window.location.pathname);
   };
 
   if (isAuthenticated && selectedTestId) {
@@ -335,6 +430,7 @@ function App() {
       </div>
     );
   }
+
 
   // Navegación principal autenticado según rol
   return (
@@ -370,7 +466,10 @@ function App() {
 
       {/* USER: Mi perfil */}
       {role === 'USER' && (
-        <UserDashboard />
+        <UserDashboard onStartTest={(testId) => {
+          lastProcessedTestIdRef.current = testId;
+          setSelectedTestId(testId);
+        }} />
       )}
 
       {/* PSYCHOLOGIST: Mi perfil */}
@@ -378,9 +477,14 @@ function App() {
         <PsychDashboard />
       )}
 
-      {/* Si no tenemos el rol aún */}
-      {!role && (
-        <div className="container" style={{ maxWidth: '1200px', marginTop: 24 }}>Cargando...</div>
+      {/* Si no tenemos el rol aún pero estamos autenticados */}
+      {isAuthenticated && !role && roleCheckInProgress.current && (
+        <div className="container" style={{ maxWidth: '1200px', marginTop: 24, padding: '40px', textAlign: 'center' }}>
+          <div style={{ fontSize: '18px', marginBottom: '16px' }}>Cargando...</div>
+          <div style={{ fontSize: '14px', color: '#6b7280' }}>
+            Si esto tarda mucho, verifica que el backend esté funcionando correctamente.
+          </div>
+        </div>
       )}
     </div>
   );

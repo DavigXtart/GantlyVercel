@@ -1,21 +1,29 @@
 import { useEffect, useState } from 'react';
-import { profileService, tasksService, calendarService } from '../services/api';
+import { profileService, tasksService, calendarService, assignedTestsService } from '../services/api';
 import ChatWidget from './ChatWidget';
 import CalendarWeek from './CalendarWeek';
 
-type Tab = 'perfil' | 'mi-psicologo' | 'tareas' | 'calendario' | 'chat';
+type Tab = 'perfil' | 'mi-psicologo' | 'tareas' | 'tests-pendientes' | 'calendario' | 'chat';
 
-export default function UserDashboard() {
+interface UserDashboardProps {
+  onStartTest?: (testId: number) => void;
+}
+
+export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) {
   const [tab, setTab] = useState<Tab>('perfil');
   const [me, setMe] = useState<any>(null);
   const [psych, setPsych] = useState<any>(null);
   const [tasks, setTasks] = useState<any[]>([]);
+  const [assignedTests, setAssignedTests] = useState<any[]>([]);
   const [slots, setSlots] = useState<any[]>([]);
   const [myAppointments, setMyAppointments] = useState<any[]>([]);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({ name: '', gender: '', age: '' });
+  const [taskFiles, setTaskFiles] = useState<Record<number, any[]>>({});
+  const [expandedTasks, setExpandedTasks] = useState<Set<number>>(new Set());
 
   const loadData = async () => {
+    try {
     const m = await profileService.me();
     setMe(m);
     setEditForm({ name: m?.name || '', gender: m?.gender || '', age: m?.age?.toString() || '' });
@@ -23,6 +31,21 @@ export default function UserDashboard() {
     setPsych(p);
     const t = await tasksService.list();
     setTasks(t);
+    } catch (error: any) {
+      console.error('Error cargando datos:', error);
+      alert('Error al cargar los datos. Por favor recarga la página.');
+    }
+    
+    // Cargar tests asignados de forma asíncrona y no bloqueante
+    setTimeout(async () => {
+      try {
+        const at = await assignedTestsService.list();
+        setAssignedTests(at || []);
+      } catch (error: any) {
+        console.error('Error cargando tests asignados (no crítico):', error);
+        setAssignedTests([]);
+      }
+    }, 100);
   };
 
   useEffect(() => {
@@ -36,13 +59,31 @@ export default function UserDashboard() {
     }
   }, [tab]);
 
+  useEffect(() => {
+    if (tab === 'tareas' && tasks.length > 0) {
+      // Cargar archivos de todas las tareas solo una vez
+      tasks.forEach(t => {
+        if (!taskFiles[t.id]) {
+          loadTaskFiles(t.id);
+        }
+      });
+    }
+  }, [tab, tasks.length]); // Solo dependemos de la longitud, no del array completo
+
   const onAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor selecciona un archivo de imagen');
+      return;
+    }
     try {
-      const res = await profileService.uploadAvatar(e.target.files[0]);
+      const res = await profileService.uploadAvatar(file);
       setMe({ ...me, avatarUrl: res.avatarUrl });
-    } catch (error) {
-      alert('Error al subir el avatar');
+      alert('Avatar actualizado exitosamente');
+    } catch (error: any) {
+      console.error('Error al subir avatar:', error);
+      alert('Error al subir el avatar: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
     }
   };
 
@@ -89,6 +130,28 @@ export default function UserDashboard() {
     setMyAppointments(appointments);
   };
 
+  const loadTaskFiles = async (taskId: number) => {
+    try {
+      const files = await tasksService.getFiles(taskId);
+      setTaskFiles((prev) => ({ ...prev, [taskId]: files }));
+    } catch (error) {
+      console.error('Error cargando archivos de tarea:', error);
+    }
+  };
+
+  const toggleTaskExpanded = (taskId: number) => {
+    const newExpanded = new Set(expandedTasks);
+    if (newExpanded.has(taskId)) {
+      newExpanded.delete(taskId);
+    } else {
+      newExpanded.add(taskId);
+      if (!taskFiles[taskId]) {
+        loadTaskFiles(taskId);
+      }
+    }
+    setExpandedTasks(newExpanded);
+  };
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -113,6 +176,7 @@ export default function UserDashboard() {
           { id: 'perfil', label: '👤 Mi Perfil', icon: '👤' },
           { id: 'mi-psicologo', label: '👨‍⚕️ Mi Psicólogo', icon: '👨‍⚕️' },
           { id: 'tareas', label: '📋 Tareas', icon: '📋' },
+          { id: 'tests-pendientes', label: '📝 Tests Pendientes', icon: '📝' },
           { id: 'calendario', label: '📅 Calendario', icon: '📅' },
           { id: 'chat', label: '💬 Chat', icon: '💬' }
         ].map(t => (
@@ -168,8 +232,9 @@ export default function UserDashboard() {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
               <div style={{ position: 'relative' }}>
+                {me?.avatarUrl ? (
                 <img
-                  src={me?.avatarUrl || 'https://via.placeholder.com/120'}
+                    src={me.avatarUrl.startsWith('http') ? me.avatarUrl : `http://localhost:8080${me.avatarUrl}`}
                   alt="avatar"
                   style={{
                     width: '120px',
@@ -179,7 +244,28 @@ export default function UserDashboard() {
                     border: '4px solid rgba(255, 255, 255, 0.3)',
                     boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)'
                   }}
-                />
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.nextElementSibling?.setAttribute('style', 'display: flex');
+                    }}
+                  />
+                ) : null}
+                <div
+                  style={{
+                    width: '120px',
+                    height: '120px',
+                    borderRadius: '50%',
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    display: me?.avatarUrl ? 'none' : 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '48px',
+                    border: '4px solid rgba(255, 255, 255, 0.3)',
+                    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)'
+                  }}
+                >
+                  👤
+                </div>
                 <label style={{
                   position: 'absolute',
                   bottom: '0',
@@ -350,10 +436,24 @@ export default function UserDashboard() {
               border: '1px solid #e5e7eb'
             }}>
               <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Tareas completadas
+                Tareas pendientes
               </div>
               <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937' }}>
-                {tasks.filter(t => t.createdBy === 'PSYCHOLOGIST').length} asignadas
+                {tasks.filter(t => t.createdBy === 'PSYCHOLOGIST' && (!t.dueDate || new Date(t.dueDate) > new Date())).length} pendientes
+              </div>
+            </div>
+
+            <div style={{
+              padding: '20px',
+              background: '#f9fafb',
+              borderRadius: '12px',
+              border: '1px solid #e5e7eb'
+            }}>
+              <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Tests pendientes
+              </div>
+              <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937' }}>
+                {assignedTests.filter(t => !t.completedAt).length} pendientes
               </div>
             </div>
 
@@ -517,12 +617,11 @@ export default function UserDashboard() {
                 <div
                   key={t.id}
                   style={{
-                    padding: '20px',
+                    padding: '24px',
                     background: t.createdBy === 'PSYCHOLOGIST' ? '#f0f9ff' : '#f9fafb',
                     border: `2px solid ${t.createdBy === 'PSYCHOLOGIST' ? '#0ea5e9' : '#e5e7eb'}`,
                     borderRadius: '12px',
-                    transition: 'all 0.2s',
-                    cursor: 'pointer'
+                    transition: 'all 0.2s'
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'translateY(-2px)';
@@ -535,7 +634,7 @@ export default function UserDashboard() {
                 >
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px' }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
                         <div style={{
                           padding: '4px 8px',
                           background: t.createdBy === 'PSYCHOLOGIST' ? '#0ea5e9' : '#6b7280',
@@ -548,16 +647,227 @@ export default function UserDashboard() {
                         </div>
                         {t.createdAt && (
                           <div style={{ fontSize: '12px', color: '#9ca3af' }}>
-                            {new Date(t.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            📅 Creada: {new Date(t.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </div>
+                        )}
+                        {t.dueDate && (
+                          <div style={{
+                            padding: '4px 8px',
+                            background: new Date(t.dueDate) < new Date() ? '#fee2e2' : '#fef3c7',
+                            color: new Date(t.dueDate) < new Date() ? '#dc2626' : '#d97706',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: 600
+                          }}>
+                            ⏰ Vence: {new Date(t.dueDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '20px', fontWeight: 700, color: '#1f2937', marginBottom: '12px' }}>
+                        {t.title}
+                      </div>
+                      <div style={{ 
+                        fontSize: '15px', 
+                        color: '#4b5563', 
+                        lineHeight: '1.7', 
+                        marginBottom: '20px',
+                        padding: '16px',
+                        background: 'white',
+                        borderRadius: '8px',
+                        border: '1px solid #e5e7eb'
+                      }}>
+                        {t.description || 'Sin descripción'}
+                      </div>
+                      
+                      {/* Sección de archivos siempre visible */}
+                      <div style={{ marginTop: '20px', padding: '16px', background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                          <h5 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#1f2937' }}>📎 Archivos adjuntos</h5>
+                          <label style={{
+                            padding: '8px 16px',
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                          >
+                            ➕ Subir archivo
+                            <input
+                              type="file"
+                              style={{ display: 'none' }}
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  try {
+                                    await tasksService.uploadFile(t.id, file);
+                                    await loadTaskFiles(t.id);
+                                    alert('Archivo subido exitosamente');
+                                  } catch (error: any) {
+                                    console.error('Error al subir archivo:', error);
+                                    alert('Error al subir el archivo: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
+                                  }
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
+                        {taskFiles[t.id] && taskFiles[t.id].length > 0 ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {taskFiles[t.id].map((file: any) => (
+                              <div key={file.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'white', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+                                  <span style={{ fontSize: '20px' }}>📄</span>
+                                  <div>
+                                    <div style={{ fontSize: '14px', fontWeight: 500, color: '#1f2937' }}>{file.originalName}</div>
+                                    <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '2px' }}>
+                                      {(file.fileSize / 1024).toFixed(1)} KB • Subido por {file.uploaderName}
+                                    </div>
+                                  </div>
+                                </div>
+                                <a
+                                  href={`http://localhost:8080${file.filePath}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{
+                                    padding: '6px 12px',
+                                    background: '#667eea',
+                                    color: 'white',
+                                    textDecoration: 'none',
+                                    borderRadius: '6px',
+                                    fontSize: '12px',
+                                    fontWeight: 600,
+                                    transition: 'all 0.2s'
+                                  }}
+                                  onMouseEnter={(e) => e.currentTarget.style.background = '#5568d3'}
+                                  onMouseLeave={(e) => e.currentTarget.style.background = '#667eea'}
+                                >
+                                  Descargar
+                                </a>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div style={{ fontSize: '14px', color: '#9ca3af', textAlign: 'center', padding: '20px' }}>
+                            No hay archivos adjuntos aún
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tests Pendientes */}
+      {tab === 'tests-pendientes' && (
+        <div style={{
+          background: '#ffffff',
+          borderRadius: '12px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          padding: '32px',
+          border: '1px solid #e5e7eb'
+        }}>
+          <h3 style={{ margin: '0 0 24px 0', fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            Tests Pendientes
+          </h3>
+          {assignedTests.length === 0 ? (
+            <div style={{
+              padding: '60px 40px',
+              textAlign: 'center',
+              background: '#f9fafb',
+              borderRadius: '12px',
+              border: '2px dashed #d1d5db'
+            }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>📝</div>
+              <div style={{ fontSize: '18px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>
+                No hay tests pendientes
+              </div>
+              <div style={{ fontSize: '14px', color: '#9ca3af' }}>
+                Tu psicólogo te asignará tests cuando sea necesario
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {assignedTests.map(at => (
+                <div
+                  key={at.id}
+                  style={{
+                    padding: '20px',
+                    background: at.completedAt ? '#f0fdf4' : '#fef3c7',
+                    border: `2px solid ${at.completedAt ? '#22c55e' : '#f59e0b'}`,
+                    borderRadius: '12px',
+                    transition: 'all 0.2s',
+                    cursor: at.completedAt ? 'default' : 'pointer'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!at.completedAt) {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!at.completedAt) {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }
+                  }}
+                  onClick={async () => {
+                    if (!at.completedAt && (at.testId || at.test?.id)) {
+                      const testId = at.testId || at.test?.id;
+                      const testTitle = at.testTitle || at.test?.title || 'el test';
+                      if (confirm(`¿Deseas comenzar el test "${testTitle}"?`)) {
+                        try {
+                          // Usar el callback directo para iniciar el test
+                          if (onStartTest) {
+                            onStartTest(testId);
+                          }
+                        } catch (error) {
+                          console.error('Error al navegar al test:', error);
+                          alert('Error al iniciar el test. Por favor intenta de nuevo.');
+                        }
+                      }
+                    }
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                        <div style={{
+                          padding: '4px 8px',
+                          background: at.completedAt ? '#22c55e' : '#f59e0b',
+                          color: 'white',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: 600
+                        }}>
+                          {at.completedAt ? '✅ Completado' : '⏳ Pendiente'}
+                        </div>
+                        {at.assignedAt && (
+                          <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                            Asignado: {new Date(at.assignedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </div>
                         )}
                       </div>
                       <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '8px' }}>
-                        {t.title}
+                        {at.testTitle || at.test?.title || 'Test'}
                       </div>
-                      {t.description && (
-                        <div style={{ fontSize: '14px', color: '#6b7280', lineHeight: '1.6' }}>
-                          {t.description}
+                      {at.testCode && (
+                        <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '4px' }}>
+                          Código: {at.testCode}
+                        </div>
+                      )}
+                      {!at.completedAt && (
+                        <div style={{ marginTop: '12px', fontSize: '14px', color: '#f59e0b', fontWeight: 600 }}>
+                          👆 Haz clic para comenzar el test
                         </div>
                       )}
                     </div>

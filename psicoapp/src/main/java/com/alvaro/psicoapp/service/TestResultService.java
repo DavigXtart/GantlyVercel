@@ -124,10 +124,16 @@ public class TestResultService {
 			if (maxScore > 0) {
 				double percentage = (totalScore / maxScore) * 100.0;
 
-				// Eliminar resultado anterior si existe (para re-calcular)
-				testResultRepository.findByUserAndTest(user, test).stream()
-						.filter(tr -> tr.getSubfactor().getId().equals(subfactor.getId()))
-						.forEach(testResultRepository::delete);
+				// Buscar y eliminar resultado anterior si existe (para re-calcular)
+				// Usar findAll y filtrar para evitar problemas de lazy loading
+				List<TestResultEntity> existingResults = testResultRepository.findByUserAndTest(user, test);
+				for (TestResultEntity existing : existingResults) {
+					if (existing.getSubfactor() != null && existing.getSubfactor().getId().equals(subfactor.getId())) {
+						testResultRepository.delete(existing);
+					}
+				}
+				// Forzar flush para asegurar que el delete se ejecute antes del insert
+				testResultRepository.flush();
 
 				TestResultEntity result = new TestResultEntity();
 				result.setUser(user);

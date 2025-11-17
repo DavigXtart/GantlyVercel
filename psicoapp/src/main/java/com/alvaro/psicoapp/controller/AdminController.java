@@ -476,9 +476,27 @@ public class AdminController {
 
 	// GET: Obtener respuestas de una pregunta
 	@GetMapping("/questions/{questionId}/answers")
-	public List<AnswerEntity> getAnswers(@PathVariable Long questionId) {
-		QuestionEntity question = questionRepository.findById(questionId).orElseThrow();
-		return answerRepository.findByQuestionOrderByPositionAsc(question);
+	public ResponseEntity<List<Map<String, Object>>> getAnswers(@PathVariable Long questionId) {
+		try {
+			QuestionEntity question = questionRepository.findById(questionId).orElseThrow();
+			List<AnswerEntity> answers = answerRepository.findByQuestionOrderByPositionAsc(question);
+			
+			// Convertir a Map para evitar problemas de serialización
+			List<Map<String, Object>> result = answers.stream().map(a -> {
+				Map<String, Object> map = new java.util.HashMap<>();
+				map.put("id", a.getId());
+				map.put("text", a.getText());
+				map.put("value", a.getValue());
+				map.put("position", a.getPosition());
+				// No incluir la relación con question para evitar recursión
+				return map;
+			}).collect(java.util.stream.Collectors.toList());
+			
+			return ResponseEntity.ok(result);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(500).build();
+		}
 	}
 
 	// POST: Crear respuesta

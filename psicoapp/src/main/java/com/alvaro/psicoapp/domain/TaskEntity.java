@@ -33,6 +33,12 @@ public class TaskEntity {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
+    @Column(name = "due_date")
+    private Instant dueDate;
+
+    @Column(name = "reminder_sent")
+    private Boolean reminderSent = false;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public UserEntity getUser() { return user; }
@@ -49,6 +55,10 @@ public class TaskEntity {
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+    public Instant getDueDate() { return dueDate; }
+    public void setDueDate(Instant dueDate) { this.dueDate = dueDate; }
+    public Boolean getReminderSent() { return reminderSent; }
+    public void setReminderSent(Boolean reminderSent) { this.reminderSent = reminderSent; }
 }
 
 

@@ -83,10 +83,19 @@ public class UserProfileController {
 
     @PostMapping("/avatar")
     @Transactional
-    public ResponseEntity<Map<String, String>> uploadAvatar(Principal principal, @RequestParam("file") MultipartFile file) throws IOException {
+    public ResponseEntity<?> uploadAvatar(Principal principal, @RequestParam("file") MultipartFile file) throws IOException {
         if (principal == null) return ResponseEntity.status(401).build();
         var user = userRepository.findByEmail(principal.getName()).orElseThrow();
-        if (file.isEmpty()) return ResponseEntity.badRequest().build();
+        if (file.isEmpty()) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "El archivo está vacío");
+            return ResponseEntity.badRequest().body(error);
+        }
+        if (file.getContentType() == null || !file.getContentType().startsWith("image/")) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Solo se permiten archivos de imagen");
+            return ResponseEntity.badRequest().body(error);
+        }
         String ext = StringUtils.getFilenameExtension(file.getOriginalFilename());
         String name = UUID.randomUUID() + (ext != null ? ("." + ext) : "");
         File dir = new File("uploads/avatars");
@@ -96,7 +105,9 @@ public class UserProfileController {
         String publicPath = "/uploads/avatars/" + name;
         user.setAvatarUrl(publicPath);
         userRepository.save(user);
-        return ResponseEntity.ok(Map.of("avatarUrl", publicPath));
+        Map<String, String> response = new HashMap<>();
+        response.put("avatarUrl", publicPath);
+        return ResponseEntity.ok(response);
     }
 }
 

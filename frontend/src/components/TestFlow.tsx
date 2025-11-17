@@ -42,8 +42,36 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
   const [airBalloonData, setAirBalloonData] = useState<any>(null);
 
   useEffect(() => {
-    loadTest();
-    // Cargar animaciones Lottie (archivos ZIP comprimidos)
+    let timeoutId: NodeJS.Timeout | null = null;
+    let isMounted = true;
+    
+    // Cargar el test con timeout para evitar que se quede cargando indefinidamente
+    const loadTestWithTimeout = async () => {
+      timeoutId = setTimeout(() => {
+        if (isMounted && !test) {
+          console.error('Timeout: No se pudo cargar el test en 10 segundos');
+          alert('El test está tardando demasiado en cargar. Verifica que el backend esté corriendo.');
+          if (onBack) {
+            onBack();
+          }
+        }
+      }, 10000); // 10 segundos de timeout
+      
+      try {
+        await loadTest();
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+      } catch (error) {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+      }
+    };
+    
+    loadTestWithTimeout();
+    
+    // Cargar animaciones Lottie (archivos ZIP comprimidos) - esto no bloquea
     const loadLottieFile = async (url: string, setData: (data: any) => void, name: string) => {
       try {
         console.log(`Cargando ${name} desde ${url}`);
@@ -131,7 +159,14 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
     };
     
     loadLottieFile(airBalloonLottieUrl, setAirBalloonData, 'Air Balloon');
-  }, [testId]);
+    
+    return () => {
+      isMounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [testId, onBack]);
 
   const loadTest = async () => {
     try {
@@ -150,7 +185,12 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
       setTest(data);
     } catch (err: any) {
       console.error('Error cargando test:', err);
-      alert('Error al cargar el test: ' + (err.response?.data?.message || err.message));
+      const errorMsg = err.response?.data?.message || err.message || 'Error desconocido';
+      alert('Error al cargar el test: ' + errorMsg + '\n\nVerifica que el backend esté corriendo en http://localhost:8080');
+      // Volver atrás si hay error
+      if (onBack) {
+        onBack();
+      }
     } finally {
       setLoading(false);
     }

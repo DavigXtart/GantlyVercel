@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { adminService, resultsService } from '../services/api';
 import BarChart from './BarChart';
+import FactorChart from './FactorChart';
 
 interface User {
   id: number;
@@ -272,16 +273,22 @@ export default function UsersManager() {
                   </div>
                 )}
                 {userStats.factors && userStats.factors.length > 0 && (
-                  <div>
+                  <div style={{ marginBottom: '24px' }}>
                     <h4>Factores (gráfico)</h4>
                     <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
                     <div style={{ flex: 1, minWidth: 260 }}>
-                      <BarChart
-                        data={userStats.factors.map((f: any) => ({
-                          label: f.factorCode || f.factorName,
-                          value: Number(f.percentage) || 0,
-                        }))}
-                        maxValue={100}
+                      <FactorChart
+                        data={userStats.factors.map((f: any) => {
+                          // Convertir porcentaje a escala 1-10
+                          const percentage = Number(f.percentage) || 0;
+                          const value = Math.round((percentage / 100) * 10);
+                          const code = f.factorCode || '';
+                          return {
+                            label: code,
+                            value: Math.max(1, Math.min(10, value)),
+                          };
+                        })}
+                        maxValue={10}
                       />
                     </div>
                     </div>

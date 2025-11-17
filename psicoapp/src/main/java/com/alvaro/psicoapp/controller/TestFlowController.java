@@ -4,8 +4,10 @@ import com.alvaro.psicoapp.domain.*;
 import com.alvaro.psicoapp.repository.*;
 import com.alvaro.psicoapp.service.TestResultService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
+import java.time.Instant;
 import java.util.*;
 
 @RestController
@@ -17,6 +19,7 @@ public class TestFlowController {
 	private final UserAnswerRepository userAnswerRepository;
 	private final TestRepository testRepository;
 	private final TestResultService testResultService;
+	private final AssignedTestRepository assignedTestRepository;
 
 	public TestFlowController(
 			UserRepository userRepository,
@@ -24,19 +27,22 @@ public class TestFlowController {
 			AnswerRepository answerRepository,
 			UserAnswerRepository userAnswerRepository,
 			TestRepository testRepository,
-			TestResultService testResultService) {
+			TestResultService testResultService,
+			AssignedTestRepository assignedTestRepository) {
 		this.userRepository = userRepository;
 		this.questionRepository = questionRepository;
 		this.answerRepository = answerRepository;
 		this.userAnswerRepository = userAnswerRepository;
 		this.testRepository = testRepository;
 		this.testResultService = testResultService;
+		this.assignedTestRepository = assignedTestRepository;
 	}
 
 	public static class SubmitItem { public Long questionId; public Long answerId; public Double numericValue; }
 	public static class SubmitRequest { public List<SubmitItem> answers; public Long testId; }
 
 	@PostMapping("/submit")
+	@Transactional
 	public ResponseEntity<Void> submit(Principal principal, @RequestBody SubmitRequest req) {
 		UserEntity user = userRepository.findByEmail(principal.getName()).orElseThrow();
 		TestEntity test = testRepository.findById(req.testId).orElseThrow();
@@ -66,6 +72,14 @@ public class TestFlowController {
 
 		// Calcular y guardar resultados
 		testResultService.calculateAndSaveResults(user, null, test);
+		
+		// Marcar el test asignado como completado si existe
+		assignedTestRepository.findByUserAndTest(user, test).ifPresent(assigned -> {
+			if (assigned.getCompletedAt() == null) {
+				assigned.setCompletedAt(Instant.now());
+				assignedTestRepository.save(assigned);
+			}
+		});
 		
 		return ResponseEntity.ok().build();
 	}

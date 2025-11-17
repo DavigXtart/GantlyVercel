@@ -53,6 +53,14 @@ public class TaskController {
         Long psychologistId = Long.valueOf(String.valueOf(body.get("psychologistId")));
         String title = String.valueOf(body.get("title"));
         String description = body.get("description") != null ? String.valueOf(body.get("description")) : null;
+        Instant dueDate = null;
+        if (body.get("dueDate") != null && !String.valueOf(body.get("dueDate")).isEmpty()) {
+            try {
+                dueDate = Instant.parse(String.valueOf(body.get("dueDate")));
+            } catch (Exception e) {
+                // Si no se puede parsear, se deja como null
+            }
+        }
 
         UserEntity user = userRepository.findById(userId).orElseThrow();
         UserEntity psych = userRepository.findById(psychologistId).orElseThrow();
@@ -61,9 +69,44 @@ public class TaskController {
         t.setPsychologist(psych);
         t.setTitle(title);
         t.setDescription(description);
+        t.setDueDate(dueDate);
         t.setCreatedBy("PSYCHOLOGIST".equals(actor.getRole()) ? "PSYCHOLOGIST" : "USER");
         t.setCreatedAt(Instant.now());
         return ResponseEntity.ok(taskRepository.save(t));
+    }
+
+    @GetMapping("/{taskId}/files")
+    public ResponseEntity<List<Map<String, Object>>> getTaskFiles(Principal principal, @PathVariable Long taskId) {
+        var user = userRepository.findByEmail(principal.getName()).orElseThrow();
+        var task = taskRepository.findById(taskId).orElseThrow();
+        
+        // Verificar que el usuario tiene acceso a esta tarea
+        boolean hasAccess = false;
+        if ("PSYCHOLOGIST".equals(user.getRole())) {
+            hasAccess = task.getPsychologist().getId().equals(user.getId());
+        } else {
+            hasAccess = task.getUser().getId().equals(user.getId());
+        }
+        
+        if (!hasAccess) {
+            return ResponseEntity.status(403).build();
+        }
+        
+        var files = taskFileRepository.findByTask_Id(taskId);
+        List<Map<String, Object>> filesData = files.stream().map(f -> {
+            Map<String, Object> fileMap = new java.util.HashMap<>();
+            fileMap.put("id", f.getId());
+            fileMap.put("filePath", f.getFilePath());
+            fileMap.put("originalName", f.getOriginalName());
+            fileMap.put("contentType", f.getContentType() != null ? f.getContentType() : "");
+            fileMap.put("fileSize", f.getFileSize() != null ? f.getFileSize() : 0);
+            fileMap.put("uploadedAt", f.getUploadedAt() != null ? f.getUploadedAt().toString() : "");
+            fileMap.put("uploaderId", f.getUploader().getId());
+            fileMap.put("uploaderName", f.getUploader().getName());
+            return fileMap;
+        }).collect(java.util.stream.Collectors.toList());
+        
+        return ResponseEntity.ok(filesData);
     }
 
     @PostMapping("/{taskId}/files")
@@ -71,6 +114,19 @@ public class TaskController {
     public ResponseEntity<Map<String, Object>> uploadTaskFile(Principal principal, @PathVariable Long taskId, @RequestParam("file") MultipartFile file) throws IOException {
         var actor = userRepository.findByEmail(principal.getName()).orElseThrow();
         var task = taskRepository.findById(taskId).orElseThrow();
+        
+        // Verificar que el usuario tiene acceso a esta tarea
+        boolean hasAccess = false;
+        if ("PSYCHOLOGIST".equals(actor.getRole())) {
+            hasAccess = task.getPsychologist().getId().equals(actor.getId());
+        } else {
+            hasAccess = task.getUser().getId().equals(actor.getId());
+        }
+        
+        if (!hasAccess) {
+            return ResponseEntity.status(403).build();
+        }
+        
         if (file.isEmpty()) return ResponseEntity.badRequest().build();
         File dir = new File("uploads/tasks");
         if (!dir.exists()) dir.mkdirs();

@@ -3,6 +3,7 @@ C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\config\
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\config\WebSocketConfig.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\controller\AdminController.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\controller\AdminUserController.java
+C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\controller\AssignedTestController.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\controller\AuthController.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\controller\CalendarController.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\controller\ChatController.java
@@ -17,6 +18,7 @@ C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\control
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\controller\UserProfileController.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\AnswerEntity.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\AppointmentEntity.java
+C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\AssignedTestEntity.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\ChatMessageEntity.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\FactorEntity.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\FactorResultEntity.java
@@ -34,6 +36,7 @@ C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\dto\Aut
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\PsicoappApplication.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\AnswerRepository.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\AppointmentRepository.java
+C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\AssignedTestRepository.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\ChatMessageRepository.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\FactorRepository.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\FactorResultRepository.java
