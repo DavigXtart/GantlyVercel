@@ -253,6 +253,10 @@ export const tasksService = {
     const { data } = await api.get('/tasks');
     return data as Array<any>;
   },
+  get: async (taskId: number) => {
+    const { data } = await api.get(`/tasks/${taskId}`);
+    return data as any;
+  },
   create: async (payload: { userId: number; psychologistId: number; title: string; description?: string; dueDate?: string }) => {
     const { data } = await api.post('/tasks', payload);
     return data as any;
@@ -264,7 +268,29 @@ export const tasksService = {
   uploadFile: async (taskId: number, file: File) => {
     const form = new FormData();
     form.append('file', file);
-    const { data } = await api.post(`/tasks/${taskId}/files`, form, { headers: { 'Content-Type': 'multipart/form-data' } });
+    try {
+      const { data } = await api.post(`/tasks/${taskId}/files`, form, { 
+        headers: { 
+          'Content-Type': 'multipart/form-data' 
+        },
+        timeout: 30000 // 30 segundos de timeout
+      });
+      return data as any;
+    } catch (error: any) {
+      console.error('Error en uploadFile service:', error);
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+      }
+      throw error;
+    }
+  },
+  getComments: async (taskId: number) => {
+    const { data } = await api.get(`/tasks/${taskId}/comments`);
+    return data as Array<any>;
+  },
+  addComment: async (taskId: number, content: string) => {
+    const { data } = await api.post(`/tasks/${taskId}/comments`, { content });
     return data as any;
   }
 };

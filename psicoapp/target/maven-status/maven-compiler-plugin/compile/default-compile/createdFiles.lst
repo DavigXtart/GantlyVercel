@@ -2,6 +2,7 @@ com\alvaro\psicoapp\domain\ChatMessageEntity.class
 com\alvaro\psicoapp\controller\InitialTestController$SubmitRequest.class
 com\alvaro\psicoapp\controller\TestFlowController.class
 com\alvaro\psicoapp\domain\AssignedTestEntity.class
+com\alvaro\psicoapp\domain\TaskCommentEntity.class
 com\alvaro\psicoapp\controller\AdminController$QuestionCreate.class
 com\alvaro\psicoapp\controller\AdminController$TestUpdate.class
 com\alvaro\psicoapp\controller\AdminController$AnswerCreate.class
@@ -35,6 +36,7 @@ com\alvaro\psicoapp\config\WebSocketAuthInterceptor.class
 com\alvaro\psicoapp\controller\AdminController$TestCreate.class
 com\alvaro\psicoapp\domain\TaskEntity.class
 com\alvaro\psicoapp\repository\SubfactorRepository.class
+com\alvaro\psicoapp\repository\TaskCommentRepository.class
 com\alvaro\psicoapp\domain\TestResultEntity.class
 com\alvaro\psicoapp\repository\AssignedTestRepository.class
 com\alvaro\psicoapp\controller\InitialTestController$SubmitItem.class

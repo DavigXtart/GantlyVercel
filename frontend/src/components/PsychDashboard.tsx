@@ -23,6 +23,11 @@ export default function PsychDashboard() {
   const [taskFiles, setTaskFiles] = useState<Record<number, any[]>>({});
   const [expandedTasks, setExpandedTasks] = useState<Set<number>>(new Set());
   const [expandedPatients, setExpandedPatients] = useState<Set<number>>(new Set());
+  const [selectedPatientForTasks, setSelectedPatientForTasks] = useState<number | null>(null);
+  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [taskComments, setTaskComments] = useState<Record<number, any[]>>({});
+  const [newComment, setNewComment] = useState<string>('');
 
   const loadData = async () => {
     try {
@@ -70,6 +75,54 @@ export default function PsychDashboard() {
       console.error('Error cargando archivos de tarea:', error);
     }
   };
+
+  const loadTaskDetails = async (taskId: number) => {
+    try {
+      const task = await tasksService.get(taskId);
+      setSelectedTask(task);
+      await loadTaskFiles(taskId);
+      await loadTaskComments(taskId);
+    } catch (error) {
+      console.error('Error cargando detalles de tarea:', error);
+      alert('Error al cargar los detalles de la tarea');
+    }
+  };
+
+  const loadTaskComments = async (taskId: number) => {
+    try {
+      const comments = await tasksService.getComments(taskId);
+      setTaskComments((prev) => ({ ...prev, [taskId]: comments }));
+    } catch (error) {
+      console.error('Error cargando comentarios:', error);
+    }
+  };
+
+  const handleAddComment = async (taskId: number) => {
+    if (!newComment.trim()) return;
+    try {
+      await tasksService.addComment(taskId, newComment);
+      setNewComment('');
+      await loadTaskComments(taskId);
+    } catch (error: any) {
+      console.error('Error agregando comentario:', error);
+      alert('Error al agregar el comentario: ' + (error.response?.data?.error || error.message));
+    }
+  };
+
+  // Agrupar tareas por paciente
+  const tasksByPatient = tasks.reduce((acc: Record<number, any[]>, task: any) => {
+    const patientId = task.user?.id || task.userId;
+    if (patientId) {
+      if (!acc[patientId]) {
+        acc[patientId] = [];
+      }
+      acc[patientId].push(task);
+    }
+    return acc;
+  }, {});
+
+  // Obtener pacientes que tienen tareas
+  const patientsWithTasks = patients.filter((p: any) => tasksByPatient[p.id] && tasksByPatient[p.id].length > 0);
 
   const toggleTaskExpanded = (taskId: number) => {
     const newExpanded = new Set(expandedTasks);
@@ -591,36 +644,798 @@ export default function PsychDashboard() {
 
       {/* Tareas */}
       {tab === 'tareas' && (
-        <div style={{
-          background: '#ffffff',
-          borderRadius: '12px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          padding: '32px',
-          border: '1px solid #e5e7eb'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              Tareas
-            </h3>
-            <button
-              onClick={() => setShowTaskForm(true)}
-              style={{
-                padding: '10px 20px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontSize: '14px',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-            >
-              ➕ Nueva Tarea
-            </button>
-          </div>
+        <>
+          {selectedTaskId && selectedTask ? (
+            // Vista detallada de la tarea (igual que en UserDashboard)
+            <div style={{
+              background: '#ffffff',
+              borderRadius: '20px',
+              boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
+              padding: '40px',
+              border: '1px solid rgba(90, 146, 112, 0.15)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
+                <h3 style={{ 
+                  margin: 0, 
+                  fontSize: '28px', 
+                  fontWeight: 700, 
+                  color: '#1a2e22',
+                  fontFamily: "'Inter', sans-serif",
+                  letterSpacing: '-0.02em'
+                }}>
+                  {selectedTask.title}
+                </h3>
+                <button
+                  onClick={() => {
+                    setSelectedTaskId(null);
+                    setSelectedTask(null);
+                    setNewComment('');
+                  }}
+                  style={{
+                    padding: '10px 20px',
+                    background: '#f0f5f3',
+                    color: '#5a9270',
+                    border: '2px solid rgba(90, 146, 112, 0.3)',
+                    borderRadius: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontSize: '15px',
+                    transition: 'all 0.3s ease',
+                    fontFamily: "'Inter', sans-serif"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#e8f0ed';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#f0f5f3';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  ← Volver
+                </button>
+              </div>
+
+              {/* Información de la tarea */}
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+                gap: '20px',
+                marginBottom: '32px'
+              }}>
+                <div style={{
+                  padding: '20px',
+                  background: 'linear-gradient(135deg, #f0f5f3 0%, #e8f0ed 100%)',
+                  borderRadius: '16px',
+                  border: '1px solid rgba(90, 146, 112, 0.2)'
+                }}>
+                  <div style={{ 
+                    fontSize: '12px', 
+                    color: '#5a9270', 
+                    marginBottom: '8px', 
+                    fontWeight: 600, 
+                    textTransform: 'uppercase',
+                    fontFamily: "'Inter', sans-serif"
+                  }}>
+                    Creada el
+                  </div>
+                  <div style={{ 
+                    fontSize: '16px', 
+                    fontWeight: 600, 
+                    color: '#1a2e22',
+                    fontFamily: "'Inter', sans-serif"
+                  }}>
+                    {selectedTask.createdAt ? new Date(selectedTask.createdAt).toLocaleDateString('es-ES', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    }) : 'N/A'}
+                  </div>
+                </div>
+
+                {selectedTask.dueDate && (
+                  <div style={{
+                    padding: '20px',
+                    background: new Date(selectedTask.dueDate) < new Date() 
+                      ? 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)' 
+                      : 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                    borderRadius: '16px',
+                    border: `1px solid ${new Date(selectedTask.dueDate) < new Date() ? 'rgba(220, 38, 38, 0.3)' : 'rgba(217, 119, 6, 0.3)'}`
+                  }}>
+                    <div style={{ 
+                      fontSize: '12px', 
+                      color: new Date(selectedTask.dueDate) < new Date() ? '#dc2626' : '#d97706', 
+                      marginBottom: '8px', 
+                      fontWeight: 600, 
+                      textTransform: 'uppercase',
+                      fontFamily: "'Inter', sans-serif"
+                    }}>
+                      Vence el
+                    </div>
+                    <div style={{ 
+                      fontSize: '16px', 
+                      fontWeight: 600, 
+                      color: '#1a2e22',
+                      fontFamily: "'Inter', sans-serif"
+                    }}>
+                      {new Date(selectedTask.dueDate).toLocaleDateString('es-ES', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </div>
+                    {new Date(selectedTask.dueDate) >= new Date() && (
+                      <div style={{ 
+                        fontSize: '14px', 
+                        color: '#3a5a4a',
+                        marginTop: '8px',
+                        fontFamily: "'Inter', sans-serif"
+                      }}>
+                        {Math.ceil((new Date(selectedTask.dueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} días restantes
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div style={{
+                  padding: '20px',
+                  background: 'linear-gradient(135deg, #f0f5f3 0%, #e8f0ed 100%)',
+                  borderRadius: '16px',
+                  border: '1px solid rgba(90, 146, 112, 0.2)'
+                }}>
+                  <div style={{ 
+                    fontSize: '12px', 
+                    color: '#5a9270', 
+                    marginBottom: '8px', 
+                    fontWeight: 600, 
+                    textTransform: 'uppercase',
+                    fontFamily: "'Inter', sans-serif"
+                  }}>
+                    {selectedTask.createdBy === 'PSYCHOLOGIST' ? 'Asignada por' : 'Enviada por'}
+                  </div>
+                  <div style={{ 
+                    fontSize: '16px', 
+                    fontWeight: 600, 
+                    color: '#1a2e22',
+                    fontFamily: "'Inter', sans-serif"
+                  }}>
+                    {selectedTask.createdBy === 'PSYCHOLOGIST' ? selectedTask.psychologistName : selectedTask.userName}
+                  </div>
+                </div>
+              </div>
+
+              {/* Descripción */}
+              {selectedTask.description && (
+                <div style={{ 
+                  marginBottom: '32px',
+                  padding: '24px',
+                  background: 'linear-gradient(135deg, #f8f9fa 0%, #f0f5f3 100%)',
+                  borderRadius: '16px',
+                  border: '1px solid rgba(90, 146, 112, 0.15)'
+                }}>
+                  <h4 style={{ 
+                    margin: '0 0 16px 0', 
+                    fontSize: '18px', 
+                    fontWeight: 600, 
+                    color: '#1a2e22',
+                    fontFamily: "'Inter', sans-serif"
+                  }}>
+                    Descripción
+                  </h4>
+                  <div style={{ 
+                    fontSize: '16px', 
+                    color: '#3a5a4a', 
+                    lineHeight: '1.7',
+                    fontFamily: "'Inter', sans-serif",
+                    whiteSpace: 'pre-wrap'
+                  }}>
+                    {selectedTask.description}
+                  </div>
+                </div>
+              )}
+
+              {/* Archivos */}
+              <div style={{ 
+                marginBottom: '32px',
+                padding: '24px',
+                background: '#ffffff',
+                borderRadius: '16px',
+                border: '1px solid rgba(90, 146, 112, 0.15)',
+                boxShadow: '0 2px 8px rgba(90, 146, 112, 0.08)'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <h4 style={{ 
+                    margin: 0, 
+                    fontSize: '20px', 
+                    fontWeight: 600, 
+                    color: '#1a2e22',
+                    fontFamily: "'Inter', sans-serif"
+                  }}>
+                    📎 Archivos adjuntos
+                  </h4>
+                  <label style={{
+                    padding: '10px 20px',
+                    background: '#5a9270',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '12px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    fontFamily: "'Inter', sans-serif",
+                    boxShadow: '0 4px 12px rgba(90, 146, 112, 0.3)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
+                    e.currentTarget.style.background = '#4a8062';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
+                    e.currentTarget.style.background = '#5a9270';
+                  }}
+                  >
+                    ➕ Subir archivo
+                    <input
+                      type="file"
+                      style={{ display: 'none' }}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          try {
+                            await tasksService.uploadFile(selectedTaskId, file);
+                            await loadTaskFiles(selectedTaskId);
+                            alert('Archivo subido exitosamente');
+                            // Resetear el input para permitir subir el mismo archivo de nuevo
+                            e.target.value = '';
+                          } catch (error: any) {
+                            console.error('Error al subir archivo:', error);
+                            console.error('Error completo:', JSON.stringify(error, null, 2));
+                            const errorMessage = error.response?.data?.error || error.response?.data?.message || error.response?.data?.details || error.message || 'Error desconocido';
+                            alert('Error al subir el archivo: ' + errorMessage);
+                            // Resetear el input incluso si hay error
+                            e.target.value = '';
+                          }
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+                {taskFiles[selectedTaskId] && taskFiles[selectedTaskId].length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {taskFiles[selectedTaskId].map((file: any) => (
+                      <div key={file.id} style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center', 
+                        padding: '16px', 
+                        background: 'linear-gradient(135deg, #f8f9fa 0%, #f0f5f3 100%)', 
+                        borderRadius: '12px', 
+                        border: '1px solid rgba(90, 146, 112, 0.15)'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
+                          <span style={{ fontSize: '24px' }}>📄</span>
+                          <div>
+                            <div style={{ 
+                              fontSize: '15px', 
+                              fontWeight: 600, 
+                              color: '#1a2e22',
+                              fontFamily: "'Inter', sans-serif"
+                            }}>{file.originalName}</div>
+                            <div style={{ 
+                              fontSize: '13px', 
+                              color: '#3a5a4a', 
+                              marginTop: '4px',
+                              fontFamily: "'Inter', sans-serif"
+                            }}>
+                              {(file.fileSize / 1024).toFixed(1)} KB • Subido por {file.uploaderName}
+                            </div>
+                          </div>
+                        </div>
+                        <a
+                          href={`http://localhost:8080${file.filePath}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            padding: '8px 16px',
+                            background: '#5a9270',
+                            color: 'white',
+                            textDecoration: 'none',
+                            borderRadius: '12px',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            transition: 'all 0.3s ease',
+                            fontFamily: "'Inter', sans-serif",
+                            boxShadow: '0 2px 8px rgba(90, 146, 112, 0.3)'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#4a8062';
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.4)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = '#5a9270';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.3)';
+                          }}
+                        >
+                          Descargar
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ 
+                    fontSize: '15px', 
+                    color: '#3a5a4a', 
+                    textAlign: 'center', 
+                    padding: '40px',
+                    fontFamily: "'Inter', sans-serif"
+                  }}>
+                    No hay archivos adjuntos aún
+                  </div>
+                )}
+              </div>
+
+              {/* Comentarios */}
+              <div style={{ 
+                padding: '24px',
+                background: '#ffffff',
+                borderRadius: '16px',
+                border: '1px solid rgba(90, 146, 112, 0.15)',
+                boxShadow: '0 2px 8px rgba(90, 146, 112, 0.08)'
+              }}>
+                <h4 style={{ 
+                  margin: '0 0 20px 0', 
+                  fontSize: '20px', 
+                  fontWeight: 600, 
+                  color: '#1a2e22',
+                  fontFamily: "'Inter', sans-serif"
+                }}>
+                  💬 Comentarios
+                </h4>
+                
+                {/* Lista de comentarios */}
+                {taskComments[selectedTaskId] && taskComments[selectedTaskId].length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
+                    {taskComments[selectedTaskId].map((comment: any) => (
+                      <div key={comment.id} style={{
+                        padding: '16px',
+                        background: 'linear-gradient(135deg, #f8f9fa 0%, #f0f5f3 100%)',
+                        borderRadius: '12px',
+                        border: '1px solid rgba(90, 146, 112, 0.15)'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                          <div style={{ 
+                            fontSize: '14px', 
+                            fontWeight: 600, 
+                            color: '#1a2e22',
+                            fontFamily: "'Inter', sans-serif"
+                          }}>
+                            {comment.userName}
+                          </div>
+                          <div style={{ 
+                            fontSize: '12px', 
+                            color: '#3a5a4a',
+                            fontFamily: "'Inter', sans-serif"
+                          }}>
+                            {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString('es-ES', { 
+                              day: 'numeric', 
+                              month: 'short', 
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            }) : ''}
+                          </div>
+                        </div>
+                        <div style={{ 
+                          fontSize: '15px', 
+                          color: '#3a5a4a', 
+                          lineHeight: '1.6',
+                          fontFamily: "'Inter', sans-serif",
+                          whiteSpace: 'pre-wrap'
+                        }}>
+                          {comment.content}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ 
+                    fontSize: '15px', 
+                    color: '#3a5a4a', 
+                    textAlign: 'center', 
+                    padding: '40px',
+                    marginBottom: '24px',
+                    fontFamily: "'Inter', sans-serif"
+                  }}>
+                    No hay comentarios aún. Sé el primero en comentar.
+                  </div>
+                )}
+
+                {/* Formulario de nuevo comentario */}
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <textarea
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Escribe un comentario..."
+                    style={{
+                      flex: 1,
+                      padding: '12px 16px',
+                      borderRadius: '12px',
+                      border: '2px solid rgba(90, 146, 112, 0.2)',
+                      fontSize: '15px',
+                      fontFamily: "'Inter', sans-serif",
+                      color: '#1a2e22',
+                      resize: 'vertical',
+                      minHeight: '80px',
+                      outline: 'none',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = '#5a9270';
+                      e.currentTarget.style.boxShadow = '0 0 0 3px rgba(90, 146, 112, 0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.2)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  />
+                  <button
+                    onClick={() => handleAddComment(selectedTaskId)}
+                    disabled={!newComment.trim()}
+                    style={{
+                      padding: '12px 24px',
+                      background: newComment.trim() ? '#5a9270' : '#d1d5db',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      fontSize: '15px',
+                      fontWeight: 600,
+                      cursor: newComment.trim() ? 'pointer' : 'not-allowed',
+                      transition: 'all 0.3s ease',
+                      fontFamily: "'Inter', sans-serif",
+                      boxShadow: newComment.trim() ? '0 4px 12px rgba(90, 146, 112, 0.3)' : 'none',
+                      alignSelf: 'flex-start'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (newComment.trim()) {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
+                        e.currentTarget.style.background = '#4a8062';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (newComment.trim()) {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
+                        e.currentTarget.style.background = '#5a9270';
+                      }
+                    }}
+                  >
+                    Enviar
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : selectedPatientForTasks ? (
+            // Lista de tareas de un paciente específico
+            <div style={{
+              background: '#ffffff',
+              borderRadius: '12px',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+              padding: '32px',
+              border: '1px solid #e5e7eb'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+                <div>
+                  <button
+                    onClick={() => setSelectedPatientForTasks(null)}
+                    style={{
+                      padding: '8px 16px',
+                      background: '#f0f5f3',
+                      color: '#5a9270',
+                      border: '2px solid rgba(90, 146, 112, 0.3)',
+                      borderRadius: '8px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      marginBottom: '12px',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#e8f0ed'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = '#f0f5f3'}
+                  >
+                    ← Volver a pacientes
+                  </button>
+                  <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                    Tareas de {patients.find((p: any) => p.id === selectedPatientForTasks)?.name || 'Paciente'}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => {
+                    setTaskForm({ ...taskForm, userId: selectedPatientForTasks.toString() });
+                    setShowTaskForm(true);
+                  }}
+                  style={{
+                    padding: '10px 20px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  ➕ Nueva Tarea
+                </button>
+              </div>
+              
+              {showTaskForm && (
+                <div style={{
+                  marginBottom: '24px',
+                  padding: '24px',
+                  background: '#f9fafb',
+                  borderRadius: '12px',
+                  border: '2px solid #e5e7eb'
+                }}>
+                  <h4 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 600 }}>Crear Nueva Tarea</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <input
+                      type="text"
+                      placeholder="Título de la tarea"
+                      value={taskForm.title}
+                      onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
+                      style={{
+                        padding: '10px',
+                        borderRadius: '8px',
+                        border: '1px solid #e5e7eb',
+                        fontSize: '14px'
+                      }}
+                    />
+                    <textarea
+                      placeholder="Descripción (opcional)"
+                      value={taskForm.description}
+                      onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
+                      style={{
+                        padding: '10px',
+                        borderRadius: '8px',
+                        border: '1px solid #e5e7eb',
+                        fontSize: '14px',
+                        minHeight: '80px',
+                        resize: 'vertical'
+                      }}
+                    />
+                    <input
+                      type="datetime-local"
+                      value={taskForm.dueDate}
+                      onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
+                      style={{
+                        padding: '10px',
+                        borderRadius: '8px',
+                        border: '1px solid #e5e7eb',
+                        fontSize: '14px'
+                      }}
+                    />
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        onClick={async () => {
+                          if (!taskForm.title) {
+                            alert('Por favor completa el título de la tarea');
+                            return;
+                          }
+                          if (!me || !me.id) {
+                            alert('Error: No se pudo obtener la información del psicólogo. Por favor recarga la página.');
+                            return;
+                          }
+                          try {
+                            await tasksService.create({
+                              userId: selectedPatientForTasks,
+                              psychologistId: me.id,
+                              title: taskForm.title,
+                              description: taskForm.description || undefined,
+                              dueDate: taskForm.dueDate ? new Date(taskForm.dueDate).toISOString() : undefined
+                            });
+                            await loadData();
+                            setShowTaskForm(false);
+                            setTaskForm({ userId: '', title: '', description: '', dueDate: '' });
+                            alert('Tarea creada exitosamente');
+                          } catch (error: any) {
+                            console.error('Error al crear la tarea:', error);
+                            alert('Error al crear la tarea: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
+                          }
+                        }}
+                        style={{
+                          padding: '10px 20px',
+                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          fontSize: '14px'
+                        }}
+                      >
+                        Crear
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowTaskForm(false);
+                          setTaskForm({ userId: '', title: '', description: '', dueDate: '' });
+                        }}
+                        style={{
+                          padding: '10px 20px',
+                          background: '#e5e7eb',
+                          color: '#1f2937',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          fontSize: '14px'
+                        }}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {tasksByPatient[selectedPatientForTasks] && tasksByPatient[selectedPatientForTasks].length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {tasksByPatient[selectedPatientForTasks].map((t: any) => (
+                    <div
+                      key={t.id}
+                      onClick={() => {
+                        setSelectedTaskId(t.id);
+                        loadTaskDetails(t.id);
+                      }}
+                      style={{
+                        padding: '28px',
+                        background: t.createdBy === 'PSYCHOLOGIST' ? 'linear-gradient(135deg, #f0f5f3 0%, #e8f0ed 100%)' : '#ffffff',
+                        border: `2px solid ${t.createdBy === 'PSYCHOLOGIST' ? 'rgba(90, 146, 112, 0.3)' : 'rgba(90, 146, 112, 0.15)'}`,
+                        borderRadius: '16px',
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 2px 8px rgba(90, 146, 112, 0.08)',
+                        cursor: 'pointer'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-4px)';
+                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.15)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.08)';
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px' }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                            <div style={{
+                              padding: '6px 12px',
+                              background: t.createdBy === 'PSYCHOLOGIST' ? '#5a9270' : '#7fb3a3',
+                              color: 'white',
+                              borderRadius: '20px',
+                              fontSize: '12px',
+                              fontWeight: 600,
+                              fontFamily: "'Inter', sans-serif"
+                            }}>
+                              {t.createdBy === 'PSYCHOLOGIST' ? '📤 Creada por mí' : '📥 Enviada por paciente'}
+                            </div>
+                            {t.createdAt && (
+                              <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                                📅 Creada: {new Date(t.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </div>
+                            )}
+                            {t.dueDate && (
+                              <div style={{
+                                padding: '4px 8px',
+                                background: new Date(t.dueDate) < new Date() ? '#fee2e2' : '#fef3c7',
+                                color: new Date(t.dueDate) < new Date() ? '#dc2626' : '#d97706',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                fontWeight: 600
+                              }}>
+                                ⏰ Vence: {new Date(t.dueDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                            )}
+                          </div>
+                          <div style={{ 
+                            fontSize: '22px', 
+                            fontWeight: 700, 
+                            color: '#1a2e22', 
+                            marginBottom: '12px',
+                            fontFamily: "'Inter', sans-serif",
+                            letterSpacing: '-0.01em'
+                          }}>
+                            {t.title}
+                          </div>
+                          <div style={{ 
+                            fontSize: '15px', 
+                            color: '#3a5a4a', 
+                            lineHeight: '1.6', 
+                            marginBottom: '16px',
+                            fontFamily: "'Inter', sans-serif",
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden'
+                          }}>
+                            {t.description || 'Sin descripción'}
+                          </div>
+                          <div style={{ 
+                            fontSize: '14px', 
+                            color: '#5a9270', 
+                            fontWeight: 600,
+                            fontFamily: "'Inter', sans-serif",
+                            marginTop: '8px'
+                          }}>
+                            👆 Haz clic para ver detalles y comentarios
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{
+                  padding: '60px 40px',
+                  textAlign: 'center',
+                  background: '#f9fafb',
+                  borderRadius: '12px',
+                  border: '2px dashed #d1d5db'
+                }}>
+                  <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
+                  <div style={{ fontSize: '18px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>
+                    No hay tareas para este paciente
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            // Lista de pacientes con tareas
+            <div style={{
+              background: '#ffffff',
+              borderRadius: '12px',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+              padding: '32px',
+              border: '1px solid #e5e7eb'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+                <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  Tareas por Paciente
+                </h3>
+                <button
+                  onClick={() => setShowTaskForm(true)}
+                  style={{
+                    padding: '10px 20px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  ➕ Nueva Tarea
+                </button>
+              </div>
           
           {showTaskForm && (
             <div style={{
@@ -746,7 +1561,8 @@ export default function PsychDashboard() {
               </div>
             </div>
           )}
-          {tasks.length === 0 ? (
+          
+          {patientsWithTasks.length === 0 ? (
             <div style={{
               padding: '60px 40px',
               textAlign: 'center',
@@ -756,171 +1572,83 @@ export default function PsychDashboard() {
             }}>
               <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
               <div style={{ fontSize: '18px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>
-                No hay tareas
+                No hay pacientes con tareas
               </div>
               <div style={{ fontSize: '14px', color: '#9ca3af' }}>
                 Crea tareas para tus pacientes o revisa las enviadas por ellos
               </div>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {tasks.map(t => (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+              {patientsWithTasks.map((p: any) => (
                 <div
-                  key={t.id}
+                  key={p.id}
+                  onClick={() => setSelectedPatientForTasks(p.id)}
                   style={{
                     padding: '24px',
-                    background: t.createdBy === 'PSYCHOLOGIST' ? '#f0f9ff' : '#f9fafb',
-                    border: `2px solid ${t.createdBy === 'PSYCHOLOGIST' ? '#0ea5e9' : '#e5e7eb'}`,
-                    borderRadius: '12px',
-                    transition: 'all 0.2s'
+                    background: 'linear-gradient(135deg, #f0f5f3 0%, #e8f0ed 100%)',
+                    border: '2px solid rgba(90, 146, 112, 0.3)',
+                    borderRadius: '16px',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 2px 8px rgba(90, 146, 112, 0.08)',
+                    cursor: 'pointer'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.15)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.08)';
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+                    <div style={{
+                      width: '60px',
+                      height: '60px',
+                      borderRadius: '50%',
+                      background: '#e5e7eb',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '24px',
+                      border: '3px solid white',
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                    }}>
+                      {p.avatarUrl ? (
+                        <img src={p.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                      ) : (
+                        '👤'
+                      )}
+                    </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
-                        <div style={{
-                          padding: '4px 8px',
-                          background: t.createdBy === 'PSYCHOLOGIST' ? '#0ea5e9' : '#6b7280',
-                          color: 'white',
-                          borderRadius: '6px',
-                          fontSize: '11px',
-                          fontWeight: 600
-                        }}>
-                          {t.createdBy === 'PSYCHOLOGIST' ? '📤 Creada por mí' : '📥 Enviada por paciente'}
-                        </div>
-                        {t.user?.name && (
-                          <div style={{ fontSize: '12px', color: '#6b7280' }}>
-                            👤 {t.user.name}
-                          </div>
-                        )}
-                        {t.createdAt && (
-                          <div style={{ fontSize: '12px', color: '#9ca3af' }}>
-                            📅 Creada: {new Date(t.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
-                          </div>
-                        )}
-                        {t.dueDate && (
-                          <div style={{
-                            padding: '4px 8px',
-                            background: new Date(t.dueDate) < new Date() ? '#fee2e2' : '#fef3c7',
-                            color: new Date(t.dueDate) < new Date() ? '#dc2626' : '#d97706',
-                            borderRadius: '6px',
-                            fontSize: '12px',
-                            fontWeight: 600
-                          }}>
-                            ⏰ Vence: {new Date(t.dueDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                          </div>
-                        )}
+                      <div style={{ fontSize: '18px', fontWeight: 600, color: '#1a2e22', marginBottom: '4px', fontFamily: "'Inter', sans-serif" }}>
+                        {p.name}
                       </div>
-                      <div style={{ fontSize: '20px', fontWeight: 700, color: '#1f2937', marginBottom: '12px' }}>
-                        {t.title}
-                      </div>
-                      <div style={{ 
-                        fontSize: '15px', 
-                        color: '#4b5563', 
-                        lineHeight: '1.7', 
-                        marginBottom: '20px',
-                        padding: '16px',
-                        background: 'white',
-                        borderRadius: '8px',
-                        border: '1px solid #e5e7eb'
-                      }}>
-                        {t.description || 'Sin descripción'}
-                      </div>
-                      
-                      {/* Sección de archivos siempre visible */}
-                      <div style={{ marginTop: '20px', padding: '16px', background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                          <h5 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#1f2937' }}>📎 Archivos adjuntos</h5>
-                          <label style={{
-                            padding: '8px 16px',
-                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '6px',
-                            fontSize: '13px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            transition: 'all 0.2s'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                          >
-                            ➕ Subir archivo
-                            <input
-                              type="file"
-                              style={{ display: 'none' }}
-                              onChange={async (e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  try {
-                                    await tasksService.uploadFile(t.id, file);
-                                    await loadTaskFiles(t.id);
-                                    alert('Archivo subido exitosamente');
-                                  } catch (error: any) {
-                                    console.error('Error al subir archivo:', error);
-                                    alert('Error al subir el archivo: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
-                                  }
-                                }
-                              }}
-                            />
-                          </label>
-                        </div>
-                        {taskFiles[t.id] && taskFiles[t.id].length > 0 ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            {taskFiles[t.id].map((file: any) => (
-                              <div key={file.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'white', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
-                                  <span style={{ fontSize: '20px' }}>📄</span>
-                                  <div>
-                                    <div style={{ fontSize: '14px', fontWeight: 500, color: '#1f2937' }}>{file.originalName}</div>
-                                    <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '2px' }}>
-                                      {(file.fileSize / 1024).toFixed(1)} KB • Subido por {file.uploaderName}
-                                    </div>
-                                  </div>
-                                </div>
-                                <a
-                                  href={`http://localhost:8080${file.filePath}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  style={{
-                                    padding: '6px 12px',
-                                    background: '#667eea',
-                                    color: 'white',
-                                    textDecoration: 'none',
-                                    borderRadius: '6px',
-                                    fontSize: '12px',
-                                    fontWeight: 600,
-                                    transition: 'all 0.2s'
-                                  }}
-                                  onMouseEnter={(e) => e.currentTarget.style.background = '#5568d3'}
-                                  onMouseLeave={(e) => e.currentTarget.style.background = '#667eea'}
-                                >
-                                  Descargar
-                                </a>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div style={{ fontSize: '14px', color: '#9ca3af', textAlign: 'center', padding: '20px' }}>
-                            No hay archivos adjuntos aún
-                          </div>
-                        )}
+                      <div style={{ fontSize: '14px', color: '#3a5a4a', fontFamily: "'Inter', sans-serif" }}>
+                        {tasksByPatient[p.id]?.length || 0} {tasksByPatient[p.id]?.length === 1 ? 'tarea' : 'tareas'}
                       </div>
                     </div>
+                  </div>
+                  <div style={{ 
+                    fontSize: '14px', 
+                    color: '#5a9270', 
+                    fontWeight: 600,
+                    fontFamily: "'Inter', sans-serif",
+                    textAlign: 'center',
+                    padding: '8px',
+                    background: 'rgba(90, 146, 112, 0.1)',
+                    borderRadius: '8px'
+                  }}>
+                    👆 Haz clic para ver tareas
                   </div>
                 </div>
               ))}
             </div>
           )}
-        </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Tests Asignados */}

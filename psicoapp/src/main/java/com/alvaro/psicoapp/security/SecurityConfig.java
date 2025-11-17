@@ -35,6 +35,7 @@ public class SecurityConfig {
 				.requestMatchers("/api/flow/**").authenticated() // Flujo de respuestas requiere autenticación
 				.requestMatchers("/api/profile/**").authenticated()
 				.requestMatchers("/api/tasks/**").authenticated()
+				.requestMatchers("/uploads/**").permitAll() // Permitir acceso a archivos subidos
 				.requestMatchers("/api/assigned-tests/**").authenticated() // Tests asignados requieren autenticación
 				.requestMatchers("/api/calendar/**").authenticated()
 				.requestMatchers("/api/psych/**").authenticated()
