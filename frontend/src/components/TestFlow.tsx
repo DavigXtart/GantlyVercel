@@ -248,7 +248,7 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
       }));
       
       await testService.submitAnswers(testId, submitData);
-      alert('¡Test completado exitosamente!');
+      // Test completado exitosamente (sin pop-up)
       onComplete();
     } catch (err: any) {
       console.error('Error enviando respuestas:', err);

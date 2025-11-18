@@ -1,4 +1,10 @@
 import { useState } from 'react';
+import gemini1 from '../assets/Gemini_Generated_Image_gvn6grgvn6grgvn6.png';
+import gemini2 from '../assets/Gemini_Generated_Image_9ho60t9ho60t9ho6.png';
+import gemini3 from '../assets/Gemini_Generated_Image_pg3gfvpg3gfvpg3g.png';
+import gemini4 from '../assets/Gemini_Generated_Image_kng45nkng45nkng4.png';
+import gemini5 from '../assets/Gemini_Generated_Image_xta9abxta9abxta9.png';
+import gemini6 from '../assets/Gemini_Generated_Image_wqpn45wqpn45wqpn.png';
 
 interface SoyProfesionalProps {
   onBack: () => void;
@@ -219,7 +225,7 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted }: SoyPro
             gridTemplateColumns: 'repeat(2, 1fr)',
             gap: '24px',
           }}>
-            {[1, 2, 3, 4, 5, 6].map((idx) => (
+            {[gemini1, gemini2, gemini6, gemini5, gemini3, gemini4].map((imgSrc, idx) => (
               <div
                 key={idx}
                 style={{
@@ -231,23 +237,19 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted }: SoyPro
                   alignItems: 'center',
                   justifyContent: 'center',
                   overflow: 'hidden',
+                  position: 'relative',
                 }}
               >
-                <div style={{
-                  width: '80%',
-                  height: '80%',
-                  borderRadius: '50%',
-                  background: 'rgba(90, 146, 112, 0.1)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#5a9270',
-                  fontSize: '32px',
-                  fontWeight: 600,
-                  fontFamily: "'Inter', sans-serif",
-                }}>
-                  {idx}
-                </div>
+                <img 
+                  src={imgSrc} 
+                  alt={`Imagen ${idx + 1}`}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    borderRadius: '50%',
+                  }}
+                />
               </div>
             ))}
           </div>

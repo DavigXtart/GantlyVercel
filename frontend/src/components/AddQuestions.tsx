@@ -44,7 +44,7 @@ export default function AddQuestions({ testId, onBack }: AddQuestionsProps) {
         parseInt(formData.get('value') as string),
         parseInt(formData.get('position') as string)
       );
-      alert('Opción de respuesta añadida');
+      // Opción de respuesta añadida (sin pop-up)
       e.currentTarget.reset();
     } catch (err: any) {
       alert('Error al crear opción: ' + (err.response?.data?.message || err.message));

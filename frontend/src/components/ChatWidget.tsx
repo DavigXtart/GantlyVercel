@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Client } from '@stomp/stompjs';
 import type { IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import api, { profileService } from '../services/api';
+import api, { profileService, psychService } from '../services/api';
 
 type Props = {
   mode: 'USER' | 'PSYCHOLOGIST';
@@ -79,9 +79,9 @@ export default function ChatWidget({ mode, otherId }: Props) {
         setPsychId(me.id);
         if (otherId) {
           setUserId(otherId);
-          // Cargar información del paciente
+          // Cargar información del paciente usando el servicio que resuelve URLs
           try {
-            const { data: patients } = await api.get('/psych/patients');
+            const patients = await psychService.patients();
             const patient = patients.find((p: any) => p.id === otherId);
             if (patient) setOtherUser(patient);
           } catch (e) {
@@ -448,7 +448,22 @@ export default function ChatWidget({ mode, otherId }: Props) {
           overflow: 'hidden'
         }}>
           {otherUser?.avatarUrl ? (
-            <img src={otherUser.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img 
+              src={otherUser.avatarUrl} 
+              alt="" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                const parent = e.currentTarget.parentElement;
+                if (parent) {
+                  parent.innerHTML = '👤';
+                  parent.style.fontSize = '20px';
+                  parent.style.display = 'flex';
+                  parent.style.alignItems = 'center';
+                  parent.style.justifyContent = 'center';
+                }
+              }}
+            />
           ) : (
             '👤'
           )}
@@ -520,7 +535,22 @@ export default function ChatWidget({ mode, otherId }: Props) {
                       flexShrink: 0
                     }}>
                       {otherUser?.avatarUrl ? (
-                        <img src={otherUser.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                        <img 
+                          src={otherUser.avatarUrl} 
+                          alt="" 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const parent = e.currentTarget.parentElement;
+                            if (parent) {
+                              parent.innerHTML = '👤';
+                              parent.style.fontSize = '14px';
+                              parent.style.display = 'flex';
+                              parent.style.alignItems = 'center';
+                              parent.style.justifyContent = 'center';
+                            }
+                          }}
+                        />
                       ) : (
                         '👤'
                       )}

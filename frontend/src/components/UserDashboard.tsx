@@ -75,8 +75,9 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
   }, [tab, tasks.length]); // Solo dependemos de la longitud, no del array completo
 
   const onAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    const file = e.target.files[0];
+    const input = e.target;
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
     if (!file.type.startsWith('image/')) {
       alert('Por favor selecciona un archivo de imagen');
       return;
@@ -84,10 +85,13 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
     try {
       const res = await profileService.uploadAvatar(file);
       setMe({ ...me, avatarUrl: res.avatarUrl });
-      alert('Avatar actualizado exitosamente');
+      // Avatar actualizado exitosamente (sin pop-up)
     } catch (error: any) {
       console.error('Error al subir avatar:', error);
       alert('Error al subir el avatar: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
+    } finally {
+      // Permitir seleccionar el mismo archivo nuevamente
+      input.value = '';
     }
   };
 
@@ -271,18 +275,44 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
           overflow: 'hidden',
           border: '1px solid rgba(90, 146, 112, 0.15)'
         }}>
-          {/* Header con gradiente pastel */}
+          {/* Header con gradiente pastel y mensaje de bienvenida */}
           <div style={{
             background: 'linear-gradient(135deg, #5a9270 0%, #5b8fa8 100%)',
             padding: '48px 40px',
             color: 'white',
             position: 'relative'
           }}>
+            {/* Mensaje de bienvenida */}
+            <div style={{
+              marginBottom: '24px',
+              padding: '20px 24px',
+              background: 'rgba(255, 255, 255, 0.15)',
+              borderRadius: '16px',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)'
+            }}>
+              <div style={{
+                fontSize: '18px',
+                fontWeight: 600,
+                marginBottom: '8px',
+                fontFamily: "'Inter', sans-serif"
+              }}>
+                👋 ¡Bienvenido a PSYmatch!
+              </div>
+              <div style={{
+                fontSize: '15px',
+                opacity: 0.95,
+                lineHeight: '1.6',
+                fontFamily: "'Inter', sans-serif"
+              }}>
+                Estamos aquí para acompañarte en tu bienestar mental. Explora tus tareas, completa tus tests y gestiona tus citas desde este panel.
+              </div>
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
               <div style={{ position: 'relative' }}>
                 {me?.avatarUrl ? (
                 <img
-                    src={me.avatarUrl.startsWith('http') ? me.avatarUrl : `http://localhost:8080${me.avatarUrl}`}
+                    src={me.avatarUrl}
                   alt="avatar"
                   style={{
                     width: '120px',
@@ -293,6 +323,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)'
                   }}
                     onError={(e) => {
+                      console.error('Error cargando avatar:', me.avatarUrl);
                       e.currentTarget.style.display = 'none';
                       e.currentTarget.nextElementSibling?.setAttribute('style', 'display: flex');
                     }}
@@ -564,22 +595,27 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               </div>
             </div>
 
-            <div style={{
-              padding: '24px',
-              background: '#ffffff',
-              borderRadius: '16px',
-              border: '1px solid rgba(90, 146, 112, 0.15)',
-              boxShadow: '0 2px 8px rgba(90, 146, 112, 0.08)',
-              transition: 'all 0.3s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px)';
-              e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.15)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.08)';
-            }}
+            <div 
+              onClick={() => setTab('tareas')}
+              style={{
+                padding: '24px',
+                background: '#ffffff',
+                borderRadius: '16px',
+                border: '1px solid rgba(90, 146, 112, 0.15)',
+                boxShadow: '0 2px 8px rgba(90, 146, 112, 0.08)',
+                transition: 'all 0.3s ease',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.15)';
+                e.currentTarget.style.borderColor = '#5a9270';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.08)';
+                e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.15)';
+              }}
             >
               <div style={{ 
                 fontSize: '12px', 
@@ -602,22 +638,27 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               </div>
             </div>
 
-            <div style={{
-              padding: '24px',
-              background: '#ffffff',
-              borderRadius: '16px',
-              border: '1px solid rgba(90, 146, 112, 0.15)',
-              boxShadow: '0 2px 8px rgba(90, 146, 112, 0.08)',
-              transition: 'all 0.3s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px)';
-              e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.15)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.08)';
-            }}
+            <div 
+              onClick={() => setTab('tests-pendientes')}
+              style={{
+                padding: '24px',
+                background: '#ffffff',
+                borderRadius: '16px',
+                border: '1px solid rgba(90, 146, 112, 0.15)',
+                boxShadow: '0 2px 8px rgba(90, 146, 112, 0.08)',
+                transition: 'all 0.3s ease',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.15)';
+                e.currentTarget.style.borderColor = '#5a9270';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.08)';
+                e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.15)';
+              }}
             >
               <div style={{ 
                 fontSize: '12px', 
@@ -1079,7 +1120,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                           try {
                             await tasksService.uploadFile(selectedTaskId, file);
                             await loadTaskFiles(selectedTaskId);
-                            alert('Archivo subido exitosamente');
+                            // Archivo subido exitosamente (sin pop-up)
                             // Resetear el input para permitir subir el mismo archivo de nuevo
                             e.target.value = '';
                           } catch (error: any) {
@@ -1440,15 +1481,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                       }}>
                         {t.description || 'Sin descripción'}
                       </div>
-                      <div style={{ 
-                        fontSize: '14px', 
-                        color: '#5a9270', 
-                        fontWeight: 600,
-                        fontFamily: "'Inter', sans-serif",
-                        marginTop: '8px'
-                      }}>
-                        👆 Haz clic para ver detalles y comentarios
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -1536,16 +1568,15 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     if (!at.completedAt && (at.testId || at.test?.id)) {
                       const testId = at.testId || at.test?.id;
                       const testTitle = at.testTitle || at.test?.title || 'el test';
-                      if (confirm(`¿Deseas comenzar el test "${testTitle}"?`)) {
-                        try {
-                          // Usar el callback directo para iniciar el test
-                          if (onStartTest) {
-                            onStartTest(testId);
-                          }
-                        } catch (error) {
-                          console.error('Error al navegar al test:', error);
-                          alert('Error al iniciar el test. Por favor intenta de nuevo.');
+                      // Iniciar el test directamente sin confirmación
+                      try {
+                        // Usar el callback directo para iniciar el test
+                        if (onStartTest) {
+                          onStartTest(testId);
                         }
+                      } catch (error) {
+                        console.error('Error al navegar al test:', error);
+                        alert('Error al iniciar el test. Por favor intenta de nuevo.');
                       }
                     }
                   }}
@@ -1588,17 +1619,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                           fontFamily: "'Inter', sans-serif"
                         }}>
                           Código: {at.testCode}
-                        </div>
-                      )}
-                      {!at.completedAt && (
-                        <div style={{ 
-                          marginTop: '16px', 
-                          fontSize: '15px', 
-                          color: '#5a9270', 
-                          fontWeight: 600,
-                          fontFamily: "'Inter', sans-serif"
-                        }}>
-                          👆 Haz clic para comenzar el test
                         </div>
                       )}
                     </div>
@@ -1647,7 +1667,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                   return;
                 }
                 await loadAvailability();
-                alert('Cita reservada exitosamente');
+                // Cita reservada exitosamente (sin pop-up)
               } catch (e: any) {
                 const errorMsg = e.response?.data?.error || 'Error al reservar la cita';
                 alert(errorMsg);

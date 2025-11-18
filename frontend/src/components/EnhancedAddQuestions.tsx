@@ -47,7 +47,7 @@ export default function EnhancedAddQuestions({ testId, onBack }: AddQuestionsPro
         parseInt(formData.get('value') as string),
         answersForQuestion.length + 1
       );
-      alert('Opción de respuesta añadida');
+      // Opción de respuesta añadida (sin pop-up)
       e.currentTarget.reset();
       loadAnswers();
     } catch (err: any) {

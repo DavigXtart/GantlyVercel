@@ -168,8 +168,9 @@ export default function PsychDashboard() {
   }, [tab, tasks.length]); // Solo dependemos de la longitud, no del array completo
 
   const onAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    const file = e.target.files[0];
+    const input = e.target;
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
     if (!file.type.startsWith('image/')) {
       alert('Por favor selecciona un archivo de imagen');
       return;
@@ -177,10 +178,13 @@ export default function PsychDashboard() {
     try {
       const res = await profileService.uploadAvatar(file);
       setMe({ ...me, avatarUrl: res.avatarUrl });
-      alert('Avatar actualizado exitosamente');
+      // Avatar actualizado exitosamente (sin pop-up)
     } catch (error: any) {
       console.error('Error al subir avatar:', error);
       alert('Error al subir el avatar: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
+    } finally {
+      // Permitir seleccionar el mismo archivo nuevamente
+      input.value = '';
     }
   };
 
@@ -281,7 +285,7 @@ export default function PsychDashboard() {
               <div style={{ position: 'relative' }}>
                 {me?.avatarUrl ? (
                   <img
-                    src={me.avatarUrl.startsWith('http') ? me.avatarUrl : `http://localhost:8080${me.avatarUrl}`}
+                    src={me.avatarUrl}
                     alt="avatar"
                     style={{
                       width: '120px',
@@ -893,7 +897,7 @@ export default function PsychDashboard() {
                           try {
                             await tasksService.uploadFile(selectedTaskId, file);
                             await loadTaskFiles(selectedTaskId);
-                            alert('Archivo subido exitosamente');
+                            // Archivo subido exitosamente (sin pop-up)
                             // Resetear el input para permitir subir el mismo archivo de nuevo
                             e.target.value = '';
                           } catch (error: any) {
@@ -1251,7 +1255,7 @@ export default function PsychDashboard() {
                             await loadData();
                             setShowTaskForm(false);
                             setTaskForm({ userId: '', title: '', description: '', dueDate: '' });
-                            alert('Tarea creada exitosamente');
+                            // Tarea creada exitosamente (sin pop-up)
                           } catch (error: any) {
                             console.error('Error al crear la tarea:', error);
                             alert('Error al crear la tarea: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
@@ -1374,15 +1378,6 @@ export default function PsychDashboard() {
                             overflow: 'hidden'
                           }}>
                             {t.description || 'Sin descripción'}
-                          </div>
-                          <div style={{ 
-                            fontSize: '14px', 
-                            color: '#5a9270', 
-                            fontWeight: 600,
-                            fontFamily: "'Inter', sans-serif",
-                            marginTop: '8px'
-                          }}>
-                            👆 Haz clic para ver detalles y comentarios
                           </div>
                         </div>
                       </div>
@@ -1520,7 +1515,7 @@ export default function PsychDashboard() {
                         await loadData();
                         setShowTaskForm(false);
                         setTaskForm({ userId: '', title: '', description: '', dueDate: '' });
-                        alert('Tarea creada exitosamente');
+                        // Tarea creada exitosamente (sin pop-up)
                       } catch (error: any) {
                         console.error('Error al crear la tarea:', error);
                         alert('Error al crear la tarea: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
@@ -1629,18 +1624,6 @@ export default function PsychDashboard() {
                         {tasksByPatient[p.id]?.length || 0} {tasksByPatient[p.id]?.length === 1 ? 'tarea' : 'tareas'}
                       </div>
                     </div>
-                  </div>
-                  <div style={{ 
-                    fontSize: '14px', 
-                    color: '#5a9270', 
-                    fontWeight: 600,
-                    fontFamily: "'Inter', sans-serif",
-                    textAlign: 'center',
-                    padding: '8px',
-                    background: 'rgba(90, 146, 112, 0.1)',
-                    borderRadius: '8px'
-                  }}>
-                    👆 Haz clic para ver tareas
                   </div>
                 </div>
               ))}
@@ -1809,7 +1792,7 @@ export default function PsychDashboard() {
                         });
                         
                         console.log('Test asignado exitosamente:', result);
-                        alert('Test asignado exitosamente');
+                        // Test asignado exitosamente (sin pop-up)
                         await loadData();
                         setShowAssignTestForm(false);
                         setAssignTestForm({ userId: '', testId: '' });
@@ -1899,10 +1882,16 @@ export default function PsychDashboard() {
             return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {Array.from(testsByPatient.entries()).map(([userId, patientTests]) => {
-                  const patient = patients.find(p => p.id === userId) || { id: userId, name: patientTests[0]?.userName || 'Usuario', email: patientTests[0]?.userEmail || '' };
+                  const patient = patients.find(p => p.id === userId) || { 
+                    id: userId, 
+                    name: patientTests[0]?.userName || 'Usuario', 
+                    email: patientTests[0]?.userEmail || '',
+                    avatarUrl: patientTests[0]?.userAvatarUrl || null
+                  };
                   const isExpanded = expandedPatients.has(userId);
                   const completedCount = patientTests.filter(t => t.completedAt).length;
                   const pendingCount = patientTests.length - completedCount;
+                  const patientAvatarUrl = patient.avatarUrl || patientTests[0]?.userAvatarUrl;
 
                   return (
                     <div
@@ -1941,7 +1930,41 @@ export default function PsychDashboard() {
                         }}
                       >
                         <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <div style={{ fontSize: '24px' }}>👤</div>
+                          <div style={{
+                            width: '48px',
+                            height: '48px',
+                            borderRadius: '50%',
+                            overflow: 'hidden',
+                            background: '#e5e7eb',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '20px',
+                            flexShrink: 0,
+                            border: '2px solid #d1d5db'
+                          }}>
+                            {patientAvatarUrl ? (
+                              <img 
+                                src={patientAvatarUrl} 
+                                alt={patient.name}
+                                style={{ 
+                                  width: '100%', 
+                                  height: '100%', 
+                                  objectFit: 'cover' 
+                                }}
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                  const parent = e.currentTarget.parentElement;
+                                  if (parent) {
+                                    parent.innerHTML = '👤';
+                                    parent.style.fontSize = '24px';
+                                  }
+                                }}
+                              />
+                            ) : (
+                              '👤'
+                            )}
+                          </div>
                           <div>
                             <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937' }}>
                               {patient.name}
@@ -2092,9 +2115,6 @@ export default function PsychDashboard() {
             border: '1px solid #e5e7eb',
             marginBottom: '24px'
           }}>
-            <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '16px' }}>
-              💡 Haz clic en cualquier celda del calendario para crear un slot de 1 hora disponible
-            </div>
           </div>
           <CalendarWeek
             mode="PSYCHO"

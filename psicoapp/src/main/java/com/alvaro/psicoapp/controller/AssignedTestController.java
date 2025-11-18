@@ -68,6 +68,7 @@ public class AssignedTestController {
                         map.put("userId", userEntity.getId());
                         map.put("userName", userEntity.getName() != null ? userEntity.getName() : "");
                         map.put("userEmail", userEntity.getEmail() != null ? userEntity.getEmail() : "");
+                        map.put("userAvatarUrl", userEntity.getAvatarUrl() != null ? userEntity.getAvatarUrl() : null);
                     }
                     
                     if (testEntity != null) {

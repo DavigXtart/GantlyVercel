@@ -299,7 +299,11 @@ export const tasksService = {
 export const assignedTestsService = {
   list: async () => {
     const { data } = await api.get('/assigned-tests');
-    return data as Array<any>;
+    // Resolver URLs de avatar para cada test asignado
+    return (data as Array<any>).map((at: any) => ({
+      ...at,
+      userAvatarUrl: at.userAvatarUrl ? resolveAssetUrl(at.userAvatarUrl) : null
+    }));
   },
   assign: async (payload: { userId: number; testId: number }) => {
     const { data } = await api.post('/assigned-tests', payload);
