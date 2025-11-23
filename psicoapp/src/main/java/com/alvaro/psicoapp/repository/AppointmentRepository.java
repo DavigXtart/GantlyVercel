@@ -18,6 +18,15 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
     // Obtener todas las citas reservadas por el usuario
     @Query("SELECT a FROM AppointmentEntity a WHERE a.user.id = :userId AND a.status = 'BOOKED' ORDER BY a.startTime ASC")
     List<AppointmentEntity> findBookedByUser_IdOrderByStartTimeAsc(@Param("userId") Long userId);
+    
+    // Buscar citas activas entre psicólogo y usuario
+    @Query("SELECT a FROM AppointmentEntity a WHERE a.psychologist.id = :psychologistId AND a.user.id = :userId AND a.startTime >= :startTime AND a.status = :status ORDER BY a.startTime ASC")
+    List<AppointmentEntity> findByPsychologist_IdAndUser_IdAndStartTimeGreaterThanEqualAndStatus(
+        @Param("psychologistId") Long psychologistId, 
+        @Param("userId") Long userId, 
+        @Param("startTime") Instant startTime, 
+        @Param("status") String status
+    );
 }
 
 

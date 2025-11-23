@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
-import { profileService, tasksService, calendarService, assignedTestsService } from '../services/api';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { profileService, tasksService, calendarService, assignedTestsService, jitsiService } from '../services/api';
 import ChatWidget from './ChatWidget';
 import CalendarWeek from './CalendarWeek';
+import JitsiVideoCall from './JitsiVideoCall';
+import { generateJitsiRoomName } from '../lib/utils';
 
 type Tab = 'perfil' | 'mi-psicologo' | 'tareas' | 'tests-pendientes' | 'calendario' | 'chat';
 
@@ -25,6 +27,28 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [taskComments, setTaskComments] = useState<Record<number, any[]>>({});
   const [newComment, setNewComment] = useState<string>('');
+  const [showVideoCall, setShowVideoCall] = useState(false);
+  const [videoCallRoom, setVideoCallRoom] = useState<string | null>(null);
+  const [videoCallOtherUser, setVideoCallOtherUser] = useState<{ email: string; name: string } | null>(null);
+  
+  // Ref para mantener el componente montado incluso si showVideoCall cambia temporalmente
+  const videoCallRef = useRef<{ room: string | null; user: any; otherUser: any } | null>(null);
+  
+  // Actualizar ref cuando hay una videollamada activa
+  useEffect(() => {
+    if (showVideoCall && videoCallRoom && me) {
+      videoCallRef.current = { room: videoCallRoom, user: me, otherUser: videoCallOtherUser };
+    }
+  }, [showVideoCall, videoCallRoom, me, videoCallOtherUser]);
+  
+  // Función estable de cierre que solo se ejecuta manualmente
+  const handleVideoCallClose = useCallback(() => {
+    // Solo cerrar cuando el usuario hace clic explícitamente
+    videoCallRef.current = null; // Limpiar ref
+    setShowVideoCall(false);
+    setVideoCallRoom(null);
+    setVideoCallOtherUser(null);
+  }, []);
 
   const loadData = async () => {
     try {
@@ -55,6 +79,14 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
   useEffect(() => {
     loadData();
     loadAvailability(); // Cargar disponibilidad y citas al inicio
+  }, []);
+
+  // Cargar citas periódicamente para actualizar recordatorios
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadAvailability();
+    }, 60000); // Actualizar cada minuto
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -95,22 +127,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
     }
   };
 
-  const toggleDarkMode = async () => {
-    await profileService.update({ darkMode: !me?.darkMode });
-    setMe({ ...me, darkMode: !me?.darkMode });
-    // Aplicar dark mode globalmente
-    if (!me?.darkMode) {
-      document.documentElement.style.setProperty('--bg-primary', '#1f2937');
-      document.documentElement.style.setProperty('--bg-secondary', '#111827');
-      document.documentElement.style.setProperty('--text-primary', '#f9fafb');
-      document.documentElement.style.setProperty('--text-secondary', '#d1d5db');
-    } else {
-      document.documentElement.style.setProperty('--bg-primary', '#ffffff');
-      document.documentElement.style.setProperty('--bg-secondary', '#f9fafb');
-      document.documentElement.style.setProperty('--text-primary', '#1f2937');
-      document.documentElement.style.setProperty('--text-secondary', '#6b7280');
-    }
-  };
 
   const saveProfile = async () => {
     try {
@@ -134,8 +150,15 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
     const list = await calendarService.availability(from.toISOString(), to.toISOString());
     setSlots(list);
     // Cargar también las citas reservadas del usuario
-    const appointments = await calendarService.myAppointments();
-    setMyAppointments(appointments);
+    try {
+      const appointments = await calendarService.myAppointments();
+      // Asegurar que todas las citas tengan startTime y endTime válidos
+      const validAppointments = appointments.filter(apt => apt.startTime && apt.endTime);
+      setMyAppointments(validAppointments);
+    } catch (error) {
+      console.error('Error cargando citas:', error);
+      // No fallar completamente, solo loguear el error
+    }
   };
 
   const loadTaskFiles = async (taskId: number) => {
@@ -687,7 +710,8 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               borderRadius: '16px',
               border: '1px solid rgba(90, 146, 112, 0.15)',
               boxShadow: '0 2px 8px rgba(90, 146, 112, 0.08)',
-              transition: 'all 0.3s ease'
+              transition: 'all 0.3s ease',
+              gridColumn: 'span 2' // Para que ocupe más espacio
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-4px)';
@@ -701,40 +725,150 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               <div style={{ 
                 fontSize: '12px', 
                 color: '#5a9270', 
-                marginBottom: '12px', 
+                marginBottom: '16px', 
                 fontWeight: 600, 
                 textTransform: 'uppercase', 
                 letterSpacing: '0.5px',
                 fontFamily: "'Inter', sans-serif"
               }}>
-                Preferencias
+                ⏰ Próximas Citas
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px' }}>
-                <label style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '10px', 
-                  cursor: 'pointer', 
-                  fontSize: '15px', 
-                  color: '#1a2e22',
-                  fontFamily: "'Inter', sans-serif"
-                }}>
-                  <input
-                    type="checkbox"
-                    checked={!!me?.darkMode}
-                    onChange={toggleDarkMode}
-                    style={{ 
-                      width: '20px', 
-                      height: '20px', 
-                      cursor: 'pointer',
-                      accentColor: '#5a9270'
-                    }}
-                  />
-                  Modo oscuro
-                </label>
-              </div>
+              {(() => {
+                const now = new Date();
+                const next24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+                // Debug: verificar todas las citas disponibles
+                // console.log('Todas las citas:', myAppointments);
+                // console.log('Hora actual:', now.toISOString());
+                
+                const upcomingAppointments = myAppointments.filter(apt => {
+                  if (!apt.startTime || !apt.endTime) return false;
+                  const aptDate = new Date(apt.startTime);
+                  const aptEndDate = new Date(apt.endTime);
+                  // Incluir citas en curso (ya comenzaron pero no han terminado) o próximas (en las próximas 24h)
+                  // Usar getTime() para comparaciones más precisas
+                  const nowTime = now.getTime();
+                  const aptStartTime = aptDate.getTime();
+                  const aptEndTime = aptEndDate.getTime();
+                  const next24HoursTime = next24Hours.getTime();
+                  
+                  const isInProgress = aptStartTime <= nowTime && aptEndTime >= nowTime;
+                  const isUpcoming = aptStartTime >= nowTime && aptStartTime <= next24HoursTime;
+                  
+                  // Debug para citas en curso
+                  // if (isInProgress) {
+                  //   console.log('Cita en curso encontrada:', apt);
+                  // }
+                  
+                  return isInProgress || isUpcoming;
+                }).slice(0, 2); // Mostrar máximo 2 citas en el resumen
+
+                if (upcomingAppointments.length === 0) {
+                  return (
+                    <div style={{ fontSize: '15px', color: '#3a5a4a', fontFamily: "'Inter', sans-serif" }}>
+                      No hay citas próximas en las próximas 24 horas
+                    </div>
+                  );
+                }
+
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {upcomingAppointments.map(apt => {
+                      const aptDate = new Date(apt.startTime);
+                      const aptEndDate = new Date(apt.endTime);
+                      const isInProgress = aptDate <= now && aptEndDate >= now;
+                      const hoursUntil = Math.floor((aptDate.getTime() - now.getTime()) / (1000 * 60 * 60));
+                      const minutesUntil = Math.floor((aptDate.getTime() - now.getTime()) / (1000 * 60)) % 60;
+                      
+                      // Calcular si está dentro del rango permitido (máximo 1 hora antes, hasta 1 hora después del final)
+                      const oneHourBefore = new Date(aptDate.getTime() - 60 * 60 * 1000);
+                      const oneHourAfterEnd = new Date(aptEndDate.getTime() + 60 * 60 * 1000);
+                      const canStartCall = now >= oneHourBefore && now <= oneHourAfterEnd;
+                      
+                      return (
+                        <div
+                          key={apt.id}
+                          style={{
+                            padding: '16px',
+                            background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                            borderRadius: '12px',
+                            border: '2px solid rgba(217, 119, 6, 0.2)',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            gap: '12px'
+                          }}
+                        >
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '16px', fontWeight: 600, color: '#1a2e22', marginBottom: '4px' }}>
+                              {aptDate.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })}
+                            </div>
+                            <div style={{ fontSize: '14px', color: '#3a5a4a', marginBottom: '4px' }}>
+                              🕐 {aptDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                            {apt.psychologist && (
+                              <div style={{ fontSize: '13px', color: '#5a9270', fontWeight: 600 }}>
+                                👨‍⚕️ {apt.psychologist.name}
+                              </div>
+                            )}
+                            <div style={{ fontSize: '12px', color: isInProgress ? '#059669' : '#d97706', marginTop: '6px', fontWeight: 600 }}>
+                              {isInProgress ? '🟢 En curso' : (hoursUntil > 0 ? `En ${hoursUntil}h ${minutesUntil}m` : `En ${minutesUntil} minutos`)}
+                            </div>
+                            {!canStartCall && now < oneHourBefore && (
+                              <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px', fontStyle: 'italic' }}>
+                                Podrás iniciar la videollamada 1 hora antes
+                              </div>
+                            )}
+                          </div>
+                          {canStartCall && (
+                            <button
+                              onClick={async () => {
+                                if (me && apt.psychologist) {
+                                  try {
+                                    // Validar con backend antes de iniciar
+                                    const roomInfo = await jitsiService.getRoomInfo(apt.psychologist.email);
+                                    setVideoCallRoom(roomInfo.roomName);
+                                    setVideoCallOtherUser({ email: roomInfo.otherUser.email, name: roomInfo.otherUser.name });
+                                    setShowVideoCall(true);
+                                  } catch (error: any) {
+                                    alert(error.response?.data?.error || 'No tienes permiso para iniciar esta videollamada');
+                                  }
+                                }
+                              }}
+                              style={{
+                                padding: '10px 20px',
+                                background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '10px',
+                                fontSize: '13px',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                transition: 'all 0.3s ease',
+                                fontFamily: "'Inter', sans-serif",
+                                boxShadow: '0 4px 12px rgba(90, 146, 112, 0.3)',
+                                whiteSpace: 'nowrap'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
+                              }}
+                            >
+                              📹 Iniciar
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
           </div>
+
         </div>
       )}
 
@@ -1739,11 +1873,90 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                         fontSize: '14px', 
                         color: '#5a9270', 
                         fontWeight: 600,
-                        fontFamily: "'Inter', sans-serif"
+                        fontFamily: "'Inter', sans-serif",
+                        marginBottom: '12px'
                       }}>
                         👨‍⚕️ {apt.psychologist.name}
                       </div>
                     )}
+                    {(() => {
+                      const now = new Date();
+                      const aptDate = new Date(apt.startTime);
+                      const aptEndDate = new Date(apt.endTime);
+                      // Calcular si está dentro del rango permitido (máximo 1 hora antes, hasta 1 hora después del final)
+                      const oneHourBefore = new Date(aptDate.getTime() - 60 * 60 * 1000);
+                      const oneHourAfterEnd = new Date(aptEndDate.getTime() + 60 * 60 * 1000);
+                      const canStartCall = now >= oneHourBefore && now <= oneHourAfterEnd;
+                      
+                      if (!canStartCall) {
+                        if (now < oneHourBefore) {
+                          const minutesUntil = Math.floor((oneHourBefore.getTime() - now.getTime()) / (1000 * 60));
+                          return (
+                            <div style={{
+                              width: '100%',
+                              padding: '12px 20px',
+                              background: '#f3f4f6',
+                              color: '#6b7280',
+                              border: '1px solid #e5e7eb',
+                              borderRadius: '12px',
+                              fontSize: '14px',
+                              textAlign: 'center',
+                              fontFamily: "'Inter', sans-serif"
+                            }}>
+                              Disponible en {Math.floor(minutesUntil / 60)}h {minutesUntil % 60}m
+                            </div>
+                          );
+                        }
+                        return null;
+                      }
+                      
+                      return (
+                        <button
+                          onClick={async () => {
+                            if (me && apt.psychologist) {
+                              try {
+                                // Validar con backend antes de iniciar
+                                const roomInfo = await jitsiService.getRoomInfo(apt.psychologist.email);
+                                setVideoCallRoom(roomInfo.roomName);
+                                setVideoCallOtherUser({ email: roomInfo.otherUser.email, name: roomInfo.otherUser.name });
+                                setShowVideoCall(true);
+                              } catch (error: any) {
+                                alert(error.response?.data?.error || 'No tienes permiso para iniciar esta videollamada');
+                              }
+                            }
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '12px 20px',
+                            background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '12px',
+                            fontSize: '15px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            transition: 'all 0.3s ease',
+                            fontFamily: "'Inter', sans-serif",
+                            boxShadow: '0 4px 12px rgba(90, 146, 112, 0.3)',
+                            marginTop: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
+                          }}
+                        >
+                          📹 Iniciar Videollamada
+                        </button>
+                      );
+                    })()}
                   </div>
                 ))}
               </div>
@@ -1779,6 +1992,29 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
           </div>
         </div>
       )}
+
+      {/* Videollamada Jitsi - NUNCA desmontar, usar ref para mantener montado */}
+      {(() => {
+        // Si tenemos una referencia, renderizar el componente incluso si showVideoCall es false temporalmente
+        const shouldRender = showVideoCall || (videoCallRef.current && videoCallRef.current.room);
+        const roomToUse = showVideoCall ? videoCallRoom : videoCallRef.current?.room;
+        const userToUse = showVideoCall ? me : videoCallRef.current?.user;
+        const otherUserToUse = showVideoCall ? videoCallOtherUser : videoCallRef.current?.otherUser;
+        
+        return shouldRender && roomToUse && userToUse ? (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10000, pointerEvents: 'auto' }}>
+            <JitsiVideoCall
+              key={`jitsi-${roomToUse}`} // Key estable para evitar re-montajes
+              roomName={roomToUse}
+              userEmail={userToUse.email}
+              userName={userToUse.name || 'Usuario'}
+              otherUserEmail={otherUserToUse?.email}
+              otherUserName={otherUserToUse?.name}
+              onClose={handleVideoCallClose}
+            />
+          </div>
+        ) : null;
+      })()}
     </div>
   );
 }

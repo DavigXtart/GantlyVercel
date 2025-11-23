@@ -51,6 +51,7 @@ com\alvaro\psicoapp\domain\UserPsychologistEntity.class
 com\alvaro\psicoapp\controller\CalendarController.class
 com\alvaro\psicoapp\domain\FactorEntity.class
 com\alvaro\psicoapp\repository\UserRepository.class
+com\alvaro\psicoapp\controller\JitsiController.class
 com\alvaro\psicoapp\controller\ChatController.class
 com\alvaro\psicoapp\service\AuthService.class
 com\alvaro\psicoapp\controller\TestResultController.class

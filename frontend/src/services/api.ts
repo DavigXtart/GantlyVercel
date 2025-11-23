@@ -354,4 +354,19 @@ export const psychService = {
   }
 };
 
+// Jitsi
+export const jitsiService = {
+  getRoomInfo: async (otherUserEmail: string) => {
+    const { data } = await api.get('/jitsi/room-info', { 
+      params: { otherUserEmail } 
+    });
+    return data as { 
+      roomName: string; 
+      currentUser: { email: string; name: string };
+      otherUser: { email: string; name: string };
+      hasActiveAppointment: boolean;
+    };
+  }
+};
+
 export default api;

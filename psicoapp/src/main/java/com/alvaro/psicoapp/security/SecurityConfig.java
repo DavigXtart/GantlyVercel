@@ -41,6 +41,7 @@ public class SecurityConfig {
 				.requestMatchers("/api/psych/**").authenticated()
 				.requestMatchers("/api/chat/**").authenticated()
 				.requestMatchers("/api/results/**").authenticated()
+				.requestMatchers("/api/jitsi/**").authenticated()
 				.requestMatchers("/ws/**", "/topic/**", "/app/**").permitAll()
 				.requestMatchers("/actuator/**").permitAll()
 				.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui.html", "/webjars/**").permitAll()
