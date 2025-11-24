@@ -55,6 +55,8 @@ export const authService = {
   },
 };
 
+type SubmitAnswerPayload = { questionId: number; answerId?: number; numericValue?: number; textValue?: string };
+
 export const testService = {
   list: async () => {
     const { data } = await api.get('/tests');
@@ -64,7 +66,7 @@ export const testService = {
     const { data } = await api.get(`/tests/${id}`);
     return data;
   },
-  submitAnswers: async (testId: number, answers: { questionId: number; answerId?: number; numericValue?: number }[]) => {
+  submitAnswers: async (testId: number, answers: SubmitAnswerPayload[]) => {
     await api.post('/flow/submit', { answers, testId });
   },
 };
@@ -78,7 +80,7 @@ export const initialTestService = {
     const { data } = await api.get(`/initial-test?sessionId=${sessionId}`);
     return data;
   },
-  submitAnswers: async (sessionId: string, answers: { questionId: number; answerId?: number; numericValue?: number }[]) => {
+  submitAnswers: async (sessionId: string, answers: SubmitAnswerPayload[]) => {
     const { data } = await api.post(`/initial-test/submit?sessionId=${sessionId}`, { answers });
     return data;
   },

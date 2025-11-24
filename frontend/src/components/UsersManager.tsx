@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { adminService, resultsService } from '../services/api';
 import BarChart from './BarChart';
 import FactorChart from './FactorChart';
+import InitialTestSummary from './InitialTestSummary';
 
 interface User {
   id: number;
@@ -25,10 +26,13 @@ interface UserDetail {
     answers: Array<{
       questionId: number;
       questionText: string;
+      questionPosition?: number;
+      questionType?: string;
       answerId?: number;
       answerText?: string;
       answerValue?: number;
       numericValue?: number;
+      textValue?: string;
       createdAt: string;
     }>;
   }>;
@@ -316,7 +320,10 @@ export default function UsersManager() {
                     </div>
                   </div>
 
-                  <div style={{ marginTop: '20px' }}>
+                    <div style={{ marginTop: '20px' }}>
+                      {test.testCode === 'INITIAL' && test.answers.length > 0 && (
+                        <InitialTestSummary test={test} />
+                      )}
                     <h4 style={{ fontSize: '18px', marginBottom: '16px' }}>
                       Respuestas ({test.answers.length})
                     </h4>
@@ -341,7 +348,16 @@ export default function UsersManager() {
                                       </span>
                                     )}
                                   </p>
+                                  {answer.textValue && (
+                                    <p style={{ margin: '4px 0', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                                      <strong>Detalle:</strong> {answer.textValue}
+                                    </p>
+                                  )}
                                 </div>
+                              ) : answer.textValue ? (
+                                <p style={{ margin: '4px 0', fontSize: '14px' }}>
+                                  <strong>Detalle:</strong> {answer.textValue}
+                                </p>
                               ) : answer.numericValue !== undefined && answer.numericValue !== null ? (
                                 <p style={{ margin: '4px 0', fontSize: '14px' }}>
                                   <strong>Valor numérico:</strong> {answer.numericValue}

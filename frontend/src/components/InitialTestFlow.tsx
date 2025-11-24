@@ -15,8 +15,22 @@ interface Question {
 interface Answer {
   id: number;
   text: string;
-  value: number;
+  value: number | null;
   position: number;
+}
+
+interface QuestionResponse {
+  answerId?: number;
+  answerIds?: number[];
+  numericValue?: number;
+  textValue?: string;
+  multiTextValues?: Record<number, string>;
+}
+
+interface QuestionMeta {
+  block: string;
+  helper?: string;
+  badge?: string;
 }
 
 interface TestDetails {
@@ -27,6 +41,36 @@ interface TestDetails {
   questions: Array<Question & { answers: Answer[] }>;
 }
 
+const DETAIL_INPUT_PATTERN = /especificar/i;
+
+const getQuestionMeta = (position: number): QuestionMeta | null => {
+  if (position === 1) {
+    return { block: 'Bloque 1 · Motivo principal', helper: 'Cuéntanos qué te trae a terapia.' };
+  }
+  if (position === 2 || position === 3) {
+    return { block: 'Bloque 2 · Preferencias del profesional', helper: 'Ayúdanos a adaptar el estilo del psicólogo.' };
+  }
+  if (position >= 4 && position <= 7) {
+    return { block: 'Bloque 3 · Tu estilo y personalidad', helper: 'Escala de 1 (muy en desacuerdo) a 5 (muy de acuerdo).' };
+  }
+  if (position === 8 || position === 9) {
+    return { block: 'Bloque 4 · Experiencia previa', helper: 'Nos ayuda a saber qué ha funcionado antes.' };
+  }
+  if (position === 10 || position === 11) {
+    return { block: 'Bloque 5 · Disponibilidad', helper: 'Puedes elegir varias franjas si lo necesitas.' };
+  }
+  if (position === 12 || position === 13) {
+    return { block: 'Bloque 6 · Presupuesto y urgencia', helper: 'Esto nos permite priorizar y ajustar sugerencias.' };
+  }
+  if (position === 14 || position === 15) {
+    return { block: 'Bloque 7 · Contexto personal', helper: 'Información para ajustar el matching.' };
+  }
+  if (position === 16) {
+    return { block: 'Resumen final', helper: 'Comparte cualquier detalle adicional.' };
+  }
+  return null;
+};
+
 interface InitialTestFlowProps {
   onComplete: (sessionId: string) => void;
   onBack: () => void;
@@ -36,7 +80,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [test, setTest] = useState<TestDetails | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, { answerId?: number; numericValue?: number }>>({});
+  const [answers, setAnswers] = useState<Record<number, QuestionResponse>>({});
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [airBalloonData, setAirBalloonData] = useState<any>(null);
@@ -161,45 +205,202 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
     }
   };
 
+  const handleNumberChange = (questionId: number, value: string) => {
+    const numericValue = value === '' ? undefined : Number(value);
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: {
+        ...prev[questionId],
+        numericValue,
+      },
+    }));
+  };
+
+  const handleTextChange = (questionId: number, value: string) => {
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: {
+        ...prev[questionId],
+        textValue: value,
+      },
+    }));
+  };
+
+  const handleMultiAnswerDetailChange = (questionId: number, answerId: number, value: string) => {
+    setAnswers(prev => {
+      const prevEntry = prev[questionId] || {};
+      const nextTextMap = { ...(prevEntry.multiTextValues || {}) };
+      nextTextMap[answerId] = value;
+      return {
+        ...prev,
+        [questionId]: {
+          ...prevEntry,
+          multiTextValues: nextTextMap,
+        },
+      };
+    });
+  };
+
+  const isQuestionAnswered = (question: Question & { answers: Answer[] }) => {
+    const response = answers[question.id];
+    if (!response) return false;
+
+    if (question.type === 'MULTI') {
+      return (response.answerIds || []).length > 0;
+    }
+
+    if (question.type === 'TEXT') {
+      return Boolean(response.textValue && response.textValue.trim());
+    }
+
+    if (question.type === 'NUMBER') {
+      return response.numericValue !== undefined && response.numericValue !== null && !Number.isNaN(response.numericValue);
+    }
+
+    if (question.type === 'SCALE') {
+      return response.numericValue !== undefined && response.numericValue !== null;
+    }
+
+    return response.answerId !== undefined;
+  };
+
+  const goToPreviousQuestion = () => {
+    setCurrentQuestionIndex(prev => Math.max(0, prev - 1));
+  };
+
+  const goToNextQuestion = () => {
+    if (!test) return;
+    setCurrentQuestionIndex(prev => Math.min(test.questions.length - 1, prev + 1));
+  };
+
   const handleAnswer = (questionId: number, answerId?: number, numericValue?: number, autoAdvance: boolean = true) => {
-    const newAnswers = {
-      ...answers,
-      [questionId]: { answerId, numericValue }
-    };
-    
-    setAnswers(newAnswers);
-    
-    // Avanzar automáticamente solo si autoAdvance es true
-    if (autoAdvance) {
-      setTimeout(() => {
-        if (!test) return;
-        
-        const currentIndex = test.questions.findIndex(q => q.id === questionId);
-        if (currentIndex !== -1 && currentIndex < test.questions.length - 1) {
-          // No es la última pregunta, avanzar
-          setCurrentQuestionIndex(currentIndex + 1);
-        } else if (currentIndex === test.questions.length - 1) {
-          // Es la última pregunta, verificar si todas están respondidas
-          const allAnswered = test.questions.every(q => newAnswers[q.id]);
-          if (allAnswered) {
-            handleSubmitWithAnswers(newAnswers);
+    if (!test) return;
+    const question = test.questions.find(q => q.id === questionId);
+    if (!question) return;
+
+    setAnswers(prev => {
+      const prevEntry = prev[questionId] || {};
+      const nextEntries = { ...prev };
+
+      if (question.type === 'MULTI') {
+        const currentIds = new Set(prevEntry.answerIds || []);
+        const nextTextValues = { ...(prevEntry.multiTextValues || {}) };
+        if (answerId) {
+          if (currentIds.has(answerId)) {
+            currentIds.delete(answerId);
+            delete nextTextValues[answerId];
+          } else {
+            currentIds.add(answerId);
           }
         }
-      }, 300); // Pequeño delay para mejor UX
+        nextEntries[questionId] = {
+          ...prevEntry,
+          answerIds: Array.from(currentIds),
+          multiTextValues: nextTextValues,
+        };
+      } else {
+        nextEntries[questionId] = {
+          ...prevEntry,
+          answerId,
+          numericValue,
+        };
+      }
+
+      return nextEntries;
+    });
+
+    if (question.position === 8 && test) {
+      const selectedAnswer = question.answers.find(a => a.id === answerId);
+      const experienceQuestion = test.questions.find(q => q.position === 9);
+      if (experienceQuestion) {
+        if (selectedAnswer && selectedAnswer.text.toLowerCase().startsWith('no')) {
+          const autoOption = experienceQuestion.answers.find(a => a.text.toLowerCase().includes('no he ido'));
+          if (autoOption) {
+            setAnswers(prev => ({
+              ...prev,
+              [experienceQuestion.id]: {
+                ...prev[experienceQuestion.id],
+                answerId: autoOption.id,
+              },
+            }));
+          }
+        } else {
+          setAnswers(prev => {
+            const updated = { ...prev };
+            const current = updated[experienceQuestion.id];
+            if (current && current.answerId) {
+              delete updated[experienceQuestion.id];
+            }
+            return updated;
+          });
+        }
+      }
+    }
+
+    if (autoAdvance && question.type !== 'MULTI') {
+      setTimeout(() => {
+        if (!test) return;
+        setCurrentQuestionIndex(prevIndex => {
+          const currentIndex = test.questions.findIndex(q => q.id === questionId);
+          if (currentIndex !== -1 && currentIndex < test.questions.length - 1) {
+            return currentIndex + 1;
+          }
+          return prevIndex;
+        });
+      }, 220);
     }
   };
 
-  const handleSubmitWithAnswers = async (answersToSubmit: Record<number, { answerId?: number; numericValue?: number }>) => {
+  const buildSubmitPayload = (): { questionId: number; answerId?: number; numericValue?: number; textValue?: string }[] => {
+    if (!test) return [];
+    const payload: { questionId: number; answerId?: number; numericValue?: number; textValue?: string }[] = [];
+
+    test.questions.forEach(question => {
+      const response = answers[question.id];
+      if (!response) return;
+
+      if (question.type === 'MULTI') {
+        (response.answerIds || []).forEach(answerId => {
+          payload.push({
+            questionId: question.id,
+            answerId,
+            textValue: response.multiTextValues?.[answerId]?.trim(),
+          });
+        });
+        return;
+      }
+
+      if (question.type === 'TEXT') {
+        if (response.textValue && response.textValue.trim()) {
+          payload.push({ questionId: question.id, textValue: response.textValue.trim() });
+        }
+        return;
+      }
+
+      if (question.type === 'NUMBER') {
+        if (response.numericValue !== undefined && response.numericValue !== null && !Number.isNaN(response.numericValue)) {
+          payload.push({ questionId: question.id, numericValue: response.numericValue });
+        }
+        return;
+      }
+
+      payload.push({
+        questionId: question.id,
+        answerId: response.answerId,
+        numericValue: response.numericValue,
+        textValue: response.textValue && response.textValue.trim() ? response.textValue.trim() : undefined,
+      });
+    });
+
+    return payload;
+  };
+
+  const handleSubmitWithAnswers = async () => {
     if (!test || !sessionId) return;
-    
+
     try {
       setSubmitting(true);
-      const submitData = test.questions.map(q => ({
-        questionId: q.id,
-        answerId: answersToSubmit[q.id]?.answerId,
-        numericValue: answersToSubmit[q.id]?.numericValue
-      }));
-      
+      const submitData = buildSubmitPayload();
       await initialTestService.submitAnswers(sessionId, submitData);
       onComplete(sessionId);
     } catch (err: any) {
@@ -212,15 +413,14 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
 
   const handleSubmit = async () => {
     if (!test || !sessionId) return;
-    
-    // Verificar que todas las preguntas tengan respuesta
-    const unanswered = test.questions.filter(q => !answers[q.id]);
+
+    const unanswered = test.questions.filter(q => !isQuestionAnswered(q));
     if (unanswered.length > 0) {
       alert(`Por favor, responde todas las preguntas. Te faltan ${unanswered.length} pregunta(s).`);
       return;
     }
 
-    await handleSubmitWithAnswers(answers);
+    await handleSubmitWithAnswers();
   };
 
   if (loading) {
@@ -411,9 +611,247 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
 
   const currentQuestion = test.questions[currentQuestionIndex];
   const currentAnswer = answers[currentQuestion.id];
-  const isLastQuestion = currentQuestionIndex === test.questions.length - 1;
-  const allAnswered = test.questions.every(q => answers[q.id]);
-  const progress = ((currentQuestionIndex + 1) / test.questions.length) * 100;
+  const totalQuestions = test.questions.length;
+  const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
+  const allAnswered = test.questions.every(q => isQuestionAnswered(q));
+  const isCurrentAnswered = isQuestionAnswered(currentQuestion);
+  const progress = ((currentQuestionIndex + 1) / totalQuestions) * 100;
+  const questionMeta = getQuestionMeta(currentQuestion.position);
+
+  const renderSingleOptions = () => (
+    <div style={{ display: 'grid', gap: '16px' }}>
+      {currentQuestion.answers.map(answer => {
+        const isSelected = currentAnswer?.answerId === answer.id;
+        const requiresDetail = DETAIL_INPUT_PATTERN.test(answer.text);
+        return (
+          <div key={answer.id} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <button
+              onClick={() => handleAnswer(currentQuestion.id, answer.id, answer.value || undefined)}
+              style={{
+                padding: '18px 24px',
+                borderRadius: '16px',
+                border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.3)'}`,
+                background: isSelected ? '#d4e0d8' : '#f8f9fa',
+                color: '#1a2e22',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '16px',
+                textAlign: 'left',
+                boxShadow: isSelected ? '0 4px 12px rgba(90, 146, 112, 0.2)' : 'none',
+              }}
+              onMouseEnter={(e) => {
+                if (!isSelected) {
+                  e.currentTarget.style.borderColor = '#5a9270';
+                  e.currentTarget.style.background = 'rgba(250, 232, 214, 0.6)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.15)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isSelected) {
+                  e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
+                  e.currentTarget.style.background = '#f8f9fa';
+                  e.currentTarget.style.boxShadow = 'none';
+                }
+              }}
+            >
+              <span style={{ fontSize: '16px', fontWeight: 500, flex: 1 }}>{answer.text}</span>
+              <div
+                style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
+                  border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.4)'}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: isSelected ? '#5a9270' : 'transparent',
+                  color: isSelected ? '#ffffff' : 'transparent',
+                  transition: 'all 0.3s ease',
+                  flexShrink: 0,
+                  marginLeft: '16px',
+                }}
+              >
+                {isSelected && '✓'}
+              </div>
+            </button>
+            {isSelected && requiresDetail && (
+              <input
+                type="text"
+                value={currentAnswer?.textValue || ''}
+                onChange={(e) => handleTextChange(currentQuestion.id, e.target.value)}
+                placeholder="Especifica aquí..."
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(90, 146, 112, 0.4)',
+                  fontSize: '15px',
+                  fontFamily: "'Inter', sans-serif",
+                }}
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  const renderMultiOptions = () => {
+    const selectedIds = new Set(currentAnswer?.answerIds || []);
+    return (
+      <div style={{ display: 'grid', gap: '16px' }}>
+        {currentQuestion.answers.map(answer => {
+          const isSelected = selectedIds.has(answer.id);
+          const requiresDetail = DETAIL_INPUT_PATTERN.test(answer.text);
+          return (
+            <div key={answer.id} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <button
+                onClick={() => handleAnswer(currentQuestion.id, answer.id, undefined, false)}
+                style={{
+                  padding: '18px 24px',
+                  borderRadius: '16px',
+                  border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.3)'}`,
+                  background: isSelected ? '#d4e0d8' : '#f8f9fa',
+                  color: '#1a2e22',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '16px',
+                  textAlign: 'left',
+                  boxShadow: isSelected ? '0 4px 12px rgba(90, 146, 112, 0.2)' : 'none',
+                }}
+              >
+                <span style={{ fontSize: '16px', fontWeight: 500, flex: 1 }}>{answer.text}</span>
+                <div
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '6px',
+                    border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.4)'}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: isSelected ? '#5a9270' : 'transparent',
+                    color: isSelected ? '#ffffff' : 'transparent',
+                    transition: 'all 0.3s ease',
+                    flexShrink: 0,
+                    marginLeft: '16px',
+                  }}
+                >
+                  {isSelected && '✓'}
+                </div>
+              </button>
+              {isSelected && requiresDetail && (
+                <input
+                  type="text"
+                  value={currentAnswer?.multiTextValues?.[answer.id] || ''}
+                  onChange={(e) => handleMultiAnswerDetailChange(currentQuestion.id, answer.id, e.target.value)}
+                  placeholder="Especifica aquí..."
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(90, 146, 112, 0.4)',
+                    fontSize: '15px',
+                    fontFamily: "'Inter', sans-serif",
+                  }}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderScaleOptions = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', padding: '12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(60px, 1fr))', gap: '12px' }}>
+        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => {
+          const isSelected = currentAnswer?.numericValue === value;
+          return (
+            <button
+              key={value}
+              onClick={() => handleAnswer(currentQuestion.id, undefined, value, false)}
+              style={{
+                padding: '16px 0',
+                borderRadius: '12px',
+                border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.3)'}`,
+                background: isSelected ? '#5a9270' : '#f8f9fa',
+                color: isSelected ? '#ffffff' : '#1a2e22',
+                fontWeight: 600,
+                fontSize: '16px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+              }}
+            >
+              {value}
+            </button>
+          );
+        })}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#5a9270' }}>
+        <span>Muy en desacuerdo</span>
+        <span>Muy de acuerdo</span>
+      </div>
+    </div>
+  );
+
+  const renderNumberInput = () => (
+    <div style={{ marginTop: '12px' }}>
+      <input
+        type="number"
+        min={1}
+        max={120}
+        value={currentAnswer?.numericValue ?? ''}
+        onChange={(e) => handleNumberChange(currentQuestion.id, e.target.value)}
+        placeholder="Ej. 28"
+        style={{
+          width: '100%',
+          padding: '16px',
+          borderRadius: '12px',
+          border: '1px solid rgba(90, 146, 112, 0.4)',
+          fontSize: '18px',
+          fontFamily: "'Inter', sans-serif",
+        }}
+      />
+    </div>
+  );
+
+  const renderTextInput = () => (
+    <div style={{ marginTop: '12px' }}>
+      <textarea
+        value={currentAnswer?.textValue || ''}
+        onChange={(e) => handleTextChange(currentQuestion.id, e.target.value)}
+        rows={4}
+        placeholder="Comparte cualquier detalle que quieras que tengamos en cuenta..."
+        style={{
+          width: '100%',
+          padding: '16px',
+          borderRadius: '16px',
+          border: '1px solid rgba(90, 146, 112, 0.4)',
+          fontSize: '16px',
+          fontFamily: "'Inter', sans-serif",
+          resize: 'vertical',
+        }}
+      />
+    </div>
+  );
+
+  const renderQuestionContent = () => {
+    if (currentQuestion.type === 'MULTI') return renderMultiOptions();
+    if (currentQuestion.type === 'NUMBER') return renderNumberInput();
+    if (currentQuestion.type === 'TEXT') return renderTextInput();
+    if (currentQuestion.type === 'SCALE') return renderScaleOptions();
+    return renderSingleOptions();
+  };
 
   return (
     <div
@@ -621,6 +1059,18 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
             boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
           }}
         >
+          {questionMeta && (
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: '#5a9270', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
+                {questionMeta.block}
+              </div>
+              {questionMeta.helper && (
+                <p style={{ marginTop: '4px', fontSize: '14px', color: '#3a5a4a' }}>
+                  {questionMeta.helper}
+                </p>
+              )}
+            </div>
+          )}
           <h3
             style={{
               margin: '0 0 32px',
@@ -633,74 +1083,14 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           >
             {currentQuestion.text}
           </h3>
-          <div style={{ display: 'grid', gap: '16px' }}>
-            {currentQuestion.answers.map((answer, idx) => {
-              const isSelected = currentAnswer?.answerId === answer.id;
-              return (
-                <button
-                  key={answer.id}
-                  onClick={() => handleAnswer(currentQuestion.id, answer.id, answer.value || undefined)}
-                  style={{
-                    padding: '18px 24px',
-                    borderRadius: '16px',
-                    border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.3)'}`,
-                    background: isSelected ? '#d4e0d8' : '#f8f9fa',
-                    color: '#1a2e22',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    fontFamily: "'Inter', sans-serif",
-                    fontSize: '16px',
-                    textAlign: 'left',
-                    boxShadow: isSelected ? '0 4px 12px rgba(90, 146, 112, 0.2)' : 'none',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.borderColor = '#5a9270';
-                      e.currentTarget.style.background = 'rgba(250, 232, 214, 0.6)';
-                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.15)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
-                      e.currentTarget.style.background = '#f8f9fa';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }
-                  }}
-                >
-                  <span style={{ fontSize: '16px', fontWeight: 500, flex: 1 }}>{answer.text}</span>
-                  <div
-                    style={{
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: '50%',
-                      border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.4)'}`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: isSelected ? '#5a9270' : 'transparent',
-                      color: isSelected ? '#ffffff' : 'transparent',
-                      transition: 'all 0.3s ease',
-                      flexShrink: 0,
-                      marginLeft: '16px',
-                    }}
-                  >
-                    {isSelected && '✓'}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+          {renderQuestionContent()}
         </div>
 
         {/* Bottom bar */}
         <div
           style={{
             display: 'flex',
-            justifyContent: 'flex-end',
+            justifyContent: 'space-between',
             background: 'rgba(250, 232, 214, 0.85)',
             border: '1px solid rgba(90, 146, 112, 0.2)',
             borderRadius: '24px',
@@ -708,37 +1098,63 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
             boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)'
           }}
         >
-          {isLastQuestion && allAnswered && (
+          <button
+            onClick={goToPreviousQuestion}
+            disabled={currentQuestionIndex === 0 || submitting}
+            className="btn-secondary"
+            style={{
+              padding: '12px 24px',
+              borderRadius: '24px',
+              border: 'none',
+              background: 'rgba(255,255,255,0.7)',
+              color: '#3a5a4a',
+              fontWeight: 600,
+              cursor: currentQuestionIndex === 0 ? 'not-allowed' : 'pointer',
+              opacity: currentQuestionIndex === 0 ? 0.5 : 1,
+            }}
+          >
+            ← Anterior
+          </button>
+
+          {isLastQuestion ? (
             <button
               onClick={handleSubmit}
-              disabled={submitting}
+              disabled={!allAnswered || submitting}
               style={{
                 padding: '14px 32px',
                 borderRadius: '24px',
                 border: 'none',
-                background: submitting ? '#cbd5d1' : '#5a9270',
+                background: !allAnswered || submitting ? '#cbd5d1' : '#5a9270',
                 color: '#ffffff',
                 fontSize: '16px',
                 fontWeight: 600,
-                cursor: submitting ? 'not-allowed' : 'pointer',
-                boxShadow: submitting ? 'none' : '0 4px 12px rgba(90, 146, 112, 0.3)',
+                cursor: !allAnswered || submitting ? 'not-allowed' : 'pointer',
+                boxShadow: !allAnswered || submitting ? 'none' : '0 4px 12px rgba(90, 146, 112, 0.3)',
                 transition: 'all 0.3s',
                 fontFamily: "'Inter', sans-serif",
               }}
-              onMouseEnter={(e) => {
-                if (!submitting) {
-                  e.currentTarget.style.background = '#4a8062';
-                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!submitting) {
-                  e.currentTarget.style.background = '#5a9270';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
-                }
-              }}
             >
               {submitting ? 'Enviando...' : 'Enviar evaluación'}
+            </button>
+          ) : (
+            <button
+              onClick={goToNextQuestion}
+              disabled={!isCurrentAnswered}
+              style={{
+                padding: '14px 32px',
+                borderRadius: '24px',
+                border: 'none',
+                background: isCurrentAnswered ? '#5a9270' : '#cbd5d1',
+                color: '#ffffff',
+                fontSize: '16px',
+                fontWeight: 600,
+                cursor: isCurrentAnswered ? 'pointer' : 'not-allowed',
+                boxShadow: isCurrentAnswered ? '0 4px 12px rgba(90, 146, 112, 0.3)' : 'none',
+                transition: 'all 0.3s',
+                fontFamily: "'Inter', sans-serif",
+              }}
+            >
+              Siguiente →
             </button>
           )}
         </div>

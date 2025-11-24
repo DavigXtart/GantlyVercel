@@ -205,6 +205,7 @@ public class TestResultService {
 				userAnswer.setQuestion(sessionAnswer.getQuestion());
 				userAnswer.setAnswer(sessionAnswer.getAnswer());
 				userAnswer.setNumericValue(sessionAnswer.getNumericValue());
+				userAnswer.setTextValue(sessionAnswer.getTextValue());
 				userAnswerRepository.save(userAnswer);
 			}
 		}

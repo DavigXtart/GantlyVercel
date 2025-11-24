@@ -158,39 +158,48 @@ public class InitialTestController {
 
 			TestEntity test = testOpt.get();
 
-			// Guardar respuestas
+			List<UserAnswerEntity> existingSessionAnswers = userAnswerRepository.findBySession(session);
+			Map<Long, List<UserAnswerEntity>> answersByQuestion = existingSessionAnswers.stream()
+					.collect(java.util.stream.Collectors.groupingBy(ua -> ua.getQuestion().getId()));
+			Set<Long> clearedQuestionIds = new HashSet<>();
+
 			for (SubmitItem it : req.answers) {
 				if (it.questionId == null) {
 					continue;
 				}
-				
+
 				Optional<QuestionEntity> questionOpt = questionRepository.findById(it.questionId);
 				if (!questionOpt.isPresent()) {
 					continue;
 				}
-				
+
 				QuestionEntity q = questionOpt.get();
-				// Verificar que la pregunta pertenece al test inicial
 				if (!q.getTest().getId().equals(test.getId())) {
 					continue;
 				}
 
-				// Eliminar respuesta anterior si existe
-				userAnswerRepository.findBySession(session).stream()
-						.filter(ua -> ua.getQuestion().getId().equals(q.getId()))
-						.forEach(userAnswerRepository::delete);
+				if (clearedQuestionIds.add(q.getId())) {
+					answersByQuestion.getOrDefault(q.getId(), Collections.emptyList())
+							.forEach(userAnswerRepository::delete);
+				}
+
+				boolean hasPayload = (it.answerId != null) || (it.numericValue != null)
+						|| (it.textValue != null && !it.textValue.trim().isEmpty());
+				if (!hasPayload) {
+					continue;
+				}
 
 				UserAnswerEntity ua = new UserAnswerEntity();
 				ua.setSession(session);
 				ua.setQuestion(q);
 				if (it.answerId != null) {
-					Optional<AnswerEntity> answerOpt = answerRepository.findById(it.answerId);
-					if (answerOpt.isPresent()) {
-						ua.setAnswer(answerOpt.get());
-					}
+					answerRepository.findById(it.answerId).ifPresent(ua::setAnswer);
 				}
 				if (it.numericValue != null) {
 					ua.setNumericValue(it.numericValue);
+				}
+				if (it.textValue != null && !it.textValue.trim().isEmpty()) {
+					ua.setTextValue(it.textValue.trim());
 				}
 				userAnswerRepository.save(ua);
 			}
@@ -213,6 +222,7 @@ public class InitialTestController {
 		public Long questionId;
 		public Long answerId;
 		public Double numericValue;
+		public String textValue;
 	}
 
 	public static class SubmitRequest {

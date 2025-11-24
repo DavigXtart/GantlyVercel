@@ -595,6 +595,8 @@ public class AdminController {
 				Map<String, Object> answerInfo = new HashMap<>();
 				answerInfo.put("questionId", ua.getQuestion().getId());
 				answerInfo.put("questionText", ua.getQuestion().getText());
+				answerInfo.put("questionPosition", ua.getQuestion().getPosition());
+				answerInfo.put("questionType", ua.getQuestion().getType());
 				if (ua.getAnswer() != null) {
 					answerInfo.put("answerId", ua.getAnswer().getId());
 					answerInfo.put("answerText", ua.getAnswer().getText());
@@ -602,6 +604,9 @@ public class AdminController {
 				}
 				if (ua.getNumericValue() != null) {
 					answerInfo.put("numericValue", ua.getNumericValue());
+				}
+				if (ua.getTextValue() != null) {
+					answerInfo.put("textValue", ua.getTextValue());
 				}
 				answerInfo.put("createdAt", ua.getCreatedAt());
 				
@@ -675,12 +680,15 @@ public class AdminController {
 			answerInfo.put("questionText", ua.getQuestion().getText());
 			if (ua.getAnswer() != null) {
 				answerInfo.put("answerId", ua.getAnswer().getId());
-				answerInfo.put("answerText", ua.getAnswer().getText());
-				answerInfo.put("answerValue", ua.getAnswer().getValue());
+					answerInfo.put("answerText", ua.getAnswer().getText());
+					answerInfo.put("answerValue", ua.getAnswer().getValue());
 			}
 			if (ua.getNumericValue() != null) {
 				answerInfo.put("numericValue", ua.getNumericValue());
 			}
+				if (ua.getTextValue() != null) {
+					answerInfo.put("textValue", ua.getTextValue());
+				}
 			answerInfo.put("createdAt", ua.getCreatedAt());
 			
 			answersList.add(answerInfo);

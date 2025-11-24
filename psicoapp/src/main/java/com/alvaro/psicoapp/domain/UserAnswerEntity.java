@@ -14,6 +14,7 @@ public class UserAnswerEntity {
 	@ManyToOne @JoinColumn(name = "answer_id") private AnswerEntity answer;
 	private Double numericValue;
 	@ManyToOne @JoinColumn(name = "session_id") private TemporarySessionEntity session; // Para respuestas pre-registro
+	@Column(name = "text_value", length = 1000) private String textValue;
 	@Column(name = "created_at", nullable = false, updatable = false) private Instant createdAt = Instant.now();
 	public Long getId() { return id; } public void setId(Long id) { this.id = id; }
 	public UserEntity getUser() { return user; } public void setUser(UserEntity user) { this.user = user; }
@@ -22,4 +23,5 @@ public class UserAnswerEntity {
 	public Double getNumericValue() { return numericValue; } public void setNumericValue(Double numericValue) { this.numericValue = numericValue; }
 	public Instant getCreatedAt() { return createdAt; } public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 	public TemporarySessionEntity getSession() { return session; } public void setSession(TemporarySessionEntity session) { this.session = session; }
+	public String getTextValue() { return textValue; } public void setTextValue(String textValue) { this.textValue = textValue; }
 }

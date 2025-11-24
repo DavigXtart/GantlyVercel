@@ -38,7 +38,7 @@ public class TestFlowController {
 		this.assignedTestRepository = assignedTestRepository;
 	}
 
-	public static class SubmitItem { public Long questionId; public Long answerId; public Double numericValue; }
+		public static class SubmitItem { public Long questionId; public Long answerId; public Double numericValue; public String textValue; }
 	public static class SubmitRequest { public List<SubmitItem> answers; public Long testId; }
 
 	@PostMapping("/submit")
@@ -47,18 +47,29 @@ public class TestFlowController {
 		UserEntity user = userRepository.findByEmail(principal.getName()).orElseThrow();
 		TestEntity test = testRepository.findById(req.testId).orElseThrow();
 		
-		// Guardar respuestas
+		Map<Long, List<UserAnswerEntity>> existingAnswersByQuestion = userAnswerRepository.findByUser(user).stream()
+				.collect(java.util.stream.Collectors.groupingBy(ua -> ua.getQuestion().getId()));
+		Set<Long> clearedQuestionIds = new HashSet<>();
+
 		for (SubmitItem it : req.answers) {
+			if (it.questionId == null) {
+				continue;
+			}
 			QuestionEntity q = questionRepository.findById(it.questionId).orElseThrow();
-			// Verificar que la pregunta pertenece al test
 			if (!q.getTest().getId().equals(test.getId())) {
 				continue;
 			}
 
-			// Eliminar respuesta anterior si existe
-			userAnswerRepository.findByUser(user).stream()
-					.filter(ua -> ua.getQuestion().getId().equals(q.getId()))
-					.forEach(userAnswerRepository::delete);
+			if (clearedQuestionIds.add(q.getId())) {
+				existingAnswersByQuestion.getOrDefault(q.getId(), Collections.emptyList())
+						.forEach(userAnswerRepository::delete);
+			}
+
+			boolean hasPayload = (it.answerId != null) || (it.numericValue != null)
+					|| (it.textValue != null && !it.textValue.trim().isEmpty());
+			if (!hasPayload) {
+				continue;
+			}
 
 			UserAnswerEntity ua = new UserAnswerEntity();
 			ua.setUser(user);
@@ -66,7 +77,12 @@ public class TestFlowController {
 			if (it.answerId != null) {
 				ua.setAnswer(answerRepository.findById(it.answerId).orElse(null));
 			}
-			ua.setNumericValue(it.numericValue);
+			if (it.numericValue != null) {
+				ua.setNumericValue(it.numericValue);
+			}
+			if (it.textValue != null && !it.textValue.trim().isEmpty()) {
+				ua.setTextValue(it.textValue.trim());
+			}
 			userAnswerRepository.save(ua);
 		}
 
