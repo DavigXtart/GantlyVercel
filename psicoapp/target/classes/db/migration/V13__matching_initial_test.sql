@@ -60,41 +60,41 @@ INSERT INTO questions (test_id, text, type, position) VALUES
 (@matching_test_id, 'Me cuesta abrirme con personas nuevas.', 'SINGLE', 4);
 SET @q4 = LAST_INSERT_ID();
 INSERT INTO answers (question_id, text, value, position) VALUES
-(@q4, '1 - Muy en desacuerdo', 1, 1),
-(@q4, '2', 2, 2),
-(@q4, '3', 3, 3),
-(@q4, '4', 4, 4),
-(@q4, '5 - Muy de acuerdo', 5, 5);
+(@q4, 'Muy en desacuerdo', 1, 1),
+(@q4, 'Algo en desacuerdo', 2, 2),
+(@q4, 'Ni de acuerdo ni en desacuerdo', 3, 3),
+(@q4, 'Algo de acuerdo', 4, 4),
+(@q4, 'Muy de acuerdo', 5, 5);
 
 INSERT INTO questions (test_id, text, type, position) VALUES
 (@matching_test_id, 'Prefiero que me den pautas claras y estructuradas.', 'SINGLE', 5);
 SET @q5 = LAST_INSERT_ID();
 INSERT INTO answers (question_id, text, value, position) VALUES
-(@q5, '1 - Muy en desacuerdo', 1, 1),
-(@q5, '2', 2, 2),
-(@q5, '3', 3, 3),
-(@q5, '4', 4, 4),
-(@q5, '5 - Muy de acuerdo', 5, 5);
+(@q5, 'Muy en desacuerdo', 1, 1),
+(@q5, 'Algo en desacuerdo', 2, 2),
+(@q5, 'Ni de acuerdo ni en desacuerdo', 3, 3),
+(@q5, 'Algo de acuerdo', 4, 4),
+(@q5, 'Muy de acuerdo', 5, 5);
 
 INSERT INTO questions (test_id, text, type, position) VALUES
 (@matching_test_id, 'Me ayuda más alguien que escuche sin juzgar que alguien que dé indicaciones.', 'SINGLE', 6);
 SET @q6 = LAST_INSERT_ID();
 INSERT INTO answers (question_id, text, value, position) VALUES
-(@q6, '1 - Muy en desacuerdo', 1, 1),
-(@q6, '2', 2, 2),
-(@q6, '3', 3, 3),
-(@q6, '4', 4, 4),
-(@q6, '5 - Muy de acuerdo', 5, 5);
+(@q6, 'Muy en desacuerdo', 1, 1),
+(@q6, 'Algo en desacuerdo', 2, 2),
+(@q6, 'Ni de acuerdo ni en desacuerdo', 3, 3),
+(@q6, 'Algo de acuerdo', 4, 4),
+(@q6, 'Muy de acuerdo', 5, 5);
 
 INSERT INTO questions (test_id, text, type, position) VALUES
 (@matching_test_id, 'Cuando tengo un problema, quiero soluciones prácticas cuanto antes.', 'SINGLE', 7);
 SET @q7 = LAST_INSERT_ID();
 INSERT INTO answers (question_id, text, value, position) VALUES
-(@q7, '1 - Muy en desacuerdo', 1, 1),
-(@q7, '2', 2, 2),
-(@q7, '3', 3, 3),
-(@q7, '4', 4, 4),
-(@q7, '5 - Muy de acuerdo', 5, 5);
+(@q7, 'Muy en desacuerdo', 1, 1),
+(@q7, 'Algo en desacuerdo', 2, 2),
+(@q7, 'Ni de acuerdo ni en desacuerdo', 3, 3),
+(@q7, 'Algo de acuerdo', 4, 4),
+(@q7, 'Muy de acuerdo', 5, 5);
 
 -- BLOQUE 4: Experiencia previa (Preguntas 8-9)
 INSERT INTO questions (test_id, text, type, position) VALUES
