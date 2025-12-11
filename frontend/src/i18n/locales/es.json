@@ -1,0 +1,129 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "back": "Volver",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "noResults": "No se encontraron resultados"
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "logout": "Cerrar sesión",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "name": "Nombre",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "rememberMe": "Recordarme"
+  },
+  "appointments": {
+    "title": "Citas",
+    "create": "Crear cita",
+    "request": "Solicitar cita",
+    "confirm": "Confirmar cita",
+    "cancel": "Cancelar cita",
+    "delete": "Eliminar cita",
+    "status": {
+      "free": "Libre",
+      "requested": "Solicitada",
+      "confirmed": "Confirmada",
+      "booked": "Reservada",
+      "cancelled": "Cancelada"
+    },
+    "paymentStatus": {
+      "pending": "Pendiente",
+      "paid": "Pagado",
+      "expired": "Expirado"
+    },
+    "price": "Precio",
+    "priceRequired": "El precio es obligatorio",
+    "date": "Fecha",
+    "time": "Hora",
+    "duration": "Duración",
+    "psychologist": "Psicólogo",
+    "patient": "Paciente",
+    "myAppointments": "Mis citas",
+    "pendingRequests": "Solicitudes pendientes",
+    "confirmedAppointments": "Citas confirmadas",
+    "paymentDeadline": "Plazo de pago",
+    "paymentDeadlineWarning": "Tienes hasta el {{deadline}} para realizar el pago",
+    "overlapError": "Ya existe una cita en este horario",
+    "pastDateError": "No se pueden crear citas en el pasado",
+    "durationError": "La duración debe estar entre 30 minutos y 4 horas"
+  },
+  "calendar": {
+    "title": "Calendario",
+    "week": "Semana",
+    "month": "Mes",
+    "today": "Hoy",
+    "available": "Disponible",
+    "unavailable": "No disponible",
+    "myAppointment": "Mi cita"
+  },
+  "tasks": {
+    "title": "Tareas",
+    "create": "Crear tarea",
+    "complete": "Completar tarea",
+    "pending": "Pendiente",
+    "completed": "Completada",
+    "dueDate": "Fecha límite",
+    "noTasks": "No hay tareas"
+  },
+  "tests": {
+    "title": "Tests",
+    "start": "Iniciar test",
+    "complete": "Completar test",
+    "results": "Resultados",
+    "assigned": "Asignados",
+    "noTests": "No hay tests asignados"
+  },
+  "chat": {
+    "title": "Chat",
+    "sendMessage": "Enviar mensaje",
+    "typeMessage": "Escribe un mensaje...",
+    "noMessages": "No hay mensajes"
+  },
+  "profile": {
+    "title": "Perfil",
+    "edit": "Editar perfil",
+    "avatar": "Avatar",
+    "name": "Nombre",
+    "email": "Correo electrónico",
+    "gender": "Género",
+    "age": "Edad",
+    "saveChanges": "Guardar cambios"
+  },
+  "emptyStates": {
+    "noAppointments": {
+      "title": "No hay citas",
+      "description": "Aún no tienes citas programadas"
+    },
+    "noTasks": {
+      "title": "No hay tareas",
+      "description": "No tienes tareas asignadas"
+    },
+    "noTests": {
+      "title": "No hay tests",
+      "description": "No tienes tests asignados"
+    },
+    "noMessages": {
+      "title": "No hay mensajes",
+      "description": "Aún no hay mensajes en esta conversación"
+    },
+    "noPatients": {
+      "title": "No hay pacientes",
+      "description": "Aún no tienes pacientes asignados"
+    }
+  }
+}
+

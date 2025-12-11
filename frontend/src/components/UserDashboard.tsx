@@ -4,8 +4,15 @@ import ChatWidget from './ChatWidget';
 import CalendarWeek from './CalendarWeek';
 import JitsiVideoCall from './JitsiVideoCall';
 import { generateJitsiRoomName } from '../lib/utils';
+import LoadingSpinner from './ui/LoadingSpinner';
+import EmptyState from './ui/EmptyState';
+import { toast } from './ui/Toast';
+import AgendaPersonal from './AgendaPersonal';
+import MisEstadisticas from './MisEstadisticas';
+import Evaluaciones from './Evaluaciones';
+import Descubrimiento from './Descubrimiento';
 
-type Tab = 'perfil' | 'mi-psicologo' | 'tareas' | 'tests-pendientes' | 'calendario' | 'chat';
+type Tab = 'perfil' | 'mi-psicologo' | 'tareas' | 'tests-pendientes' | 'calendario' | 'chat' | 'agenda-personal' | 'mis-estadisticas' | 'evaluaciones' | 'descubrimiento';
 
 interface UserDashboardProps {
   onStartTest?: (testId: number) => void;
@@ -20,6 +27,8 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
   const [slots, setSlots] = useState<any[]>([]);
   const [myAppointments, setMyAppointments] = useState<any[]>([]);
   const [editing, setEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadingSlots, setLoadingSlots] = useState(false);
   const [editForm, setEditForm] = useState({ name: '', gender: '', age: '' });
   const [taskFiles, setTaskFiles] = useState<Record<number, any[]>>({});
   const [expandedTasks, setExpandedTasks] = useState<Set<number>>(new Set());
@@ -52,16 +61,19 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
 
   const loadData = async () => {
     try {
-    const m = await profileService.me();
-    setMe(m);
-    setEditForm({ name: m?.name || '', gender: m?.gender || '', age: m?.age?.toString() || '' });
-    const p = await profileService.myPsychologist();
-    setPsych(p);
-    const t = await tasksService.list();
-    setTasks(t);
+      setLoading(true);
+      const m = await profileService.me();
+      setMe(m);
+      setEditForm({ name: m?.name || '', gender: m?.gender || '', age: m?.age?.toString() || '' });
+      const p = await profileService.myPsychologist();
+      setPsych(p);
+      const t = await tasksService.list();
+      setTasks(t);
     } catch (error: any) {
       console.error('Error cargando datos:', error);
-      alert('Error al cargar los datos. Por favor recarga la página.');
+      toast.error('Error al cargar los datos. Por favor recarga la página.');
+    } finally {
+      setLoading(false);
     }
     
     // Cargar tests asignados de forma asíncrona y no bloqueante
@@ -111,16 +123,16 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
     if (!input.files || input.files.length === 0) return;
     const file = input.files[0];
     if (!file.type.startsWith('image/')) {
-      alert('Por favor selecciona un archivo de imagen');
+      toast.error('Por favor selecciona un archivo de imagen');
       return;
     }
     try {
       const res = await profileService.uploadAvatar(file);
       setMe({ ...me, avatarUrl: res.avatarUrl });
-      // Avatar actualizado exitosamente (sin pop-up)
+      toast.success('Avatar actualizado exitosamente');
     } catch (error: any) {
       console.error('Error al subir avatar:', error);
-      alert('Error al subir el avatar: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
+      toast.error('Error al subir el avatar: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
     } finally {
       // Permitir seleccionar el mismo archivo nuevamente
       input.value = '';
@@ -138,26 +150,35 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       setMe({ ...me, ...editForm });
       setEditing(false);
       await loadData();
+      toast.success('Perfil actualizado exitosamente');
     } catch (error) {
-      alert('Error al guardar los cambios');
+      toast.error('Error al guardar los cambios');
     }
   };
 
   const loadAvailability = async () => {
-    const from = new Date();
-    const to = new Date();
-    to.setDate(to.getDate() + 14);
-    const list = await calendarService.availability(from.toISOString(), to.toISOString());
-    setSlots(list);
-    // Cargar también las citas reservadas del usuario
     try {
-      const appointments = await calendarService.myAppointments();
-      // Asegurar que todas las citas tengan startTime y endTime válidos
-      const validAppointments = appointments.filter(apt => apt.startTime && apt.endTime);
-      setMyAppointments(validAppointments);
-    } catch (error) {
-      console.error('Error cargando citas:', error);
-      // No fallar completamente, solo loguear el error
+      setLoadingSlots(true);
+      const from = new Date();
+      const to = new Date();
+      to.setDate(to.getDate() + 14);
+      const list = await calendarService.availability(from.toISOString(), to.toISOString());
+      setSlots(list);
+      // Cargar también las citas reservadas del usuario
+      try {
+        const appointments = await calendarService.myAppointments();
+        // Asegurar que todas las citas tengan startTime y endTime válidos
+        const validAppointments = appointments.filter(apt => apt.startTime && apt.endTime);
+        setMyAppointments(validAppointments);
+      } catch (error) {
+        console.error('Error cargando citas:', error);
+        // No fallar completamente, solo loguear el error
+      }
+    } catch (error: any) {
+      console.error('Error cargando disponibilidad:', error);
+      toast.error('Error al cargar el calendario');
+    } finally {
+      setLoadingSlots(false);
     }
   };
 
@@ -178,7 +199,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       await loadTaskComments(taskId);
     } catch (error) {
       console.error('Error cargando detalles de tarea:', error);
-      alert('Error al cargar los detalles de la tarea');
+      toast.error('Error al cargar los detalles de la tarea');
     }
   };
 
@@ -199,7 +220,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       await loadTaskComments(taskId);
     } catch (error: any) {
       console.error('Error agregando comentario:', error);
-      alert('Error al agregar el comentario: ' + (error.response?.data?.error || error.message));
+      toast.error('Error al agregar el comentario: ' + (error.response?.data?.error || error.message));
     }
   };
 
@@ -225,6 +246,14 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       day: 'numeric' 
     });
   };
+
+  if (loading && !me) {
+    return (
+      <div className="container" style={{ maxWidth: '1200px', padding: '40px' }}>
+        <LoadingSpinner text="Cargando perfil..." />
+      </div>
+    );
+  }
 
   return (
     <div className="container" style={{ 
@@ -252,6 +281,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
           { id: 'tareas', label: 'Tareas', icon: '📋' },
           { id: 'tests-pendientes', label: 'Tests', icon: '📝' },
           { id: 'calendario', label: 'Calendario', icon: '📅' },
+          { id: 'agenda-personal', label: 'Agenda Personal', icon: '📖' },
           { id: 'chat', label: 'Chat', icon: '💬' }
         ].map(t => (
           <button
@@ -305,32 +335,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             color: 'white',
             position: 'relative'
           }}>
-            {/* Mensaje de bienvenida */}
-            <div style={{
-              marginBottom: '24px',
-              padding: '20px 24px',
-              background: 'rgba(255, 255, 255, 0.15)',
-              borderRadius: '16px',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255, 255, 255, 0.2)'
-            }}>
-              <div style={{
-                fontSize: '18px',
-                fontWeight: 600,
-                marginBottom: '8px',
-                fontFamily: "'Inter', sans-serif"
-              }}>
-                👋 ¡Bienvenido a PSYmatch!
-              </div>
-              <div style={{
-                fontSize: '15px',
-                opacity: 0.95,
-                lineHeight: '1.6',
-                fontFamily: "'Inter', sans-serif"
-              }}>
-                Estamos aquí para acompañarte en tu bienestar mental. Explora tus tareas, completa tus tests y gestiona tus citas desde este panel.
-              </div>
-            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
               <div style={{ position: 'relative' }}>
                 {me?.avatarUrl ? (
@@ -572,6 +576,97 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             </div>
           </div>
 
+          {/* Botones de acceso rápido */}
+          <div style={{
+            padding: '40px', 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+            gap: '24px',
+            background: '#f8f9fa'
+          }}>
+            {/* Botones con paleta verde */}
+            <div 
+              onClick={() => setTab('mis-estadisticas')}
+              style={{
+                padding: '32px',
+                background: 'linear-gradient(135deg, #5a9270 0%, #5b8fa8 100%)',
+                borderRadius: '20px',
+                boxShadow: '0 6px 20px rgba(90, 146, 112, 0.3)',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                color: '#fff',
+                textAlign: 'center'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 8px 24px rgba(90, 146, 112, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(90, 146, 112, 0.3)';
+              }}
+            >
+              <div style={{ fontSize: '48px', marginBottom: '12px' }}>📊</div>
+              <div style={{ fontSize: '20px', fontWeight: 700, fontFamily: "'Inter', sans-serif" }}>
+                Mis Estadísticas
+              </div>
+            </div>
+
+            <div 
+              onClick={() => setTab('evaluaciones')}
+              style={{
+                padding: '32px',
+                background: 'linear-gradient(135deg, #5a9270 0%, #5b8fa8 100%)',
+                borderRadius: '20px',
+                boxShadow: '0 6px 20px rgba(90, 146, 112, 0.3)',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                color: '#fff',
+                textAlign: 'center'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 8px 24px rgba(90, 146, 112, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(90, 146, 112, 0.3)';
+              }}
+            >
+              <div style={{ fontSize: '48px', marginBottom: '12px' }}>📝</div>
+              <div style={{ fontSize: '20px', fontWeight: 700, fontFamily: "'Inter', sans-serif" }}>
+                Evaluaciones
+              </div>
+            </div>
+
+            <div 
+              onClick={() => setTab('descubrimiento')}
+              style={{
+                padding: '32px',
+                background: 'linear-gradient(135deg, #5a9270 0%, #5b8fa8 100%)',
+                borderRadius: '20px',
+                boxShadow: '0 6px 20px rgba(90, 146, 112, 0.3)',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                color: '#fff',
+                textAlign: 'center'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 8px 24px rgba(90, 146, 112, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(90, 146, 112, 0.3)';
+              }}
+            >
+              <div style={{ fontSize: '48px', marginBottom: '12px' }}>🔍</div>
+              <div style={{ fontSize: '20px', fontWeight: 700, fontFamily: "'Inter', sans-serif" }}>
+                Descubrimiento
+              </div>
+            </div>
+          </div>
+
           {/* Información adicional */}
             <div style={{
             padding: '40px', 
@@ -580,44 +675,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             gap: '24px',
             background: '#f8f9fa'
           }}>
-            <div style={{
-              padding: '24px',
-              background: '#ffffff',
-              borderRadius: '16px',
-              border: '1px solid rgba(90, 146, 112, 0.15)',
-              boxShadow: '0 2px 8px rgba(90, 146, 112, 0.08)',
-              transition: 'all 0.3s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px)';
-              e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.15)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.08)';
-            }}
-            >
-              <div style={{ 
-                fontSize: '12px', 
-                color: '#5a9270', 
-                marginBottom: '12px', 
-                fontWeight: 600, 
-                textTransform: 'uppercase', 
-                letterSpacing: '0.5px',
-                fontFamily: "'Inter', sans-serif"
-              }}>
-                Estado de cuenta
-              </div>
-              <div style={{ 
-                fontSize: '20px', 
-                fontWeight: 600, 
-                color: '#1a2e22',
-                fontFamily: "'Inter', sans-serif"
-              }}>
-                {me?.role === 'USER' ? '👤 Usuario' : me?.role === 'PSYCHOLOGIST' ? '👨‍⚕️ Psicólogo' : '👑 Administrador'}
-              </div>
-            </div>
-
             <div 
               onClick={() => setTab('tareas')}
               style={{
@@ -830,7 +887,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                                     setVideoCallOtherUser({ email: roomInfo.otherUser.email, name: roomInfo.otherUser.name });
                                     setShowVideoCall(true);
                                   } catch (error: any) {
-                                    alert(error.response?.data?.error || 'No tienes permiso para iniciar esta videollamada');
+                                    toast.error(error.response?.data?.error || 'No tienes permiso para iniciar esta videollamada');
                                   }
                                 }
                               }}
@@ -881,7 +938,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
           padding: '40px',
           border: '1px solid rgba(90, 146, 112, 0.15)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
+          <div style={{ marginBottom: '32px' }}>
             <h3 style={{ 
               margin: 0, 
               fontSize: '28px', 
@@ -892,34 +949,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             }}>
               Mi Psicólogo
             </h3>
-            <button
-              onClick={loadData}
-              style={{
-                padding: '10px 20px',
-                background: '#5a9270',
-                color: 'white',
-                border: 'none',
-                borderRadius: '12px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontSize: '15px',
-                transition: 'all 0.3s ease',
-                fontFamily: "'Inter', sans-serif",
-                boxShadow: '0 4px 12px rgba(90, 146, 112, 0.3)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
-                e.currentTarget.style.background = '#4a8062';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
-                e.currentTarget.style.background = '#5a9270';
-              }}
-            >
-              🔄 Refrescar
-            </button>
           </div>
           {psych?.status === 'ASSIGNED' ? (
             <div style={{
@@ -1261,7 +1290,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                             console.error('Error al subir archivo:', error);
                             console.error('Error completo:', JSON.stringify(error, null, 2));
                             const errorMessage = error.response?.data?.error || error.response?.data?.message || error.response?.data?.details || error.message || 'Error desconocido';
-                            alert('Error al subir el archivo: ' + errorMessage);
+                            toast.error('Error al subir el archivo: ' + errorMessage);
                             // Resetear el input incluso si hay error
                             e.target.value = '';
                           }
@@ -1507,35 +1536,18 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             Mis Tareas
           </h3>
           {tasks.length === 0 ? (
-            <div style={{
-              padding: '60px 40px',
-              textAlign: 'center',
-              background: 'linear-gradient(135deg, #f8f9fa 0%, #f0f5f3 100%)',
-              borderRadius: '20px',
-              border: '2px dashed rgba(90, 146, 112, 0.3)'
-            }}>
-              <div style={{ fontSize: '64px', marginBottom: '20px' }}>📋</div>
-              <div style={{ 
-                fontSize: '20px', 
-                fontWeight: 600, 
-                color: '#1a2e22', 
-                marginBottom: '12px',
-                fontFamily: "'Inter', sans-serif"
-              }}>
-                No hay tareas disponibles
-              </div>
-              <div style={{ 
-                fontSize: '16px', 
-                color: '#3a5a4a',
-                fontFamily: "'Inter', sans-serif",
-                lineHeight: '1.6'
-              }}>
-                Tu psicólogo te asignará tareas cuando sea necesario
-              </div>
-            </div>
+            <EmptyState
+              icon="📋"
+              title="No hay tareas"
+              message="Aún no tienes tareas asignadas. Tu psicólogo te asignará tareas aquí."
+            />
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {tasks.map(t => (
+            <div 
+              style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+              role="list"
+              aria-label="Lista de tareas"
+            >
+              {tasks.map((t, index) => (
                 <div
                   key={t.id}
                   onClick={() => {
@@ -1646,32 +1658,11 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             Tests Pendientes
           </h3>
           {assignedTests.length === 0 ? (
-            <div style={{
-              padding: '60px 40px',
-              textAlign: 'center',
-              background: 'linear-gradient(135deg, #f8f9fa 0%, #f0f5f3 100%)',
-              borderRadius: '20px',
-              border: '2px dashed rgba(90, 146, 112, 0.3)'
-            }}>
-              <div style={{ fontSize: '64px', marginBottom: '20px' }}>📝</div>
-              <div style={{ 
-                fontSize: '20px', 
-                fontWeight: 600, 
-                color: '#1a2e22', 
-                marginBottom: '12px',
-                fontFamily: "'Inter', sans-serif"
-              }}>
-                No hay tests pendientes
-              </div>
-              <div style={{ 
-                fontSize: '16px', 
-                color: '#3a5a4a',
-                fontFamily: "'Inter', sans-serif",
-                lineHeight: '1.6'
-              }}>
-                Tu psicólogo te asignará tests cuando sea necesario
-              </div>
-            </div>
+            <EmptyState
+              icon="📝"
+              title="No hay tests pendientes"
+              message="Aún no tienes tests asignados. Tu psicólogo te asignará tests aquí."
+            />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {assignedTests.map(at => (
@@ -1710,7 +1701,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                         }
                       } catch (error) {
                         console.error('Error al navegar al test:', error);
-                        alert('Error al iniciar el test. Por favor intenta de nuevo.');
+                        toast.error('Error al iniciar el test. Por favor intenta de nuevo.');
                       }
                     }
                   }}
@@ -1789,7 +1780,10 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               Calendario de Disponibilidad
             </h3>
           </div>
-          <CalendarWeek
+          {loadingSlots ? (
+            <LoadingSpinner text="Cargando calendario..." />
+          ) : (
+            <CalendarWeek
             mode="USER"
             slots={slots}
             myAppointments={myAppointments}
@@ -1797,18 +1791,19 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               try {
                 const result = await calendarService.book(id);
                 if (result.error) {
-                  alert(result.error);
+                  toast.error(result.error);
                   return;
                 }
                 await loadAvailability();
-                // Cita reservada exitosamente (sin pop-up)
+                toast.success('Cita reservada exitosamente. Espera la confirmación del psicólogo.');
               } catch (e: any) {
                 const errorMsg = e.response?.data?.error || 'Error al reservar la cita';
-                alert(errorMsg);
+                toast.error(errorMsg);
               }
             }}
           />
-          {myAppointments.length > 0 && (
+          )}
+          {!loadingSlots && myAppointments.length > 0 && (
             <div style={{
               marginTop: '32px',
               background: '#ffffff',
@@ -2028,6 +2023,22 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       )}
 
       {/* Chat */}
+      {tab === 'agenda-personal' && (
+        <AgendaPersonal onComplete={() => setTab('perfil')} />
+      )}
+
+      {tab === 'mis-estadisticas' && (
+        <MisEstadisticas />
+      )}
+
+      {tab === 'evaluaciones' && (
+        <Evaluaciones />
+      )}
+
+      {tab === 'descubrimiento' && (
+        <Descubrimiento />
+      )}
+
       {tab === 'chat' && (
         <div style={{ width: '100%' }}>
           <div style={{

@@ -1,0 +1,129 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "filter": "Filter",
+    "noResults": "No results found"
+  },
+  "auth": {
+    "login": "Log in",
+    "register": "Register",
+    "logout": "Log out",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "forgotPassword": "Forgot password?",
+    "rememberMe": "Remember me"
+  },
+  "appointments": {
+    "title": "Appointments",
+    "create": "Create appointment",
+    "request": "Request appointment",
+    "confirm": "Confirm appointment",
+    "cancel": "Cancel appointment",
+    "delete": "Delete appointment",
+    "status": {
+      "free": "Free",
+      "requested": "Requested",
+      "confirmed": "Confirmed",
+      "booked": "Booked",
+      "cancelled": "Cancelled"
+    },
+    "paymentStatus": {
+      "pending": "Pending",
+      "paid": "Paid",
+      "expired": "Expired"
+    },
+    "price": "Price",
+    "priceRequired": "Price is required",
+    "date": "Date",
+    "time": "Time",
+    "duration": "Duration",
+    "psychologist": "Psychologist",
+    "patient": "Patient",
+    "myAppointments": "My appointments",
+    "pendingRequests": "Pending requests",
+    "confirmedAppointments": "Confirmed appointments",
+    "paymentDeadline": "Payment deadline",
+    "paymentDeadlineWarning": "You have until {{deadline}} to make the payment",
+    "overlapError": "An appointment already exists at this time",
+    "pastDateError": "Cannot create appointments in the past",
+    "durationError": "Duration must be between 30 minutes and 4 hours"
+  },
+  "calendar": {
+    "title": "Calendar",
+    "week": "Week",
+    "month": "Month",
+    "today": "Today",
+    "available": "Available",
+    "unavailable": "Unavailable",
+    "myAppointment": "My appointment"
+  },
+  "tasks": {
+    "title": "Tasks",
+    "create": "Create task",
+    "complete": "Complete task",
+    "pending": "Pending",
+    "completed": "Completed",
+    "dueDate": "Due date",
+    "noTasks": "No tasks"
+  },
+  "tests": {
+    "title": "Tests",
+    "start": "Start test",
+    "complete": "Complete test",
+    "results": "Results",
+    "assigned": "Assigned",
+    "noTests": "No tests assigned"
+  },
+  "chat": {
+    "title": "Chat",
+    "sendMessage": "Send message",
+    "typeMessage": "Type a message...",
+    "noMessages": "No messages"
+  },
+  "profile": {
+    "title": "Profile",
+    "edit": "Edit profile",
+    "avatar": "Avatar",
+    "name": "Name",
+    "email": "Email",
+    "gender": "Gender",
+    "age": "Age",
+    "saveChanges": "Save changes"
+  },
+  "emptyStates": {
+    "noAppointments": {
+      "title": "No appointments",
+      "description": "You don't have any scheduled appointments yet"
+    },
+    "noTasks": {
+      "title": "No tasks",
+      "description": "You don't have any assigned tasks"
+    },
+    "noTests": {
+      "title": "No tests",
+      "description": "You don't have any assigned tests"
+    },
+    "noMessages": {
+      "title": "No messages",
+      "description": "There are no messages in this conversation yet"
+    },
+    "noPatients": {
+      "title": "No patients",
+      "description": "You don't have any assigned patients yet"
+    }
+  }
+}
+

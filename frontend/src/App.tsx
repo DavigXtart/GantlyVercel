@@ -12,6 +12,7 @@ import AdminUsersPanel from './components/AdminUsersPanel';
 import About from './components/About';
 import SoyProfesional from './components/SoyProfesional';
 import RegisterPsychologist from './components/RegisterPsychologist';
+import { ToastContainer } from './components/ui/Toast';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -509,6 +510,9 @@ function App() {
           </div>
         </div>
       )}
+      
+      {/* Toast Container para notificaciones */}
+      <ToastContainer />
     </div>
   );
 }

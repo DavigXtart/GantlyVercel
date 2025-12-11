@@ -309,12 +309,30 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
       return nextEntries;
     });
 
+    // Manejar la lógica especial para la pregunta 8 (si ha ido al psicólogo)
+    let shouldSkipQuestion9 = false;
     if (question.position === 8 && test) {
       const selectedAnswer = question.answers.find(a => a.id === answerId);
       const experienceQuestion = test.questions.find(q => q.position === 9);
       if (experienceQuestion) {
-        if (selectedAnswer && selectedAnswer.text.toLowerCase().startsWith('no')) {
-          const autoOption = experienceQuestion.answers.find(a => a.text.toLowerCase().includes('no he ido'));
+        // Verificar si la respuesta indica que nunca ha asistido
+        const neverAttended = selectedAnswer && (
+          selectedAnswer.text.toLowerCase().includes('nunca') ||
+          selectedAnswer.text.toLowerCase().includes('no he ido') ||
+          selectedAnswer.text.toLowerCase().includes('no he asistido') ||
+          (selectedAnswer.text.toLowerCase().startsWith('no') && !selectedAnswer.text.toLowerCase().includes('sí'))
+        );
+        
+        if (neverAttended) {
+          shouldSkipQuestion9 = true;
+          // Auto-responder la pregunta 9 con "nunca he ido" o la primera opción que indique eso
+          const autoOption = experienceQuestion.answers.find(a => 
+            a.text.toLowerCase().includes('nunca') ||
+            a.text.toLowerCase().includes('no he ido') ||
+            a.text.toLowerCase().includes('no he asistido') ||
+            a.text.toLowerCase().includes('ninguna')
+          ) || experienceQuestion.answers[0]; // Si no encuentra, usar la primera opción
+          
           if (autoOption) {
             setAnswers(prev => ({
               ...prev,
@@ -325,6 +343,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
             }));
           }
         } else {
+          // Si ha asistido, limpiar la respuesta de la pregunta 9 para que la responda manualmente
           setAnswers(prev => {
             const updated = { ...prev };
             const current = updated[experienceQuestion.id];
@@ -337,12 +356,20 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
       }
     }
 
+    // Auto-avance a la siguiente pregunta
     if (autoAdvance && question.type !== 'MULTI') {
       setTimeout(() => {
         if (!test) return;
         setCurrentQuestionIndex(prevIndex => {
           const currentIndex = test.questions.findIndex(q => q.id === questionId);
           if (currentIndex !== -1 && currentIndex < test.questions.length - 1) {
+            // Si es la pregunta 8 y nunca ha asistido, saltar la pregunta 9
+            if (shouldSkipQuestion9) {
+              const question9Index = test.questions.findIndex(q => q.position === 9);
+              if (question9Index !== -1 && question9Index < test.questions.length - 1) {
+                return question9Index + 1; // Saltar a la pregunta después de la 9
+              }
+            }
             return currentIndex + 1;
           }
           return prevIndex;
@@ -414,7 +441,31 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
   const handleSubmit = async () => {
     if (!test || !sessionId) return;
 
-    const unanswered = test.questions.filter(q => !isQuestionAnswered(q));
+    // Filtrar preguntas que deben ser respondidas
+    // Si la pregunta 8 indica que nunca ha asistido, la pregunta 9 ya está auto-respondida
+    const question8 = test.questions.find(q => q.position === 8);
+    const question9 = test.questions.find(q => q.position === 9);
+    let questionsToCheck = test.questions;
+    
+    if (question8 && question9) {
+      const answer8 = answers[question8.id];
+      if (answer8?.answerId) {
+        const selectedAnswer8 = question8.answers.find(a => a.id === answer8.answerId);
+        const neverAttended = selectedAnswer8 && (
+          selectedAnswer8.text.toLowerCase().includes('nunca') ||
+          selectedAnswer8.text.toLowerCase().includes('no he ido') ||
+          selectedAnswer8.text.toLowerCase().includes('no he asistido') ||
+          (selectedAnswer8.text.toLowerCase().startsWith('no') && !selectedAnswer8.text.toLowerCase().includes('sí'))
+        );
+        
+        // Si nunca ha asistido, excluir la pregunta 9 de la validación (ya está auto-respondida)
+        if (neverAttended) {
+          questionsToCheck = test.questions.filter(q => q.position !== 9);
+        }
+      }
+    }
+
+    const unanswered = questionsToCheck.filter(q => !isQuestionAnswered(q));
     if (unanswered.length > 0) {
       alert(`Por favor, responde todas las preguntas. Te faltan ${unanswered.length} pregunta(s).`);
       return;

@@ -1,3 +1,4 @@
+C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\config\CacheConfig.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\config\WebConfig.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\config\WebSocketAuthInterceptor.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\config\WebSocketConfig.java
@@ -8,9 +9,11 @@ C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\control
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\controller\CalendarController.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\controller\ChatController.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\controller\ChatRestController.java
+C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\controller\EvaluationTestController.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\controller\GlobalExceptionHandler.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\controller\InitialTestController.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\controller\JitsiController.java
+C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\controller\PersonalAgendaController.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\controller\PsychologistController.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\controller\StripeController.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\controller\TaskController.java
@@ -23,6 +26,9 @@ C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\AppointmentRequestEntity.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\AssignedTestEntity.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\ChatMessageEntity.java
+C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\DailyMoodEntryEntity.java
+C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\EvaluationTestEntity.java
+C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\EvaluationTestResultEntity.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\FactorEntity.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\FactorResultEntity.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\QuestionEntity.java
@@ -43,6 +49,9 @@ C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\reposit
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\AppointmentRequestRepository.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\AssignedTestRepository.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\ChatMessageRepository.java
+C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\DailyMoodEntryRepository.java
+C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\EvaluationTestRepository.java
+C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\EvaluationTestResultRepository.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\FactorRepository.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\FactorResultRepository.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\QuestionRepository.java
@@ -58,10 +67,15 @@ C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\reposit
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\UserRepository.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\security\JwtAuthFilter.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\security\JwtService.java
+C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\security\RateLimitFilter.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\security\SecurityConfig.java
+C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\service\AppointmentSchedulerService.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\service\AuthService.java
+C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\service\DailyMoodService.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\service\EmailService.java
+C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\service\EvaluationTestService.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\service\ExcelExportService.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\service\StripeService.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\service\TemporarySessionService.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\service\TestResultService.java
+C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\util\InputSanitizer.java

@@ -107,5 +107,102 @@ public class EmailService {
             // No lanzar excepción para no interrumpir el flujo si falla el envío de email
         }
     }
+    
+    public void sendAppointmentReminderEmail(String toEmail, String patientName, String psychologistName,
+                                             java.time.Instant appointmentStart, java.time.Instant appointmentEnd,
+                                             java.math.BigDecimal price) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(toEmail);
+            message.setSubject("Recordatorio de cita - PSYmatch");
+            
+            java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter
+                .ofPattern("dd/MM/yyyy 'a las' HH:mm")
+                .withZone(java.time.ZoneId.systemDefault());
+            
+            String appointmentDate = formatter.format(appointmentStart);
+            String appointmentEndTime = formatter.format(appointmentEnd);
+            
+            String emailBody = String.format(
+                "Hola %s,\n\n" +
+                "Este es un recordatorio de tu próxima cita.\n\n" +
+                "Detalles de la cita:\n" +
+                "- Psicólogo: %s\n" +
+                "- Fecha y hora: %s\n" +
+                "- Duración: hasta las %s\n" +
+                "- Precio: %.2f €\n\n" +
+                "Te recordamos que puedes acceder a la videollamada desde tu panel de usuario.\n" +
+                "La videollamada estará disponible 1 hora antes del inicio de la cita.\n\n" +
+                "Si necesitas cancelar o modificar tu cita, por favor contacta con tu psicólogo.\n\n" +
+                "Saludos,\n" +
+                "El equipo de PSYmatch",
+                patientName,
+                psychologistName,
+                appointmentDate,
+                appointmentEndTime,
+                price != null ? price.doubleValue() : 0.0
+            );
+            
+            message.setText(emailBody);
+            mailSender.send(message);
+        } catch (Exception e) {
+            System.err.println("Error enviando correo de recordatorio: " + e.getMessage());
+        }
+    }
+    
+    public void sendPaymentReminderEmail(String toEmail, String patientName, String psychologistName,
+                                        java.time.Instant appointmentStart, java.time.Instant paymentDeadline,
+                                        java.math.BigDecimal price) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(toEmail);
+            message.setSubject("Recordatorio de pago - PSYmatch");
+            
+            java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter
+                .ofPattern("dd/MM/yyyy 'a las' HH:mm")
+                .withZone(java.time.ZoneId.systemDefault());
+            
+            String appointmentDate = formatter.format(appointmentStart);
+            String deadlineDate = formatter.format(paymentDeadline);
+            
+            java.time.Duration timeUntilDeadline = java.time.Duration.between(java.time.Instant.now(), paymentDeadline);
+            long hoursRemaining = timeUntilDeadline.toHours();
+            
+            String urgencyMessage = hoursRemaining < 6 
+                ? "URGENTE: " 
+                : hoursRemaining < 24 
+                    ? "IMPORTANTE: " 
+                    : "";
+            
+            String emailBody = String.format(
+                "Hola %s,\n\n" +
+                "%sTienes una cita pendiente de pago.\n\n" +
+                "Detalles de la cita:\n" +
+                "- Psicólogo: %s\n" +
+                "- Fecha y hora: %s\n" +
+                "- Precio: %.2f €\n\n" +
+                "Plazo de pago: %s\n" +
+                "Tiempo restante: %d horas\n\n" +
+                "Por favor, realiza el pago antes de que expire el plazo para evitar la cancelación automática de tu cita.\n\n" +
+                "Puedes acceder a tu panel de usuario para realizar el pago.\n\n" +
+                "Saludos,\n" +
+                "El equipo de PSYmatch",
+                patientName,
+                urgencyMessage,
+                psychologistName,
+                appointmentDate,
+                price != null ? price.doubleValue() : 0.0,
+                deadlineDate,
+                hoursRemaining
+            );
+            
+            message.setText(emailBody);
+            mailSender.send(message);
+        } catch (Exception e) {
+            System.err.println("Error enviando correo de recordatorio de pago: " + e.getMessage());
+        }
+    }
 }
 

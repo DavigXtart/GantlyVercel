@@ -27,6 +27,29 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
         @Param("startTime") Instant startTime, 
         @Param("status") String status
     );
+    
+    // Buscar citas con pagos expirados
+    @Query("SELECT a FROM AppointmentEntity a WHERE a.status = :status AND a.paymentStatus = :paymentStatus AND a.paymentDeadline < :deadline")
+    List<AppointmentEntity> findByStatusAndPaymentStatusAndPaymentDeadlineBefore(
+        @Param("status") String status,
+        @Param("paymentStatus") String paymentStatus,
+        @Param("deadline") Instant deadline
+    );
+    
+    // Buscar citas por estado y rango de fechas
+    @Query("SELECT a FROM AppointmentEntity a WHERE a.status = :status AND a.startTime >= :startTime AND a.startTime <= :endTime ORDER BY a.startTime ASC")
+    List<AppointmentEntity> findByStatusAndStartTimeBetween(
+        @Param("status") String status,
+        @Param("startTime") Instant startTime,
+        @Param("endTime") Instant endTime
+    );
+    
+    // Buscar citas por estado y estado de pago
+    @Query("SELECT a FROM AppointmentEntity a WHERE a.status = :status AND a.paymentStatus = :paymentStatus ORDER BY a.startTime ASC")
+    List<AppointmentEntity> findByStatusAndPaymentStatus(
+        @Param("status") String status,
+        @Param("paymentStatus") String paymentStatus
+    );
 }
 
 

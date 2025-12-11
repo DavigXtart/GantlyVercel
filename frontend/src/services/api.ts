@@ -30,9 +30,14 @@ api.interceptors.request.use(config => {
 api.interceptors.response.use(
   response => response,
   error => {
+    // Manejar errores comunes sin depender de toast (evitar importación circular)
     if (error.code === 'ECONNREFUSED' || error.message.includes('Network Error')) {
       console.error('❌ Error de conexión: El backend no está disponible en http://localhost:8080');
       error.message = 'No se pudo conectar al servidor. Verifica que el backend esté corriendo.';
+    } else if (error.response?.status === 401) {
+      console.warn('Sesión expirada');
+      localStorage.removeItem('token');
+      // No recargar automáticamente, dejar que el componente maneje esto
     }
     return Promise.reject(error);
   }
@@ -403,6 +408,62 @@ export const stripeService = {
   getPublicKey: async () => {
     const { data } = await api.get('/stripe/public-key');
     return data as { publicKey: string };
+  }
+};
+
+export const personalAgendaService = {
+  saveEntry: async (entryData: any) => {
+    try {
+      const { data } = await api.post('/personal-agenda/entry', entryData);
+      return data;
+    } catch (error: any) {
+      console.error('API Error in personalAgendaService.saveEntry:', error);
+      console.error('Request payload:', entryData);
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+      }
+      throw error;
+    }
+  },
+  getTodayEntry: async () => {
+    const { data } = await api.get('/personal-agenda/entry/today');
+    return data;
+  },
+  getUserEntries: async () => {
+    const { data } = await api.get('/personal-agenda/entries');
+    return data;
+  },
+  getStatistics: async (days: number = 30) => {
+    const { data } = await api.get(`/personal-agenda/statistics?days=${days}`);
+    return data;
+  }
+};
+
+export const evaluationTestService = {
+  getTestsByCategory: async (category: string) => {
+    const { data } = await api.get(`/evaluation-tests/category/${category}`);
+    return data;
+  },
+  getTestsByTopic: async (category: string, topic: string) => {
+    const { data } = await api.get(`/evaluation-tests/category/${category}/topic/${topic}`);
+    return data;
+  },
+  getAllTests: async () => {
+    const { data } = await api.get('/evaluation-tests/all');
+    return data;
+  },
+  submitResult: async (testId: number, resultData: any) => {
+    const { data } = await api.post(`/evaluation-tests/${testId}/submit`, resultData);
+    return data;
+  },
+  getUserResults: async () => {
+    const { data } = await api.get('/evaluation-tests/results');
+    return data;
+  },
+  getUserStatistics: async () => {
+    const { data } = await api.get('/evaluation-tests/statistics');
+    return data;
   }
 };
 

@@ -25,6 +25,7 @@ public class PsychologistController {
 
     @GetMapping("/patients")
     @Transactional(readOnly = true)
+    @org.springframework.cache.annotation.Cacheable(value = "psychologistPatients", key = "#principal.name")
     public ResponseEntity<List<Map<String, Object>>> myPatients(Principal principal) {
         var me = userRepository.findByEmail(principal.getName()).orElseThrow();
         if (!"PSYCHOLOGIST".equals(me.getRole())) return ResponseEntity.status(403).build();

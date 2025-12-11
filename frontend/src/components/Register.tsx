@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { authService } from '../services/api';
+import FormField from './ui/FormField';
+import { toast } from './ui/Toast';
 
 interface RegisterProps {
   onRegister: () => void;
@@ -11,19 +13,49 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId }: Reg
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string }>({});
   const [loading, setLoading] = useState(false);
+
+  const validateName = (name: string): string | undefined => {
+    if (!name.trim()) return 'El nombre es obligatorio';
+    if (name.trim().length < 2) return 'El nombre debe tener al menos 2 caracteres';
+    return undefined;
+  };
+
+  const validateEmail = (email: string): string | undefined => {
+    if (!email.trim()) return 'El email es obligatorio';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Ingresa un email válido';
+    return undefined;
+  };
+
+  const validatePassword = (password: string): string | undefined => {
+    if (!password) return 'La contraseña es obligatoria';
+    if (password.length < 6) return 'La contraseña debe tener al menos 6 caracteres';
+    return undefined;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    const nameError = validateName(name);
+    const emailError = validateEmail(email);
+    const passwordError = validatePassword(password);
+    
+    if (nameError || emailError || passwordError) {
+      setErrors({ name: nameError, email: emailError, password: passwordError });
+      return;
+    }
+
+    setErrors({});
     setLoading(true);
 
     try {
       await authService.register(name, email, password, sessionId || undefined);
+      toast.success('Registro exitoso. Bienvenido!');
       onRegister();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al registrarse');
+      const errorMsg = err.response?.data?.message || 'Error al registrarse';
+      toast.error(errorMsg);
+      setErrors({ email: errorMsg.includes('email') ? errorMsg : undefined });
     } finally {
       setLoading(false);
     }
@@ -198,137 +230,57 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId }: Reg
             Completa tus datos para comenzar tu experiencia.
           </p>
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <label style={{ 
-                fontSize: '14px',
-                color: '#3a5a4a',
-                fontWeight: 500,
-                fontFamily: "'Inter', sans-serif",
-              }}>
-                Nombre completo
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                placeholder="Tu nombre"
-                style={{
-                  padding: '14px 18px',
-                  borderRadius: '12px',
-                  border: '1px solid rgba(90, 146, 112, 0.3)',
-                  background: '#f8f9fa',
-                  color: '#1a2e22',
-                  fontSize: '15px',
-                  fontFamily: "'Inter', sans-serif",
-                  transition: 'all 0.3s',
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = '#5a9270';
-                  e.currentTarget.style.background = '#fff';
-                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(90, 146, 112, 0.1)';
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
-                  e.currentTarget.style.background = '#f8f9fa';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              />
-            </div>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }} aria-label="Formulario de registro">
+            <FormField
+              label="Nombre completo"
+              name="name"
+              type="text"
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (errors.name) {
+                  setErrors({ ...errors, name: validateName(e.target.value) });
+                }
+              }}
+              error={errors.name}
+              required
+              placeholder="Tu nombre"
+              ariaLabel="Nombre completo"
+            />
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <label style={{ 
-                fontSize: '14px',
-                color: '#3a5a4a',
-                fontWeight: 500,
-                fontFamily: "'Inter', sans-serif",
-              }}>
-                Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="tu@email.com"
-                style={{
-                  padding: '14px 18px',
-                  borderRadius: '12px',
-                  border: '1px solid rgba(90, 146, 112, 0.3)',
-                  background: '#f8f9fa',
-                  color: '#1a2e22',
-                  fontSize: '15px',
-                  fontFamily: "'Inter', sans-serif",
-                  transition: 'all 0.3s',
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = '#5a9270';
-                  e.currentTarget.style.background = '#fff';
-                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(90, 146, 112, 0.1)';
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
-                  e.currentTarget.style.background = '#f8f9fa';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              />
-            </div>
+            <FormField
+              label="Email"
+              name="email"
+              type="email"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (errors.email) {
+                  setErrors({ ...errors, email: validateEmail(e.target.value) });
+                }
+              }}
+              error={errors.email}
+              required
+              placeholder="tu@email.com"
+              ariaLabel="Correo electrónico"
+            />
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <label style={{ 
-                fontSize: '14px',
-                color: '#3a5a4a',
-                fontWeight: 500,
-                fontFamily: "'Inter', sans-serif",
-              }}>
-                Contraseña
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder="Mínimo 6 caracteres"
-                minLength={6}
-                style={{
-                  padding: '14px 18px',
-                  borderRadius: '12px',
-                  border: '1px solid rgba(90, 146, 112, 0.3)',
-                  background: '#f8f9fa',
-                  color: '#1a2e22',
-                  fontSize: '15px',
-                  fontFamily: "'Inter', sans-serif",
-                  transition: 'all 0.3s',
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = '#5a9270';
-                  e.currentTarget.style.background = '#fff';
-                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(90, 146, 112, 0.1)';
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
-                  e.currentTarget.style.background = '#f8f9fa';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              />
-            </div>
-
-            {error && (
-              <div
-                style={{
-                  padding: '14px 16px',
-                  borderRadius: '12px',
-                  background: 'rgba(239, 68, 68, 0.1)',
-                  border: '1px solid rgba(239, 68, 68, 0.3)',
-                  color: '#dc2626',
-                  fontSize: '14px',
-                  fontFamily: "'Inter', sans-serif",
-                }}
-              >
-                {error}
-              </div>
-            )}
+            <FormField
+              label="Contraseña"
+              name="password"
+              type="password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (errors.password) {
+                  setErrors({ ...errors, password: validatePassword(e.target.value) });
+                }
+              }}
+              error={errors.password}
+              required
+              placeholder="Mínimo 6 caracteres"
+              ariaLabel="Contraseña"
+            />
 
             <button
               type="submit"

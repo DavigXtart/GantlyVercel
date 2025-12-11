@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { toast } from './ui/Toast';
 
 type Slot = { id: number; startTime: string; endTime: string; status: 'FREE'|'REQUESTED'|'CONFIRMED'|'BOOKED'|'CANCELLED'; user?: { name: string }; price?: number };
 
@@ -75,14 +76,14 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
     
     // Validar que el precio sea obligatorio
     if (priceStr === '') {
-      alert('El precio es obligatorio. Por favor, ingresa un precio para la cita.');
+      toast.warning('El precio es obligatorio. Por favor, ingresa un precio para la cita.');
       return;
     }
     
     const price = parseFloat(priceStr);
     
     if (isNaN(price) || price <= 0) {
-      alert('Por favor, ingresa un precio válido (número mayor a 0)');
+      toast.warning('Por favor, ingresa un precio válido (número mayor a 0)');
       return;
     }
     

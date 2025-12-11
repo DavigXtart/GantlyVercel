@@ -4,6 +4,9 @@ import ChatWidget from './ChatWidget';
 import CalendarWeek from './CalendarWeek';
 import JitsiVideoCall from './JitsiVideoCall';
 import { generateJitsiRoomName } from '../lib/utils';
+import LoadingSpinner from './ui/LoadingSpinner';
+import EmptyState from './ui/EmptyState';
+import { toast } from './ui/Toast';
 
 type Tab = 'perfil' | 'pacientes' | 'calendario' | 'tareas' | 'chat' | 'tests-asignados';
 
@@ -14,6 +17,9 @@ export default function PsychDashboard() {
   const [slots, setSlots] = useState<any[]>([]);
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [loadingPatients, setLoadingPatients] = useState(false);
   const [assignedTests, setAssignedTests] = useState<any[]>([]);
   const [availableTests, setAvailableTests] = useState<any[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<number | null>(null);
@@ -56,16 +62,21 @@ export default function PsychDashboard() {
 
   const loadData = async () => {
     try {
+      setLoading(true);
       const m = await profileService.me();
       setMe(m);
       setEditForm({ name: m?.name || '', gender: m?.gender || '', age: m?.age?.toString() || '' });
+      setLoadingPatients(true);
       const p = await psychService.patients();
       setPatients(p);
+      setLoadingPatients(false);
       const t = await tasksService.list();
       setTasks(t);
     } catch (error: any) {
       console.error('Error cargando datos:', error);
-      alert('Error al cargar los datos. Por favor recarga la página.');
+      toast.error('Error al cargar los datos. Por favor recarga la página.');
+    } finally {
+      setLoading(false);
     }
     
     // Cargar tests asignados de forma asíncrona y no bloqueante
@@ -109,7 +120,7 @@ export default function PsychDashboard() {
       await loadTaskComments(taskId);
     } catch (error) {
       console.error('Error cargando detalles de tarea:', error);
-      alert('Error al cargar los detalles de la tarea');
+      toast.error('Error al cargar los detalles de la tarea');
     }
   };
 
@@ -128,9 +139,10 @@ export default function PsychDashboard() {
       await tasksService.addComment(taskId, newComment);
       setNewComment('');
       await loadTaskComments(taskId);
+      toast.success('Comentario agregado exitosamente');
     } catch (error: any) {
       console.error('Error agregando comentario:', error);
-      alert('Error al agregar el comentario: ' + (error.response?.data?.error || error.message));
+      toast.error('Error al agregar el comentario: ' + (error.response?.data?.error || error.message));
     }
   };
 
@@ -168,11 +180,19 @@ export default function PsychDashboard() {
   }, []);
 
   const loadMySlots = async () => {
-    const from = new Date();
-    const to = new Date();
-    to.setDate(to.getDate() + 14);
-    const list = await calendarService.mySlots(from.toISOString(), to.toISOString());
-    setSlots(list);
+    try {
+      setLoadingSlots(true);
+      const from = new Date();
+      const to = new Date();
+      to.setDate(to.getDate() + 14);
+      const list = await calendarService.mySlots(from.toISOString(), to.toISOString());
+      setSlots(list);
+    } catch (error: any) {
+      console.error('Error cargando slots:', error);
+      toast.error('Error al cargar el calendario');
+    } finally {
+      setLoadingSlots(false);
+    }
   };
 
   const loadPendingRequests = async () => {
@@ -181,6 +201,7 @@ export default function PsychDashboard() {
       setPendingRequests(requests);
     } catch (error: any) {
       console.error('Error cargando solicitudes pendientes:', error);
+      // No mostrar toast para esto, es no crítico
     }
   };
 
@@ -215,16 +236,16 @@ export default function PsychDashboard() {
     if (!input.files || input.files.length === 0) return;
     const file = input.files[0];
     if (!file.type.startsWith('image/')) {
-      alert('Por favor selecciona un archivo de imagen');
+      toast.error('Por favor selecciona un archivo de imagen');
       return;
     }
     try {
       const res = await profileService.uploadAvatar(file);
       setMe({ ...me, avatarUrl: res.avatarUrl });
-      // Avatar actualizado exitosamente (sin pop-up)
+      toast.success('Avatar actualizado exitosamente');
     } catch (error: any) {
       console.error('Error al subir avatar:', error);
-      alert('Error al subir el avatar: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
+      toast.error('Error al subir el avatar: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
     } finally {
       // Permitir seleccionar el mismo archivo nuevamente
       input.value = '';
@@ -241,8 +262,9 @@ export default function PsychDashboard() {
       setMe({ ...me, ...editForm });
       setEditing(false);
       await loadData();
+      toast.success('Perfil actualizado exitosamente');
     } catch (error) {
-      alert('Error al guardar los cambios');
+      toast.error('Error al guardar los cambios');
     }
   };
 
@@ -255,6 +277,14 @@ export default function PsychDashboard() {
       day: 'numeric' 
     });
   };
+
+  if (loading && !me) {
+    return (
+      <div className="container" style={{ maxWidth: '1200px', padding: '40px' }}>
+        <LoadingSpinner text="Cargando perfil..." />
+      </div>
+    );
+  }
 
   return (
     <div className="container" style={{ maxWidth: '1200px' }}>
@@ -636,7 +666,7 @@ export default function PsychDashboard() {
                                 setVideoCallOtherUser({ email: roomInfo.otherUser.email, name: roomInfo.otherUser.name });
                                 setShowVideoCall(true);
                               } catch (error: any) {
-                                alert(error.response?.data?.error || 'No tienes permiso para iniciar esta videollamada');
+                                toast.error(error.response?.data?.error || 'No tienes permiso para iniciar esta videollamada');
                               }
                             }
                           } : undefined}
@@ -711,104 +741,118 @@ export default function PsychDashboard() {
               🔄 Refrescar
             </button>
           </div>
-          {patients.length === 0 ? (
-            <div style={{
-              padding: '60px 40px',
-              textAlign: 'center',
-              background: '#f9fafb',
-              borderRadius: '12px',
-              border: '2px dashed #d1d5db'
-            }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>👥</div>
-              <div style={{ fontSize: '18px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>
-                No tienes pacientes asignados
-              </div>
-              <div style={{ fontSize: '14px', color: '#9ca3af' }}>
-                Pide al administrador que asigne usuarios a tu perfil
-              </div>
-            </div>
+          {loadingPatients ? (
+            <LoadingSpinner text="Cargando pacientes..." />
+          ) : patients.length === 0 ? (
+            <EmptyState
+              icon="👥"
+              title="No hay pacientes asignados"
+              message="Aún no tienes pacientes asignados. Los pacientes aparecerán aquí una vez que se registren y te seleccionen."
+            />
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
-              {patients.map(p => (
-                <div
-                  key={p.id}
-                  style={{
-                    padding: '24px',
-                    background: '#f9fafb',
-                    border: '2px solid #e5e7eb',
-                    borderRadius: '12px',
-                    transition: 'all 0.2s',
-                    cursor: 'pointer'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.1)';
-                    e.currentTarget.style.borderColor = '#667eea';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
-                    e.currentTarget.style.borderColor = '#e5e7eb';
-                  }}
-                  onClick={() => {
-                    setSelectedPatient(p.id);
-                    setTab('chat');
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
-                    <div style={{
-                      width: '60px',
-                      height: '60px',
-                      borderRadius: '50%',
-                      overflow: 'hidden',
-                      background: '#e5e7eb',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '24px',
-                      border: '3px solid white',
-                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
-                    }}>
-                      {p.avatarUrl ? (
-                        <img src={p.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        '👤'
-                      )}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '4px' }}>
-                        {p.name}
-                      </div>
-                      <div style={{ fontSize: '14px', color: '#6b7280' }}>
-                        {p.email}
-                      </div>
-                    </div>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
+            <div 
+              style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}
+              role="list"
+              aria-label="Lista de pacientes"
+            >
+              {loadingPatients ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <SkeletonLoader key={i} height="200px" />
+                ))
+              ) : (
+                patients.map(p => (
+                  <div
+                    key={p.id}
+                    role="listitem"
+                    tabIndex={0}
+                    aria-label={`Paciente ${p.name}`}
+                    style={{
+                      padding: '24px',
+                      background: '#f9fafb',
+                      border: '2px solid #e5e7eb',
+                      borderRadius: '12px',
+                      transition: 'all 0.2s',
+                      cursor: 'pointer',
+                      outline: 'none'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                      e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.1)';
+                      e.currentTarget.style.borderColor = '#667eea';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.borderColor = '#e5e7eb';
+                    }}
+                    onClick={() => {
                       setSelectedPatient(p.id);
                       setTab('chat');
                     }}
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      transition: 'all 0.2s'
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelectedPatient(p.id);
+                        setTab('chat');
+                      }
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
-                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                   >
-                    💬 Abrir Chat
-                  </button>
-                </div>
-              ))}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+                      <div style={{
+                        width: '60px',
+                        height: '60px',
+                        borderRadius: '50%',
+                        overflow: 'hidden',
+                        background: '#e5e7eb',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '24px',
+                        border: '3px solid white',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                      }}>
+                        {p.avatarUrl ? (
+                          <img src={p.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          '👤'
+                        )}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '4px' }}>
+                          {p.name}
+                        </div>
+                        <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                          {p.email}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedPatient(p.id);
+                        setTab('chat');
+                      }}
+                      aria-label={`Abrir chat con ${p.name}`}
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                      onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                    >
+                      💬 Abrir Chat
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           )}
         </div>
@@ -1072,7 +1116,7 @@ export default function PsychDashboard() {
                             console.error('Error al subir archivo:', error);
                             console.error('Error completo:', JSON.stringify(error, null, 2));
                             const errorMessage = error.response?.data?.error || error.response?.data?.message || error.response?.data?.details || error.message || 'Error desconocido';
-                            alert('Error al subir el archivo: ' + errorMessage);
+                            toast.error('Error al subir el archivo: ' + errorMessage);
                             // Resetear el input incluso si hay error
                             e.target.value = '';
                           }
@@ -1405,11 +1449,11 @@ export default function PsychDashboard() {
                       <button
                         onClick={async () => {
                           if (!taskForm.title) {
-                            alert('Por favor completa el título de la tarea');
+                            toast.warning('Por favor completa el título de la tarea');
                             return;
                           }
                           if (!me || !me.id) {
-                            alert('Error: No se pudo obtener la información del psicólogo. Por favor recarga la página.');
+                            toast.error('Error: No se pudo obtener la información del psicólogo. Por favor recarga la página.');
                             return;
                           }
                           try {
@@ -1426,7 +1470,7 @@ export default function PsychDashboard() {
                             // Tarea creada exitosamente (sin pop-up)
                           } catch (error: any) {
                             console.error('Error al crear la tarea:', error);
-                            alert('Error al crear la tarea: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
+                            toast.error('Error al crear la tarea: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
                           }
                         }}
                         style={{
@@ -1665,7 +1709,7 @@ export default function PsychDashboard() {
                   <button
                     onClick={async () => {
                       if (!taskForm.userId || !taskForm.title) {
-                        alert('Por favor completa todos los campos requeridos');
+                        toast.warning('Por favor completa todos los campos requeridos');
                         return;
                       }
                       if (!me || !me.id) {
@@ -1726,21 +1770,11 @@ export default function PsychDashboard() {
           )}
           
           {patientsWithTasks.length === 0 ? (
-            <div style={{
-              padding: '60px 40px',
-              textAlign: 'center',
-              background: '#f9fafb',
-              borderRadius: '12px',
-              border: '2px dashed #d1d5db'
-            }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
-              <div style={{ fontSize: '18px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>
-                No hay pacientes con tareas
-              </div>
-              <div style={{ fontSize: '14px', color: '#9ca3af' }}>
-                Crea tareas para tus pacientes o revisa las enviadas por ellos
-              </div>
-            </div>
+            <EmptyState
+              icon="📋"
+              title="No hay pacientes con tareas"
+              message="Crea tareas para tus pacientes o revisa las enviadas por ellos."
+            />
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
               {patientsWithTasks.map((p: any) => (
@@ -1840,11 +1874,11 @@ export default function PsychDashboard() {
                   setAvailableTests(activeTests);
                   
                   if (activeTests.length === 0) {
-                    alert('No hay tests disponibles para asignar. Verifica que haya tests activos en el sistema.');
+                    toast.warning('No hay tests disponibles para asignar. Verifica que haya tests activos en el sistema.');
                   }
                 } catch (error: any) {
                   console.error('Error cargando tests:', error);
-                  alert('Error al cargar los tests. Por favor intenta de nuevo.');
+                  toast.error('Error al cargar los tests. Por favor intenta de nuevo.');
                 }
               }}
               style={{
@@ -1939,7 +1973,7 @@ export default function PsychDashboard() {
                   <button
                     onClick={async () => {
                       if (!assignTestForm.userId || !assignTestForm.testId) {
-                        alert('Por favor selecciona un paciente y un test');
+                        toast.warning('Por favor selecciona un paciente y un test');
                         return;
                       }
                       try {
@@ -1950,7 +1984,7 @@ export default function PsychDashboard() {
                         console.log('Valores del formulario:', assignTestForm);
                         
                         if (isNaN(userId) || isNaN(testId)) {
-                          alert('Error: Los valores seleccionados no son válidos');
+                          toast.error('Error: Los valores seleccionados no son válidos');
                           return;
                         }
                         
@@ -1977,7 +2011,7 @@ export default function PsychDashboard() {
                           errorMessage = error.message;
                         }
                         
-                        alert(`Error al asignar el test: ${errorMessage}`);
+                        toast.error(`Error al asignar el test: ${errorMessage}`);
                       }
                     }}
                     style={{
@@ -2235,7 +2269,7 @@ export default function PsychDashboard() {
                                           await assignedTestsService.unassign(at.id);
                                           await loadData();
                                         } catch (error) {
-                                          alert('Error al desasignar el test');
+                                          toast.error('Error al desasignar el test');
                                         }
                                       }
                                     }}
@@ -2275,15 +2309,10 @@ export default function PsychDashboard() {
               Gestión de Calendario
             </h3>
           </div>
-          <div style={{
-            background: '#ffffff',
-            padding: '24px',
-            borderRadius: '12px',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-            border: '1px solid #e5e7eb',
-            marginBottom: '24px'
-          }}>
-          </div>
+          {loadingSlots ? (
+            <LoadingSpinner text="Cargando calendario..." />
+          ) : (
+            <>
           <CalendarWeek
             mode="PSYCHO"
             slots={slots}
@@ -2292,9 +2321,10 @@ export default function PsychDashboard() {
                 await calendarService.createSlot(start, end, price);
                 await loadMySlots();
                 await loadPendingRequests();
+                toast.success('Cita creada exitosamente');
               } catch (e: any) {
                 const errorMessage = e?.response?.data?.error || 'Error al crear el slot';
-                alert(errorMessage);
+                toast.error(errorMessage);
               }
             }}
             onDeleteSlot={async (appointmentId) => {
@@ -2403,11 +2433,11 @@ export default function PsychDashboard() {
                           if (confirm('¿Confirmar esta cita para ' + (req.user.name || req.user.email) + '?')) {
                             try {
                               await calendarService.confirmAppointment(req.id);
-                              alert('Cita confirmada exitosamente. Se ha enviado un correo al paciente.');
+                              toast.success('Cita confirmada exitosamente. Se ha enviado un correo al paciente.');
                               await loadMySlots();
                               await loadPendingRequests();
                             } catch (e: any) {
-                              alert(e?.response?.data?.error || 'Error al confirmar la cita');
+                              toast.error(e?.response?.data?.error || 'Error al confirmar la cita');
                             }
                           }
                         }}
@@ -2440,11 +2470,11 @@ export default function PsychDashboard() {
                           if (confirm('¿Cancelar esta cita?')) {
                             try {
                               await calendarService.cancelAppointment(req.appointment.id);
-                              alert('Cita cancelada exitosamente.');
+                              toast.success('Cita cancelada exitosamente');
                               await loadMySlots();
                               await loadPendingRequests();
                             } catch (e: any) {
-                              alert(e?.response?.data?.error || 'Error al cancelar la cita');
+                              toast.error(e?.response?.data?.error || 'Error al cancelar la cita');
                             }
                           }
                         }}
@@ -2480,7 +2510,7 @@ export default function PsychDashboard() {
           )}
           
           {/* Citas Confirmadas y Reservadas */}
-          {slots.filter(s => (s.status === 'CONFIRMED' || s.status === 'BOOKED') && s.user).length > 0 && (
+          {!loadingSlots && slots.filter(s => (s.status === 'CONFIRMED' || s.status === 'BOOKED') && s.user).length > 0 && (
             <div style={{
               marginTop: '32px',
               background: '#ffffff',
@@ -2576,11 +2606,11 @@ export default function PsychDashboard() {
                           if (confirm('¿Cancelar esta cita confirmada?')) {
                             try {
                               await calendarService.cancelAppointment(apt.id);
-                              alert('Cita cancelada exitosamente.');
+                              toast.success('Cita cancelada exitosamente');
                               await loadMySlots();
                               await loadPendingRequests();
                             } catch (e: any) {
-                              alert(e?.response?.data?.error || 'Error al cancelar la cita');
+                              toast.error(e?.response?.data?.error || 'Error al cancelar la cita');
                             }
                           }
                         }}
@@ -2652,7 +2682,7 @@ export default function PsychDashboard() {
                                 setVideoCallOtherUser({ email: roomInfo.otherUser.email, name: roomInfo.otherUser.name });
                                 setShowVideoCall(true);
                               } catch (error: any) {
-                                alert(error.response?.data?.error || 'No tienes permiso para iniciar esta videollamada');
+                                toast.error(error.response?.data?.error || 'No tienes permiso para iniciar esta videollamada');
                               }
                             }
                           }}
@@ -2692,6 +2722,8 @@ export default function PsychDashboard() {
                 ))}
               </div>
             </div>
+          )}
+            </>
           )}
         </div>
       )}

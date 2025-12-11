@@ -55,26 +55,65 @@ public class CalendarController {
         Instant start = Instant.parse(String.valueOf(body.get("start")));
         Instant end = Instant.parse(String.valueOf(body.get("end")));
         
+        // Validar que las fechas no sean en el pasado
+        Instant now = Instant.now();
+        if (start.isBefore(now)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "No se pueden crear citas en el pasado"));
+        }
+        
+        // Validar que end sea después de start
+        if (!end.isAfter(start)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "La hora de fin debe ser posterior a la hora de inicio"));
+        }
+        
+        // Validar que la duración sea razonable (mínimo 30 minutos, máximo 4 horas)
+        long durationMinutes = java.time.Duration.between(start, end).toMinutes();
+        if (durationMinutes < 30) {
+            return ResponseEntity.badRequest().body(Map.of("error", "La duración mínima de una cita es de 30 minutos"));
+        }
+        if (durationMinutes > 240) {
+            return ResponseEntity.badRequest().body(Map.of("error", "La duración máxima de una cita es de 4 horas"));
+        }
+        
+        // Validar que no haya solapamiento con otras citas del mismo psicólogo
+        List<AppointmentEntity> existingAppointments = appointmentRepository
+            .findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(me.getId(), 
+                start.minusSeconds(1), end.plusSeconds(1));
+        
+        // Filtrar solo citas activas (no canceladas)
+        boolean hasOverlap = existingAppointments.stream()
+            .anyMatch(apt -> {
+                if ("CANCELLED".equals(apt.getStatus())) {
+                    return false;
+                }
+                // Verificar solapamiento: (start1 < end2) && (end1 > start2)
+                return (start.isBefore(apt.getEndTime()) && end.isAfter(apt.getStartTime()));
+            });
+        
+        if (hasOverlap) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Ya existe una cita en este horario. Por favor, elige otro horario."));
+        }
+        
         // Obtener el precio del body - OBLIGATORIO
         BigDecimal price = null;
         if (body.get("price") == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "El precio es obligatorio para crear una cita"));
         }
         
-        try {
-            if (body.get("price") instanceof Number) {
-                price = BigDecimal.valueOf(((Number) body.get("price")).doubleValue());
-            } else if (body.get("price") instanceof String) {
-                String priceStr = ((String) body.get("price")).trim();
+            try {
+                if (body.get("price") instanceof Number) {
+                    price = BigDecimal.valueOf(((Number) body.get("price")).doubleValue());
+                } else if (body.get("price") instanceof String) {
+                    String priceStr = ((String) body.get("price")).trim();
                 if (priceStr.isEmpty()) {
                     return ResponseEntity.badRequest().body(Map.of("error", "El precio es obligatorio para crear una cita"));
                 }
-                price = new BigDecimal(priceStr);
-            } else {
-                price = new BigDecimal(String.valueOf(body.get("price")));
-            }
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Precio inválido: " + e.getMessage()));
+                        price = new BigDecimal(priceStr);
+                } else {
+                    price = new BigDecimal(String.valueOf(body.get("price")));
+                }
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Precio inválido: " + e.getMessage()));
         }
         
         // Validar que el precio sea positivo
@@ -453,6 +492,40 @@ public class CalendarController {
         Instant start = Instant.parse(String.valueOf(body.get("start")));
         Instant end = Instant.parse(String.valueOf(body.get("end")));
         
+        // Validar que las fechas no sean en el pasado
+        Instant now = Instant.now();
+        if (start.isBefore(now)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "No se pueden crear citas en el pasado"));
+        }
+        
+        // Validar que end sea después de start
+        if (!end.isAfter(start)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "La hora de fin debe ser posterior a la hora de inicio"));
+        }
+        
+        // Validar que la duración sea razonable
+        long durationMinutes = java.time.Duration.between(start, end).toMinutes();
+        if (durationMinutes < 30 || durationMinutes > 240) {
+            return ResponseEntity.badRequest().body(Map.of("error", "La duración de la cita debe estar entre 30 minutos y 4 horas"));
+        }
+        
+        // Validar que no haya solapamiento
+        List<AppointmentEntity> existingAppointments = appointmentRepository
+            .findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(psychologist.getId(), 
+                start.minusSeconds(1), end.plusSeconds(1));
+        
+        boolean hasOverlap = existingAppointments.stream()
+            .anyMatch(apt -> {
+                if ("CANCELLED".equals(apt.getStatus())) {
+                    return false;
+                }
+                return (start.isBefore(apt.getEndTime()) && end.isAfter(apt.getStartTime()));
+            });
+        
+        if (hasOverlap) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Ya existe una cita en este horario"));
+        }
+        
         // Verificar que el usuario es paciente del psicólogo
         var rel = userPsychologistRepository.findByUserId(userId);
         if (rel.isEmpty() || !rel.get().getPsychologist().getId().equals(psychologist.getId())) {
@@ -476,7 +549,6 @@ public class CalendarController {
         }
         
         var user = userRepository.findById(userId).orElseThrow();
-        Instant now = Instant.now();
         
         AppointmentEntity appointment = new AppointmentEntity();
         appointment.setPsychologist(psychologist);
@@ -485,9 +557,10 @@ public class CalendarController {
         appointment.setEndTime(end);
         appointment.setStatus("CONFIRMED");
         appointment.setPrice(price);
-        appointment.setConfirmedAt(now);
+        Instant confirmationTime = Instant.now();
+        appointment.setConfirmedAt(confirmationTime);
         appointment.setConfirmedByUser(user);
-        appointment.setPaymentDeadline(now.plusSeconds(24 * 60 * 60)); // 24 horas
+        appointment.setPaymentDeadline(confirmationTime.plusSeconds(24 * 60 * 60)); // 24 horas
         appointment.setPaymentStatus("PENDING");
         
         var saved = appointmentRepository.save(appointment);
