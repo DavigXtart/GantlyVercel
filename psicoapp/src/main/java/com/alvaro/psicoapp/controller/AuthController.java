@@ -21,7 +21,7 @@ public class AuthController {
 
 	@PostMapping("/register")
 	public ResponseEntity<AuthDtos.TokenResponse> register(@RequestBody AuthDtos.RegisterRequest req) {
-		String token = authService.register(req.name, req.email, req.password, req.sessionId);
+		String token = authService.register(req.name, req.email, req.password, req.sessionId, req.role);
 		return ResponseEntity.ok(new AuthDtos.TokenResponse(token));
 	}
 
@@ -40,7 +40,22 @@ public class AuthController {
                 response.put("email", email);
                 response.put("role", user.getRole());
                 response.put("name", user.getName());
+                response.put("emailVerified", user.getEmailVerified());
             });
+        }
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/verify-email")
+    public ResponseEntity<Map<String, String>> verifyEmail(@RequestParam("token") String token) {
+        boolean verified = authService.verifyEmail(token);
+        Map<String, String> response = new HashMap<>();
+        if (verified) {
+            response.put("message", "Email verificado exitosamente");
+            response.put("status", "success");
+        } else {
+            response.put("message", "Token de verificación inválido o expirado");
+            response.put("status", "error");
         }
         return ResponseEntity.ok(response);
     }

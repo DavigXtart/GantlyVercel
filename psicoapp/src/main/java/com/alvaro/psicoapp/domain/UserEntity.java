@@ -36,6 +36,15 @@ public class UserEntity {
 	@Column(name = "dark_mode")
 	private Boolean darkMode = false;
 
+	@Column(name = "email_verified")
+	private Boolean emailVerified = false;
+
+	@Column(name = "verification_token", length = 255)
+	private String verificationToken;
+
+	@Column(name = "verification_token_expires_at")
+	private Instant verificationTokenExpiresAt;
+
 	public Long getId() { return id; }
 	public void setId(Long id) { this.id = id; }
 	public String getName() { return name; }
@@ -56,4 +65,10 @@ public class UserEntity {
 	public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
 	public Boolean getDarkMode() { return darkMode; }
 	public void setDarkMode(Boolean darkMode) { this.darkMode = darkMode; }
+	public Boolean getEmailVerified() { return emailVerified; }
+	public void setEmailVerified(Boolean emailVerified) { this.emailVerified = emailVerified; }
+	public String getVerificationToken() { return verificationToken; }
+	public void setVerificationToken(String verificationToken) { this.verificationToken = verificationToken; }
+	public Instant getVerificationTokenExpiresAt() { return verificationTokenExpiresAt; }
+	public void setVerificationTokenExpiresAt(Instant verificationTokenExpiresAt) { this.verificationTokenExpiresAt = verificationTokenExpiresAt; }
 }

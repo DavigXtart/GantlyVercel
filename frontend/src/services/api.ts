@@ -39,8 +39,8 @@ api.interceptors.response.use(
 );
 
 export const authService = {
-  register: async (name: string, email: string, password: string, sessionId?: string) => {
-    const { data } = await api.post<{ token: string }>('/auth/register', { name, email, password, sessionId });
+  register: async (name: string, email: string, password: string, sessionId?: string, role?: string) => {
+    const { data } = await api.post<{ token: string }>('/auth/register', { name, email, password, sessionId, role });
     localStorage.setItem('token', data.token);
     return data.token;
   },
@@ -322,8 +322,8 @@ export const assignedTestsService = {
 
 // Calendario
 export const calendarService = {
-  createSlot: async (start: string, end: string) => {
-    const { data } = await api.post('/calendar/slots', { start, end });
+  createSlot: async (start: string, end: string, price?: number) => {
+    const { data } = await api.post('/calendar/slots', { start, end, price });
     return data as any;
   },
   mySlots: async (from: string, to: string) => {
@@ -340,7 +340,27 @@ export const calendarService = {
   },
   myAppointments: async () => {
     const { data } = await api.get('/calendar/my-appointments');
-    return data as Array<{ id: number; startTime: string; endTime: string; status: string; psychologist?: { id: number; name: string; email: string } }>;
+    return data as Array<{ id: number; startTime: string; endTime: string; status: string; psychologist?: { id: number; name: string; email: string }; paymentStatus?: string; paymentDeadline?: string; confirmedAt?: string }>;
+  },
+  getPendingRequests: async () => {
+    const { data } = await api.get('/calendar/requests/pending');
+    return data as Array<any>;
+  },
+  confirmAppointment: async (requestId: number) => {
+    const { data } = await api.post(`/calendar/confirm/${requestId}`);
+    return data;
+  },
+  cancelAppointment: async (appointmentId: number) => {
+    const { data } = await api.post(`/calendar/cancel/${appointmentId}`);
+    return data;
+  },
+  createForPatient: async (userId: number, start: string, end: string, price?: number) => {
+    const { data } = await api.post('/calendar/create-for-patient', { userId, start, end, price });
+    return data;
+  },
+  deleteSlot: async (appointmentId: number) => {
+    const { data } = await api.delete(`/calendar/slots/${appointmentId}`);
+    return data;
   }
 };
 
@@ -368,6 +388,21 @@ export const jitsiService = {
       otherUser: { email: string; name: string };
       hasActiveAppointment: boolean;
     };
+  }
+};
+
+// Stripe
+export const stripeService = {
+  createCheckoutSession: async (planId: string, isYearly: boolean) => {
+    const { data } = await api.post('/stripe/create-checkout-session', {
+      planId,
+      isYearly
+    });
+    return data as { sessionId: string; url: string };
+  },
+  getPublicKey: async () => {
+    const { data } = await api.get('/stripe/public-key');
+    return data as { publicKey: string };
   }
 };
 

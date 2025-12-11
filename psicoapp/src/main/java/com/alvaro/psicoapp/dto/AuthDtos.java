@@ -6,6 +6,7 @@ public class AuthDtos {
 		public String email;
 		public String password;
 		public String sessionId; // ID de sesión temporal después de completar test inicial
+		public String role; // USER o PSYCHOLOGIST
 	}
 	public static class LoginRequest {
 		public String email;

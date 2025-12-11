@@ -1,0 +1,927 @@
+16PF: Test de personalidad |  |  |  |  |  |  |  |  |  | 
+ | Puntos |  | Pregunta/respuestas |  |  |  |  |  |  | 
+ |  |  | 1 - He comprendido bien las instrucciones para contestar al cuestionario: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 0 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 2 - Estoy dispuesto a contestar todas las cuestiones con sinceridad: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 0 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 3 - ¿Cuales de las siguientes palabras es diferente de las otras dos?: |  |  |  |  |  |  | 
+ | 0 |  | Algo |  |  |  |  |  |  | 
+ | 1 |  | Nada |  |  |  |  |  |  | 
+ | 0 |  | Mucho
+ |  |  |  |  |  |  | 
+ |  |  | 4 - Poseo suficiente energía para enfrentarme a todos mis problemas: |  |  |  |  |  |  | 
+ | 2 |  | Siempre |  |  |  |  |  |  | 
+ | 1 |  | Frecuentemente |  |  |  |  |  |  | 
+ | 0 |  | Raras veces
+ |  |  |  |  |  |  | 
+ |  |  | 5 - Evito criticar a la gente y sus ideas: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Algunas veces |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 6 - Hago agudas y sarcásticas observaciones a la gente si creo que las merece: |  |  |  |  |  |  | 
+ | 2 |  | Generamente |  |  |  |  |  |  | 
+ | 1 |  | Algunas veces |  |  |  |  |  |  | 
+ | 0 |  | Nunca
+ |  |  |  |  |  |  | 
+ |  |  | 7 - Me gusta más la música semiclásica que las canciones populares: |  |  |  |  |  |  | 
+ | 0 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 8 - Si veo peleándose a los niños de mis vecinos: |  |  |  |  |  |  | 
+ | 0 |  | Les dejos solucionar sus problemas |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | Razono con ellos la solución
+ |  |  |  |  |  |  | 
+ |  |  | 9 - En situaciones sociales: |  |  |  |  |  |  | 
+ | 2 |  | Facilmente soy de los que toman iniciativas |  |  |  |  |  |  | 
+ | 1 |  | Intervengo algunas veces |  |  |  |  |  |  | 
+ | 0 |  | Prefiero quedarme tranquilamente a distancia
+ |  |  |  |  |  |  | 
+ |  |  | 10 - Sería más interesante ser: |  |  |  |  |  |  | 
+ | 0 |  | Ingeniero de la construcción |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro entre los dos |  |  |  |  |  |  | 
+ | 2 |  | Escritor de teatro
+ |  |  |  |  |  |  | 
+ |  |  | 11 - Generalmente puedo tolerar a la gente presuntuosa, aunque fanfarronee o piense demasiado bien de ella misma: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 12 - Cuando una persona no es honrada, casi siempre se le puede notar en la cara: |  |  |  |  |  |  | 
+ | 0 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 13 - Aceptaría mejor el riesgo de un trabajo donde pudiera terner ganacias mayores, aunque eventuales, que otro con sueldo pequeño, pero seguro: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 14 - De vez en cuando siento un vago temor o un repentino miedo, sin poder comprender las razones: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 15 - Cuando me critican duramente por algo que no he hecho: |  |  |  |  |  |  | 
+ | 2 |  | No me siento culpable |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | Todavía me siento un poco culpable
+ |  |  |  |  |  |  | 
+ |  |  | 16 - Casi todo se puede comprar con dinero: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 17 - La mayoría de las personas serían más felices si convivieran más con la gente de su nivel e hicieran las cosas como los demás: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 18 - En ocasiones, mirándome en un espejo, me entrar dudas sobre lo que es mi derecha o izquierda: |  |  |  |  |  |  | 
+ | 0 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 19 - Cuando algo realmente me pone furioso, suelo calmarme muy pronto: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 20 - Preferiría tener una casa: |  |  |  |  |  |  | 
+ | 2 |  | En un barrio con vida social |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | Aislada en el bosque
+ |  |  |  |  |  |  | 
+ |  |  | 21 - Con el mismo horario y sueldo, sería más interesante ser: |  |  |  |  |  |  | 
+ | 0 |  | El cocinero de un buen restaurante |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro entre ambos |  |  |  |  |  |  | 
+ | 2 |  | El que sirve mesas en el restaurante
+ |  |  |  |  |  |  | 
+ |  |  | 22 - "Cansado" es a trabajar como "orgulloso" es a:  |  |  |  |  |  |  | 
+ | 0 |  | Sonreir |  |  |  |  |  |  | 
+ | 1 |  | Tener éxito |  |  |  |  |  |  | 
+ | 0 |  | Ser feliz
+ |  |  |  |  |  |  | 
+ |  |  | 23 - Me pongo algo nervisoso ante animales salvajes, incluso cuando están encerrados en fuertes jaulas: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | No |  |  |  |  |  |  | 
+ |  |  | 24 - Una ley anticuada debería cambiarse: |  |  |  |  |  |  | 
+ | 0 |  | Sólo después de muchas discusiones |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | Inmediatamente
+ |  |  |  |  |  |  | 
+ |  |  | 25 - La mayor parte de las personas me consideran una interlocutor agradable.: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 26 - Me gusta salir a divertirme o ir a un espectáculo: |  |  |  |  |  |  | 
+ | 2 |  | Más de una vez por semana (más de lo corriente) |  |  |  |  |  |  | 
+ | 1 |  | Alrededor de una vez por semana (lo corriente) |  |  |  |  |  |  | 
+ | 0 |  | Menos de una vez por semana (menos de lo corriente)
+ |  |  |  |  |  |  | 
+ |  |  | 27 - Cuando veo gente desaliñada y sucia: |  |  |  |  |  |  | 
+ | 0 |  | Lo acepto simplemente |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | Me disgusta y me fastidia
+ |  |  |  |  |  |  | 
+ |  |  | 28 - Estando en un grupo social me siento un poco turbado si de pronto paso a ser el foco de atención: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 29 - Cuando voy por la calle prefiero detenerme antes a ver a un artista pintando que a escuchar a la gente discutir: |  |  |  |  |  |  | 
+ | 2 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 30 - Cuando me ponen al frente de algo, insisto en que se sigan mis instrucciones; en caso contrario, renuncio: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Algunas vees |  |  |  |  |  |  | 
+ | 0 |  | No |  |  |  |  |  |  | 
+ |  |  | 31 - Serían mejor que las vacaciones fueran más largas y obligatorias para todas las personas: |  |  |  |  |  |  | 
+ | 0 |  | De acuerdo |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | En desacuerdo
+ |  |  |  |  |  |  | 
+ |  |  | 32 - Hablo acerca de mis sentimientos: |  |  |  |  |  |  | 
+ | 2 |  | Sólo si es necesario |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | Facilmente, siempre que tengo ocasión
+ |  |  |  |  |  |  | 
+ |  |  | 33 - Me siento muy abatido cuando la gente me critica en un grupo:  |  |  |  |  |  |  | 
+ | 2 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 34 - Si mi jefe o profesor me llama a su despacho: |  |  |  |  |  |  | 
+ | 0 |  | Aprovecho la ocasión para pedirle algo que deseo |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | Temo haber hecho algo malo
+ |  |  |  |  |  |  | 
+ |  |  | 35 - Mis decisiones se apoyan más en: |  |  |  |  |  |  | 
+ | 0 |  | El corazón |  |  |  |  |  |  | 
+ | 1 |  | Los sentimientos y la razón pr igual |  |  |  |  |  |  | 
+ | 2 |  | La cabeza
+ |  |  |  |  |  |  | 
+ |  |  | 36 - En mi adolescencia pertenecí a equipos deportivos: |  |  |  |  |  |  | 
+ | 2 |  | Algunas veces |  |  |  |  |  |  | 
+ | 1 |  | A menudo |  |  |  |  |  |  | 
+ | 0 |  | La mayoría de las veces
+ |  |  |  |  |  |  | 
+ |  |  | 37 - Cuando hablo con alguien, me gusta: |  |  |  |  |  |  | 
+ | 0 |  | Decir las cosas tal y como se me ocurre |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | Organizar antes mis ideas
+ |  |  |  |  |  |  | 
+ |  |  | 38 - A veces me pongo en estado de tensión y agitación cuando pienso en los sucesos del día: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 39 - He sido elegido para hacer algo: |  |  |  |  |  |  | 
+ | 0 |  | Sólo en pocas ocasiones |  |  |  |  |  |  | 
+ | 1 |  | Varias veces |  |  |  |  |  |  | 
+ | 2 |  | Muchas veces
+ |  |  |  |  |  |  | 
+ |  |  | 40 - ¿Cuál de las siguientes cosas es diferente de las otras dos?: |  |  |  |  |  |  | 
+ | 0 |  | Vela |  |  |  |  |  |  | 
+ | 1 |  | Luna |  |  |  |  |  |  | 
+ | 0 |  | Luz eléctrica
+ |  |  |  |  |  |  | 
+ |  |  | 41 - "Sorpresa" es a "extraño" como "miedo" es a: |  |  |  |  |  |  | 
+ | 0 |  | Valeroso |  |  |  |  |  |  | 
+ | 0 |  | Ansioso |  |  |  |  |  |  | 
+ | 1 |  | Terrible
+ |  |  |  |  |  |  | 
+ |  |  | 42 - A veces no puedo dormir porque tengo una idea que me da vueltas en la cabeza: |  |  |  |  |  |  | 
+ | 0 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 43 - Me siento desasosegado cuando trabajo en un proyecto que requiere una acción rápida que afecta a los demás: |  |  |  |  |  |  | 
+ | 0 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 44 - Indudablemente tengo menos amigos que la mayoría de las personas:  |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 45 - Aborrecería tener que estar en un lugar donde hubiera poca gente con quien hablar: |  |  |  |  |  |  | 
+ | 2 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 46 - Creo que es más importante mucha libertad que buena educación y respeto a la ley: |  |  |  |  |  |  | 
+ | 0 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 47 - Siempre me alegra formar parte de un grupo grande, como una reunión, un baile o una asamblea: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 48 - En mi época de estudiante me gustaba (me gusta): |  |  |  |  |  |  | 
+ | 2 |  | La música |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | La actividad de tipo manual
+ |  |  |  |  |  |  | 
+ |  |  | 49 - Si alguien se enfada conmigo: |  |  |  |  |  |  | 
+ | 0 |  | Intento calmarle |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | Me irrito con él
+ |  |  |  |  |  |  | 
+ |  |  | 50 - Para los padres es más importante: |  |  |  |  |  |  | 
+ | 2 |  | Ayudar a sus hijos a desarrollarse afectivamente |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | Enseñarles a controlar sus emociones
+ |  |  |  |  |  |  | 
+ |  |  | 51 - Siento de vez en cuando la necesidad de ocuparme en una actividad física enérgica: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | No |  |  |  |  |  |  | 
+ |  |  | 52 - Hay veces que no me siento con humor para ver a alguien: |  |  |  |  |  |  | 
+ | 0 |  | Muy raramente |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | Muy a menudo
+ |  |  |  |  |  |  | 
+ |  |  | 53 - A veces los demás me advierten que yo muestro mi excitación demasiado claramente en la voz y en los modales |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 54 - Lo que el mundo necesita es: |  |  |  |  |  |  | 
+ | 0 |  | Ciudadanos más sensatos y constantes |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | Más idealistas con proyectos para un mundo mejor
+ |  |  |  |  |  |  | 
+ |  |  | 55 - Preferiría tener un negocio propio, no compartido con otra persona: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 56 - Tengo mi habitación organizada de un modo inteligente y estético, con las cosas colocadas casi siempre en lugares conocidos: |  |  |  |  |  |  | 
+ | 2 |  | Sí |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 57 - En ocasiones dudo si la gente con la que estoy hablando se interesa realmente por lo que digo: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 58 - Si tuviera que escoger, preferiría ser: |  |  |  |  |  |  | 
+ | 0 |  | Guarda forestal |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | Profesor de Enseñanza Media |  |  |  |  |  |  | 
+ |  |  | 59 - ¿Cuál de las siguientes fracciones es diferente a las otras dos?: |  |  |  |  |  |  | 
+ | 0 |  | 3/7 |  |  |  |  |  |  | 
+ | 1 |  | 3/9 |  |  |  |  |  |  | 
+ | 0 |  | 3/11
+ |  |  |  |  |  |  | 
+ |  |  | 60 - "Tamaño" es a "longitud" como "delito" es a: |  |  |  |  |  |  | 
+ | 0 |  | Prisión |  |  |  |  |  |  | 
+ | 0 |  | Castigo |  |  |  |  |  |  | 
+ | 1 |  | Robo
+ |  |  |  |  |  |  | 
+ |  |  | 61 - En mi vida personal consigo casi siempre todos mis propósitos: |  |  |  |  |  |  | 
+ | 2 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 62 - Tengo algunas características en las que que me siento claramente superior a la mayor parte de la gente: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 63 - Sólo asisto a actos sociales cuando estoy obligado, y me mantengo aparte en las demás ocasiones: |  |  |  |  |  |  | 
+ | 0 |  | Sí |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 64 - Es mejor ser cauto y esperar poco que optimista y esperar siempre el éxito: |  |  |  |  |  |  | 
+ | 0 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 65 - Algunas veces la gente dice que soy descuidado, aunque me considera una persona agradable: |  |  |  |  |  |  | 
+ | 0 |  | Sí |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 66 - Suelo permanecer callado delante de personas mayores (con mucha más experiencia, edad o jerarquía): |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 67 - Tengo un buen sentido de la orientación (sitúo fácilmente los puntos cardinales), cuando me encuentro en un lugar desconocido: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 68 - Cuando leo en una revista un artículo tendencioso o injusto, me inclino más a olvidarlo que a replicar o "devolver el golpe": |  |  |  |  |  |  | 
+ | 0 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 69 - En tareas de grupo, preferiría: |  |  |  |  |  |  | 
+ | 2 |  | Intentar mejorar los preparativos |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | Llevar las actas o registros y procurar que se cumplan las normas
+ |  |  |  |  |  |  | 
+ |  |  | 70 - Me gustaría más andar con personas corteses que con individuos rebeldes y toscos: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 71 - Si mis conocidos me tratan mal o muestran que yo les disgusto: |  |  |  |  |  |  | 
+ | 0 |  | No me importa nada |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | Me siento abatido
+ |  |  |  |  |  |  | 
+ |  |  | 72 - Siempre estoy alerta ante los intentos de propaganda en las cosas que leo: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 73 - Me gustaría más gozar de la vida tranquilamente y a mi modo que ser admirado por mis resultados: |  |  |  |  |  |  | 
+ | 2 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 74 - Para estar informado, prefiero: |  |  |  |  |  |  | 
+ | 0 |  | Discutir los acontecimientos con la gente |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | Apoyarme en las informaciones periodísticas de actualidad
+ |  |  |  |  |  |  | 
+ |  |  | 75 - Me encuentro formado (maduro) para la mayor parte de las cosas:  |  |  |  |  |  |  | 
+ | 2 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 76 - Me encuentro más abatido que ayudado por el tipo de crítica que la gente suele hacer: |  |  |  |  |  |  | 
+ | 2 |  | A menudo |  |  |  |  |  |  | 
+ | 1 |  | Ocasionalmente |  |  |  |  |  |  | 
+ | 0 |  | Nunca
+ |  |  |  |  |  |  | 
+ |  |  | 77 - En las fiestas de cumpleaños:  |  |  |  |  |  |  | 
+ | 2 |  | Me gusta hacer regalos personales |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | Pienso que comprar regalos es un poco latoso
+ |  |  |  |  |  |  | 
+ |  |  | 78 - "AB" es a "dc" como "SR" es: |  |  |  |  |  |  | 
+ | 0 |  | qp |  |  |  |  |  |  | 
+ | 1 |  | pq |  |  |  |  |  |  | 
+ | 0 |  | tu
+ |  |  |  |  |  |  | 
+ |  |  | 79 - "Mejor" es a "pésimo" como "menor" es a: |  |  |  |  |  |  | 
+ | 0 |  | Mayor |  |  |  |  |  |  | 
+ | 0 |  | Óptimo |  |  |  |  |  |  | 
+ | 1 |  | Máximo
+ |  |  |  |  |  |  | 
+ |  |  | 80 - Mis amigos me han fallado: |  |  |  |  |  |  | 
+ | 2 |  | Muy rara vez |  |  |  |  |  |  | 
+ | 1 |  | Ocasionalmente |  |  |  |  |  |  | 
+ | 0 |  | Muchas veces
+ |  |  |  |  |  |  | 
+ |  |  | 81 - Cuando me siento abatido hago grandes esfuerzos por ocultar mis sentimientos a los demás: |  |  |  |  |  |  | 
+ | 0 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 82 - Gasto gran parte de mi tiempo libre hablando con los amigos sobre situaciones sociales agradables vividas en el pasado: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 83 - Pensando en las dificultades de mi trabajo: |  |  |  |  |  |  | 
+ | 2 |  | Intento organizarme antes de que aparezcan |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | Doy por supuesto que puedo dominarlas cuando vengan
+ |  |  |  |  |  |  | 
+ |  |  | 84 - Me cuesta bastante hablar o dirigir la palabra a un grupo numeroso: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 85 - He experimentado en varias situaciones sociales el llamado "nerviosismo del orador": |  |  |  |  |  |  | 
+ | 0 |  | Muy frecuentemente |  |  |  |  |  |  | 
+ | 1 |  | Ocasionalmente |  |  |  |  |  |  | 
+ | 2 |  | Casi nunca
+ |  |  |  |  |  |  | 
+ |  |  | 86 - Prefiero leer: |  |  |  |  |  |  | 
+ | 0 |  | Una narración realista de contiendas militares o políticas |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | Un novela imaginativa y delicada
+ |  |  |  |  |  |  | 
+ |  |  | 87 - Cuando la gente autoritaria trata de dominarme, hago justamente lo contrario a lo que quiere: |  |  |  |  |  |  | 
+ | 2 |  | si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 88 - Suelo olvidar muchas cosas triviales y sin importancia, tales como los nombres de las calles y tiendas de la ciudad: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 89 - Me gustaría la profesión de veterinario, ocupado con las enfermedades y curación de los animales: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 90 - Me resulta embarazoso que me dediquen elogios o cumplidos: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 91 - Siendo adolescente, cuando mi opinión era distinta a la de mis padres, normalmente: |  |  |  |  |  |  | 
+ | 2 |  | Mantenía mi opinión |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | Aceptaba su autoridad
+ |  |  |  |  |  |  | 
+ |  |  | 92 - Me gusta tomar parte activa en las tareas sociales, trabajos de comité, etc.: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 93 - Al llevar a cabo una tarea, no estoy satisfecho hasta que se ha considerado con toda atención el menor detalle: |  |  |  |  |  |  | 
+ | 2 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 94 - Tengo ocasiones en que me es difícil alejar un sentimiento de compasión hacia mí mismo: |  |  |  |  |  |  | 
+ | 0 |  | A menudo |  |  |  |  |  |  | 
+ | 1 |  | Algunas veces |  |  |  |  |  |  | 
+ | 2 |  | Nunca
+ |  |  |  |  |  |  | 
+ |  |  | 95 - Siempre soy capaz de controlar perfectamente la expresión de mis sentimientos: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 96 - Ante un nuevo invento utilitario, me gustaría: |  |  |  |  |  |  | 
+ | 0 |  | Trabajar sobre él en el laboratorio |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | Venderlo a la gente
+ |  |  |  |  |  |  | 
+ |  |  | 97 - La sigueinte serie de letras XOOOOXXOOOXXX continúa con el grupo: |  |  |  |  |  |  | 
+ | 0 |  | OXXX |  |  |  |  |  |  | 
+ | 1 |  | OOXX |  |  |  |  |  |  | 
+ | 0 |  | XOOO
+ |  |  |  |  |  |  | 
+ |  |  | 98 - Algunas personas parecen ignorarme o evitarme, aunque no sé por qué: |  |  |  |  |  |  | 
+ | 0 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 99 - La gente me trata menos razonablemente de lo que merecen mis buenas intenciones: |  |  |  |  |  |  | 
+ | 0 |  | A menudo |  |  |  |  |  |  | 
+ | 1 |  | Ocasionalmente |  |  |  |  |  |  | 
+ | 2 |  | Nunca
+ |  |  |  |  |  |  | 
+ |  |  | 100 - Aunque no sea en un grupo mixto de mujeres y hombres, me disgusta que se use un lenguaje obsceno: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 101 - Me gusta hacer cosas atrevidas y temerarias sólo por el placer de divertirme: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 102 - Me resulta molesta la vista de una habitación muy sucia: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 103 - Cuando estoy en un grupo pequeño, me agrada quedarme en un segundo término y dejar que otros lleven el peso de la conversación: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 104 - Me resulta fácil mezclarme con la gente en una reunión social: |  |  |  |  |  |  | 
+ | 2 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 105 - Sería más interesante ser: |  |  |  |  |  |  | 
+ | 2 |  | Orientador vocacional para ayudar a los jóvenes en la búsqueda de su profesión |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | Directivo de una empresa industrial
+ |  |  |  |  |  |  | 
+ |  |  | 106 - Por regla general, mis jefes y mi familia me encuentran defectos sólo cuando realmente existen: |  |  |  |  |  |  | 
+ | 0 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 107 - Me disgusta el modo con que algunas personas se fijan en otras en la calle o en las tiendas: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 108 - Como los alimentos con gusto y placer, aunque no siempre tan cuidadosa y educadamente como otras personas: |  |  |  |  |  |  | 
+ | 0 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 109 - Temo algún castigo incluso cuando no he hecho nada malo: |  |  |  |  |  |  | 
+ | 2 |  | A menudo |  |  |  |  |  |  | 
+ | 1 |  | Ocasionalmente |  |  |  |  |  |  | 
+ | 0 |  | Nunca
+ |  |  |  |  |  |  | 
+ |  |  | 110 - Me gustaría más tener un trabajo con: |  |  |  |  |  |  | 
+ | 0 |  | Un determinado sueldo fijo |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | Un sueldo más alto pero siempre que demuestre a los demás que lo merezco
+ |  |  |  |  |  |  | 
+ |  |  | 111 - Me molesta que la gente piense que mi comportamiento es demasiado raro o fuera de lo corriente: |  |  |  |  |  |  | 
+ | 0 |  | Mucho |  |  |  |  |  |  | 
+ | 1 |  | Algo |  |  |  |  |  |  | 
+ | 2 |  | Nada en absoluto
+ |  |  |  |  |  |  | 
+ |  |  | 112 - A veces dejo que sentiemientos de envidia o celos influyan en mis acciones: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 113 - En ocasiones, contrariedades muy pequeñas me irritan mucho: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 114 - Siempre duermo, nunca hablo en sueños ni me levanto sonámbulo: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 115 - Me resultaría más interesante trabajar en una empresa: |  |  |  |  |  |  | 
+ | 2 |  | Atendiento a los clientes |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | Llevando la cuentas o los archivos
+ |  |  |  |  |  |  | 
+ |  |  | 116 - "Azada" es a "Cavar" como "Cuchillo" es a: |  |  |  |  |  |  | 
+ | 1 |  | Cortar |  |  |  |  |  |  | 
+ | 0 |  | Afilar |  |  |  |  |  |  | 
+ | 0 |  | Picar
+ |  |  |  |  |  |  | 
+ |  |  | 117 - Cuando la gente no es razonable, yo normalmente: |  |  |  |  |  |  | 
+ | 2 |  | Me quedo tan tranquilo |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | La menosprecio
+ |  |  |  |  |  |  | 
+ |  |  | 118 - Si los demás hablan en voz alta cuando estoy escuchando música: |  |  |  |  |  |  | 
+ | 2 |  | Puedo concentrarme en ella sin que me molesten |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | Eso me impide disfrutar de ello y me incomoda
+ |  |  |  |  |  |  | 
+ |  |  | 119 - Creo que se me describe mejor como: |  |  |  |  |  |  | 
+ | 0 |  | Comedido y reposado |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | Enérgico
+ |  |  |  |  |  |  | 
+ |  |  | 120 - Preferiría vestirme con sencillez y corrección que con un estilo personal y llamativo: |  |  |  |  |  |  | 
+ | 0 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 121 - Me niego a admitir sugerencias bien intencionadas de los demás aunque sé que no debería hacerlo: |  |  |  |  |  |  | 
+ | 0 |  | Algunas veces |  |  |  |  |  |  | 
+ | 1 |  | Casi nunca |  |  |  |  |  |  | 
+ | 2 |  | Nunca
+ |  |  |  |  |  |  | 
+ |  |  | 122 - Cuando es necesario que alguien emplee un poco de diplomacia y persuasión para conseguir que la gente actúe, generalmente sólo me lo encargan a mí: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 123 - Me considero a mí mismo como una persona muy abierta y sociable: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 124 - Me gusta la música: |  |  |  |  |  |  | 
+ | 0 |  | Ligera, movida y animada |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | Emotiva y sentimental
+ |  |  |  |  |  |  | 
+ |  |  | 125 - Si estoy completamente seguro de que una persona es injusta o se comporta egoístamente, se lo digo, incluso si esto me causa problemas: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 126 - En un viaje largo, preferiría: |  |  |  |  |  |  | 
+ | 2 |  | Leer algo profundo pero interesante |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | Pasando el tiempo charlando sobre cualquier cosa con un  compañero de viaje
+ |  |  |  |  |  |  | 
+ |  |  | 127 - En una situación que puede llegar a ser peligrosa, creo que es mejor alborotar o hablar alto, aún cuando se pierdan la calma y la cortesía: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 128 - Es muy exagerada la idea de que la enfermedad proviene tanto de causas mentales como físicas: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 129 - En cualquier gran ceremonia oficial debería mantenerse la pompa y el esplendor: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 130 - Cuando hay algo que hacer algo, me gustaría más trabajar: |  |  |  |  |  |  | 
+ | 0 |  | En equipo |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | Yo solo |  |  |  |  |  |  | 
+ |  |  | 131 - Creo firmemente que "tal vez el jefe no tenga siempre la razón, pero siempre tiene la razón por ser el jefe": |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 132 - Suelo enfadarme con las personas demasiado pronto: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 133 - Siempre puedo cambiar viejos hábitos sin dificultad y sin volver a ellos: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 134 - Si el sueldo fuera el mismo, preferiría ser: |  |  |  |  |  |  | 
+ | 2 |  | Abogado |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro entre ambos |  |  |  |  |  |  | 
+ | 0 |  | Navegante o piloto
+ |  |  |  |  |  |  | 
+ |  |  | 135 - "Llama" es a "Calor" como "Rosa" es a: |  |  |  |  |  |  | 
+ | 0 |  | Espina |  |  |  |  |  |  | 
+ | 0 |  | Pétalo |  |  |  |  |  |  | 
+ | 1 |  | Aroma
+ |  |  |  |  |  |  | 
+ |  |  | 136 - Cuando se acerca el momento de algo que he planeado y he esperado, en ocasiones pierdo la ilusión por ello: |  |  |  |  |  |  | 
+ | 0 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 137 - Puedo trabajar cuidadosamente en la mayor parte de las cosas sin que me molesten las personas que hacen mucho ruido a mi alrededor: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 138 - En ocasiones hablo a desconocidos sobre cosas que considero importantes, aunque no me pregunten sobre ellas: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 139 - Me atrae más pasar una tarde ocupada en una tarea tranquila a la que tenga afición que estar en una reunión animada: |  |  |  |  |  |  | 
+ | 0 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 140 - Cuando debo decidir algo, tengo siempre presentes las reglas básicas de lo justo y lo injusto: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 141 - En el trato social: |  |  |  |  |  |  | 
+ | 2 |  | Muestro mis emociones tal como las siento |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | Guardo mis emociones para mis adentros
+ |  |  |  |  |  |  | 
+ |  |  | 142 - Admiro más la belleza de un poema que la de un arma de fuego bien construida: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 143 - A veces digo en broma disparates, sólo para sorprender a la gente y ver qué responden: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 144 - Me agradaría ser un periodista que escribiera sobre teatro, conciertos, ópera, etc.: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 145 - Nunca siento la necesidad de garabatear, dibujar o moverme cuando estoy sentado en una reunión: |  |  |  |  |  |  | 
+ | 2 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 146 - Si alguien me dice algo que yo sé que no es cierto, suelo pensar: |  |  |  |  |  |  | 
+ | 2 |  | "Es un mentiroso" |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | "Evidentemente no está bien informado" |  |  |  |  |  |  | 
+ |  |  | 147 - La gente me considera con justicia una persona activa pero con éxito sólo mediano: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 148 - Si se suscitara una controversia violenta entre otras miembros de un grupo de discusión: |  |  |  |  |  |  | 
+ | 2 |  | Me gustaría ver quién es el "ganador" |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | Desearía que se suavizara de nuevo la situación
+ |  |  |  |  |  |  | 
+ |  |  | 149 - Me gusta planear mis cosas solo, sin interrupciones y sugerencias de otros: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 150 - Me gusta seguir mis propios caminos en vez de actuar según normas establecidas: |  |  |  |  |  |  | 
+ | 0 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 151 - Me pongo nervioso (tenso) cuando pienso en todas las cosas que tengo que hacer: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Algunas veces |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 152 - No me perturba que la gente me haga alguna sugerencia cuando estoy jugando: |  |  |  |  |  |  | 
+ | 0 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 153 - Me parece más interesante ser: |  |  |  |  |  |  | 
+ | 0 |  | Artista |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | Secretario de un club social
+ |  |  |  |  |  |  | 
+ |  |  | 154 - ¿Cuál de las siguientes palabras es diferente de las otras dos?: |  |  |  |  |  |  | 
+ | 1 |  | Ancho |  |  |  |  |  |  | 
+ | 0 |  | Zigzag |  |  |  |  |  |  | 
+ | 0 |  | Recto
+ |  |  |  |  |  |  | 
+ |  |  | 155 - He tenido sueños tan intensos que no me han dejado dormir bien: |  |  |  |  |  |  | 
+ | 0 |  | A menudo |  |  |  |  |  |  | 
+ | 1 |  | Ocasionalmente |  |  |  |  |  |  | 
+ | 2 |  | Prácticamente nunca
+ |  |  |  |  |  |  | 
+ |  |  | 156 - Aunque tenga pocas posibilidades de éxito, creo que todavía me merece la pena correr el riesgo: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 157 - Cuando yo sé muy bien lo que el grupo tiene que hacer, me gusta ser el único en dar las órdenes: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 158 - Me consideran una persona muy entusiasta: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 159 - Soy una persona bastante estricta, e insisto siempre en hacer las cosas tan correctamente como sea posible: |  |  |  |  |  |  | 
+ | 2 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 160 - Me disgusta un poco que la gente me esté mirando cuando trabajo: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 161 - Como no siempre es posible conseguir las cosas utilizando gradualmente métodos razonables, a veces es necesario emplear la fuerza: |  |  |  |  |  |  | 
+ | 0 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 162 - Si se pasa por alto una buena observación mía: |  |  |  |  |  |  | 
+ | 0 |  | La dejo pasar |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | Doy a la gente la oportunidad de volver a escucharla |  |  |  |  |  |  | 
+ |  |  | 163 - Me gustaría hacer el trabajo de un oficial encargado de los casos de delincuentes bajo fianza: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 164 - Hay que ser prudente antes de mezclarse con cualquier desconocido, puesto que hay peligros de infección y de otro tipo: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 165 - En un viaje al extranjero, preferiría ir en un grupo organizado, con un experto, que planear yo mismo los lugares que deseo visitar: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 166 - Si la gente se aprovecha de mi amistad, no me quedo resentido y lo olvido pronto: |  |  |  |  |  |  | 
+ | 0 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 167 - Creo que la sociedad debería aceptar nuevas costumbres, de acuerdo con la razón, y olvidar los viejos usos y tradiciones: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 168 - Aprendo mejor: |  |  |  |  |  |  | 
+ | 2 |  | Leyendo un libro bien escrito |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | Participando en un grupo de discusión
+ |  |  |  |  |  |  | 
+ |  |  | 169 - Me gusta esperar a estar seguro de que lo que voy a decir es correcto, antes de exponer mis ideas: |  |  |  |  |  |  | 
+ | 2 |  | Siempre |  |  |  |  |  |  | 
+ | 1 |  | Generalmente |  |  |  |  |  |  | 
+ | 0 |  | Sólo si es posible
+ |  |  |  |  |  |  | 
+ |  |  | 170 - Algunas veces me "sacan de quicio" de un modo insoportable pequeñas cosas, aunque reconozca que son triviales: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 171 - No suelo decir, sin pensarlas, cosas que luego lamento mucho: |  |  |  |  |  |  | 
+ | 0 |  | Verdadero |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | Falso
+ |  |  |  |  |  |  | 
+ |  |  | 172 - Si se me pidiera colaborar en una campaña caritativa: |  |  |  |  |  |  | 
+ | 2 |  | Aceptaría |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | Diría cortésmente que estoy muy ocupado
+ |  |  |  |  |  |  | 
+ |  |  | 173 - "Pronto" es a "nunca" como "cerca" es a: |  |  |  |  |  |  | 
+ | 1 |  | En ningún sitio |  |  |  |  |  |  | 
+ | 0 |  | Lejos |  |  |  |  |  |  | 
+ | 0 |  | En otro sitio
+ |  |  |  |  |  |  | 
+ |  |  | 174 - Si cometo una falta social desagradable, puedo olvidarla pronto: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 175 - Se me considera un "hombre de ideas" que casi siempre puede apuntar alguna solución a un problema: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No |  |  |  |  |  |  | 
+ |  |  | 176 - Creo que se me da mejor mostrar: |  |  |  |  |  |  | 
+ | 2 |  | Aplomo en las pugnas y discusiones de una reunión |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | Tolerancia con los deseos de los demás
+ |  |  |  |  |  |  | 
+ |  |  | 177 - Me gusta un trabajo que presente cambios, variedad y viajes, aunque implique algún peligro: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 178 - Me gusta un trabajo que requiera dotes de atención y exactitud: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 179 - Soy de ese tipo de personas con tanta energía que siempre están ocupadas: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 180 - En mi época de estudiante prefería (prefiero): |  |  |  |  |  |  | 
+ | 2 |  | Lengua o Literatura |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | Matemáticas o Aritmética
+ |  |  |  |  |  |  | 
+ |  |  | 181 - Algunas veces me ha turbado el que la gente diga a mi espalda cosas desagradables de mí sin fundamento: |  |  |  |  |  |  | 
+ | 2 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 182 - Hablar con personas corrientes, convencionales y rutinarias: |  |  |  |  |  |  | 
+ | 0 |  | Es a menudo muy interesante e instructivo |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | Me fastidia porque no hay profundidad o se trata de chismes y cosas sin importancia |  |  |  |  |  |  | 
+ |  |  | 183 - Algunas cosas me irritan tanto que creo que entonces lo mejor es no hablar: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 184 - En la formación del niño, es más importante: |  |  |  |  |  |  | 
+ | 2 |  | Darle bastante efecto |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 0 |  | Procurar que aprenda hábitos y actitudes deseables |  |  |  |  |  |  | 
+ |  |  | 185 - Los demás me consideran una persona firme e impreturbable, impasible ante los vaivenes de las circunstancias: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 1 |  | Término medio |  |  |  |  |  |  | 
+ | 2 |  | No
+ |  |  |  |  |  |  | 
+ |  |  | 186 - Creo que en el mundo actual es más importante resolver: |  |  |  |  |  |  | 
+ | 0 |  | El problema de la intención moral |  |  |  |  |  |  | 
+ | 1 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 2 |  | Los problemas políticos
+ |  |  |  |  |  |  | 
+ |  |  | 187 - Creo que no me he saltado ninguna cuestión y he contestado a todas de modo apropiado: |  |  |  |  |  |  | 
+ | 0 |  | Si |  |  |  |  |  |  | 
+ | 0 |  | No estoy seguro |  |  |  |  |  |  | 
+ | 0 |  | No
+ |  |  |  |  |  |  | 

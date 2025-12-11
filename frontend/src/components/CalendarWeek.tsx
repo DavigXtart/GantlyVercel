@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
 
-type Slot = { id: number; startTime: string; endTime: string; status: 'FREE'|'BOOKED'|'CANCELLED'; user?: { name: string } };
+type Slot = { id: number; startTime: string; endTime: string; status: 'FREE'|'REQUESTED'|'CONFIRMED'|'BOOKED'|'CANCELLED'; user?: { name: string }; price?: number };
 
 type Props = {
   mode: 'PSYCHO' | 'USER';
   slots: Slot[];
   myAppointments?: Array<{ id: number; startTime: string; endTime: string; status: string }>; // Citas reservadas por el usuario
-  onCreateSlot?: (startIso: string, endIso: string) => void;
+  onCreateSlot?: (startIso: string, endIso: string, price?: number) => void;
   onBook?: (appointmentId: number) => void;
+  onDeleteSlot?: (appointmentId: number) => void;
 };
 
 function startOfWeek(d: Date) {
@@ -20,9 +21,12 @@ function startOfWeek(d: Date) {
 
 function addDays(d: Date, n: number) { const x = new Date(d); x.setDate(x.getDate()+n); return x; }
 
-export default function CalendarWeek({ mode, slots, myAppointments = [], onCreateSlot, onBook }: Props) {
+export default function CalendarWeek({ mode, slots, myAppointments = [], onCreateSlot, onBook, onDeleteSlot }: Props) {
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date()));
   const [hoveredCell, setHoveredCell] = useState<string | null>(null);
+  const [showPriceModal, setShowPriceModal] = useState(false);
+  const [priceInput, setPriceInput] = useState('');
+  const [pendingSlot, setPendingSlot] = useState<{ start: string; end: string } | null>(null);
   const hours = Array.from({ length: 13 }).map((_, i) => 8 + i); // 8:00 - 20:00
   const days = useMemo(() => Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i)), [weekStart]);
 
@@ -53,18 +57,54 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
     start.setHours(hour, 0, 0, 0);
     const end = new Date(start);
     end.setHours(start.getHours() + 1);
-    onCreateSlot(start.toISOString(), end.toISOString());
+    
+    if (mode === 'PSYCHO') {
+      // Para psicólogos, pedir el precio
+      setPendingSlot({ start: start.toISOString(), end: end.toISOString() });
+      setShowPriceModal(true);
+      setPriceInput('');
+    } else {
+      onCreateSlot(start.toISOString(), end.toISOString());
+    }
+  };
+
+  const handleConfirmPrice = () => {
+    if (!onCreateSlot || !pendingSlot) return;
+    
+    const priceStr = priceInput.trim();
+    
+    // Validar que el precio sea obligatorio
+    if (priceStr === '') {
+      alert('El precio es obligatorio. Por favor, ingresa un precio para la cita.');
+      return;
+    }
+    
+    const price = parseFloat(priceStr);
+    
+    if (isNaN(price) || price <= 0) {
+      alert('Por favor, ingresa un precio válido (número mayor a 0)');
+      return;
+    }
+    
+    onCreateSlot(pendingSlot.start, pendingSlot.end, price);
+    setShowPriceModal(false);
+    setPendingSlot(null);
+    setPriceInput('');
   };
 
   const getStatusColor = (status: string, isMyAppointment: boolean = false) => {
     // Si es una cita del usuario, usar color especial (amarillo/dorado)
-    if (isMyAppointment && status === 'BOOKED') {
+    if (isMyAppointment && (status === 'BOOKED' || status === 'CONFIRMED')) {
       return { bg: '#fef3c7', border: '#f59e0b', text: '#92400e', hover: '#fde68a' };
     }
     
     switch (status) {
       case 'FREE':
         return { bg: '#e0f2fe', border: '#0ea5e9', text: '#0369a1', hover: '#bae6fd' };
+      case 'REQUESTED':
+        return { bg: '#fef3c7', border: '#f59e0b', text: '#92400e', hover: '#fde68a' };
+      case 'CONFIRMED':
+        return { bg: '#d1fae5', border: '#10b981', text: '#065f46', hover: '#a7f3d0' };
       case 'BOOKED':
         return { bg: '#dcfce7', border: '#22c55e', text: '#15803d', hover: '#bbf7d0' };
       case 'CANCELLED':
@@ -264,7 +304,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                   {list.length > 0 ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       {list.map(s => {
-                        const isMyAppointment = myAppointmentsByDayHour[`${new Date(s.startTime).toDateString()}-${new Date(s.startTime).getHours()}`] && s.status === 'BOOKED';
+                        const isMyAppointment = myAppointmentsByDayHour[`${new Date(s.startTime).toDateString()}-${new Date(s.startTime).getHours()}`] && (s.status === 'BOOKED' || s.status === 'CONFIRMED' || s.status === 'REQUESTED');
                         const colors = getStatusColor(s.status, isMyAppointment);
                         return (
                           <div
@@ -284,10 +324,11 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                               transition: 'all 0.2s',
                               boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                               position: 'relative',
-                              zIndex: 5
+                              zIndex: 5,
+                              paddingRight: mode === 'PSYCHO' && onDeleteSlot && (s.status === 'FREE' || s.status === 'REQUESTED') ? '28px' : '10px'
                             }}
                             onMouseEnter={(e) => {
-                              if (s.status === 'FREE' && mode === 'USER' && onBook) {
+                              if ((s.status === 'FREE' || s.status === 'REQUESTED') && mode === 'USER' && onBook) {
                                 e.currentTarget.style.transform = 'scale(1.02)';
                                 e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
                               }
@@ -312,13 +353,23 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                                     {mode === 'USER' ? '✅ Disponible' : '⏳ Libre'}
                                   </div>
                                 )}
+                                {s.status === 'REQUESTED' && (
+                                  <div style={{ fontSize: '11px', opacity: 0.8, fontWeight: 600 }}>
+                                    ⏳ Solicitud pendiente
+                                  </div>
+                                )}
+                                {s.status === 'CONFIRMED' && (
+                                  <div style={{ fontSize: '11px', opacity: 0.8, fontWeight: 600 }}>
+                                    ✅ Confirmada
+                                  </div>
+                                )}
                                 {isMyAppointment && (
                                   <div style={{ fontSize: '11px', opacity: 0.8, fontWeight: 600 }}>
                                     ⭐ Mi cita
                                   </div>
                                 )}
                               </div>
-                              {mode === 'USER' && s.status === 'FREE' && onBook && !isMyAppointment && (
+                              {mode === 'USER' && (s.status === 'FREE' || s.status === 'REQUESTED') && onBook && !isMyAppointment && (
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -353,7 +404,54 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                                     e.currentTarget.style.boxShadow = 'none';
                                   }}
                                 >
-                                  Reservar
+                                  {s.price !== undefined && s.price !== null 
+                                    ? `Reservar ${s.price.toFixed(2)}€` 
+                                    : 'Reservar'}
+                                </button>
+                              )}
+                              {mode === 'PSYCHO' && onDeleteSlot && (s.status === 'FREE' || s.status === 'REQUESTED') && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    if (onDeleteSlot) {
+                                      onDeleteSlot(s.id);
+                                    }
+                                  }}
+                                  onMouseDown={(e) => {
+                                    e.stopPropagation();
+                                  }}
+                                  style={{
+                                    background: 'transparent',
+                                    color: '#ef4444',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    padding: '2px 6px',
+                                    fontSize: '16px',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    position: 'absolute',
+                                    top: '4px',
+                                    right: '4px',
+                                    zIndex: 10,
+                                    lineHeight: '1',
+                                    width: '20px',
+                                    height: '20px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = '#fee2e2';
+                                    e.currentTarget.style.transform = 'scale(1.1)';
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = 'transparent';
+                                    e.currentTarget.style.transform = 'scale(1)';
+                                  }}
+                                >
+                                  ×
                                 </button>
                               )}
                             </div>
@@ -413,6 +511,129 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
               <span style={{ fontSize: '12px', color: '#6b7280' }}>Cancelado</span>
             </div>
           </div>
+
+      {/* Modal para ingresar precio */}
+      {showPriceModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }} onClick={() => {
+          setShowPriceModal(false);
+          setPendingSlot(null);
+          setPriceInput('');
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '24px',
+            maxWidth: '400px',
+            width: '90%',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)'
+          }} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 600 }}>
+              Establecer precio de la cita
+            </h3>
+            <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#6b7280' }}>
+              El precio es <strong style={{ color: '#dc2626' }}>obligatorio</strong> para crear una cita. Ingresa el precio en euros. Recuerda que al menos una cita de la semana debe costar menos de 50€.
+            </p>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500 }}>
+                Precio (€) <span style={{ color: '#dc2626' }}>*</span>
+              </label>
+              <input
+                type="number"
+                min="0.01"
+                step="0.01"
+                value={priceInput}
+                onChange={(e) => setPriceInput(e.target.value)}
+                placeholder="Ej: 45.00"
+                required
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  outline: 'none',
+                  transition: 'border-color 0.2s'
+                }}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#667eea'}
+                onBlur={(e) => e.currentTarget.style.borderColor = '#e5e7eb'}
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleConfirmPrice();
+                  } else if (e.key === 'Escape') {
+                    setShowPriceModal(false);
+                    setPendingSlot(null);
+                    setPriceInput('');
+                  }
+                }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => {
+                  setShowPriceModal(false);
+                  setPendingSlot(null);
+                  setPriceInput('');
+                }}
+                style={{
+                  padding: '10px 20px',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '8px',
+                  background: 'white',
+                  color: '#6b7280',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#d1d5db';
+                  e.currentTarget.style.background = '#f9fafb';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = '#e5e7eb';
+                  e.currentTarget.style.background = 'white';
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmPrice}
+                style={{
+                  padding: '10px 20px',
+                  border: 'none',
+                  borderRadius: '8px',
+                  background: '#667eea',
+                  color: 'white',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#5568d3';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#667eea';
+                }}
+              >
+                Crear cita
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

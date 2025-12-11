@@ -11,6 +11,7 @@ import PsychDashboard from './components/PsychDashboard';
 import AdminUsersPanel from './components/AdminUsersPanel';
 import About from './components/About';
 import SoyProfesional from './components/SoyProfesional';
+import RegisterPsychologist from './components/RegisterPsychologist';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -19,6 +20,7 @@ function App() {
   const [showLanding, setShowLanding] = useState(true);
   const [showAbout, setShowAbout] = useState(false);
   const [showSoyProfesional, setShowSoyProfesional] = useState(false);
+  const [showRegisterPsychologist, setShowRegisterPsychologist] = useState(false);
   const [showInitialTest, setShowInitialTest] = useState(false);
   const [initialTestSessionId, setInitialTestSessionId] = useState<string | null>(null);
   const [selectedTestId, setSelectedTestId] = useState<number | null>(null);
@@ -350,8 +352,29 @@ function App() {
     return <About onBack={goToLanding} onLogin={handleShowLogin} onGetStarted={handleGetStarted} />;
   }
 
+  if (showRegisterPsychologist) {
+    return <RegisterPsychologist 
+      onBack={() => {
+        setShowRegisterPsychologist(false);
+        setShowSoyProfesional(true);
+      }} 
+      onLogin={handleShowLogin} 
+      onSuccess={() => {
+        setShowRegisterPsychologist(false);
+        handleLogin();
+      }} 
+    />;
+  }
+
   if (showSoyProfesional) {
-    return <SoyProfesional onBack={goToLanding} onLogin={handleShowLogin} onGetStarted={handleGetStarted} />;
+    return <SoyProfesional 
+      onBack={goToLanding} 
+      onLogin={handleShowLogin} 
+      onGetStarted={() => {
+        setShowSoyProfesional(false);
+        setShowRegisterPsychologist(true);
+      }} 
+    />;
   }
 
   if (showInitialTest) {

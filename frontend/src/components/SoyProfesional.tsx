@@ -187,10 +187,7 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted }: SoyPro
               Enriquece tu práctica sanitaria dedicándote a lo más importante, nosotros nos encargamos del resto. Con Psymatch podrás ofrecer terapia online de forma fácil, segura y confidencial.
             </p>
             <button
-              onClick={() => {
-                const formSection = document.getElementById('registro-profesional');
-                formSection?.scrollIntoView({ behavior: 'smooth' });
-              }}
+              onClick={onGetStarted}
               style={{
                 padding: '16px 32px',
                 fontSize: '16px',
@@ -215,7 +212,7 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted }: SoyPro
                 e.currentTarget.style.transform = 'translateY(0)';
               }}
             >
-              Solicita una demo
+              Comenzar registro
             </button>
           </div>
 
@@ -392,10 +389,7 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted }: SoyPro
               Verificaremos que tienes los requisitos esenciales para ejercer legalmente como Psicólogo Sanitario. Además necesitarás un ordenador y smartphone con buena conexión a internet.
             </p>
             <button
-              onClick={() => {
-                const formSection = document.getElementById('registro-profesional');
-                formSection?.scrollIntoView({ behavior: 'smooth' });
-              }}
+              onClick={onGetStarted}
               style={{
                 padding: '16px 32px',
                 fontSize: '16px',
@@ -420,7 +414,7 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted }: SoyPro
                 e.currentTarget.style.transform = 'translateY(0)';
               }}
             >
-              Solicita una demo
+              Comenzar registro
             </button>
           </div>
 

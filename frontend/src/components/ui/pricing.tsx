@@ -8,6 +8,7 @@ import { Check, Star } from "lucide-react";
 import { useState, useRef } from "react";
 import confetti from "canvas-confetti";
 import NumberFlow from "@number-flow/react";
+import { stripeService } from "@/services/api";
 
 export interface PricingPlan {
   name: string;
@@ -20,6 +21,8 @@ export interface PricingPlan {
   href?: string;
   onClick?: () => void;
   isPopular: boolean;
+  planId?: string; // ID del plan para Stripe (ej: "basic", "premium", "enterprise")
+  useStripe?: boolean; // Si es true, usa Stripe para el checkout
 }
 
 export interface PricingProps {
@@ -34,8 +37,30 @@ export function Pricing({
   description = "Elige el plan que mejor se ajuste a tus necesidades\nTodos los planes incluyen características de prueba para evaluar el servicio.",
 }: PricingProps) {
   const [isMonthly, setIsMonthly] = useState(true);
+  const [loading, setLoading] = useState<string | null>(null);
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const switchRef = useRef<HTMLButtonElement>(null);
+
+  const handleStripeCheckout = async (plan: PricingPlan) => {
+    if (!plan.planId) {
+      console.error("Plan ID no definido para Stripe");
+      return;
+    }
+
+    setLoading(plan.planId);
+    try {
+      const response = await stripeService.createCheckoutSession(
+        plan.planId,
+        !isMonthly
+      );
+      // Redirigir a Stripe Checkout
+      window.location.href = response.url;
+    } catch (error) {
+      console.error("Error creando sesión de checkout:", error);
+      alert("Error al procesar el pago. Por favor, intenta de nuevo.");
+      setLoading(null);
+    }
+  };
 
   const handleToggle = (checked: boolean) => {
     setIsMonthly(!checked);
@@ -181,7 +206,25 @@ export function Pricing({
 
               <hr className="w-full my-4" />
 
-              {plan.onClick ? (
+              {plan.useStripe && plan.planId ? (
+                <button
+                  onClick={() => handleStripeCheckout(plan)}
+                  disabled={loading === plan.planId}
+                  className={cn(
+                    buttonVariants({
+                      variant: "outline",
+                    }),
+                    "group relative w-full gap-2 overflow-hidden text-lg font-semibold tracking-tighter",
+                    "transform-gpu ring-offset-current transition-all duration-300 ease-out hover:ring-2 hover:ring-primary hover:ring-offset-1 hover:bg-primary hover:text-primary-foreground",
+                    plan.isPopular
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-background text-foreground",
+                    loading === plan.planId && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  {loading === plan.planId ? "Procesando..." : plan.buttonText}
+                </button>
+              ) : plan.onClick ? (
                 <button
                   onClick={plan.onClick}
                   className={cn(

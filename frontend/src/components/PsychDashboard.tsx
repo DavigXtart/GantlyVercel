@@ -12,6 +12,7 @@ export default function PsychDashboard() {
   const [me, setMe] = useState<any>(null);
   const [patients, setPatients] = useState<any[]>([]);
   const [slots, setSlots] = useState<any[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
   const [assignedTests, setAssignedTests] = useState<any[]>([]);
   const [availableTests, setAvailableTests] = useState<any[]>([]);
@@ -174,9 +175,19 @@ export default function PsychDashboard() {
     setSlots(list);
   };
 
+  const loadPendingRequests = async () => {
+    try {
+      const requests = await calendarService.getPendingRequests();
+      setPendingRequests(requests);
+    } catch (error: any) {
+      console.error('Error cargando solicitudes pendientes:', error);
+    }
+  };
+
   useEffect(() => {
     if (tab === 'calendario') {
       loadMySlots();
+      loadPendingRequests();
     }
   }, [tab]);
 
@@ -2276,18 +2287,200 @@ export default function PsychDashboard() {
           <CalendarWeek
             mode="PSYCHO"
             slots={slots}
-            onCreateSlot={async (start, end) => {
+            onCreateSlot={async (start, end, price) => {
               try {
-                await calendarService.createSlot(start, end);
+                await calendarService.createSlot(start, end, price);
                 await loadMySlots();
-              } catch (e) {
-                alert('Error al crear el slot');
+                await loadPendingRequests();
+              } catch (e: any) {
+                const errorMessage = e?.response?.data?.error || 'Error al crear el slot';
+                alert(errorMessage);
+              }
+            }}
+            onDeleteSlot={async (appointmentId) => {
+              try {
+                await calendarService.deleteSlot(appointmentId);
+                await loadMySlots();
+                await loadPendingRequests();
+              } catch (e: any) {
+                console.error('Error al eliminar la cita:', e);
               }
             }}
           />
           
-          {/* Citas Reservadas */}
-          {slots.filter(s => s.status === 'BOOKED' && s.user).length > 0 && (
+          {/* Solicitudes Pendientes */}
+          {pendingRequests.length > 0 && (
+            <div style={{
+              marginTop: '32px',
+              background: '#ffffff',
+              borderRadius: '20px',
+              boxShadow: '0 6px 20px rgba(102, 126, 234, 0.12)',
+              border: '1px solid rgba(102, 126, 234, 0.15)',
+              padding: '32px'
+            }}>
+              <h4 style={{
+                margin: '0 0 24px 0',
+                fontSize: '24px',
+                fontWeight: 700,
+                color: '#1a2e22',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                fontFamily: "'Inter', sans-serif",
+                letterSpacing: '-0.01em'
+              }}>
+                ⏳ Solicitudes de Citas Pendientes
+              </h4>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '16px' }}>
+                {pendingRequests.map((req: any) => (
+                  <div
+                    key={req.id}
+                    style={{
+                      background: 'linear-gradient(135deg, #f0f4ff 0%, #e8edff 100%)',
+                      border: '2px solid rgba(102, 126, 234, 0.3)',
+                      borderRadius: '16px',
+                      padding: '24px',
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 2px 8px rgba(102, 126, 234, 0.08)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                      e.currentTarget.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.15)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.08)';
+                    }}
+                  >
+                    <div style={{ 
+                      fontSize: '18px', 
+                      fontWeight: 700, 
+                      color: '#1a2e22', 
+                      marginBottom: '12px',
+                      fontFamily: "'Inter', sans-serif"
+                    }}>
+                      {new Date(req.appointment.startTime).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                    </div>
+                    <div style={{ 
+                      fontSize: '15px', 
+                      color: '#3a5a4a', 
+                      marginBottom: '8px',
+                      fontFamily: "'Inter', sans-serif"
+                    }}>
+                      🕐 {new Date(req.appointment.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - {new Date(req.appointment.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                    {req.appointment.price && (
+                      <div style={{ 
+                        fontSize: '14px', 
+                        color: '#667eea', 
+                        fontWeight: 600,
+                        fontFamily: "'Inter', sans-serif",
+                        marginBottom: '12px'
+                      }}>
+                        💰 {req.appointment.price} €
+                      </div>
+                    )}
+                    <div style={{ 
+                      fontSize: '14px', 
+                      color: '#5a9270', 
+                      fontWeight: 600,
+                      fontFamily: "'Inter', sans-serif",
+                      marginBottom: '16px'
+                    }}>
+                      👤 {req.user.name || req.user.email}
+                    </div>
+                    <div style={{ 
+                      fontSize: '12px', 
+                      color: '#6b7280',
+                      fontFamily: "'Inter', sans-serif",
+                      marginBottom: '16px'
+                    }}>
+                      📅 Solicitada: {new Date(req.requestedAt).toLocaleString('es-ES')}
+                    </div>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      <button
+                        onClick={async () => {
+                          if (confirm('¿Confirmar esta cita para ' + (req.user.name || req.user.email) + '?')) {
+                            try {
+                              await calendarService.confirmAppointment(req.id);
+                              alert('Cita confirmada exitosamente. Se ha enviado un correo al paciente.');
+                              await loadMySlots();
+                              await loadPendingRequests();
+                            } catch (e: any) {
+                              alert(e?.response?.data?.error || 'Error al confirmar la cita');
+                            }
+                          }
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '12px 20px',
+                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '12px',
+                          fontSize: '14px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          fontFamily: "'Inter', sans-serif",
+                          transition: 'all 0.3s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'scale(1.05)';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'scale(1)';
+                          e.currentTarget.style.boxShadow = 'none';
+                        }}
+                      >
+                        ✅ Confirmar
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (confirm('¿Cancelar esta cita?')) {
+                            try {
+                              await calendarService.cancelAppointment(req.appointment.id);
+                              alert('Cita cancelada exitosamente.');
+                              await loadMySlots();
+                              await loadPendingRequests();
+                            } catch (e: any) {
+                              alert(e?.response?.data?.error || 'Error al cancelar la cita');
+                            }
+                          }
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '12px 20px',
+                          background: '#ef4444',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '12px',
+                          fontSize: '14px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          fontFamily: "'Inter', sans-serif",
+                          transition: 'all 0.3s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'scale(1.05)';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'scale(1)';
+                          e.currentTarget.style.boxShadow = 'none';
+                        }}
+                      >
+                        ❌ Cancelar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Citas Confirmadas y Reservadas */}
+          {slots.filter(s => (s.status === 'CONFIRMED' || s.status === 'BOOKED') && s.user).length > 0 && (
             <div style={{
               marginTop: '32px',
               background: '#ffffff',
@@ -2307,10 +2500,10 @@ export default function PsychDashboard() {
                 fontFamily: "'Inter', sans-serif",
                 letterSpacing: '-0.01em'
               }}>
-                📅 Citas Reservadas
+                📅 Citas Confirmadas y Reservadas
               </h4>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
-                {slots.filter(s => s.status === 'BOOKED' && s.user).map(apt => (
+                {slots.filter(s => (s.status === 'CONFIRMED' || s.status === 'BOOKED') && s.user).map(apt => (
                   <div
                     key={apt.id}
                     style={{
@@ -2357,6 +2550,65 @@ export default function PsychDashboard() {
                       }}>
                         👤 {apt.user.name || apt.user.email}
                       </div>
+                    )}
+                    {apt.status === 'CONFIRMED' && apt.paymentStatus && (
+                      <div style={{ 
+                        fontSize: '13px', 
+                        color: apt.paymentStatus === 'PAID' ? '#059669' : apt.paymentStatus === 'EXPIRED' ? '#dc2626' : '#d97706',
+                        fontWeight: 600,
+                        fontFamily: "'Inter', sans-serif",
+                        marginBottom: '8px',
+                        padding: '8px 12px',
+                        background: apt.paymentStatus === 'PAID' ? '#d1fae5' : apt.paymentStatus === 'EXPIRED' ? '#fee2e2' : '#fef3c7',
+                        borderRadius: '8px'
+                      }}>
+                        💳 Estado de pago: {apt.paymentStatus === 'PAID' ? '✅ Pagado' : apt.paymentStatus === 'EXPIRED' ? '❌ Expirado' : '⏳ Pendiente'}
+                        {apt.paymentDeadline && apt.paymentStatus === 'PENDING' && (
+                          <div style={{ fontSize: '11px', marginTop: '4px', color: '#6b7280' }}>
+                            Plazo: {new Date(apt.paymentDeadline).toLocaleString('es-ES')}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {apt.status === 'CONFIRMED' && (
+                      <button
+                        onClick={async () => {
+                          if (confirm('¿Cancelar esta cita confirmada?')) {
+                            try {
+                              await calendarService.cancelAppointment(apt.id);
+                              alert('Cita cancelada exitosamente.');
+                              await loadMySlots();
+                              await loadPendingRequests();
+                            } catch (e: any) {
+                              alert(e?.response?.data?.error || 'Error al cancelar la cita');
+                            }
+                          }
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '8px 16px',
+                          background: '#ef4444',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontSize: '13px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          fontFamily: "'Inter', sans-serif",
+                          transition: 'all 0.3s ease',
+                          marginBottom: '8px'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'scale(1.02)';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'scale(1)';
+                          e.currentTarget.style.boxShadow = 'none';
+                        }}
+                      >
+                        ❌ Cancelar Cita
+                      </button>
                     )}
                     {(() => {
                       const now = new Date();

@@ -7,14 +7,17 @@ com\alvaro\psicoapp\controller\AdminUserController$AssignRequest.class
 com\alvaro\psicoapp\repository\TemporarySessionRepository.class
 com\alvaro\psicoapp\config\WebSocketConfig.class
 com\alvaro\psicoapp\repository\TaskFileRepository.class
+com\alvaro\psicoapp\controller\StripeController.class
 com\alvaro\psicoapp\repository\QuestionRepository.class
 com\alvaro\psicoapp\repository\UserAnswerRepository.class
+com\alvaro\psicoapp\service\EmailService.class
 com\alvaro\psicoapp\domain\TestEntity.class
 com\alvaro\psicoapp\PsicoappApplication.class
 com\alvaro\psicoapp\controller\AdminController$QuestionUpdate.class
 com\alvaro\psicoapp\controller\AdminController$FactorCreate.class
 com\alvaro\psicoapp\dto\AuthDtos.class
 com\alvaro\psicoapp\controller\AdminUserController.class
+com\alvaro\psicoapp\domain\AppointmentRequestEntity.class
 com\alvaro\psicoapp\config\WebSocketAuthInterceptor.class
 com\alvaro\psicoapp\domain\TestResultEntity.class
 com\alvaro\psicoapp\controller\PsychologistController.class
@@ -47,6 +50,7 @@ com\alvaro\psicoapp\dto\AuthDtos$RegisterRequest.class
 com\alvaro\psicoapp\controller\AdminController$SetSubfactorReq.class
 com\alvaro\psicoapp\domain\FactorResultEntity.class
 com\alvaro\psicoapp\security\SecurityConfig.class
+com\alvaro\psicoapp\repository\AppointmentRequestRepository.class
 com\alvaro\psicoapp\controller\AdminController$TestCreate.class
 com\alvaro\psicoapp\domain\TaskEntity.class
 com\alvaro\psicoapp\repository\SubfactorRepository.class
@@ -63,6 +67,7 @@ com\alvaro\psicoapp\service\AuthService.class
 com\alvaro\psicoapp\controller\TestResultController.class
 com\alvaro\psicoapp\repository\TaskRepository.class
 com\alvaro\psicoapp\controller\AssignedTestController.class
+com\alvaro\psicoapp\service\StripeService.class
 com\alvaro\psicoapp\domain\AppointmentEntity.class
 com\alvaro\psicoapp\security\JwtAuthFilter.class
 com\alvaro\psicoapp\controller\TestFlowController$SubmitItem.class

@@ -30,6 +30,7 @@ public class SecurityConfig {
 			.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers("/api/auth/**").permitAll()
+				.requestMatchers("/api/auth/verify-email").permitAll()
 				.requestMatchers("/api/tests/**").permitAll() // Tests visibles para todos
 				.requestMatchers("/api/initial-test/**").permitAll() // Test inicial público
 				.requestMatchers("/api/flow/**").authenticated() // Flujo de respuestas requiere autenticación
@@ -42,6 +43,8 @@ public class SecurityConfig {
 				.requestMatchers("/api/chat/**").authenticated()
 				.requestMatchers("/api/results/**").authenticated()
 				.requestMatchers("/api/jitsi/**").authenticated()
+				.requestMatchers("/api/stripe/webhook").permitAll() // Webhook debe ser público
+				.requestMatchers("/api/stripe/**").authenticated() // Otros endpoints de Stripe requieren autenticación
 				.requestMatchers("/ws/**", "/topic/**", "/app/**").permitAll()
 				.requestMatchers("/actuator/**").permitAll()
 				.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui.html", "/webjars/**").permitAll()

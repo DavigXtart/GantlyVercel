@@ -1828,7 +1828,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                 fontFamily: "'Inter', sans-serif",
                 letterSpacing: '-0.01em'
               }}>
-                📅 Mis Citas Reservadas
+                📅 Mis Citas
               </h4>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
                 {myAppointments.map(apt => (
@@ -1877,6 +1877,68 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                         marginBottom: '12px'
                       }}>
                         👨‍⚕️ {apt.psychologist.name}
+                      </div>
+                    )}
+                    {apt.status === 'REQUESTED' && (
+                      <div style={{ 
+                        fontSize: '13px', 
+                        color: '#d97706',
+                        fontWeight: 600,
+                        fontFamily: "'Inter', sans-serif",
+                        marginBottom: '12px',
+                        padding: '8px 12px',
+                        background: '#fef3c7',
+                        borderRadius: '8px'
+                      }}>
+                        ⏳ Estado: Solicitud pendiente de confirmación
+                        {apt.requestedAt && (
+                          <div style={{ fontSize: '11px', marginTop: '4px', color: '#6b7280' }}>
+                            Solicitada: {new Date(apt.requestedAt).toLocaleString('es-ES')}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {apt.status === 'CONFIRMED' && (
+                      <div style={{ 
+                        fontSize: '13px', 
+                        color: '#059669',
+                        fontWeight: 600,
+                        fontFamily: "'Inter', sans-serif",
+                        marginBottom: '12px',
+                        padding: '8px 12px',
+                        background: '#d1fae5',
+                        borderRadius: '8px'
+                      }}>
+                        ✅ Estado: Cita confirmada
+                        {apt.confirmedAt && (
+                          <div style={{ fontSize: '11px', marginTop: '4px', color: '#6b7280' }}>
+                            Confirmada: {new Date(apt.confirmedAt).toLocaleString('es-ES')}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {apt.status === 'CONFIRMED' && apt.paymentStatus && (
+                      <div style={{ 
+                        fontSize: '13px', 
+                        color: apt.paymentStatus === 'PAID' ? '#059669' : apt.paymentStatus === 'EXPIRED' ? '#dc2626' : '#d97706',
+                        fontWeight: 600,
+                        fontFamily: "'Inter', sans-serif",
+                        marginBottom: '12px',
+                        padding: '8px 12px',
+                        background: apt.paymentStatus === 'PAID' ? '#d1fae5' : apt.paymentStatus === 'EXPIRED' ? '#fee2e2' : '#fef3c7',
+                        borderRadius: '8px'
+                      }}>
+                        💳 Estado de pago: {apt.paymentStatus === 'PAID' ? '✅ Pagado' : apt.paymentStatus === 'EXPIRED' ? '❌ Expirado' : '⏳ Pendiente'}
+                        {apt.paymentDeadline && apt.paymentStatus === 'PENDING' && (
+                          <div style={{ fontSize: '11px', marginTop: '4px', color: '#6b7280', fontWeight: 700 }}>
+                            ⚠️ Tienes hasta el {new Date(apt.paymentDeadline).toLocaleString('es-ES')} para realizar el pago
+                          </div>
+                        )}
+                        {apt.price && apt.paymentStatus === 'PENDING' && (
+                          <div style={{ fontSize: '12px', marginTop: '6px', color: '#1a2e22', fontWeight: 700 }}>
+                            Monto a pagar: {apt.price} €
+                          </div>
+                        )}
                       </div>
                     )}
                     {(() => {

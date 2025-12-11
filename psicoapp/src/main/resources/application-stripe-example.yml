@@ -1,0 +1,15 @@
+# Ejemplo de configuración de Stripe
+# Copia estas propiedades a tu application-local.yml o application.yml
+
+stripe:
+  secret:
+    key: sk_test_51... # Reemplaza con tu clave secreta de Stripe
+  public:
+    key: pk_test_51... # Reemplaza con tu clave pública de Stripe
+  webhook:
+    secret: whsec_... # Reemplaza con el secreto del webhook (opcional para desarrollo)
+
+app:
+  base:
+    url: http://localhost:5173 # URL de tu frontend
+
