@@ -1856,36 +1856,47 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                       {new Date(apt.startTime).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                     </div>
                     <div style={{ 
-                      fontSize: '15px', 
-                      color: '#3a5a4a', 
-                      marginBottom: '8px',
+                      fontSize: '14px', 
+                      color: '#6b7280', 
+                      marginBottom: '12px',
                       fontFamily: "'Inter', sans-serif"
                     }}>
-                      🕐 {new Date(apt.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - {new Date(apt.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(apt.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - {new Date(apt.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                     </div>
                     {apt.psychologist && (
                       <div style={{ 
                         fontSize: '14px', 
-                        color: '#5a9270', 
-                        fontWeight: 600,
+                        color: '#3a5a4a', 
+                        fontWeight: 500,
                         fontFamily: "'Inter', sans-serif",
-                        marginBottom: '12px'
+                        marginBottom: '16px'
                       }}>
-                        👨‍⚕️ {apt.psychologist.name}
+                        {apt.psychologist.name}
+                      </div>
+                    )}
+                    {apt.price && (
+                      <div style={{ 
+                        fontSize: '16px', 
+                        color: '#1a2e22', 
+                        fontWeight: 700,
+                        fontFamily: "'Inter', sans-serif",
+                        marginBottom: '16px'
+                      }}>
+                        {apt.price} €
                       </div>
                     )}
                     {apt.status === 'REQUESTED' && (
                       <div style={{ 
-                        fontSize: '13px', 
+                        fontSize: '12px', 
                         color: '#d97706',
-                        fontWeight: 600,
+                        fontWeight: 500,
                         fontFamily: "'Inter', sans-serif",
                         marginBottom: '12px',
-                        padding: '8px 12px',
+                        padding: '6px 10px',
                         background: '#fef3c7',
-                        borderRadius: '8px'
+                        borderRadius: '6px'
                       }}>
-                        ⏳ Estado: Solicitud pendiente de confirmación
+                        Estado: Solicitud pendiente
                         {apt.requestedAt && (
                           <div style={{ fontSize: '11px', marginTop: '4px', color: '#6b7280' }}>
                             Solicitada: {new Date(apt.requestedAt).toLocaleString('es-ES')}
@@ -1895,43 +1906,33 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     )}
                     {apt.status === 'CONFIRMED' && (
                       <div style={{ 
-                        fontSize: '13px', 
+                        fontSize: '12px', 
                         color: '#059669',
-                        fontWeight: 600,
+                        fontWeight: 500,
                         fontFamily: "'Inter', sans-serif",
                         marginBottom: '12px',
-                        padding: '8px 12px',
+                        padding: '6px 10px',
                         background: '#d1fae5',
-                        borderRadius: '8px'
+                        borderRadius: '6px'
                       }}>
-                        ✅ Estado: Cita confirmada
-                        {apt.confirmedAt && (
-                          <div style={{ fontSize: '11px', marginTop: '4px', color: '#6b7280' }}>
-                            Confirmada: {new Date(apt.confirmedAt).toLocaleString('es-ES')}
-                          </div>
-                        )}
+                        Cita confirmada
                       </div>
                     )}
                     {apt.status === 'CONFIRMED' && apt.paymentStatus && (
                       <div style={{ 
-                        fontSize: '13px', 
+                        fontSize: '12px', 
                         color: apt.paymentStatus === 'PAID' ? '#059669' : apt.paymentStatus === 'EXPIRED' ? '#dc2626' : '#d97706',
-                        fontWeight: 600,
+                        fontWeight: 500,
                         fontFamily: "'Inter', sans-serif",
                         marginBottom: '12px',
-                        padding: '8px 12px',
+                        padding: '6px 10px',
                         background: apt.paymentStatus === 'PAID' ? '#d1fae5' : apt.paymentStatus === 'EXPIRED' ? '#fee2e2' : '#fef3c7',
-                        borderRadius: '8px'
+                        borderRadius: '6px'
                       }}>
-                        💳 Estado de pago: {apt.paymentStatus === 'PAID' ? '✅ Pagado' : apt.paymentStatus === 'EXPIRED' ? '❌ Expirado' : '⏳ Pendiente'}
+                        Estado de pago: {apt.paymentStatus === 'PAID' ? 'Pagado' : apt.paymentStatus === 'EXPIRED' ? 'Expirado' : 'Pendiente'}
                         {apt.paymentDeadline && apt.paymentStatus === 'PENDING' && (
-                          <div style={{ fontSize: '11px', marginTop: '4px', color: '#6b7280', fontWeight: 700 }}>
-                            ⚠️ Tienes hasta el {new Date(apt.paymentDeadline).toLocaleString('es-ES')} para realizar el pago
-                          </div>
-                        )}
-                        {apt.price && apt.paymentStatus === 'PENDING' && (
-                          <div style={{ fontSize: '12px', marginTop: '6px', color: '#1a2e22', fontWeight: 700 }}>
-                            Monto a pagar: {apt.price} €
+                          <div style={{ fontSize: '11px', marginTop: '4px', color: '#6b7280', fontWeight: 500 }}>
+                            Tienes hasta el {new Date(apt.paymentDeadline).toLocaleString('es-ES')} para realizar el pago
                           </div>
                         )}
                       </div>
@@ -2010,7 +2011,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                             e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
                           }}
                         >
-                          📹 Iniciar Videollamada
+                          Iniciar Videollamada
                         </button>
                       );
                     })()}

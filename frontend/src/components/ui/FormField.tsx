@@ -34,6 +34,8 @@ export default function FormField({
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setTouched(true);
+    e.currentTarget.style.borderColor = showError ? '#ef4444' : '#e5e7eb';
+    e.currentTarget.style.boxShadow = 'none';
     if (onBlur) onBlur(e);
   };
 
@@ -84,11 +86,6 @@ export default function FormField({
             e.currentTarget.style.boxShadow = showError 
               ? '0 0 0 3px rgba(239, 68, 68, 0.1)' 
               : '0 0 0 3px rgba(102, 126, 234, 0.1)';
-          }}
-          onBlur={(e) => {
-            handleBlur(e);
-            e.currentTarget.style.borderColor = showError ? '#ef4444' : '#e5e7eb';
-            e.currentTarget.style.boxShadow = 'none';
           }}
         />
       )}

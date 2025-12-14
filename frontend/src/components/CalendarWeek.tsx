@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { toast } from './ui/Toast';
 
 type Slot = { id: number; startTime: string; endTime: string; status: 'FREE'|'REQUESTED'|'CONFIRMED'|'BOOKED'|'CANCELLED'; user?: { name: string }; price?: number };
@@ -10,6 +10,9 @@ type Props = {
   onCreateSlot?: (startIso: string, endIso: string, price?: number) => void;
   onBook?: (appointmentId: number) => void;
   onDeleteSlot?: (appointmentId: number) => void;
+  onUpdateSlot?: (appointmentId: number, updates: { price?: number; startTime?: string; endTime?: string }) => void;
+  initialWeekStart?: Date; // Semana inicial controlada desde el padre
+  onWeekChange?: (weekStart: Date) => void; // Callback cuando cambia la semana
 };
 
 function startOfWeek(d: Date) {
@@ -22,12 +25,35 @@ function startOfWeek(d: Date) {
 
 function addDays(d: Date, n: number) { const x = new Date(d); x.setDate(x.getDate()+n); return x; }
 
-export default function CalendarWeek({ mode, slots, myAppointments = [], onCreateSlot, onBook, onDeleteSlot }: Props) {
-  const [weekStart, setWeekStart] = useState(startOfWeek(new Date()));
+export default function CalendarWeek({ mode, slots, myAppointments = [], onCreateSlot, onBook, onDeleteSlot, onUpdateSlot, initialWeekStart, onWeekChange }: Props) {
+  const [weekStart, setWeekStart] = useState(initialWeekStart || startOfWeek(new Date()));
+  const [savedWeekStart, setSavedWeekStart] = useState<Date | null>(null); // Guardar semana al abrir modal (solo para cancelar)
+  
+  // Sincronizar con prop inicial si cambia
+  useEffect(() => {
+    if (initialWeekStart) {
+      const initialWeek = startOfWeek(initialWeekStart);
+      const currentWeek = startOfWeek(weekStart);
+      if (initialWeek.getTime() !== currentWeek.getTime()) {
+        setWeekStart(initialWeek);
+      }
+    }
+  }, [initialWeekStart]);
+  
+  // Notificar al padre cuando cambia la semana
+  const handleWeekChange = (newWeek: Date) => {
+    setWeekStart(newWeek);
+    if (onWeekChange) {
+      onWeekChange(newWeek);
+    }
+  };
   const [hoveredCell, setHoveredCell] = useState<string | null>(null);
   const [showPriceModal, setShowPriceModal] = useState(false);
   const [priceInput, setPriceInput] = useState('');
   const [pendingSlot, setPendingSlot] = useState<{ start: string; end: string } | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingSlot, setEditingSlot] = useState<Slot | null>(null);
+  const [editPriceInput, setEditPriceInput] = useState('');
   const hours = Array.from({ length: 13 }).map((_, i) => 8 + i); // 8:00 - 20:00
   const days = useMemo(() => Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i)), [weekStart]);
 
@@ -60,6 +86,8 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
     end.setHours(start.getHours() + 1);
     
     if (mode === 'PSYCHO') {
+      // Guardar la semana actual antes de abrir el modal
+      setSavedWeekStart(new Date(weekStart));
       // Para psicólogos, pedir el precio
       setPendingSlot({ start: start.toISOString(), end: end.toISOString() });
       setShowPriceModal(true);
@@ -87,10 +115,53 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
       return;
     }
     
+    // Guardar la semana de la cita que se está creando
+    const slotDate = new Date(pendingSlot.start);
+    const slotWeekStart = startOfWeek(slotDate);
+    
+    // Establecer la semana inmediatamente y notificar al padre
+    handleWeekChange(slotWeekStart);
+    
     onCreateSlot(pendingSlot.start, pendingSlot.end, price);
     setShowPriceModal(false);
     setPendingSlot(null);
     setPriceInput('');
+    setSavedWeekStart(null);
+  };
+
+  const handleEditSlot = (slot: Slot) => {
+    setEditingSlot(slot);
+    setEditPriceInput(slot.price?.toString() || '');
+    setSavedWeekStart(new Date(weekStart));
+    setShowEditModal(true);
+  };
+
+  const handleConfirmEdit = () => {
+    if (!onUpdateSlot || !editingSlot) return;
+    
+    const priceStr = editPriceInput.trim();
+    
+    if (priceStr === '') {
+      toast.warning('El precio es obligatorio.');
+      return;
+    }
+    
+    const price = parseFloat(priceStr);
+    
+    if (isNaN(price) || price <= 0) {
+      toast.warning('Por favor, ingresa un precio válido (número mayor a 0)');
+      return;
+    }
+    
+    onUpdateSlot(editingSlot.id, { price });
+    setShowEditModal(false);
+    setEditingSlot(null);
+    setEditPriceInput('');
+    // Restaurar la semana guardada si existe
+    if (savedWeekStart) {
+      handleWeekChange(savedWeekStart);
+      setSavedWeekStart(null);
+    }
   };
 
   const getStatusColor = (status: string, isMyAppointment: boolean = false) => {
@@ -144,7 +215,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
         alignItems: 'center'
       }}>
         <button
-          onClick={() => setWeekStart(addDays(weekStart, -7))}
+          onClick={() => handleWeekChange(addDays(weekStart, -7))}
           style={{
             background: 'rgba(255, 255, 255, 0.2)',
             border: 'none',
@@ -168,7 +239,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
           {days[0].toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })} - {days[6].toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
         </div>
         <button
-          onClick={() => setWeekStart(addDays(weekStart, 7))}
+          onClick={() => handleWeekChange(addDays(weekStart, 7))}
           style={{
             background: 'rgba(255, 255, 255, 0.2)',
             border: 'none',
@@ -326,7 +397,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                               boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                               position: 'relative',
                               zIndex: 5,
-                              paddingRight: mode === 'PSYCHO' && onDeleteSlot && (s.status === 'FREE' || s.status === 'REQUESTED') ? '28px' : '10px'
+                              paddingRight: mode === 'PSYCHO' ? '32px' : '10px'
                             }}
                             onMouseEnter={(e) => {
                               if ((s.status === 'FREE' || s.status === 'REQUESTED') && mode === 'USER' && onBook) {
@@ -410,50 +481,100 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                                     : 'Reservar'}
                                 </button>
                               )}
-                              {mode === 'PSYCHO' && onDeleteSlot && (s.status === 'FREE' || s.status === 'REQUESTED') && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    e.preventDefault();
-                                    if (onDeleteSlot) {
-                                      onDeleteSlot(s.id);
-                                    }
-                                  }}
-                                  onMouseDown={(e) => {
-                                    e.stopPropagation();
-                                  }}
-                                  style={{
-                                    background: 'transparent',
-                                    color: '#ef4444',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    padding: '2px 6px',
-                                    fontSize: '16px',
-                                    fontWeight: 700,
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s',
-                                    position: 'absolute',
-                                    top: '4px',
-                                    right: '4px',
-                                    zIndex: 10,
-                                    lineHeight: '1',
-                                    width: '20px',
-                                    height: '20px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.background = '#fee2e2';
-                                    e.currentTarget.style.transform = 'scale(1.1)';
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = 'transparent';
-                                    e.currentTarget.style.transform = 'scale(1)';
-                                  }}
-                                >
-                                  ×
-                                </button>
+                              {mode === 'PSYCHO' && s.price !== undefined && s.price !== null && (
+                                <div style={{ fontSize: '11px', opacity: 0.8, marginTop: '4px', fontWeight: 600 }}>
+                                  💰 {s.price.toFixed(2)}€
+                                </div>
+                              )}
+                              {mode === 'PSYCHO' && (
+                                <div style={{
+                                  position: 'absolute',
+                                  top: '4px',
+                                  right: '4px',
+                                  display: 'flex',
+                                  gap: '4px',
+                                  zIndex: 10
+                                }}>
+                                  {onUpdateSlot && (s.status === 'FREE' || s.status === 'REQUESTED') && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        handleEditSlot(s);
+                                      }}
+                                      onMouseDown={(e) => {
+                                        e.stopPropagation();
+                                      }}
+                                      style={{
+                                        background: 'rgba(102, 126, 234, 0.1)',
+                                        color: '#667eea',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        padding: '0',
+                                        fontSize: '12px',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        lineHeight: '1',
+                                        width: '18px',
+                                        height: '18px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        e.currentTarget.style.background = 'rgba(102, 126, 234, 0.2)';
+                                        e.currentTarget.style.transform = 'scale(1.1)';
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = 'rgba(102, 126, 234, 0.1)';
+                                        e.currentTarget.style.transform = 'scale(1)';
+                                      }}
+                                    >
+                                      ✏️
+                                    </button>
+                                  )}
+                                  {onDeleteSlot && (s.status === 'FREE' || s.status === 'REQUESTED') && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        if (onDeleteSlot) {
+                                          onDeleteSlot(s.id);
+                                        }
+                                      }}
+                                      onMouseDown={(e) => {
+                                        e.stopPropagation();
+                                      }}
+                                      style={{
+                                        background: 'rgba(239, 68, 68, 0.1)',
+                                        color: '#ef4444',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        padding: '0',
+                                        fontSize: '14px',
+                                        fontWeight: 700,
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        lineHeight: '1',
+                                        width: '18px',
+                                        height: '18px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+                                        e.currentTarget.style.transform = 'scale(1.1)';
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                                        e.currentTarget.style.transform = 'scale(1)';
+                                      }}
+                                    >
+                                      ×
+                                    </button>
+                                  )}
+                                </div>
                               )}
                             </div>
                           </div>
@@ -530,6 +651,11 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
           setShowPriceModal(false);
           setPendingSlot(null);
           setPriceInput('');
+          // Restaurar la semana guardada si existe
+          if (savedWeekStart) {
+            setWeekStart(savedWeekStart);
+            setSavedWeekStart(null);
+          }
         }}>
           <div style={{
             background: 'white',
@@ -630,6 +756,145 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                 }}
               >
                 Crear cita
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para editar cita */}
+      {showEditModal && editingSlot && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }} onClick={() => {
+          setShowEditModal(false);
+          setEditingSlot(null);
+          setEditPriceInput('');
+          // Restaurar la semana guardada si existe
+          if (savedWeekStart) {
+            setWeekStart(savedWeekStart);
+            setSavedWeekStart(null);
+          }
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '24px',
+            maxWidth: '400px',
+            width: '90%',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)'
+          }} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 600 }}>
+              Editar cita
+            </h3>
+            <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#6b7280' }}>
+              Fecha: {new Date(editingSlot.startTime).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </p>
+            <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#6b7280' }}>
+              Hora: {new Date(editingSlot.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - {new Date(editingSlot.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+            </p>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500 }}>
+                Precio (€) <span style={{ color: '#dc2626' }}>*</span>
+              </label>
+              <input
+                type="number"
+                min="0.01"
+                step="0.01"
+                value={editPriceInput}
+                onChange={(e) => setEditPriceInput(e.target.value)}
+                placeholder="Ej: 45.00"
+                required
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  outline: 'none',
+                  transition: 'border-color 0.2s'
+                }}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#667eea'}
+                onBlur={(e) => e.currentTarget.style.borderColor = '#e5e7eb'}
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleConfirmEdit();
+                  } else if (e.key === 'Escape') {
+                    setShowEditModal(false);
+                    setEditingSlot(null);
+                    setEditPriceInput('');
+                    if (savedWeekStart) {
+                      setWeekStart(savedWeekStart);
+                      setSavedWeekStart(null);
+                    }
+                  }
+                }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingSlot(null);
+                  setEditPriceInput('');
+                  if (savedWeekStart) {
+                    setWeekStart(savedWeekStart);
+                    setSavedWeekStart(null);
+                  }
+                }}
+                style={{
+                  padding: '10px 20px',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '8px',
+                  background: 'white',
+                  color: '#6b7280',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#d1d5db';
+                  e.currentTarget.style.background = '#f9fafb';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = '#e5e7eb';
+                  e.currentTarget.style.background = 'white';
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmEdit}
+                style={{
+                  padding: '10px 20px',
+                  border: 'none',
+                  borderRadius: '8px',
+                  background: '#667eea',
+                  color: 'white',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#5568d3';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#667eea';
+                }}
+              >
+                Guardar cambios
               </button>
             </div>
           </div>

@@ -210,6 +210,76 @@ public class CalendarController {
         return ResponseEntity.ok(Map.of("message", "Cita eliminada exitosamente"));
     }
 
+    // Psicólogo: editar cita (precio, fecha/hora)
+    @PutMapping("/slots/{appointmentId}")
+    @Transactional
+    public ResponseEntity<?> updateSlot(Principal principal, @PathVariable Long appointmentId, @RequestBody Map<String, Object> body) {
+        var me = userRepository.findByEmail(principal.getName()).orElseThrow();
+        if (!"PSYCHOLOGIST".equals(me.getRole())) {
+            return ResponseEntity.status(403).body(Map.of("error", "Solo los psicólogos pueden editar citas"));
+        }
+        
+        var appointment = appointmentRepository.findById(appointmentId)
+            .orElseThrow(() -> new RuntimeException("Cita no encontrada"));
+        
+        if (!appointment.getPsychologist().getId().equals(me.getId())) {
+            return ResponseEntity.status(403).body(Map.of("error", "No puedes editar citas de otros psicólogos"));
+        }
+        
+        // Solo permitir editar citas que no han pasado
+        if (appointment.getStartTime().isBefore(Instant.now())) {
+            return ResponseEntity.badRequest().body(Map.of("error", "No se pueden editar citas pasadas"));
+        }
+        
+        // Actualizar precio si se proporciona
+        if (body.containsKey("price")) {
+            Object priceObj = body.get("price");
+            if (priceObj != null) {
+                try {
+                    BigDecimal price;
+                    if (priceObj instanceof Number) {
+                        price = BigDecimal.valueOf(((Number) priceObj).doubleValue());
+                    } else {
+                        price = new BigDecimal(priceObj.toString());
+                    }
+                    if (price.compareTo(BigDecimal.ZERO) <= 0) {
+                        return ResponseEntity.badRequest().body(Map.of("error", "El precio debe ser mayor a 0"));
+                    }
+                    appointment.setPrice(price);
+                } catch (Exception e) {
+                    return ResponseEntity.badRequest().body(Map.of("error", "Precio inválido: " + e.getMessage()));
+                }
+            }
+        }
+        
+        // Actualizar fecha/hora si se proporciona (solo para citas FREE o REQUESTED)
+        if (body.containsKey("startTime") && body.containsKey("endTime")) {
+            if (!"FREE".equals(appointment.getStatus()) && !"REQUESTED".equals(appointment.getStatus())) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Solo se pueden cambiar fechas de citas libres o solicitadas"));
+            }
+            try {
+                Instant newStart = Instant.parse(body.get("startTime").toString());
+                Instant newEnd = Instant.parse(body.get("endTime").toString());
+                
+                if (newStart.isBefore(Instant.now())) {
+                    return ResponseEntity.badRequest().body(Map.of("error", "No se puede programar una cita en el pasado"));
+                }
+                
+                if (newEnd.isBefore(newStart) || newEnd.equals(newStart)) {
+                    return ResponseEntity.badRequest().body(Map.of("error", "La hora de fin debe ser posterior a la de inicio"));
+                }
+                
+                appointment.setStartTime(newStart);
+                appointment.setEndTime(newEnd);
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Formato de fecha inválido: " + e.getMessage()));
+            }
+        }
+        
+        appointmentRepository.save(appointment);
+        return ResponseEntity.ok(Map.of("message", "Cita actualizada exitosamente", "appointment", appointment));
+    }
+
     // Psicólogo: listar slots del rango
     @GetMapping("/slots")
     public ResponseEntity<List<AppointmentEntity>> mySlots(Principal principal,
@@ -217,7 +287,13 @@ public class CalendarController {
         @RequestParam("to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to) {
         var me = userRepository.findByEmail(principal.getName()).orElseThrow();
         if (!"PSYCHOLOGIST".equals(me.getRole())) return ResponseEntity.status(403).build();
-        return ResponseEntity.ok(appointmentRepository.findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(me.getId(), from, to));
+        var now = Instant.now();
+        // Filtrar citas pasadas - solo mostrar citas futuras o del día actual
+        var slots = appointmentRepository.findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(me.getId(), from, to)
+            .stream()
+            .filter(s -> s.getStartTime().isAfter(now) || s.getStartTime().atZone(ZoneId.systemDefault()).toLocalDate().equals(now.atZone(ZoneId.systemDefault()).toLocalDate()))
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(slots);
     }
 
     // Usuario: ver huecos libres de su psicólogo
@@ -228,7 +304,11 @@ public class CalendarController {
         var user = userRepository.findByEmail(principal.getName()).orElseThrow();
         var rel = userPsychologistRepository.findByUserId(user.getId());
         if (rel.isEmpty()) return ResponseEntity.ok(List.of());
-        var slots = appointmentRepository.findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(rel.get().getPsychologist().getId(), from, to);
+        var now = Instant.now();
+        var slots = appointmentRepository.findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(rel.get().getPsychologist().getId(), from, to)
+            .stream()
+            .filter(s -> s.getStartTime().isAfter(now) || s.getStartTime().atZone(ZoneId.systemDefault()).toLocalDate().equals(now.atZone(ZoneId.systemDefault()).toLocalDate()))
+            .collect(Collectors.toList());
         // Incluir slots libres, citas solicitadas por este usuario, citas confirmadas y citas reservadas por este usuario
         slots.removeIf(s -> {
             if ("FREE".equals(s.getStatus()) || "REQUESTED".equals(s.getStatus())) {
@@ -248,10 +328,12 @@ public class CalendarController {
     public ResponseEntity<?> myAppointments(Principal principal) {
         var user = userRepository.findByEmail(principal.getName()).orElseThrow();
         
-        // Obtener citas confirmadas y reservadas
+        // Obtener citas confirmadas y reservadas (solo futuras)
+        var now = Instant.now();
         var confirmedAppointments = appointmentRepository.findByUser_IdOrderByStartTimeAsc(user.getId())
             .stream()
-            .filter(apt -> "CONFIRMED".equals(apt.getStatus()) || "BOOKED".equals(apt.getStatus()))
+            .filter(apt -> ("CONFIRMED".equals(apt.getStatus()) || "BOOKED".equals(apt.getStatus())) 
+                && (apt.getStartTime().isAfter(now) || apt.getStartTime().atZone(ZoneId.systemDefault()).toLocalDate().equals(now.atZone(ZoneId.systemDefault()).toLocalDate())))
             .collect(Collectors.toList());
         
         // Obtener solicitudes pendientes del usuario

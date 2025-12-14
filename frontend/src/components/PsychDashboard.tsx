@@ -40,6 +40,7 @@ export default function PsychDashboard() {
   const [showVideoCall, setShowVideoCall] = useState(false);
   const [videoCallRoom, setVideoCallRoom] = useState<string | null>(null);
   const [videoCallOtherUser, setVideoCallOtherUser] = useState<{ email: string; name: string } | null>(null);
+  const [calendarWeekStart, setCalendarWeekStart] = useState<Date | null>(null);
   
   // Ref para mantener el componente montado incluso si showVideoCall cambia temporalmente
   const videoCallRef = useRef<{ room: string | null; user: any; otherUser: any } | null>(null);
@@ -2316,8 +2317,18 @@ export default function PsychDashboard() {
           <CalendarWeek
             mode="PSYCHO"
             slots={slots}
+            initialWeekStart={calendarWeekStart || undefined}
+            onWeekChange={(weekStart) => setCalendarWeekStart(weekStart)}
             onCreateSlot={async (start, end, price) => {
               try {
+                // Calcular y guardar la semana de la cita antes de crearla
+                const slotDate = new Date(start);
+                const day = (slotDate.getDay() + 6) % 7; // Monday=0
+                const slotWeekStart = new Date(slotDate);
+                slotWeekStart.setDate(slotDate.getDate() - day);
+                slotWeekStart.setHours(0, 0, 0, 0);
+                setCalendarWeekStart(slotWeekStart);
+                
                 await calendarService.createSlot(start, end, price);
                 await loadMySlots();
                 await loadPendingRequests();
@@ -2334,6 +2345,17 @@ export default function PsychDashboard() {
                 await loadPendingRequests();
               } catch (e: any) {
                 console.error('Error al eliminar la cita:', e);
+              }
+            }}
+            onUpdateSlot={async (appointmentId, updates) => {
+              try {
+                await calendarService.updateSlot(appointmentId, updates);
+                await loadMySlots();
+                await loadPendingRequests();
+                toast.success('Cita actualizada exitosamente');
+              } catch (e: any) {
+                const errorMessage = e?.response?.data?.error || 'Error al actualizar la cita';
+                toast.error(errorMessage);
               }
             }}
           />

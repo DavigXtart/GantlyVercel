@@ -366,6 +366,10 @@ export const calendarService = {
   deleteSlot: async (appointmentId: number) => {
     const { data } = await api.delete(`/calendar/slots/${appointmentId}`);
     return data;
+  },
+  updateSlot: async (appointmentId: number, updates: { price?: number; startTime?: string; endTime?: string }) => {
+    const { data } = await api.put(`/calendar/slots/${appointmentId}`, updates);
+    return data;
   }
 };
 
