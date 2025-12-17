@@ -17,7 +17,11 @@ export default function Evaluaciones() {
     setLoading(true);
     try {
       const response = await evaluationTestService.getTestsByCategory('EVALUATION');
-      setTests(response.tests || []);
+      // Filtrar tests placeholder (los que tienen código que empieza con SECTION_PLACEHOLDER_)
+      const filteredTests = (response.tests || []).filter((t: any) => 
+        !t.code || !t.code.startsWith('SECTION_PLACEHOLDER_')
+      );
+      setTests(filteredTests);
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Error al cargar tests');
     } finally {

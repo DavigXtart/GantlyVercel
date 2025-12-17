@@ -252,11 +252,22 @@ public class CalendarController {
             }
         }
         
-        // Actualizar fecha/hora si se proporciona (solo para citas FREE o REQUESTED)
+        // Actualizar fecha/hora si se proporciona (solo para citas FREE, sin solicitudes)
         if (body.containsKey("startTime") && body.containsKey("endTime")) {
-            if (!"FREE".equals(appointment.getStatus()) && !"REQUESTED".equals(appointment.getStatus())) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Solo se pueden cambiar fechas de citas libres o solicitadas"));
+            // Solo permitir cambiar la hora si la cita está libre (FREE) y no tiene solicitudes
+            if (!"FREE".equals(appointment.getStatus())) {
+                return ResponseEntity.badRequest().body(Map.of("error", "No se puede cambiar la hora de una cita que ya tiene solicitudes. Solo se pueden cambiar fechas de citas libres."));
             }
+            
+            // Verificar si hay solicitudes asociadas a esta cita (pendientes o confirmadas)
+            var requests = appointmentRequestRepository.findByAppointment_Id(appointmentId);
+            boolean hasActiveRequests = requests.stream()
+                .anyMatch(req -> "PENDING".equals(req.getStatus()) || "CONFIRMED".equals(req.getStatus()));
+            
+            if (hasActiveRequests) {
+                return ResponseEntity.badRequest().body(Map.of("error", "No se puede cambiar la hora de una cita que tiene solicitudes pendientes o confirmadas."));
+            }
+            
             try {
                 Instant newStart = Instant.parse(body.get("startTime").toString());
                 Instant newEnd = Instant.parse(body.get("endTime").toString());

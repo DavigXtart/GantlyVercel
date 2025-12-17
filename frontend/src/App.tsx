@@ -9,6 +9,7 @@ import { authService } from './services/api';
 import UserDashboard from './components/UserDashboard';
 import PsychDashboard from './components/PsychDashboard';
 import AdminUsersPanel from './components/AdminUsersPanel';
+import AdminSectionsManager from './components/AdminSectionsManager';
 import About from './components/About';
 import SoyProfesional from './components/SoyProfesional';
 import RegisterPsychologist from './components/RegisterPsychologist';
@@ -26,7 +27,7 @@ function App() {
   const [initialTestSessionId, setInitialTestSessionId] = useState<string | null>(null);
   const [selectedTestId, setSelectedTestId] = useState<number | null>(null);
   const [role, setRole] = useState<'USER'|'ADMIN'|'PSYCHOLOGIST'|null>(null);
-  const [adminTab, setAdminTab] = useState<'tests'|'users'>('users');
+  const [adminTab, setAdminTab] = useState<'tests'|'users'|'sections'|'admin-tests'|'admin-users'>('users');
 
   const checkRole = async () => {
     try {
@@ -558,7 +559,9 @@ function App() {
             {role === 'ADMIN' && (
               <>
                 <button className={`btn-secondary ${adminTab==='users'?'active':''}`} onClick={() => setAdminTab('users')}>Roles</button>
-                <button className={`btn-secondary ${adminTab==='tests'?'active':''}`} onClick={() => setAdminTab('tests')}>Gestión de tests</button>
+                <button className={`btn-secondary ${adminTab==='admin-tests'?'active':''}`} onClick={() => setAdminTab('admin-tests')}>Tests</button>
+                <button className={`btn-secondary ${adminTab==='admin-users'?'active':''}`} onClick={() => setAdminTab('admin-users')}>Usuarios</button>
+                <button className={`btn-secondary ${adminTab==='sections'?'active':''}`} onClick={() => setAdminTab('sections')}>Secciones</button>
               </>
             )}
             <button onClick={handleLogout} className="btn-secondary">Cerrar sesión</button>
@@ -569,7 +572,11 @@ function App() {
       {/* ADMIN: sólo panel admin */}
       {role === 'ADMIN' && (
         <div>
-          {adminTab === 'users' ? <AdminUsersPanel /> : <AdminPanel />}
+          {adminTab === 'users' ? <AdminUsersPanel /> : 
+           adminTab === 'admin-tests' ? <AdminPanel initialTab="tests" /> : 
+           adminTab === 'admin-users' ? <AdminPanel initialTab="users" /> :
+           adminTab === 'sections' ? <AdminSectionsManager /> : 
+           <AdminPanel initialTab="tests" />}
         </div>
       )}
 

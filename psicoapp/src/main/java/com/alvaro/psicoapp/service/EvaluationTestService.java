@@ -2,9 +2,11 @@ package com.alvaro.psicoapp.service;
 
 import com.alvaro.psicoapp.domain.EvaluationTestEntity;
 import com.alvaro.psicoapp.domain.EvaluationTestResultEntity;
+import com.alvaro.psicoapp.domain.TestEntity;
 import com.alvaro.psicoapp.domain.UserEntity;
 import com.alvaro.psicoapp.repository.EvaluationTestRepository;
 import com.alvaro.psicoapp.repository.EvaluationTestResultRepository;
+import com.alvaro.psicoapp.repository.TestRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,17 +28,68 @@ public class EvaluationTestService {
     private EvaluationTestRepository evaluationTestRepository;
     
     @Autowired
+    private TestRepository testRepository;
+    
+    @Autowired
     private EvaluationTestResultRepository resultRepository;
     
     @Autowired
     private UserRepository userRepository;
 
     public List<EvaluationTestEntity> getTestsByCategory(String category) {
-        return evaluationTestRepository.findByCategoryAndActiveTrue(category);
+        List<EvaluationTestEntity> evaluationTests = evaluationTestRepository.findByCategoryAndActiveTrue(category);
+        
+        // También incluir tests de la tabla tests que tengan esta categoría
+        List<TestEntity> testsWithCategory = testRepository.findAll().stream()
+            .filter(t -> t.getActive() != null && t.getActive() 
+                && t.getCategory() != null && t.getCategory().equals(category))
+            .collect(Collectors.toList());
+        
+        // Convertir TestEntity a EvaluationTestEntity para mantener compatibilidad
+        List<EvaluationTestEntity> convertedTests = testsWithCategory.stream()
+            .map(this::convertTestToEvaluationTest)
+            .collect(Collectors.toList());
+        
+        // Combinar ambas listas
+        List<EvaluationTestEntity> allTests = new ArrayList<>(evaluationTests);
+        allTests.addAll(convertedTests);
+        
+        return allTests;
+    }
+    
+    private EvaluationTestEntity convertTestToEvaluationTest(TestEntity test) {
+        EvaluationTestEntity evalTest = new EvaluationTestEntity();
+        evalTest.setId(test.getId());
+        evalTest.setCode(test.getCode());
+        evalTest.setTitle(test.getTitle());
+        evalTest.setDescription(test.getDescription());
+        evalTest.setCategory(test.getCategory());
+        evalTest.setTopic(test.getTopic());
+        evalTest.setActive(test.getActive());
+        evalTest.setCreatedAt(test.getCreatedAt());
+        return evalTest;
     }
 
     public List<EvaluationTestEntity> getTestsByTopic(String category, String topic) {
-        return evaluationTestRepository.findByCategoryAndTopicAndActiveTrue(category, topic);
+        List<EvaluationTestEntity> evaluationTests = evaluationTestRepository.findByCategoryAndTopicAndActiveTrue(category, topic);
+        
+        // También incluir tests de la tabla tests que tengan esta categoría y topic
+        List<TestEntity> testsWithCategoryAndTopic = testRepository.findAll().stream()
+            .filter(t -> t.getActive() != null && t.getActive() 
+                && t.getCategory() != null && t.getCategory().equals(category)
+                && t.getTopic() != null && t.getTopic().equals(topic))
+            .collect(Collectors.toList());
+        
+        // Convertir TestEntity a EvaluationTestEntity
+        List<EvaluationTestEntity> convertedTests = testsWithCategoryAndTopic.stream()
+            .map(this::convertTestToEvaluationTest)
+            .collect(Collectors.toList());
+        
+        // Combinar ambas listas
+        List<EvaluationTestEntity> allTests = new ArrayList<>(evaluationTests);
+        allTests.addAll(convertedTests);
+        
+        return allTests;
     }
 
     public List<EvaluationTestEntity> getAllActiveTests() {

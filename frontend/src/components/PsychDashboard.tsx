@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { profileService, psychService, calendarService, tasksService, adminService, assignedTestsService, testService, jitsiService } from '../services/api';
+import { profileService, psychService, calendarService, tasksService, adminService, assignedTestsService, testService, jitsiService, resultsService } from '../services/api';
 import ChatWidget from './ChatWidget';
 import CalendarWeek from './CalendarWeek';
 import JitsiVideoCall from './JitsiVideoCall';
@@ -7,8 +7,11 @@ import { generateJitsiRoomName } from '../lib/utils';
 import LoadingSpinner from './ui/LoadingSpinner';
 import EmptyState from './ui/EmptyState';
 import { toast } from './ui/Toast';
+import BarChart from './BarChart';
+import FactorChart from './FactorChart';
+import InitialTestSummary from './InitialTestSummary';
 
-type Tab = 'perfil' | 'pacientes' | 'calendario' | 'tareas' | 'chat' | 'tests-asignados';
+type Tab = 'perfil' | 'pacientes' | 'calendario' | 'tareas' | 'chat' | 'tests-asignados' | 'patient-profile' | 'test-details';
 
 export default function PsychDashboard() {
   const [tab, setTab] = useState<Tab>('perfil');
@@ -41,6 +44,20 @@ export default function PsychDashboard() {
   const [videoCallRoom, setVideoCallRoom] = useState<string | null>(null);
   const [videoCallOtherUser, setVideoCallOtherUser] = useState<{ email: string; name: string } | null>(null);
   const [calendarWeekStart, setCalendarWeekStart] = useState<Date | null>(null);
+  
+  // Estados para vista de perfil de paciente
+  const [viewingPatientId, setViewingPatientId] = useState<number | null>(null);
+  const [patientDetails, setPatientDetails] = useState<any>(null);
+  const [patientOverallStats, setPatientOverallStats] = useState<any>(null);
+  const [selectedTestForStats, setSelectedTestForStats] = useState<number | null>(null);
+  const [patientStats, setPatientStats] = useState<any>(null);
+  const [loadingPatientDetails, setLoadingPatientDetails] = useState(false);
+  
+  // Estados para vista de detalles de test asignado
+  const [viewingTestDetails, setViewingTestDetails] = useState<{ patientId: number; testId: number; assignedTestId: number } | null>(null);
+  const [testDetailsData, setTestDetailsData] = useState<any>(null);
+  const [testAnswers, setTestAnswers] = useState<any>(null);
+  const [loadingTestDetails, setLoadingTestDetails] = useState(false);
   
   // Ref para mantener el componente montado incluso si showVideoCall cambia temporalmente
   const videoCallRef = useRef<{ room: string | null; user: any; otherUser: any } | null>(null);
@@ -144,6 +161,83 @@ export default function PsychDashboard() {
     } catch (error: any) {
       console.error('Error agregando comentario:', error);
       toast.error('Error al agregar el comentario: ' + (error.response?.data?.error || error.message));
+    }
+  };
+
+  const loadPatientDetails = async (patientId: number) => {
+    try {
+      setLoadingPatientDetails(true);
+      const data = await psychService.getPatientDetails(patientId);
+      setPatientDetails(data);
+      setViewingPatientId(patientId);
+      
+      // Calcular media general de factores entre tests completados
+      try {
+        const testIds = (data?.tests || []).map((t: any) => t.testId);
+        if (testIds.length > 0) {
+          const results = await Promise.all(
+            testIds.map((tid: number) => resultsService.getUserTest(patientId, tid).catch(() => null))
+          );
+          const factors: Record<string, { name: string; sum: number; count: number }> = {};
+          for (const r of results) {
+            if (!r || !r.factors) continue;
+            for (const f of r.factors) {
+              const key = f.factorCode || f.factorName || String(f.factorId);
+              if (!factors[key]) factors[key] = { name: f.factorName || key, sum: 0, count: 0 };
+              factors[key].sum += Number(f.percentage) || 0;
+              factors[key].count += 1;
+            }
+          }
+          const averaged = Object.entries(factors).map(([code, v]) => ({
+            code,
+            name: v.name,
+            percentage: v.count > 0 ? v.sum / v.count : 0,
+          }));
+          setPatientOverallStats({ factors: averaged });
+        } else {
+          setPatientOverallStats(null);
+        }
+      } catch (e) {
+        console.warn('No se pudo calcular media general', e);
+      }
+    } catch (err: any) {
+      console.error('Error cargando detalles del paciente:', err);
+      toast.error('Error al cargar los detalles del paciente: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setLoadingPatientDetails(false);
+    }
+  };
+
+  const loadPatientStats = async (patientId: number, testId: number) => {
+    try {
+      setLoadingPatientDetails(true);
+      const data = await resultsService.getUserTest(patientId, testId);
+      setPatientStats(data);
+    } catch (err: any) {
+      console.error('Error cargando estadísticas:', err);
+      toast.error('Error al cargar estadísticas: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setLoadingPatientDetails(false);
+    }
+  };
+
+  const loadTestDetails = async (patientId: number, testId: number, assignedTestId: number) => {
+    try {
+      setLoadingTestDetails(true);
+      setViewingTestDetails({ patientId, testId, assignedTestId });
+      
+      // Cargar respuestas del test
+      const answersData = await psychService.getPatientTestAnswers(patientId, testId);
+      setTestAnswers(answersData);
+      
+      // Cargar estadísticas (factores y subfactores)
+      const statsData = await resultsService.getUserTest(patientId, testId);
+      setTestDetailsData(statsData);
+    } catch (err: any) {
+      console.error('Error cargando detalles del test:', err);
+      toast.error('Error al cargar los detalles del test: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setLoadingTestDetails(false);
     }
   };
 
@@ -787,14 +881,14 @@ export default function PsychDashboard() {
                       e.currentTarget.style.borderColor = '#e5e7eb';
                     }}
                     onClick={() => {
-                      setSelectedPatient(p.id);
-                      setTab('chat');
+                      loadPatientDetails(p.id);
+                      setTab('patient-profile');
                     }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        setSelectedPatient(p.id);
-                        setTab('chat');
+                        loadPatientDetails(p.id);
+                        setTab('patient-profile');
                       }
                     }}
                   >
@@ -830,8 +924,8 @@ export default function PsychDashboard() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSelectedPatient(p.id);
-                        setTab('chat');
+                        loadPatientDetails(p.id);
+                        setTab('patient-profile');
                       }}
                       aria-label={`Abrir chat con ${p.name}`}
                       style={{
@@ -2218,6 +2312,12 @@ export default function PsychDashboard() {
                             {patientTests.map(at => (
                               <div
                                 key={at.id}
+                                onClick={() => {
+                                  if (at.completedAt && at.testId && at.userId) {
+                                    loadTestDetails(at.userId, at.testId, at.id);
+                                    setTab('test-details');
+                                  }
+                                }}
                                 style={{
                                   padding: '16px',
                                   background: at.completedAt ? '#f0fdf4' : '#fef3c7',
@@ -2226,7 +2326,21 @@ export default function PsychDashboard() {
                                   display: 'flex',
                                   alignItems: 'flex-start',
                                   justifyContent: 'space-between',
-                                  gap: '16px'
+                                  gap: '16px',
+                                  cursor: at.completedAt ? 'pointer' : 'default',
+                                  transition: at.completedAt ? 'all 0.2s' : 'none'
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (at.completedAt) {
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (at.completedAt) {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow = 'none';
+                                  }
                                 }}
                               >
                                 <div style={{ flex: 1 }}>
@@ -2830,6 +2944,381 @@ export default function PsychDashboard() {
               <ChatWidget mode="PSYCHOLOGIST" otherId={selectedPatient || undefined} />
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Vista de perfil de paciente */}
+      {tab === 'patient-profile' && viewingPatientId && (
+        <div style={{
+          background: '#ffffff',
+          borderRadius: '12px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          padding: '32px',
+          border: '1px solid #e5e7eb'
+        }}>
+          {loadingPatientDetails ? (
+            <LoadingSpinner text="Cargando detalles del paciente..." />
+          ) : patientDetails ? (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <div>
+                  <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 700 }}>{patientDetails.name}</h2>
+                  <p style={{ color: '#6b7280', marginTop: '4px' }}>{patientDetails.email}</p>
+                </div>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <button
+                    onClick={() => {
+                      setTab('pacientes');
+                      setViewingPatientId(null);
+                      setPatientDetails(null);
+                      setPatientOverallStats(null);
+                      setPatientStats(null);
+                      setSelectedTestForStats(null);
+                    }}
+                    style={{
+                      padding: '10px 20px',
+                      background: '#f3f4f6',
+                      color: '#1f2937',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontSize: '14px'
+                    }}
+                  >
+                    ← Volver
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: '#f9fafb', borderRadius: '12px' }}>
+                <p><strong>Fecha de registro:</strong> {patientDetails.createdAt ? new Date(patientDetails.createdAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' }) : '—'}</p>
+                <p><strong>Tests completados:</strong> {patientDetails.tests?.length || 0}</p>
+                {patientDetails.gender && <p><strong>Género:</strong> {patientDetails.gender}</p>}
+                {patientDetails.age && <p><strong>Edad:</strong> {patientDetails.age}</p>}
+              </div>
+
+              {patientOverallStats && patientOverallStats.factors && patientOverallStats.factors.length > 0 && (
+                <div style={{ marginBottom: '24px', padding: '24px', background: '#ffffff', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                  <h3 style={{ marginTop: 0, marginBottom: '16px' }}>Media general (todos los tests) - Factores</h3>
+                  <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1, minWidth: 260 }}>
+                      <BarChart
+                        data={patientOverallStats.factors.map((f: any) => ({
+                          label: f.code || f.name,
+                          value: Number(f.percentage) || 0,
+                        }))}
+                        maxValue={100}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div style={{ marginBottom: '24px', padding: '24px', background: '#ffffff', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ margin: 0 }}>Estadísticas por Test</h3>
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <select
+                      value={selectedTestForStats ?? ''}
+                      onChange={(e) => {
+                        const testId = e.target.value ? Number(e.target.value) : null;
+                        setSelectedTestForStats(testId);
+                        if (testId && viewingPatientId) {
+                          loadPatientStats(viewingPatientId, testId);
+                        } else {
+                          setPatientStats(null);
+                        }
+                      }}
+                      style={{ padding: '10px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '14px' }}
+                    >
+                      <option value="">Selecciona test…</option>
+                      {availableTests.map((t: any) => (
+                        <option key={t.id} value={t.id}>{t.title || t.code}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                {!selectedTestForStats && (
+                  <p style={{ color: '#6b7280', marginTop: '8px' }}>Selecciona un test para ver sus estadísticas.</p>
+                )}
+                {selectedTestForStats && loadingPatientDetails && (
+                  <p style={{ color: '#6b7280', marginTop: '8px' }}>Cargando estadísticas...</p>
+                )}
+                {selectedTestForStats && !loadingPatientDetails && patientStats && (
+                  <div style={{ marginTop: '16px' }}>
+                    {patientStats.subfactors && patientStats.subfactors.length > 0 && (
+                      <div style={{ marginBottom: '24px' }}>
+                        <h4>Subfactores (gráfico)</h4>
+                        <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
+                          <div style={{ flex: 1, minWidth: 260 }}>
+                            <BarChart
+                              data={patientStats.subfactors.map((sf: any) => ({
+                                label: sf.subfactorName || sf.subfactorCode,
+                                value: Number(sf.percentage) || 0,
+                              }))}
+                              maxValue={100}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {patientStats.factors && patientStats.factors.length > 0 && (
+                      <div style={{ marginBottom: '24px' }}>
+                        <h4>Factores (gráfico)</h4>
+                        <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
+                          <div style={{ flex: 1, minWidth: 260 }}>
+                            <FactorChart
+                              data={patientStats.factors.map((f: any) => {
+                                const percentage = Number(f.percentage) || 0;
+                                const value = Math.round((percentage / 100) * 10);
+                                const code = f.factorCode || '';
+                                return {
+                                  label: code,
+                                  value: Math.max(1, Math.min(10, value)),
+                                };
+                              })}
+                              maxValue={10}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {patientDetails.tests && patientDetails.tests.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+                  <p>Este paciente aún no ha completado ningún test.</p>
+                </div>
+              ) : patientDetails.tests && patientDetails.tests.length > 0 ? (
+                <div>
+                  {patientDetails.tests.map((test: any) => (
+                    <div key={test.testId} style={{ marginBottom: '24px', padding: '24px', background: '#ffffff', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                        <div>
+                          <h3 style={{ margin: 0 }}>{test.testTitle}</h3>
+                          <p style={{ fontSize: '14px', color: '#6b7280', marginTop: '4px' }}>
+                            Código: {test.testCode}
+                          </p>
+                        </div>
+                      </div>
+                      <div style={{ marginTop: '20px' }}>
+                        {test.testCode === 'INITIAL' && test.answers && test.answers.length > 0 && (
+                          <InitialTestSummary test={test} />
+                        )}
+                        <h4 style={{ fontSize: '18px', marginBottom: '16px' }}>
+                          Respuestas ({test.answers?.length || 0})
+                        </h4>
+                        {test.answers && test.answers.length > 0 ? (
+                          <div>
+                            {test.answers.map((answer: any, idx: number) => (
+                              <div key={answer.questionId} style={{ marginBottom: '12px', padding: '12px', background: '#f9fafb', borderRadius: '8px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                  <span style={{ fontSize: '12px', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#667eea', color: 'white', borderRadius: '50%', fontWeight: 600 }}>
+                                    {idx + 1}
+                                  </span>
+                                  <strong style={{ fontSize: '15px' }}>{answer.questionText}</strong>
+                                </div>
+                                <div style={{ paddingLeft: '32px' }}>
+                                  {answer.answerText ? (
+                                    <div>
+                                      <p style={{ margin: '4px 0', fontSize: '14px' }}>
+                                        <strong>Respuesta:</strong> {answer.answerText}
+                                        {answer.answerValue !== undefined && answer.answerValue !== null && (
+                                          <span style={{ color: '#6b7280', marginLeft: '8px' }}>
+                                            (Valor: {answer.answerValue})
+                                          </span>
+                                        )}
+                                      </p>
+                                      {answer.textValue && (
+                                        <p style={{ margin: '4px 0', fontSize: '13px', color: '#6b7280' }}>
+                                          <strong>Detalle:</strong> {answer.textValue}
+                                        </p>
+                                      )}
+                                    </div>
+                                  ) : answer.textValue ? (
+                                    <p style={{ margin: '4px 0', fontSize: '14px' }}>
+                                      <strong>Detalle:</strong> {answer.textValue}
+                                    </p>
+                                  ) : answer.numericValue !== undefined && answer.numericValue !== null ? (
+                                    <p style={{ margin: '4px 0', fontSize: '14px' }}>
+                                      <strong>Valor numérico:</strong> {answer.numericValue}
+                                    </p>
+                                  ) : (
+                                    <p style={{ margin: '4px 0', fontSize: '14px', color: '#6b7280', fontStyle: 'italic' }}>
+                                      Sin respuesta registrada
+                                    </p>
+                                  )}
+                                  {answer.createdAt && (
+                                    <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                                      {new Date(answer.createdAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p style={{ color: '#6b7280' }}>No hay respuestas registradas para este test.</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </>
+          ) : (
+            <EmptyState icon="👤" title="Paciente no encontrado" message="No se pudieron cargar los detalles del paciente." />
+          )}
+        </div>
+      )}
+
+      {/* Vista de detalles de test asignado */}
+      {tab === 'test-details' && viewingTestDetails && (
+        <div style={{
+          background: '#ffffff',
+          borderRadius: '12px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          padding: '32px',
+          border: '1px solid #e5e7eb'
+        }}>
+          {loadingTestDetails ? (
+            <LoadingSpinner text="Cargando detalles del test..." />
+          ) : testDetailsData && testAnswers ? (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <div>
+                  <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 700 }}>{testAnswers.testTitle}</h2>
+                  <p style={{ color: '#6b7280', marginTop: '4px' }}>
+                    Código: {testAnswers.testCode}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setTab('tests-asignados');
+                    setViewingTestDetails(null);
+                    setTestDetailsData(null);
+                    setTestAnswers(null);
+                  }}
+                  style={{
+                    padding: '10px 20px',
+                    background: '#f3f4f6',
+                    color: '#1f2937',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontSize: '14px'
+                  }}
+                >
+                  ← Volver
+                </button>
+              </div>
+
+              {/* Gráficas de factores y subfactores */}
+              {testDetailsData.subfactors && testDetailsData.subfactors.length > 0 && (
+                <div style={{ marginBottom: '24px', padding: '24px', background: '#ffffff', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                  <h3 style={{ marginTop: 0, marginBottom: '16px' }}>Subfactores</h3>
+                  <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1, minWidth: 260 }}>
+                      <BarChart
+                        data={testDetailsData.subfactors.map((sf: any) => ({
+                          label: sf.subfactorName || sf.subfactorCode,
+                          value: Number(sf.percentage) || 0,
+                        }))}
+                        maxValue={100}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {testDetailsData.factors && testDetailsData.factors.length > 0 && (
+                <div style={{ marginBottom: '24px', padding: '24px', background: '#ffffff', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                  <h3 style={{ marginTop: 0, marginBottom: '16px' }}>Factores</h3>
+                  <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1, minWidth: 260 }}>
+                      <FactorChart
+                        data={testDetailsData.factors.map((f: any) => {
+                          const percentage = Number(f.percentage) || 0;
+                          const value = Math.round((percentage / 100) * 10);
+                          const code = f.factorCode || '';
+                          return {
+                            label: code,
+                            value: Math.max(1, Math.min(10, value)),
+                          };
+                        })}
+                        maxValue={10}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Respuestas */}
+              <div style={{ marginBottom: '24px', padding: '24px', background: '#ffffff', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                <h3 style={{ marginTop: 0, marginBottom: '16px' }}>
+                  Respuestas ({testAnswers.answers?.length || 0})
+                </h3>
+                {testAnswers.answers && testAnswers.answers.length > 0 ? (
+                  <div>
+                    {testAnswers.answers.map((answer: any, idx: number) => (
+                      <div key={answer.questionId} style={{ marginBottom: '12px', padding: '12px', background: '#f9fafb', borderRadius: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                          <span style={{ fontSize: '12px', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#667eea', color: 'white', borderRadius: '50%', fontWeight: 600 }}>
+                            {idx + 1}
+                          </span>
+                          <strong style={{ fontSize: '15px' }}>{answer.questionText}</strong>
+                        </div>
+                        <div style={{ paddingLeft: '32px' }}>
+                          {answer.answerText ? (
+                            <div>
+                              <p style={{ margin: '4px 0', fontSize: '14px' }}>
+                                <strong>Respuesta:</strong> {answer.answerText}
+                                {answer.answerValue !== undefined && answer.answerValue !== null && (
+                                  <span style={{ color: '#6b7280', marginLeft: '8px' }}>
+                                    (Valor: {answer.answerValue})
+                                  </span>
+                                )}
+                              </p>
+                              {answer.textValue && (
+                                <p style={{ margin: '4px 0', fontSize: '13px', color: '#6b7280' }}>
+                                  <strong>Detalle:</strong> {answer.textValue}
+                                </p>
+                              )}
+                            </div>
+                          ) : answer.textValue ? (
+                            <p style={{ margin: '4px 0', fontSize: '14px' }}>
+                              <strong>Detalle:</strong> {answer.textValue}
+                            </p>
+                          ) : answer.numericValue !== undefined && answer.numericValue !== null ? (
+                            <p style={{ margin: '4px 0', fontSize: '14px' }}>
+                              <strong>Valor numérico:</strong> {answer.numericValue}
+                            </p>
+                          ) : (
+                            <p style={{ margin: '4px 0', fontSize: '14px', color: '#6b7280', fontStyle: 'italic' }}>
+                              Sin respuesta registrada
+                            </p>
+                          )}
+                          {answer.createdAt && (
+                            <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                              {new Date(answer.createdAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ color: '#6b7280' }}>No hay respuestas registradas para este test.</p>
+                )}
+              </div>
+            </>
+          ) : (
+            <EmptyState icon="📊" title="Test no encontrado" message="No se pudieron cargar los detalles del test." />
+          )}
         </div>
       )}
 

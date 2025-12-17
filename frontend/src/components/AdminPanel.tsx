@@ -10,27 +10,55 @@ interface Test {
   description: string;
   active: boolean;
   createdAt: string;
+  category?: 'EVALUATION' | 'DISCOVERY' | null;
+  topic?: string | null;
 }
 
-export default function AdminPanel() {
+interface AdminPanelProps {
+  initialTab?: 'tests' | 'users';
+}
+
+export default function AdminPanel({ initialTab = 'tests' }: AdminPanelProps) {
   const [tests, setTests] = useState<Test[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedTestId, setSelectedTestId] = useState<number | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingTest, setEditingTest] = useState<Test | null>(null);
-  const [activeTab, setActiveTab] = useState<'tests' | 'users'>('tests');
+  const [activeTab, setActiveTab] = useState<'tests' | 'users'>(initialTab);
   const [testSearch, setTestSearch] = useState('');
+  const [availableTopics, setAvailableTopics] = useState<string[]>([]);
+
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
 
   useEffect(() => {
     loadTests();
   }, []);
 
+  useEffect(() => {
+    // Cargar topics disponibles de todos los tests
+    const topics = Array.from(new Set(tests.map(t => t.topic).filter(t => t && t.trim() !== '')));
+    setAvailableTopics(topics.sort());
+  }, [tests]);
+
   const loadTests = async () => {
     try {
       setLoading(true);
-      const data = await adminService.listTests();
-      console.log('Tests cargados en admin:', data);
-      setTests(data || []);
+      // Cargar tanto tests normales como evaluation tests
+      const [testsData, evaluationTestsData] = await Promise.all([
+        adminService.listTests().catch(() => []),
+        adminService.listEvaluationTests().catch(() => [])
+      ]);
+      
+      // Combinar ambos tipos de tests, excluyendo placeholders
+      const allTestsCombined = [
+        ...(testsData || []),
+        ...(evaluationTestsData || []).filter((et: any) => !et.code || !et.code.startsWith('SECTION_PLACEHOLDER_'))
+      ];
+      
+      console.log('Tests cargados en admin:', allTestsCombined);
+      setTests(allTestsCombined);
     } catch (err: any) {
       console.error('Error cargando tests:', err);
       const errorMsg = err.response?.data?.message || err.message || 'Error desconocido';
@@ -45,6 +73,7 @@ export default function AdminPanel() {
       setLoading(false);
     }
   };
+
 
   const createTest = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -73,12 +102,34 @@ export default function AdminPanel() {
     const formData = new FormData(e.currentTarget);
     try {
       setLoading(true);
-      await adminService.updateTest(editingTest.id, {
+      
+      const updateData = {
         code: formData.get('code') as string,
         title: formData.get('title') as string,
         description: formData.get('description') as string || '',
-        active: formData.get('active') === 'true'
-      });
+        active: formData.get('active') === 'true',
+        category: (formData.get('category') as string) || null,
+        topic: (formData.get('topic') as string) || null
+      };
+      
+      // Determinar si es un evaluation test (tiene category y topic definidos y no es placeholder)
+      const isEvaluationTest = editingTest.category !== null && editingTest.category !== undefined 
+        && editingTest.topic !== null && editingTest.topic !== undefined
+        && editingTest.code && !editingTest.code.startsWith('SECTION_PLACEHOLDER_');
+      
+      if (isEvaluationTest) {
+        // Intentar actualizar como evaluation test primero
+        try {
+          await adminService.updateEvaluationTest(editingTest.id, updateData);
+        } catch (e) {
+          // Si falla, intentar como test normal
+          await adminService.updateTest(editingTest.id, updateData);
+        }
+      } else {
+        // Actualizar como test normal
+        await adminService.updateTest(editingTest.id, updateData);
+      }
+      
       await loadTests();
       setEditingTest(null);
       (e.target as HTMLFormElement).reset();
@@ -95,7 +146,22 @@ export default function AdminPanel() {
     }
     try {
       setLoading(true);
-      await adminService.deleteTest(id);
+      // Buscar el test para determinar su tipo
+      const test = tests.find(t => t.id === id);
+      const isEvaluationTest = test && test.category !== null && test.category !== undefined 
+        && test.topic !== null && test.topic !== undefined
+        && test.code && !test.code.startsWith('SECTION_PLACEHOLDER_');
+      
+      if (isEvaluationTest) {
+        try {
+          await adminService.deleteEvaluationTest(id);
+        } catch (e) {
+          await adminService.deleteTest(id);
+        }
+      } else {
+        await adminService.deleteTest(id);
+      }
+      
       await loadTests();
       if (selectedTestId === id) {
         setSelectedTestId(null);
@@ -110,7 +176,20 @@ export default function AdminPanel() {
   const toggleTestActive = async (test: Test) => {
     try {
       setLoading(true);
-      await adminService.updateTest(test.id, { active: !test.active });
+      // Determinar si es un evaluation test
+      const isEvaluationTest = test.category !== null && test.category !== undefined 
+        && test.topic !== null && test.topic !== undefined
+        && test.code && !test.code.startsWith('SECTION_PLACEHOLDER_');
+      
+      if (isEvaluationTest) {
+        try {
+          await adminService.updateEvaluationTest(test.id, { active: !test.active });
+        } catch (e) {
+          await adminService.updateTest(test.id, { active: !test.active });
+        }
+      } else {
+        await adminService.updateTest(test.id, { active: !test.active });
+      }
       await loadTests();
     } catch (err: any) {
       alert('Error al actualizar test: ' + (err.response?.data?.message || err.message));
@@ -118,6 +197,7 @@ export default function AdminPanel() {
       setLoading(false);
     }
   };
+
 
   const filteredTests = tests.filter(test => {
     if (!testSearch.trim()) return true;
@@ -145,27 +225,9 @@ export default function AdminPanel() {
     <div className="admin-container">
       <div className="admin-header">
         <div>
-          <h1>Panel de Administración</h1>
-          <p>Gestiona todos los tests, preguntas, respuestas y usuarios</p>
+          <h1>{activeTab === 'users' ? 'Gestión de Usuarios' : 'Gestión de Tests'}</h1>
+          <p>{activeTab === 'users' ? 'Gestiona usuarios y sus asignaciones' : 'Gestiona todos los tests, preguntas y respuestas'}</p>
         </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="admin-tabs">
-        <button 
-          className={`admin-tab ${activeTab === 'tests' ? 'active' : ''}`}
-          onClick={() => setActiveTab('tests')}
-          style={{ flex: 1, padding: '12px 24px' }}
-        >
-          📋 Tests
-        </button>
-        <button 
-          className={`admin-tab ${activeTab === 'users' ? 'active' : ''}`}
-          onClick={() => setActiveTab('users')}
-          style={{ flex: 1, padding: '12px 24px' }}
-        >
-          👥 Usuarios
-        </button>
       </div>
 
       {activeTab === 'users' && (
@@ -281,6 +343,55 @@ export default function AdminPanel() {
                 }}
               />
             </div>
+            
+            <div className="form-group">
+              <label>Categoría (Opcional)</label>
+              <select 
+                name="category"
+                defaultValue={editingTest.category || ''}
+                style={{
+                  width: '100%',
+                  padding: '14px 16px',
+                  fontSize: '17px',
+                  borderRadius: '12px',
+                  border: '1px solid var(--border)',
+                  fontFamily: 'inherit'
+                }}
+              >
+                <option value="">Sin categoría</option>
+                <option value="EVALUATION">Evaluación</option>
+                <option value="DISCOVERY">Descubrimiento</option>
+              </select>
+              <small style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'block', marginTop: '4px' }}>
+                Si seleccionas una categoría, el test aparecerá en la sección correspondiente
+              </small>
+            </div>
+            
+            <div className="form-group">
+              <label>Sección (Topic) (Opcional)</label>
+              <input 
+                name="topic"
+                defaultValue={editingTest.topic || ''}
+                list="topics-list-edit"
+                style={{
+                  width: '100%',
+                  padding: '14px 16px',
+                  fontSize: '17px',
+                  borderRadius: '12px',
+                  border: '1px solid var(--border)',
+                  fontFamily: 'inherit'
+                }}
+              />
+              <datalist id="topics-list-edit">
+                {availableTopics.map(topic => (
+                  <option key={topic} value={topic} />
+                ))}
+              </datalist>
+              <small style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'block', marginTop: '4px' }}>
+                Puedes escribir un nombre nuevo para crear una nueva sección, o seleccionar una existente. Requiere que hayas seleccionado una categoría.
+              </small>
+            </div>
+              
             <div className="form-group">
               <label>
                 <input 
@@ -289,9 +400,13 @@ export default function AdminPanel() {
                   defaultChecked={editingTest.active}
                   style={{ marginRight: '8px' }}
                 />
-                Test activo (visible para usuarios)
+                Test activo (disponible para psicólogos y usuarios)
               </label>
+              <small style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'block', marginTop: '4px' }}>
+                Si está activo, estará disponible para psicólogos asignar a pacientes y aparecerá en las secciones correspondientes si tiene categoría asignada.
+              </small>
             </div>
+              
             <div style={{ display: 'flex', gap: '12px' }}>
               <button type="submit" className="btn" disabled={loading}>
                 {loading ? 'Guardando...' : 'Guardar Cambios'}
@@ -343,7 +458,7 @@ export default function AdminPanel() {
           </div>
         ) : filteredTests.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
-            <p>No se encontraron tests que coincidan con “{testSearch}”.</p>
+            <p>No se encontraron tests que coincidan con "{testSearch}".</p>
           </div>
         ) : (
           <div className="tests-grid-admin">
@@ -351,6 +466,32 @@ export default function AdminPanel() {
               <div key={test.id} className="test-card-admin">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                   <div style={{ flex: 1 }}>
+                    {test.category && (
+                      <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                        <span style={{
+                          padding: '4px 12px',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          background: test.category === 'EVALUATION' ? '#fef3c7' : '#e0e7ff',
+                          color: test.category === 'EVALUATION' ? '#d97706' : '#6366f1'
+                        }}>
+                          {test.category === 'EVALUATION' ? '📊 Evaluación' : '🔍 Descubrimiento'}
+                        </span>
+                        {test.topic && (
+                          <span style={{
+                            padding: '4px 12px',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            background: '#f3f4f6',
+                            color: '#6b7280'
+                          }}>
+                            {test.topic}
+                          </span>
+                        )}
+                      </div>
+                    )}
                     <h3>{test.title}</h3>
                     <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px' }}>
                       <strong>Código:</strong> {test.code}

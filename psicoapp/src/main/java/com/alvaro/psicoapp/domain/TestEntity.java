@@ -23,6 +23,12 @@ public class TestEntity {
 	@Column(nullable = false)
 	private Boolean active = true;
 
+	@Column(length = 100)
+	private String category; // 'EVALUATION' o 'DISCOVERY' (opcional)
+
+	@Column(length = 100)
+	private String topic; // 'Ansiedad', 'Depresión', etc. (opcional)
+
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private Instant createdAt = Instant.now();
 
@@ -39,6 +45,10 @@ public class TestEntity {
 	public void setDescription(String description) { this.description = description; }
 	public Boolean getActive() { return active; }
 	public void setActive(Boolean active) { this.active = active; }
+	public String getCategory() { return category; }
+	public void setCategory(String category) { this.category = category; }
+	public String getTopic() { return topic; }
+	public void setTopic(String topic) { this.topic = topic; }
 	public Instant getCreatedAt() { return createdAt; }
 	public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 	public List<QuestionEntity> getQuestions() { return questions; }

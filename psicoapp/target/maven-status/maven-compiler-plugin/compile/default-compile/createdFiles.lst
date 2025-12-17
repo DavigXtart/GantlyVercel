@@ -52,6 +52,7 @@ com\alvaro\psicoapp\controller\PersonalAgendaController.class
 com\alvaro\psicoapp\controller\AdminController$1.class
 com\alvaro\psicoapp\repository\TestResultRepository.class
 com\alvaro\psicoapp\controller\InitialTestController.class
+com\alvaro\psicoapp\controller\AdminController$EvaluationTestCreate.class
 com\alvaro\psicoapp\repository\FactorRepository.class
 com\alvaro\psicoapp\config\WebConfig.class
 com\alvaro\psicoapp\dto\AuthDtos$RegisterRequest.class
@@ -68,6 +69,7 @@ com\alvaro\psicoapp\repository\TaskCommentRepository.class
 com\alvaro\psicoapp\repository\AssignedTestRepository.class
 com\alvaro\psicoapp\controller\InitialTestController$SubmitItem.class
 com\alvaro\psicoapp\repository\UserPsychologistRepository.class
+com\alvaro\psicoapp\controller\AdminController$EvaluationTestUpdate.class
 com\alvaro\psicoapp\service\ExcelExportService.class
 com\alvaro\psicoapp\service\DailyMoodService.class
 com\alvaro\psicoapp\domain\SubfactorEntity.class

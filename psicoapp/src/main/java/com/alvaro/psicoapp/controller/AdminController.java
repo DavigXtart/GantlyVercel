@@ -18,13 +18,15 @@ public class AdminController {
 	private final SubfactorRepository subfactorRepository;
 	private final FactorRepository factorRepository;
 	private final UserPsychologistRepository userPsychologistRepository;
+	private final com.alvaro.psicoapp.repository.EvaluationTestRepository evaluationTestRepository;
 
 	public AdminController(TestRepository testRepository, QuestionRepository questionRepository, 
 	                     AnswerRepository answerRepository, UserRepository userRepository,
 	                     UserAnswerRepository userAnswerRepository,
 	                     SubfactorRepository subfactorRepository,
 	                     FactorRepository factorRepository,
-	                     UserPsychologistRepository userPsychologistRepository) {
+	                     UserPsychologistRepository userPsychologistRepository,
+	                     com.alvaro.psicoapp.repository.EvaluationTestRepository evaluationTestRepository) {
 		this.testRepository = testRepository;
 		this.questionRepository = questionRepository;
 		this.answerRepository = answerRepository;
@@ -33,6 +35,7 @@ public class AdminController {
 		this.subfactorRepository = subfactorRepository;
 		this.factorRepository = factorRepository;
 		this.userPsychologistRepository = userPsychologistRepository;
+		this.evaluationTestRepository = evaluationTestRepository;
 	}
 
 	// GET: Listar todos los tests
@@ -143,7 +146,14 @@ public class AdminController {
 	}
 
 	// PUT: Actualizar test
-	public static class TestUpdate { public String code; public String title; public String description; public Boolean active; }
+	public static class TestUpdate { 
+		public String code; 
+		public String title; 
+		public String description; 
+		public Boolean active;
+		public String category;
+		public String topic;
+	}
 	@PutMapping("/tests/{id}")
 	public ResponseEntity<TestEntity> updateTest(@PathVariable Long id, @RequestBody TestUpdate req) {
 		return testRepository.findById(id).map(test -> {
@@ -151,6 +161,8 @@ public class AdminController {
 			if (req.title != null) test.setTitle(req.title);
 			if (req.description != null) test.setDescription(req.description);
 			if (req.active != null) test.setActive(req.active);
+			if (req.category != null) test.setCategory(req.category);
+			if (req.topic != null) test.setTopic(req.topic);
 			return ResponseEntity.ok(testRepository.save(test));
 		}).orElse(ResponseEntity.notFound().build());
 	}
@@ -695,5 +707,75 @@ public class AdminController {
 		}
 		
 		return ResponseEntity.ok(new ArrayList<>(usersMap.values()));
+	}
+
+	// ========== GESTIÓN DE TESTS DE EVALUACIÓN Y DESCUBRIMIENTO ==========
+	
+	// GET: Listar todos los tests de evaluación (incluyendo inactivos)
+	@GetMapping("/evaluation-tests")
+	public List<com.alvaro.psicoapp.domain.EvaluationTestEntity> listEvaluationTests() {
+		return evaluationTestRepository.findAll();
+	}
+
+	// GET: Obtener un test de evaluación por ID
+	@GetMapping("/evaluation-tests/{id}")
+	public ResponseEntity<com.alvaro.psicoapp.domain.EvaluationTestEntity> getEvaluationTest(@PathVariable Long id) {
+		return evaluationTestRepository.findById(id)
+			.map(ResponseEntity::ok)
+			.orElse(ResponseEntity.notFound().build());
+	}
+
+	// POST: Crear test de evaluación
+	public static class EvaluationTestCreate { 
+		public String code; 
+		public String title; 
+		public String description; 
+		public String category; // 'EVALUATION' o 'DISCOVERY'
+		public String topic; // 'Ansiedad', 'Depresión', etc.
+		public Boolean active = true;
+	}
+	@PostMapping("/evaluation-tests")
+	public ResponseEntity<com.alvaro.psicoapp.domain.EvaluationTestEntity> createEvaluationTest(@RequestBody EvaluationTestCreate req) {
+		com.alvaro.psicoapp.domain.EvaluationTestEntity test = new com.alvaro.psicoapp.domain.EvaluationTestEntity();
+		test.setCode(req.code);
+		test.setTitle(req.title);
+		test.setDescription(req.description);
+		test.setCategory(req.category);
+		test.setTopic(req.topic);
+		test.setActive(req.active != null ? req.active : true);
+		return ResponseEntity.ok(evaluationTestRepository.save(test));
+	}
+
+	// PUT: Actualizar test de evaluación
+	public static class EvaluationTestUpdate { 
+		public String code; 
+		public String title; 
+		public String description; 
+		public String category; 
+		public String topic; 
+		public Boolean active;
+	}
+	@PutMapping("/evaluation-tests/{id}")
+	public ResponseEntity<com.alvaro.psicoapp.domain.EvaluationTestEntity> updateEvaluationTest(@PathVariable Long id, @RequestBody EvaluationTestUpdate req) {
+		return evaluationTestRepository.findById(id).map(test -> {
+			if (req.code != null) test.setCode(req.code);
+			if (req.title != null) test.setTitle(req.title);
+			if (req.description != null) test.setDescription(req.description);
+			if (req.category != null) test.setCategory(req.category);
+			if (req.topic != null) test.setTopic(req.topic);
+			if (req.active != null) test.setActive(req.active);
+			test.setUpdatedAt(java.time.Instant.now());
+			return ResponseEntity.ok(evaluationTestRepository.save(test));
+		}).orElse(ResponseEntity.notFound().build());
+	}
+
+	// DELETE: Eliminar test de evaluación
+	@DeleteMapping("/evaluation-tests/{id}")
+	public ResponseEntity<Void> deleteEvaluationTest(@PathVariable Long id) {
+		if (evaluationTestRepository.existsById(id)) {
+			evaluationTestRepository.deleteById(id);
+			return ResponseEntity.ok().build();
+		}
+		return ResponseEntity.notFound().build();
 	}
 }

@@ -54,6 +54,8 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingSlot, setEditingSlot] = useState<Slot | null>(null);
   const [editPriceInput, setEditPriceInput] = useState('');
+  const [showConfirmBookModal, setShowConfirmBookModal] = useState(false);
+  const [pendingBookSlot, setPendingBookSlot] = useState<Slot | null>(null);
   const hours = Array.from({ length: 13 }).map((_, i) => 8 + i); // 8:00 - 20:00
   const days = useMemo(() => Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i)), [weekStart]);
 
@@ -446,9 +448,8 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     e.preventDefault();
-                                    if (onBook) {
-                                      onBook(s.id);
-                                    }
+                                    setPendingBookSlot(s);
+                                    setShowConfirmBookModal(true);
                                   }}
                                   onMouseDown={(e) => {
                                     e.stopPropagation();
@@ -895,6 +896,143 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                 }}
               >
                 Guardar cambios
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación para reservar cita */}
+      {showConfirmBookModal && pendingBookSlot && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }} onClick={() => {
+          setShowConfirmBookModal(false);
+          setPendingBookSlot(null);
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '24px',
+            maxWidth: '450px',
+            width: '90%',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)'
+          }} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>
+              ¿Estás seguro de querer reservar esta cita?
+            </h3>
+            <div style={{
+              background: '#f9fafb',
+              borderRadius: '8px',
+              padding: '16px',
+              marginBottom: '20px',
+              border: '1px solid #e5e7eb'
+            }}>
+              <div style={{ marginBottom: '12px' }}>
+                <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>Fecha:</div>
+                <div style={{ fontSize: '16px', fontWeight: 600, color: '#1f2937' }}>
+                  {new Date(pendingBookSlot.startTime).toLocaleDateString('es-ES', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </div>
+              </div>
+              <div style={{ marginBottom: '12px' }}>
+                <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>Hora:</div>
+                <div style={{ fontSize: '16px', fontWeight: 600, color: '#1f2937' }}>
+                  {new Date(pendingBookSlot.startTime).toLocaleTimeString('es-ES', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })} - {new Date(pendingBookSlot.endTime).toLocaleTimeString('es-ES', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })}
+                </div>
+              </div>
+              {pendingBookSlot.price !== undefined && pendingBookSlot.price !== null && (
+                <div>
+                  <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>Precio:</div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, color: '#667eea' }}>
+                    {pendingBookSlot.price.toFixed(2)}€
+                  </div>
+                </div>
+              )}
+            </div>
+            <p style={{ 
+              margin: '0 0 20px 0', 
+              fontSize: '14px', 
+              color: '#6b7280',
+              lineHeight: '1.5'
+            }}>
+              Una vez que reserves esta cita, el psicólogo la revisará y confirmará. 
+              No podrás cancelar la solicitud desde aquí, pero el psicólogo podrá gestionarla.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => {
+                  setShowConfirmBookModal(false);
+                  setPendingBookSlot(null);
+                }}
+                style={{
+                  padding: '10px 20px',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '8px',
+                  background: 'white',
+                  color: '#6b7280',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#d1d5db';
+                  e.currentTarget.style.background = '#f9fafb';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = '#e5e7eb';
+                  e.currentTarget.style.background = 'white';
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  if (onBook && pendingBookSlot) {
+                    onBook(pendingBookSlot.id);
+                    setShowConfirmBookModal(false);
+                    setPendingBookSlot(null);
+                  }
+                }}
+                style={{
+                  padding: '10px 20px',
+                  border: 'none',
+                  borderRadius: '8px',
+                  background: '#667eea',
+                  color: 'white',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#5568d3';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#667eea';
+                }}
+              >
+                Sí, reservar cita
               </button>
             </div>
           </div>

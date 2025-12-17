@@ -132,7 +132,7 @@ export const adminService = {
     const { data } = await api.post('/admin/tests', { code, title, description });
     return data;
   },
-  updateTest: async (id: number, updates: { code?: string; title?: string; description?: string; active?: boolean }) => {
+  updateTest: async (id: number, updates: { code?: string; title?: string; description?: string; active?: boolean; category?: string | null; topic?: string | null }) => {
     const { data } = await api.put(`/admin/tests/${id}`, updates);
     return data;
   },
@@ -224,6 +224,40 @@ export const adminService = {
   },
   unassignPsychologist: async (userId: number) => {
     await api.delete(`/admin/users/assign/${userId}`);
+  },
+  // Evaluation Tests (Evaluaciones y Descubrimiento)
+  listEvaluationTests: async () => {
+    const { data } = await api.get('/admin/evaluation-tests');
+    return data;
+  },
+  getEvaluationTest: async (id: number) => {
+    const { data } = await api.get(`/admin/evaluation-tests/${id}`);
+    return data;
+  },
+  createEvaluationTest: async (testData: {
+    code: string;
+    title: string;
+    description?: string;
+    category: 'EVALUATION' | 'DISCOVERY';
+    topic: string;
+    active?: boolean;
+  }) => {
+    const { data } = await api.post('/admin/evaluation-tests', testData);
+    return data;
+  },
+  updateEvaluationTest: async (id: number, updates: {
+    code?: string;
+    title?: string;
+    description?: string;
+    category?: 'EVALUATION' | 'DISCOVERY';
+    topic?: string;
+    active?: boolean;
+  }) => {
+    const { data } = await api.put(`/admin/evaluation-tests/${id}`, updates);
+    return data;
+  },
+  deleteEvaluationTest: async (id: number) => {
+    await api.delete(`/admin/evaluation-tests/${id}`);
   },
 };
 
@@ -382,6 +416,14 @@ export const psychService = {
       ...patient,
       avatarUrl: resolveAssetUrl(patient.avatarUrl) ?? undefined,
     }));
+  },
+  getPatientDetails: async (patientId: number) => {
+    const { data } = await api.get(`/psych/patients/${patientId}`);
+    return data;
+  },
+  getPatientTestAnswers: async (patientId: number, testId: number) => {
+    const { data } = await api.get(`/psych/patients/${patientId}/tests/${testId}/answers`);
+    return data;
   }
 };
 
