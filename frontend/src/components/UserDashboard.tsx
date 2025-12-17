@@ -12,7 +12,7 @@ import MisEstadisticas from './MisEstadisticas';
 import Evaluaciones from './Evaluaciones';
 import Descubrimiento from './Descubrimiento';
 
-type Tab = 'perfil' | 'mi-psicologo' | 'tareas' | 'tests-pendientes' | 'calendario' | 'chat' | 'agenda-personal' | 'mis-estadisticas' | 'evaluaciones' | 'descubrimiento';
+type Tab = 'perfil' | 'mi-psicologo' | 'tareas' | 'tests-pendientes' | 'calendario' | 'chat' | 'mis-citas' | 'agenda-personal' | 'mis-estadisticas' | 'evaluaciones' | 'descubrimiento' | 'perfil-psicologo';
 
 interface UserDashboardProps {
   onStartTest?: (testId: number) => void;
@@ -39,6 +39,17 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
   const [showVideoCall, setShowVideoCall] = useState(false);
   const [videoCallRoom, setVideoCallRoom] = useState<string | null>(null);
   const [videoCallOtherUser, setVideoCallOtherUser] = useState<{ email: string; name: string } | null>(null);
+  
+  // Estados para perfil del psicólogo
+  const [psychologistProfile, setPsychologistProfile] = useState<any>(null);
+  const [loadingPsychologistProfile, setLoadingPsychologistProfile] = useState(false);
+  
+  // Estados para mis citas
+  const [pastAppointments, setPastAppointments] = useState<any[]>([]);
+  const [loadingPastAppointments, setLoadingPastAppointments] = useState(false);
+  const [ratingAppointment, setRatingAppointment] = useState<number | null>(null);
+  const [ratingComment, setRatingComment] = useState<string>('');
+  const [submittingRating, setSubmittingRating] = useState(false);
   
   // Ref para mantener el componente montado incluso si showVideoCall cambia temporalmente
   const videoCallRef = useRef<{ room: string | null; user: any; otherUser: any } | null>(null);
@@ -117,6 +128,71 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       });
     }
   }, [tab, tasks.length]); // Solo dependemos de la longitud, no del array completo
+
+  // Cargar citas pasadas cuando se abre la pestaña Mi Psicólogo
+  useEffect(() => {
+    if (tab === 'mi-psicologo' && psych?.status === 'ASSIGNED') {
+      loadPastAppointments();
+    }
+  }, [tab, psych?.status]);
+
+  const [psychologistRating, setPsychologistRating] = useState<{ averageRating: number | null; totalRatings: number } | null>(null);
+
+  const loadPsychologistProfile = async (psychologistId: number) => {
+    try {
+      setLoadingPsychologistProfile(true);
+      const profile = await profileService.getPsychologistProfile(psychologistId);
+      setPsychologistProfile(profile);
+      
+      // Cargar valoración del psicólogo
+      try {
+        const rating = await calendarService.getPsychologistRating(psychologistId);
+        setPsychologistRating(rating);
+      } catch (err) {
+        console.error('Error cargando valoración del psicólogo:', err);
+      }
+      
+      setTab('perfil-psicologo');
+    } catch (err: any) {
+      console.error('Error cargando perfil del psicólogo:', err);
+      toast.error('Error al cargar el perfil del psicólogo: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setLoadingPsychologistProfile(false);
+    }
+  };
+
+  const loadPastAppointments = async () => {
+    try {
+      setLoadingPastAppointments(true);
+      const appointments = await calendarService.getPastAppointments();
+      setPastAppointments(appointments);
+    } catch (err: any) {
+      console.error('Error cargando citas pasadas:', err);
+      toast.error('Error al cargar las citas pasadas: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setLoadingPastAppointments(false);
+    }
+  };
+
+  const handleRateAppointment = async (appointmentId: number) => {
+    if (!ratingAppointment || ratingAppointment < 1 || ratingAppointment > 5) {
+      toast.error('Por favor selecciona una valoración entre 1 y 5 estrellas');
+      return;
+    }
+    try {
+      setSubmittingRating(true);
+      await calendarService.rateAppointment(appointmentId, ratingAppointment, ratingComment || undefined);
+      toast.success('Valoración guardada exitosamente');
+      setRatingAppointment(null);
+      setRatingComment('');
+      await loadPastAppointments(); // Recargar para mostrar la valoración
+    } catch (err: any) {
+      console.error('Error guardando valoración:', err);
+      toast.error('Error al guardar la valoración: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setSubmittingRating(false);
+    }
+  };
 
   const onAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target;
@@ -985,18 +1061,46 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                   {psych.psychologist.name}
                 </h3>
                 <div style={{ fontSize: '16px', color: '#6b7280', marginBottom: '16px' }}>
-                  📧 {psych.psychologist.email}
+                  {psych.psychologist.email}
                 </div>
-                <div style={{
-                  display: 'inline-block',
-                  padding: '6px 12px',
-                  background: '#dcfce7',
-                  color: '#15803d',
-                  borderRadius: '20px',
-                  fontSize: '12px',
-                  fontWeight: 600
-                }}>
-                  ✅ Asignado y disponible
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                  <div style={{
+                    display: 'inline-block',
+                    padding: '6px 12px',
+                    background: '#dcfce7',
+                    color: '#15803d',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    fontWeight: 600
+                  }}>
+                    ✅ Asignado y disponible
+                  </div>
+                  <button
+                    onClick={() => loadPsychologistProfile(psych.psychologist.id)}
+                    disabled={loadingPsychologistProfile}
+                    style={{
+                      padding: '8px 16px',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      cursor: loadingPsychologistProfile ? 'not-allowed' : 'pointer',
+                      opacity: loadingPsychologistProfile ? 0.6 : 1,
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!loadingPsychologistProfile) {
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  >
+                    {loadingPsychologistProfile ? 'Cargando...' : 'Ver Perfil Completo'}
+                  </button>
                 </div>
               </div>
             </div>
@@ -1027,6 +1131,295 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               }}>
                 Un administrador te asignará un psicólogo pronto. Te notificaremos cuando esto ocurra.
               </p>
+            </div>
+          )}
+
+          {/* Mis Citas Pasadas - Solo si hay psicólogo asignado */}
+          {psych?.status === 'ASSIGNED' && (
+            <div style={{ marginTop: '40px' }}>
+              <h3 style={{ 
+                margin: '0 0 24px 0', 
+                fontSize: '24px', 
+                fontWeight: 700, 
+                color: '#1a2e22',
+                fontFamily: "'Inter', sans-serif",
+                letterSpacing: '-0.02em'
+              }}>
+                Mis Citas Pasadas
+              </h3>
+              <p style={{ margin: '0 0 24px 0', color: '#6b7280', fontSize: '14px' }}>
+                Aquí puedes ver todas tus citas pasadas y valorarlas
+              </p>
+
+              {loadingPastAppointments ? (
+                <div style={{ textAlign: 'center', padding: '60px' }}>
+                  <p style={{ color: '#6b7280', fontSize: '16px' }}>Cargando citas pasadas...</p>
+                </div>
+              ) : pastAppointments.length === 0 ? (
+                <div style={{
+                  background: '#f9fafb',
+                  borderRadius: '16px',
+                  padding: '40px',
+                  border: '1px solid rgba(90, 146, 112, 0.15)',
+                  textAlign: 'center'
+                }}>
+                  <p style={{ color: '#6b7280', fontSize: '16px' }}>No tienes citas pasadas aún</p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {pastAppointments.map((apt: any) => (
+                    <div
+                      key={apt.id}
+                      style={{
+                        background: '#ffffff',
+                        borderRadius: '16px',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+                        padding: '24px',
+                        border: '1px solid rgba(90, 146, 112, 0.15)'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                        <div style={{ flex: 1 }}>
+                          <h4 style={{ margin: '0 0 8px 0', fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>
+                            {apt.psychologist?.name || 'Psicólogo'}
+                          </h4>
+                          <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
+                            {new Date(apt.startTime).toLocaleDateString('es-ES', { 
+                              weekday: 'long', 
+                              year: 'numeric', 
+                              month: 'long', 
+                              day: 'numeric' 
+                            })}
+                          </div>
+                          <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                            {new Date(apt.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - 
+                            {new Date(apt.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                          {apt.price && (
+                            <div style={{ fontSize: '14px', color: '#059669', fontWeight: 600, marginTop: '4px' }}>
+                              {parseFloat(apt.price).toFixed(2)}€
+                            </div>
+                          )}
+                        </div>
+                        {apt.rating ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+                            <div style={{ display: 'flex', gap: '4px' }}>
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <span
+                                  key={star}
+                                  style={{
+                                    fontSize: '20px',
+                                    color: star <= apt.rating.rating ? '#fbbf24' : '#d1d5db'
+                                  }}
+                                >
+                                  ★
+                                </span>
+                              ))}
+                            </div>
+                            {apt.rating.comment && (
+                              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontStyle: 'italic', maxWidth: '200px', textAlign: 'right' }}>
+                                "{apt.rating.comment}"
+                              </p>
+                            )}
+                            <button
+                              onClick={() => {
+                                setRatingAppointment(apt.rating.rating);
+                                setRatingComment(apt.rating.comment || '');
+                                const modal = document.getElementById(`rating-modal-${apt.id}`);
+                                if (modal) (modal as HTMLElement).style.display = 'flex';
+                              }}
+                              style={{
+                                padding: '6px 12px',
+                                background: '#f3f4f6',
+                                color: '#374151',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Editar valoración
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setRatingAppointment(null);
+                              setRatingComment('');
+                              const modal = document.getElementById(`rating-modal-${apt.id}`);
+                              if (modal) (modal as HTMLElement).style.display = 'flex';
+                            }}
+                            style={{
+                              padding: '8px 16px',
+                              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '8px',
+                              fontSize: '14px',
+                              fontWeight: 600,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Valorar cita
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Modal de valoración */}
+                      <div
+                        id={`rating-modal-${apt.id}`}
+                        style={{
+                          display: 'none',
+                          position: 'fixed',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          background: 'rgba(0, 0, 0, 0.5)',
+                          zIndex: 1000,
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        onClick={(e) => {
+                          if (e.target === e.currentTarget) {
+                            (e.currentTarget as HTMLElement).style.display = 'none';
+                          }
+                        }}
+                      >
+                        <div
+                          style={{
+                            background: '#ffffff',
+                            borderRadius: '16px',
+                            padding: '32px',
+                            maxWidth: '500px',
+                            width: '90%',
+                            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <h3 style={{ margin: '0 0 20px 0', fontSize: '24px', fontWeight: 600, color: '#1f2937' }}>
+                            Valorar cita
+                          </h3>
+                          <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#6b7280' }}>
+                            ¿Cómo fue tu experiencia con {apt.psychologist?.name || 'el psicólogo'}?
+                          </p>
+                          
+                          <div style={{ marginBottom: '20px' }}>
+                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '12px' }}>
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <button
+                                  key={star}
+                                  onClick={() => setRatingAppointment(star)}
+                                  style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    padding: '4px',
+                                    fontSize: '36px',
+                                    color: ratingAppointment && star <= ratingAppointment ? '#fbbf24' : '#d1d5db',
+                                    transition: 'all 0.2s'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    if (!ratingAppointment) {
+                                      const hoverStar = parseInt(e.currentTarget.getAttribute('data-star') || '0');
+                                      for (let i = 1; i <= hoverStar; i++) {
+                                        const starEl = document.getElementById(`star-${apt.id}-${i}`);
+                                        if (starEl) starEl.style.color = '#fbbf24';
+                                      }
+                                    }
+                                  }}
+                                  onMouseLeave={() => {
+                                    if (!ratingAppointment) {
+                                      [1, 2, 3, 4, 5].forEach(i => {
+                                        const starEl = document.getElementById(`star-${apt.id}-${i}`);
+                                        if (starEl) starEl.style.color = '#d1d5db';
+                                      });
+                                    }
+                                  }}
+                                  data-star={star}
+                                  id={`star-${apt.id}-${star}`}
+                                >
+                                  ★
+                                </button>
+                              ))}
+                            </div>
+                            {ratingAppointment && (
+                              <p style={{ textAlign: 'center', margin: 0, fontSize: '14px', color: '#6b7280' }}>
+                                {ratingAppointment === 1 && 'Muy malo'}
+                                {ratingAppointment === 2 && 'Malo'}
+                                {ratingAppointment === 3 && 'Regular'}
+                                {ratingAppointment === 4 && 'Bueno'}
+                                {ratingAppointment === 5 && 'Excelente'}
+                              </p>
+                            )}
+                          </div>
+
+                          <div style={{ marginBottom: '20px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#374151' }}>
+                              Comentario (opcional)
+                            </label>
+                            <textarea
+                              value={ratingComment}
+                              onChange={(e) => setRatingComment(e.target.value)}
+                              placeholder="Escribe tu opinión sobre la cita..."
+                              rows={4}
+                              style={{
+                                width: '100%',
+                                padding: '12px',
+                                borderRadius: '8px',
+                                border: '1px solid #d1d5db',
+                                fontSize: '14px',
+                                fontFamily: 'inherit',
+                                resize: 'vertical'
+                              }}
+                            />
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                            <button
+                              onClick={() => {
+                                const modal = document.getElementById(`rating-modal-${apt.id}`);
+                                if (modal) (modal as HTMLElement).style.display = 'none';
+                                setRatingAppointment(null);
+                                setRatingComment('');
+                              }}
+                              style={{
+                                padding: '10px 20px',
+                                background: '#f3f4f6',
+                                color: '#374151',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '8px',
+                                fontSize: '14px',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Cancelar
+                            </button>
+                            <button
+                              onClick={() => handleRateAppointment(apt.id)}
+                              disabled={!ratingAppointment || submittingRating}
+                              style={{
+                                padding: '10px 20px',
+                                background: ratingAppointment && !submittingRating ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#d1d5db',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                fontSize: '14px',
+                                fontWeight: 600,
+                                cursor: ratingAppointment && !submittingRating ? 'pointer' : 'not-allowed',
+                                opacity: ratingAppointment && !submittingRating ? 1 : 0.6
+                              }}
+                            >
+                              {submittingRating ? 'Guardando...' : 'Guardar valoración'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -2038,6 +2431,374 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
 
       {tab === 'descubrimiento' && (
         <Descubrimiento />
+      )}
+
+      {/* Vista de Perfil del Psicólogo (estilo LinkedIn) */}
+      {tab === 'perfil-psicologo' && psychologistProfile && (
+        <div style={{
+          background: '#ffffff',
+          borderRadius: '20px',
+          boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
+          padding: '40px',
+          border: '1px solid rgba(90, 146, 112, 0.15)',
+          maxWidth: '900px',
+          margin: '0 auto'
+        }}>
+          {loadingPsychologistProfile ? (
+            <div style={{ textAlign: 'center', padding: '60px' }}>
+              <p style={{ color: '#6b7280', fontSize: '16px' }}>Cargando perfil del psicólogo...</p>
+            </div>
+          ) : (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 700, color: '#1a2e22' }}>
+                  Perfil del Psicólogo
+                </h2>
+                <button
+                  onClick={() => setTab('mi-psicologo')}
+                  style={{
+                    padding: '10px 20px',
+                    background: '#f3f4f6',
+                    color: '#1f2937',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontSize: '14px'
+                  }}
+                >
+                  ← Volver
+                </button>
+              </div>
+
+              {/* Header del perfil */}
+              <div style={{
+                background: 'linear-gradient(135deg, #f0f5f3 0%, #e8f0ed 100%)',
+                padding: '40px',
+                borderRadius: '20px',
+                border: '2px solid rgba(90, 146, 112, 0.3)',
+                marginBottom: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '32px',
+                boxShadow: '0 4px 16px rgba(90, 146, 112, 0.15)'
+              }}>
+                <div style={{
+                  width: '120px',
+                  height: '120px',
+                  borderRadius: '50%',
+                  overflow: 'hidden',
+                  border: '4px solid white',
+                  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                  background: '#e5e7eb',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '48px',
+                  flexShrink: 0
+                }}>
+                  {psychologistProfile.avatarUrl ? (
+                    <img src={psychologistProfile.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '24px' }}>PS</div>
+                  )}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '32px', fontWeight: 700, color: '#1f2937' }}>
+                    {psychologistProfile.name}
+                  </h3>
+                  <div style={{ fontSize: '18px', color: '#6b7280', marginBottom: '12px' }}>
+                    {psychologistProfile.email}
+                  </div>
+                  {psychologistRating && psychologistRating.averageRating !== null && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                      <div style={{ display: 'flex', gap: '2px' }}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span
+                            key={star}
+                            style={{
+                              fontSize: '18px',
+                              color: star <= Math.round(psychologistRating.averageRating!) ? '#fbbf24' : '#d1d5db'
+                            }}
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                      <span style={{ fontSize: '16px', fontWeight: 600, color: '#1f2937' }}>
+                        {psychologistRating.averageRating.toFixed(1)}
+                      </span>
+                      <span style={{ fontSize: '14px', color: '#6b7280' }}>
+                        ({psychologistRating.totalRatings} {psychologistRating.totalRatings === 1 ? 'valoración' : 'valoraciones'})
+                      </span>
+                    </div>
+                  )}
+                  {psychologistProfile.specializations && (() => {
+                    try {
+                      const specs = JSON.parse(psychologistProfile.specializations);
+                      if (Array.isArray(specs) && specs.length > 0) {
+                        return (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
+                            {specs.map((spec: string, idx: number) => (
+                              <span key={idx} style={{
+                                padding: '6px 12px',
+                                background: '#dcfce7',
+                                color: '#15803d',
+                                borderRadius: '20px',
+                                fontSize: '13px',
+                                fontWeight: 500
+                              }}>
+                                {spec}
+                              </span>
+                            ))}
+                          </div>
+                        );
+                      }
+                    } catch (e) {}
+                    return null;
+                  })()}
+                </div>
+              </div>
+
+              {/* Biografía */}
+              {psychologistProfile.bio && (
+                <div style={{ marginBottom: '32px', padding: '24px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                  <h3 style={{ margin: '0 0 16px 0', fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>Sobre mí</h3>
+                  <p style={{ margin: 0, fontSize: '16px', lineHeight: '1.6', color: '#4b5563' }}>
+                    {psychologistProfile.bio}
+                  </p>
+                </div>
+              )}
+
+              {/* Educación */}
+              {psychologistProfile.education && (() => {
+                try {
+                  const education = JSON.parse(psychologistProfile.education);
+                  if (Array.isArray(education) && education.length > 0) {
+                    return (
+                      <div style={{ marginBottom: '32px', padding: '24px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                        <h3 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>Educación</h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                          {education.map((edu: any, idx: number) => (
+                            <div key={idx} style={{ padding: '16px', background: '#ffffff', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                              <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '4px' }}>
+                                {edu.degree || 'Título'} {edu.field ? `en ${edu.field}` : ''}
+                              </div>
+                              <div style={{ fontSize: '16px', color: '#667eea', marginBottom: '4px' }}>
+                                {edu.institution || 'Institución'}
+                              </div>
+                              <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                                {edu.startDate && edu.endDate ? `${edu.startDate} - ${edu.endDate}` : edu.startDate || edu.endDate || ''}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+                } catch (e) {}
+                return null;
+              })()}
+
+              {/* Certificaciones */}
+              {psychologistProfile.certifications && (() => {
+                try {
+                  const certs = JSON.parse(psychologistProfile.certifications);
+                  if (Array.isArray(certs) && certs.length > 0) {
+                    return (
+                      <div style={{ marginBottom: '32px', padding: '24px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                        <h3 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>Certificaciones</h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                          {certs.map((cert: any, idx: number) => (
+                            <div key={idx} style={{ padding: '16px', background: '#ffffff', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                              <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '4px' }}>
+                                {cert.name || 'Certificación'}
+                              </div>
+                              <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
+                                Emitido por: {cert.issuer || 'N/A'}
+                              </div>
+                              {cert.date && (
+                                <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
+                                  Fecha: {cert.date}
+                                </div>
+                              )}
+                              {cert.credentialId && (
+                                <div style={{ fontSize: '13px', color: '#9ca3af', fontFamily: 'monospace' }}>
+                                  ID: {cert.credentialId}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+                } catch (e) {}
+                return null;
+              })()}
+
+              {/* Experiencia */}
+              {psychologistProfile.experience && (() => {
+                try {
+                  const experience = JSON.parse(psychologistProfile.experience);
+                  if (Array.isArray(experience) && experience.length > 0) {
+                    return (
+                      <div style={{ marginBottom: '32px', padding: '24px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                        <h3 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>Experiencia Profesional</h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                          {experience.map((exp: any, idx: number) => (
+                            <div key={idx} style={{ padding: '16px', background: '#ffffff', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                              <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '4px' }}>
+                                {exp.title || 'Cargo'}
+                              </div>
+                              <div style={{ fontSize: '16px', color: '#667eea', marginBottom: '4px' }}>
+                                {exp.company || 'Empresa'}
+                              </div>
+                              {exp.description && (
+                                <div style={{ fontSize: '14px', color: '#4b5563', marginTop: '8px', lineHeight: '1.6' }}>
+                                  {exp.description}
+                                </div>
+                              )}
+                              <div style={{ fontSize: '14px', color: '#6b7280', marginTop: '8px' }}>
+                                {exp.startDate && exp.endDate ? `${exp.startDate} - ${exp.endDate}` : exp.startDate ? `Desde ${exp.startDate}` : exp.endDate ? `Hasta ${exp.endDate}` : ''}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+                } catch (e) {}
+                return null;
+              })()}
+
+              {/* Intereses */}
+              {psychologistProfile.interests && (() => {
+                try {
+                  const interests = JSON.parse(psychologistProfile.interests);
+                  if (Array.isArray(interests) && interests.length > 0) {
+                    return (
+                      <div style={{ marginBottom: '32px', padding: '24px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                        <h3 style={{ margin: '0 0 16px 0', fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>Intereses y Pasiones</h3>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                          {interests.map((interest: string, idx: number) => (
+                            <span key={idx} style={{
+                              padding: '8px 16px',
+                              background: '#fef3c7',
+                              color: '#92400e',
+                              borderRadius: '20px',
+                              fontSize: '14px',
+                              fontWeight: 500
+                            }}>
+                              {interest}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+                } catch (e) {}
+                return null;
+              })()}
+
+              {/* Idiomas */}
+              {psychologistProfile.languages && (() => {
+                try {
+                  const languages = JSON.parse(psychologistProfile.languages);
+                  if (Array.isArray(languages) && languages.length > 0) {
+                    return (
+                      <div style={{ marginBottom: '32px', padding: '24px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                        <h3 style={{ margin: '0 0 16px 0', fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>Idiomas</h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                          {languages.map((lang: any, idx: number) => (
+                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: '#ffffff', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                              <span style={{ fontSize: '16px', fontWeight: 500, color: '#1f2937' }}>
+                                {lang.language || 'Idioma'}
+                              </span>
+                              <span style={{ fontSize: '14px', color: '#6b7280' }}>
+                                {lang.level || 'Nivel'}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+                } catch (e) {}
+                return null;
+              })()}
+
+              {/* Enlaces */}
+              {(psychologistProfile.linkedinUrl || psychologistProfile.website) && (
+                <div style={{ marginBottom: '32px', padding: '24px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                  <h3 style={{ margin: '0 0 16px 0', fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>Enlaces</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {psychologistProfile.linkedinUrl && (
+                      <a
+                        href={psychologistProfile.linkedinUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '12px 16px',
+                          background: '#0077b5',
+                          color: 'white',
+                          borderRadius: '8px',
+                          textDecoration: 'none',
+                          fontSize: '14px',
+                          fontWeight: 600,
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = '#005885';
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = '#0077b5';
+                          e.currentTarget.style.transform = 'translateY(0)';
+                        }}
+                      >
+                        LinkedIn
+                      </a>
+                    )}
+                    {psychologistProfile.website && (
+                      <a
+                        href={psychologistProfile.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '12px 16px',
+                          background: '#667eea',
+                          color: 'white',
+                          borderRadius: '8px',
+                          textDecoration: 'none',
+                          fontSize: '14px',
+                          fontWeight: 600,
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = '#5568d3';
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = '#667eea';
+                          e.currentTarget.style.transform = 'translateY(0)';
+                        }}
+                      >
+                        Sitio Web
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       )}
 
       {tab === 'chat' && (

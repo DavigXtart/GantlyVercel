@@ -23,6 +23,7 @@ C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\control
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\controller\UserProfileController.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\AnswerEntity.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\AppointmentEntity.java
+C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\AppointmentRatingEntity.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\AppointmentRequestEntity.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\AssignedTestEntity.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\ChatMessageEntity.java
@@ -31,6 +32,7 @@ C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\EvaluationTestResultEntity.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\FactorEntity.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\FactorResultEntity.java
+C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\PsychologistProfileEntity.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\QuestionEntity.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\SubfactorEntity.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\TaskCommentEntity.java
@@ -45,6 +47,7 @@ C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\domain\
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\dto\AuthDtos.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\PsicoappApplication.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\AnswerRepository.java
+C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\AppointmentRatingRepository.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\AppointmentRepository.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\AppointmentRequestRepository.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\AssignedTestRepository.java
@@ -54,6 +57,7 @@ C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\reposit
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\EvaluationTestResultRepository.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\FactorRepository.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\FactorResultRepository.java
+C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\PsychologistProfileRepository.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\QuestionRepository.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\SubfactorRepository.java
 C:\Users\david\Desktop\alvaro\psicoapp\src\main\java\com\alvaro\psicoapp\repository\TaskCommentRepository.java

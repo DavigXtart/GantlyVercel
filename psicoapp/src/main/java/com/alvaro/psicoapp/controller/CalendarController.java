@@ -2,8 +2,10 @@ package com.alvaro.psicoapp.controller;
 
 import com.alvaro.psicoapp.domain.AppointmentEntity;
 import com.alvaro.psicoapp.domain.AppointmentRequestEntity;
+import com.alvaro.psicoapp.domain.AppointmentRatingEntity;
 import com.alvaro.psicoapp.repository.AppointmentRepository;
 import com.alvaro.psicoapp.repository.AppointmentRequestRepository;
+import com.alvaro.psicoapp.repository.AppointmentRatingRepository;
 import com.alvaro.psicoapp.repository.UserPsychologistRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
 import com.alvaro.psicoapp.service.EmailService;
@@ -29,17 +31,20 @@ import java.math.BigDecimal;
 public class CalendarController {
     private final AppointmentRepository appointmentRepository;
     private final AppointmentRequestRepository appointmentRequestRepository;
+    private final AppointmentRatingRepository appointmentRatingRepository;
     private final UserRepository userRepository;
     private final UserPsychologistRepository userPsychologistRepository;
     private final EmailService emailService;
 
     public CalendarController(AppointmentRepository appointmentRepository, 
                              AppointmentRequestRepository appointmentRequestRepository,
+                             AppointmentRatingRepository appointmentRatingRepository,
                              UserRepository userRepository, 
                              UserPsychologistRepository userPsychologistRepository,
                              EmailService emailService) {
         this.appointmentRepository = appointmentRepository;
         this.appointmentRequestRepository = appointmentRequestRepository;
+        this.appointmentRatingRepository = appointmentRatingRepository;
         this.userRepository = userRepository;
         this.userPsychologistRepository = userPsychologistRepository;
         this.emailService = emailService;
@@ -673,6 +678,180 @@ public class CalendarController {
         }
         
         return ResponseEntity.ok(saved);
+    }
+
+    // Usuario: obtener citas pasadas
+    @GetMapping("/past-appointments")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<Map<String, Object>>> getPastAppointments(Principal principal) {
+        var user = userRepository.findByEmail(principal.getName()).orElseThrow();
+        var now = Instant.now();
+        
+        var pastAppointments = appointmentRepository.findByUser_IdOrderByStartTimeAsc(user.getId())
+            .stream()
+            .filter(apt -> ("CONFIRMED".equals(apt.getStatus()) || "BOOKED".equals(apt.getStatus())) 
+                && apt.getEndTime().isBefore(now))
+            .map(apt -> {
+                Map<String, Object> dto = new HashMap<>();
+                dto.put("id", apt.getId());
+                dto.put("startTime", apt.getStartTime());
+                dto.put("endTime", apt.getEndTime());
+                dto.put("status", apt.getStatus());
+                dto.put("price", apt.getPrice());
+                dto.put("psychologist", Map.of(
+                    "id", apt.getPsychologist().getId(),
+                    "name", apt.getPsychologist().getName(),
+                    "email", apt.getPsychologist().getEmail()
+                ));
+                
+                // Obtener valoración si existe
+                var rating = appointmentRatingRepository.findByAppointment_IdAndUser_Id(apt.getId(), user.getId());
+                if (rating.isPresent()) {
+                    var r = rating.get();
+                    dto.put("rating", Map.of(
+                        "id", r.getId(),
+                        "rating", r.getRating(),
+                        "comment", r.getComment() != null ? r.getComment() : "",
+                        "createdAt", r.getCreatedAt()
+                    ));
+                } else {
+                    dto.put("rating", null);
+                }
+                
+                return dto;
+            })
+            .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(pastAppointments);
+    }
+
+    // Usuario: guardar/actualizar valoración de cita
+    @PostMapping("/appointments/{appointmentId}/rate")
+    @Transactional
+    public ResponseEntity<Map<String, Object>> rateAppointment(
+            Principal principal,
+            @PathVariable Long appointmentId,
+            @RequestBody Map<String, Object> body) {
+        var user = userRepository.findByEmail(principal.getName()).orElseThrow();
+        var appointment = appointmentRepository.findById(appointmentId).orElseThrow();
+        
+        // Verificar que la cita pertenece al usuario
+        if (appointment.getUser() == null || !appointment.getUser().getId().equals(user.getId())) {
+            return ResponseEntity.status(403).body(Map.of("error", "No tienes permiso para valorar esta cita"));
+        }
+        
+        // Verificar que la cita ya pasó
+        if (appointment.getEndTime().isAfter(Instant.now())) {
+            return ResponseEntity.status(400).body(Map.of("error", "Solo puedes valorar citas que ya han finalizado"));
+        }
+        
+        // Verificar que el rating está entre 1 y 5
+        Integer ratingValue = (Integer) body.get("rating");
+        if (ratingValue == null || ratingValue < 1 || ratingValue > 5) {
+            return ResponseEntity.status(400).body(Map.of("error", "La valoración debe estar entre 1 y 5"));
+        }
+        
+        // Buscar valoración existente o crear nueva
+        var existingRating = appointmentRatingRepository.findByAppointment_IdAndUser_Id(appointmentId, user.getId());
+        AppointmentRatingEntity rating;
+        
+        if (existingRating.isPresent()) {
+            rating = existingRating.get();
+        } else {
+            rating = new AppointmentRatingEntity();
+            rating.setAppointment(appointment);
+            rating.setUser(user);
+            rating.setPsychologist(appointment.getPsychologist());
+        }
+        
+        rating.setRating(ratingValue);
+        if (body.containsKey("comment")) {
+            rating.setComment((String) body.get("comment"));
+        }
+        rating.setUpdatedAt(Instant.now());
+        
+        appointmentRatingRepository.save(rating);
+        
+        return ResponseEntity.ok(Map.of(
+            "message", "Valoración guardada exitosamente",
+            "rating", Map.of(
+                "id", rating.getId(),
+                "rating", rating.getRating(),
+                "comment", rating.getComment() != null ? rating.getComment() : ""
+            )
+        ));
+    }
+
+    // Obtener valoración promedio de un psicólogo
+    @GetMapping("/psychologist/{psychologistId}/rating")
+    @Transactional(readOnly = true)
+    public ResponseEntity<Map<String, Object>> getPsychologistRating(@PathVariable Long psychologistId) {
+        var psychologist = userRepository.findById(psychologistId).orElseThrow();
+        if (!"PSYCHOLOGIST".equals(psychologist.getRole())) {
+            return ResponseEntity.status(404).body(Map.of("error", "Psicólogo no encontrado"));
+        }
+        
+        Double averageRating = appointmentRatingRepository.findAverageRatingByPsychologistId(psychologistId);
+        Long totalRatings = appointmentRatingRepository.countByPsychologistId(psychologistId);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("averageRating", averageRating != null ? Math.round(averageRating * 10.0) / 10.0 : null);
+        response.put("totalRatings", totalRatings != null ? totalRatings : 0);
+        
+        return ResponseEntity.ok(response);
+    }
+
+    // Psicólogo: obtener sus citas pasadas
+    @GetMapping("/psychologist/past-appointments")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<Map<String, Object>>> getPsychologistPastAppointments(Principal principal) {
+        var psychologist = userRepository.findByEmail(principal.getName()).orElseThrow();
+        if (!"PSYCHOLOGIST".equals(psychologist.getRole())) {
+            return ResponseEntity.status(403).build();
+        }
+        
+        var now = Instant.now();
+        
+        var pastAppointments = appointmentRepository.findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(
+            psychologist.getId(), 
+            Instant.ofEpochMilli(0), 
+            now
+        )
+        .stream()
+        .filter(apt -> ("CONFIRMED".equals(apt.getStatus()) || "BOOKED".equals(apt.getStatus())) 
+            && apt.getEndTime().isBefore(now) && apt.getUser() != null)
+        .map(apt -> {
+            Map<String, Object> dto = new HashMap<>();
+            dto.put("id", apt.getId());
+            dto.put("startTime", apt.getStartTime());
+            dto.put("endTime", apt.getEndTime());
+            dto.put("status", apt.getStatus());
+            dto.put("price", apt.getPrice());
+            dto.put("user", Map.of(
+                "id", apt.getUser().getId(),
+                "name", apt.getUser().getName(),
+                "email", apt.getUser().getEmail()
+            ));
+            
+            // Obtener valoración si existe
+            var rating = appointmentRatingRepository.findByAppointment_IdAndUser_Id(apt.getId(), apt.getUser().getId());
+            if (rating.isPresent()) {
+                var r = rating.get();
+                dto.put("rating", Map.of(
+                    "id", r.getId(),
+                    "rating", r.getRating(),
+                    "comment", r.getComment() != null ? r.getComment() : "",
+                    "createdAt", r.getCreatedAt()
+                ));
+            } else {
+                dto.put("rating", null);
+            }
+            
+            return dto;
+        })
+        .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(pastAppointments);
     }
 }
 

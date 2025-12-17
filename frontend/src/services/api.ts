@@ -285,6 +285,14 @@ export const profileService = {
       result.psychologist.avatarUrl = resolveAssetUrl(result.psychologist.avatarUrl) ?? undefined;
     }
     return result;
+  },
+  getPsychologistProfile: async (psychologistId: number) => {
+    const { data } = await api.get(`/profile/psychologist/${psychologistId}`);
+    const profile = data as any;
+    if (profile.avatarUrl) {
+      profile.avatarUrl = resolveAssetUrl(profile.avatarUrl) ?? undefined;
+    }
+    return profile;
   }
 };
 
@@ -404,6 +412,22 @@ export const calendarService = {
   updateSlot: async (appointmentId: number, updates: { price?: number; startTime?: string; endTime?: string }) => {
     const { data } = await api.put(`/calendar/slots/${appointmentId}`, updates);
     return data;
+  },
+  getPastAppointments: async () => {
+    const { data } = await api.get('/calendar/past-appointments');
+    return data;
+  },
+  rateAppointment: async (appointmentId: number, rating: number, comment?: string) => {
+    const { data } = await api.post(`/calendar/appointments/${appointmentId}/rate`, { rating, comment });
+    return data;
+  },
+  getPsychologistRating: async (psychologistId: number) => {
+    const { data } = await api.get(`/calendar/psychologist/${psychologistId}/rating`);
+    return data;
+  },
+  getPsychologistPastAppointments: async () => {
+    const { data } = await api.get('/calendar/psychologist/past-appointments');
+    return data;
   }
 };
 
@@ -423,6 +447,24 @@ export const psychService = {
   },
   getPatientTestAnswers: async (patientId: number, testId: number) => {
     const { data } = await api.get(`/psych/patients/${patientId}/tests/${testId}/answers`);
+    return data;
+  },
+  getProfile: async () => {
+    const { data } = await api.get('/psych/profile');
+    return data;
+  },
+  updateProfile: async (profile: {
+    bio?: string;
+    education?: string;
+    certifications?: string;
+    interests?: string;
+    specializations?: string;
+    experience?: string;
+    languages?: string;
+    linkedinUrl?: string;
+    website?: string;
+  }) => {
+    const { data } = await api.put('/psych/profile', profile);
     return data;
   }
 };

@@ -18,6 +18,7 @@ com\alvaro\psicoapp\controller\AdminController$QuestionUpdate.class
 com\alvaro\psicoapp\config\CacheConfig.class
 com\alvaro\psicoapp\controller\AdminController$FactorCreate.class
 com\alvaro\psicoapp\dto\AuthDtos.class
+com\alvaro\psicoapp\domain\PsychologistProfileEntity.class
 com\alvaro\psicoapp\controller\AdminUserController.class
 com\alvaro\psicoapp\domain\AppointmentRequestEntity.class
 com\alvaro\psicoapp\repository\EvaluationTestResultRepository.class
@@ -26,6 +27,7 @@ com\alvaro\psicoapp\domain\TestResultEntity.class
 com\alvaro\psicoapp\controller\PsychologistController.class
 com\alvaro\psicoapp\repository\AnswerRepository.class
 com\alvaro\psicoapp\dto\AuthDtos$LoginRequest.class
+com\alvaro\psicoapp\repository\AppointmentRatingRepository.class
 com\alvaro\psicoapp\repository\ChatMessageRepository.class
 com\alvaro\psicoapp\repository\UserRepository.class
 com\alvaro\psicoapp\controller\JitsiController.class
@@ -48,6 +50,7 @@ com\alvaro\psicoapp\controller\AdminController$QuestionCreate.class
 com\alvaro\psicoapp\controller\GlobalExceptionHandler.class
 com\alvaro\psicoapp\repository\FactorResultRepository.class
 com\alvaro\psicoapp\controller\TestController.class
+com\alvaro\psicoapp\repository\PsychologistProfileRepository.class
 com\alvaro\psicoapp\controller\PersonalAgendaController.class
 com\alvaro\psicoapp\controller\AdminController$1.class
 com\alvaro\psicoapp\repository\TestResultRepository.class
@@ -76,6 +79,7 @@ com\alvaro\psicoapp\domain\SubfactorEntity.class
 com\alvaro\psicoapp\domain\UserPsychologistEntity.class
 com\alvaro\psicoapp\controller\CalendarController.class
 com\alvaro\psicoapp\util\InputSanitizer.class
+com\alvaro\psicoapp\domain\AppointmentRatingEntity.class
 com\alvaro\psicoapp\domain\FactorEntity.class
 com\alvaro\psicoapp\service\AuthService.class
 com\alvaro\psicoapp\controller\TestResultController.class

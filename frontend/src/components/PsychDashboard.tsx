@@ -11,7 +11,7 @@ import BarChart from './BarChart';
 import FactorChart from './FactorChart';
 import InitialTestSummary from './InitialTestSummary';
 
-type Tab = 'perfil' | 'pacientes' | 'calendario' | 'tareas' | 'chat' | 'tests-asignados' | 'patient-profile' | 'test-details';
+type Tab = 'perfil' | 'pacientes' | 'calendario' | 'tareas' | 'chat' | 'citas-pasadas' | 'tests-asignados' | 'patient-profile' | 'test-details' | 'editar-perfil-profesional';
 
 export default function PsychDashboard() {
   const [tab, setTab] = useState<Tab>('perfil');
@@ -58,6 +58,26 @@ export default function PsychDashboard() {
   const [testDetailsData, setTestDetailsData] = useState<any>(null);
   const [testAnswers, setTestAnswers] = useState<any>(null);
   const [loadingTestDetails, setLoadingTestDetails] = useState(false);
+  
+  // Estados para citas pasadas del psicólogo
+  const [pastAppointmentsPsych, setPastAppointmentsPsych] = useState<any[]>([]);
+  const [loadingPastAppointmentsPsych, setLoadingPastAppointmentsPsych] = useState(false);
+  const [myRating, setMyRating] = useState<{ averageRating: number | null; totalRatings: number } | null>(null);
+  
+  // Estados para perfil profesional del psicólogo
+  const [psychologistProfile, setPsychologistProfile] = useState<any>(null);
+  const [loadingPsychProfile, setLoadingPsychProfile] = useState(false);
+  const [psychProfileForm, setPsychProfileForm] = useState({
+    bio: '',
+    education: [] as Array<{ degree: string; field: string; institution: string; startDate: string; endDate: string }>,
+    certifications: [] as Array<{ name: string; issuer: string; date: string; credentialId: string }>,
+    interests: [] as string[],
+    specializations: [] as string[],
+    experience: [] as Array<{ title: string; company: string; description: string; startDate: string; endDate: string }>,
+    languages: [] as Array<{ language: string; level: string }>,
+    linkedinUrl: '',
+    website: ''
+  });
   
   // Ref para mantener el componente montado incluso si showVideoCall cambia temporalmente
   const videoCallRef = useRef<{ room: string | null; user: any; otherUser: any } | null>(null);
@@ -274,6 +294,20 @@ export default function PsychDashboard() {
     loadMySlots();
   }, []);
 
+  // Cargar valoración cuando se carga el perfil
+  useEffect(() => {
+    if (me && tab === 'perfil') {
+      loadMyRating();
+    }
+  }, [me, tab]);
+
+  // Cargar citas pasadas cuando se abre la pestaña
+  useEffect(() => {
+    if (tab === 'citas-pasadas') {
+      loadPastAppointmentsPsych();
+    }
+  }, [tab]);
+
   const loadMySlots = async () => {
     try {
       setLoadingSlots(true);
@@ -363,6 +397,89 @@ export default function PsychDashboard() {
     }
   };
 
+  const loadPsychologistProfile = async () => {
+    try {
+      setLoadingPsychProfile(true);
+      const profile = await psychService.getProfile();
+      setPsychologistProfile(profile);
+      // Convertir JSON strings a arrays
+      const parseJsonField = (field: string | null, defaultValue: any) => {
+        if (!field) return defaultValue;
+        try {
+          return JSON.parse(field);
+        } catch {
+          return defaultValue;
+        }
+      };
+      setPsychProfileForm({
+        bio: profile.bio || '',
+        education: parseJsonField(profile.education, []),
+        certifications: parseJsonField(profile.certifications, []),
+        interests: parseJsonField(profile.interests, []),
+        specializations: parseJsonField(profile.specializations, []),
+        experience: parseJsonField(profile.experience, []),
+        languages: parseJsonField(profile.languages, []),
+        linkedinUrl: profile.linkedinUrl || '',
+        website: profile.website || ''
+      });
+    } catch (error: any) {
+      console.error('Error cargando perfil profesional:', error);
+      toast.error('Error al cargar el perfil profesional');
+    } finally {
+      setLoadingPsychProfile(false);
+    }
+  };
+
+  const savePsychologistProfile = async () => {
+    try {
+      setLoadingPsychProfile(true);
+      // Convertir arrays a JSON strings antes de enviar
+      const profileToSave = {
+        bio: psychProfileForm.bio,
+        education: psychProfileForm.education.length > 0 ? JSON.stringify(psychProfileForm.education) : null,
+        certifications: psychProfileForm.certifications.length > 0 ? JSON.stringify(psychProfileForm.certifications) : null,
+        interests: psychProfileForm.interests.length > 0 ? JSON.stringify(psychProfileForm.interests) : null,
+        specializations: psychProfileForm.specializations.length > 0 ? JSON.stringify(psychProfileForm.specializations) : null,
+        experience: psychProfileForm.experience.length > 0 ? JSON.stringify(psychProfileForm.experience) : null,
+        languages: psychProfileForm.languages.length > 0 ? JSON.stringify(psychProfileForm.languages) : null,
+        linkedinUrl: psychProfileForm.linkedinUrl,
+        website: psychProfileForm.website
+      };
+      await psychService.updateProfile(profileToSave);
+      await loadPsychologistProfile();
+      toast.success('Perfil profesional actualizado exitosamente');
+      setTab('perfil');
+    } catch (error: any) {
+      console.error('Error guardando perfil profesional:', error);
+      toast.error('Error al guardar el perfil profesional: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setLoadingPsychProfile(false);
+    }
+  };
+
+  const loadPastAppointmentsPsych = async () => {
+    try {
+      setLoadingPastAppointmentsPsych(true);
+      const appointments = await calendarService.getPsychologistPastAppointments();
+      setPastAppointmentsPsych(appointments);
+    } catch (err: any) {
+      console.error('Error cargando citas pasadas:', err);
+      toast.error('Error al cargar las citas pasadas: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setLoadingPastAppointmentsPsych(false);
+    }
+  };
+
+  const loadMyRating = async () => {
+    if (!me) return;
+    try {
+      const rating = await calendarService.getPsychologistRating(me.id);
+      setMyRating(rating);
+    } catch (err: any) {
+      console.error('Error cargando valoración:', err);
+    }
+  };
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -397,7 +514,8 @@ export default function PsychDashboard() {
           { id: 'tareas', label: '📋 Tareas', icon: '📋' },
           { id: 'tests-asignados', label: '📝 Tests Asignados', icon: '📝' },
           { id: 'calendario', label: '📅 Calendario', icon: '📅' },
-          { id: 'chat', label: '💬 Chat', icon: '💬' }
+          { id: 'chat', label: '💬 Chat', icon: '💬' },
+          { id: 'citas-pasadas', label: 'Citas Pasadas', icon: '📅' }
         ].map(t => (
           <button
             key={t.id}
@@ -508,126 +626,55 @@ export default function PsychDashboard() {
                 </label>
               </div>
               <div style={{ flex: 1 }}>
-                {editing ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <input
-                      type="text"
-                      value={editForm.name}
-                      onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                      placeholder="Nombre completo"
-                      style={{
-                        padding: '10px 16px',
-                        borderRadius: '8px',
-                        border: 'none',
-                        fontSize: '20px',
-                        fontWeight: 600,
-                        width: '100%',
-                        maxWidth: '400px'
-                      }}
-                    />
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                      <select
-                        value={editForm.gender}
-                        onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
-                        style={{
-                          padding: '8px 12px',
-                          borderRadius: '8px',
-                          border: 'none',
-                          fontSize: '14px'
-                        }}
-                      >
-                        <option value="">Selecciona género</option>
-                        <option value="MALE">Masculino</option>
-                        <option value="FEMALE">Femenino</option>
-                        <option value="OTHER">Otro</option>
-                      </select>
-                      <input
-                        type="number"
-                        value={editForm.age}
-                        onChange={(e) => setEditForm({ ...editForm, age: e.target.value })}
-                        placeholder="Edad"
-                        style={{
-                          padding: '8px 12px',
-                          borderRadius: '8px',
-                          border: 'none',
-                          fontSize: '14px',
-                          width: '100px'
-                        }}
-                      />
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button
-                        onClick={saveProfile}
-                        style={{
-                          padding: '8px 20px',
-                          background: 'white',
-                          color: '#667eea',
-                          border: 'none',
-                          borderRadius: '8px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                      >
-                        Guardar
-                      </button>
-                      <button
-                        onClick={() => { setEditing(false); setEditForm({ name: me?.name || '', gender: me?.gender || '', age: me?.age?.toString() || '' }); }}
-                        style={{
-                          padding: '8px 20px',
-                          background: 'rgba(255, 255, 255, 0.2)',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '8px',
-                          fontWeight: 600,
-                          cursor: 'pointer'
-                        }}
-                      >
-                        Cancelar
-                      </button>
-                    </div>
+                <h2 style={{ margin: '0 0 8px 0', fontSize: '32px', fontWeight: 700 }}>
+                  {me?.name || 'Psicólogo'}
+                </h2>
+                {myRating && myRating.averageRating !== null && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                    <span style={{ fontSize: '20px', color: '#fbbf24' }}>
+                      {'★'.repeat(Math.round(myRating.averageRating))}
+                      {'☆'.repeat(5 - Math.round(myRating.averageRating))}
+                    </span>
+                    <span style={{ fontSize: '16px', fontWeight: 600, opacity: 0.9 }}>
+                      {myRating.averageRating.toFixed(1)} ({myRating.totalRatings} valoraciones)
+                    </span>
                   </div>
-                ) : (
-                  <>
-                    <h2 style={{ margin: '0 0 8px 0', fontSize: '32px', fontWeight: 700 }}>
-                      {me?.name || 'Psicólogo'}
-                    </h2>
-                    <div style={{ fontSize: '16px', opacity: 0.9, marginBottom: '16px' }}>
-                      {me?.email}
-                    </div>
-                    <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '14px', opacity: 0.9 }}>
-                      {me?.age && <div>👤 {me.age} años</div>}
-                      {me?.gender && <div>{me.gender === 'MALE' ? '♂️' : me.gender === 'FEMALE' ? '♀️' : '⚧️'} {me.gender === 'MALE' ? 'Masculino' : me.gender === 'FEMALE' ? 'Femenino' : 'Otro'}</div>}
-                      {me?.createdAt && <div>📅 Miembro desde {formatDate(me.createdAt)}</div>}
-                    </div>
-                    <button
-                      onClick={() => setEditing(true)}
-                      style={{
-                        marginTop: '16px',
-                        padding: '10px 24px',
-                        background: 'rgba(255, 255, 255, 0.2)',
-                        color: 'white',
-                        border: '2px solid white',
-                        borderRadius: '8px',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        transition: 'all 0.2s'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'white';
-                        e.currentTarget.style.color = '#667eea';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
-                        e.currentTarget.style.color = 'white';
-                      }}
-                    >
-                      ✏️ Editar Perfil
-                    </button>
-                  </>
                 )}
+                <div style={{ fontSize: '16px', opacity: 0.9, marginBottom: '16px' }}>
+                  {me?.email}
+                </div>
+                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '14px', opacity: 0.9 }}>
+                  {me?.age && <div>👤 {me.age} años</div>}
+                  {me?.gender && <div>{me.gender === 'MALE' ? '♂️' : me.gender === 'FEMALE' ? '♀️' : '⚧️'} {me.gender === 'MALE' ? 'Masculino' : me.gender === 'FEMALE' ? 'Femenino' : 'Otro'}</div>}
+                  {me?.createdAt && <div>📅 Miembro desde {formatDate(me.createdAt)}</div>}
+                </div>
+                <button
+                  onClick={async () => {
+                    await loadPsychologistProfile();
+                    setTab('editar-perfil-profesional');
+                  }}
+                  style={{
+                    marginTop: '16px',
+                    padding: '10px 24px',
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    color: 'white',
+                    border: '2px solid white',
+                    borderRadius: '8px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'white';
+                    e.currentTarget.style.color = '#667eea';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                    e.currentTarget.style.color = 'white';
+                  }}
+                >
+                  ✏️ Editar Perfil
+                </button>
               </div>
             </div>
           </div>
@@ -801,6 +848,787 @@ export default function PsychDashboard() {
               })()}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Editar Perfil Profesional - Página completa estilo LinkedIn */}
+      {tab === 'editar-perfil-profesional' && (
+        <div style={{
+          background: '#ffffff',
+          borderRadius: '20px',
+          boxShadow: '0 6px 20px rgba(0, 0, 0, 0.1)',
+          padding: '40px',
+          border: '1px solid #e5e7eb',
+          maxWidth: '1000px',
+          margin: '0 auto'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+            <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 700, color: '#1f2937' }}>
+              Editar Perfil Profesional
+            </h2>
+            <button
+              onClick={() => setTab('perfil')}
+              style={{
+                padding: '10px 20px',
+                background: '#f3f4f6',
+                color: '#1f2937',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontSize: '14px'
+              }}
+            >
+              ← Volver al Perfil
+            </button>
+          </div>
+
+          {loadingPsychProfile ? (
+            <LoadingSpinner text="Cargando perfil profesional..." />
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* Biografía */}
+              <div style={{ padding: '24px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                <h3 style={{ margin: '0 0 16px 0', fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>
+                  Biografía / Sobre mí
+                </h3>
+                <textarea
+                  value={psychProfileForm.bio}
+                  onChange={(e) => setPsychProfileForm({ ...psychProfileForm, bio: e.target.value })}
+                  placeholder="Escribe una breve biografía sobre ti, tu experiencia y tu enfoque profesional..."
+                  rows={6}
+                  style={{
+                    width: '100%',
+                    padding: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #d1d5db',
+                    fontSize: '15px',
+                    fontFamily: 'inherit',
+                    resize: 'vertical',
+                    lineHeight: '1.6'
+                  }}
+                />
+              </div>
+
+              {/* Educación */}
+              <div style={{ padding: '24px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>
+                    Educación
+                  </h3>
+                  <button
+                    onClick={() => setPsychProfileForm({
+                      ...psychProfileForm,
+                      education: [...psychProfileForm.education, { degree: '', field: '', institution: '', startDate: '', endDate: '' }]
+                    })}
+                    style={{
+                      padding: '8px 16px',
+                      background: '#667eea',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    + Añadir
+                  </button>
+                </div>
+                {psychProfileForm.education.map((edu, idx) => (
+                  <div key={idx} style={{ marginBottom: '16px', padding: '16px', background: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 600, color: '#374151' }}>Título</label>
+                        <input
+                          type="text"
+                          value={edu.degree}
+                          onChange={(e) => {
+                            const newEducation = [...psychProfileForm.education];
+                            newEducation[idx].degree = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, education: newEducation });
+                          }}
+                          placeholder="Ej: Licenciatura, Grado, Máster..."
+                          style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 600, color: '#374151' }}>Campo de estudio</label>
+                        <input
+                          type="text"
+                          value={edu.field}
+                          onChange={(e) => {
+                            const newEducation = [...psychProfileForm.education];
+                            newEducation[idx].field = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, education: newEducation });
+                          }}
+                          placeholder="Ej: Psicología, Psicología Clínica..."
+                          style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
+                        />
+                      </div>
+                    </div>
+                    <div style={{ marginBottom: '12px' }}>
+                      <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 600, color: '#374151' }}>Institución</label>
+                      <input
+                        type="text"
+                        value={edu.institution}
+                        onChange={(e) => {
+                          const newEducation = [...psychProfileForm.education];
+                          newEducation[idx].institution = e.target.value;
+                          setPsychProfileForm({ ...psychProfileForm, education: newEducation });
+                        }}
+                        placeholder="Ej: Universidad Complutense de Madrid"
+                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
+                      />
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 600, color: '#374151' }}>Fecha inicio</label>
+                        <input
+                          type="text"
+                          value={edu.startDate}
+                          onChange={(e) => {
+                            const newEducation = [...psychProfileForm.education];
+                            newEducation[idx].startDate = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, education: newEducation });
+                          }}
+                          placeholder="Ej: 2010"
+                          style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 600, color: '#374151' }}>Fecha fin</label>
+                        <input
+                          type="text"
+                          value={edu.endDate}
+                          onChange={(e) => {
+                            const newEducation = [...psychProfileForm.education];
+                            newEducation[idx].endDate = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, education: newEducation });
+                          }}
+                          placeholder="Ej: 2014 o 'En curso'"
+                          style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
+                        />
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newEducation = psychProfileForm.education.filter((_, i) => i !== idx);
+                        setPsychProfileForm({ ...psychProfileForm, education: newEducation });
+                      }}
+                      style={{
+                        marginTop: '12px',
+                        padding: '6px 12px',
+                        background: '#ef4444',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                ))}
+                {psychProfileForm.education.length === 0 && (
+                  <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280', fontSize: '14px' }}>
+                    No hay educación añadida. Haz clic en "+ Añadir" para agregar una entrada.
+                  </div>
+                )}
+              </div>
+
+              {/* Certificaciones */}
+              <div style={{ padding: '24px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>
+                    Certificaciones
+                  </h3>
+                  <button
+                    onClick={() => setPsychProfileForm({
+                      ...psychProfileForm,
+                      certifications: [...psychProfileForm.certifications, { name: '', issuer: '', date: '', credentialId: '' }]
+                    })}
+                    style={{
+                      padding: '8px 16px',
+                      background: '#667eea',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    + Añadir
+                  </button>
+                </div>
+                {psychProfileForm.certifications.map((cert, idx) => (
+                  <div key={idx} style={{ marginBottom: '16px', padding: '16px', background: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                    <div style={{ marginBottom: '12px' }}>
+                      <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 600, color: '#374151' }}>Nombre de la certificación</label>
+                      <input
+                        type="text"
+                        value={cert.name}
+                        onChange={(e) => {
+                          const newCerts = [...psychProfileForm.certifications];
+                          newCerts[idx].name = e.target.value;
+                          setPsychProfileForm({ ...psychProfileForm, certifications: newCerts });
+                        }}
+                        placeholder="Ej: Certificación en Terapia Cognitivo-Conductual"
+                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
+                      />
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 600, color: '#374151' }}>Emitido por</label>
+                        <input
+                          type="text"
+                          value={cert.issuer}
+                          onChange={(e) => {
+                            const newCerts = [...psychProfileForm.certifications];
+                            newCerts[idx].issuer = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, certifications: newCerts });
+                          }}
+                          placeholder="Ej: Colegio Oficial de Psicólogos"
+                          style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 600, color: '#374151' }}>Fecha</label>
+                        <input
+                          type="text"
+                          value={cert.date}
+                          onChange={(e) => {
+                            const newCerts = [...psychProfileForm.certifications];
+                            newCerts[idx].date = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, certifications: newCerts });
+                          }}
+                          placeholder="Ej: 2020"
+                          style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 600, color: '#374151' }}>ID de credencial (opcional)</label>
+                      <input
+                        type="text"
+                        value={cert.credentialId}
+                        onChange={(e) => {
+                          const newCerts = [...psychProfileForm.certifications];
+                          newCerts[idx].credentialId = e.target.value;
+                          setPsychProfileForm({ ...psychProfileForm, certifications: newCerts });
+                        }}
+                        placeholder="Ej: ABC123"
+                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
+                      />
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newCerts = psychProfileForm.certifications.filter((_, i) => i !== idx);
+                        setPsychProfileForm({ ...psychProfileForm, certifications: newCerts });
+                      }}
+                      style={{
+                        marginTop: '12px',
+                        padding: '6px 12px',
+                        background: '#ef4444',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                ))}
+                {psychProfileForm.certifications.length === 0 && (
+                  <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280', fontSize: '14px' }}>
+                    No hay certificaciones añadidas. Haz clic en "+ Añadir" para agregar una entrada.
+                  </div>
+                )}
+              </div>
+
+              {/* Experiencia */}
+              <div style={{ padding: '24px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>
+                    Experiencia Profesional
+                  </h3>
+                  <button
+                    onClick={() => setPsychProfileForm({
+                      ...psychProfileForm,
+                      experience: [...psychProfileForm.experience, { title: '', company: '', description: '', startDate: '', endDate: '' }]
+                    })}
+                    style={{
+                      padding: '8px 16px',
+                      background: '#667eea',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    + Añadir
+                  </button>
+                </div>
+                {psychProfileForm.experience.map((exp, idx) => (
+                  <div key={idx} style={{ marginBottom: '16px', padding: '16px', background: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 600, color: '#374151' }}>Cargo / Título</label>
+                        <input
+                          type="text"
+                          value={exp.title}
+                          onChange={(e) => {
+                            const newExp = [...psychProfileForm.experience];
+                            newExp[idx].title = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, experience: newExp });
+                          }}
+                          placeholder="Ej: Psicólogo Clínico"
+                          style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 600, color: '#374151' }}>Empresa / Centro</label>
+                        <input
+                          type="text"
+                          value={exp.company}
+                          onChange={(e) => {
+                            const newExp = [...psychProfileForm.experience];
+                            newExp[idx].company = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, experience: newExp });
+                          }}
+                          placeholder="Ej: Centro de Psicología Clínica"
+                          style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
+                        />
+                      </div>
+                    </div>
+                    <div style={{ marginBottom: '12px' }}>
+                      <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 600, color: '#374151' }}>Descripción</label>
+                      <textarea
+                        value={exp.description}
+                        onChange={(e) => {
+                          const newExp = [...psychProfileForm.experience];
+                          newExp[idx].description = e.target.value;
+                          setPsychProfileForm({ ...psychProfileForm, experience: newExp });
+                        }}
+                        placeholder="Describe tus responsabilidades y logros..."
+                        rows={3}
+                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px', resize: 'vertical' }}
+                      />
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 600, color: '#374151' }}>Fecha inicio</label>
+                        <input
+                          type="text"
+                          value={exp.startDate}
+                          onChange={(e) => {
+                            const newExp = [...psychProfileForm.experience];
+                            newExp[idx].startDate = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, experience: newExp });
+                          }}
+                          placeholder="Ej: 2015"
+                          style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 600, color: '#374151' }}>Fecha fin</label>
+                        <input
+                          type="text"
+                          value={exp.endDate}
+                          onChange={(e) => {
+                            const newExp = [...psychProfileForm.experience];
+                            newExp[idx].endDate = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, experience: newExp });
+                          }}
+                          placeholder="Ej: 2020 o 'Actual'"
+                          style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
+                        />
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newExp = psychProfileForm.experience.filter((_, i) => i !== idx);
+                        setPsychProfileForm({ ...psychProfileForm, experience: newExp });
+                      }}
+                      style={{
+                        marginTop: '12px',
+                        padding: '6px 12px',
+                        background: '#ef4444',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                ))}
+                {psychProfileForm.experience.length === 0 && (
+                  <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280', fontSize: '14px' }}>
+                    No hay experiencia añadida. Haz clic en "+ Añadir" para agregar una entrada.
+                  </div>
+                )}
+              </div>
+
+              {/* Especializaciones */}
+              <div style={{ padding: '24px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>
+                    Especializaciones
+                  </h3>
+                  <button
+                    onClick={() => {
+                      const newSpec = prompt('Ingresa una especialización:');
+                      if (newSpec && newSpec.trim()) {
+                        setPsychProfileForm({
+                          ...psychProfileForm,
+                          specializations: [...psychProfileForm.specializations, newSpec.trim()]
+                        });
+                      }
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      background: '#667eea',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    + Añadir
+                  </button>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+                  {psychProfileForm.specializations.map((spec, idx) => (
+                    <span
+                      key={idx}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '8px 16px',
+                        background: '#dcfce7',
+                        color: '#15803d',
+                        borderRadius: '20px',
+                        fontSize: '14px',
+                        fontWeight: 500
+                      }}
+                    >
+                      {spec}
+                      <button
+                        onClick={() => {
+                          const newSpecs = psychProfileForm.specializations.filter((_, i) => i !== idx);
+                          setPsychProfileForm({ ...psychProfileForm, specializations: newSpecs });
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#15803d',
+                          cursor: 'pointer',
+                          fontSize: '16px',
+                          padding: 0,
+                          marginLeft: '4px'
+                        }}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                {psychProfileForm.specializations.length === 0 && (
+                  <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280', fontSize: '14px' }}>
+                    No hay especializaciones añadidas. Haz clic en "+ Añadir" para agregar una.
+                  </div>
+                )}
+              </div>
+
+              {/* Intereses */}
+              <div style={{ padding: '24px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>
+                    Intereses y Pasiones
+                  </h3>
+                  <button
+                    onClick={() => {
+                      const newInterest = prompt('Ingresa un interés o pasión:');
+                      if (newInterest && newInterest.trim()) {
+                        setPsychProfileForm({
+                          ...psychProfileForm,
+                          interests: [...psychProfileForm.interests, newInterest.trim()]
+                        });
+                      }
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      background: '#667eea',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    + Añadir
+                  </button>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+                  {psychProfileForm.interests.map((interest, idx) => (
+                    <span
+                      key={idx}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '8px 16px',
+                        background: '#fef3c7',
+                        color: '#92400e',
+                        borderRadius: '20px',
+                        fontSize: '14px',
+                        fontWeight: 500
+                      }}
+                    >
+                      {interest}
+                      <button
+                        onClick={() => {
+                          const newInterests = psychProfileForm.interests.filter((_, i) => i !== idx);
+                          setPsychProfileForm({ ...psychProfileForm, interests: newInterests });
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#92400e',
+                          cursor: 'pointer',
+                          fontSize: '16px',
+                          padding: 0,
+                          marginLeft: '4px'
+                        }}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                {psychProfileForm.interests.length === 0 && (
+                  <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280', fontSize: '14px' }}>
+                    No hay intereses añadidos. Haz clic en "+ Añadir" para agregar uno.
+                  </div>
+                )}
+              </div>
+
+              {/* Idiomas */}
+              <div style={{ padding: '24px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>
+                    Idiomas
+                  </h3>
+                  <button
+                    onClick={() => setPsychProfileForm({
+                      ...psychProfileForm,
+                      languages: [...psychProfileForm.languages, { language: '', level: '' }]
+                    })}
+                    style={{
+                      padding: '8px 16px',
+                      background: '#667eea',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    + Añadir
+                  </button>
+                </div>
+                {psychProfileForm.languages.map((lang, idx) => (
+                  <div key={idx} style={{ marginBottom: '16px', padding: '16px', background: 'white', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 600, color: '#374151' }}>Idioma</label>
+                        <input
+                          type="text"
+                          value={lang.language}
+                          onChange={(e) => {
+                            const newLangs = [...psychProfileForm.languages];
+                            newLangs[idx].language = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, languages: newLangs });
+                          }}
+                          placeholder="Ej: Español, Inglés, Francés..."
+                          style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: 600, color: '#374151' }}>Nivel</label>
+                        <input
+                          type="text"
+                          value={lang.level}
+                          onChange={(e) => {
+                            const newLangs = [...psychProfileForm.languages];
+                            newLangs[idx].level = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, languages: newLangs });
+                          }}
+                          placeholder="Ej: Nativo, Avanzado, Intermedio..."
+                          style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
+                        />
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newLangs = psychProfileForm.languages.filter((_, i) => i !== idx);
+                        setPsychProfileForm({ ...psychProfileForm, languages: newLangs });
+                      }}
+                      style={{
+                        marginTop: '12px',
+                        padding: '6px 12px',
+                        background: '#ef4444',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                ))}
+                {psychProfileForm.languages.length === 0 && (
+                  <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280', fontSize: '14px' }}>
+                    No hay idiomas añadidos. Haz clic en "+ Añadir" para agregar uno.
+                  </div>
+                )}
+              </div>
+
+              {/* LinkedIn y Sitio Web */}
+              <div style={{ padding: '24px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                <h3 style={{ margin: '0 0 16px 0', fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>
+                  Enlaces Profesionales
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#374151' }}>
+                      URL de LinkedIn
+                    </label>
+                    <input
+                      type="url"
+                      value={psychProfileForm.linkedinUrl}
+                      onChange={(e) => setPsychProfileForm({ ...psychProfileForm, linkedinUrl: e.target.value })}
+                      placeholder="https://linkedin.com/in/tu-perfil"
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        borderRadius: '8px',
+                        border: '1px solid #d1d5db',
+                        fontSize: '14px'
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#374151' }}>
+                      Sitio Web Personal
+                    </label>
+                    <input
+                      type="url"
+                      value={psychProfileForm.website}
+                      onChange={(e) => setPsychProfileForm({ ...psychProfileForm, website: e.target.value })}
+                      placeholder="https://tu-sitio-web.com"
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        borderRadius: '8px',
+                        border: '1px solid #d1d5db',
+                        fontSize: '14px'
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Botones de acción */}
+              <div style={{ display: 'flex', gap: '12px', marginTop: '16px', paddingTop: '24px', borderTop: '2px solid #e5e7eb' }}>
+                <button
+                  onClick={savePsychologistProfile}
+                  disabled={loadingPsychProfile}
+                  style={{
+                    padding: '14px 28px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontWeight: 600,
+                    cursor: loadingPsychProfile ? 'not-allowed' : 'pointer',
+                    opacity: loadingPsychProfile ? 0.6 : 1,
+                    fontSize: '16px',
+                    transition: 'all 0.2s',
+                    flex: 1
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!loadingPsychProfile) {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  {loadingPsychProfile ? '⏳ Guardando...' : '💾 Guardar Perfil Profesional'}
+                </button>
+                <button
+                  onClick={() => {
+                    setTab('perfil');
+                    // Restaurar valores originales
+                    if (psychologistProfile) {
+                      setPsychProfileForm({
+                        bio: psychologistProfile.bio || '',
+                        education: psychologistProfile.education || '',
+                        certifications: psychologistProfile.certifications || '',
+                        interests: psychologistProfile.interests || '',
+                        specializations: psychologistProfile.specializations || '',
+                        experience: psychologistProfile.experience || '',
+                        languages: psychologistProfile.languages || '',
+                        linkedinUrl: psychologistProfile.linkedinUrl || '',
+                        website: psychologistProfile.website || ''
+                      });
+                    }
+                  }}
+                  style={{
+                    padding: '14px 28px',
+                    background: '#f3f4f6',
+                    color: '#374151',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#e5e7eb';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#f3f4f6';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -2860,6 +3688,125 @@ export default function PsychDashboard() {
             </div>
           )}
             </>
+          )}
+        </div>
+      )}
+
+      {/* Citas Pasadas */}
+      {tab === 'citas-pasadas' && (
+        <div style={{ width: '100%' }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '20px',
+            boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
+            padding: '32px',
+            border: '1px solid rgba(90, 146, 112, 0.15)',
+            marginBottom: '24px'
+          }}>
+            <h3 style={{
+              margin: 0,
+              fontSize: '28px',
+              fontWeight: 700,
+              color: '#1a2e22',
+              fontFamily: "'Inter', sans-serif",
+              letterSpacing: '-0.02em'
+            }}>
+              Mis Citas Pasadas
+            </h3>
+            {myRating && myRating.averageRating !== null && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '16px' }}>
+                <span style={{ fontSize: '24px', color: '#fbbf24' }}>
+                  {'★'.repeat(Math.round(myRating.averageRating))}
+                  {'☆'.repeat(5 - Math.round(myRating.averageRating))}
+                </span>
+                <span style={{ fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>
+                  {myRating.averageRating.toFixed(1)} de 5.0 ({myRating.totalRatings} valoraciones)
+                </span>
+              </div>
+            )}
+          </div>
+
+          {loadingPastAppointmentsPsych ? (
+            <div style={{ textAlign: 'center', padding: '60px' }}>
+              <p style={{ color: '#6b7280', fontSize: '16px' }}>Cargando citas pasadas...</p>
+            </div>
+          ) : pastAppointmentsPsych.length === 0 ? (
+            <div style={{
+              background: '#ffffff',
+              borderRadius: '20px',
+              boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
+              padding: '60px',
+              border: '1px solid rgba(90, 146, 112, 0.15)',
+              textAlign: 'center'
+            }}>
+              <p style={{ color: '#6b7280', fontSize: '16px' }}>No tienes citas pasadas aún</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {pastAppointmentsPsych.map((apt: any) => (
+                <div
+                  key={apt.id}
+                  style={{
+                    background: '#ffffff',
+                    borderRadius: '16px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+                    padding: '24px',
+                    border: '1px solid rgba(90, 146, 112, 0.15)'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ margin: '0 0 8px 0', fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>
+                        Cita con {apt.user?.name || 'Paciente'}
+                      </h4>
+                      <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
+                        {new Date(apt.startTime).toLocaleDateString('es-ES', { 
+                          weekday: 'long', 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })}
+                      </div>
+                      <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
+                        {new Date(apt.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - 
+                        {new Date(apt.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                      {apt.price && (
+                        <div style={{ fontSize: '14px', color: '#059669', fontWeight: 600, marginTop: '4px' }}>
+                          {parseFloat(apt.price).toFixed(2)}€
+                        </div>
+                      )}
+                    </div>
+                    {apt.rating ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <span
+                              key={star}
+                              style={{
+                                fontSize: '20px',
+                                color: star <= apt.rating.rating ? '#fbbf24' : '#d1d5db'
+                              }}
+                            >
+                              ★
+                            </span>
+                          ))}
+                        </div>
+                        {apt.rating.comment && (
+                          <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontStyle: 'italic', maxWidth: '200px', textAlign: 'right' }}>
+                            "{apt.rating.comment}"
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: '14px', color: '#9ca3af', fontStyle: 'italic' }}>
+                        Sin valorar
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}

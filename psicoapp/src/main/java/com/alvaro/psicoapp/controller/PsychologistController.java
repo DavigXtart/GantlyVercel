@@ -2,10 +2,12 @@ package com.alvaro.psicoapp.controller;
 
 import com.alvaro.psicoapp.domain.UserAnswerEntity;
 import com.alvaro.psicoapp.domain.TestEntity;
+import com.alvaro.psicoapp.domain.PsychologistProfileEntity;
 import com.alvaro.psicoapp.repository.UserPsychologistRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
 import com.alvaro.psicoapp.repository.UserAnswerRepository;
 import com.alvaro.psicoapp.repository.TestRepository;
+import com.alvaro.psicoapp.repository.PsychologistProfileRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +17,7 @@ import java.util.Map;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
+import java.time.Instant;
 import org.springframework.transaction.annotation.Transactional;
 
 @RestController
@@ -24,16 +27,19 @@ public class PsychologistController {
     private final UserPsychologistRepository userPsychologistRepository;
     private final UserAnswerRepository userAnswerRepository;
     private final TestRepository testRepository;
+    private final PsychologistProfileRepository psychologistProfileRepository;
 
     public PsychologistController(
             UserRepository userRepository, 
             UserPsychologistRepository userPsychologistRepository,
             UserAnswerRepository userAnswerRepository,
-            TestRepository testRepository) {
+            TestRepository testRepository,
+            PsychologistProfileRepository psychologistProfileRepository) {
         this.userRepository = userRepository;
         this.userPsychologistRepository = userPsychologistRepository;
         this.userAnswerRepository = userAnswerRepository;
         this.testRepository = testRepository;
+        this.psychologistProfileRepository = psychologistProfileRepository;
     }
 
     @GetMapping("/patients")
@@ -183,6 +189,90 @@ public class PsychologistController {
         response.put("testTitle", test.getTitle());
         response.put("answers", answers);
         
+        return ResponseEntity.ok(response);
+    }
+
+    // GET: Obtener perfil del psicólogo
+    @GetMapping("/profile")
+    @Transactional(readOnly = true)
+    public ResponseEntity<Map<String, Object>> getMyProfile(Principal principal) {
+        var me = userRepository.findByEmail(principal.getName()).orElseThrow();
+        if (!"PSYCHOLOGIST".equals(me.getRole())) {
+            return ResponseEntity.status(403).build();
+        }
+        
+        var profile = psychologistProfileRepository.findByUser(me);
+        Map<String, Object> response = new HashMap<>();
+        response.put("userId", me.getId());
+        response.put("name", me.getName());
+        response.put("email", me.getEmail());
+        response.put("avatarUrl", me.getAvatarUrl());
+        response.put("gender", me.getGender());
+        response.put("age", me.getAge());
+        
+        if (profile.isPresent()) {
+            var p = profile.get();
+            response.put("bio", p.getBio());
+            response.put("education", p.getEducation());
+            response.put("certifications", p.getCertifications());
+            response.put("interests", p.getInterests());
+            response.put("specializations", p.getSpecializations());
+            response.put("experience", p.getExperience());
+            response.put("languages", p.getLanguages());
+            response.put("linkedinUrl", p.getLinkedinUrl());
+            response.put("website", p.getWebsite());
+            response.put("updatedAt", p.getUpdatedAt());
+        } else {
+            // Crear perfil vacío si no existe
+            response.put("bio", null);
+            response.put("education", null);
+            response.put("certifications", null);
+            response.put("interests", null);
+            response.put("specializations", null);
+            response.put("experience", null);
+            response.put("languages", null);
+            response.put("linkedinUrl", null);
+            response.put("website", null);
+            response.put("updatedAt", null);
+        }
+        
+        return ResponseEntity.ok(response);
+    }
+
+    // PUT: Actualizar perfil del psicólogo
+    @PutMapping("/profile")
+    @Transactional
+    public ResponseEntity<Map<String, Object>> updateProfile(Principal principal, @RequestBody Map<String, Object> body) {
+        var me = userRepository.findByEmail(principal.getName()).orElseThrow();
+        if (!"PSYCHOLOGIST".equals(me.getRole())) {
+            return ResponseEntity.status(403).build();
+        }
+        
+        var profileOpt = psychologistProfileRepository.findByUser(me);
+        PsychologistProfileEntity profile;
+        
+        if (profileOpt.isPresent()) {
+            profile = profileOpt.get();
+        } else {
+            profile = new PsychologistProfileEntity();
+            profile.setUser(me);
+        }
+        
+        if (body.containsKey("bio")) profile.setBio((String) body.get("bio"));
+        if (body.containsKey("education")) profile.setEducation((String) body.get("education"));
+        if (body.containsKey("certifications")) profile.setCertifications((String) body.get("certifications"));
+        if (body.containsKey("interests")) profile.setInterests((String) body.get("interests"));
+        if (body.containsKey("specializations")) profile.setSpecializations((String) body.get("specializations"));
+        if (body.containsKey("experience")) profile.setExperience((String) body.get("experience"));
+        if (body.containsKey("languages")) profile.setLanguages((String) body.get("languages"));
+        if (body.containsKey("linkedinUrl")) profile.setLinkedinUrl((String) body.get("linkedinUrl"));
+        if (body.containsKey("website")) profile.setWebsite((String) body.get("website"));
+        
+        profile.setUpdatedAt(Instant.now());
+        psychologistProfileRepository.save(profile);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Perfil actualizado exitosamente");
         return ResponseEntity.ok(response);
     }
 }

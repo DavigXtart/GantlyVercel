@@ -2,6 +2,7 @@ package com.alvaro.psicoapp.controller;
 
 import com.alvaro.psicoapp.domain.UserEntity;
 import com.alvaro.psicoapp.repository.UserRepository;
+import com.alvaro.psicoapp.repository.PsychologistProfileRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -16,16 +17,19 @@ import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/profile")
 public class UserProfileController {
     private final UserRepository userRepository;
     private final com.alvaro.psicoapp.repository.UserPsychologistRepository userPsychologistRepository;
+    private final PsychologistProfileRepository psychologistProfileRepository;
 
-    public UserProfileController(UserRepository userRepository, com.alvaro.psicoapp.repository.UserPsychologistRepository userPsychologistRepository) {
+    public UserProfileController(UserRepository userRepository, com.alvaro.psicoapp.repository.UserPsychologistRepository userPsychologistRepository, PsychologistProfileRepository psychologistProfileRepository) {
         this.userRepository = userRepository;
         this.userPsychologistRepository = userPsychologistRepository;
+        this.psychologistProfileRepository = psychologistProfileRepository;
     }
 
     @GetMapping
@@ -63,6 +67,63 @@ public class UserProfileController {
             "avatarUrl", p.getAvatarUrl() != null ? p.getAvatarUrl() : ""
         ));
         return ResponseEntity.ok(res);
+    }
+
+    // GET: Obtener perfil completo del psicólogo asignado
+    @GetMapping("/psychologist/{psychologistId}")
+    @Transactional(readOnly = true)
+    public ResponseEntity<Map<String, Object>> getPsychologistProfile(Principal principal, @PathVariable Long psychologistId) {
+        if (principal == null) return ResponseEntity.status(401).build();
+        var user = userRepository.findByEmail(principal.getName()).orElseThrow();
+        
+        // Verificar que el psicólogo está asignado al usuario
+        var rel = userPsychologistRepository.findByUserId(user.getId());
+        if (rel.isEmpty() || !rel.get().getPsychologist().getId().equals(psychologistId)) {
+            return ResponseEntity.status(403).body(Map.of("error", "Este psicólogo no está asignado a tu cuenta"));
+        }
+        
+        var psychologist = userRepository.findById(psychologistId).orElseThrow();
+        if (!"PSYCHOLOGIST".equals(psychologist.getRole())) {
+            return ResponseEntity.status(404).body(Map.of("error", "Usuario no encontrado"));
+        }
+        
+        var profileOpt = psychologistProfileRepository.findByUser_Id(psychologistId);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", psychologist.getId());
+        response.put("name", psychologist.getName());
+        response.put("email", psychologist.getEmail());
+        response.put("avatarUrl", psychologist.getAvatarUrl());
+        response.put("gender", psychologist.getGender());
+        response.put("age", psychologist.getAge());
+        
+        if (profileOpt.isPresent()) {
+            var profile = profileOpt.get();
+            response.put("bio", profile.getBio());
+            response.put("education", profile.getEducation());
+            response.put("certifications", profile.getCertifications());
+            response.put("interests", profile.getInterests());
+            response.put("specializations", profile.getSpecializations());
+            response.put("experience", profile.getExperience());
+            response.put("languages", profile.getLanguages());
+            response.put("linkedinUrl", profile.getLinkedinUrl());
+            response.put("website", profile.getWebsite());
+            response.put("updatedAt", profile.getUpdatedAt());
+        } else {
+            // Perfil vacío si no existe
+            response.put("bio", null);
+            response.put("education", null);
+            response.put("certifications", null);
+            response.put("interests", null);
+            response.put("specializations", null);
+            response.put("experience", null);
+            response.put("languages", null);
+            response.put("linkedinUrl", null);
+            response.put("website", null);
+            response.put("updatedAt", null);
+        }
+        
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping
