@@ -4,6 +4,8 @@ import com.alvaro.psicoapp.domain.UserEntity;
 import com.alvaro.psicoapp.domain.UserPsychologistEntity;
 import com.alvaro.psicoapp.repository.UserPsychologistRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +19,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin/users")
 public class AdminUserController {
+	private static final Logger logger = LoggerFactory.getLogger(AdminUserController.class);
     private final UserRepository userRepository;
     private final UserPsychologistRepository userPsychologistRepository;
     private final EntityManager entityManager;
@@ -113,12 +116,12 @@ public class AdminUserController {
             ));
             
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
-            e.printStackTrace();
+            logger.error("Error de integridad al asignar psicólogo", e);
             String causeMsg = e.getMostSpecificCause() != null ? e.getMostSpecificCause().getMessage() : null;
             String errorMsg = causeMsg != null ? causeMsg : (e.getMessage() != null ? e.getMessage() : "Error de integridad");
             return ResponseEntity.status(409).body(Map.of("error", "Conflicto de integridad", "message", errorMsg));
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error al asignar psicólogo", e);
             String errorMsg = e.getMessage() != null ? e.getMessage() : "Error desconocido";
             String className = e.getClass().getSimpleName();
             return ResponseEntity.status(500).body(Map.of("error", className, "message", errorMsg, "type", e.getClass().getName()));
@@ -152,7 +155,7 @@ public class AdminUserController {
             ));
             
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error al desvincular psicólogo", e);
             String errorMsg = e.getMessage() != null ? e.getMessage() : "Error desconocido";
             String className = e.getClass().getSimpleName();
             return ResponseEntity.status(500).body(Map.of("error", className, "message", errorMsg, "type", e.getClass().getName()));

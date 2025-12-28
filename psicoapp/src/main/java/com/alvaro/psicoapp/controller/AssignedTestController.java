@@ -6,6 +6,8 @@ import com.alvaro.psicoapp.domain.UserEntity;
 import com.alvaro.psicoapp.repository.AssignedTestRepository;
 import com.alvaro.psicoapp.repository.TestRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +21,7 @@ import java.util.Map;
 @RequestMapping("/api/assigned-tests")
 @CrossOrigin(origins = "*")
 public class AssignedTestController {
+	private static final Logger logger = LoggerFactory.getLogger(AssignedTestController.class);
     private final AssignedTestRepository assignedTestRepository;
     private final UserRepository userRepository;
     private final TestRepository testRepository;
@@ -94,7 +97,7 @@ public class AssignedTestController {
                     
                     return map;
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error("Error procesando test asignado con ID: {}", at.getId(), e);
                     // Retornar un objeto vacío si hay error procesando un test
                     Map<String, Object> errorMap = new java.util.HashMap<>();
                     errorMap.put("id", at.getId());
@@ -106,7 +109,7 @@ public class AssignedTestController {
             
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error obteniendo tests asignados", e);
             // En caso de error, retornar lista vacía en lugar de error 500
             return ResponseEntity.ok(java.util.Collections.emptyList());
         }

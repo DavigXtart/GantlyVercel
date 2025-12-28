@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { profileService, tasksService, calendarService, assignedTestsService, jitsiService } from '../services/api';
+import { profileService, tasksService, calendarService, assignedTestsService, jitsiService, authService } from '../services/api';
 import ChatWidget from './ChatWidget';
 import CalendarWeek from './CalendarWeek';
 import JitsiVideoCall from './JitsiVideoCall';
@@ -52,6 +52,9 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
   const [ratingAppointment, setRatingAppointment] = useState<number | null>(null);
   const [ratingComment, setRatingComment] = useState<string>('');
   const [submittingRating, setSubmittingRating] = useState(false);
+  const [changePasswordForm, setChangePasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [changePasswordErrors, setChangePasswordErrors] = useState<{ currentPassword?: string; newPassword?: string; confirmPassword?: string }>({});
+  const [changingPassword, setChangingPassword] = useState(false);
   
   // Estados para matching
   const [showMatchingTest, setShowMatchingTest] = useState(false);
@@ -245,6 +248,44 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       toast.success('Perfil actualizado exitosamente');
     } catch (error) {
       toast.error('Error al guardar los cambios');
+    }
+  };
+
+  const handleChangePassword = async () => {
+    const errors: { currentPassword?: string; newPassword?: string; confirmPassword?: string } = {};
+    if (!changePasswordForm.currentPassword) {
+      errors.currentPassword = 'La contraseña actual es requerida';
+    }
+    if (!changePasswordForm.newPassword) {
+      errors.newPassword = 'La nueva contraseña es requerida';
+    } else if (changePasswordForm.newPassword.length < 6) {
+      errors.newPassword = 'La contraseña debe tener al menos 6 caracteres';
+    }
+    if (changePasswordForm.newPassword !== changePasswordForm.confirmPassword) {
+      errors.confirmPassword = 'Las contraseñas no coinciden';
+    }
+    
+    if (Object.keys(errors).length > 0) {
+      setChangePasswordErrors(errors);
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      await authService.changePassword(changePasswordForm.currentPassword, changePasswordForm.newPassword);
+      toast.success('Contraseña cambiada exitosamente');
+      setChangePasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setChangePasswordErrors({});
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.message || 'Error al cambiar la contraseña';
+      toast.error(errorMsg);
+      if (errorMsg.includes('actual')) {
+        setChangePasswordErrors({ currentPassword: errorMsg });
+      } else {
+        setChangePasswordErrors({ newPassword: errorMsg });
+      }
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -549,7 +590,170 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                         }}
                       />
                     </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    
+                    {/* Cambio de contraseña dentro de editar perfil */}
+                    <div style={{
+                      marginTop: '24px',
+                      padding: '24px',
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      borderRadius: '12px',
+                      border: '2px solid rgba(255, 255, 255, 0.3)'
+                    }}>
+                      <h3 style={{
+                        margin: '0 0 16px 0',
+                        fontSize: '18px',
+                        fontWeight: 600,
+                        color: 'white',
+                        fontFamily: "'Inter', sans-serif"
+                      }}>
+                        🔒 Cambiar Contraseña
+                      </h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div>
+                          <label style={{
+                            display: 'block',
+                            marginBottom: '6px',
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            color: 'rgba(255, 255, 255, 0.9)',
+                            fontFamily: "'Inter', sans-serif"
+                          }}>
+                            Contraseña actual
+                          </label>
+                          <input
+                            type="password"
+                            value={changePasswordForm.currentPassword}
+                            onChange={(e) => {
+                              setChangePasswordForm({ ...changePasswordForm, currentPassword: e.target.value });
+                              if (changePasswordErrors.currentPassword) {
+                                setChangePasswordErrors({ ...changePasswordErrors, currentPassword: undefined });
+                              }
+                            }}
+                            placeholder="Ingresa tu contraseña actual"
+                            style={{
+                              width: '100%',
+                              maxWidth: '400px',
+                              padding: '10px 12px',
+                              borderRadius: '8px',
+                              border: `1px solid ${changePasswordErrors.currentPassword ? '#ef4444' : 'rgba(255, 255, 255, 0.3)'}`,
+                              fontSize: '14px',
+                              fontFamily: "'Inter', sans-serif",
+                              background: 'rgba(255, 255, 255, 0.9)'
+                            }}
+                          />
+                          {changePasswordErrors.currentPassword && (
+                            <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#fee2e2' }}>
+                              {changePasswordErrors.currentPassword}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label style={{
+                            display: 'block',
+                            marginBottom: '6px',
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            color: 'rgba(255, 255, 255, 0.9)',
+                            fontFamily: "'Inter', sans-serif"
+                          }}>
+                            Nueva contraseña
+                          </label>
+                          <input
+                            type="password"
+                            value={changePasswordForm.newPassword}
+                            onChange={(e) => {
+                              setChangePasswordForm({ ...changePasswordForm, newPassword: e.target.value });
+                              if (changePasswordErrors.newPassword) {
+                                setChangePasswordErrors({ ...changePasswordErrors, newPassword: undefined });
+                              }
+                              if (changePasswordErrors.confirmPassword && changePasswordForm.confirmPassword) {
+                                setChangePasswordErrors({ ...changePasswordErrors, confirmPassword: e.target.value !== changePasswordForm.confirmPassword ? 'Las contraseñas no coinciden' : undefined });
+                              }
+                            }}
+                            placeholder="Ingresa tu nueva contraseña"
+                            style={{
+                              width: '100%',
+                              maxWidth: '400px',
+                              padding: '10px 12px',
+                              borderRadius: '8px',
+                              border: `1px solid ${changePasswordErrors.newPassword ? '#ef4444' : 'rgba(255, 255, 255, 0.3)'}`,
+                              fontSize: '14px',
+                              fontFamily: "'Inter', sans-serif",
+                              background: 'rgba(255, 255, 255, 0.9)'
+                            }}
+                          />
+                          {changePasswordErrors.newPassword && (
+                            <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#fee2e2' }}>
+                              {changePasswordErrors.newPassword}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label style={{
+                            display: 'block',
+                            marginBottom: '6px',
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            color: 'rgba(255, 255, 255, 0.9)',
+                            fontFamily: "'Inter', sans-serif"
+                          }}>
+                            Confirmar nueva contraseña
+                          </label>
+                          <input
+                            type="password"
+                            value={changePasswordForm.confirmPassword}
+                            onChange={(e) => {
+                              setChangePasswordForm({ ...changePasswordForm, confirmPassword: e.target.value });
+                              if (changePasswordErrors.confirmPassword) {
+                                setChangePasswordErrors({ ...changePasswordErrors, confirmPassword: e.target.value !== changePasswordForm.newPassword ? 'Las contraseñas no coinciden' : undefined });
+                              }
+                            }}
+                            placeholder="Confirma tu nueva contraseña"
+                            style={{
+                              width: '100%',
+                              maxWidth: '400px',
+                              padding: '10px 12px',
+                              borderRadius: '8px',
+                              border: `1px solid ${changePasswordErrors.confirmPassword ? '#ef4444' : 'rgba(255, 255, 255, 0.3)'}`,
+                              fontSize: '14px',
+                              fontFamily: "'Inter', sans-serif",
+                              background: 'rgba(255, 255, 255, 0.9)'
+                            }}
+                          />
+                          {changePasswordErrors.confirmPassword && (
+                            <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#fee2e2' }}>
+                              {changePasswordErrors.confirmPassword}
+                            </p>
+                          )}
+                        </div>
+
+                        {(changePasswordForm.currentPassword || changePasswordForm.newPassword || changePasswordForm.confirmPassword) && (
+                          <button
+                            onClick={handleChangePassword}
+                            disabled={changingPassword}
+                            style={{
+                              padding: '10px 20px',
+                              background: changingPassword ? 'rgba(255, 255, 255, 0.5)' : 'white',
+                              color: changingPassword ? '#9ca3af' : '#5a9270',
+                              border: 'none',
+                              borderRadius: '8px',
+                              fontWeight: 600,
+                              cursor: changingPassword ? 'not-allowed' : 'pointer',
+                              fontSize: '14px',
+                              fontFamily: "'Inter', sans-serif",
+                              transition: 'all 0.2s',
+                              alignSelf: 'flex-start'
+                            }}
+                          >
+                            {changingPassword ? 'Cambiando...' : 'Guardar nueva contraseña'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '24px' }}>
                       <button
                         onClick={saveProfile}
                         style={{
@@ -576,7 +780,12 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                         Guardar
                       </button>
                       <button
-                        onClick={() => { setEditing(false); setEditForm({ name: me?.name || '', gender: me?.gender || '', age: me?.age?.toString() || '' }); }}
+                        onClick={() => { 
+                          setEditing(false); 
+                          setEditForm({ name: me?.name || '', gender: me?.gender || '', age: me?.age?.toString() || '' }); 
+                          setChangePasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                          setChangePasswordErrors({});
+                        }}
                         style={{
                           padding: '10px 24px',
                           background: 'rgba(255, 255, 255, 0.2)',
@@ -2474,7 +2683,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                                 setVideoCallOtherUser({ email: roomInfo.otherUser.email, name: roomInfo.otherUser.name });
                                 setShowVideoCall(true);
                               } catch (error: any) {
-                                alert(error.response?.data?.error || 'No tienes permiso para iniciar esta videollamada');
+                                toast.error(error.response?.data?.error || 'No tienes permiso para iniciar esta videollamada');
                               }
                             }
                           }}

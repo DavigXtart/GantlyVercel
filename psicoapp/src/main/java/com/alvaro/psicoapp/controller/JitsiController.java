@@ -4,6 +4,8 @@ import com.alvaro.psicoapp.domain.AppointmentEntity;
 import com.alvaro.psicoapp.repository.AppointmentRepository;
 import com.alvaro.psicoapp.repository.UserPsychologistRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/jitsi")
 public class JitsiController {
+    private static final Logger logger = LoggerFactory.getLogger(JitsiController.class);
     private final AppointmentRepository appointmentRepository;
     private final UserRepository userRepository;
     private final UserPsychologistRepository userPsychologistRepository;
@@ -128,8 +131,9 @@ public class JitsiController {
                 response.put("hasActiveAppointment", true);
                 
                 // Registrar inicio de videollamada (opcional, para logging)
-                System.out.println("📹 Videollamada iniciada: " + currentUser.getEmail() + " <-> " + otherUser.getEmail() + " (Sala: " + roomName + ")");
-                System.out.println("   Cita: " + validAppointment.getStartTime() + " - " + validAppointment.getEndTime());
+                logger.info("Videollamada iniciada: {} <-> {} (Sala: {}), Cita: {} - {}", 
+                    currentUser.getEmail(), otherUser.getEmail(), roomName, 
+                    validAppointment.getStartTime(), validAppointment.getEndTime());
                 
                 return ResponseEntity.ok(response);
             } else {
@@ -158,7 +162,7 @@ public class JitsiController {
             "error", "No tienes una cita activa con este usuario o no existe relación válida. Solo puedes iniciar videollamadas máximo 1 hora antes de la hora de la cita."
         ));
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error al procesar la solicitud de información de sala", e);
             return ResponseEntity.status(500).body(Map.of(
                 "error", "Error al procesar la solicitud: " + e.getMessage()
             ));

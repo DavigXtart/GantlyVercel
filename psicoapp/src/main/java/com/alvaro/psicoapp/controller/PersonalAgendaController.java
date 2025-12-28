@@ -34,18 +34,8 @@ public class PersonalAgendaController {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
             Long userId = user.getId();
             
-            // Log para debugging
-            System.out.println("=== PersonalAgendaController.saveEntry ===");
-            System.out.println("User ID: " + userId);
-            System.out.println("Received body: " + body);
-            System.out.println("Body keys: " + body.keySet());
-            for (Map.Entry<String, Object> entry : body.entrySet()) {
-                System.out.println("  " + entry.getKey() + " = " + entry.getValue() + " (type: " + (entry.getValue() != null ? entry.getValue().getClass().getName() : "null") + ")");
-            }
-            
             // Validar que moodRating esté presente
             if (body.get("moodRating") == null) {
-                System.out.println("ERROR: moodRating is null");
                 return ResponseEntity.badRequest().body(Map.of("error", "El estado de ánimo es obligatorio"));
             }
             
@@ -60,11 +50,8 @@ public class PersonalAgendaController {
                 } else {
                     moodRating = Integer.valueOf(moodRatingObj.toString());
                 }
-                System.out.println("Converted moodRating: " + moodRating);
                 body.put("moodRating", moodRating);
             } catch (Exception e) {
-                System.out.println("ERROR converting moodRating: " + e.getMessage());
-                e.printStackTrace();
                 return ResponseEntity.badRequest().body(Map.of("error", "Formato de estado de ánimo inválido: " + e.getMessage()));
             }
             
@@ -92,9 +79,7 @@ public class PersonalAgendaController {
                 body.put("companions", null);
             }
             
-            System.out.println("Calling dailyMoodService.saveOrUpdate...");
             DailyMoodEntryEntity entry = dailyMoodService.saveOrUpdate(userId, body);
-            System.out.println("Entry saved successfully with ID: " + entry.getId());
             
             // Crear un mapa simple para la respuesta para evitar problemas de serialización
             Map<String, Object> responseData = new HashMap<>();
@@ -113,18 +98,9 @@ public class PersonalAgendaController {
             responseData.put("entry", entryData);
             
             return ResponseEntity.ok(responseData);
-        } catch (NumberFormatException e) {
-            System.out.println("NumberFormatException: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.badRequest().body(Map.of("error", "Formato de datos inválido: " + e.getMessage()));
         } catch (IllegalArgumentException e) {
-            System.out.println("IllegalArgumentException: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.badRequest().body(Map.of("error", "Datos inválidos: " + e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            System.out.println("Exception: " + e.getMessage());
-            System.out.println("Exception class: " + e.getClass().getName());
-            e.printStackTrace(); // Para debugging
             String errorMsg = e.getMessage() != null ? e.getMessage() : "Error al guardar la entrada";
             return ResponseEntity.badRequest().body(Map.of("error", errorMsg));
         }

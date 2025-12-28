@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Lottie from 'lottie-react';
 import JSZip from 'jszip';
 import { testService } from '../services/api';
+import { toast } from './ui/Toast';
 import backgroundPng from '../assets/Adobe Express - file (1).png';
 import airBalloonLottieUrl from '../assets/Air Balloony.lottie?url';
 
@@ -50,7 +51,7 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
       timeoutId = setTimeout(() => {
         if (isMounted && !test) {
           console.error('Timeout: No se pudo cargar el test en 10 segundos');
-          alert('El test está tardando demasiado en cargar. Verifica que el backend esté corriendo.');
+          toast.error('El test está tardando demasiado en cargar. Verifica que el backend esté corriendo.');
           if (onBack) {
             onBack();
           }
@@ -186,7 +187,7 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
     } catch (err: any) {
       console.error('Error cargando test:', err);
       const errorMsg = err.response?.data?.message || err.message || 'Error desconocido';
-      alert('Error al cargar el test: ' + errorMsg + '\n\nVerifica que el backend esté corriendo en http://localhost:8080');
+      toast.error('Error al cargar el test: ' + errorMsg);
       // Volver atrás si hay error
       if (onBack) {
         onBack();
@@ -248,11 +249,11 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
       }));
       
       await testService.submitAnswers(testId, submitData);
-      // Test completado exitosamente (sin pop-up)
+      toast.success('Test completado correctamente');
       onComplete();
     } catch (err: any) {
       console.error('Error enviando respuestas:', err);
-      alert('Error al enviar las respuestas: ' + (err.response?.data?.message || err.message));
+      toast.error('Error al enviar las respuestas: ' + (err.response?.data?.message || err.message));
     } finally {
       setSubmitting(false);
     }
@@ -263,7 +264,7 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
     
     const unanswered = test.questions.filter(q => !answers[q.id]);
     if (unanswered.length > 0) {
-      alert(`Por favor, responde todas las preguntas. Te faltan ${unanswered.length} pregunta(s).`);
+      toast.error(`Por favor, responde todas las preguntas. Te faltan ${unanswered.length} pregunta(s).`);
       return;
     }
 

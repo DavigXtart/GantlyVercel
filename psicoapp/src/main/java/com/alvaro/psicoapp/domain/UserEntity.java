@@ -45,6 +45,12 @@ public class UserEntity {
 	@Column(name = "verification_token_expires_at")
 	private Instant verificationTokenExpiresAt;
 
+	@Column(name = "password_reset_token", length = 255)
+	private String passwordResetToken;
+
+	@Column(name = "password_reset_token_expires_at")
+	private Instant passwordResetTokenExpiresAt;
+
 	public Long getId() { return id; }
 	public void setId(Long id) { this.id = id; }
 	public String getName() { return name; }
@@ -71,4 +77,8 @@ public class UserEntity {
 	public void setVerificationToken(String verificationToken) { this.verificationToken = verificationToken; }
 	public Instant getVerificationTokenExpiresAt() { return verificationTokenExpiresAt; }
 	public void setVerificationTokenExpiresAt(Instant verificationTokenExpiresAt) { this.verificationTokenExpiresAt = verificationTokenExpiresAt; }
+	public String getPasswordResetToken() { return passwordResetToken; }
+	public void setPasswordResetToken(String passwordResetToken) { this.passwordResetToken = passwordResetToken; }
+	public Instant getPasswordResetTokenExpiresAt() { return passwordResetTokenExpiresAt; }
+	public void setPasswordResetTokenExpiresAt(Instant passwordResetTokenExpiresAt) { this.passwordResetTokenExpiresAt = passwordResetTokenExpiresAt; }
 }

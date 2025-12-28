@@ -13,6 +13,8 @@ import AdminSectionsManager from './components/AdminSectionsManager';
 import About from './components/About';
 import SoyProfesional from './components/SoyProfesional';
 import RegisterPsychologist from './components/RegisterPsychologist';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
 import { ToastContainer } from './components/ui/Toast';
 
 function App() {
@@ -24,6 +26,8 @@ function App() {
   const [showSoyProfesional, setShowSoyProfesional] = useState(false);
   const [showRegisterPsychologist, setShowRegisterPsychologist] = useState(false);
   const [showInitialTest, setShowInitialTest] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetPasswordToken, setResetPasswordToken] = useState<string | null>(null);
   const [initialTestSessionId, setInitialTestSessionId] = useState<string | null>(null);
   const [selectedTestId, setSelectedTestId] = useState<number | null>(null);
   const [role, setRole] = useState<'USER'|'ADMIN'|'PSYCHOLOGIST'|null>(null);
@@ -65,6 +69,17 @@ function App() {
       lastHistoryPath.current = initialState.page;
     }
     
+    // Verificar si hay un token de reset de contraseña en la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const resetToken = urlParams.get('token');
+    if (resetToken && window.location.pathname.includes('reset-password')) {
+      setResetPasswordToken(resetToken);
+      setShowLanding(false);
+      setShowLogin(false);
+      setShowRegister(false);
+      return;
+    }
+
     const token = localStorage.getItem('token');
     if (token) {
       setIsAuthenticated(true);
@@ -82,6 +97,7 @@ function App() {
       setShowLogin(false);
       setShowRegister(false);
       setShowInitialTest(false);
+      setShowForgotPassword(false);
       setRole(null);
     }
   }, []);
@@ -489,6 +505,36 @@ function App() {
   }
 
   if (!isAuthenticated) {
+    // Manejar reset de contraseña desde URL
+    if (resetPasswordToken) {
+      return <ResetPassword 
+        token={resetPasswordToken} 
+        onSuccess={() => {
+          setResetPasswordToken(null);
+          window.history.replaceState(null, '', '/login');
+          handleShowLogin();
+        }}
+        onBack={() => {
+          setResetPasswordToken(null);
+          window.history.replaceState(null, '', '/login');
+          handleShowLogin();
+        }}
+      />;
+    }
+
+    if (showForgotPassword) {
+      return <ForgotPassword 
+        onBack={() => {
+          setShowForgotPassword(false);
+          handleShowLogin();
+        }}
+        onSuccess={() => {
+          setShowForgotPassword(false);
+          handleShowLogin();
+        }}
+      />;
+    }
+
     if (showRegister) {
       return <Register 
         onRegister={handleRegister} 
@@ -497,7 +543,14 @@ function App() {
       />;
     }
     if (showLogin) {
-      return <Login onLogin={handleLogin} onSwitchToRegister={handleShowRegister} />;
+      return <Login 
+        onLogin={handleLogin} 
+        onSwitchToRegister={handleShowRegister}
+        onForgotPassword={() => {
+          setShowLogin(false);
+          setShowForgotPassword(true);
+        }}
+      />;
     }
     // Si no hay ninguna vista específica, mostrar la landing (por defecto)
     return <Landing 

@@ -4,19 +4,23 @@ import com.alvaro.psicoapp.domain.DailyMoodEntryEntity;
 import com.alvaro.psicoapp.domain.UserEntity;
 import com.alvaro.psicoapp.repository.DailyMoodEntryRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class DailyMoodService {
+    private static final Logger logger = LoggerFactory.getLogger(DailyMoodService.class);
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+    
     @Autowired
     private DailyMoodEntryRepository dailyMoodEntryRepository;
     
@@ -92,23 +96,10 @@ public class DailyMoodService {
             entry.setNotes(data.get("notes").toString());
         }
 
-        System.out.println("About to save entry with:");
-        System.out.println("  moodRating: " + entry.getMoodRating());
-        System.out.println("  entryDate: " + entry.getEntryDate());
-        System.out.println("  emotions: " + entry.getEmotions());
-        System.out.println("  activities: " + entry.getActivities());
-        System.out.println("  companions: " + entry.getCompanions());
-        System.out.println("  location: " + entry.getLocation());
-        System.out.println("  notes: " + (entry.getNotes() != null ? entry.getNotes().substring(0, Math.min(50, entry.getNotes().length())) + "..." : "null"));
-
         try {
             DailyMoodEntryEntity saved = dailyMoodEntryRepository.save(entry);
-            System.out.println("Entry saved successfully with ID: " + saved.getId());
             return saved;
         } catch (Exception e) {
-            System.out.println("Error saving to database: " + e.getMessage());
-            System.out.println("Exception class: " + e.getClass().getName());
-            e.printStackTrace();
             throw new RuntimeException("Error al guardar en la base de datos: " + e.getMessage(), e);
         }
     }
@@ -180,8 +171,44 @@ public class DailyMoodService {
     }
 
     private List<String> getMostCommon(List<DailyMoodEntryEntity> entries, String field) {
-        // Implementación simplificada - en producción usar un parser JSON adecuado
-        return List.of(); // Placeholder
+        Map<String, Integer> frequencyMap = new HashMap<>();
+        
+        for (DailyMoodEntryEntity entry : entries) {
+            String jsonString = null;
+            switch (field) {
+                case "emotions":
+                    jsonString = entry.getEmotions();
+                    break;
+                case "activities":
+                    jsonString = entry.getActivities();
+                    break;
+                case "companions":
+                    jsonString = entry.getCompanions();
+                    break;
+            }
+            
+            if (jsonString == null || jsonString.trim().isEmpty()) {
+                continue;
+            }
+            
+            try {
+                List<String> items = objectMapper.readValue(jsonString, new TypeReference<List<String>>() {});
+                for (String item : items) {
+                    if (item != null && !item.trim().isEmpty()) {
+                        frequencyMap.put(item.trim(), frequencyMap.getOrDefault(item.trim(), 0) + 1);
+                    }
+                }
+            } catch (Exception e) {
+                logger.debug("Error parseando JSON para campo '{}': {}", field, e.getMessage());
+            }
+        }
+        
+        // Retornar los 5 más comunes, ordenados por frecuencia descendente
+        return frequencyMap.entrySet().stream()
+            .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+            .limit(5)
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toList());
     }
 }
 

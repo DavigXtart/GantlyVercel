@@ -95,6 +95,7 @@ com\alvaro\psicoapp\controller\TestFlowController$SubmitItem.class
 com\alvaro\psicoapp\domain\AnswerEntity.class
 com\alvaro\psicoapp\controller\AuthController.class
 com\alvaro\psicoapp\controller\TaskController.class
+com\alvaro\psicoapp\service\DailyMoodService$1.class
 com\alvaro\psicoapp\security\RateLimitFilter$RequestCounter.class
 com\alvaro\psicoapp\service\TestResultService.class
 com\alvaro\psicoapp\repository\DailyMoodEntryRepository.class

@@ -6,6 +6,8 @@ import com.stripe.model.*;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import com.stripe.param.checkout.SessionCreateParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +17,7 @@ import java.util.Map;
 
 @Service
 public class StripeService {
+    private static final Logger logger = LoggerFactory.getLogger(StripeService.class);
     
     @Value("${stripe.secret.key:}")
     private String stripeSecretKey;
@@ -136,7 +139,7 @@ public class StripeService {
                     }
                     break;
                 default:
-                    System.out.println("Evento no manejado: " + event.getType());
+                    logger.debug("Evento no manejado: {}", event.getType());
             }
         } catch (SignatureVerificationException e) {
             throw new RuntimeException("Error verificando firma del webhook", e);
@@ -151,9 +154,7 @@ public class StripeService {
         String planId = session.getMetadata().get("planId");
         boolean isYearly = Boolean.parseBoolean(session.getMetadata().get("isYearly"));
         
-        System.out.println("Suscripción creada para: " + customerEmail + 
-                          ", Plan: " + planId + 
-                          ", Anual: " + isYearly);
+        logger.info("Suscripción creada para: {}, Plan: {}, Anual: {}", customerEmail, planId, isYearly);
         
         // TODO: Actualizar el estado de suscripción del usuario en la base de datos
     }
@@ -162,9 +163,7 @@ public class StripeService {
         String customerId = subscription.getCustomer();
         String status = subscription.getStatus();
         
-        System.out.println("Suscripción actualizada: " + customerId + 
-                          ", Estado: " + status + 
-                          ", Evento: " + eventType);
+        logger.info("Suscripción actualizada: {}, Estado: {}, Evento: {}", customerId, status, eventType);
         
         // TODO: Actualizar el estado de suscripción en la base de datos
     }

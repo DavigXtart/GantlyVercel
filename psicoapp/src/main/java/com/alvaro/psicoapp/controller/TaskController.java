@@ -9,6 +9,8 @@ import com.alvaro.psicoapp.repository.TaskRepository;
 import com.alvaro.psicoapp.repository.TaskCommentRepository;
 import com.alvaro.psicoapp.repository.UserPsychologistRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -29,6 +31,7 @@ import java.util.UUID;
 @RequestMapping("/api/tasks")
 @CrossOrigin(origins = "*")
 public class TaskController {
+	private static final Logger logger = LoggerFactory.getLogger(TaskController.class);
     private final TaskRepository taskRepository;
     private final TaskFileRepository taskFileRepository;
     private final TaskCommentRepository taskCommentRepository;
@@ -204,7 +207,7 @@ public class TaskController {
                     return ResponseEntity.status(500).body(error);
                 }
             } catch (IOException ioException) {
-                ioException.printStackTrace();
+                logger.error("Error al escribir archivo", ioException);
                 Map<String, Object> error = new java.util.HashMap<>();
                 error.put("error", "Error al escribir el archivo: " + ioException.getMessage());
                 error.put("path", absoluteDest.getAbsolutePath());
@@ -234,7 +237,7 @@ public class TaskController {
             response.put("originalName", saved.getOriginalName());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error al subir archivo de tarea", e);
             Map<String, Object> error = new java.util.HashMap<>();
             error.put("error", "Error inesperado: " + e.getMessage());
             error.put("details", e.getClass().getSimpleName());

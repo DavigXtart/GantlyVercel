@@ -2751,7 +2751,7 @@ export default function PsychDashboard() {
                         return;
                       }
                       if (!me || !me.id) {
-                        alert('Error: No se pudo obtener la información del psicólogo. Por favor recarga la página.');
+                        toast.error('Error: No se pudo obtener la información del psicólogo. Por favor recarga la página.');
                         return;
                       }
                       try {
@@ -2768,7 +2768,7 @@ export default function PsychDashboard() {
                         // Tarea creada exitosamente (sin pop-up)
                       } catch (error: any) {
                         console.error('Error al crear la tarea:', error);
-                        alert('Error al crear la tarea: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
+                        toast.error('Error al crear la tarea: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
                       }
                     }}
                     style={{

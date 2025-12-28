@@ -9,6 +9,8 @@ import com.alvaro.psicoapp.repository.AppointmentRatingRepository;
 import com.alvaro.psicoapp.repository.UserPsychologistRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
 import com.alvaro.psicoapp.service.EmailService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,7 @@ import java.math.BigDecimal;
 @RestController
 @RequestMapping("/api/calendar")
 public class CalendarController {
+    private static final Logger logger = LoggerFactory.getLogger(CalendarController.class);
     private final AppointmentRepository appointmentRepository;
     private final AppointmentRequestRepository appointmentRequestRepository;
     private final AppointmentRatingRepository appointmentRatingRepository;
@@ -674,7 +677,7 @@ public class CalendarController {
                 appointment.getPrice()
             );
         } catch (Exception e) {
-            System.err.println("Error enviando email de confirmación: " + e.getMessage());
+            logger.error("Error enviando email de confirmación", e);
         }
         
         return ResponseEntity.ok(saved);

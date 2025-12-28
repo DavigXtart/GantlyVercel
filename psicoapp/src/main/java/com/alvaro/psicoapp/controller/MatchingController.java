@@ -154,60 +154,9 @@ public class MatchingController {
             TestEntity test = testRepository.findByCode(PATIENT_MATCHING_TEST_CODE)
                 .orElseThrow(() -> new RuntimeException("Test de matching de paciente no encontrado"));
             
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> answersList = (List<Map<String, Object>>) body.get("answers");
-            
-            if (answersList == null) {
-                return ResponseEntity.badRequest().body(Map.of("error", "No se proporcionaron respuestas"));
-            }
-            
-            // Eliminar respuestas anteriores del usuario para este test
-            List<UserAnswerEntity> existingAnswers = userAnswerRepository.findByUser(user).stream()
-                .filter(ua -> ua.getQuestion().getTest().getCode().equals(PATIENT_MATCHING_TEST_CODE))
-                .collect(Collectors.toList());
-            userAnswerRepository.deleteAll(existingAnswers);
-            
-            // Guardar nuevas respuestas (puede haber múltiples para preguntas MULTIPLE)
-            for (Map<String, Object> answerData : answersList) {
-                Long questionId = answerData.get("questionId") != null ? 
-                    Long.valueOf(answerData.get("questionId").toString()) : null;
-                Long answerId = answerData.get("answerId") != null ? 
-                    Long.valueOf(answerData.get("answerId").toString()) : null;
-                Double numericValue = answerData.get("numericValue") != null ? 
-                    Double.valueOf(answerData.get("numericValue").toString()) : null;
-                String textValue = answerData.get("textValue") != null ? 
-                    answerData.get("textValue").toString() : null;
-                
-                if (questionId == null) continue;
-                
-                QuestionEntity question = questionRepository.findById(questionId)
-                    .orElse(null);
-                if (question == null || !question.getTest().getId().equals(test.getId())) {
-                    continue;
-                }
-                
-                boolean hasPayload = (answerId != null) || (numericValue != null) 
-                    || (textValue != null && !textValue.trim().isEmpty());
-                if (!hasPayload) continue;
-                
-                UserAnswerEntity ua = new UserAnswerEntity();
-                ua.setUser(user);
-                ua.setQuestion(question);
-                if (answerId != null) {
-                    answerRepository.findById(answerId).ifPresent(ua::setAnswer);
-                }
-                if (numericValue != null) {
-                    ua.setNumericValue(numericValue);
-                }
-                if (textValue != null && !textValue.trim().isEmpty()) {
-                    ua.setTextValue(textValue.trim());
-                }
-                userAnswerRepository.save(ua);
-            }
-            
+            saveMatchingTestAnswers(user, test, PATIENT_MATCHING_TEST_CODE, body);
             return ResponseEntity.ok(Map.of("success", true, "message", "Test de matching completado"));
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
@@ -229,61 +178,66 @@ public class MatchingController {
             TestEntity test = testRepository.findByCode(PSYCHOLOGIST_MATCHING_TEST_CODE)
                 .orElseThrow(() -> new RuntimeException("Test de matching de psicólogo no encontrado"));
             
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> answersList = (List<Map<String, Object>>) body.get("answers");
-            
-            if (answersList == null) {
-                return ResponseEntity.badRequest().body(Map.of("error", "No se proporcionaron respuestas"));
-            }
-            
-            // Eliminar respuestas anteriores del usuario para este test
-            List<UserAnswerEntity> existingAnswers = userAnswerRepository.findByUser(user).stream()
-                .filter(ua -> ua.getQuestion().getTest().getCode().equals(PSYCHOLOGIST_MATCHING_TEST_CODE))
-                .collect(Collectors.toList());
-            userAnswerRepository.deleteAll(existingAnswers);
-            
-            // Guardar nuevas respuestas (puede haber múltiples para preguntas MULTIPLE)
-            for (Map<String, Object> answerData : answersList) {
-                Long questionId = answerData.get("questionId") != null ? 
-                    Long.valueOf(answerData.get("questionId").toString()) : null;
-                Long answerId = answerData.get("answerId") != null ? 
-                    Long.valueOf(answerData.get("answerId").toString()) : null;
-                Double numericValue = answerData.get("numericValue") != null ? 
-                    Double.valueOf(answerData.get("numericValue").toString()) : null;
-                String textValue = answerData.get("textValue") != null ? 
-                    answerData.get("textValue").toString() : null;
-                
-                if (questionId == null) continue;
-                
-                QuestionEntity question = questionRepository.findById(questionId)
-                    .orElse(null);
-                if (question == null || !question.getTest().getId().equals(test.getId())) {
-                    continue;
-                }
-                
-                boolean hasPayload = (answerId != null) || (numericValue != null) 
-                    || (textValue != null && !textValue.trim().isEmpty());
-                if (!hasPayload) continue;
-                
-                UserAnswerEntity ua = new UserAnswerEntity();
-                ua.setUser(user);
-                ua.setQuestion(question);
-                if (answerId != null) {
-                    answerRepository.findById(answerId).ifPresent(ua::setAnswer);
-                }
-                if (numericValue != null) {
-                    ua.setNumericValue(numericValue);
-                }
-                if (textValue != null && !textValue.trim().isEmpty()) {
-                    ua.setTextValue(textValue.trim());
-                }
-                userAnswerRepository.save(ua);
-            }
-            
+            saveMatchingTestAnswers(user, test, PSYCHOLOGIST_MATCHING_TEST_CODE, body);
             return ResponseEntity.ok(Map.of("success", true, "message", "Test de matching completado"));
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+    
+    /**
+     * Método privado para guardar respuestas del test de matching (compartido entre paciente y psicólogo)
+     */
+    private void saveMatchingTestAnswers(UserEntity user, TestEntity test, String testCode, Map<String, Object> body) {
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> answersList = (List<Map<String, Object>>) body.get("answers");
+        
+        if (answersList == null) {
+            throw new IllegalArgumentException("No se proporcionaron respuestas");
+        }
+        
+        // Eliminar respuestas anteriores del usuario para este test
+        List<UserAnswerEntity> existingAnswers = userAnswerRepository.findByUser(user).stream()
+            .filter(ua -> ua.getQuestion().getTest().getCode().equals(testCode))
+            .collect(Collectors.toList());
+        userAnswerRepository.deleteAll(existingAnswers);
+        
+        // Guardar nuevas respuestas (puede haber múltiples para preguntas MULTIPLE)
+        for (Map<String, Object> answerData : answersList) {
+            Long questionId = answerData.get("questionId") != null ? 
+                Long.valueOf(answerData.get("questionId").toString()) : null;
+            Long answerId = answerData.get("answerId") != null ? 
+                Long.valueOf(answerData.get("answerId").toString()) : null;
+            Double numericValue = answerData.get("numericValue") != null ? 
+                Double.valueOf(answerData.get("numericValue").toString()) : null;
+            String textValue = answerData.get("textValue") != null ? 
+                answerData.get("textValue").toString() : null;
+            
+            if (questionId == null) continue;
+            
+            QuestionEntity question = questionRepository.findById(questionId)
+                .orElse(null);
+            if (question == null || !question.getTest().getId().equals(test.getId())) {
+                continue;
+            }
+            
+            boolean hasPayload = (answerId != null) || (numericValue != null) 
+                || (textValue != null && !textValue.trim().isEmpty());
+            if (!hasPayload) continue;
+            
+            UserAnswerEntity ua = new UserAnswerEntity();
+            ua.setUser(user);
+            ua.setQuestion(question);
+            if (answerId != null) {
+                answerRepository.findById(answerId).ifPresent(ua::setAnswer);
+            }
+            if (numericValue != null) {
+                ua.setNumericValue(numericValue);
+            }
+            if (textValue != null && !textValue.trim().isEmpty()) {
+                ua.setTextValue(textValue.trim());
+            }
+            userAnswerRepository.save(ua);
         }
     }
     
@@ -328,7 +282,6 @@ public class MatchingController {
             
             return ResponseEntity.ok(Map.of("psychologists", psychologistsList));
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }

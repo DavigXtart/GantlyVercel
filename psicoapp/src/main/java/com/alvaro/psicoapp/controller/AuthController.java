@@ -59,4 +59,74 @@ public class AuthController {
         }
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgotPassword(@RequestBody Map<String, String> body) {
+        try {
+            String email = body.get("email");
+            if (email == null || email.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Email es requerido", "status", "error"));
+            }
+            authService.requestPasswordReset(email);
+            // Siempre devolver éxito para evitar que usuarios descubran emails válidos
+            return ResponseEntity.ok(Map.of("message", "Si el email existe, se enviará un enlace de recuperación", "status", "success"));
+        } catch (Exception e) {
+            // Siempre devolver éxito para evitar que usuarios descubran emails válidos
+            return ResponseEntity.ok(Map.of("message", "Si el email existe, se enviará un enlace de recuperación", "status", "success"));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(@RequestBody Map<String, String> body) {
+        try {
+            String token = body.get("token");
+            String newPassword = body.get("newPassword");
+            if (token == null || newPassword == null || newPassword.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Token y nueva contraseña son requeridos", "status", "error"));
+            }
+            boolean success = authService.resetPassword(token, newPassword);
+            if (success) {
+                return ResponseEntity.ok(Map.of("message", "Contraseña restablecida exitosamente", "status", "success"));
+            } else {
+                return ResponseEntity.badRequest().body(Map.of("message", "Token inválido o expirado", "status", "error"));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Error al restablecer la contraseña: " + e.getMessage(), "status", "error"));
+        }
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<Map<String, String>> changePassword(Principal principal, @RequestBody Map<String, String> body) {
+        try {
+            if (principal == null) {
+                return ResponseEntity.status(401).body(Map.of("message", "No autorizado", "status", "error"));
+            }
+            String currentPassword = body.get("currentPassword");
+            String newPassword = body.get("newPassword");
+            if (currentPassword == null || newPassword == null || newPassword.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Contraseña actual y nueva contraseña son requeridas", "status", "error"));
+            }
+            authService.changePassword(principal.getName(), currentPassword, newPassword);
+            return ResponseEntity.ok(Map.of("message", "Contraseña cambiada exitosamente", "status", "success"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage(), "status", "error"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Error al cambiar la contraseña: " + e.getMessage(), "status", "error"));
+        }
+    }
+
+    @PostMapping("/resend-verification-email")
+    public ResponseEntity<Map<String, String>> resendVerificationEmail(Principal principal) {
+        try {
+            if (principal == null) {
+                return ResponseEntity.status(401).body(Map.of("message", "No autorizado", "status", "error"));
+            }
+            authService.resendVerificationEmail(principal.getName());
+            return ResponseEntity.ok(Map.of("message", "Email de verificación reenviado exitosamente", "status", "success"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage(), "status", "error"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Error al reenviar el email de verificación: " + e.getMessage(), "status", "error"));
+        }
+    }
 }

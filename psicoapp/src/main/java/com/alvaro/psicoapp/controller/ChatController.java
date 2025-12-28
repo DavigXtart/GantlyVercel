@@ -3,6 +3,8 @@ package com.alvaro.psicoapp.controller;
 import com.alvaro.psicoapp.domain.ChatMessageEntity;
 import com.alvaro.psicoapp.repository.ChatMessageRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -16,6 +18,7 @@ import java.util.Map;
 
 @Controller
 public class ChatController {
+    private static final Logger logger = LoggerFactory.getLogger(ChatController.class);
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatMessageRepository chatMessageRepository;
     private final UserRepository userRepository;
@@ -32,23 +35,21 @@ public class ChatController {
         ChatMessageEntity saved = null;
         try {
             if (principal == null) {
-                System.err.println("❌ ChatController: Principal es null - no hay autenticación");
+                logger.warn("ChatController: Principal es null - no hay autenticación");
                 return;
             }
             
             String principalName = principal.getName();
-            System.out.println("=== ChatController: Mensaje recibido ===");
-            System.out.println("Principal name: " + principalName);
+            logger.debug("ChatController: Mensaje recibido desde: {}", principalName);
             
             var me = userRepository.findByEmail(principalName).orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + principalName));
             String content = body.getOrDefault("content", "");
             
-            System.out.println("De: " + me.getEmail() + " (rol: " + me.getRole() + ", ID: " + me.getId() + ")");
-            System.out.println("psychologistId=" + psychologistId + ", userId=" + userId);
-            System.out.println("contenido=" + content);
+            logger.debug("Mensaje de: {} (rol: {}, ID: {}), psychologistId={}, userId={}", 
+                me.getEmail(), me.getRole(), me.getId(), psychologistId, userId);
             
             if (content == null || content.trim().isEmpty()) {
-                System.err.println("❌ ChatController: contenido vacío, ignorando mensaje");
+                logger.warn("ChatController: contenido vacío, ignorando mensaje");
                 return;
             }
             
@@ -66,7 +67,8 @@ public class ChatController {
             }
             
             if (!isAuthorized) {
-                System.err.println("❌ ChatController: Usuario no autorizado. Usuario ID: " + me.getId() + ", Intentando enviar a psychologistId: " + psychologistId + ", userId: " + userId);
+                logger.warn("ChatController: Usuario no autorizado. Usuario ID: {}, Intentando enviar a psychologistId: {}, userId: {}", 
+                    me.getId(), psychologistId, userId);
                 return;
             }
             
@@ -76,16 +78,16 @@ public class ChatController {
             msg.setSender("PSYCHOLOGIST".equals(me.getRole()) ? "PSYCHOLOGIST" : "USER");
             msg.setContent(content.trim());
             
-            System.out.println("💾 Guardando mensaje en BD...");
+            logger.debug("Guardando mensaje en BD...");
             saved = chatMessageRepository.save(msg);
             chatMessageRepository.flush(); // Forzar flush inmediato
             
-            System.out.println("✅ Mensaje guardado con ID: " + saved.getId());
+            logger.debug("Mensaje guardado con ID: {}", saved.getId());
             
             // Verificar que realmente se guardó
             var verify = chatMessageRepository.findById(saved.getId());
             if (verify.isEmpty()) {
-                System.err.println("❌ ERROR: El mensaje no se guardó en la BD después del save!");
+                logger.error("ERROR: El mensaje no se guardó en la BD después del save!");
                 return;
             }
             
@@ -96,23 +98,20 @@ public class ChatController {
             messagePayload.put("createdAt", saved.getCreatedAt().toString());
             
             String topic = "/topic/chat/" + psychologistId + "/" + userId;
-            System.out.println("📤 Enviando mensaje a topic: " + topic);
-            System.out.println("📤 Payload: " + messagePayload);
+            logger.debug("Enviando mensaje a topic: {}, payload: {}", topic, messagePayload);
             
             // Enviar a ambos usuarios que están suscritos al mismo topic
             messagingTemplate.convertAndSend(topic, messagePayload);
-            System.out.println("✅ Mensaje enviado exitosamente al topic");
+            logger.debug("Mensaje enviado exitosamente al topic");
             
         } catch (Exception e) {
-            System.err.println("❌ ChatController: Error enviando mensaje: " + e.getMessage());
-            System.err.println("Error class: " + e.getClass().getName());
-            e.printStackTrace();
+            logger.error("ChatController: Error enviando mensaje", e);
             if (saved != null && saved.getId() != null) {
-                System.err.println("Intentando eliminar mensaje guardado con ID: " + saved.getId());
+                logger.debug("Intentando eliminar mensaje guardado con ID: {}", saved.getId());
                 try {
                     chatMessageRepository.deleteById(saved.getId());
                 } catch (Exception deleteEx) {
-                    System.err.println("Error al eliminar mensaje: " + deleteEx.getMessage());
+                    logger.error("Error al eliminar mensaje", deleteEx);
                 }
             }
         }

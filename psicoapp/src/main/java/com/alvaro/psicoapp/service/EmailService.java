@@ -1,5 +1,7 @@
 package com.alvaro.psicoapp.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -7,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class EmailService {
+    private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
     private final JavaMailSender mailSender;
     
     @Value("${app.base.url:http://localhost:5173}")
@@ -56,7 +59,7 @@ public class EmailService {
             message.setText(emailBody);
             mailSender.send(message);
         } catch (Exception e) {
-            System.err.println("Error enviando correo de verificación: " + e.getMessage());
+            logger.error("Error enviando correo de verificación", e);
             throw new RuntimeException("Error al enviar el correo de verificación", e);
         }
     }
@@ -103,7 +106,7 @@ public class EmailService {
             message.setText(emailBody);
             mailSender.send(message);
         } catch (Exception e) {
-            System.err.println("Error enviando correo de confirmación de cita: " + e.getMessage());
+            logger.error("Error enviando correo de confirmación de cita", e);
             // No lanzar excepción para no interrumpir el flujo si falla el envío de email
         }
     }
@@ -147,7 +150,7 @@ public class EmailService {
             message.setText(emailBody);
             mailSender.send(message);
         } catch (Exception e) {
-            System.err.println("Error enviando correo de recordatorio: " + e.getMessage());
+            logger.error("Error enviando correo de recordatorio", e);
         }
     }
     
@@ -201,7 +204,46 @@ public class EmailService {
             message.setText(emailBody);
             mailSender.send(message);
         } catch (Exception e) {
-            System.err.println("Error enviando correo de recordatorio de pago: " + e.getMessage());
+            logger.error("Error enviando correo de recordatorio de pago", e);
+        }
+    }
+
+    public void sendPasswordResetEmail(String toEmail, String name, String resetToken) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(toEmail);
+            message.setSubject("Recuperación de contraseña - PSYmatch");
+            
+            String resetUrl = baseUrl + "/reset-password?token=" + resetToken;
+            
+            String emailBody = String.format(
+                "Hola %s,\n\n" +
+                "Recibimos una solicitud para restablecer la contraseña de tu cuenta en PSYmatch.\n\n" +
+                "Para restablecer tu contraseña, haz clic en el siguiente enlace:\n\n" +
+                "%s\n\n" +
+                "Este enlace expirará en 1 hora.\n\n" +
+                "Si no solicitaste restablecer tu contraseña, puedes ignorar este correo. Tu contraseña no será cambiada.\n\n" +
+                "Saludos,\n" +
+                "El equipo de PSYmatch",
+                name,
+                resetUrl
+            );
+            
+            message.setText(emailBody);
+            mailSender.send(message);
+        } catch (Exception e) {
+            logger.error("Error enviando correo de recuperación de contraseña", e);
+            throw new RuntimeException("Error al enviar el correo de recuperación de contraseña", e);
+        }
+    }
+
+    public void resendVerificationEmail(String toEmail, String name, String verificationToken, boolean isPsychologist) {
+        try {
+            sendVerificationEmail(toEmail, name, verificationToken, isPsychologist);
+        } catch (Exception e) {
+            logger.error("Error reenviando correo de verificación", e);
+            throw new RuntimeException("Error al reenviar el correo de verificación", e);
         }
     }
 }

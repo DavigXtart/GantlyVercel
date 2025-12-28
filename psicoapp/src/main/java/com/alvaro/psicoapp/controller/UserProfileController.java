@@ -121,7 +121,6 @@ public class UserProfileController {
             
             return ResponseEntity.ok(Map.of("success", true, "message", "Psicólogo seleccionado correctamente"));
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(500).body(Map.of("error", "Error al seleccionar psicólogo: " + e.getMessage()));
         }
     }
@@ -286,7 +285,6 @@ public class UserProfileController {
                     return ResponseEntity.status(500).body(error);
                 }
             } catch (IOException ioException) {
-                ioException.printStackTrace();
                 Map<String, String> error = new HashMap<>();
                 error.put("error", "Error al escribir el archivo: " + ioException.getMessage());
                 error.put("path", absoluteDest.getAbsolutePath());
@@ -304,7 +302,6 @@ public class UserProfileController {
             response.put("avatarUrl", publicPath);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            e.printStackTrace();
             Map<String, String> error = new HashMap<>();
             error.put("error", "Error inesperado: " + e.getMessage());
             error.put("details", e.getClass().getSimpleName());

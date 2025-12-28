@@ -4,6 +4,7 @@ import JSZip from 'jszip';
 import { initialTestService } from '../services/api';
 import backgroundPng from '../assets/Adobe Express - file (1).png';
 import airBalloonLottieUrl from '../assets/Air Balloony.lottie?url';
+import { toast } from './ui/Toast';
 
 interface Question {
   id: number;
@@ -199,7 +200,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
       setTest(testData);
     } catch (err: any) {
       console.error('Error inicializando test:', err);
-      alert('Error al cargar el test inicial: ' + (err.response?.data?.message || err.message));
+      toast.error('Error al cargar el test inicial: ' + (err.response?.data?.message || err.message));
     } finally {
       setLoading(false);
     }
@@ -432,7 +433,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
       onComplete(sessionId);
     } catch (err: any) {
       console.error('Error enviando respuestas:', err);
-      alert('Error al enviar las respuestas: ' + (err.response?.data?.message || err.message));
+      toast.error('Error al enviar las respuestas: ' + (err.response?.data?.message || err.message));
     } finally {
       setSubmitting(false);
     }
@@ -467,7 +468,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
 
     const unanswered = questionsToCheck.filter(q => !isQuestionAnswered(q));
     if (unanswered.length > 0) {
-      alert(`Por favor, responde todas las preguntas. Te faltan ${unanswered.length} pregunta(s).`);
+      toast.warning(`Por favor, responde todas las preguntas. Te faltan ${unanswered.length} pregunta(s).`);
       return;
     }
 

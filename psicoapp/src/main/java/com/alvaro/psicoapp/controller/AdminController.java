@@ -2,6 +2,8 @@ package com.alvaro.psicoapp.controller;
 
 import com.alvaro.psicoapp.domain.*;
 import com.alvaro.psicoapp.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
@@ -10,6 +12,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
+	private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
 	private final TestRepository testRepository;
 	private final QuestionRepository questionRepository;
 	private final AnswerRepository answerRepository;
@@ -19,6 +22,7 @@ public class AdminController {
 	private final FactorRepository factorRepository;
 	private final UserPsychologistRepository userPsychologistRepository;
 	private final com.alvaro.psicoapp.repository.EvaluationTestRepository evaluationTestRepository;
+	private final com.alvaro.psicoapp.repository.AppointmentRepository appointmentRepository;
 
 	public AdminController(TestRepository testRepository, QuestionRepository questionRepository, 
 	                     AnswerRepository answerRepository, UserRepository userRepository,
@@ -26,7 +30,8 @@ public class AdminController {
 	                     SubfactorRepository subfactorRepository,
 	                     FactorRepository factorRepository,
 	                     UserPsychologistRepository userPsychologistRepository,
-	                     com.alvaro.psicoapp.repository.EvaluationTestRepository evaluationTestRepository) {
+	                     com.alvaro.psicoapp.repository.EvaluationTestRepository evaluationTestRepository,
+	                     com.alvaro.psicoapp.repository.AppointmentRepository appointmentRepository) {
 		this.testRepository = testRepository;
 		this.questionRepository = questionRepository;
 		this.answerRepository = answerRepository;
@@ -36,6 +41,7 @@ public class AdminController {
 		this.factorRepository = factorRepository;
 		this.userPsychologistRepository = userPsychologistRepository;
 		this.evaluationTestRepository = evaluationTestRepository;
+		this.appointmentRepository = appointmentRepository;
 	}
 
 	// GET: Listar todos los tests
@@ -777,5 +783,58 @@ public class AdminController {
 			return ResponseEntity.ok().build();
 		}
 		return ResponseEntity.notFound().build();
+	}
+
+	// GET: Estadísticas generales del sistema
+	@GetMapping("/statistics")
+	@org.springframework.transaction.annotation.Transactional(readOnly = true)
+	public ResponseEntity<Map<String, Object>> getStatistics() {
+		try {
+			Map<String, Object> stats = new HashMap<>();
+			
+			// Contar usuarios por rol
+			long totalUsers = userRepository.count();
+			long users = userRepository.findByRole("USER").size();
+			long psychologists = userRepository.findByRole("PSYCHOLOGIST").size();
+			long admins = userRepository.findByRole("ADMIN").size();
+			
+			stats.put("totalUsers", totalUsers);
+			stats.put("users", users);
+			stats.put("psychologists", psychologists);
+			stats.put("admins", admins);
+			
+			// Contar tests
+			long totalTests = testRepository.count();
+			long evaluationTests = evaluationTestRepository.count();
+			stats.put("totalTests", totalTests);
+			stats.put("evaluationTests", evaluationTests);
+			
+			// Contar citas
+			long totalAppointments = appointmentRepository.count();
+			long bookedAppointments = appointmentRepository.findAll().stream()
+				.filter(apt -> "BOOKED".equals(apt.getStatus()) || "CONFIRMED".equals(apt.getStatus()))
+				.count();
+			stats.put("totalAppointments", totalAppointments);
+			stats.put("bookedAppointments", bookedAppointments);
+			
+			// Contar respuestas de usuarios
+			long totalUserAnswers = userAnswerRepository.count();
+			stats.put("totalUserAnswers", totalUserAnswers);
+			
+			// Contar relaciones usuario-psicólogo
+			long assignedRelations = userPsychologistRepository.count();
+			stats.put("assignedRelations", assignedRelations);
+			
+			// Usuarios verificados
+			long verifiedUsers = userRepository.findAll().stream()
+				.filter(u -> Boolean.TRUE.equals(u.getEmailVerified()))
+				.count();
+			stats.put("verifiedUsers", verifiedUsers);
+			
+			return ResponseEntity.ok(stats);
+		} catch (Exception e) {
+			logger.error("Error obteniendo estadísticas", e);
+			return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+		}
 	}
 }

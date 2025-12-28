@@ -6,9 +6,10 @@ import { toast } from './ui/Toast';
 interface LoginProps {
   onLogin: () => void;
   onSwitchToRegister: () => void;
+  onForgotPassword?: () => void;
 }
 
-export default function Login({ onLogin, onSwitchToRegister }: LoginProps) {
+export default function Login({ onLogin, onSwitchToRegister, onForgotPassword }: LoginProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
@@ -255,6 +256,43 @@ export default function Login({ onLogin, onSwitchToRegister }: LoginProps) {
               placeholder="••••••••"
               ariaLabel="Contraseña"
             />
+
+            <div style={{ marginTop: '-8px', marginBottom: '8px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onForgotPassword) {
+                    onForgotPassword();
+                  } else {
+                    const emailValue = email.trim();
+                    if (!emailValue) {
+                      toast.error('Por favor ingresa tu email primero');
+                      return;
+                    }
+                    authService.forgotPassword(emailValue).then(() => {
+                      toast.success('Si el email existe, se enviará un enlace de recuperación');
+                    }).catch(() => {
+                      toast.success('Si el email existe, se enviará un enlace de recuperación');
+                    });
+                  }
+                }}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#5a9270',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  textDecoration: 'none',
+                  padding: 0,
+                  fontFamily: "'Inter', sans-serif",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}
+              >
+                ¿Olvidaste tu contraseña?
+              </button>
+            </div>
 
             <button
               type="submit"

@@ -2,6 +2,8 @@ package com.alvaro.psicoapp.config;
 
 import com.alvaro.psicoapp.repository.UserRepository;
 import com.alvaro.psicoapp.security.JwtService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -17,6 +19,7 @@ import java.util.List;
 
 @Component
 public class WebSocketAuthInterceptor implements ChannelInterceptor {
+    private static final Logger logger = LoggerFactory.getLogger(WebSocketAuthInterceptor.class);
     private final JwtService jwtService;
     private final UserRepository userRepository;
 
@@ -59,24 +62,21 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                             SecurityContextHolder.getContext().setAuthentication(auth);
                             
                             if (StompCommand.CONNECT.equals(command)) {
-                                System.out.println("✅ WebSocket CONNECT autenticado: " + subject + " con rol: " + role);
+                                logger.debug("WebSocket CONNECT autenticado: {} con rol: {}", subject, role);
                             } else if (StompCommand.SEND.equals(command)) {
-                                System.out.println("✅ WebSocket SEND autenticado: " + subject + " con rol: " + role);
-                                System.out.println("   Destino: " + accessor.getDestination());
+                                logger.debug("WebSocket SEND autenticado: {} con rol: {}, Destino: {}", subject, role, accessor.getDestination());
                             } else if (StompCommand.SUBSCRIBE.equals(command)) {
-                                System.out.println("✅ WebSocket SUBSCRIBE autenticado: " + subject + " con rol: " + role);
-                                System.out.println("   Topic: " + accessor.getDestination());
+                                logger.debug("WebSocket SUBSCRIBE autenticado: {} con rol: {}, Topic: {}", subject, role, accessor.getDestination());
                             }
                         } catch (Exception e) {
-                            System.err.println("❌ Error autenticando WebSocket " + command + ": " + e.getMessage());
-                            e.printStackTrace();
+                            logger.error("Error autenticando WebSocket {}: {}", command, e.getMessage(), e);
                         }
                     } else {
-                        System.err.println("⚠️ Header de autorización no válido para comando: " + command);
+                        logger.warn("Header de autorización no válido para comando: {}", command);
                     }
                 } else {
                     if (StompCommand.SEND.equals(command)) {
-                        System.err.println("⚠️ No hay header de autorización en mensaje SEND");
+                        logger.warn("No hay header de autorización en mensaje SEND");
                     }
                 }
             }

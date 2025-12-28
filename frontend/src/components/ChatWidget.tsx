@@ -3,6 +3,7 @@ import { Client } from '@stomp/stompjs';
 import type { IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import api, { profileService, psychService } from '../services/api';
+import { toast } from './ui/Toast';
 
 type Props = {
   mode: 'USER' | 'PSYCHOLOGIST';
@@ -298,7 +299,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
     
     if (!connected) {
       console.error('❌ No conectado al WebSocket');
-      alert('No estás conectado. Por favor espera a que se establezca la conexión.');
+      toast.warning('No estás conectado. Por favor espera a que se establezca la conexión.');
       return;
     }
     
@@ -331,7 +332,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
       
       if (!clientRef.current || !clientRef.current.connected) {
         console.error('❌ Cliente WebSocket no está conectado');
-        alert('Error: No estás conectado al servidor. Por favor recarga la página.');
+        toast.error('Error: No estás conectado al servidor. Por favor recarga la página.');
         // Remover mensaje optimista si falla
         setMessages(prev => prev.filter(m => m.id !== tempId));
         return;
@@ -354,7 +355,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
       
     } catch (e) {
       console.error('❌ Error enviando mensaje:', e);
-      alert('Error al enviar el mensaje. Intenta de nuevo.');
+      toast.error('Error al enviar el mensaje. Intenta de nuevo.');
       // Remover mensaje optimista si falla
       setMessages(prev => prev.filter(m => m.id !== tempId));
     } finally {

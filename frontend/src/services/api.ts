@@ -58,6 +58,22 @@ export const authService = {
     const { data } = await api.get('/auth/me');
     return data;
   },
+  forgotPassword: async (email: string) => {
+    const { data } = await api.post('/auth/forgot-password', { email });
+    return data as { message: string; status: string };
+  },
+  resetPassword: async (token: string, newPassword: string) => {
+    const { data } = await api.post('/auth/reset-password', { token, newPassword });
+    return data as { message: string; status: string };
+  },
+  changePassword: async (currentPassword: string, newPassword: string) => {
+    const { data } = await api.post('/auth/change-password', { currentPassword, newPassword });
+    return data as { message: string; status: string };
+  },
+  resendVerificationEmail: async () => {
+    const { data } = await api.post('/auth/resend-verification-email');
+    return data as { message: string; status: string };
+  },
 };
 
 type SubmitAnswerPayload = { questionId: number; answerId?: number; numericValue?: number; textValue?: string };
@@ -258,6 +274,22 @@ export const adminService = {
   },
   deleteEvaluationTest: async (id: number) => {
     await api.delete(`/admin/evaluation-tests/${id}`);
+  },
+  getStatistics: async () => {
+    const { data } = await api.get('/admin/statistics');
+    return data as {
+      totalUsers: number;
+      users: number;
+      psychologists: number;
+      admins: number;
+      totalTests: number;
+      evaluationTests: number;
+      totalAppointments: number;
+      bookedAppointments: number;
+      totalUserAnswers: number;
+      assignedRelations: number;
+      verifiedUsers: number;
+    };
   },
 };
 
