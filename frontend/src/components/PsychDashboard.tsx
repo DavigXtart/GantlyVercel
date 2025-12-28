@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { profileService, psychService, calendarService, tasksService, adminService, assignedTestsService, testService, jitsiService, resultsService } from '../services/api';
+import { profileService, psychService, calendarService, tasksService, adminService, assignedTestsService, testService, jitsiService, resultsService, matchingService } from '../services/api';
 import ChatWidget from './ChatWidget';
 import CalendarWeek from './CalendarWeek';
 import JitsiVideoCall from './JitsiVideoCall';
@@ -10,8 +10,9 @@ import { toast } from './ui/Toast';
 import BarChart from './BarChart';
 import FactorChart from './FactorChart';
 import InitialTestSummary from './InitialTestSummary';
+import PsychologistMatchingTest from './PsychologistMatchingTest';
 
-type Tab = 'perfil' | 'pacientes' | 'calendario' | 'tareas' | 'chat' | 'citas-pasadas' | 'tests-asignados' | 'patient-profile' | 'test-details' | 'editar-perfil-profesional';
+type Tab = 'perfil' | 'pacientes' | 'calendario' | 'tareas' | 'chat' | 'citas-pasadas' | 'tests-asignados' | 'patient-profile' | 'test-details' | 'editar-perfil-profesional' | 'matching-test';
 
 export default function PsychDashboard() {
   const [tab, setTab] = useState<Tab>('perfil');
@@ -78,6 +79,11 @@ export default function PsychDashboard() {
     linkedinUrl: '',
     website: ''
   });
+  
+  // Estados para test de matching
+  const [matchingTestCompleted, setMatchingTestCompleted] = useState<boolean | null>(null);
+  const [checkingMatchingTest, setCheckingMatchingTest] = useState(false);
+  const [hasCheckedInitialStatus, setHasCheckedInitialStatus] = useState(false);
   
   // Ref para mantener el componente montado incluso si showVideoCall cambia temporalmente
   const videoCallRef = useRef<{ room: string | null; user: any; otherUser: any } | null>(null);
@@ -292,7 +298,29 @@ export default function PsychDashboard() {
   useEffect(() => {
     loadData();
     loadMySlots();
+    checkMatchingTestStatus();
   }, []);
+  
+  const checkMatchingTestStatus = async () => {
+    try {
+      setCheckingMatchingTest(true);
+      const status = await matchingService.getPsychologistTestStatus();
+      setMatchingTestCompleted(status.completed || false);
+    } catch (error: any) {
+      console.error('Error verificando estado del test de matching:', error);
+      // Si es un 404, significa que el endpoint aún no está disponible (servidor no reiniciado)
+      // En ese caso, asumimos que el test no está completo para mostrar el banner
+      if (error.response?.status === 404) {
+        console.warn('Endpoint de estado del test de matching no disponible aún. Reinicia el servidor backend.');
+        setMatchingTestCompleted(false);
+      } else {
+        // Para otros errores, también asumimos false para mostrar el banner
+        setMatchingTestCompleted(false);
+      }
+    } finally {
+      setCheckingMatchingTest(false);
+    }
+  };
 
   // Cargar valoración cuando se carga el perfil
   useEffect(() => {
@@ -300,6 +328,19 @@ export default function PsychDashboard() {
       loadMyRating();
     }
   }, [me, tab]);
+  
+  // Verificar si debe mostrar el test de matching al iniciar sesión (solo la primera vez que se carga)
+  // No forzar el cambio de pestaña si el usuario ya navegó a otra parte
+  useEffect(() => {
+    if (me && me.role === 'PSYCHOLOGIST' && me.emailVerified && 
+        matchingTestCompleted === false && !checkingMatchingTest && 
+        !hasCheckedInitialStatus && tab === 'perfil') {
+      setHasCheckedInitialStatus(true);
+      setTab('matching-test');
+    } else if (matchingTestCompleted !== null) {
+      setHasCheckedInitialStatus(true);
+    }
+  }, [me, matchingTestCompleted, checkingMatchingTest, hasCheckedInitialStatus, tab]);
 
   // Cargar citas pasadas cuando se abre la pestaña
   useEffect(() => {
@@ -679,6 +720,52 @@ export default function PsychDashboard() {
             </div>
           </div>
 
+          {/* Test de Matching - Aviso si no está completo */}
+          {matchingTestCompleted === false && (
+            <div style={{
+              padding: '24px 32px',
+              background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+              borderBottom: '1px solid #e5e7eb',
+              borderTop: '1px solid #e5e7eb'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 700, color: '#92400e' }}>
+                    ⚠️ Test de Matching Pendiente
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '14px', color: '#78350f', lineHeight: 1.5 }}>
+                    Completa el test de matching para que los pacientes puedan encontrarte. Este test ayuda a conectar a los pacientes con psicólogos que mejor se adapten a sus necesidades.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setTab('matching-test')}
+                  style={{
+                    padding: '12px 24px',
+                    background: '#f59e0b',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    transition: 'all 0.2s',
+                    whiteSpace: 'nowrap'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#d97706';
+                    e.currentTarget.style.transform = 'scale(1.05)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#f59e0b';
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                >
+                  Completar Test
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Estadísticas */}
           <div style={{ padding: '32px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px' }}>
             <div style={{
@@ -848,6 +935,34 @@ export default function PsychDashboard() {
               })()}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Test de Matching */}
+      {tab === 'matching-test' && (
+        <div style={{
+          background: '#ffffff',
+          borderRadius: '12px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          overflow: 'hidden',
+          border: '1px solid #e5e7eb'
+        }}>
+          <PsychologistMatchingTest
+            onComplete={async () => {
+              // Marcar como completado optimísticamente
+              setMatchingTestCompleted(true);
+              // Verificar el estado real (si el endpoint está disponible)
+              try {
+                await checkMatchingTestStatus();
+              } catch (error) {
+                // Si falla (por ejemplo, 404 porque el servidor no se reinició), mantener true
+                console.warn('No se pudo verificar el estado, pero el test se completó');
+              }
+              setTab('perfil');
+              toast.success('Test de matching completado correctamente');
+            }}
+            onBack={() => setTab('perfil')}
+          />
         </div>
       )}
 

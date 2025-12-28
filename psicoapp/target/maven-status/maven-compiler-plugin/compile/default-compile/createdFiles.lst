@@ -5,6 +5,7 @@ com\alvaro\psicoapp\domain\TaskFileEntity.class
 com\alvaro\psicoapp\controller\AdminController$AnswerOption.class
 com\alvaro\psicoapp\controller\AdminUserController$AssignRequest.class
 com\alvaro\psicoapp\repository\TemporarySessionRepository.class
+com\alvaro\psicoapp\service\MatchingService.class
 com\alvaro\psicoapp\config\WebSocketConfig.class
 com\alvaro\psicoapp\repository\TaskFileRepository.class
 com\alvaro\psicoapp\controller\StripeController.class
@@ -23,6 +24,7 @@ com\alvaro\psicoapp\controller\AdminUserController.class
 com\alvaro\psicoapp\domain\AppointmentRequestEntity.class
 com\alvaro\psicoapp\repository\EvaluationTestResultRepository.class
 com\alvaro\psicoapp\config\WebSocketAuthInterceptor.class
+com\alvaro\psicoapp\controller\MatchingController.class
 com\alvaro\psicoapp\domain\TestResultEntity.class
 com\alvaro\psicoapp\controller\PsychologistController.class
 com\alvaro\psicoapp\repository\AnswerRepository.class
@@ -64,6 +66,7 @@ com\alvaro\psicoapp\domain\FactorResultEntity.class
 com\alvaro\psicoapp\repository\EvaluationTestRepository.class
 com\alvaro\psicoapp\security\SecurityConfig.class
 com\alvaro\psicoapp\repository\AppointmentRequestRepository.class
+com\alvaro\psicoapp\service\MatchingService$MatchingResult.class
 com\alvaro\psicoapp\controller\AdminController$TestCreate.class
 com\alvaro\psicoapp\domain\TaskEntity.class
 com\alvaro\psicoapp\service\AppointmentSchedulerService.class

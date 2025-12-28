@@ -528,6 +528,40 @@ export const personalAgendaService = {
   }
 };
 
+export const matchingService = {
+  getPatientTest: async () => {
+    const { data } = await api.get('/matching/patient-test');
+    return data;
+  },
+  getPsychologistTest: async () => {
+    const { data } = await api.get('/matching/psychologist-test');
+    return data;
+  },
+  submitPatientTest: async (answers: SubmitAnswerPayload[]) => {
+    const { data } = await api.post('/matching/patient-test/submit', { answers });
+    return data;
+  },
+  submitPsychologistTest: async (answers: SubmitAnswerPayload[]) => {
+    const { data } = await api.post('/matching/psychologist-test/submit', { answers });
+    return data;
+  },
+  getPsychologistTestStatus: async () => {
+    const { data } = await api.get('/matching/psychologist-test/status');
+    return data;
+  },
+  getMatchingPsychologists: async () => {
+    const { data } = await api.get('/matching/psychologists');
+    return data.psychologists || [];
+  }
+};
+
+export const userPsychologistService = {
+  selectPsychologist: async (psychologistId: number) => {
+    const { data } = await api.post('/profile/select-psychologist', { psychologistId });
+    return data;
+  }
+};
+
 export const evaluationTestService = {
   getTestsByCategory: async (category: string) => {
     const { data } = await api.get(`/evaluation-tests/category/${category}`);

@@ -1,6 +1,7 @@
 package com.alvaro.psicoapp.controller;
 
 import com.alvaro.psicoapp.domain.UserEntity;
+import com.alvaro.psicoapp.domain.UserPsychologistEntity;
 import com.alvaro.psicoapp.repository.UserRepository;
 import com.alvaro.psicoapp.repository.PsychologistProfileRepository;
 import org.springframework.http.ResponseEntity;
@@ -69,6 +70,62 @@ public class UserProfileController {
         return ResponseEntity.ok(res);
     }
 
+    // POST: Seleccionar psicólogo (para usuarios sin psicólogo asignado)
+    @PostMapping("/select-psychologist")
+    @Transactional
+    public ResponseEntity<?> selectPsychologist(Principal principal, @RequestBody Map<String, Object> body) {
+        try {
+            if (principal == null) return ResponseEntity.status(401).build();
+            var user = userRepository.findByEmail(principal.getName()).orElseThrow();
+            
+            // Verificar que el usuario no tiene ya un psicólogo asignado
+            var existingRel = userPsychologistRepository.findByUserId(user.getId());
+            if (existingRel.isPresent()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Ya tienes un psicólogo asignado"));
+            }
+            
+            // Obtener el ID del psicólogo del body
+            Object psychologistIdObj = body.get("psychologistId");
+            if (psychologistIdObj == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "No se proporcionó el ID del psicólogo"));
+            }
+            
+            Long psychologistId;
+            if (psychologistIdObj instanceof Number) {
+                psychologistId = ((Number) psychologistIdObj).longValue();
+            } else {
+                psychologistId = Long.valueOf(psychologistIdObj.toString());
+            }
+            
+            var psychologist = userRepository.findById(psychologistId)
+                .orElseThrow(() -> new RuntimeException("Psicólogo no encontrado"));
+            
+            if (!"PSYCHOLOGIST".equals(psychologist.getRole())) {
+                return ResponseEntity.badRequest().body(Map.of("error", "El usuario seleccionado no es un psicólogo"));
+            }
+            
+            // Crear la relación usando SQL nativo (más confiable con @MapsId)
+            // Verificar que ambos usuarios tienen IDs válidos
+            if (user.getId() == null) {
+                return ResponseEntity.status(500).body(Map.of("error", "El usuario no tiene un ID válido"));
+            }
+            if (psychologist.getId() == null) {
+                return ResponseEntity.status(500).body(Map.of("error", "El psicólogo no tiene un ID válido"));
+            }
+            
+            // Usar el método insertRelation que usa SQL nativo (más confiable)
+            int rowsAffected = userPsychologistRepository.insertRelation(user.getId(), psychologist.getId());
+            if (rowsAffected == 0) {
+                return ResponseEntity.status(500).body(Map.of("error", "No se pudo crear la relación"));
+            }
+            
+            return ResponseEntity.ok(Map.of("success", true, "message", "Psicólogo seleccionado correctamente"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Error al seleccionar psicólogo: " + e.getMessage()));
+        }
+    }
+
     // GET: Obtener perfil completo del psicólogo asignado
     @GetMapping("/psychologist/{psychologistId}")
     @Transactional(readOnly = true)
@@ -76,15 +133,22 @@ public class UserProfileController {
         if (principal == null) return ResponseEntity.status(401).build();
         var user = userRepository.findByEmail(principal.getName()).orElseThrow();
         
-        // Verificar que el psicólogo está asignado al usuario
-        var rel = userPsychologistRepository.findByUserId(user.getId());
-        if (rel.isEmpty() || !rel.get().getPsychologist().getId().equals(psychologistId)) {
-            return ResponseEntity.status(403).body(Map.of("error", "Este psicólogo no está asignado a tu cuenta"));
-        }
-        
         var psychologist = userRepository.findById(psychologistId).orElseThrow();
         if (!"PSYCHOLOGIST".equals(psychologist.getRole())) {
             return ResponseEntity.status(404).body(Map.of("error", "Usuario no encontrado"));
+        }
+        
+        // Permitir acceso si el psicólogo está asignado al usuario O si el usuario es USER (para matching)
+        // Si es USER, permitir ver el perfil (útil para matching antes de seleccionar)
+        if ("USER".equals(user.getRole())) {
+            // Permitir acceso a usuarios para ver perfiles en el contexto del matching
+            // No requiere que el psicólogo esté asignado
+        } else {
+            // Para otros roles (PSYCHOLOGIST, ADMIN), verificar asignación
+            var rel = userPsychologistRepository.findByUserId(user.getId());
+            if (rel.isEmpty() || !rel.get().getPsychologist().getId().equals(psychologistId)) {
+                return ResponseEntity.status(403).body(Map.of("error", "Este psicólogo no está asignado a tu cuenta"));
+            }
         }
         
         var profileOpt = psychologistProfileRepository.findByUser_Id(psychologistId);

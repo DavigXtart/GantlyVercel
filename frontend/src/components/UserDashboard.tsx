@@ -11,6 +11,8 @@ import AgendaPersonal from './AgendaPersonal';
 import MisEstadisticas from './MisEstadisticas';
 import Evaluaciones from './Evaluaciones';
 import Descubrimiento from './Descubrimiento';
+import PatientMatchingTest from './PatientMatchingTest';
+import MatchingPsychologists from './MatchingPsychologists';
 
 type Tab = 'perfil' | 'mi-psicologo' | 'tareas' | 'tests-pendientes' | 'calendario' | 'chat' | 'mis-citas' | 'agenda-personal' | 'mis-estadisticas' | 'evaluaciones' | 'descubrimiento' | 'perfil-psicologo';
 
@@ -51,8 +53,18 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
   const [ratingComment, setRatingComment] = useState<string>('');
   const [submittingRating, setSubmittingRating] = useState(false);
   
+  // Estados para matching
+  const [showMatchingTest, setShowMatchingTest] = useState(false);
+  const [showMatchingResults, setShowMatchingResults] = useState(false);
+  
   // Ref para mantener el componente montado incluso si showVideoCall cambia temporalmente
   const videoCallRef = useRef<{ room: string | null; user: any; otherUser: any } | null>(null);
+  
+  // Determinar si el usuario tiene psicólogo asignado
+  const hasPsychologist = psych?.status === 'ASSIGNED';
+  
+  // Tabs que requieren psicólogo asignado
+  const tabsRequiringPsychologist = ['tareas', 'calendario', 'chat', 'tests-pendientes'];
   
   // Actualizar ref cuando hay una videollamada activa
   useEffect(() => {
@@ -113,10 +125,14 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
   }, []);
 
   useEffect(() => {
-    if (tab === 'calendario') {
+    // Si se intenta acceder a un tab que requiere psicólogo sin tenerlo, redirigir
+    if (tabsRequiringPsychologist.includes(tab) && !hasPsychologist) {
+      setTab('mi-psicologo');
+    }
+    if (tab === 'calendario' && hasPsychologist) {
       loadAvailability();
     }
-  }, [tab]);
+  }, [tab, hasPsychologist]);
 
   useEffect(() => {
     if (tab === 'tareas' && tasks.length > 0) {
@@ -352,47 +368,62 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
         overflowX: 'auto'
       }}>
         {[
-          { id: 'perfil', label: 'Mi Perfil', icon: '👤' },
-          { id: 'mi-psicologo', label: 'Mi Psicólogo', icon: '👨‍⚕️' },
-          { id: 'tareas', label: 'Tareas', icon: '📋' },
-          { id: 'tests-pendientes', label: 'Tests', icon: '📝' },
-          { id: 'calendario', label: 'Calendario', icon: '📅' },
-          { id: 'agenda-personal', label: 'Agenda Personal', icon: '📖' },
-          { id: 'chat', label: 'Chat', icon: '💬' }
-        ].map(t => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id as Tab)}
-            style={{
-              padding: '12px 24px',
-              background: tab === t.id ? '#5a9270' : 'transparent',
-              color: tab === t.id ? '#ffffff' : '#3a5a4a',
-              border: 'none',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              fontWeight: tab === t.id ? 600 : 500,
-              fontSize: '15px',
-              transition: 'all 0.3s ease',
-              whiteSpace: 'nowrap',
-              fontFamily: "'Inter', sans-serif",
-              boxShadow: tab === t.id ? '0 4px 12px rgba(90, 146, 112, 0.3)' : 'none'
-            }}
-            onMouseEnter={(e) => {
-              if (tab !== t.id) {
-                e.currentTarget.style.background = '#f0f5f3';
-                e.currentTarget.style.color = '#5a9270';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (tab !== t.id) {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = '#3a5a4a';
-              }
-            }}
-          >
-            {t.icon} {t.label}
-          </button>
-        ))}
+          { id: 'perfil', label: 'Mi Perfil', icon: '👤', requiresPsych: false },
+          { id: 'mi-psicologo', label: 'Mi Psicólogo', icon: '👨‍⚕️', requiresPsych: false },
+          { id: 'tareas', label: 'Tareas', icon: '📋', requiresPsych: true },
+          { id: 'tests-pendientes', label: 'Tests', icon: '📝', requiresPsych: true },
+          { id: 'calendario', label: 'Calendario', icon: '📅', requiresPsych: true },
+          { id: 'agenda-personal', label: 'Agenda Personal', icon: '📖', requiresPsych: false },
+          { id: 'chat', label: 'Chat', icon: '💬', requiresPsych: true }
+        ].map(t => {
+          const isDisabled = t.requiresPsych && !hasPsychologist;
+          return (
+            <button
+              key={t.id}
+              onClick={() => {
+                if (isDisabled) {
+                  toast.error('Necesitas tener un psicólogo asignado para acceder a esta sección');
+                  setTab('mi-psicologo');
+                  return;
+                }
+                setTab(t.id as Tab);
+              }}
+              disabled={isDisabled}
+              style={{
+                padding: '12px 24px',
+                background: tab === t.id ? '#5a9270' : 'transparent',
+                color: isDisabled ? '#9ca3af' : (tab === t.id ? '#ffffff' : '#3a5a4a'),
+                border: 'none',
+                borderRadius: '12px',
+                cursor: isDisabled ? 'not-allowed' : 'pointer',
+                fontWeight: tab === t.id ? 600 : 500,
+                fontSize: '15px',
+                transition: 'all 0.3s ease',
+                whiteSpace: 'nowrap',
+                fontFamily: "'Inter', sans-serif",
+                boxShadow: tab === t.id ? '0 4px 12px rgba(90, 146, 112, 0.3)' : 'none',
+                opacity: isDisabled ? 0.6 : 1,
+                position: 'relative'
+              }}
+              onMouseEnter={(e) => {
+                if (tab !== t.id && !isDisabled) {
+                  e.currentTarget.style.background = '#f0f5f3';
+                  e.currentTarget.style.color = '#5a9270';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (tab !== t.id && !isDisabled) {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.color = '#3a5a4a';
+                }
+              }}
+              title={isDisabled ? 'Requiere psicólogo asignado' : undefined}
+            >
+              {t.icon} {t.label}
+              {isDisabled && <span style={{ marginLeft: '6px', fontSize: '12px' }}>🔒</span>}
+            </button>
+          );
+        })}
       </div>
 
       {/* Perfil */}
@@ -1005,8 +1036,32 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
         </div>
       )}
 
+      {/* Test de Matching */}
+      {tab === 'mi-psicologo' && showMatchingTest && (
+        <PatientMatchingTest
+          onComplete={() => {
+            setShowMatchingTest(false);
+            setShowMatchingResults(true);
+            loadData();
+          }}
+          onBack={() => setShowMatchingTest(false)}
+        />
+      )}
+
+      {/* Resultados de Matching */}
+      {tab === 'mi-psicologo' && showMatchingResults && (
+        <MatchingPsychologists
+          onSelect={(psychologistId) => {
+            setShowMatchingResults(false);
+            loadData();
+            toast.success('Psicólogo seleccionado correctamente');
+          }}
+          onBack={() => setShowMatchingResults(false)}
+        />
+      )}
+
       {/* Mi Psicólogo */}
-      {tab === 'mi-psicologo' && (
+      {tab === 'mi-psicologo' && !showMatchingTest && !showMatchingResults && (
         <div style={{
           background: '#ffffff',
           borderRadius: '20px',
@@ -1112,7 +1167,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               borderRadius: '20px',
               border: '2px dashed rgba(90, 146, 112, 0.3)'
             }}>
-              <div style={{ fontSize: '64px', marginBottom: '20px' }}>⏳</div>
+              <div style={{ fontSize: '64px', marginBottom: '20px' }}>🔍</div>
               <h3 style={{ 
                 margin: '0 0 12px 0', 
                 fontSize: '24px', 
@@ -1120,17 +1175,64 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                 color: '#1a2e22',
                 fontFamily: "'Inter', sans-serif"
               }}>
-                Esperando asignación
+                Encuentra tu psicólogo ideal
               </h3>
               <p style={{ 
-                margin: 0, 
+                margin: '0 0 32px 0', 
                 color: '#3a5a4a', 
                 fontSize: '16px',
                 fontFamily: "'Inter', sans-serif",
                 lineHeight: '1.6'
               }}>
-                Un administrador te asignará un psicólogo pronto. Te notificaremos cuando esto ocurra.
+                Completa nuestro test de matching para encontrar psicólogos que se adapten perfectamente a tus necesidades y preferencias.
               </p>
+              <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => setShowMatchingTest(true)}
+                  style={{
+                    padding: '14px 32px',
+                    background: 'linear-gradient(135deg, #5a9270 0%, #5b8fa8 100%)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '12px',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    fontSize: '16px',
+                    boxShadow: '0 4px 12px rgba(90, 146, 112, 0.3)',
+                    transition: 'transform 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  Comenzar Test de Matching
+                </button>
+                <button
+                  onClick={() => setShowMatchingResults(true)}
+                  style={{
+                    padding: '14px 32px',
+                    background: '#fff',
+                    color: '#5a9270',
+                    border: '2px solid #5a9270',
+                    borderRadius: '12px',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    fontSize: '16px',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#f0f5f3';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#fff';
+                  }}
+                >
+                  Ver Psicólogos Recomendados
+                </button>
+              </div>
             </div>
           )}
 
@@ -1426,7 +1528,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       )}
 
       {/* Tareas */}
-      {tab === 'tareas' && (
+      {tab === 'tareas' && hasPsychologist && (
         <>
           {selectedTaskId && selectedTask ? (
             // Vista detallada de la tarea
@@ -2032,7 +2134,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       )}
 
       {/* Tests Pendientes */}
-      {tab === 'tests-pendientes' && (
+      {tab === 'tests-pendientes' && hasPsychologist && (
         <div style={{
           background: '#ffffff',
           borderRadius: '20px',
@@ -2149,7 +2251,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       )}
 
       {/* Calendario */}
-      {tab === 'calendario' && (
+      {tab === 'calendario' && hasPsychologist && (
         <div>
           <div style={{ 
             display: 'flex', 
@@ -2801,7 +2903,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
         </div>
       )}
 
-      {tab === 'chat' && (
+      {tab === 'chat' && hasPsychologist && (
         <div style={{ width: '100%' }}>
           <div style={{
             background: '#ffffff',
