@@ -32,6 +32,18 @@ public class DailyMoodService {
             ? LocalDate.parse(data.get("entryDate").toString())
             : LocalDate.now();
 
+        // Validar que la fecha esté dentro del rango permitido: hoy o máximo 2 días atrás
+        LocalDate today = LocalDate.now();
+        LocalDate minAllowedDate = today.minusDays(2);
+        
+        if (entryDate.isAfter(today)) {
+            throw new RuntimeException("No se pueden crear entradas con fechas futuras. Solo se permiten entradas para hoy o máximo 2 días atrás.");
+        }
+        
+        if (entryDate.isBefore(minAllowedDate)) {
+            throw new RuntimeException("Solo se pueden crear entradas para hoy o máximo 2 días atrás. La fecha seleccionada es demasiado antigua.");
+        }
+
         DailyMoodEntryEntity entry = dailyMoodEntryRepository
             .findByUser_IdAndEntryDate(userId, entryDate)
             .orElse(new DailyMoodEntryEntity());

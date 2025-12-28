@@ -26,6 +26,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
   const [connected, setConnected] = useState(false);
   const [sending, setSending] = useState(false);
   const [otherUser, setOtherUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const clientRef = useRef<Client | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -41,6 +42,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
 
     (async () => {
       const me = await profileService.me();
+      setCurrentUser(me); // Guardar perfil del usuario actual
       if (mode === 'USER') {
         setUserId(me.id);
         const rel = await profileService.myPsychologist();
@@ -592,14 +594,34 @@ export default function ChatWidget({ mode, otherId }: Props) {
                       width: '32px',
                       height: '32px',
                       borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      background: currentUser?.avatarUrl ? 'transparent' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontSize: '14px',
-                      flexShrink: 0
+                      flexShrink: 0,
+                      overflow: 'hidden'
                     }}>
-                      {mode === 'USER' ? '👤' : '👨‍⚕️'}
+                      {currentUser?.avatarUrl ? (
+                        <img 
+                          src={currentUser.avatarUrl} 
+                          alt="" 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const parent = e.currentTarget.parentElement;
+                            if (parent) {
+                              parent.innerHTML = mode === 'USER' ? '👤' : '👨‍⚕️';
+                              parent.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                              parent.style.display = 'flex';
+                              parent.style.alignItems = 'center';
+                              parent.style.justifyContent = 'center';
+                            }
+                          }}
+                        />
+                      ) : (
+                        mode === 'USER' ? '👤' : '👨‍⚕️'
+                      )}
                     </div>
                   )}
                 </div>
