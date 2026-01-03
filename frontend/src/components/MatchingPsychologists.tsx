@@ -5,6 +5,7 @@ import { profileService } from '../services/api';
 import { calendarService } from '../services/api';
 import LoadingSpinner from './ui/LoadingSpinner';
 import { toast } from './ui/Toast';
+import MatchingAnimation from './MatchingAnimation';
 
 interface Psychologist {
   id: number;
@@ -32,16 +33,35 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
   const [psychologistProfile, setPsychologistProfile] = useState<any>(null);
   const [psychologistRating, setPsychologistRating] = useState<{ averageRating: number | null; totalRatings: number } | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
+  const [showAnimation, setShowAnimation] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   useEffect(() => {
+    // Cargar datos en segundo plano mientras se muestra la animación
     loadPsychologists();
   }, []);
+
+  useEffect(() => {
+    // Cuando los datos estén cargados, marcar como listo
+    if (!loading && psychologists.length > 0) {
+      setDataLoaded(true);
+    }
+  }, [loading, psychologists]);
 
   const loadPsychologists = async () => {
     try {
       setLoading(true);
       const data = await matchingService.getMatchingPsychologists();
-      setPsychologists(data);
+      // Ordenar por matchPercentage descendente
+      const sorted = [...data].sort((a, b) => b.matchPercentage - a.matchPercentage);
+      
+      // Si el mejor tiene menos del 45%, mostrar solo el primero
+      if (sorted.length > 0 && sorted[0].matchPercentage <= 45) {
+        setPsychologists([sorted[0]]);
+      } else {
+        // Mostrar los 3 mejores (o menos si hay menos de 3)
+        setPsychologists(sorted.slice(0, 3));
+      }
     } catch (error: any) {
       console.error('Error cargando psicólogos:', error);
       toast.error('Error al cargar psicólogos: ' + (error.response?.data?.error || error.message));
@@ -108,6 +128,17 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
     return renderPsychologistProfile();
   }
 
+  // Mostrar animación primero
+  if (showAnimation) {
+    return (
+      <MatchingAnimation
+        onComplete={() => {
+          setShowAnimation(false);
+        }}
+      />
+    );
+  }
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
@@ -169,6 +200,10 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
     );
   }
 
+  // Verificar si el mejor match tiene menos del 45%
+  const bestMatch = psychologists.length > 0 ? psychologists[0] : null;
+  const hasLowAffinity = bestMatch && bestMatch.matchPercentage <= 45;
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -213,13 +248,59 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
           }}>
             Psicólogos recomendados
           </h1>
-          <p style={{
-            fontSize: '18px',
-            color: '#6b7280',
-            marginBottom: '24px'
-          }}>
-            Estos son los psicólogos que mejor se adaptan a tu perfil, ordenados por afinidad
-          </p>
+          {hasLowAffinity ? (
+            <>
+              <div style={{
+                background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                border: '2px solid #f59e0b',
+                borderRadius: '16px',
+                padding: '24px',
+                marginBottom: '24px'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  marginBottom: '12px'
+                }}>
+                  <span style={{ fontSize: '32px' }}>⚠️</span>
+                  <h3 style={{
+                    fontSize: '20px',
+                    fontWeight: 700,
+                    color: '#92400e',
+                    margin: 0,
+                    fontFamily: "'Inter', sans-serif"
+                  }}>
+                    Baja afinidad detectada
+                  </h3>
+                </div>
+                <p style={{
+                  fontSize: '16px',
+                  color: '#78350f',
+                  lineHeight: 1.6,
+                  margin: 0,
+                  fontFamily: "'Inter', sans-serif"
+                }}>
+                  Los resultados del matching muestran una afinidad baja. Para encontrar psicólogos que se adapten mejor a tus necesidades, te recomendamos <strong>completar el test de matching nuevamente con más precisión</strong>, pensando detenidamente en tus respuestas.
+                </p>
+              </div>
+              <p style={{
+                fontSize: '18px',
+                color: '#6b7280',
+                marginBottom: '24px'
+              }}>
+                A continuación encontrarás el psicólogo con mayor afinidad disponible:
+              </p>
+            </>
+          ) : (
+            <p style={{
+              fontSize: '18px',
+              color: '#6b7280',
+              marginBottom: '24px'
+            }}>
+              Estos son los psicólogos que mejor se adaptan a tu perfil, ordenados por afinidad
+            </p>
+          )}
           <div style={{
             display: 'flex',
             gap: '24px',
