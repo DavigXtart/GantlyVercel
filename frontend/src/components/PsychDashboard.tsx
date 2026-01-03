@@ -541,6 +541,16 @@ export default function PsychDashboard() {
 
   return (
     <div className="container" style={{ maxWidth: '1200px' }}>
+      <style>{`
+        @keyframes pulseAlert {
+          0%, 100% {
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+          }
+          50% {
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
+          }
+        }
+      `}</style>
       {/* Tabs */}
       <div style={{
         display: 'flex',
@@ -796,17 +806,69 @@ export default function PsychDashboard() {
               </div>
             </div>
 
-            <div style={{
-              padding: '20px',
-              background: '#f9fafb',
-              borderRadius: '12px',
-              border: '1px solid #e5e7eb'
-            }}>
-              <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Slots disponibles
+            <div 
+              style={{
+                padding: '20px',
+                background: pendingRequests.length > 0 
+                  ? 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)' 
+                  : '#f9fafb',
+                borderRadius: '12px',
+                border: pendingRequests.length > 0 
+                  ? '3px solid #ef4444' 
+                  : '1px solid #e5e7eb',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                boxShadow: pendingRequests.length > 0 
+                  ? '0 4px 12px rgba(239, 68, 68, 0.25)' 
+                  : 'none',
+                animation: pendingRequests.length > 0 
+                  ? 'pulseAlert 2s ease-in-out infinite' 
+                  : 'none'
+              }}
+              onClick={() => {
+                setTab('calendario');
+                setTimeout(() => {
+                  const pendingSection = document.getElementById('solicitudes-pendientes');
+                  if (pendingSection) {
+                    pendingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }, 100);
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = pendingRequests.length > 0 
+                  ? 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)' 
+                  : '#f3f4f6';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = pendingRequests.length > 0 
+                  ? '0 6px 16px rgba(239, 68, 68, 0.35)' 
+                  : '0 4px 12px rgba(0, 0, 0, 0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = pendingRequests.length > 0 
+                  ? 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)' 
+                  : '#f9fafb';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = pendingRequests.length > 0 
+                  ? '0 4px 12px rgba(239, 68, 68, 0.25)' 
+                  : 'none';
+              }}
+            >
+              <div style={{ 
+                fontSize: '12px', 
+                color: pendingRequests.length > 0 ? '#dc2626' : '#6b7280', 
+                marginBottom: '8px', 
+                fontWeight: 600, 
+                textTransform: 'uppercase', 
+                letterSpacing: '0.5px' 
+              }}>
+                {pendingRequests.length > 0 ? '⚠️ ' : ''}Citas por confirmar
               </div>
-              <div style={{ fontSize: '24px', fontWeight: 700, color: '#0ea5e9' }}>
-                {slots.filter(s => s.status === 'FREE').length}
+              <div style={{ 
+                fontSize: '24px', 
+                fontWeight: 700, 
+                color: pendingRequests.length > 0 ? '#dc2626' : '#f59e0b' 
+              }}>
+                {pendingRequests.length}
               </div>
             </div>
 
@@ -832,25 +894,23 @@ export default function PsychDashboard() {
               </div>
               {(() => {
                 const now = new Date();
-                const next24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
                 const upcomingAppointments = slots
-                  .filter(s => s.status === 'BOOKED' && s.user)
+                  .filter(s => (s.status === 'BOOKED' || s.status === 'CONFIRMED') && s.user)
                   .filter(apt => {
                     if (!apt.startTime || !apt.endTime) return false;
                     const aptDate = new Date(apt.startTime);
                     const aptEndDate = new Date(apt.endTime);
-                    // Incluir citas en curso (ya comenzaron pero no han terminado) o próximas (en las próximas 24h)
-                    // Usar getTime() para comparaciones más precisas
+                    // Incluir citas en curso (ya comenzaron pero no han terminado) o futuras
                     const nowTime = now.getTime();
                     const aptStartTime = aptDate.getTime();
                     const aptEndTime = aptEndDate.getTime();
-                    const next24HoursTime = next24Hours.getTime();
                     
                     const isInProgress = aptStartTime <= nowTime && aptEndTime >= nowTime;
-                    const isUpcoming = aptStartTime >= nowTime && aptStartTime <= next24HoursTime;
+                    const isUpcoming = aptStartTime >= nowTime;
                     return isInProgress || isUpcoming;
                   })
-                  .slice(0, 2); // Mostrar máximo 2 citas
+                  .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+                  .slice(0, 2); // Mostrar las 2 más próximas
 
                 if (upcomingAppointments.length === 0) {
                   return (
@@ -866,13 +926,16 @@ export default function PsychDashboard() {
                       const aptDate = new Date(apt.startTime);
                       const aptEndDate = new Date(apt.endTime);
                       const isInProgress = aptDate <= now && aptEndDate >= now;
-                      const hoursUntil = Math.floor((aptDate.getTime() - now.getTime()) / (1000 * 60 * 60));
-                      const minutesUntil = Math.floor((aptDate.getTime() - now.getTime()) / (1000 * 60)) % 60;
                       
                       // Calcular si está dentro del rango permitido (máximo 1 hora antes, hasta 1 hora después del final)
                       const oneHourBefore = new Date(aptDate.getTime() - 60 * 60 * 1000);
                       const oneHourAfterEnd = new Date(aptEndDate.getTime() + 60 * 60 * 1000);
                       const canStartCall = now >= oneHourBefore && now <= oneHourAfterEnd;
+                      
+                      // Formatear fecha y hora para mostrar: "martes a las 12:30"
+                      const weekday = aptDate.toLocaleDateString('es-ES', { weekday: 'long' });
+                      const time = aptDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                      const dateTimeText = `${weekday.charAt(0).toUpperCase() + weekday.slice(1)} a las ${time}`;
                       
                       return (
                         <div
@@ -882,14 +945,14 @@ export default function PsychDashboard() {
                             background: 'white',
                             borderRadius: '8px',
                             border: '1px solid rgba(217, 119, 6, 0.2)',
-                            cursor: canStartCall ? 'pointer' : 'default',
+                            cursor: 'pointer',
                             transition: 'all 0.2s',
-                            opacity: canStartCall ? 1 : 0.7
+                            opacity: 1
                           }}
-                          onClick={canStartCall ? async () => {
-                            if (me && apt.user) {
+                          onClick={async () => {
+                            if (canStartCall && me && apt.user) {
+                              // Si está en curso (una hora antes), ir a la videollamada
                               try {
-                                // Validar con backend antes de iniciar
                                 const roomInfo = await jitsiService.getRoomInfo(apt.user.email);
                                 setVideoCallRoom(roomInfo.roomName);
                                 setVideoCallOtherUser({ email: roomInfo.otherUser.email, name: roomInfo.otherUser.name });
@@ -897,16 +960,25 @@ export default function PsychDashboard() {
                               } catch (error: any) {
                                 toast.error(error.response?.data?.error || 'No tienes permiso para iniciar esta videollamada');
                               }
+                            } else {
+                              // Si no está en curso, ir al apartado de citas en el calendario
+                              setTab('calendario');
+                              setTimeout(() => {
+                                const appointmentsSection = document.getElementById('citas-confirmadas');
+                                if (appointmentsSection) {
+                                  appointmentsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }
+                              }, 100);
                             }
-                          } : undefined}
-                          onMouseEnter={canStartCall ? (e) => {
+                          }}
+                          onMouseEnter={(e) => {
                             e.currentTarget.style.borderColor = '#d97706';
                             e.currentTarget.style.boxShadow = '0 2px 8px rgba(217, 119, 6, 0.15)';
-                          } : undefined}
-                          onMouseLeave={canStartCall ? (e) => {
+                          }}
+                          onMouseLeave={(e) => {
                             e.currentTarget.style.borderColor = 'rgba(217, 119, 6, 0.2)';
                             e.currentTarget.style.boxShadow = 'none';
-                          } : undefined}
+                          }}
                         >
                           <div style={{ fontSize: '13px', fontWeight: 600, color: '#1a2e22', marginBottom: '4px' }}>
                             {aptDate.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })}
@@ -920,7 +992,7 @@ export default function PsychDashboard() {
                             </div>
                           )}
                           <div style={{ fontSize: '11px', color: isInProgress ? '#059669' : '#d97706', fontWeight: 600 }}>
-                            {isInProgress ? '🟢 En curso' : (hoursUntil > 0 ? `En ${hoursUntil}h ${minutesUntil}m` : `En ${minutesUntil}m`)}
+                            {isInProgress ? '🟢 En curso' : dateTimeText}
                           </div>
                           {!canStartCall && now < oneHourBefore && (
                             <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '4px', fontStyle: 'italic' }}>
@@ -3419,14 +3491,16 @@ export default function PsychDashboard() {
           
           {/* Solicitudes Pendientes */}
           {pendingRequests.length > 0 && (
-            <div style={{
-              marginTop: '32px',
-              background: '#ffffff',
-              borderRadius: '20px',
-              boxShadow: '0 6px 20px rgba(102, 126, 234, 0.12)',
-              border: '1px solid rgba(102, 126, 234, 0.15)',
-              padding: '32px'
-            }}>
+            <div 
+              id="solicitudes-pendientes"
+              style={{
+                marginTop: '32px',
+                background: '#ffffff',
+                borderRadius: '20px',
+                boxShadow: '0 6px 20px rgba(102, 126, 234, 0.12)',
+                border: '1px solid rgba(102, 126, 234, 0.15)',
+                padding: '32px'
+              }}>
               <h4 style={{
                 margin: '0 0 24px 0',
                 fontSize: '24px',
@@ -3590,14 +3664,16 @@ export default function PsychDashboard() {
           
           {/* Citas Confirmadas y Reservadas */}
           {!loadingSlots && slots.filter(s => (s.status === 'CONFIRMED' || s.status === 'BOOKED') && s.user).length > 0 && (
-            <div style={{
-              marginTop: '32px',
-              background: '#ffffff',
-              borderRadius: '20px',
-              boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
-              border: '1px solid rgba(90, 146, 112, 0.15)',
-              padding: '32px'
-            }}>
+            <div 
+              id="citas-confirmadas"
+              style={{
+                marginTop: '32px',
+                background: '#ffffff',
+                borderRadius: '20px',
+                boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
+                border: '1px solid rgba(90, 146, 112, 0.15)',
+                padding: '32px'
+              }}>
               <h4 style={{
                 margin: '0 0 24px 0',
                 fontSize: '24px',
