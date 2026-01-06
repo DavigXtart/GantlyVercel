@@ -23,7 +23,7 @@ spring:
         order_inserts: true
         order_updates: true
   flyway:
-    enabled: true
+    enabled: false
     locations: classpath:db/migration
     repair-on-migrate: true
     baseline-on-migrate: true
