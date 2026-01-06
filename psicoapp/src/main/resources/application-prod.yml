@@ -12,13 +12,8 @@ spring:
       max-lifetime: 1800000
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
     open-in-view: false
-  flyway:
-    enabled: true
-    baseline-on-migrate: true
-    validate-on-migrate: false
-    locations: classpath:db/migration
     properties:
       hibernate:
         format_sql: false
@@ -27,6 +22,12 @@ spring:
           batch_size: 20
         order_inserts: true
         order_updates: true
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: false
+    locations: classpath:db/migration
+    clean-disabled: true
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
