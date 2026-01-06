@@ -424,7 +424,7 @@ function App() {
     setShowInitialTest(true);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // @ts-expect-error - Variable reservada para uso futuro
   const _handleStartInitialTest = useCallback(() => {
     isUserNavigation.current = true;
     setShowLanding(false);

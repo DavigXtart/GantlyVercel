@@ -34,7 +34,7 @@ function JitsiVideoCallComponent({
   }, [onClose]);
   
   // Función protegida para cerrar - solo funciona si allowCloseRef es true
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // @ts-expect-error - Variable reservada para uso futuro
   const _safeClose = useRef(() => {
     if (allowCloseRef.current) {
       try {
@@ -163,7 +163,7 @@ function JitsiVideoCallComponent({
 
       // Manejo global de errores MUY robusto para evitar crashes
       const originalErrorHandler = window.onerror;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // @ts-expect-error - Variable reservada para uso futuro
       const _originalUnhandledRejection = window.onunhandledrejection;
       
       const globalErrorHandler = (message: any, source?: string, lineno?: number, colno?: number, error?: Error) => {
@@ -322,7 +322,11 @@ function JitsiVideoCallComponent({
             e.stopPropagation();
           }, true);
         }
-        return originalXHROpen.call(this, method, url, ...(rest as [boolean?, string?, string?]));
+        if (rest.length > 0) {
+          return originalXHROpen.call(this, method, url, (rest[0] ?? true) as boolean, rest[1] as string | undefined, rest[2] as string | undefined);
+        } else {
+          return originalXHROpen.call(this, method, url, true);
+        }
       };
 
       XMLHttpRequest.prototype.send = function(...args: any[]) {
