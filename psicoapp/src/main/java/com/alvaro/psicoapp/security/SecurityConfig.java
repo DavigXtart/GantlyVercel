@@ -35,6 +35,7 @@ public class SecurityConfig {
 				.requestMatchers("/api/auth/verify-email").permitAll()
 				.requestMatchers("/api/tests/**").permitAll() // Tests visibles para todos
 				.requestMatchers("/api/initial-test/**").permitAll() // Test inicial público
+				.requestMatchers("/api/matching/**").authenticated() // Tests de matching requieren autenticación
 				.requestMatchers("/api/flow/**").authenticated() // Flujo de respuestas requiere autenticación
 				.requestMatchers("/api/profile/**").authenticated()
 				.requestMatchers("/api/tasks/**").authenticated()
