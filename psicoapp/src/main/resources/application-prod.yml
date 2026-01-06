@@ -61,6 +61,8 @@ logging:
     org.hibernate.orm.jdbc.bind: TRACE
     org.springframework.orm.jpa: DEBUG
     org.springframework.boot.autoconfigure.orm.jpa: DEBUG
+    org.flywaydb: DEBUG
+    org.flywaydb.core: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
