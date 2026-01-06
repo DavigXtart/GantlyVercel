@@ -32,6 +32,9 @@ spring:
     validate-on-migrate: false
     out-of-order: true
     clean-disabled: true
+    ignore-missing-migrations: true
+    ignore-future-migrations: true
+    ignore-ignored-migrations: true
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
