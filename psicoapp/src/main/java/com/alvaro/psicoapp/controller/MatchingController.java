@@ -415,7 +415,7 @@ public class MatchingController {
         return questionRepository.save(question);
     }
     
-    private AnswerEntity createAnswer(QuestionEntity question, String text, Double value, int position) {
+    private AnswerEntity createAnswer(QuestionEntity question, String text, Integer value, int position) {
         AnswerEntity answer = new AnswerEntity();
         answer.setQuestion(question);
         answer.setText(text);
