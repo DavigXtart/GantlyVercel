@@ -12,8 +12,9 @@ spring:
       max-lifetime: 1800000
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
     show-sql: false
+    defer-datasource-initialization: false
     open-in-view: false
     properties:
       hibernate:
@@ -31,6 +32,7 @@ spring:
     clean-disabled: true
     repair-on-migrate: true
     baseline-version: 0
+    out-of-order: true
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
