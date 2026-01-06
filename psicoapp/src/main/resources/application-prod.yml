@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: ${DATABASE_URL:jdbc:mysql://localhost:3306/psicoapp?useSSL=true&requireSSL=true&serverTimezone=UTC}
-    username: ${DATABASE_USER:root}
-    password: ${DATABASE_PASSWORD:1234}
+    url: ${DATABASE_URL:${MYSQL_URL:jdbc:mysql://${MYSQLHOST:localhost}:${MYSQLPORT:3306}/${MYSQLDATABASE:railway}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}}
+    username: ${DATABASE_USER:${MYSQLUSER:root}}
+    password: ${DATABASE_PASSWORD:${MYSQLPASSWORD:1234}}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 20
