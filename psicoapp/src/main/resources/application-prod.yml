@@ -12,7 +12,7 @@ spring:
       max-lifetime: 1800000
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     open-in-view: false
     properties:
       hibernate:
@@ -23,7 +23,7 @@ spring:
         order_inserts: true
         order_updates: true
   flyway:
-    enabled: true
+    enabled: false
     locations: classpath:db/migration
     repair-on-migrate: true
     baseline-on-migrate: true
