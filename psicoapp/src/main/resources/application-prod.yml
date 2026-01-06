@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: ${DATABASE_URL:${MYSQL_URL:jdbc:mysql://${MYSQLHOST:localhost}:${MYSQLPORT:3306}/${MYSQLDATABASE:railway}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}}
+    url: ${DATABASE_URL:jdbc:mysql://${MYSQLHOST:mysql.railway.internal}:${MYSQLPORT:3306}/${MYSQLDATABASE:railway}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
     username: ${DATABASE_USER:${MYSQLUSER:root}}
     password: ${DATABASE_PASSWORD:${MYSQLPASSWORD:1234}}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -54,10 +54,12 @@ logging:
   level:
     root: INFO
     com.alvaro.psicoapp: INFO
-    org.springframework: WARN
-    org.hibernate: WARN
-    org.hibernate.SQL: WARN
-    org.hibernate.orm.jdbc.bind: WARN
+    org.springframework: INFO
+    org.springframework.boot.autoconfigure.jdbc: DEBUG
+    org.hibernate: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+    com.zaxxer.hikari: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
