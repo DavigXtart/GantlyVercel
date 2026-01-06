@@ -188,7 +188,7 @@ export default function Landing({ onGetStarted, onLogin, onShowAbout, onShowSoyP
             letterSpacing: '-0.03em',
             textAlign: 'center',
           }}>
-            Psymatch
+            Gantly
           </div>
         </div>
 
