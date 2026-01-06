@@ -26,13 +26,14 @@ spring:
         order_updates: true
   flyway:
     enabled: true
-    baseline-on-migrate: true
+    baseline-on-migrate: false
     validate-on-migrate: false
     locations: classpath:db/migration
     clean-disabled: true
     repair-on-migrate: true
-    baseline-version: 0
     out-of-order: true
+    ignore-missing-migrations: false
+    ignore-future-migrations: false
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
