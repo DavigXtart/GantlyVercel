@@ -27,9 +27,6 @@ COPY --from=builder /app/target/*.jar app.jar
 # Exponer el puerto (Railway puede cambiar esto con PORT env var)
 EXPOSE 8080
 
-# Usar variables de entorno para el puerto y otros ajustes
-ENV JAVA_OPTS="-Xmx512m -Xms256m"
-
 # Ejecutar la aplicación
-ENTRYPOINT sh -c "java $JAVA_OPTS -jar app.jar"
+ENTRYPOINT ["java", "-Xmx512m", "-Xms256m", "-jar", "app.jar"]
 
