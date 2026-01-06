@@ -28,7 +28,6 @@ public class FlywayRepairConfig {
                 Flyway flyway = Flyway.configure()
                     .dataSource(dataSource)
                     .locations("classpath:db/migration")
-                    .repair()
                     .load();
                 
                 flyway.repair();
