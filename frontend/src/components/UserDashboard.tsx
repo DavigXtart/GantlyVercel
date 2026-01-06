@@ -356,6 +356,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _toggleTaskExpanded = (taskId: number) => {
     const newExpanded = new Set(expandedTasks);
     if (newExpanded.has(taskId)) {
@@ -2395,6 +2396,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                   onClick={async () => {
                     if (!at.completedAt && (at.testId || at.test?.id)) {
                       const testId = at.testId || at.test?.id;
+                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
                       const _testTitle = at.testTitle || at.test?.title || 'el test';
                       // Iniciar el test directamente sin confirmación
                       try {

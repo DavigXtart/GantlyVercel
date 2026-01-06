@@ -424,6 +424,7 @@ function App() {
     setShowInitialTest(true);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _handleStartInitialTest = useCallback(() => {
     isUserNavigation.current = true;
     setShowLanding(false);

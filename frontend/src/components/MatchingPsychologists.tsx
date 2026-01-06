@@ -34,7 +34,7 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
   const [psychologistRating, setPsychologistRating] = useState<{ averageRating: number | null; totalRatings: number } | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [showAnimation, setShowAnimation] = useState(true);
-  const [dataLoaded, setDataLoaded] = useState(false);
+  const [_dataLoaded, setDataLoaded] = useState(false);
 
   useEffect(() => {
     // Cargar datos en segundo plano mientras se muestra la animación

@@ -281,6 +281,7 @@ export default function PsychDashboard() {
   // Obtener pacientes que tienen tareas
   const patientsWithTasks = patients.filter((p: any) => tasksByPatient[p.id] && tasksByPatient[p.id].length > 0);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _toggleTaskExpanded = (taskId: number) => {
     const newExpanded = new Set(expandedTasks);
     if (newExpanded.has(taskId)) {
@@ -421,6 +422,7 @@ export default function PsychDashboard() {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _saveProfile = async () => {
     try {
       await profileService.update({

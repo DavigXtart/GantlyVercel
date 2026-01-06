@@ -121,7 +121,7 @@ export default function AdminPanel({ initialTab = 'tests' }: AdminPanelProps) {
       if (isEvaluationTest) {
         // Intentar actualizar como evaluation test primero
         try {
-          await adminService.updateEvaluationTest(editingTest.id, { ...updateData, category: updateData.category || undefined, topic: updateData.topic || undefined });
+          await adminService.updateEvaluationTest(editingTest.id, { ...updateData, category: (updateData.category as 'EVALUATION' | 'DISCOVERY') || undefined, topic: updateData.topic || undefined });
         } catch (e) {
           // Si falla, intentar como test normal
           await adminService.updateTest(editingTest.id, updateData);
