@@ -1,4 +1,4 @@
-import { useState, ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
 interface FormFieldProps {
   label: string;
@@ -68,7 +68,7 @@ export default function FormField({
           required={required}
           aria-label={ariaLabel || label}
           aria-describedby={showError ? errorId : ariaDescribedBy}
-          aria-invalid={showError}
+          aria-invalid={showError ? "true" : "false"}
           aria-required={required}
           style={{
             padding: '12px 16px',

@@ -175,7 +175,7 @@ export function Pricing({
                       minimumFractionDigits: 0,
                       maximumFractionDigits: 0,
                     }}
-                    formatter={(value) => `${value}€`}
+                    format={{ style: "currency", currency: "EUR", minimumFractionDigits: 0, maximumFractionDigits: 0 }}
                     transformTiming={{
                       duration: 500,
                       easing: "ease-out",

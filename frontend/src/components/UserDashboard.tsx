@@ -357,7 +357,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
     }
   };
 
-  const toggleTaskExpanded = (taskId: number) => {
+  const _toggleTaskExpanded = (taskId: number) => {
     const newExpanded = new Set(expandedTasks);
     if (newExpanded.has(taskId)) {
       newExpanded.delete(taskId);
@@ -1260,7 +1260,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       {/* Resultados de Matching */}
       {tab === 'mi-psicologo' && showMatchingResults && (
         <MatchingPsychologists
-          onSelect={(psychologistId) => {
+          onSelect={(_psychologistId) => {
             setShowMatchingResults(false);
             loadData();
             toast.success('Psicólogo seleccionado correctamente');
@@ -2243,7 +2243,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             <EmptyState
               icon="📋"
               title="No hay tareas"
-              message="Aún no tienes tareas asignadas. Tu psicólogo te asignará tareas aquí."
+              description="Aún no tienes tareas asignadas. Tu psicólogo te asignará tareas aquí."
             />
           ) : (
             <div 
@@ -2251,7 +2251,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               role="list"
               aria-label="Lista de tareas"
             >
-              {tasks.map((t, index) => (
+              {tasks.map((t) => (
                 <div
                   key={t.id}
                   onClick={() => {
@@ -2365,7 +2365,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             <EmptyState
               icon="📝"
               title="No hay tests pendientes"
-              message="Aún no tienes tests asignados. Tu psicólogo te asignará tests aquí."
+              description="Aún no tienes tests asignados. Tu psicólogo te asignará tests aquí."
             />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -2396,7 +2396,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                   onClick={async () => {
                     if (!at.completedAt && (at.testId || at.test?.id)) {
                       const testId = at.testId || at.test?.id;
-                      const testTitle = at.testTitle || at.test?.title || 'el test';
+                      const _testTitle = at.testTitle || at.test?.title || 'el test';
                       // Iniciar el test directamente sin confirmación
                       try {
                         // Usar el callback directo para iniciar el test
