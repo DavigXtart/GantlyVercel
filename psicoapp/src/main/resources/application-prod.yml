@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/psicoapp?useSSL=true&requireSSL=true&serverTimezone=UTC
-    username: root
-    password: 1234
+    url: ${DATABASE_URL:jdbc:mysql://localhost:3306/psicoapp?useSSL=true&requireSSL=true&serverTimezone=UTC}
+    username: ${DATABASE_USER:root}
+    password: ${DATABASE_PASSWORD:1234}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 20
@@ -28,10 +28,10 @@ spring:
     repair-on-migrate: true
     baseline-on-migrate: true
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: userapprovalgantly@gmail.com
-    password: xznhetmckdadxeib # Contraseña de aplicación de Gmail
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:userapprovalgantly@gmail.com}
+    password: ${MAIL_PASSWORD:xznhetmckdadxeib} # Contraseña de aplicación de Gmail
     properties:
       mail:
         smtp:
@@ -82,7 +82,7 @@ management:
 
 # Configuración del servidor
 server:
-  port: 8080
+  port: ${PORT:8080}
   error:
     include-message: always
     include-binding-errors: always
@@ -93,8 +93,17 @@ server:
     mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
     min-response-size: 1024
 
+# Configuración de Stripe (opcional)
+stripe:
+  secret:
+    key: ${STRIPE_SECRET_KEY:}
+  public:
+    key: ${STRIPE_PUBLIC_KEY:}
+  webhook:
+    secret: ${STRIPE_WEBHOOK_SECRET:}
+
 # Configuración de la aplicación
 app:
   base:
-    url: https://tu-dominio.com # Cambiar por el dominio real de producción
+    url: ${APP_BASE_URL:https://tu-dominio.com} # URL del frontend en producción
 
