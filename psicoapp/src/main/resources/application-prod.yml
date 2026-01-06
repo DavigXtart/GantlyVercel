@@ -12,7 +12,7 @@ spring:
       max-lifetime: 1800000
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     show-sql: false
     defer-datasource-initialization: false
     open-in-view: false
@@ -25,13 +25,7 @@ spring:
         order_inserts: true
         order_updates: true
   flyway:
-    enabled: true
-    baseline-on-migrate: true
-    validate-on-migrate: false
-    locations: classpath:db/migration
-    clean-disabled: true
-    repair-on-migrate: true
-    out-of-order: true
+    enabled: false
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
