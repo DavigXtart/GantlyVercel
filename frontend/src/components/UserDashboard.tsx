@@ -356,18 +356,18 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
     }
   };
 
-  const _toggleTaskExpanded = (taskId: number) => {
-    const newExpanded = new Set(expandedTasks);
-    if (newExpanded.has(taskId)) {
-      newExpanded.delete(taskId);
-    } else {
-      newExpanded.add(taskId);
-      if (!taskFiles[taskId]) {
-        loadTaskFiles(taskId);
-      }
-    }
-    setExpandedTasks(newExpanded);
-  };
+  // const _toggleTaskExpanded = (taskId: number) => {
+  //   const newExpanded = new Set(expandedTasks);
+  //   if (newExpanded.has(taskId)) {
+  //     newExpanded.delete(taskId);
+  //   } else {
+  //     newExpanded.add(taskId);
+  //     if (!taskFiles[taskId]) {
+  //       loadTaskFiles(taskId);
+  //     }
+  //   }
+  //   setExpandedTasks(newExpanded);
+  // };
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return '';

@@ -4471,7 +4471,7 @@ export default function PsychDashboard() {
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10000, pointerEvents: 'auto' }}>
             <JitsiVideoCall
               key={`jitsi-${roomToUse}`} // Key estable para evitar re-montajes
-              roomName={roomToUse!}
+              roomName={roomToUse}
               userEmail={userToUse.email}
               userName={userToUse.name || 'Psicólogo'}
               otherUserEmail={otherUserToUse?.email}
