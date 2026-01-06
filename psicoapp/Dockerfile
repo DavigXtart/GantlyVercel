@@ -1,5 +1,5 @@
 # Dockerfile para Railway
-FROM maven:3.9-eclipse-temurin-23 AS builder
+FROM maven:3.9-eclipse-temurin-21 AS builder
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Imagen de ejecución
-FROM eclipse-temurin:23-jre-jammy
+FROM eclipse-temurin:21-jre-jammy
 
 WORKDIR /app
 
