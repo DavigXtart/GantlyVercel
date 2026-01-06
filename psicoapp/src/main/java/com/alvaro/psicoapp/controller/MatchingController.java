@@ -44,11 +44,11 @@ public class MatchingController {
      * Obtener el test de matching para el paciente
      */
     @GetMapping("/patient-test")
-    @Transactional
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getPatientMatchingTest(Principal principal) {
         try {
             TestEntity test = testRepository.findByCode(PATIENT_MATCHING_TEST_CODE)
-                .orElseGet(() -> initializePatientMatchingTest());
+                .orElseThrow(() -> new RuntimeException("Test de matching de paciente no encontrado. Asegúrate de que Flyway haya ejecutado las migraciones."));
             
             List<QuestionEntity> questions = questionRepository.findByTestOrderByPositionAsc(test);
             List<Map<String, Object>> questionsList = new ArrayList<>();
@@ -91,7 +91,7 @@ public class MatchingController {
      * Obtener el test de matching para el psicólogo
      */
     @GetMapping("/psychologist-test")
-    @Transactional
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getPsychologistMatchingTest(Principal principal) {
         try {
             var user = userRepository.findByEmail(principal.getName())
@@ -102,7 +102,7 @@ public class MatchingController {
             }
             
             TestEntity test = testRepository.findByCode(PSYCHOLOGIST_MATCHING_TEST_CODE)
-                .orElseGet(() -> initializePsychologistMatchingTest());
+                .orElseThrow(() -> new RuntimeException("Test de matching de psicólogo no encontrado. Asegúrate de que Flyway haya ejecutado las migraciones."));
             
             List<QuestionEntity> questions = questionRepository.findByTestOrderByPositionAsc(test);
             List<Map<String, Object>> questionsList = new ArrayList<>();
@@ -290,7 +290,7 @@ public class MatchingController {
      * Verificar si el psicólogo ha completado el test de matching
      */
     @GetMapping("/psychologist-test/status")
-    @Transactional
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getPsychologistMatchingTestStatus(Principal principal) {
         try {
             UserEntity user = userRepository.findByEmail(principal.getName())
@@ -301,7 +301,7 @@ public class MatchingController {
             }
             
             TestEntity test = testRepository.findByCode(PSYCHOLOGIST_MATCHING_TEST_CODE)
-                .orElseGet(() -> initializePsychologistMatchingTest());
+                .orElseThrow(() -> new RuntimeException("Test de matching de psicólogo no encontrado. Asegúrate de que Flyway haya ejecutado las migraciones."));
             
             List<UserAnswerEntity> answers = userAnswerRepository.findByUser(user).stream()
                 .filter(ua -> ua.getQuestion().getTest().getCode().equals(PSYCHOLOGIST_MATCHING_TEST_CODE))
@@ -313,115 +313,6 @@ public class MatchingController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
-    }
-    
-    /**
-     * Inicializar el test de matching para pacientes si no existe
-     */
-    private TestEntity initializePatientMatchingTest() {
-        TestEntity test = new TestEntity();
-        test.setCode(PATIENT_MATCHING_TEST_CODE);
-        test.setTitle("Test de Matching para Pacientes");
-        test.setDescription("Cuestionario para conectar pacientes con psicólogos compatibles");
-        test.setCategory("MATCHING");
-        test.setActive(true);
-        test = testRepository.save(test);
-        
-        // Pregunta 1: Tipo de terapia
-        QuestionEntity q1 = createQuestion(test, "¿Qué tipo de terapia buscas?", "SINGLE", 1);
-        createAnswer(q1, "Terapia individual", null, 1);
-        createAnswer(q1, "Terapia de pareja", null, 2);
-        createAnswer(q1, "Terapia para un menor", null, 3);
-        
-        // Pregunta 2: Fecha de nacimiento
-        createQuestion(test, "¿Cuál es tu fecha de nacimiento?", "TEXT", 2);
-        
-        // Pregunta 3: Ocupación
-        QuestionEntity q3 = createQuestion(test, "¿Cuál describe mejor tu ocupación principal actual?", "SINGLE", 3);
-        createAnswer(q3, "Estudiante", null, 1);
-        createAnswer(q3, "Empleado/a con funciones principalmente operativas o técnicas", null, 2);
-        createAnswer(q3, "Profesional cualificado/a (sanitario, educativo, jurídico, tecnológico, etc.)", null, 3);
-        createAnswer(q3, "Mando intermedio / coordinador/a de equipo", null, 4);
-        createAnswer(q3, "Directivo/a / empresario/a con alta responsabilidad", null, 5);
-        createAnswer(q3, "Autónomo/a o freelance", null, 6);
-        createAnswer(q3, "En situación de desempleo o inestabilidad laboral", null, 7);
-        createAnswer(q3, "Jubilado/a", null, 8);
-        createAnswer(q3, "Dedicación principal al cuidado de terceros", null, 9);
-        
-        return test;
-    }
-    
-    /**
-     * Inicializar el test de matching para psicólogos si no existe
-     */
-    private TestEntity initializePsychologistMatchingTest() {
-        TestEntity test = new TestEntity();
-        test.setCode(PSYCHOLOGIST_MATCHING_TEST_CODE);
-        test.setTitle("Test de Matching para Psicólogos");
-        test.setDescription("Cuestionario completo para determinar el perfil profesional del psicólogo para matching con pacientes");
-        test.setCategory("MATCHING");
-        test.setActive(true);
-        test = testRepository.save(test);
-        
-        // Pregunta 1: Modalidades
-        QuestionEntity q1 = createQuestion(test, "¿En qué modalidades trabajas actualmente?", "MULTIPLE", 1);
-        createAnswer(q1, "Terapia individual adultos", null, 1);
-        createAnswer(q1, "Terapia de pareja", null, 2);
-        createAnswer(q1, "Terapia infantojuvenil (menores)", null, 3);
-        
-        // Pregunta 2: Formación en menores
-        QuestionEntity q2 = createQuestion(test, "¿Tienes formación específica en infancia/adolescencia?", "SINGLE", 2);
-        createAnswer(q2, "Sí", null, 1);
-        createAnswer(q2, "No", null, 2);
-        
-        // Pregunta 3: Experiencia con menores
-        QuestionEntity q3 = createQuestion(test, "¿Cuál es tu experiencia mínima con menores?", "SINGLE", 3);
-        createAnswer(q3, "< 1 año", null, 1);
-        createAnswer(q3, "1–3 años", null, 2);
-        createAnswer(q3, "> 3 años", null, 3);
-        
-        // Pregunta 4: Años de experiencia
-        QuestionEntity q4 = createQuestion(test, "¿Cuántos años de experiencia clínica real tienes?", "SINGLE", 4);
-        createAnswer(q4, "< 1 año", null, 1);
-        createAnswer(q4, "1–3 años", null, 2);
-        createAnswer(q4, "3–7 años", null, 3);
-        createAnswer(q4, "> 7 años", null, 4);
-        
-        // Pregunta 5: Áreas de trabajo
-        QuestionEntity q5 = createQuestion(test, "¿Cuáles son tus áreas de trabajo principales?", "MULTIPLE", 5);
-        createAnswer(q5, "Ansiedad y estrés", null, 1);
-        createAnswer(q5, "Depresión / estado de ánimo", null, 2);
-        createAnswer(q5, "Ataques de pánico", null, 3);
-        createAnswer(q5, "Duelo", null, 4);
-        createAnswer(q5, "Trauma", null, 5);
-        createAnswer(q5, "Pareja", null, 6);
-        createAnswer(q5, "Familia", null, 7);
-        createAnswer(q5, "Autoestima", null, 8);
-        createAnswer(q5, "Conducta alimentaria", null, 9);
-        createAnswer(q5, "Adicciones", null, 10);
-        createAnswer(q5, "Sexualidad", null, 11);
-        createAnswer(q5, "TDAH adultos", null, 12);
-        createAnswer(q5, "Otros", null, 13);
-        
-        return test;
-    }
-    
-    private QuestionEntity createQuestion(TestEntity test, String text, String type, int position) {
-        QuestionEntity question = new QuestionEntity();
-        question.setTest(test);
-        question.setText(text);
-        question.setType(type);
-        question.setPosition(position);
-        return questionRepository.save(question);
-    }
-    
-    private AnswerEntity createAnswer(QuestionEntity question, String text, Integer value, int position) {
-        AnswerEntity answer = new AnswerEntity();
-        answer.setQuestion(question);
-        answer.setText(text);
-        answer.setValue(value);
-        answer.setPosition(position);
-        return answerRepository.save(answer);
     }
 }
 
