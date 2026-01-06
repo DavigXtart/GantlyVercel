@@ -34,7 +34,6 @@ function JitsiVideoCallComponent({
   }, [onClose]);
   
   // Función protegida para cerrar - solo funciona si allowCloseRef es true
-  // @ts-expect-error - Variable reservada para uso futuro
   const _safeClose = useRef(() => {
     if (allowCloseRef.current) {
       try {
@@ -163,7 +162,6 @@ function JitsiVideoCallComponent({
 
       // Manejo global de errores MUY robusto para evitar crashes
       const originalErrorHandler = window.onerror;
-      // @ts-expect-error - Variable reservada para uso futuro
       const _originalUnhandledRejection = window.onunhandledrejection;
       
       const globalErrorHandler = (message: any, source?: string, lineno?: number, colno?: number, error?: Error) => {

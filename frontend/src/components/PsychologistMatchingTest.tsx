@@ -163,9 +163,7 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
     
     const visible: Question[] = [];
     const question1 = test.questions.find(q => q.position === 1); // Modalidades
-    // @ts-expect-error - Variables reservadas para uso futuro
     const _question2 = test.questions.find(q => q.position === 2); // Formación en menores
-    // @ts-expect-error - Variables reservadas para uso futuro
     const _question3 = test.questions.find(q => q.position === 3); // Experiencia con menores
     
     for (const question of test.questions) {

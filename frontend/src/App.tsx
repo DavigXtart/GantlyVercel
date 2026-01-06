@@ -424,7 +424,6 @@ function App() {
     setShowInitialTest(true);
   };
 
-  // @ts-expect-error - Variable reservada para uso futuro
   const _handleStartInitialTest = useCallback(() => {
     isUserNavigation.current = true;
     setShowLanding(false);

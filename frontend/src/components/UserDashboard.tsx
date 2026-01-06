@@ -356,7 +356,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
     }
   };
 
-  // @ts-expect-error - Variable reservada para uso futuro
   const _toggleTaskExpanded = (taskId: number) => {
     const newExpanded = new Set(expandedTasks);
     if (newExpanded.has(taskId)) {
@@ -2396,7 +2395,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                   onClick={async () => {
                     if (!at.completedAt && (at.testId || at.test?.id)) {
                       const testId = at.testId || at.test?.id;
-                      // @ts-expect-error - Variable reservada para uso futuro
                       const _testTitle = at.testTitle || at.test?.title || 'el test';
                       // Iniciar el test directamente sin confirmación
                       try {
