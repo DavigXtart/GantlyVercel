@@ -79,6 +79,10 @@ management:
       show-details: always
       probes:
         enabled: true
+      db:
+        enabled: true
+      mail:
+        enabled: false
   metrics:
     export:
       simple:
