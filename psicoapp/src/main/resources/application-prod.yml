@@ -14,6 +14,7 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: false
+    defer-datasource-initialization: false
     open-in-view: false
     properties:
       hibernate:
