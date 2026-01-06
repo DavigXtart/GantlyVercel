@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import Lottie from 'lottie-react';
 import JSZip from 'jszip';
 import { matchingService } from '../services/api';
-import LoadingSpinner from './ui/LoadingSpinner';
 import { toast } from './ui/Toast';
 import backgroundPng from '../assets/Adobe Express - file (1).png';
 import airBalloonLottieUrl from '../assets/Air Balloony.lottie?url';
@@ -164,8 +163,8 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
     
     const visible: Question[] = [];
     const question1 = test.questions.find(q => q.position === 1); // Modalidades
-    const question2 = test.questions.find(q => q.position === 2); // Formación en menores
-    const question3 = test.questions.find(q => q.position === 3); // Experiencia con menores
+    const _question2 = test.questions.find(q => q.position === 2); // Formación en menores
+    const _question3 = test.questions.find(q => q.position === 3); // Experiencia con menores
     
     for (const question of test.questions) {
       // Las preguntas 2 y 3 solo se muestran si en la pregunta 1 se marcó "Terapia infantojuvenil (menores)"

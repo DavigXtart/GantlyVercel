@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import Lottie from 'lottie-react';
 import JSZip from 'jszip';
 import { matchingService } from '../services/api';
-import LoadingSpinner from './ui/LoadingSpinner';
 import { toast } from './ui/Toast';
 import backgroundPng from '../assets/Adobe Express - file (1).png';
 import airBalloonLottieUrl from '../assets/Air Balloony.lottie?url';

@@ -1,9 +1,8 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { profileService, psychService, calendarService, tasksService, adminService, assignedTestsService, testService, jitsiService, resultsService, matchingService } from '../services/api';
+import { profileService, psychService, calendarService, tasksService, assignedTestsService, testService, jitsiService, resultsService, matchingService } from '../services/api';
 import ChatWidget from './ChatWidget';
 import CalendarWeek from './CalendarWeek';
 import JitsiVideoCall from './JitsiVideoCall';
-import { generateJitsiRoomName } from '../lib/utils';
 import LoadingSpinner from './ui/LoadingSpinner';
 import EmptyState from './ui/EmptyState';
 import { toast } from './ui/Toast';
@@ -27,7 +26,7 @@ export default function PsychDashboard() {
   const [assignedTests, setAssignedTests] = useState<any[]>([]);
   const [availableTests, setAvailableTests] = useState<any[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<number | null>(null);
-  const [editing, setEditing] = useState(false);
+  const [_editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({ name: '', gender: '', age: '' });
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [taskForm, setTaskForm] = useState({ userId: '', title: '', description: '', dueDate: '' });
@@ -282,7 +281,7 @@ export default function PsychDashboard() {
   // Obtener pacientes que tienen tareas
   const patientsWithTasks = patients.filter((p: any) => tasksByPatient[p.id] && tasksByPatient[p.id].length > 0);
 
-  const toggleTaskExpanded = (taskId: number) => {
+  const _toggleTaskExpanded = (taskId: number) => {
     const newExpanded = new Set(expandedTasks);
     if (newExpanded.has(taskId)) {
       newExpanded.delete(taskId);
@@ -422,7 +421,7 @@ export default function PsychDashboard() {
     }
   };
 
-  const saveProfile = async () => {
+  const _saveProfile = async () => {
     try {
       await profileService.update({
         name: editForm.name,
@@ -477,12 +476,12 @@ export default function PsychDashboard() {
       // Convertir arrays a JSON strings antes de enviar
       const profileToSave = {
         bio: psychProfileForm.bio,
-        education: psychProfileForm.education.length > 0 ? JSON.stringify(psychProfileForm.education) : null,
-        certifications: psychProfileForm.certifications.length > 0 ? JSON.stringify(psychProfileForm.certifications) : null,
-        interests: psychProfileForm.interests.length > 0 ? JSON.stringify(psychProfileForm.interests) : null,
-        specializations: psychProfileForm.specializations.length > 0 ? JSON.stringify(psychProfileForm.specializations) : null,
-        experience: psychProfileForm.experience.length > 0 ? JSON.stringify(psychProfileForm.experience) : null,
-        languages: psychProfileForm.languages.length > 0 ? JSON.stringify(psychProfileForm.languages) : null,
+        education: psychProfileForm.education.length > 0 ? JSON.stringify(psychProfileForm.education) : undefined,
+        certifications: psychProfileForm.certifications.length > 0 ? JSON.stringify(psychProfileForm.certifications) : undefined,
+        interests: psychProfileForm.interests.length > 0 ? JSON.stringify(psychProfileForm.interests) : undefined,
+        specializations: psychProfileForm.specializations.length > 0 ? JSON.stringify(psychProfileForm.specializations) : undefined,
+        experience: psychProfileForm.experience.length > 0 ? JSON.stringify(psychProfileForm.experience) : undefined,
+        languages: psychProfileForm.languages.length > 0 ? JSON.stringify(psychProfileForm.languages) : undefined,
         linkedinUrl: psychProfileForm.linkedinUrl,
         website: psychProfileForm.website
       };
@@ -1857,7 +1856,7 @@ export default function PsychDashboard() {
             <EmptyState
               icon="👥"
               title="No hay pacientes asignados"
-              message="Aún no tienes pacientes asignados. Los pacientes aparecerán aquí una vez que se registren y te seleccionen."
+              description="Aún no tienes pacientes asignados. Los pacientes aparecerán aquí una vez que se registren y te seleccionen."
             />
           ) : (
             <div 
@@ -1867,7 +1866,7 @@ export default function PsychDashboard() {
             >
               {loadingPatients ? (
                 Array.from({ length: 3 }).map((_, i) => (
-                  <SkeletonLoader key={i} height="200px" />
+                  <div key={i} style={{ height: "200px", backgroundColor: "#f3f4f6", borderRadius: "8px" }} />
                 ))
               ) : (
                 patients.map(p => (
@@ -2883,7 +2882,7 @@ export default function PsychDashboard() {
             <EmptyState
               icon="📋"
               title="No hay pacientes con tareas"
-              message="Crea tareas para tus pacientes o revisa las enviadas por ellos."
+              description="Crea tareas para tus pacientes o revisa las enviadas por ellos."
             />
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
@@ -4308,7 +4307,7 @@ export default function PsychDashboard() {
               ) : null}
             </>
           ) : (
-            <EmptyState icon="👤" title="Paciente no encontrado" message="No se pudieron cargar los detalles del paciente." />
+            <EmptyState icon="👤" title="Paciente no encontrado" description="No se pudieron cargar los detalles del paciente." />
           )}
         </div>
       )}
@@ -4455,7 +4454,7 @@ export default function PsychDashboard() {
               </div>
             </>
           ) : (
-            <EmptyState icon="📊" title="Test no encontrado" message="No se pudieron cargar los detalles del test." />
+            <EmptyState icon="📊" title="Test no encontrado" description="No se pudieron cargar los detalles del test." />
           )}
         </div>
       )}
@@ -4464,7 +4463,7 @@ export default function PsychDashboard() {
       {(() => {
         // Si tenemos una referencia, renderizar el componente incluso si showVideoCall es false temporalmente
         const shouldRender = showVideoCall || (videoCallRef.current && videoCallRef.current.room);
-        const roomToUse = showVideoCall ? videoCallRoom : videoCallRef.current?.room;
+        const roomToUse: string | undefined = showVideoCall ? (videoCallRoom ?? undefined) : (videoCallRef.current?.room ?? undefined);
         const userToUse = showVideoCall ? me : videoCallRef.current?.user;
         const otherUserToUse = showVideoCall ? videoCallOtherUser : videoCallRef.current?.otherUser;
         
@@ -4472,7 +4471,7 @@ export default function PsychDashboard() {
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10000, pointerEvents: 'auto' }}>
             <JitsiVideoCall
               key={`jitsi-${roomToUse}`} // Key estable para evitar re-montajes
-              roomName={roomToUse}
+              roomName={roomToUse!}
               userEmail={userToUse.email}
               userName={userToUse.name || 'Psicólogo'}
               otherUserEmail={otherUserToUse?.email}

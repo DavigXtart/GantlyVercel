@@ -8,7 +8,7 @@ interface ForgotPasswordProps {
   onSuccess?: () => void;
 }
 
-export default function ForgotPassword({ onBack, onSuccess }: ForgotPasswordProps) {
+export default function ForgotPassword({ onBack, onSuccess: _onSuccess }: ForgotPasswordProps) {
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState<{ email?: string }>({});
   const [loading, setLoading] = useState(false);

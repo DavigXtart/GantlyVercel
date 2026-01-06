@@ -424,7 +424,7 @@ function App() {
     setShowInitialTest(true);
   };
 
-  const handleStartInitialTest = useCallback(() => {
+  const _handleStartInitialTest = useCallback(() => {
     isUserNavigation.current = true;
     setShowLanding(false);
     setShowAbout(false);

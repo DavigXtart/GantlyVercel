@@ -1,9 +1,8 @@
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { profileService, tasksService, calendarService, assignedTestsService, jitsiService, authService } from '../services/api';
 import ChatWidget from './ChatWidget';
 import CalendarWeek from './CalendarWeek';
 import JitsiVideoCall from './JitsiVideoCall';
-import { generateJitsiRoomName } from '../lib/utils';
 import LoadingSpinner from './ui/LoadingSpinner';
 import EmptyState from './ui/EmptyState';
 import { toast } from './ui/Toast';
@@ -3143,7 +3142,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       {(() => {
         // Si tenemos una referencia, renderizar el componente incluso si showVideoCall es false temporalmente
         const shouldRender = showVideoCall || (videoCallRef.current && videoCallRef.current.room);
-        const roomToUse = showVideoCall ? videoCallRoom : videoCallRef.current?.room;
+        const roomToUse: string | undefined = showVideoCall ? (videoCallRoom ?? undefined) : (videoCallRef.current?.room ?? undefined);
         const userToUse = showVideoCall ? me : videoCallRef.current?.user;
         const otherUserToUse = showVideoCall ? videoCallOtherUser : videoCallRef.current?.otherUser;
         
@@ -3151,7 +3150,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10000, pointerEvents: 'auto' }}>
             <JitsiVideoCall
               key={`jitsi-${roomToUse}`} // Key estable para evitar re-montajes
-              roomName={roomToUse}
+              roomName={roomToUse!}
               userEmail={userToUse.email}
               userName={userToUse.name || 'Usuario'}
               otherUserEmail={otherUserToUse?.email}

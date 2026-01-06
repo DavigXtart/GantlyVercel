@@ -39,7 +39,7 @@ export default function AdminPanel({ initialTab = 'tests' }: AdminPanelProps) {
 
   useEffect(() => {
     // Cargar topics disponibles de todos los tests
-    const topics = Array.from(new Set(tests.map(t => t.topic).filter(t => t && t.trim() !== '')));
+    const topics = Array.from(new Set(tests.map(t => t.topic).filter((t): t is string => t != null && t.trim() !== '')));
     setAvailableTopics(topics.sort());
   }, [tests]);
 
@@ -109,8 +109,8 @@ export default function AdminPanel({ initialTab = 'tests' }: AdminPanelProps) {
         title: formData.get('title') as string,
         description: formData.get('description') as string || '',
         active: formData.get('active') === 'true',
-        category: (formData.get('category') as string) || null,
-        topic: (formData.get('topic') as string) || null
+        category: (formData.get('category') as string) || undefined,
+        topic: (formData.get('topic') as string) || undefined
       };
       
       // Determinar si es un evaluation test (tiene category y topic definidos y no es placeholder)
@@ -121,7 +121,7 @@ export default function AdminPanel({ initialTab = 'tests' }: AdminPanelProps) {
       if (isEvaluationTest) {
         // Intentar actualizar como evaluation test primero
         try {
-          await adminService.updateEvaluationTest(editingTest.id, updateData);
+          await adminService.updateEvaluationTest(editingTest.id, { ...updateData, category: updateData.category || undefined, topic: updateData.topic || undefined });
         } catch (e) {
           // Si falla, intentar como test normal
           await adminService.updateTest(editingTest.id, updateData);

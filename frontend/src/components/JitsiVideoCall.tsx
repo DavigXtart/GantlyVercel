@@ -15,7 +15,7 @@ function JitsiVideoCallComponent({
   userEmail, 
   userName, 
   onClose,
-  otherUserEmail,
+  otherUserEmail: _,
   otherUserName 
 }: JitsiVideoCallProps) {
   const jitsiContainerRef = useRef<HTMLDivElement>(null);
@@ -34,7 +34,7 @@ function JitsiVideoCallComponent({
   }, [onClose]);
   
   // Función protegida para cerrar - solo funciona si allowCloseRef es true
-  const safeClose = useRef(() => {
+  const _safeClose = useRef(() => {
     if (allowCloseRef.current) {
       try {
         onCloseRef.current();
@@ -46,7 +46,7 @@ function JitsiVideoCallComponent({
   
   // Interceptar beforeunload y unload para prevenir cierres accidentales
   useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+    const handleBeforeUnload = (_e: BeforeUnloadEvent) => {
       // Si estamos en una videollamada activa, NO hacer nada
       // Jitsi puede estar reconectando, no cerrar
       if (apiRef.current) {
@@ -162,7 +162,7 @@ function JitsiVideoCallComponent({
 
       // Manejo global de errores MUY robusto para evitar crashes
       const originalErrorHandler = window.onerror;
-      const originalUnhandledRejection = window.onunhandledrejection;
+      const _originalUnhandledRejection = window.onunhandledrejection;
       
       const globalErrorHandler = (message: any, source?: string, lineno?: number, colno?: number, error?: Error) => {
         try {
@@ -320,7 +320,7 @@ function JitsiVideoCallComponent({
             e.stopPropagation();
           }, true);
         }
-        return originalXHROpen.apply(this, [method, url, ...rest]);
+        return originalXHROpen.apply(this, [method, url, ...rest] as [string, string | URL, boolean?, string?, string?]);
       };
 
       XMLHttpRequest.prototype.send = function(...args: any[]) {
@@ -342,7 +342,7 @@ function JitsiVideoCallComponent({
           }
         }, true);
         
-        return originalXHRSend.apply(this, args);
+        return originalXHRSend.apply(this, args as [Document | XMLHttpRequestBodyInit | null | undefined]);
       };
 
       // Interceptar console.error para silenciar errores de Jitsi - MÁS AGRESIVO
@@ -540,11 +540,11 @@ function JitsiVideoCallComponent({
         });
 
         // Eventos de participantes (opcionales, solo para logging)
-        safeAddEventListener('participantJoined', (participant: any) => {
+        safeAddEventListener('participantJoined', (_participant: any) => {
           console.log('👤 Participante se unió');
         });
 
-        safeAddEventListener('participantLeft', (participant: any) => {
+        safeAddEventListener('participantLeft', (_participant: any) => {
           console.log('👋 Participante salió');
         });
 
@@ -704,7 +704,9 @@ function JitsiVideoCallComponent({
             try {
               e.preventDefault();
               e.stopPropagation();
-              e.stopImmediatePropagation();
+              if ('stopImmediatePropagation' in e && typeof e.stopImmediatePropagation === 'function') {
+                e.stopImmediatePropagation();
+              }
               // Permitir cerrar solo cuando el usuario hace clic explícitamente
               allowCloseRef.current = true;
               onCloseRef.current();

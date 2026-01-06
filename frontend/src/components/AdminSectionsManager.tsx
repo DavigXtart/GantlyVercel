@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { adminService, evaluationTestService } from '../services/api';
+import { adminService } from '../services/api';
 import { toast } from './ui/Toast';
 import LoadingSpinner from './ui/LoadingSpinner';
 
@@ -17,7 +17,7 @@ export default function AdminSectionsManager() {
   const [loading, setLoading] = useState(true);
   const [allTests, setAllTests] = useState<EvaluationTest[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<'EVALUATION' | 'DISCOVERY'>('EVALUATION');
-  const [editingTopic, setEditingTopic] = useState<string | null>(null);
+  const [_editingTopic, _setEditingTopic] = useState<string | null>(null);
   const [newTopicName, setNewTopicName] = useState('');
   const [showNewTopicForm, setShowNewTopicForm] = useState(false);
   const [draggedTest, setDraggedTest] = useState<EvaluationTest | null>(null);
@@ -99,7 +99,7 @@ export default function AdminSectionsManager() {
     );
   };
 
-  const getUnassignedTests = (category: 'EVALUATION' | 'DISCOVERY') => {
+  const getUnassignedTests = (_category: 'EVALUATION' | 'DISCOVERY') => {
     // Obtener TODOS los tests activos sin topic asignado, independientemente de su categoría
     // Estos tests pueden asignarse a cualquier sección de esta categoría
     return allTests.filter(t => 

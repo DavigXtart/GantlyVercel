@@ -124,7 +124,7 @@ export default function MisEstadisticas() {
         ) : (
           <EmptyState
             title="No hay datos aún"
-            message="Comienza a registrar tu estado de ánimo diario para ver tus estadísticas aquí."
+            description="Comienza a registrar tu estado de ánimo diario para ver tus estadísticas aquí."
           />
         )}
       </div>
@@ -259,7 +259,7 @@ export default function MisEstadisticas() {
         ) : (
           <EmptyState
             title="No hay tests completados"
-            message="Completa algunos tests de evaluación para ver tus estadísticas aquí."
+            description="Completa algunos tests de evaluación para ver tus estadísticas aquí."
           />
         )}
       </div>

@@ -766,7 +766,7 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
           {/* Respuestas */}
           {currentQuestion.type === 'SINGLE' && currentQuestion.answers && currentQuestion.answers.length > 0 && (
             <div style={{ display: 'grid', gap: '16px' }}>
-              {currentQuestion.answers.map((answer, index) => {
+              {currentQuestion.answers.map((answer) => {
                 const isSelected = currentAnswer?.answerId === answer.id;
                 return (
                   <button
@@ -830,7 +830,7 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
 
           {currentQuestion.type === 'MULTI' && currentQuestion.answers && currentQuestion.answers.length > 0 && (
             <div style={{ display: 'grid', gap: '16px' }}>
-              {currentQuestion.answers.map((answer, index) => {
+              {currentQuestion.answers.map((answer) => {
                 const isSelected = currentAnswer?.answerId === answer.id;
                 return (
                   <button

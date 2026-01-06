@@ -190,7 +190,7 @@ export default function Descubrimiento() {
       ) : (
         <EmptyState
           title="No hay tests disponibles"
-          message="Los tests de descubrimiento estarán disponibles próximamente."
+          description="Los tests de descubrimiento estarán disponibles próximamente."
         />
       )}
     </div>

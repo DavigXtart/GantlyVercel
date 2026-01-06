@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { authService } from '../services/api';
 import FormField from './ui/FormField';
 import { toast } from './ui/Toast';

@@ -9,7 +9,7 @@ interface LandingProps {
 }
 
 export default function Landing({ onGetStarted, onLogin, onShowAbout, onShowSoyProfesional }: LandingProps) {
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const [_scrollProgress, setScrollProgress] = useState(0);
   const observerRef = useRef<any>(null);
 
   useEffect(() => {

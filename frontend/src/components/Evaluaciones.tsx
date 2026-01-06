@@ -190,7 +190,7 @@ export default function Evaluaciones() {
       ) : (
         <EmptyState
           title="No hay tests disponibles"
-          message="Los tests de evaluación estarán disponibles próximamente."
+          description="Los tests de evaluación estarán disponibles próximamente."
         />
       )}
     </div>

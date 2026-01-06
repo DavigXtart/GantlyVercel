@@ -18,7 +18,7 @@ interface DailyEntry {
   notes: string;
 }
 
-export default function AgendaPersonal({ onComplete }: AgendaPersonalProps) {
+export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPersonalProps) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
