@@ -29,6 +29,8 @@ spring:
     validate-on-migrate: false
     locations: classpath:db/migration
     clean-disabled: true
+    repair-on-migrate: true
+    baseline-version: 0
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
