@@ -4,11 +4,11 @@ FROM maven:3.9-eclipse-temurin-21 AS builder
 WORKDIR /app
 
 # Copiar archivos de configuración de Maven primero (para aprovechar cache)
-COPY pom.xml .
+COPY psicoapp/pom.xml .
 RUN mvn dependency:go-offline -B
 
 # Copiar el código fuente
-COPY src ./src
+COPY psicoapp/src ./src
 
 # Compilar la aplicación
 RUN mvn clean package -DskipTests
