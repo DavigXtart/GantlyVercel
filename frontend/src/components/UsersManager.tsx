@@ -58,6 +58,9 @@ export default function UsersManager() {
     );
   });
 
+  const regularUsers = filteredUsers.filter(user => user.role === 'USER');
+  const psychologists = filteredUsers.filter(user => user.role === 'PSYCHOLOGIST');
+
   useEffect(() => {
     loadUsers();
     loadTests();
@@ -434,37 +437,95 @@ export default function UsersManager() {
             <p>No se encontraron usuarios que coincidan con “{searchTerm}”.</p>
           </div>
         ) : (
-          <div className="users-grid">
-            {filteredUsers.map(user => (
-              <div key={user.id} className="user-card-admin">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                  <div style={{ flex: 1 }}>
-                    <h3>{user.name}</h3>
-                    <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                      {user.email}
-                    </p>
-                  </div>
-                  <span className={`status-badge ${user.role === 'ADMIN' ? 'status-active' : 'status-inactive'}`}>
-                    {user.role === 'ADMIN' ? '👑 Admin' : '👤 Usuario'}
-                  </span>
+          <>
+            {/* Sección de Usuarios */}
+            <div style={{ marginBottom: '40px' }}>
+              <h3 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '20px', color: 'var(--text-primary)' }}>
+                👤 Usuarios ({regularUsers.length})
+              </h3>
+              {regularUsers.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
+                  <p>No hay usuarios registrados.</p>
                 </div>
-                <div style={{ marginBottom: '16px' }}>
-                  <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
-                    <strong>Tests completados:</strong> {user.testsCompleted ?? 0}
-                  </p>
-                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                    Registrado: {formatDate(user.createdAt)}
-                  </p>
+              ) : (
+                <div className="users-grid">
+                  {regularUsers.map(user => (
+                    <div key={user.id} className="user-card-admin">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                        <div style={{ flex: 1 }}>
+                          <h3>{user.name}</h3>
+                          <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                            {user.email}
+                          </p>
+                        </div>
+                        <span className="status-badge status-inactive">
+                          👤 Usuario
+                        </span>
+                      </div>
+                      <div style={{ marginBottom: '16px' }}>
+                        <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+                          <strong>Tests completados:</strong> {user.testsCompleted ?? 0}
+                        </p>
+                        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                          Registrado: {formatDate(user.createdAt)}
+                        </p>
+                      </div>
+                      <button 
+                        className="btn btn-compact" 
+                        onClick={() => setSelectedUserId(user.id)}
+                      >
+                        Ver detalles
+                      </button>
+                    </div>
+                  ))}
                 </div>
-                <button 
-                  className="btn btn-compact" 
-                  onClick={() => setSelectedUserId(user.id)}
-                >
-                  Ver detalles
-                </button>
-              </div>
-            ))}
-          </div>
+              )}
+            </div>
+
+            {/* Sección de Psicólogos */}
+            <div>
+              <h3 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '20px', color: 'var(--text-primary)' }}>
+                🧠 Psicólogos ({psychologists.length})
+              </h3>
+              {psychologists.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
+                  <p>No hay psicólogos registrados.</p>
+                </div>
+              ) : (
+                <div className="users-grid">
+                  {psychologists.map(user => (
+                    <div key={user.id} className="user-card-admin">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                        <div style={{ flex: 1 }}>
+                          <h3>{user.name}</h3>
+                          <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                            {user.email}
+                          </p>
+                        </div>
+                        <span className="status-badge status-active">
+                          🧠 Psicólogo
+                        </span>
+                      </div>
+                      <div style={{ marginBottom: '16px' }}>
+                        <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+                          <strong>Tests completados:</strong> {user.testsCompleted ?? 0}
+                        </p>
+                        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                          Registrado: {formatDate(user.createdAt)}
+                        </p>
+                      </div>
+                      <button 
+                        className="btn btn-compact" 
+                        onClick={() => setSelectedUserId(user.id)}
+                      >
+                        Ver detalles
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>

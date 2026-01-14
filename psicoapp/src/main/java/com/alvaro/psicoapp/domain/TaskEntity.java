@@ -39,6 +39,9 @@ public class TaskEntity {
     @Column(name = "reminder_sent")
     private Boolean reminderSent = false;
 
+    @Column(name = "completed_at")
+    private Instant completedAt;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public UserEntity getUser() { return user; }
@@ -59,6 +62,8 @@ public class TaskEntity {
     public void setDueDate(Instant dueDate) { this.dueDate = dueDate; }
     public Boolean getReminderSent() { return reminderSent; }
     public void setReminderSent(Boolean reminderSent) { this.reminderSent = reminderSent; }
+    public Instant getCompletedAt() { return completedAt; }
+    public void setCompletedAt(Instant completedAt) { this.completedAt = completedAt; }
 }
 
 

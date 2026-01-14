@@ -775,8 +775,77 @@ export default function PsychDashboard() {
             </div>
           )}
 
+          {/* Toggle "Estoy lleno" */}
+          <div style={{ padding: '0 32px 24px 32px' }}>
+            <div style={{
+              padding: '16px 20px',
+              background: me?.isFull ? 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)' : '#f9fafb',
+              borderRadius: '12px',
+              border: `2px solid ${me?.isFull ? '#ef4444' : '#e5e7eb'}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: me?.isFull ? '#dc2626' : '#1f2937', marginBottom: '4px' }}>
+                  {me?.isFull ? '🔴 Estoy lleno - No acepto nuevos pacientes' : '🟢 Aceptando nuevos pacientes'}
+                </div>
+                <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                  {me?.isFull ? 'No aparecerás en las recomendaciones para nuevos pacientes' : 'Apareces en las recomendaciones para nuevos pacientes'}
+                </div>
+              </div>
+              <label style={{
+                position: 'relative',
+                display: 'inline-block',
+                width: '52px',
+                height: '28px',
+                cursor: 'pointer'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={me?.isFull || false}
+                  onChange={async (e) => {
+                    try {
+                      await psychService.updateIsFull(e.target.checked);
+                      setMe({ ...me, isFull: e.target.checked });
+                      toast.success(e.target.checked ? 'Ahora estás marcado como lleno' : 'Ahora aceptas nuevos pacientes');
+                    } catch (error: any) {
+                      toast.error('Error al actualizar el estado: ' + (error.response?.data?.error || error.message));
+                    }
+                  }}
+                  style={{ opacity: 0, width: 0, height: 0 }}
+                />
+                <span style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: me?.isFull ? '#ef4444' : '#cbd5e1',
+                  borderRadius: '28px',
+                  transition: 'background-color 0.3s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '2px'
+                }}>
+                  <span style={{
+                    content: '""',
+                    position: 'absolute',
+                    height: '24px',
+                    width: '24px',
+                    left: me?.isFull ? '24px' : '2px',
+                    backgroundColor: 'white',
+                    borderRadius: '50%',
+                    transition: 'left 0.3s',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                  }} />
+                </span>
+              </label>
+            </div>
+          </div>
+
           {/* Estadísticas */}
-          <div style={{ padding: '32px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px' }}>
+          <div style={{ padding: '0 32px 32px 32px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px' }}>
             <div style={{
               padding: '20px',
               background: '#f9fafb',
@@ -3559,7 +3628,7 @@ export default function PsychDashboard() {
                         fontFamily: "'Inter', sans-serif",
                         marginBottom: '12px'
                       }}>
-                        💰 {req.appointment.price} €
+                        {req.appointment.price} €
                       </div>
                     )}
                     <div style={{ 

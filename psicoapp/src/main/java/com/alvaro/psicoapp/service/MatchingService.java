@@ -65,6 +65,10 @@ public class MatchingService {
         List<MatchingResult> results = new ArrayList<>();
         
         for (UserEntity psychologist : allPsychologists) {
+            // Excluir psicólogos que están llenos (isFull = true)
+            if (psychologist.getIsFull() != null && psychologist.getIsFull()) {
+                continue;
+            }
             List<UserAnswerEntity> psychologistAnswers = userAnswerRepository.findByUser(psychologist).stream()
                 .filter(ua -> ua.getQuestion().getTest().getCode().equals(PSYCHOLOGIST_MATCHING_TEST_CODE))
                 .collect(Collectors.toList());

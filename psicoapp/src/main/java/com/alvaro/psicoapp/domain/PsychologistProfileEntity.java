@@ -41,6 +41,9 @@ public class PsychologistProfileEntity {
     @Column(length = 500)
     private String website;
 
+    @Column(name = "session_prices", columnDefinition = "TEXT")
+    private String sessionPrices; // JSON: {"individual": 45, "pareja": 100, "menores": 50}
+
     @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
 
@@ -66,6 +69,8 @@ public class PsychologistProfileEntity {
     public void setLinkedinUrl(String linkedinUrl) { this.linkedinUrl = linkedinUrl; }
     public String getWebsite() { return website; }
     public void setWebsite(String website) { this.website = website; }
+    public String getSessionPrices() { return sessionPrices; }
+    public void setSessionPrices(String sessionPrices) { this.sessionPrices = sessionPrices; }
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
 }

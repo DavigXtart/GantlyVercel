@@ -374,6 +374,10 @@ export const tasksService = {
   addComment: async (taskId: number, content: string) => {
     const { data } = await api.post(`/tasks/${taskId}/comments`, { content });
     return data as any;
+  },
+  complete: async (taskId: number) => {
+    const { data } = await api.post(`/tasks/${taskId}/complete`);
+    return data as any;
   }
 };
 
@@ -468,7 +472,7 @@ export const calendarService = {
 export const psychService = {
   patients: async () => {
     const { data } = await api.get('/psych/patients');
-    const list = data as Array<{ id: number; name: string; email: string; avatarUrl?: string | null }>;
+    const list = data as Array<{ id: number; name: string; email: string; avatarUrl?: string | null; gender?: string; age?: number; status?: string; assignedAt?: string }>;
     return list.map((patient) => ({
       ...patient,
       avatarUrl: resolveAssetUrl(patient.avatarUrl) ?? undefined,
@@ -498,6 +502,14 @@ export const psychService = {
     website?: string;
   }) => {
     const { data } = await api.put('/psych/profile', profile);
+    return data;
+  },
+  updateIsFull: async (isFull: boolean) => {
+    const { data } = await api.put('/psych/is-full', { isFull });
+    return data;
+  },
+  updatePatientStatus: async (patientId: number, status: 'ACTIVE' | 'DISCHARGED') => {
+    const { data } = await api.put(`/psych/patients/${patientId}/status`, { status });
     return data;
   }
 };

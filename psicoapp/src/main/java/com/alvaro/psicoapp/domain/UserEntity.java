@@ -51,6 +51,9 @@ public class UserEntity {
 	@Column(name = "password_reset_token_expires_at")
 	private Instant passwordResetTokenExpiresAt;
 
+	@Column(name = "is_full")
+	private Boolean isFull = false;
+
 	public Long getId() { return id; }
 	public void setId(Long id) { this.id = id; }
 	public String getName() { return name; }
@@ -81,4 +84,6 @@ public class UserEntity {
 	public void setPasswordResetToken(String passwordResetToken) { this.passwordResetToken = passwordResetToken; }
 	public Instant getPasswordResetTokenExpiresAt() { return passwordResetTokenExpiresAt; }
 	public void setPasswordResetTokenExpiresAt(Instant passwordResetTokenExpiresAt) { this.passwordResetTokenExpiresAt = passwordResetTokenExpiresAt; }
+	public Boolean getIsFull() { return isFull; }
+	public void setIsFull(Boolean isFull) { this.isFull = isFull; }
 }

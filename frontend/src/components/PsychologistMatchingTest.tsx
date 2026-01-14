@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Lottie from 'lottie-react';
 import JSZip from 'jszip';
-import { matchingService } from '../services/api';
+import { matchingService, psychService } from '../services/api';
 import { toast } from './ui/Toast';
 import backgroundPng from '../assets/Adobe Express - file (1).png';
 import airBalloonLottieUrl from '../assets/Air Balloony.lottie?url';
@@ -165,34 +165,64 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
     const question1 = test.questions.find(q => q.position === 1); // Modalidades
     const _question2 = test.questions.find(q => q.position === 2); // Formación en menores
     const _question3 = test.questions.find(q => q.position === 3); // Experiencia con menores
+    const questionPriceIndividual = test.questions.find(q => q.position === 18); // Precio individual
+    const questionPricePareja = test.questions.find(q => q.position === 19); // Precio pareja
+    const questionPriceMenores = test.questions.find(q => q.position === 20); // Precio menores
+    
+    // Obtener modalidades seleccionadas
+    let hasIndividual = false;
+    let hasPareja = false;
+    let hasMenores = false;
+    
+    if (question1) {
+      const answer1 = answers[question1.id];
+      if (answer1?.answerIds && answer1.answerIds.length > 0) {
+        const selectedAnswers = question1.answers.filter(a => answer1.answerIds?.includes(a.id));
+        hasIndividual = selectedAnswers.some(a => 
+          a.text.toLowerCase().includes('individual adultos') || 
+          a.text.toLowerCase().includes('individual')
+        );
+        hasPareja = selectedAnswers.some(a => 
+          a.text.toLowerCase().includes('pareja')
+        );
+        hasMenores = selectedAnswers.some(a => 
+          a.text.toLowerCase().includes('infantojuvenil') || 
+          a.text.toLowerCase().includes('menores')
+        );
+      }
+    }
     
     for (const question of test.questions) {
       // Las preguntas 2 y 3 solo se muestran si en la pregunta 1 se marcó "Terapia infantojuvenil (menores)"
       if (question.position === 2 || question.position === 3) {
-        if (question1) {
-          const answer1 = answers[question1.id];
-          if (answer1?.answerIds && answer1.answerIds.length > 0) {
-            // Verificar si alguna de las respuestas seleccionadas es "Terapia infantojuvenil (menores)"
-            const selectedAnswers = question1.answers.filter(a => answer1.answerIds?.includes(a.id));
-            const hasMenores = selectedAnswers.some(a => 
-              a.text.toLowerCase().includes('infantojuvenil') || 
-              a.text.toLowerCase().includes('menores')
-            );
-            
-            if (hasMenores) {
-              visible.push(question);
-            } else {
-              continue; // No mostrar preguntas 2 y 3 si no se marcó menores
-            }
-          } else {
-            continue; // Si no hay respuesta a la pregunta 1, no mostrar preguntas 2 y 3
-          }
-        } else {
-          continue;
+        if (hasMenores) {
+          visible.push(question);
         }
-      } else {
-        visible.push(question);
+        continue;
       }
+      
+      // Preguntas de precios: solo mostrar si se seleccionó la modalidad correspondiente
+      if (question.position === 18) { // Precio individual
+        if (hasIndividual && questionPriceIndividual) {
+          visible.push(question);
+        }
+        continue;
+      }
+      if (question.position === 19) { // Precio pareja
+        if (hasPareja && questionPricePareja) {
+          visible.push(question);
+        }
+        continue;
+      }
+      if (question.position === 20) { // Precio menores
+        if (hasMenores && questionPriceMenores) {
+          visible.push(question);
+        }
+        continue;
+      }
+      
+      // Todas las demás preguntas se muestran normalmente
+      visible.push(question);
     }
     
     return visible;
@@ -317,6 +347,42 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
       }
 
       await matchingService.submitPsychologistTest(submitAnswers);
+      
+      // Guardar precios de sesión en el perfil del psicólogo
+      const questionPriceIndividual = test.questions.find(q => q.position === 18);
+      const questionPricePareja = test.questions.find(q => q.position === 19);
+      const questionPriceMenores = test.questions.find(q => q.position === 20);
+      
+      const sessionPrices: any = {};
+      if (questionPriceIndividual) {
+        const answerIndividual = answers[questionPriceIndividual.id];
+        if (answerIndividual?.numericValue !== undefined) {
+          sessionPrices.individual = answerIndividual.numericValue;
+        }
+      }
+      if (questionPricePareja) {
+        const answerPareja = answers[questionPricePareja.id];
+        if (answerPareja?.numericValue !== undefined) {
+          sessionPrices.pareja = answerPareja.numericValue;
+        }
+      }
+      if (questionPriceMenores) {
+        const answerMenores = answers[questionPriceMenores.id];
+        if (answerMenores?.numericValue !== undefined) {
+          sessionPrices.menores = answerMenores.numericValue;
+        }
+      }
+      
+      // Guardar precios en el perfil si hay alguno
+      if (Object.keys(sessionPrices).length > 0) {
+        try {
+          await psychService.updateProfile({ sessionPrices: JSON.stringify(sessionPrices) });
+        } catch (error: any) {
+          console.error('Error guardando precios de sesión:', error);
+          // No fallar el test si hay error guardando precios
+        }
+      }
+      
       toast.success('Test completado correctamente');
       onComplete();
     } catch (error: any) {

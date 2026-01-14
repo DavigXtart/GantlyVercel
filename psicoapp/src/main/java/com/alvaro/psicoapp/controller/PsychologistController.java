@@ -56,6 +56,10 @@ public class PsychologistController {
             m.put("name", r.getUser().getName());
             m.put("email", r.getUser().getEmail());
             m.put("avatarUrl", r.getUser().getAvatarUrl() != null ? r.getUser().getAvatarUrl() : "");
+            m.put("gender", r.getUser().getGender());
+            m.put("age", r.getUser().getAge());
+            m.put("status", r.getStatus() != null ? r.getStatus() : "ACTIVE");
+            m.put("assignedAt", r.getAssignedAt());
             out.add(m);
         }
         return ResponseEntity.ok(out);
@@ -209,6 +213,7 @@ public class PsychologistController {
         response.put("avatarUrl", me.getAvatarUrl());
         response.put("gender", me.getGender());
         response.put("age", me.getAge());
+        response.put("isFull", me.getIsFull() != null ? me.getIsFull() : false);
         
         if (profile.isPresent()) {
             var p = profile.get();
@@ -221,6 +226,7 @@ public class PsychologistController {
             response.put("languages", p.getLanguages());
             response.put("linkedinUrl", p.getLinkedinUrl());
             response.put("website", p.getWebsite());
+            response.put("sessionPrices", p.getSessionPrices());
             response.put("updatedAt", p.getUpdatedAt());
         } else {
             // Crear perfil vacío si no existe
@@ -233,6 +239,7 @@ public class PsychologistController {
             response.put("languages", null);
             response.put("linkedinUrl", null);
             response.put("website", null);
+            response.put("sessionPrices", null);
             response.put("updatedAt", null);
         }
         
@@ -267,12 +274,66 @@ public class PsychologistController {
         if (body.containsKey("languages")) profile.setLanguages((String) body.get("languages"));
         if (body.containsKey("linkedinUrl")) profile.setLinkedinUrl((String) body.get("linkedinUrl"));
         if (body.containsKey("website")) profile.setWebsite((String) body.get("website"));
+        if (body.containsKey("sessionPrices")) profile.setSessionPrices((String) body.get("sessionPrices"));
         
         profile.setUpdatedAt(Instant.now());
         psychologistProfileRepository.save(profile);
         
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Perfil actualizado exitosamente");
+        return ResponseEntity.ok(response);
+    }
+
+    // PUT: Actualizar flag "estoy lleno"
+    @PutMapping("/is-full")
+    @Transactional
+    public ResponseEntity<Map<String, Object>> updateIsFull(Principal principal, @RequestBody Map<String, Object> body) {
+        var me = userRepository.findByEmail(principal.getName()).orElseThrow();
+        if (!"PSYCHOLOGIST".equals(me.getRole())) {
+            return ResponseEntity.status(403).build();
+        }
+        
+        if (body.containsKey("isFull")) {
+            Boolean isFull = body.get("isFull") instanceof Boolean 
+                ? (Boolean) body.get("isFull")
+                : Boolean.parseBoolean(String.valueOf(body.get("isFull")));
+            me.setIsFull(isFull);
+            userRepository.save(me);
+        }
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Estado actualizado exitosamente");
+        response.put("isFull", me.getIsFull());
+        return ResponseEntity.ok(response);
+    }
+
+    // PUT: Cambiar status de un paciente (dar de alta/baja)
+    @PutMapping("/patients/{patientId}/status")
+    @Transactional
+    public ResponseEntity<Map<String, Object>> updatePatientStatus(Principal principal, @PathVariable Long patientId, @RequestBody Map<String, Object> body) {
+        var me = userRepository.findByEmail(principal.getName()).orElseThrow();
+        if (!"PSYCHOLOGIST".equals(me.getRole())) {
+            return ResponseEntity.status(403).build();
+        }
+        
+        var relOpt = userPsychologistRepository.findByUserId(patientId);
+        if (relOpt.isEmpty() || !relOpt.get().getPsychologist().getId().equals(me.getId())) {
+            return ResponseEntity.status(403).body(Map.of("error", "Este usuario no es tu paciente"));
+        }
+        
+        var rel = relOpt.get();
+        if (body.containsKey("status")) {
+            String status = (String) body.get("status");
+            if (!"ACTIVE".equals(status) && !"DISCHARGED".equals(status)) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Status debe ser ACTIVE o DISCHARGED"));
+            }
+            rel.setStatus(status);
+            userPsychologistRepository.save(rel);
+        }
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Status del paciente actualizado exitosamente");
+        response.put("status", rel.getStatus());
         return ResponseEntity.ok(response);
     }
 }

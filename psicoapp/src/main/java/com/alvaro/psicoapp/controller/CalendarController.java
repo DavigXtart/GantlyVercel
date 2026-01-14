@@ -129,47 +129,6 @@ public class CalendarController {
             return ResponseEntity.badRequest().body(Map.of("error", "El precio debe ser mayor a 0"));
         }
         
-        // Validar regla de negocio: al menos una cita de la semana debe costar menos de 50€
-        LocalDate appointmentDate = LocalDate.ofInstant(start, ZoneId.systemDefault());
-        WeekFields weekFields = WeekFields.of(Locale.getDefault());
-        int weekOfYear = appointmentDate.get(weekFields.weekOfWeekBasedYear());
-        int year = appointmentDate.get(weekFields.weekBasedYear());
-        
-        // Calcular inicio y fin de la semana (lunes a domingo)
-        LocalDate weekStart = appointmentDate.with(weekFields.dayOfWeek(), 1);
-        LocalDate weekEnd = weekStart.plusDays(6);
-        Instant weekStartInstant = weekStart.atStartOfDay(ZoneId.systemDefault()).toInstant();
-        Instant weekEndInstant = weekEnd.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant();
-        
-        // Obtener todas las citas de la semana del psicólogo
-        List<AppointmentEntity> weekAppointments = appointmentRepository
-            .findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(me.getId(), weekStartInstant, weekEndInstant);
-        
-        // Si el precio de esta cita es >= 50€, verificar que haya al menos una cita < 50€ en la semana
-        if (price != null && price.compareTo(new BigDecimal("50.00")) >= 0) {
-            boolean hasCheapAppointment = weekAppointments.stream()
-                .anyMatch(apt -> apt.getPrice() != null && apt.getPrice().compareTo(new BigDecimal("50.00")) < 0);
-            
-            // Si no hay ninguna cita barata en la semana (excluyendo la que estamos creando), rechazar
-            if (!hasCheapAppointment) {
-                return ResponseEntity.badRequest().body(Map.of(
-                    "error", 
-                    "Al menos una cita de la semana debe costar menos de 50€. Actualmente no hay ninguna cita con precio menor a 50€ en esta semana."
-                ));
-            }
-        }
-        
-        // Si todas las citas de la semana son >= 50€, esta nueva debe ser < 50€
-        boolean allExpensive = weekAppointments.stream()
-            .allMatch(apt -> apt.getPrice() != null && apt.getPrice().compareTo(new BigDecimal("50.00")) >= 0);
-        
-        if (allExpensive && price.compareTo(new BigDecimal("50.00")) >= 0) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "error",
-                "Al menos una cita de la semana debe costar menos de 50€. Por favor, establece un precio menor a 50€ para esta cita."
-            ));
-        }
-        
         AppointmentEntity a = new AppointmentEntity();
         a.setPsychologist(me);
         a.setStartTime(start);

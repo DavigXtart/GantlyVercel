@@ -1952,55 +1952,57 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                   }}>
                     📎 Archivos adjuntos
                   </h4>
-                  <label style={{
-                    padding: '10px 20px',
-                    background: '#5a9270',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '12px',
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    fontFamily: "'Inter', sans-serif",
-                    boxShadow: '0 4px 12px rgba(90, 146, 112, 0.3)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
-                    e.currentTarget.style.background = '#4a8062';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
-                    e.currentTarget.style.background = '#5a9270';
-                  }}
-                  >
-                    ➕ Subir archivo
-                    <input
-                      type="file"
-                      style={{ display: 'none' }}
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          try {
-                            await tasksService.uploadFile(selectedTaskId, file);
-                            await loadTaskFiles(selectedTaskId);
-                            // Archivo subido exitosamente (sin pop-up)
-                            // Resetear el input para permitir subir el mismo archivo de nuevo
-                            e.target.value = '';
-                          } catch (error: any) {
-                            console.error('Error al subir archivo:', error);
-                            console.error('Error completo:', JSON.stringify(error, null, 2));
-                            const errorMessage = error.response?.data?.error || error.response?.data?.message || error.response?.data?.details || error.message || 'Error desconocido';
-                            toast.error('Error al subir el archivo: ' + errorMessage);
-                            // Resetear el input incluso si hay error
-                            e.target.value = '';
+                  {!selectedTask.completedAt && (
+                    <label style={{
+                      padding: '10px 20px',
+                      background: '#5a9270',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      fontFamily: "'Inter', sans-serif",
+                      boxShadow: '0 4px 12px rgba(90, 146, 112, 0.3)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
+                      e.currentTarget.style.background = '#4a8062';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
+                      e.currentTarget.style.background = '#5a9270';
+                    }}
+                    >
+                      ➕ Subir archivo
+                      <input
+                        type="file"
+                        style={{ display: 'none' }}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            try {
+                              await tasksService.uploadFile(selectedTaskId, file);
+                              await loadTaskFiles(selectedTaskId);
+                              // Archivo subido exitosamente (sin pop-up)
+                              // Resetear el input para permitir subir el mismo archivo de nuevo
+                              e.target.value = '';
+                            } catch (error: any) {
+                              console.error('Error al subir archivo:', error);
+                              console.error('Error completo:', JSON.stringify(error, null, 2));
+                              const errorMessage = error.response?.data?.error || error.response?.data?.message || error.response?.data?.details || error.message || 'Error desconocido';
+                              toast.error('Error al subir el archivo: ' + errorMessage);
+                              // Resetear el input incluso si hay error
+                              e.target.value = '';
+                            }
                           }
-                        }
-                      }}
-                    />
-                  </label>
+                        }}
+                      />
+                    </label>
+                  )}
                 </div>
                 {taskFiles[selectedTaskId] && taskFiles[selectedTaskId].length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -2155,6 +2157,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                 )}
 
                 {/* Formulario de nuevo comentario */}
+                {!selectedTask.completedAt && (
                 <div style={{ display: 'flex', gap: '12px' }}>
                   <textarea
                     value={newComment}
@@ -2217,7 +2220,77 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     Enviar
                   </button>
                 </div>
+                )}
               </div>
+
+              {/* Botón para completar/enviar tarea */}
+              {selectedTask && !selectedTask.completedAt && selectedTask.createdBy === 'PSYCHOLOGIST' && (
+                <div style={{ marginTop: '32px', paddingTop: '32px', borderTop: '2px solid rgba(90, 146, 112, 0.15)' }}>
+                  <button
+                    onClick={async () => {
+                      if (confirm('¿Marcar esta tarea como completada? Una vez marcada, no podrás editarla.')) {
+                        try {
+                          await tasksService.complete(selectedTaskId!);
+                          await loadData();
+                          await loadTaskDetails(selectedTaskId!);
+                          toast.success('Tarea marcada como completada');
+                        } catch (error: any) {
+                          toast.error('Error al completar la tarea: ' + (error.response?.data?.error || error.message));
+                        }
+                      }
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '16px 24px',
+                      background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      fontSize: '16px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      fontFamily: "'Inter', sans-serif",
+                      boxShadow: '0 4px 12px rgba(34, 197, 94, 0.3)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 6px 16px rgba(34, 197, 94, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(34, 197, 94, 0.3)';
+                    }}
+                  >
+                    ✓ Marcar como completada
+                  </button>
+                </div>
+              )}
+
+              {/* Indicador de tarea completada */}
+              {selectedTask && selectedTask.completedAt && (
+                <div style={{ 
+                  marginTop: '32px', 
+                  padding: '20px', 
+                  background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
+                  borderRadius: '12px',
+                  border: '2px solid rgba(34, 197, 94, 0.3)',
+                  textAlign: 'center'
+                }}>
+                  <div style={{ fontSize: '18px', fontWeight: 600, color: '#065f46', marginBottom: '8px' }}>
+                    ✓ Tarea completada
+                  </div>
+                  <div style={{ fontSize: '14px', color: '#047857' }}>
+                    Completada el {new Date(selectedTask.completedAt).toLocaleDateString('es-ES', { 
+                      day: 'numeric', 
+                      month: 'long', 
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             // Lista de tareas
@@ -2245,12 +2318,25 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               description="Aún no tienes tareas asignadas. Tu psicólogo te asignará tareas aquí."
             />
           ) : (
-            <div 
-              style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
-              role="list"
-              aria-label="Lista de tareas"
-            >
-              {tasks.map((t) => (
+            <>
+              {/* Tareas pendientes */}
+              {tasks.filter(t => !t.completedAt).length > 0 && (
+                <div style={{ marginBottom: '32px' }}>
+                  <h4 style={{ 
+                    margin: '0 0 20px 0', 
+                    fontSize: '20px', 
+                    fontWeight: 600, 
+                    color: '#1a2e22',
+                    fontFamily: "'Inter', sans-serif"
+                  }}>
+                    Tareas pendientes
+                  </h4>
+                  <div 
+                    style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+                    role="list"
+                    aria-label="Lista de tareas pendientes"
+                  >
+                    {tasks.filter(t => !t.completedAt).map((t) => (
                 <div
                   key={t.id}
                   onClick={() => {
@@ -2334,9 +2420,108 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                   </div>
                 </div>
               ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Tareas completadas */}
+              {tasks.filter(t => t.completedAt).length > 0 && (
+                <div>
+                  <h4 style={{ 
+                    margin: '0 0 20px 0', 
+                    fontSize: '20px', 
+                    fontWeight: 600, 
+                    color: '#1a2e22',
+                    fontFamily: "'Inter', sans-serif"
+                  }}>
+                    Tareas completadas
+                  </h4>
+                  <div 
+                    style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+                    role="list"
+                    aria-label="Lista de tareas completadas"
+                  >
+                    {tasks.filter(t => t.completedAt).map((t) => (
+                      <div
+                        key={t.id}
+                        onClick={() => {
+                          setSelectedTaskId(t.id);
+                          loadTaskDetails(t.id);
+                        }}
+                        style={{
+                          padding: '28px',
+                          background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
+                          border: '2px solid rgba(34, 197, 94, 0.3)',
+                          borderRadius: '16px',
+                          transition: 'all 0.3s ease',
+                          boxShadow: '0 2px 8px rgba(34, 197, 94, 0.08)',
+                          cursor: 'pointer',
+                          opacity: 0.8
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-4px)';
+                          e.currentTarget.style.boxShadow = '0 6px 16px rgba(34, 197, 94, 0.15)';
+                          e.currentTarget.style.opacity = '1';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 2px 8px rgba(34, 197, 94, 0.08)';
+                          e.currentTarget.style.opacity = '0.8';
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px' }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                              <div style={{
+                                padding: '6px 12px',
+                                background: '#22c55e',
+                                color: 'white',
+                                borderRadius: '20px',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                fontFamily: "'Inter', sans-serif"
+                              }}>
+                                ✓ Completada
+                              </div>
+                              {t.completedAt && (
+                                <div style={{ fontSize: '12px', color: '#047857' }}>
+                                  Completada: {new Date(t.completedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </div>
+                              )}
+                            </div>
+                            <div style={{ 
+                              fontSize: '22px', 
+                              fontWeight: 700, 
+                              color: '#065f46', 
+                              marginBottom: '12px',
+                              fontFamily: "'Inter', sans-serif",
+                              letterSpacing: '-0.01em'
+                            }}>
+                              {t.title}
+                            </div>
+                            <div style={{ 
+                              fontSize: '15px', 
+                              color: '#047857', 
+                              lineHeight: '1.6', 
+                              marginBottom: '16px',
+                              fontFamily: "'Inter', sans-serif",
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden'
+                            }}>
+                              {t.description || 'Sin descripción'}
+                            </div>
+                          </div>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
           )}
         </>
       )}

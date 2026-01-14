@@ -5,6 +5,13 @@ import SockJS from 'sockjs-client';
 import api, { profileService, psychService } from '../services/api';
 import { toast } from './ui/Toast';
 
+// Obtener la URL base para WebSocket (sin /api)
+const WS_BASE_URL = (() => {
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+  // Remover /api si existe, y usar la base
+  return apiUrl.replace(/\/api\/?$/, '').replace(/\/$/, '');
+})();
+
 type Props = {
   mode: 'USER' | 'PSYCHOLOGIST';
   otherId?: number; // requerido si PSYCHOLOGIST (userId del paciente)
@@ -160,7 +167,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
 
     const client = new Client({
       webSocketFactory: () => {
-        const socket = new SockJS('http://localhost:8080/ws');
+        const socket = new SockJS(`${WS_BASE_URL}/ws`);
         return socket;
       },
       reconnectDelay: 3000,

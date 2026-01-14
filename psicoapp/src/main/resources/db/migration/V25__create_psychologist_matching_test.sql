@@ -34,6 +34,19 @@ INSERT INTO answers (question_id, text, value, position) VALUES
 (@q1b, '1–3 años', NULL, 2),
 (@q1b, '> 3 años', NULL, 3);
 
+-- Preguntas sobre precios por tipo de sesión
+INSERT INTO questions (test_id, text, type, position) VALUES
+(@psych_test_id, '¿Cuánto cobras por sesión de terapia individual adultos? (en euros)', 'NUMBER', 18);
+SET @q_price_individual = LAST_INSERT_ID();
+
+INSERT INTO questions (test_id, text, type, position) VALUES
+(@psych_test_id, '¿Cuánto cobras por sesión de terapia de pareja? (en euros)', 'NUMBER', 19);
+SET @q_price_pareja = LAST_INSERT_ID();
+
+INSERT INTO questions (test_id, text, type, position) VALUES
+(@psych_test_id, '¿Cuánto cobras por sesión de terapia infantojuvenil (menores)? (en euros)', 'NUMBER', 20);
+SET @q_price_menores = LAST_INSERT_ID();
+
 -- ============================================
 -- BLOQUE 2: EXPERIENCIA CLÍNICA (PESO ALTO)
 -- ============================================

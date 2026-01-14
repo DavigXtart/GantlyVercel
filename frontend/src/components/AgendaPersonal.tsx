@@ -118,10 +118,22 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
     { value: 5, emoji: '😄', label: 'Muy feliz', color: '#f6ad55' }
   ];
 
-  const emotions = [
-    'Enojado', 'Aterrorizado', 'Pánico', 'Celoso', 'Furioso', 'Asustado',
-    'Deprimido', 'Disgustado', 'Avergonzado', 'Sin esperanza', 'Vacío', 'Herido'
-  ];
+  const getEmotions = (moodRating: number): string[] => {
+    if (moodRating === 1 || moodRating === 2) {
+      // Emociones negativas para estados tristes
+      return ['Enojado', 'Aterrorizado', 'Pánico', 'Celoso', 'Furioso', 'Asustado',
+        'Deprimido', 'Disgustado', 'Avergonzado', 'Sin esperanza', 'Vacío', 'Herido'];
+    } else if (moodRating === 3) {
+      // Emociones neutrales
+      return ['Tranquilo', 'Indiferente', 'Pensativo', 'Reflexivo', 'Sereno', 'Calmado'];
+    } else {
+      // Emociones positivas para estados felices
+      return ['Contento', 'Alegre', 'Entusiasmado', 'Animado', 'Optimista', 'Eufórico',
+        'Agradecido', 'Satisfecho', 'Tranquilo', 'Enérgico', 'Inspirado', 'Motivado'];
+    }
+  };
+
+  const emotions = getEmotions(entryData.moodRating);
 
   const activities = ['Comiendo', 'Ejercicio', 'Pasatiempos', 'Relajándome', 'Durmiendo', 'Viajando', 'Trabajando'];
   const companions = ['Familia', 'Amigos', 'Solo', 'Pareja'];

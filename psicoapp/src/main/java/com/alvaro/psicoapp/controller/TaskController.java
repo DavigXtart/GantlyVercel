@@ -272,12 +272,43 @@ public class TaskController {
         taskData.put("createdBy", task.getCreatedBy());
         taskData.put("createdAt", task.getCreatedAt() != null ? task.getCreatedAt().toString() : null);
         taskData.put("dueDate", task.getDueDate() != null ? task.getDueDate().toString() : null);
+        taskData.put("completedAt", task.getCompletedAt() != null ? task.getCompletedAt().toString() : null);
         taskData.put("userId", task.getUser().getId());
         taskData.put("userName", task.getUser().getName());
         taskData.put("psychologistId", task.getPsychologist().getId());
         taskData.put("psychologistName", task.getPsychologist().getName());
         
         return ResponseEntity.ok(taskData);
+    }
+
+    @PostMapping("/{taskId}/complete")
+    @Transactional
+    public ResponseEntity<Map<String, Object>> completeTask(Principal principal, @PathVariable Long taskId) {
+        var user = userRepository.findByEmail(principal.getName()).orElseThrow();
+        var task = taskRepository.findById(taskId).orElseThrow();
+        
+        // Solo el usuario (paciente) puede marcar la tarea como completada
+        if ("PSYCHOLOGIST".equals(user.getRole())) {
+            return ResponseEntity.status(403).body(Map.of("error", "Solo el paciente puede marcar la tarea como completada"));
+        }
+        
+        // Verificar que el usuario tiene acceso a esta tarea
+        if (!task.getUser().getId().equals(user.getId())) {
+            return ResponseEntity.status(403).body(Map.of("error", "No tienes acceso a esta tarea"));
+        }
+        
+        // Verificar que la tarea no esté ya completada
+        if (task.getCompletedAt() != null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "La tarea ya está completada"));
+        }
+        
+        task.setCompletedAt(Instant.now());
+        taskRepository.save(task);
+        
+        Map<String, Object> response = new java.util.HashMap<>();
+        response.put("message", "Tarea marcada como completada");
+        response.put("completedAt", task.getCompletedAt().toString());
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{taskId}/comments")

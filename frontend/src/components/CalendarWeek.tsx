@@ -484,7 +484,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                               )}
                               {mode === 'PSYCHO' && s.price !== undefined && s.price !== null && (
                                 <div style={{ fontSize: '11px', opacity: 0.8, marginTop: '4px', fontWeight: 600 }}>
-                                  💰 {s.price.toFixed(2)}€
+                                  {s.price.toFixed(2)}€
                                 </div>
                               )}
                               {mode === 'PSYCHO' && (
@@ -670,7 +670,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
               Establecer precio de la cita
             </h3>
             <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#6b7280' }}>
-              El precio es <strong style={{ color: '#dc2626' }}>obligatorio</strong> para crear una cita. Ingresa el precio en euros. Recuerda que al menos una cita de la semana debe costar menos de 50€.
+              El precio es <strong style={{ color: '#dc2626' }}>obligatorio</strong> para crear una cita. Ingresa el precio en euros.
             </p>
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500 }}>

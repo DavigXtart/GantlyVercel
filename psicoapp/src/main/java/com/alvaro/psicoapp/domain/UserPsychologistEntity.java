@@ -21,10 +21,16 @@ public class UserPsychologistEntity {
     @Column(name = "assigned_at", nullable = false, updatable = false)
     private Instant assignedAt;
 
+    @Column(name = "status", length = 20)
+    private String status = "ACTIVE"; // ACTIVE o DISCHARGED
+
     @PrePersist
     protected void onCreate() {
         if (assignedAt == null) {
             assignedAt = Instant.now();
+        }
+        if (status == null) {
+            status = "ACTIVE";
         }
     }
 
@@ -44,4 +50,7 @@ public class UserPsychologistEntity {
     
     public Instant getAssignedAt() { return assignedAt; }
     public void setAssignedAt(Instant assignedAt) { this.assignedAt = assignedAt; }
+    
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }
