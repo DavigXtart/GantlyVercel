@@ -500,6 +500,7 @@ export const psychService = {
     languages?: string;
     linkedinUrl?: string;
     website?: string;
+    sessionPrices?: string;
   }) => {
     const { data } = await api.put('/psych/profile', profile);
     return data;

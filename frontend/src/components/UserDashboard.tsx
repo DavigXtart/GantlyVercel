@@ -2519,7 +2519,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                   </div>
                 </div>
               )}
-            </div>
+            </>
           )}
         </div>
           )}
