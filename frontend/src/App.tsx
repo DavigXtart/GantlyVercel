@@ -630,12 +630,12 @@ function App() {
       {role === 'ADMIN' && (
         <div>
           {adminTab === 'users' ? <AdminUsersPanel /> : 
-           adminTab === 'admin-tests' ? <AdminPanel initialTab="tests" /> : 
+           adminTab === 'admin-tests' ? <AdminPanel /> : 
            adminTab === 'patients' ? <UsersManager filterRole="USER" /> :
            adminTab === 'psychologists' ? <UsersManager filterRole="PSYCHOLOGIST" /> :
            adminTab === 'sections' ? <AdminSectionsManager /> :
            adminTab === 'statistics' ? <AdminStatistics /> :
-           <AdminPanel initialTab="tests" />}
+           <AdminPanel />}
         </div>
       )}
 

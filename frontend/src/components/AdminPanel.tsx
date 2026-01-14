@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import { adminService } from '../services/api';
 import TestManager from './TestManager';
-import UsersManager from './UsersManager';
-import AdminStatistics from './AdminStatistics';
 
 interface Test {
   id: number;
@@ -16,22 +14,16 @@ interface Test {
 }
 
 interface AdminPanelProps {
-  initialTab?: 'tests' | 'users';
 }
 
-export default function AdminPanel({ initialTab = 'tests' }: AdminPanelProps) {
+export default function AdminPanel({}: AdminPanelProps = {}) {
   const [tests, setTests] = useState<Test[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedTestId, setSelectedTestId] = useState<number | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingTest, setEditingTest] = useState<Test | null>(null);
-  const [activeTab, setActiveTab] = useState<'tests' | 'users' | 'statistics'>(initialTab);
   const [testSearch, setTestSearch] = useState('');
   const [availableTopics, setAvailableTopics] = useState<string[]>([]);
-
-  useEffect(() => {
-    setActiveTab(initialTab);
-  }, [initialTab]);
 
   useEffect(() => {
     loadTests();
@@ -226,78 +218,12 @@ export default function AdminPanel({ initialTab = 'tests' }: AdminPanelProps) {
     <div className="admin-container">
       <div className="admin-header">
         <div>
-          <h1>
-            {activeTab === 'users' ? 'Gestión de Usuarios' : 
-             activeTab === 'statistics' ? 'Estadísticas del Sistema' : 
-             'Gestión de Tests'}
-          </h1>
-          <p>
-            {activeTab === 'users' ? 'Gestiona usuarios y sus asignaciones' : 
-             activeTab === 'statistics' ? 'Visualiza estadísticas generales del sistema' :
-             'Gestiona todos los tests, preguntas y respuestas'}
-          </p>
+          <h1>Gestión de Tests</h1>
+          <p>Gestiona todos los tests, preguntas y respuestas</p>
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', borderBottom: '2px solid #e5e7eb' }}>
-        <button
-          onClick={() => setActiveTab('tests')}
-          style={{
-            padding: '12px 24px',
-            background: activeTab === 'tests' ? '#5a9270' : 'transparent',
-            color: activeTab === 'tests' ? 'white' : '#1f2937',
-            border: 'none',
-            borderBottom: activeTab === 'tests' ? '3px solid #5a9270' : '3px solid transparent',
-            cursor: 'pointer',
-            fontWeight: 600,
-            fontSize: '15px',
-            fontFamily: "'Inter', sans-serif"
-          }}
-        >
-          Tests
-        </button>
-        <button
-          onClick={() => setActiveTab('users')}
-          style={{
-            padding: '12px 24px',
-            background: activeTab === 'users' ? '#5a9270' : 'transparent',
-            color: activeTab === 'users' ? 'white' : '#1f2937',
-            border: 'none',
-            borderBottom: activeTab === 'users' ? '3px solid #5a9270' : '3px solid transparent',
-            cursor: 'pointer',
-            fontWeight: 600,
-            fontSize: '15px',
-            fontFamily: "'Inter', sans-serif"
-          }}
-        >
-          Usuarios
-        </button>
-        <button
-          onClick={() => setActiveTab('statistics')}
-          style={{
-            padding: '12px 24px',
-            background: activeTab === 'statistics' ? '#5a9270' : 'transparent',
-            color: activeTab === 'statistics' ? 'white' : '#1f2937',
-            border: 'none',
-            borderBottom: activeTab === 'statistics' ? '3px solid #5a9270' : '3px solid transparent',
-            cursor: 'pointer',
-            fontWeight: 600,
-            fontSize: '15px',
-            fontFamily: "'Inter', sans-serif"
-          }}
-        >
-          Estadísticas
-        </button>
-      </div>
-
-      {activeTab === 'users' && (
-        <UsersManager />
-      )}
-
-      {activeTab === 'statistics' && <AdminStatistics />}
-
-      {activeTab === 'tests' && (
-        <>
+      <>
       <div className="card" style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2>Gestión de Tests</h2>
@@ -600,8 +526,7 @@ export default function AdminPanel({ initialTab = 'tests' }: AdminPanelProps) {
           </div>
         )}
       </div>
-        </>
-      )}
+      </>
     </div>
   );
 }

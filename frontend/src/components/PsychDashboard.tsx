@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { profileService, psychService, calendarService, tasksService, assignedTestsService, testService, jitsiService, resultsService, matchingService } from '../services/api';
 import ChatWidget from './ChatWidget';
 import CalendarWeek from './CalendarWeek';
@@ -44,6 +44,10 @@ export default function PsychDashboard() {
   const [videoCallRoom, setVideoCallRoom] = useState<string | null>(null);
   const [videoCallOtherUser, setVideoCallOtherUser] = useState<{ email: string; name: string } | null>(null);
   const [calendarWeekStart, setCalendarWeekStart] = useState<Date | null>(null);
+  
+  // Estados para filtros de pacientes
+  const [patientSearchTerm, setPatientSearchTerm] = useState('');
+  const [patientFilterGender, setPatientFilterGender] = useState<string>('');
   
   // Estados para vista de perfil de paciente
   const [viewingPatientId, setViewingPatientId] = useState<number | null>(null);
@@ -266,6 +270,42 @@ export default function PsychDashboard() {
     }
   };
 
+  const updatePatientStatus = async (patientId: number, status: 'ACTIVE' | 'DISCHARGED') => {
+    try {
+      await psychService.updatePatientStatus(patientId, status);
+      setPatients(patients.map(p => p.id === patientId ? { ...p, status } : p));
+      toast.success(`Paciente ${status === 'ACTIVE' ? 'reactivado' : 'dado de alta'} exitosamente`);
+    } catch (err: any) {
+      console.error('Error actualizando status del paciente:', err);
+      toast.error('Error al actualizar el status: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
+  // Filtrar pacientes según búsqueda y género
+  const filteredPatients = useMemo(() => {
+    let filtered = patients;
+    
+    // Filtro por búsqueda
+    if (patientSearchTerm.trim()) {
+      const query = patientSearchTerm.toLowerCase();
+      filtered = filtered.filter(p => 
+        (p.name || '').toLowerCase().includes(query) ||
+        (p.email || '').toLowerCase().includes(query)
+      );
+    }
+    
+    // Filtro por género
+    if (patientFilterGender) {
+      filtered = filtered.filter(p => p.gender === patientFilterGender);
+    }
+    
+    return filtered;
+  }, [patients, patientSearchTerm, patientFilterGender]);
+
+  // Separar pacientes por status
+  const activePatients = useMemo(() => filteredPatients.filter(p => (p.status || 'ACTIVE') === 'ACTIVE'), [filteredPatients]);
+  const dischargedPatients = useMemo(() => filteredPatients.filter(p => p.status === 'DISCHARGED'), [filteredPatients]);
+
   // Agrupar tareas por paciente
   const tasksByPatient = tasks.reduce((acc: Record<number, any[]>, task: any) => {
     const patientId = task.user?.id || task.userId;
@@ -378,6 +418,7 @@ export default function PsychDashboard() {
     if (tab === 'calendario') {
       loadMySlots();
       loadPendingRequests();
+      loadPsychologistProfile();
     }
   }, [tab]);
 
@@ -1896,7 +1937,7 @@ export default function PsychDashboard() {
           padding: '32px',
           border: '1px solid #e5e7eb'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
             <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Mis Pacientes
             </h3>
@@ -1919,119 +1960,258 @@ export default function PsychDashboard() {
               🔄 Refrescar
             </button>
           </div>
+
+          {/* Buscador y filtros */}
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <input
+              type="text"
+              placeholder="Buscar por nombre o email..."
+              value={patientSearchTerm}
+              onChange={(e) => setPatientSearchTerm(e.target.value)}
+              style={{
+                padding: '10px 14px',
+                borderRadius: '10px',
+                border: '1px solid #e5e7eb',
+                fontSize: '15px',
+                minWidth: '220px',
+                flex: 1
+              }}
+            />
+            <select
+              value={patientFilterGender}
+              onChange={(e) => setPatientFilterGender(e.target.value)}
+              style={{
+                padding: '10px 14px',
+                borderRadius: '10px',
+                border: '1px solid #e5e7eb',
+                fontSize: '15px',
+                minWidth: '150px'
+              }}
+            >
+              <option value="">Todos los géneros</option>
+              <option value="MALE">Hombre</option>
+              <option value="FEMALE">Mujer</option>
+              <option value="OTHER">Otro</option>
+            </select>
+          </div>
+
           {loadingPatients ? (
             <LoadingSpinner text="Cargando pacientes..." />
-          ) : patients.length === 0 ? (
+          ) : filteredPatients.length === 0 ? (
             <EmptyState
               icon="👥"
-              title="No hay pacientes asignados"
-              description="Aún no tienes pacientes asignados. Los pacientes aparecerán aquí una vez que se registren y te seleccionen."
+              title={patientSearchTerm.trim() || patientFilterGender ? "No se encontraron pacientes" : "No hay pacientes asignados"}
+              description={patientSearchTerm.trim() || patientFilterGender ? "Intenta cambiar los filtros de búsqueda." : "Aún no tienes pacientes asignados. Los pacientes aparecerán aquí una vez que se registren y te seleccionen."}
             />
           ) : (
-            <div 
-              style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}
-              role="list"
-              aria-label="Lista de pacientes"
-            >
-              {loadingPatients ? (
-                Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} style={{ height: "200px", backgroundColor: "#f3f4f6", borderRadius: "8px" }} />
-                ))
-              ) : (
-                patients.map(p => (
-                  <div
-                    key={p.id}
-                    role="listitem"
-                    tabIndex={0}
-                    aria-label={`Paciente ${p.name}`}
-                    style={{
-                      padding: '24px',
-                      background: '#f9fafb',
-                      border: '2px solid #e5e7eb',
-                      borderRadius: '12px',
-                      transition: 'all 0.2s',
-                      cursor: 'pointer',
-                      outline: 'none'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-4px)';
-                      e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.1)';
-                      e.currentTarget.style.borderColor = '#667eea';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = 'none';
-                      e.currentTarget.style.borderColor = '#e5e7eb';
-                    }}
-                    onClick={() => {
-                      loadPatientDetails(p.id);
-                      setTab('patient-profile');
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        loadPatientDetails(p.id);
-                        setTab('patient-profile');
-                      }
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
-                      <div style={{
-                        width: '60px',
-                        height: '60px',
-                        borderRadius: '50%',
-                        overflow: 'hidden',
-                        background: '#e5e7eb',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '24px',
-                        border: '3px solid white',
-                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
-                      }}>
-                        {p.avatarUrl ? (
-                          <img src={p.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        ) : (
-                          '👤'
-                        )}
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '4px' }}>
-                          {p.name}
+            <>
+              {/* Pacientes Activos */}
+              {activePatients.length > 0 && (
+                <div style={{ marginBottom: '32px' }}>
+                  <h4 style={{ fontSize: '20px', fontWeight: 600, color: '#1f2937', marginBottom: '16px' }}>
+                    Pacientes Activos ({activePatients.length})
+                  </h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+                    {activePatients.map(p => (
+                      <div
+                        key={p.id}
+                        style={{
+                          padding: '24px',
+                          background: '#f9fafb',
+                          border: '2px solid #e5e7eb',
+                          borderRadius: '12px',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+                          <div style={{
+                            width: '60px',
+                            height: '60px',
+                            borderRadius: '50%',
+                            overflow: 'hidden',
+                            background: '#e5e7eb',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '24px',
+                            border: '3px solid white',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                          }}>
+                            {p.avatarUrl ? (
+                              <img src={p.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              '👤'
+                            )}
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '4px' }}>
+                              {p.name}
+                            </div>
+                            <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                              {p.email}
+                            </div>
+                          </div>
                         </div>
-                        <div style={{ fontSize: '14px', color: '#6b7280' }}>
-                          {p.email}
+                        <div style={{ display: 'flex', gap: '8px', flexDirection: 'column' }}>
+                          <button
+                            onClick={() => {
+                              loadPatientDetails(p.id);
+                              setTab('patient-profile');
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '10px',
+                              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '8px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                          >
+                            💬 Abrir Chat
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              updatePatientStatus(p.id, 'DISCHARGED');
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '8px',
+                              background: '#f3f4f6',
+                              color: '#6b7280',
+                              border: '1px solid #d1d5db',
+                              borderRadius: '8px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              fontSize: '13px',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#e5e7eb';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = '#f3f4f6';
+                            }}
+                          >
+                            Dar de Alta
+                          </button>
                         </div>
                       </div>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        loadPatientDetails(p.id);
-                        setTab('patient-profile');
-                      }}
-                      aria-label={`Abrir chat con ${p.name}`}
-                      style={{
-                        width: '100%',
-                        padding: '10px',
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '8px',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        transition: 'all 0.2s'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
-                      onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                    >
-                      💬 Abrir Chat
-                    </button>
+                    ))}
                   </div>
-                ))
+                </div>
               )}
-            </div>
+
+              {/* Pacientes Dados de Alta */}
+              {dischargedPatients.length > 0 && (
+                <div>
+                  <h4 style={{ fontSize: '20px', fontWeight: 600, color: '#1f2937', marginBottom: '16px' }}>
+                    Pacientes Dados de Alta ({dischargedPatients.length})
+                  </h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+                    {dischargedPatients.map(p => (
+                      <div
+                        key={p.id}
+                        style={{
+                          padding: '24px',
+                          background: '#f9fafb',
+                          border: '2px solid #d1d5db',
+                          borderRadius: '12px',
+                          opacity: 0.7,
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+                          <div style={{
+                            width: '60px',
+                            height: '60px',
+                            borderRadius: '50%',
+                            overflow: 'hidden',
+                            background: '#e5e7eb',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '24px',
+                            border: '3px solid white',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                          }}>
+                            {p.avatarUrl ? (
+                              <img src={p.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              '👤'
+                            )}
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '4px' }}>
+                              {p.name}
+                            </div>
+                            <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                              {p.email}
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px', flexDirection: 'column' }}>
+                          <button
+                            onClick={() => {
+                              loadPatientDetails(p.id);
+                              setTab('patient-profile');
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '10px',
+                              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '8px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                          >
+                            💬 Abrir Chat
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              updatePatientStatus(p.id, 'ACTIVE');
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '8px',
+                              background: '#dbeafe',
+                              color: '#1e40af',
+                              border: '1px solid #93c5fd',
+                              borderRadius: '8px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              fontSize: '13px',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#bfdbfe';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = '#dbeafe';
+                            }}
+                          >
+                            Reactivar
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
