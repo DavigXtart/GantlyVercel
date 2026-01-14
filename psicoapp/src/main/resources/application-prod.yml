@@ -25,7 +25,10 @@ spring:
         order_inserts: true
         order_updates: true
   flyway:
-    enabled: false
+    enabled: true
+    baseline-on-migrate: false
+    validate-on-migrate: true
+    repair-on-migrate: false
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
