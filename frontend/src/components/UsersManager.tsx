@@ -38,7 +38,11 @@ interface UserDetail {
   }>;
 }
 
-export default function UsersManager() {
+interface UsersManagerProps {
+  filterRole?: 'USER' | 'PSYCHOLOGIST';
+}
+
+export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [userDetails, setUserDetails] = useState<UserDetail | null>(null);
@@ -60,6 +64,7 @@ export default function UsersManager() {
 
   const regularUsers = filteredUsers.filter(user => user.role === 'USER');
   const psychologists = filteredUsers.filter(user => user.role === 'PSYCHOLOGIST');
+  const displayedUsers = filterRole === 'USER' ? regularUsers : filterRole === 'PSYCHOLOGIST' ? psychologists : filteredUsers;
 
   useEffect(() => {
     loadUsers();
@@ -394,10 +399,14 @@ export default function UsersManager() {
       <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', gap: '16px', flexWrap: 'wrap' }}>
           <div>
-            <h2>Usuarios Registrados ({users.length})</h2>
+            <h2>
+              {filterRole === 'USER' ? 'Pacientes' : 
+               filterRole === 'PSYCHOLOGIST' ? 'Psicólogos' : 
+               'Usuarios Registrados'} ({displayedUsers.length})
+            </h2>
             {searchTerm.trim() && (
               <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary)' }}>
-                Mostrando {filteredUsers.length} coincidencia(s)
+                Mostrando {displayedUsers.length} coincidencia(s)
               </p>
             )}
           </div>
@@ -428,104 +437,47 @@ export default function UsersManager() {
 
         {loading && users.length === 0 ? (
           <div className="loading">Cargando usuarios...</div>
-        ) : users.length === 0 ? (
+        ) : displayedUsers.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
-            <p>No hay usuarios registrados aún.</p>
-          </div>
-        ) : filteredUsers.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
-            <p>No se encontraron usuarios que coincidan con “{searchTerm}”.</p>
+            <p>
+              {filterRole === 'USER' ? 'No hay pacientes registrados aún.' :
+               filterRole === 'PSYCHOLOGIST' ? 'No hay psicólogos registrados aún.' :
+               searchTerm.trim() ? `No se encontraron usuarios que coincidan con "${searchTerm}".` :
+               'No hay usuarios registrados aún.'}
+            </p>
           </div>
         ) : (
-          <>
-            {/* Sección de Usuarios */}
-            <div style={{ marginBottom: '40px' }}>
-              <h3 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '20px', color: 'var(--text-primary)' }}>
-                👤 Usuarios ({regularUsers.length})
-              </h3>
-              {regularUsers.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
-                  <p>No hay usuarios registrados.</p>
+          <div className="users-grid">
+            {displayedUsers.map(user => (
+              <div key={user.id} className="user-card-admin">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                  <div style={{ flex: 1 }}>
+                    <h3>{user.name}</h3>
+                    <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                      {user.email}
+                    </p>
+                  </div>
+                  <span className={user.role === 'PSYCHOLOGIST' ? 'status-badge status-active' : 'status-badge status-inactive'}>
+                    {user.role === 'PSYCHOLOGIST' ? '🧠 Psicólogo' : '👤 Usuario'}
+                  </span>
                 </div>
-              ) : (
-                <div className="users-grid">
-                  {regularUsers.map(user => (
-                    <div key={user.id} className="user-card-admin">
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                        <div style={{ flex: 1 }}>
-                          <h3>{user.name}</h3>
-                          <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                            {user.email}
-                          </p>
-                        </div>
-                        <span className="status-badge status-inactive">
-                          👤 Usuario
-                        </span>
-                      </div>
-                      <div style={{ marginBottom: '16px' }}>
-                        <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
-                          <strong>Tests completados:</strong> {user.testsCompleted ?? 0}
-                        </p>
-                        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                          Registrado: {formatDate(user.createdAt)}
-                        </p>
-                      </div>
-                      <button 
-                        className="btn btn-compact" 
-                        onClick={() => setSelectedUserId(user.id)}
-                      >
-                        Ver detalles
-                      </button>
-                    </div>
-                  ))}
+                <div style={{ marginBottom: '16px' }}>
+                  <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+                    <strong>Tests completados:</strong> {user.testsCompleted ?? 0}
+                  </p>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    Registrado: {formatDate(user.createdAt)}
+                  </p>
                 </div>
-              )}
-            </div>
-
-            {/* Sección de Psicólogos */}
-            <div>
-              <h3 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '20px', color: 'var(--text-primary)' }}>
-                🧠 Psicólogos ({psychologists.length})
-              </h3>
-              {psychologists.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
-                  <p>No hay psicólogos registrados.</p>
-                </div>
-              ) : (
-                <div className="users-grid">
-                  {psychologists.map(user => (
-                    <div key={user.id} className="user-card-admin">
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                        <div style={{ flex: 1 }}>
-                          <h3>{user.name}</h3>
-                          <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                            {user.email}
-                          </p>
-                        </div>
-                        <span className="status-badge status-active">
-                          🧠 Psicólogo
-                        </span>
-                      </div>
-                      <div style={{ marginBottom: '16px' }}>
-                        <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
-                          <strong>Tests completados:</strong> {user.testsCompleted ?? 0}
-                        </p>
-                        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                          Registrado: {formatDate(user.createdAt)}
-                        </p>
-                      </div>
-                      <button 
-                        className="btn btn-compact" 
-                        onClick={() => setSelectedUserId(user.id)}
-                      >
-                        Ver detalles
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </>
+                <button 
+                  className="btn btn-compact" 
+                  onClick={() => setSelectedUserId(user.id)}
+                >
+                  Ver detalles
+                </button>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>

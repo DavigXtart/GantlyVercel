@@ -10,6 +10,8 @@ import UserDashboard from './components/UserDashboard';
 import PsychDashboard from './components/PsychDashboard';
 import AdminUsersPanel from './components/AdminUsersPanel';
 import AdminSectionsManager from './components/AdminSectionsManager';
+import AdminStatistics from './components/AdminStatistics';
+import UsersManager from './components/UsersManager';
 import About from './components/About';
 import SoyProfesional from './components/SoyProfesional';
 import RegisterPsychologist from './components/RegisterPsychologist';
@@ -31,7 +33,7 @@ function App() {
   const [initialTestSessionId, setInitialTestSessionId] = useState<string | null>(null);
   const [selectedTestId, setSelectedTestId] = useState<number | null>(null);
   const [role, setRole] = useState<'USER'|'ADMIN'|'PSYCHOLOGIST'|null>(null);
-  const [adminTab, setAdminTab] = useState<'tests'|'users'|'sections'|'admin-tests'|'admin-users'>('users');
+  const [adminTab, setAdminTab] = useState<'tests'|'users'|'sections'|'admin-tests'|'admin-users'|'patients'|'psychologists'|'statistics'>('users');
 
   const checkRole = async () => {
     try {
@@ -613,8 +615,10 @@ function App() {
               <>
                 <button className={`btn-secondary ${adminTab==='users'?'active':''}`} onClick={() => setAdminTab('users')}>Roles</button>
                 <button className={`btn-secondary ${adminTab==='admin-tests'?'active':''}`} onClick={() => setAdminTab('admin-tests')}>Tests</button>
-                <button className={`btn-secondary ${adminTab==='admin-users'?'active':''}`} onClick={() => setAdminTab('admin-users')}>Usuarios</button>
+                <button className={`btn-secondary ${adminTab==='patients'?'active':''}`} onClick={() => setAdminTab('patients')}>Pacientes</button>
+                <button className={`btn-secondary ${adminTab==='psychologists'?'active':''}`} onClick={() => setAdminTab('psychologists')}>Psicólogos</button>
                 <button className={`btn-secondary ${adminTab==='sections'?'active':''}`} onClick={() => setAdminTab('sections')}>Secciones</button>
+                <button className={`btn-secondary ${adminTab==='statistics'?'active':''}`} onClick={() => setAdminTab('statistics')}>Estadísticas</button>
               </>
             )}
             <button onClick={handleLogout} className="btn-secondary">Cerrar sesión</button>
@@ -627,8 +631,10 @@ function App() {
         <div>
           {adminTab === 'users' ? <AdminUsersPanel /> : 
            adminTab === 'admin-tests' ? <AdminPanel initialTab="tests" /> : 
-           adminTab === 'admin-users' ? <AdminPanel initialTab="users" /> :
-           adminTab === 'sections' ? <AdminSectionsManager /> : 
+           adminTab === 'patients' ? <UsersManager filterRole="USER" /> :
+           adminTab === 'psychologists' ? <UsersManager filterRole="PSYCHOLOGIST" /> :
+           adminTab === 'sections' ? <AdminSectionsManager /> :
+           adminTab === 'statistics' ? <AdminStatistics /> :
            <AdminPanel initialTab="tests" />}
         </div>
       )}
