@@ -452,13 +452,7 @@ export default function PsychDashboard() {
     }
   }, [tab]);
 
-  // Cargar slots periódicamente para actualizar recordatorios
-  useEffect(() => {
-    const interval = setInterval(() => {
-      loadMySlots();
-    }, 60000); // Actualizar cada minuto
-    return () => clearInterval(interval);
-  }, []);
+  // El calendario se actualiza solo al cambiar a la pestaña de calendario (ya está en el useEffect de arriba)
 
   useEffect(() => {
     if (tab === 'tareas' && tasks.length > 0) {
@@ -880,18 +874,26 @@ export default function PsychDashboard() {
                   checked={me?.isFull || false}
                   onChange={async (e) => {
                     const newValue = e.target.checked;
+                    const previousValue = me?.isFull || false;
+                    // Actualizar el estado inmediatamente para feedback visual
+                    setMe({ ...me, isFull: newValue });
                     try {
                       await psychService.updateIsFull(newValue);
-                      // Actualizar el estado inmediatamente para feedback visual
-                      const updatedMe = { ...me, isFull: newValue };
-                      setMe(updatedMe);
-                      // Recargar datos para asegurar sincronización
-                      await loadData();
-                      toast.success(newValue ? 'Ahora estás marcado como lleno' : 'Ahora aceptas nuevos pacientes');
+                      // Verificar que el servidor confirmó el cambio
+                      const updatedProfile = await profileService.me();
+                      if (updatedProfile.isFull !== newValue) {
+                        // Si el servidor no confirmó, revertir
+                        setMe({ ...me, isFull: previousValue });
+                        toast.error('No se pudo actualizar el estado. Por favor intenta de nuevo.');
+                      } else {
+                        // Confirmar que el cambio fue exitoso
+                        setMe(updatedProfile);
+                        toast.success(newValue ? 'Ahora estás marcado como lleno' : 'Ahora aceptas nuevos pacientes');
+                      }
                     } catch (error: any) {
-                      toast.error('Error al actualizar el estado: ' + (error.response?.data?.error || error.message));
                       // Revertir el estado en caso de error
-                      setMe({ ...me, isFull: !newValue });
+                      setMe({ ...me, isFull: previousValue });
+                      toast.error('Error al actualizar el estado: ' + (error.response?.data?.error || error.message));
                     }
                   }}
                   style={{ opacity: 0, width: 0, height: 0, position: 'absolute' }}

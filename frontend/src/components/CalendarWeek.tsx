@@ -77,6 +77,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [slotToAssign, setSlotToAssign] = useState<Slot | null>(null);
   const [selectedPatientId, setSelectedPatientId] = useState<string>('');
+  const [patientSearchTerm, setPatientSearchTerm] = useState<string>('');
   const hours = Array.from({ length: 13 }).map((_, i) => 8 + i); // 8:00 - 20:00
   const days = useMemo(() => Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i)), [weekStart]);
 
@@ -1345,6 +1346,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
           setShowAssignModal(false);
           setSlotToAssign(null);
           setSelectedPatientId('');
+          setPatientSearchTerm('');
         }}>
           <div style={{
             background: 'white',
@@ -1423,6 +1425,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                   setShowAssignModal(false);
                   setSlotToAssign(null);
                   setSelectedPatientId('');
+                  setPatientSearchTerm('');
                 }}
                 style={{
                   padding: '10px 20px',
@@ -1457,6 +1460,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                     setShowAssignModal(false);
                     setSlotToAssign(null);
                     setSelectedPatientId('');
+                    setPatientSearchTerm('');
                     toast.success('Cita asignada exitosamente');
                   } catch (error: any) {
                     toast.error(error?.response?.data?.error || 'Error al asignar la cita');
