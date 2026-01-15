@@ -841,7 +841,7 @@ export default function PsychDashboard() {
           )}
 
           {/* Toggle "Estoy lleno" */}
-          <div style={{ padding: '0 32px 24px 32px' }}>
+          <div style={{ padding: '0 32px 24px 32px', display: 'flex', justifyContent: 'center' }}>
             <div style={{
               padding: '16px 20px',
               background: me?.isFull ? 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)' : 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
@@ -849,15 +849,17 @@ export default function PsychDashboard() {
               border: `2px solid ${me?.isFull ? '#ef4444' : '#22c55e'}`,
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
+              justifyContent: 'space-between',
               gap: '16px',
-              position: 'relative'
+              position: 'relative',
+              maxWidth: '600px',
+              width: '100%'
             }}>
-              <div style={{ textAlign: 'center', flex: 1 }}>
-                <div style={{ fontSize: '14px', fontWeight: 600, color: me?.isFull ? '#dc2626' : '#15803d', marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+              <div style={{ textAlign: 'left', flex: 1 }}>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: me?.isFull ? '#dc2626' : '#15803d', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   {me?.isFull ? '🔴 Estoy lleno - No acepto nuevos pacientes' : '🟢 Aceptando nuevos pacientes'}
                 </div>
-                <div style={{ fontSize: '12px', color: '#6b7280', textAlign: 'center' }}>
+                <div style={{ fontSize: '12px', color: '#6b7280' }}>
                   {me?.isFull ? 'No aparecerás en las recomendaciones para nuevos pacientes' : 'Apareces en las recomendaciones para nuevos pacientes'}
                 </div>
               </div>
@@ -878,17 +880,21 @@ export default function PsychDashboard() {
                     // Actualizar el estado inmediatamente para feedback visual
                     setMe({ ...me, isFull: newValue });
                     try {
-                      await psychService.updateIsFull(newValue);
-                      // Verificar que el servidor confirmó el cambio
-                      const updatedProfile: any = await profileService.me();
-                      if ((updatedProfile.isFull ?? false) !== newValue) {
-                        // Si el servidor no confirmó, revertir
-                        setMe({ ...me, isFull: previousValue });
-                        toast.error('No se pudo actualizar el estado. Por favor intenta de nuevo.');
+                      const response: any = await psychService.updateIsFull(newValue);
+                      // El servidor devuelve el nuevo estado en la respuesta según el backend
+                      if (response && response.isFull !== undefined) {
+                        setMe({ ...me, isFull: response.isFull });
+                        toast.success(response.isFull ? 'Ahora estás marcado como lleno' : 'Ahora aceptas nuevos pacientes');
                       } else {
-                        // Confirmar que el cambio fue exitoso
-                        setMe(updatedProfile);
-                        toast.success(newValue ? 'Ahora estás marcado como lleno' : 'Ahora aceptas nuevos pacientes');
+                        // Si no viene en la respuesta, recargar el perfil del psicólogo
+                        const psychProfile: any = await psychService.getProfile();
+                        if (psychProfile && psychProfile.isFull !== undefined) {
+                          setMe({ ...me, isFull: psychProfile.isFull });
+                          toast.success(psychProfile.isFull ? 'Ahora estás marcado como lleno' : 'Ahora aceptas nuevos pacientes');
+                        } else {
+                          // Si todo falla, mantener el nuevo valor que ya establecimos
+                          toast.success(newValue ? 'Ahora estás marcado como lleno' : 'Ahora aceptas nuevos pacientes');
+                        }
                       }
                     } catch (error: any) {
                       // Revertir el estado en caso de error
@@ -928,7 +934,8 @@ export default function PsychDashboard() {
           </div>
 
           {/* Estadísticas */}
-          <div style={{ padding: '0 32px 32px 32px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px' }}>
+          <div style={{ padding: '0 32px 32px 32px', display: 'flex', justifyContent: 'center' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px', maxWidth: '1200px', width: '100%' }}>
             <div style={{
               padding: '20px',
               background: '#f9fafb',
