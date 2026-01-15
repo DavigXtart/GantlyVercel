@@ -32,6 +32,7 @@ export default function PsychDashboard() {
   const [taskForm, setTaskForm] = useState({ userId: '', title: '', description: '', dueDate: '' });
   const [showAssignTestForm, setShowAssignTestForm] = useState(false);
   const [assignTestForm, setAssignTestForm] = useState({ userId: '', testId: '' });
+  const [testSearchTerm, setTestSearchTerm] = useState('');
   const [taskFiles, setTaskFiles] = useState<Record<number, any[]>>({});
   const [expandedTasks, setExpandedTasks] = useState<Set<number>>(new Set());
   const [expandedPatients, setExpandedPatients] = useState<Set<number>>(new Set());
@@ -48,6 +49,7 @@ export default function PsychDashboard() {
   // Estados para filtros de pacientes
   const [patientSearchTerm, setPatientSearchTerm] = useState('');
   const [patientFilterGender, setPatientFilterGender] = useState<string>('');
+  const [patientFilterLastVisit, setPatientFilterLastVisit] = useState<string>('');
   
   // Estados para vista de perfil de paciente
   const [viewingPatientId, setViewingPatientId] = useState<number | null>(null);
@@ -281,7 +283,7 @@ export default function PsychDashboard() {
     }
   };
 
-  // Filtrar pacientes según búsqueda y género
+  // Filtrar pacientes según búsqueda, género y última visita
   const filteredPatients = useMemo(() => {
     let filtered = patients;
     
@@ -299,8 +301,36 @@ export default function PsychDashboard() {
       filtered = filtered.filter(p => p.gender === patientFilterGender);
     }
     
+    // Filtro por última visita
+    if (patientFilterLastVisit) {
+      const now = new Date();
+      filtered = filtered.filter(p => {
+        if (!p.lastVisit) {
+          return patientFilterLastVisit === 'none';
+        }
+        
+        const lastVisitDate = new Date(p.lastVisit);
+        const daysDiff = Math.floor((now.getTime() - lastVisitDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        switch (patientFilterLastVisit) {
+          case 'week':
+            return daysDiff <= 7;
+          case 'month':
+            return daysDiff <= 30;
+          case '3months':
+            return daysDiff <= 90;
+          case 'more3months':
+            return daysDiff > 90;
+          case 'none':
+            return false; // Ya se maneja arriba
+          default:
+            return true;
+        }
+      });
+    }
+    
     return filtered;
-  }, [patients, patientSearchTerm, patientFilterGender]);
+  }, [patients, patientSearchTerm, patientFilterGender, patientFilterLastVisit]);
 
   // Separar pacientes por status
   const activePatients = useMemo(() => filteredPatients.filter(p => (p.status || 'ACTIVE') === 'ACTIVE'), [filteredPatients]);
@@ -1993,6 +2023,24 @@ export default function PsychDashboard() {
               <option value="FEMALE">Mujer</option>
               <option value="OTHER">Otro</option>
             </select>
+            <select
+              value={patientFilterLastVisit}
+              onChange={(e) => setPatientFilterLastVisit(e.target.value)}
+              style={{
+                padding: '10px 14px',
+                borderRadius: '10px',
+                border: '1px solid #e5e7eb',
+                fontSize: '15px',
+                minWidth: '180px'
+              }}
+            >
+              <option value="">Todas las visitas</option>
+              <option value="week">Última semana</option>
+              <option value="month">Último mes</option>
+              <option value="3months">Últimos 3 meses</option>
+              <option value="more3months">Más de 3 meses</option>
+              <option value="none">Sin visitas</option>
+            </select>
           </div>
 
           {loadingPatients ? (
@@ -2000,8 +2048,8 @@ export default function PsychDashboard() {
           ) : filteredPatients.length === 0 ? (
             <EmptyState
               icon="👥"
-              title={patientSearchTerm.trim() || patientFilterGender ? "No se encontraron pacientes" : "No hay pacientes asignados"}
-              description={patientSearchTerm.trim() || patientFilterGender ? "Intenta cambiar los filtros de búsqueda." : "Aún no tienes pacientes asignados. Los pacientes aparecerán aquí una vez que se registren y te seleccionen."}
+              title={patientSearchTerm.trim() || patientFilterGender || patientFilterLastVisit ? "No se encontraron pacientes" : "No hay pacientes asignados"}
+              description={patientSearchTerm.trim() || patientFilterGender || patientFilterLastVisit ? "Intenta cambiar los filtros de búsqueda." : "Aún no tienes pacientes asignados. Los pacientes aparecerán aquí una vez que se registren y te seleccionen."}
             />
           ) : (
             <>
@@ -2015,12 +2063,25 @@ export default function PsychDashboard() {
                     {activePatients.map(p => (
                       <div
                         key={p.id}
+                        onClick={() => {
+                          loadPatientDetails(p.id);
+                          setTab('patient-profile');
+                        }}
                         style={{
                           padding: '24px',
                           background: '#f9fafb',
                           border: '2px solid #e5e7eb',
                           borderRadius: '12px',
-                          transition: 'all 0.2s'
+                          transition: 'all 0.2s',
+                          cursor: 'pointer'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = '#667eea';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.15)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = '#e5e7eb';
+                          e.currentTarget.style.boxShadow = 'none';
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
@@ -2047,16 +2108,31 @@ export default function PsychDashboard() {
                             <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '4px' }}>
                               {p.name}
                             </div>
-                            <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                            <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
                               {p.email}
                             </div>
+                            {p.lastVisit && (
+                              <div style={{ fontSize: '12px', color: '#059669', fontWeight: 500, marginTop: '4px' }}>
+                                📅 Última visita: {new Date(p.lastVisit).toLocaleDateString('es-ES', { 
+                                  day: 'numeric', 
+                                  month: 'short', 
+                                  year: 'numeric' 
+                                })}
+                              </div>
+                            )}
+                            {!p.lastVisit && (
+                              <div style={{ fontSize: '12px', color: '#9ca3af', fontStyle: 'italic', marginTop: '4px' }}>
+                                Sin visitas registradas
+                              </div>
+                            )}
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: '8px', flexDirection: 'column' }}>
                           <button
-                            onClick={() => {
-                              loadPatientDetails(p.id);
-                              setTab('patient-profile');
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedPatient(p.id);
+                              setTab('chat');
                             }}
                             style={{
                               width: '100%',
@@ -2118,13 +2194,28 @@ export default function PsychDashboard() {
                     {dischargedPatients.map(p => (
                       <div
                         key={p.id}
+                        onClick={() => {
+                          loadPatientDetails(p.id);
+                          setTab('patient-profile');
+                        }}
                         style={{
                           padding: '24px',
                           background: '#f9fafb',
                           border: '2px solid #d1d5db',
                           borderRadius: '12px',
                           opacity: 0.7,
-                          transition: 'all 0.2s'
+                          transition: 'all 0.2s',
+                          cursor: 'pointer'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = '#667eea';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.15)';
+                          e.currentTarget.style.opacity = '0.9';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = '#d1d5db';
+                          e.currentTarget.style.boxShadow = 'none';
+                          e.currentTarget.style.opacity = '0.7';
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
@@ -2151,16 +2242,31 @@ export default function PsychDashboard() {
                             <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '4px' }}>
                               {p.name}
                             </div>
-                            <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                            <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
                               {p.email}
                             </div>
+                            {p.lastVisit && (
+                              <div style={{ fontSize: '12px', color: '#059669', fontWeight: 500, marginTop: '4px' }}>
+                                📅 Última visita: {new Date(p.lastVisit).toLocaleDateString('es-ES', { 
+                                  day: 'numeric', 
+                                  month: 'short', 
+                                  year: 'numeric' 
+                                })}
+                              </div>
+                            )}
+                            {!p.lastVisit && (
+                              <div style={{ fontSize: '12px', color: '#9ca3af', fontStyle: 'italic', marginTop: '4px' }}>
+                                Sin visitas registradas
+                              </div>
+                            )}
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: '8px', flexDirection: 'column' }}>
                           <button
-                            onClick={() => {
-                              loadPatientDetails(p.id);
-                              setTab('patient-profile');
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedPatient(p.id);
+                              setTab('chat');
                             }}
                             style={{
                               width: '100%',
@@ -3301,31 +3407,77 @@ export default function PsychDashboard() {
                   <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: 600, color: '#1f2937' }}>
                     Test:
                   </label>
-                  <select
-                    value={assignTestForm.testId}
-                    onChange={(e) => setAssignTestForm({ ...assignTestForm, testId: e.target.value })}
-                    style={{
-                      padding: '10px',
-                      borderRadius: '8px',
-                      border: '1px solid #e5e7eb',
-                      fontSize: '14px',
-                      width: '100%'
-                    }}
-                  >
-                    <option value="">Selecciona un test</option>
-                    {availableTests.length === 0 ? (
-                      <option value="" disabled>Cargando tests...</option>
-                    ) : (
-                      availableTests.map((t: any) => (
-                        <option key={t.id} value={t.id}>{t.title} {t.code ? `(${t.code})` : ''}</option>
-                      ))
-                    )}
-                  </select>
-                  {availableTests.length === 0 && (
-                    <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>
-                      ⚠️ No hay tests disponibles. Verifica que haya tests activos en el sistema.
-                    </div>
-                  )}
+                  <div style={{ marginBottom: '8px' }}>
+                    <input
+                      type="text"
+                      placeholder="Buscar test por nombre o código..."
+                      value={testSearchTerm}
+                      onChange={(e) => setTestSearchTerm(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #e5e7eb',
+                        fontSize: '14px',
+                        outline: 'none',
+                        transition: 'border-color 0.2s'
+                      }}
+                      onFocus={(e) => e.currentTarget.style.borderColor = '#667eea'}
+                      onBlur={(e) => e.currentTarget.style.borderColor = '#e5e7eb'}
+                    />
+                  </div>
+                  {(() => {
+                    const filteredTests = availableTests.filter((t: any) => {
+                      if (!testSearchTerm.trim()) return true;
+                      const query = testSearchTerm.toLowerCase();
+                      return (
+                        (t.title || '').toLowerCase().includes(query) ||
+                        (t.code || '').toLowerCase().includes(query)
+                      );
+                    });
+                    
+                    return (
+                      <>
+                        <select
+                          value={assignTestForm.testId}
+                          onChange={(e) => setAssignTestForm({ ...assignTestForm, testId: e.target.value })}
+                          style={{
+                            padding: '10px',
+                            borderRadius: '8px',
+                            border: '1px solid #e5e7eb',
+                            fontSize: '14px',
+                            width: '100%'
+                          }}
+                        >
+                          <option value="">Selecciona un test</option>
+                          {availableTests.length === 0 ? (
+                            <option value="" disabled>Cargando tests...</option>
+                          ) : filteredTests.length === 0 ? (
+                            <option value="" disabled>No se encontraron tests</option>
+                          ) : (
+                            filteredTests.map((t: any) => (
+                              <option key={t.id} value={t.id}>{t.title} {t.code ? `(${t.code})` : ''}</option>
+                            ))
+                          )}
+                        </select>
+                        {testSearchTerm.trim() && filteredTests.length > 0 && (
+                          <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                            Mostrando {filteredTests.length} de {availableTests.length} tests
+                          </div>
+                        )}
+                        {availableTests.length === 0 && (
+                          <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>
+                            ⚠️ No hay tests disponibles. Verifica que haya tests activos en el sistema.
+                          </div>
+                        )}
+                        {testSearchTerm.trim() && filteredTests.length === 0 && availableTests.length > 0 && (
+                          <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>
+                            ⚠️ No se encontraron tests que coincidan con "{testSearchTerm}"
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button
@@ -3356,6 +3508,7 @@ export default function PsychDashboard() {
                         await loadData();
                         setShowAssignTestForm(false);
                         setAssignTestForm({ userId: '', testId: '' });
+                        setTestSearchTerm('');
                       } catch (error: any) {
                         console.error('Error al asignar el test:', error);
                         console.error('Detalles del error:', error.response?.data || error.message);
@@ -3389,6 +3542,7 @@ export default function PsychDashboard() {
                     onClick={() => {
                       setShowAssignTestForm(false);
                       setAssignTestForm({ userId: '', testId: '' });
+                      setTestSearchTerm('');
                     }}
                     style={{
                       padding: '10px 20px',
@@ -3696,6 +3850,8 @@ export default function PsychDashboard() {
             slots={slots}
             initialWeekStart={calendarWeekStart || undefined}
             onWeekChange={(weekStart) => setCalendarWeekStart(weekStart)}
+            sessionPrices={psychologistProfile?.sessionPrices ? JSON.parse(psychologistProfile.sessionPrices) : null}
+            patients={patients.map((p: any) => ({ id: p.id, name: p.name, email: p.email }))}
             onCreateSlot={async (start, end, price) => {
               try {
                 // Calcular y guardar la semana de la cita antes de crearla
@@ -3713,6 +3869,43 @@ export default function PsychDashboard() {
               } catch (e: any) {
                 const errorMessage = e?.response?.data?.error || 'Error al crear el slot';
                 toast.error(errorMessage);
+              }
+            }}
+            onCreateSlotsRange={async (slots) => {
+              try {
+                // Crear múltiples slots
+                for (const slot of slots) {
+                  await calendarService.createSlot(slot.start, slot.end, slot.price);
+                }
+                await loadMySlots();
+                await loadPendingRequests();
+                toast.success(`${slots.length} citas creadas exitosamente`);
+              } catch (e: any) {
+                const errorMessage = e?.response?.data?.error || 'Error al crear los slots';
+                toast.error(errorMessage);
+                throw e;
+              }
+            }}
+            onAssignToPatient={async (appointmentId, userId) => {
+              try {
+                const slot = slots.find(s => s.id === appointmentId);
+                if (!slot) {
+                  throw new Error('Cita no encontrada');
+                }
+                await calendarService.createForPatient(
+                  userId,
+                  slot.startTime,
+                  slot.endTime,
+                  slot.price
+                );
+                // Eliminar el slot libre después de asignarlo
+                await calendarService.deleteSlot(appointmentId);
+                await loadMySlots();
+                await loadPendingRequests();
+              } catch (e: any) {
+                const errorMessage = e?.response?.data?.error || 'Error al asignar la cita';
+                toast.error(errorMessage);
+                throw e;
               }
             }}
             onDeleteSlot={async (appointmentId) => {

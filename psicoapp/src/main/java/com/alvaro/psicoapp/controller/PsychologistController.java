@@ -8,6 +8,7 @@ import com.alvaro.psicoapp.repository.UserRepository;
 import com.alvaro.psicoapp.repository.UserAnswerRepository;
 import com.alvaro.psicoapp.repository.TestRepository;
 import com.alvaro.psicoapp.repository.PsychologistProfileRepository;
+import com.alvaro.psicoapp.repository.AppointmentRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,18 +29,21 @@ public class PsychologistController {
     private final UserAnswerRepository userAnswerRepository;
     private final TestRepository testRepository;
     private final PsychologistProfileRepository psychologistProfileRepository;
+    private final AppointmentRepository appointmentRepository;
 
     public PsychologistController(
             UserRepository userRepository, 
             UserPsychologistRepository userPsychologistRepository,
             UserAnswerRepository userAnswerRepository,
             TestRepository testRepository,
-            PsychologistProfileRepository psychologistProfileRepository) {
+            PsychologistProfileRepository psychologistProfileRepository,
+            AppointmentRepository appointmentRepository) {
         this.userRepository = userRepository;
         this.userPsychologistRepository = userPsychologistRepository;
         this.userAnswerRepository = userAnswerRepository;
         this.testRepository = testRepository;
         this.psychologistProfileRepository = psychologistProfileRepository;
+        this.appointmentRepository = appointmentRepository;
     }
 
     @GetMapping("/patients")
@@ -49,6 +53,7 @@ public class PsychologistController {
         var me = userRepository.findByEmail(principal.getName()).orElseThrow();
         if (!"PSYCHOLOGIST".equals(me.getRole())) return ResponseEntity.status(403).build();
         var rels = userPsychologistRepository.findByPsychologist_Id(me.getId());
+        Instant now = Instant.now();
         List<Map<String, Object>> out = new ArrayList<>();
         for (var r : rels) {
             Map<String, Object> m = new HashMap<>();
@@ -60,6 +65,16 @@ public class PsychologistController {
             m.put("age", r.getUser().getAge());
             m.put("status", r.getStatus() != null ? r.getStatus() : "ACTIVE");
             m.put("assignedAt", r.getAssignedAt());
+            
+            // Obtener última cita completada
+            var lastAppointments = appointmentRepository.findLastCompletedAppointment(me.getId(), r.getUser().getId(), now);
+            if (!lastAppointments.isEmpty()) {
+                var lastAppt = lastAppointments.get(0);
+                m.put("lastVisit", lastAppt.getEndTime());
+            } else {
+                m.put("lastVisit", null);
+            }
+            
             out.add(m);
         }
         return ResponseEntity.ok(out);

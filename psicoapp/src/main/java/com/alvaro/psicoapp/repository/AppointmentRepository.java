@@ -50,6 +50,14 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
         @Param("status") String status,
         @Param("paymentStatus") String paymentStatus
     );
+    
+    // Obtener la última cita completada entre un psicólogo y un paciente
+    @Query("SELECT a FROM AppointmentEntity a WHERE a.psychologist.id = :psychologistId AND a.user.id = :userId AND a.endTime < :now AND (a.status = 'CONFIRMED' OR a.status = 'BOOKED') ORDER BY a.endTime DESC")
+    List<AppointmentEntity> findLastCompletedAppointment(
+        @Param("psychologistId") Long psychologistId,
+        @Param("userId") Long userId,
+        @Param("now") Instant now
+    );
 }
 
 
