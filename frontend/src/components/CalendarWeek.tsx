@@ -110,7 +110,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
   // Obtener tipos de sesión disponibles
   const availableSessionTypes = useMemo(() => {
     if (!sessionPrices) return [];
-    return Object.keys(sessionPrices).filter(key => sessionPrices[key] != null);
+    return Object.keys(sessionPrices).filter(key => sessionPrices[key] != null && sessionPrices[key]! > 0);
   }, [sessionPrices]);
 
   const createAt = (day: Date, hour: number) => {
@@ -129,6 +129,15 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
       setShowPriceModal(true);
       setPriceInput('');
       setSelectedSessionType('');
+      // Si hay un solo tipo de sesión disponible, seleccionarlo automáticamente
+      if (availableSessionTypes.length === 1 && sessionPrices) {
+        const singleType = availableSessionTypes[0];
+        setSelectedSessionType(singleType);
+        const price = sessionPrices[singleType];
+        if (price) {
+          setPriceInput(price.toString());
+        }
+      }
     } else {
       onCreateSlot(start.toISOString(), end.toISOString());
     }
@@ -177,12 +186,21 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
         const end = new Date(dragStart.day);
         end.setHours(endHour + 1, 0, 0, 0);
         
-        setSavedWeekStart(new Date(weekStart));
-        setPendingSlot(null);
-        setPendingRange({ start: start.toISOString(), end: end.toISOString(), count: totalSlots });
-        setShowPriceModal(true);
-        setPriceInput('');
-        setSelectedSessionType('');
+      setSavedWeekStart(new Date(weekStart));
+      setPendingSlot(null);
+      setPendingRange({ start: start.toISOString(), end: end.toISOString(), count: totalSlots });
+      setShowPriceModal(true);
+      setPriceInput('');
+      setSelectedSessionType('');
+      // Si hay un solo tipo de sesión disponible, seleccionarlo automáticamente
+      if (availableSessionTypes.length === 1 && sessionPrices) {
+        const singleType = availableSessionTypes[0];
+        setSelectedSessionType(singleType);
+        const price = sessionPrices[singleType];
+        if (price) {
+          setPriceInput(price.toString());
+        }
+      }
       } else {
         // Crear una sola cita
         createAt(dragStart.day, dragStart.hour);
@@ -880,16 +898,19 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
             {availableSessionTypes.length > 0 && (
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500 }}>
-                  Tipo de sesión (opcional)
+                  Tipo de sesión <span style={{ color: '#059669', fontSize: '12px' }}>(recomendado)</span>
                 </label>
                 <select
                   value={selectedSessionType}
                   onChange={(e) => {
-                    setSelectedSessionType(e.target.value);
-                    if (e.target.value && sessionPrices) {
-                      const price = sessionPrices[e.target.value];
-                      if (price) {
+                    const selectedType = e.target.value;
+                    setSelectedSessionType(selectedType);
+                    if (selectedType && sessionPrices) {
+                      const price = sessionPrices[selectedType];
+                      if (price != null && price > 0) {
                         setPriceInput(price.toString());
+                      } else {
+                        setPriceInput('');
                       }
                     } else {
                       setPriceInput('');
@@ -909,12 +930,20 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                   onBlur={(e) => e.currentTarget.style.borderColor = '#e5e7eb'}
                 >
                   <option value="">-- Seleccionar tipo de sesión --</option>
-                  {availableSessionTypes.map(type => (
-                    <option key={type} value={type}>
-                      {type.charAt(0).toUpperCase() + type.slice(1)} - {sessionPrices![type]}€
-                    </option>
-                  ))}
+                  {availableSessionTypes.map(type => {
+                    const price = sessionPrices![type];
+                    return (
+                      <option key={type} value={type}>
+                        {type.charAt(0).toUpperCase() + type.slice(1)} - {price}€
+                      </option>
+                    );
+                  })}
                 </select>
+                {selectedSessionType && sessionPrices && sessionPrices[selectedSessionType] && (
+                  <div style={{ fontSize: '12px', color: '#059669', marginTop: '4px', fontWeight: 500 }}>
+                    ✓ Precio predefinido: {sessionPrices[selectedSessionType]}€
+                  </div>
+                )}
               </div>
             )}
             <div style={{ marginBottom: '16px' }}>

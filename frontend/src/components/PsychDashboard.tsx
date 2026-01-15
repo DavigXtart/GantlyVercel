@@ -850,18 +850,20 @@ export default function PsychDashboard() {
           <div style={{ padding: '0 32px 24px 32px' }}>
             <div style={{
               padding: '16px 20px',
-              background: me?.isFull ? 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)' : '#f9fafb',
+              background: me?.isFull ? 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)' : 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
               borderRadius: '12px',
-              border: `2px solid ${me?.isFull ? '#ef4444' : '#e5e7eb'}`,
+              border: `2px solid ${me?.isFull ? '#ef4444' : '#22c55e'}`,
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between'
+              justifyContent: 'center',
+              gap: '16px',
+              position: 'relative'
             }}>
-              <div>
-                <div style={{ fontSize: '14px', fontWeight: 600, color: me?.isFull ? '#dc2626' : '#1f2937', marginBottom: '4px' }}>
+              <div style={{ textAlign: 'center', flex: 1 }}>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: me?.isFull ? '#dc2626' : '#15803d', marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                   {me?.isFull ? '🔴 Estoy lleno - No acepto nuevos pacientes' : '🟢 Aceptando nuevos pacientes'}
                 </div>
-                <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                <div style={{ fontSize: '12px', color: '#6b7280', textAlign: 'center' }}>
                   {me?.isFull ? 'No aparecerás en las recomendaciones para nuevos pacientes' : 'Apareces en las recomendaciones para nuevos pacientes'}
                 </div>
               </div>
@@ -870,21 +872,29 @@ export default function PsychDashboard() {
                 display: 'inline-block',
                 width: '52px',
                 height: '28px',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                flexShrink: 0
               }}>
                 <input
                   type="checkbox"
                   checked={me?.isFull || false}
                   onChange={async (e) => {
+                    const newValue = e.target.checked;
                     try {
-                      await psychService.updateIsFull(e.target.checked);
-                      setMe({ ...me, isFull: e.target.checked });
-                      toast.success(e.target.checked ? 'Ahora estás marcado como lleno' : 'Ahora aceptas nuevos pacientes');
+                      await psychService.updateIsFull(newValue);
+                      // Actualizar el estado inmediatamente para feedback visual
+                      const updatedMe = { ...me, isFull: newValue };
+                      setMe(updatedMe);
+                      // Recargar datos para asegurar sincronización
+                      await loadData();
+                      toast.success(newValue ? 'Ahora estás marcado como lleno' : 'Ahora aceptas nuevos pacientes');
                     } catch (error: any) {
                       toast.error('Error al actualizar el estado: ' + (error.response?.data?.error || error.message));
+                      // Revertir el estado en caso de error
+                      setMe({ ...me, isFull: !newValue });
                     }
                   }}
-                  style={{ opacity: 0, width: 0, height: 0 }}
+                  style={{ opacity: 0, width: 0, height: 0, position: 'absolute' }}
                 />
                 <span style={{
                   position: 'absolute',
@@ -892,7 +902,7 @@ export default function PsychDashboard() {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  backgroundColor: me?.isFull ? '#ef4444' : '#cbd5e1',
+                  backgroundColor: me?.isFull ? '#ef4444' : '#22c55e',
                   borderRadius: '28px',
                   transition: 'background-color 0.3s',
                   display: 'flex',
@@ -3407,24 +3417,58 @@ export default function PsychDashboard() {
                   <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: 600, color: '#1f2937' }}>
                     Test:
                   </label>
-                  <div style={{ marginBottom: '8px' }}>
+                  <div style={{ position: 'relative', marginBottom: '8px' }}>
                     <input
                       type="text"
-                      placeholder="Buscar test por nombre o código..."
+                      placeholder="🔍 Buscar test por nombre o código..."
                       value={testSearchTerm}
                       onChange={(e) => setTestSearchTerm(e.target.value)}
                       style={{
                         width: '100%',
-                        padding: '8px 12px',
+                        padding: '10px 12px',
+                        paddingLeft: '40px',
                         borderRadius: '8px',
-                        border: '1px solid #e5e7eb',
+                        border: '2px solid #e5e7eb',
                         fontSize: '14px',
                         outline: 'none',
-                        transition: 'border-color 0.2s'
+                        transition: 'border-color 0.2s',
+                        background: '#ffffff'
                       }}
                       onFocus={(e) => e.currentTarget.style.borderColor = '#667eea'}
                       onBlur={(e) => e.currentTarget.style.borderColor = '#e5e7eb'}
                     />
+                    <span style={{
+                      position: 'absolute',
+                      left: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      fontSize: '16px',
+                      color: '#9ca3af'
+                    }}>🔍</span>
+                    {testSearchTerm.trim() && (
+                      <button
+                        onClick={() => setTestSearchTerm('')}
+                        style={{
+                          position: 'absolute',
+                          right: '8px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'transparent',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: '18px',
+                          color: '#9ca3af',
+                          padding: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = '#ef4444'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}
+                      >
+                        ×
+                      </button>
+                    )}
                   </div>
                   {(() => {
                     const filteredTests = availableTests.filter((t: any) => {
@@ -3444,12 +3488,13 @@ export default function PsychDashboard() {
                           style={{
                             padding: '10px',
                             borderRadius: '8px',
-                            border: '1px solid #e5e7eb',
+                            border: '2px solid #e5e7eb',
                             fontSize: '14px',
-                            width: '100%'
+                            width: '100%',
+                            background: '#ffffff'
                           }}
                         >
-                          <option value="">Selecciona un test</option>
+                          <option value="">{testSearchTerm.trim() ? `Selecciona de ${filteredTests.length} resultado(s)` : 'Selecciona un test'}</option>
                           {availableTests.length === 0 ? (
                             <option value="" disabled>Cargando tests...</option>
                           ) : filteredTests.length === 0 ? (
@@ -3461,8 +3506,8 @@ export default function PsychDashboard() {
                           )}
                         </select>
                         {testSearchTerm.trim() && filteredTests.length > 0 && (
-                          <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
-                            Mostrando {filteredTests.length} de {availableTests.length} tests
+                          <div style={{ fontSize: '12px', color: '#059669', fontWeight: 500, marginTop: '4px' }}>
+                            ✓ Mostrando {filteredTests.length} de {availableTests.length} tests
                           </div>
                         )}
                         {availableTests.length === 0 && (
