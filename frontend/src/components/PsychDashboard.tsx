@@ -1164,6 +1164,7 @@ export default function PsychDashboard() {
                 );
               })()}
             </div>
+            </div>
           </div>
         </div>
       )}
