@@ -52,19 +52,6 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
       }
     }
   }, [initialWeekStart]);
-
-  // Listener global para mouse up cuando se está arrastrando
-  useEffect(() => {
-    if (isDragging) {
-      const handleGlobalMouseUp = () => {
-        handleMouseUp();
-      };
-      window.addEventListener('mouseup', handleGlobalMouseUp);
-      return () => {
-        window.removeEventListener('mouseup', handleGlobalMouseUp);
-      };
-    }
-  }, [isDragging]);
   
   // Notificar al padre cuando cambia la semana
   const handleWeekChange = (newWeek: Date) => {
