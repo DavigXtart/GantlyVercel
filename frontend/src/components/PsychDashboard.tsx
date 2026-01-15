@@ -880,8 +880,8 @@ export default function PsychDashboard() {
                     try {
                       await psychService.updateIsFull(newValue);
                       // Verificar que el servidor confirmó el cambio
-                      const updatedProfile = await profileService.me();
-                      if (updatedProfile.isFull !== newValue) {
+                      const updatedProfile: any = await profileService.me();
+                      if ((updatedProfile.isFull ?? false) !== newValue) {
                         // Si el servidor no confirmó, revertir
                         setMe({ ...me, isFull: previousValue });
                         toast.error('No se pudo actualizar el estado. Por favor intenta de nuevo.');
