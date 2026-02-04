@@ -3947,14 +3947,14 @@ export default function PsychDashboard() {
                 if (!slot) {
                   throw new Error('Cita no encontrada');
                 }
+                // Primero eliminar el slot libre para evitar solapamiento al crear la cita
+                await calendarService.deleteSlot(appointmentId);
                 await calendarService.createForPatient(
                   userId,
                   slot.startTime,
                   slot.endTime,
                   slot.price
                 );
-                // Eliminar el slot libre después de asignarlo
-                await calendarService.deleteSlot(appointmentId);
                 await loadMySlots();
                 await loadPendingRequests();
               } catch (e: any) {

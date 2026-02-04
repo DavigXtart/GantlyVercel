@@ -82,26 +82,45 @@ public class EmailService {
                 .withZone(java.time.ZoneId.systemDefault());
             
             String appointmentDate = formatter.format(appointmentStart);
-            String deadlineDate = deadlineFormatter.format(paymentDeadline);
-            
-            String emailBody = String.format(
-                "Hola %s,\n\n" +
-                "¡Tu solicitud de cita ha sido confirmada!\n\n" +
-                "Detalles de la cita:\n" +
-                "- Psicólogo: %s\n" +
-                "- Fecha y hora: %s\n" +
-                "- Precio: %.2f €\n\n" +
-                "IMPORTANTE: Tienes hasta el %s para realizar el pago de tu cita.\n" +
-                "Si no realizas el pago antes de esta fecha, la cita será cancelada automáticamente.\n\n" +
-                "Puedes acceder a tu panel de usuario para realizar el pago y gestionar tus citas.\n\n" +
-                "Saludos,\n" +
-                "El equipo de PSYmatch",
-                patientName,
-                psychologistName,
-                appointmentDate,
-                price != null ? price.doubleValue() : 0.0,
-                deadlineDate
-            );
+            String emailBody;
+            if (paymentDeadline != null) {
+                String deadlineDate = deadlineFormatter.format(paymentDeadline);
+                emailBody = String.format(
+                    "Hola %s,\n\n" +
+                    "¡Tu solicitud de cita ha sido confirmada!\n\n" +
+                    "Detalles de la cita:\n" +
+                    "- Psicólogo: %s\n" +
+                    "- Fecha y hora: %s\n" +
+                    "- Precio: %.2f €\n\n" +
+                    "IMPORTANTE: Tienes hasta el %s para realizar el pago de tu cita.\n" +
+                    "Si no realizas el pago antes de esta fecha, la cita será cancelada automáticamente.\n\n" +
+                    "Puedes acceder a tu panel de usuario para realizar el pago y gestionar tus citas.\n\n" +
+                    "Saludos,\n" +
+                    "El equipo de PSYmatch",
+                    patientName,
+                    psychologistName,
+                    appointmentDate,
+                    price != null ? price.doubleValue() : 0.0,
+                    deadlineDate
+                );
+            } else {
+                // Sin Stripe: mensaje sin flujo de pago
+                emailBody = String.format(
+                    "Hola %s,\n\n" +
+                    "¡Tu cita ha sido confirmada!\n\n" +
+                    "Detalles de la cita:\n" +
+                    "- Psicólogo: %s\n" +
+                    "- Fecha y hora: %s\n" +
+                    "- Precio: %.2f €\n\n" +
+                    "Puedes acceder a la videollamada desde tu panel de usuario 1 hora antes del inicio de la cita.\n\n" +
+                    "Saludos,\n" +
+                    "El equipo de PSYmatch",
+                    patientName,
+                    psychologistName,
+                    appointmentDate,
+                    price != null ? price.doubleValue() : 0.0
+                );
+            }
             
             message.setText(emailBody);
             mailSender.send(message);

@@ -48,7 +48,7 @@ public class MatchingController {
     public ResponseEntity<?> getPatientMatchingTest(Principal principal) {
         try {
             TestEntity test = testRepository.findByCode(PATIENT_MATCHING_TEST_CODE)
-                .orElseThrow(() -> new RuntimeException("Test de matching de paciente no encontrado. Asegúrate de que Flyway haya ejecutado las migraciones."));
+                .orElseThrow(() -> new RuntimeException("Test de matching de paciente no encontrado."));
             
             List<QuestionEntity> questions = questionRepository.findByTestOrderByPositionAsc(test);
             List<Map<String, Object>> questionsList = new ArrayList<>();
@@ -102,7 +102,7 @@ public class MatchingController {
             }
             
             TestEntity test = testRepository.findByCode(PSYCHOLOGIST_MATCHING_TEST_CODE)
-                .orElseThrow(() -> new RuntimeException("Test de matching de psicólogo no encontrado. Asegúrate de que Flyway haya ejecutado las migraciones."));
+                .orElseThrow(() -> new RuntimeException("Test de matching de psicólogo no encontrado."));
             
             List<QuestionEntity> questions = questionRepository.findByTestOrderByPositionAsc(test);
             List<Map<String, Object>> questionsList = new ArrayList<>();
@@ -301,7 +301,7 @@ public class MatchingController {
             }
             
             TestEntity test = testRepository.findByCode(PSYCHOLOGIST_MATCHING_TEST_CODE)
-                .orElseThrow(() -> new RuntimeException("Test de matching de psicólogo no encontrado. Asegúrate de que Flyway haya ejecutado las migraciones."));
+                .orElseThrow(() -> new RuntimeException("Test de matching de psicólogo no encontrado."));
             
             List<UserAnswerEntity> answers = userAnswerRepository.findByUser(user).stream()
                 .filter(ua -> ua.getQuestion().getTest().getCode().equals(PSYCHOLOGIST_MATCHING_TEST_CODE))

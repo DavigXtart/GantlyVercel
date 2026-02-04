@@ -56,7 +56,8 @@ public class SecurityConfig {
                     boolean isAdmin = authn != null && authn.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
                     return new AuthorizationDecision(isAdmin);
                 })
-                .anyRequest().permitAll()
+                .requestMatchers("/error", "/favicon.ico").permitAll()
+                .anyRequest().authenticated()
             )
 			.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 		return http.build();

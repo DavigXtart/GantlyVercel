@@ -483,8 +483,9 @@ public class CalendarController {
         appointment.setUser(request.getUser());
         appointment.setConfirmedAt(now);
         appointment.setConfirmedByUser(request.getUser());
-        appointment.setPaymentDeadline(now.plusSeconds(24 * 60 * 60)); // 24 horas
-        appointment.setPaymentStatus("PENDING");
+        // Sin Stripe: marcar como PAID para permitir videollamadas sin flujo de pago
+        appointment.setPaymentDeadline(null);
+        appointment.setPaymentStatus("PAID");
         appointmentRepository.save(appointment);
         
         // Enviar email de confirmación
@@ -620,8 +621,9 @@ public class CalendarController {
         Instant confirmationTime = Instant.now();
         appointment.setConfirmedAt(confirmationTime);
         appointment.setConfirmedByUser(user);
-        appointment.setPaymentDeadline(confirmationTime.plusSeconds(24 * 60 * 60)); // 24 horas
-        appointment.setPaymentStatus("PENDING");
+        // Sin Stripe: marcar como PAID para permitir videollamadas sin flujo de pago
+        appointment.setPaymentDeadline(null);
+        appointment.setPaymentStatus("PAID");
         
         var saved = appointmentRepository.save(appointment);
         
@@ -639,7 +641,15 @@ public class CalendarController {
             logger.error("Error enviando email de confirmación", e);
         }
         
-        return ResponseEntity.ok(saved);
+        // Devolver DTO para evitar error de serialización con proxies lazy de Hibernate
+        Map<String, Object> dto = new HashMap<>();
+        dto.put("id", saved.getId());
+        dto.put("startTime", saved.getStartTime().toString());
+        dto.put("endTime", saved.getEndTime().toString());
+        dto.put("status", saved.getStatus());
+        dto.put("userId", user.getId());
+        dto.put("psychologistId", psychologist.getId());
+        return ResponseEntity.ok(dto);
     }
 
     // Usuario: obtener citas pasadas

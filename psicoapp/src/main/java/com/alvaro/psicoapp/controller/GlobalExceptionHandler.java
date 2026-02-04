@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -13,11 +14,23 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException e) {
+        String message = e.getBindingResult().getFieldErrors().stream()
+            .map(err -> err.getField() + ": " + (err.getDefaultMessage() != null ? err.getDefaultMessage() : "inválido"))
+            .collect(Collectors.joining("; "));
+        logger.warn("Validación fallida: {}", message);
+        return ResponseEntity.badRequest()
+            .body(createErrorResponse("VALIDATION_ERROR", message));
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseBody
     public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException e) {

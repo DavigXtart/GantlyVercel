@@ -69,21 +69,20 @@ public class JitsiController {
             Instant oneHourBefore = now.minusSeconds(3600);
             List<AppointmentEntity> activeAppointments;
             
+            // Aceptar BOOKED y CONFIRMED (sin requerir pago para videollamadas)
             if ("PSYCHOLOGIST".equals(currentUser.getRole())) {
                 activeAppointments = appointmentRepository
-                    .findByPsychologist_IdAndUser_IdAndStartTimeGreaterThanEqualAndStatus(
+                    .findByPsychologist_IdAndUser_IdAndStartTimeGreaterThanEqualAndStatusIn(
                         currentUser.getId(), 
                         otherUser.getId(), 
-                        oneHourBefore, 
-                        "BOOKED"
+                        oneHourBefore
                     );
             } else {
                 activeAppointments = appointmentRepository
-                    .findByPsychologist_IdAndUser_IdAndStartTimeGreaterThanEqualAndStatus(
+                    .findByPsychologist_IdAndUser_IdAndStartTimeGreaterThanEqualAndStatusIn(
                         otherUser.getId(), 
                         currentUser.getId(), 
-                        oneHourBefore, 
-                        "BOOKED"
+                        oneHourBefore
                     );
             }
             

@@ -3,6 +3,7 @@ package com.alvaro.psicoapp.controller;
 import com.alvaro.psicoapp.dto.AuthDtos;
 import com.alvaro.psicoapp.service.AuthService;
 import com.alvaro.psicoapp.repository.UserRepository;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
@@ -20,13 +21,13 @@ public class AuthController {
 	}
 
 	@PostMapping("/register")
-	public ResponseEntity<AuthDtos.TokenResponse> register(@RequestBody AuthDtos.RegisterRequest req) {
+	public ResponseEntity<AuthDtos.TokenResponse> register(@Valid @RequestBody AuthDtos.RegisterRequest req) {
 		String token = authService.register(req.name, req.email, req.password, req.sessionId, req.role);
 		return ResponseEntity.ok(new AuthDtos.TokenResponse(token));
 	}
 
 	@PostMapping("/login")
-	public ResponseEntity<AuthDtos.TokenResponse> login(@RequestBody AuthDtos.LoginRequest req) {
+	public ResponseEntity<AuthDtos.TokenResponse> login(@Valid @RequestBody AuthDtos.LoginRequest req) {
 		String token = authService.login(req.email, req.password);
 		return ResponseEntity.ok(new AuthDtos.TokenResponse(token));
 	}
@@ -61,13 +62,9 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<Map<String, String>> forgotPassword(@RequestBody Map<String, String> body) {
+    public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody AuthDtos.ForgotPasswordRequest req) {
         try {
-            String email = body.get("email");
-            if (email == null || email.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("message", "Email es requerido", "status", "error"));
-            }
-            authService.requestPasswordReset(email);
+            authService.requestPasswordReset(req.email);
             // Siempre devolver éxito para evitar que usuarios descubran emails válidos
             return ResponseEntity.ok(Map.of("message", "Si el email existe, se enviará un enlace de recuperación", "status", "success"));
         } catch (Exception e) {
@@ -77,14 +74,9 @@ public class AuthController {
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<Map<String, String>> resetPassword(@RequestBody Map<String, String> body) {
+    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody AuthDtos.ResetPasswordRequest req) {
         try {
-            String token = body.get("token");
-            String newPassword = body.get("newPassword");
-            if (token == null || newPassword == null || newPassword.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("message", "Token y nueva contraseña son requeridos", "status", "error"));
-            }
-            boolean success = authService.resetPassword(token, newPassword);
+            boolean success = authService.resetPassword(req.token, req.newPassword);
             if (success) {
                 return ResponseEntity.ok(Map.of("message", "Contraseña restablecida exitosamente", "status", "success"));
             } else {
@@ -96,17 +88,12 @@ public class AuthController {
     }
 
     @PostMapping("/change-password")
-    public ResponseEntity<Map<String, String>> changePassword(Principal principal, @RequestBody Map<String, String> body) {
+    public ResponseEntity<Map<String, String>> changePassword(Principal principal, @Valid @RequestBody AuthDtos.ChangePasswordRequest req) {
         try {
             if (principal == null) {
                 return ResponseEntity.status(401).body(Map.of("message", "No autorizado", "status", "error"));
             }
-            String currentPassword = body.get("currentPassword");
-            String newPassword = body.get("newPassword");
-            if (currentPassword == null || newPassword == null || newPassword.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("message", "Contraseña actual y nueva contraseña son requeridas", "status", "error"));
-            }
-            authService.changePassword(principal.getName(), currentPassword, newPassword);
+            authService.changePassword(principal.getName(), req.currentPassword, req.newPassword);
             return ResponseEntity.ok(Map.of("message", "Contraseña cambiada exitosamente", "status", "success"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage(), "status", "error"));

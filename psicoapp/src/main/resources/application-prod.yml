@@ -24,8 +24,6 @@ spring:
           batch_size: 20
         order_inserts: true
         order_updates: true
-  flyway:
-    enabled: false
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
@@ -59,8 +57,6 @@ logging:
     org.hibernate.orm.jdbc.bind: TRACE
     org.springframework.orm.jpa: DEBUG
     org.springframework.boot.autoconfigure.orm.jpa: DEBUG
-    org.flywaydb: DEBUG
-    org.flywaydb.core: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

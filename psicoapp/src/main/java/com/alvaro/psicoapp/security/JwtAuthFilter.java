@@ -18,8 +18,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserRepository userRepository;
 
-    public JwtAuthFilter(UserRepository userRepository) {
-        this.jwtService = new JwtService(System.getenv().getOrDefault("JWT_SECRET", "dev-secret-key-32-bytes-minimo-dev-seed"), 1000L * 60 * 60 * 24);
+    public JwtAuthFilter(JwtService jwtService, UserRepository userRepository) {
+        this.jwtService = jwtService;
         this.userRepository = userRepository;
     }
 

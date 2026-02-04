@@ -5,6 +5,7 @@ import com.alvaro.psicoapp.domain.TestEntity;
 import com.alvaro.psicoapp.repository.UserRepository;
 import com.alvaro.psicoapp.repository.TestRepository;
 import com.alvaro.psicoapp.security.JwtService;
+import com.alvaro.psicoapp.util.InputSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,11 +27,11 @@ public class AuthService {
 	private static final String INITIAL_TEST_CODE = "INITIAL";
 
 	public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-			TemporarySessionService sessionService, TestResultService testResultService,
+			JwtService jwtService, TemporarySessionService sessionService, TestResultService testResultService,
 			TestRepository testRepository, EmailService emailService) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
-		this.jwtService = new JwtService(System.getenv().getOrDefault("JWT_SECRET", "dev-secret-key-32-bytes-minimo-dev-seed"), 1000L * 60 * 60 * 24);
+		this.jwtService = jwtService;
 		this.sessionService = sessionService;
 		this.testResultService = testResultService;
 		this.testRepository = testRepository;
@@ -39,7 +40,11 @@ public class AuthService {
 
 	@Transactional
 	public String register(String name, String email, String password, String sessionId, String role) {
-		if (userRepository.existsByEmail(email)) throw new IllegalArgumentException("Email ya registrado");
+		String sanitizedEmail = InputSanitizer.sanitizeEmail(email);
+		String sanitizedName = InputSanitizer.sanitizeAndValidate(name != null ? name : "", 100);
+		if (sanitizedName.isEmpty()) throw new IllegalArgumentException("El nombre es requerido");
+
+		if (userRepository.existsByEmail(sanitizedEmail)) throw new IllegalArgumentException("Email ya registrado");
 		
 		// Verificar que el test inicial fue completado si se proporciona sessionId (solo para usuarios)
 		if (sessionId != null && !sessionId.isEmpty() && (role == null || "USER".equals(role))) {
@@ -50,8 +55,8 @@ public class AuthService {
 		}
 		
 		UserEntity u = new UserEntity();
-		u.setName(name);
-		u.setEmail(email);
+		u.setName(sanitizedName);
+		u.setEmail(sanitizedEmail);
 		u.setPasswordHash(passwordEncoder.encode(password));
 		u.setRole(role != null && !role.isEmpty() ? role : "USER");
 		u.setEmailVerified(false);
@@ -117,14 +122,16 @@ public class AuthService {
 	}
 
 	public String login(String email, String password) {
-		UserEntity u = userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("Credenciales inválidas"));
+		String sanitizedEmail = InputSanitizer.sanitizeEmail(email);
+		UserEntity u = userRepository.findByEmail(sanitizedEmail).orElseThrow(() -> new IllegalArgumentException("Credenciales inválidas"));
 		if (!passwordEncoder.matches(password, u.getPasswordHash())) throw new IllegalArgumentException("Credenciales inválidas");
 		return jwtService.generateToken(u.getEmail());
 	}
 
 	@Transactional
 	public void requestPasswordReset(String email) {
-		UserEntity user = userRepository.findByEmail(email)
+		String sanitizedEmail = InputSanitizer.sanitizeEmail(email);
+		UserEntity user = userRepository.findByEmail(sanitizedEmail)
 			.orElseThrow(() -> new IllegalArgumentException("No existe una cuenta con ese email"));
 		
 		// Generar token de reset
@@ -145,6 +152,9 @@ public class AuthService {
 
 	@Transactional
 	public boolean resetPassword(String token, String newPassword) {
+		if (newPassword == null || newPassword.length() < 6) {
+			throw new IllegalArgumentException("La contraseña debe tener al menos 6 caracteres");
+		}
 		var userOpt = userRepository.findByPasswordResetToken(token);
 		if (userOpt.isEmpty()) {
 			return false;
@@ -169,6 +179,9 @@ public class AuthService {
 
 	@Transactional
 	public void changePassword(String email, String currentPassword, String newPassword) {
+		if (newPassword == null || newPassword.length() < 6) {
+			throw new IllegalArgumentException("La nueva contraseña debe tener al menos 6 caracteres");
+		}
 		UserEntity user = userRepository.findByEmail(email)
 			.orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 		

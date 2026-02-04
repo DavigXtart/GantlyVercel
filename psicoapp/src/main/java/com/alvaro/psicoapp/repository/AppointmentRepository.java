@@ -27,6 +27,14 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
         @Param("startTime") Instant startTime, 
         @Param("status") String status
     );
+
+    // Buscar citas activas (BOOKED o CONFIRMED) - para videollamadas sin requerir pago
+    @Query("SELECT a FROM AppointmentEntity a WHERE a.psychologist.id = :psychologistId AND a.user.id = :userId AND a.startTime >= :startTime AND (a.status = 'BOOKED' OR a.status = 'CONFIRMED') ORDER BY a.startTime ASC")
+    List<AppointmentEntity> findByPsychologist_IdAndUser_IdAndStartTimeGreaterThanEqualAndStatusIn(
+        @Param("psychologistId") Long psychologistId, 
+        @Param("userId") Long userId, 
+        @Param("startTime") Instant startTime
+    );
     
     // Buscar citas con pagos expirados
     @Query("SELECT a FROM AppointmentEntity a WHERE a.status = :status AND a.paymentStatus = :paymentStatus AND a.paymentDeadline < :deadline")
