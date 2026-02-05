@@ -160,7 +160,7 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
           onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
           onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
         >
-          PSYmatch
+          Gantly
         </div>
         <button
           onClick={onLogin}
@@ -720,7 +720,7 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
                       }}
                     />
                     <span style={{ fontSize: '14px', color: '#3a5a4a', lineHeight: 1.6 }}>
-                      Acepto los <a href="#" style={{ color: '#5a9270', textDecoration: 'underline' }}>términos y condiciones</a> de PSYmatch *
+                      Acepto los <a href="#" style={{ color: '#5a9270', textDecoration: 'underline' }}>términos y condiciones</a> de Gantly *
                     </span>
                   </label>
 

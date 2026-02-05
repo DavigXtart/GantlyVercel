@@ -2,7 +2,9 @@ package com.alvaro.psicoapp.service;
 
 import com.alvaro.psicoapp.domain.DailyMoodEntryEntity;
 import com.alvaro.psicoapp.domain.UserEntity;
+import com.alvaro.psicoapp.dto.DailyMoodDtos;
 import com.alvaro.psicoapp.repository.DailyMoodEntryRepository;
+import com.alvaro.psicoapp.util.InputSanitizer;
 import com.alvaro.psicoapp.repository.UserRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,13 +30,11 @@ public class DailyMoodService {
     private UserRepository userRepository;
 
     @Transactional
-    public DailyMoodEntryEntity saveOrUpdate(Long userId, Map<String, Object> data) {
+    public DailyMoodEntryEntity saveOrUpdate(Long userId, DailyMoodDtos.SaveEntryRequest req) {
         UserEntity user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        LocalDate entryDate = data.get("entryDate") != null 
-            ? LocalDate.parse(data.get("entryDate").toString())
-            : LocalDate.now();
+        LocalDate entryDate = req.entryDate() != null ? req.entryDate() : LocalDate.now();
 
         // Validar que la fecha esté dentro del rango permitido: hoy o máximo 2 días atrás
         LocalDate today = LocalDate.now();
@@ -55,46 +55,19 @@ public class DailyMoodService {
         entry.setUser(user);
         entry.setEntryDate(entryDate);
         
-        // Validar y establecer moodRating (obligatorio)
-        Object moodRatingObj = data.get("moodRating");
-        if (moodRatingObj == null) {
+        if (req.moodRating() == null) {
             throw new RuntimeException("El estado de ánimo es obligatorio");
         }
-        
-        Integer moodRating;
-        if (moodRatingObj instanceof Integer) {
-            moodRating = (Integer) moodRatingObj;
-        } else if (moodRatingObj instanceof Number) {
-            moodRating = ((Number) moodRatingObj).intValue();
-        } else {
-            try {
-                moodRating = Integer.valueOf(moodRatingObj.toString());
-            } catch (NumberFormatException e) {
-                throw new RuntimeException("El estado de ánimo debe ser un número válido");
-            }
-        }
-        
-        if (moodRating < 1 || moodRating > 5) {
+        if (req.moodRating() < 1 || req.moodRating() > 5) {
             throw new RuntimeException("El estado de ánimo debe estar entre 1 y 5");
         }
-        entry.setMoodRating(moodRating);
+        entry.setMoodRating(req.moodRating());
         
-        // Establecer campos opcionales
-        if (data.get("emotions") != null && !data.get("emotions").toString().trim().isEmpty()) {
-            entry.setEmotions(data.get("emotions").toString());
-        }
-        if (data.get("activities") != null && !data.get("activities").toString().trim().isEmpty()) {
-            entry.setActivities(data.get("activities").toString());
-        }
-        if (data.get("companions") != null && !data.get("companions").toString().trim().isEmpty()) {
-            entry.setCompanions(data.get("companions").toString());
-        }
-        if (data.get("location") != null && !data.get("location").toString().trim().isEmpty()) {
-            entry.setLocation(data.get("location").toString());
-        }
-        if (data.get("notes") != null && !data.get("notes").toString().trim().isEmpty()) {
-            entry.setNotes(data.get("notes").toString());
-        }
+        if (req.emotions() != null && !req.emotions().trim().isEmpty()) entry.setEmotions(req.emotions());
+        if (req.activities() != null && !req.activities().trim().isEmpty()) entry.setActivities(req.activities());
+        if (req.companions() != null && !req.companions().trim().isEmpty()) entry.setCompanions(req.companions());
+        if (req.location() != null && !req.location().trim().isEmpty()) entry.setLocation(InputSanitizer.sanitize(req.location()));
+        if (req.notes() != null && !req.notes().trim().isEmpty()) entry.setNotes(InputSanitizer.sanitize(req.notes()));
 
         try {
             DailyMoodEntryEntity saved = dailyMoodEntryRepository.save(entry);
@@ -116,38 +89,21 @@ public class DailyMoodService {
         return dailyMoodEntryRepository.findByUser_IdAndEntryDateBetween(userId, start, end);
     }
 
-    public Map<String, Object> getStatistics(Long userId, int days) {
+    public DailyMoodDtos.MoodStatisticsResponse getStatistics(Long userId, int days) {
         LocalDate endDate = LocalDate.now();
         LocalDate startDate = endDate.minusDays(days);
-        
         List<DailyMoodEntryEntity> entries = getUserEntriesBetween(userId, startDate, endDate);
         
-        Map<String, Object> stats = new HashMap<>();
-        
         if (entries.isEmpty()) {
-            stats.put("averageMood", 0.0);
-            stats.put("totalEntries", 0);
-            stats.put("streak", 0);
-            stats.put("mostCommonEmotions", List.of());
-            stats.put("mostCommonActivities", List.of());
-            return stats;
+            return new DailyMoodDtos.MoodStatisticsResponse(0.0, 0, 0, List.of(), List.of());
         }
-
         double averageMood = entries.stream()
             .mapToInt(e -> e.getMoodRating() != null ? e.getMoodRating() : 0)
             .average()
             .orElse(0.0);
-
-        // Calcular racha (días consecutivos)
         int streak = calculateStreak(entries);
-
-        stats.put("averageMood", averageMood);
-        stats.put("totalEntries", entries.size());
-        stats.put("streak", streak);
-        stats.put("mostCommonEmotions", getMostCommon(entries, "emotions"));
-        stats.put("mostCommonActivities", getMostCommon(entries, "activities"));
-        
-        return stats;
+        return new DailyMoodDtos.MoodStatisticsResponse(averageMood, entries.size(), streak,
+                getMostCommon(entries, "emotions"), getMostCommon(entries, "activities"));
     }
 
     private int calculateStreak(List<DailyMoodEntryEntity> entries) {

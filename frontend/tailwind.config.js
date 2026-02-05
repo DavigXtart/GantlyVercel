@@ -51,6 +51,12 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Paleta Gantly
+        sage: "#7b9f86",    // verde salvia algo más oscuro
+        cream: "#f8fbf7",   // fondo cálido ligeramente verdoso
+        mint: "#e0f0e6",    // menta suave para fondos
+        forest: "#18382e",  // verde oscuro con buen contraste
+        clay: "#b89a8a",
       },
       borderRadius: {
         lg: "var(--radius)",

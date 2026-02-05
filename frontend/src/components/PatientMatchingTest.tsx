@@ -778,7 +778,7 @@ export default function PatientMatchingTest({ onComplete, onBack }: PatientMatch
           color: '#5a9270',
           letterSpacing: '-0.02em',
         }}>
-          Psymatch
+          Gantly
         </div>
         {onBack && (
           <button

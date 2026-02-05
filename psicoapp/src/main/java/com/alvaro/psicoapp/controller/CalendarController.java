@@ -1,16 +1,11 @@
 package com.alvaro.psicoapp.controller;
 
 import com.alvaro.psicoapp.domain.AppointmentEntity;
-import com.alvaro.psicoapp.domain.AppointmentRequestEntity;
-import com.alvaro.psicoapp.domain.AppointmentRatingEntity;
-import com.alvaro.psicoapp.repository.AppointmentRepository;
-import com.alvaro.psicoapp.repository.AppointmentRequestRepository;
-import com.alvaro.psicoapp.repository.AppointmentRatingRepository;
-import com.alvaro.psicoapp.repository.UserPsychologistRepository;
+import com.alvaro.psicoapp.domain.UserEntity;
+import com.alvaro.psicoapp.dto.CalendarDtos;
 import com.alvaro.psicoapp.repository.UserRepository;
-import com.alvaro.psicoapp.service.EmailService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.alvaro.psicoapp.service.CalendarService;
+import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,813 +13,121 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.temporal.WeekFields;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/api/calendar")
 public class CalendarController {
-    private static final Logger logger = LoggerFactory.getLogger(CalendarController.class);
-    private final AppointmentRepository appointmentRepository;
-    private final AppointmentRequestRepository appointmentRequestRepository;
-    private final AppointmentRatingRepository appointmentRatingRepository;
+    private final CalendarService calendarService;
     private final UserRepository userRepository;
-    private final UserPsychologistRepository userPsychologistRepository;
-    private final EmailService emailService;
 
-    public CalendarController(AppointmentRepository appointmentRepository, 
-                             AppointmentRequestRepository appointmentRequestRepository,
-                             AppointmentRatingRepository appointmentRatingRepository,
-                             UserRepository userRepository, 
-                             UserPsychologistRepository userPsychologistRepository,
-                             EmailService emailService) {
-        this.appointmentRepository = appointmentRepository;
-        this.appointmentRequestRepository = appointmentRequestRepository;
-        this.appointmentRatingRepository = appointmentRatingRepository;
+    public CalendarController(CalendarService calendarService, UserRepository userRepository) {
+        this.calendarService = calendarService;
         this.userRepository = userRepository;
-        this.userPsychologistRepository = userPsychologistRepository;
-        this.emailService = emailService;
     }
 
-    // Psicólogo: crear slot libre
+    private UserEntity currentUser(Principal principal) {
+        return userRepository.findByEmail(principal.getName()).orElseThrow();
+    }
+
     @PostMapping("/slots")
     @Transactional
-    public ResponseEntity<?> createSlot(Principal principal, @RequestBody Map<String, Object> body) {
-        var me = userRepository.findByEmail(principal.getName()).orElseThrow();
-        if (!"PSYCHOLOGIST".equals(me.getRole())) return ResponseEntity.status(403).build();
-        
-        Instant start = Instant.parse(String.valueOf(body.get("start")));
-        Instant end = Instant.parse(String.valueOf(body.get("end")));
-        
-        // Validar que las fechas no sean en el pasado
-        Instant now = Instant.now();
-        if (start.isBefore(now)) {
-            return ResponseEntity.badRequest().body(Map.of("error", "No se pueden crear citas en el pasado"));
-        }
-        
-        // Validar que end sea después de start
-        if (!end.isAfter(start)) {
-            return ResponseEntity.badRequest().body(Map.of("error", "La hora de fin debe ser posterior a la hora de inicio"));
-        }
-        
-        // Validar que la duración sea razonable (mínimo 30 minutos, máximo 4 horas)
-        long durationMinutes = java.time.Duration.between(start, end).toMinutes();
-        if (durationMinutes < 30) {
-            return ResponseEntity.badRequest().body(Map.of("error", "La duración mínima de una cita es de 30 minutos"));
-        }
-        if (durationMinutes > 240) {
-            return ResponseEntity.badRequest().body(Map.of("error", "La duración máxima de una cita es de 4 horas"));
-        }
-        
-        // Validar que no haya solapamiento con otras citas del mismo psicólogo
-        List<AppointmentEntity> existingAppointments = appointmentRepository
-            .findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(me.getId(), 
-                start.minusSeconds(1), end.plusSeconds(1));
-        
-        // Filtrar solo citas activas (no canceladas)
-        boolean hasOverlap = existingAppointments.stream()
-            .anyMatch(apt -> {
-                if ("CANCELLED".equals(apt.getStatus())) {
-                    return false;
-                }
-                // Verificar solapamiento: (start1 < end2) && (end1 > start2)
-                return (start.isBefore(apt.getEndTime()) && end.isAfter(apt.getStartTime()));
-            });
-        
-        if (hasOverlap) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Ya existe una cita en este horario. Por favor, elige otro horario."));
-        }
-        
-        // Obtener el precio del body - OBLIGATORIO
-        BigDecimal price = null;
-        if (body.get("price") == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "El precio es obligatorio para crear una cita"));
-        }
-        
-            try {
-                if (body.get("price") instanceof Number) {
-                    price = BigDecimal.valueOf(((Number) body.get("price")).doubleValue());
-                } else if (body.get("price") instanceof String) {
-                    String priceStr = ((String) body.get("price")).trim();
-                if (priceStr.isEmpty()) {
-                    return ResponseEntity.badRequest().body(Map.of("error", "El precio es obligatorio para crear una cita"));
-                }
-                        price = new BigDecimal(priceStr);
-                } else {
-                    price = new BigDecimal(String.valueOf(body.get("price")));
-                }
-            } catch (Exception e) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Precio inválido: " + e.getMessage()));
-        }
-        
-        // Validar que el precio sea positivo
-        if (price.compareTo(BigDecimal.ZERO) <= 0) {
-            return ResponseEntity.badRequest().body(Map.of("error", "El precio debe ser mayor a 0"));
-        }
-        
-        AppointmentEntity a = new AppointmentEntity();
-        a.setPsychologist(me);
-        a.setStartTime(start);
-        a.setEndTime(end);
-        a.setStatus("FREE");
-        a.setPrice(price);
-        
-        return ResponseEntity.ok(appointmentRepository.save(a));
+    public ResponseEntity<?> createSlot(Principal principal, @Valid @RequestBody CalendarDtos.CreateSlotRequest req) {
+        AppointmentEntity slot = calendarService.createSlot(currentUser(principal), req);
+        return ResponseEntity.ok(slot);
     }
 
-    // Psicólogo: eliminar slot/cita
     @DeleteMapping("/slots/{appointmentId}")
     @Transactional
-    public ResponseEntity<?> deleteSlot(Principal principal, @PathVariable Long appointmentId) {
-        var psychologist = userRepository.findByEmail(principal.getName()).orElseThrow();
-        if (!"PSYCHOLOGIST".equals(psychologist.getRole())) {
-            return ResponseEntity.status(403).build();
-        }
-        
-        var appointment = appointmentRepository.findById(appointmentId).orElseThrow();
-        
-        // Verificar que la cita pertenece al psicólogo
-        if (!appointment.getPsychologist().getId().equals(psychologist.getId())) {
-            return ResponseEntity.status(403).body(Map.of("error", "No tienes permiso para eliminar esta cita"));
-        }
-        
-        // Solo se pueden eliminar citas libres o con solicitudes pendientes
-        // No se pueden eliminar citas confirmadas o reservadas directamente
-        if ("CONFIRMED".equals(appointment.getStatus()) || "BOOKED".equals(appointment.getStatus())) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "error", 
-                "No puedes eliminar citas confirmadas o reservadas. Usa la opción de cancelar en su lugar."
-            ));
-        }
-        
-        // Si tiene solicitudes pendientes, rechazarlas primero
-        var pendingRequests = appointmentRequestRepository.findByAppointment_IdAndStatus(appointmentId, "PENDING");
-        for (var req : pendingRequests) {
-            req.setStatus("REJECTED");
-            appointmentRequestRepository.save(req);
-        }
-        
-        // Eliminar la cita
-        appointmentRepository.delete(appointment);
-        
-        return ResponseEntity.ok(Map.of("message", "Cita eliminada exitosamente"));
+    public ResponseEntity<CalendarDtos.MessageResponse> deleteSlot(Principal principal, @PathVariable Long appointmentId) {
+        calendarService.deleteSlot(currentUser(principal), appointmentId);
+        return ResponseEntity.ok(new CalendarDtos.MessageResponse("Cita eliminada exitosamente"));
     }
 
-    // Psicólogo: editar cita (precio, fecha/hora)
     @PutMapping("/slots/{appointmentId}")
     @Transactional
-    public ResponseEntity<?> updateSlot(Principal principal, @PathVariable Long appointmentId, @RequestBody Map<String, Object> body) {
-        var me = userRepository.findByEmail(principal.getName()).orElseThrow();
-        if (!"PSYCHOLOGIST".equals(me.getRole())) {
-            return ResponseEntity.status(403).body(Map.of("error", "Solo los psicólogos pueden editar citas"));
-        }
-        
-        var appointment = appointmentRepository.findById(appointmentId)
-            .orElseThrow(() -> new RuntimeException("Cita no encontrada"));
-        
-        if (!appointment.getPsychologist().getId().equals(me.getId())) {
-            return ResponseEntity.status(403).body(Map.of("error", "No puedes editar citas de otros psicólogos"));
-        }
-        
-        // Solo permitir editar citas que no han pasado
-        if (appointment.getStartTime().isBefore(Instant.now())) {
-            return ResponseEntity.badRequest().body(Map.of("error", "No se pueden editar citas pasadas"));
-        }
-        
-        // Actualizar precio si se proporciona
-        if (body.containsKey("price")) {
-            Object priceObj = body.get("price");
-            if (priceObj != null) {
-                try {
-                    BigDecimal price;
-                    if (priceObj instanceof Number) {
-                        price = BigDecimal.valueOf(((Number) priceObj).doubleValue());
-                    } else {
-                        price = new BigDecimal(priceObj.toString());
-                    }
-                    if (price.compareTo(BigDecimal.ZERO) <= 0) {
-                        return ResponseEntity.badRequest().body(Map.of("error", "El precio debe ser mayor a 0"));
-                    }
-                    appointment.setPrice(price);
-                } catch (Exception e) {
-                    return ResponseEntity.badRequest().body(Map.of("error", "Precio inválido: " + e.getMessage()));
-                }
-            }
-        }
-        
-        // Actualizar fecha/hora si se proporciona (solo para citas FREE, sin solicitudes)
-        if (body.containsKey("startTime") && body.containsKey("endTime")) {
-            // Solo permitir cambiar la hora si la cita está libre (FREE) y no tiene solicitudes
-            if (!"FREE".equals(appointment.getStatus())) {
-                return ResponseEntity.badRequest().body(Map.of("error", "No se puede cambiar la hora de una cita que ya tiene solicitudes. Solo se pueden cambiar fechas de citas libres."));
-            }
-            
-            // Verificar si hay solicitudes asociadas a esta cita (pendientes o confirmadas)
-            var requests = appointmentRequestRepository.findByAppointment_Id(appointmentId);
-            boolean hasActiveRequests = requests.stream()
-                .anyMatch(req -> "PENDING".equals(req.getStatus()) || "CONFIRMED".equals(req.getStatus()));
-            
-            if (hasActiveRequests) {
-                return ResponseEntity.badRequest().body(Map.of("error", "No se puede cambiar la hora de una cita que tiene solicitudes pendientes o confirmadas."));
-            }
-            
-            try {
-                Instant newStart = Instant.parse(body.get("startTime").toString());
-                Instant newEnd = Instant.parse(body.get("endTime").toString());
-                
-                if (newStart.isBefore(Instant.now())) {
-                    return ResponseEntity.badRequest().body(Map.of("error", "No se puede programar una cita en el pasado"));
-                }
-                
-                if (newEnd.isBefore(newStart) || newEnd.equals(newStart)) {
-                    return ResponseEntity.badRequest().body(Map.of("error", "La hora de fin debe ser posterior a la de inicio"));
-                }
-                
-                appointment.setStartTime(newStart);
-                appointment.setEndTime(newEnd);
-            } catch (Exception e) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Formato de fecha inválido: " + e.getMessage()));
-            }
-        }
-        
-        appointmentRepository.save(appointment);
-        return ResponseEntity.ok(Map.of("message", "Cita actualizada exitosamente", "appointment", appointment));
+    public ResponseEntity<CalendarDtos.UpdateSlotResponse> updateSlot(Principal principal, @PathVariable Long appointmentId,
+                                        @RequestBody CalendarDtos.UpdateSlotRequest req) {
+        AppointmentEntity appointment = calendarService.updateSlot(currentUser(principal), appointmentId, req);
+        return ResponseEntity.ok(new CalendarDtos.UpdateSlotResponse("Cita actualizada exitosamente", appointment));
     }
 
-    // Psicólogo: listar slots del rango
     @GetMapping("/slots")
     public ResponseEntity<List<AppointmentEntity>> mySlots(Principal principal,
-        @RequestParam("from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
-        @RequestParam("to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to) {
-        var me = userRepository.findByEmail(principal.getName()).orElseThrow();
-        if (!"PSYCHOLOGIST".equals(me.getRole())) return ResponseEntity.status(403).build();
-        var now = Instant.now();
-        // Filtrar citas pasadas - solo mostrar citas futuras o del día actual
-        var slots = appointmentRepository.findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(me.getId(), from, to)
-            .stream()
-            .filter(s -> s.getStartTime().isAfter(now) || s.getStartTime().atZone(ZoneId.systemDefault()).toLocalDate().equals(now.atZone(ZoneId.systemDefault()).toLocalDate()))
-            .collect(Collectors.toList());
-        return ResponseEntity.ok(slots);
+            @RequestParam("from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
+            @RequestParam("to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to) {
+        return ResponseEntity.ok(calendarService.getMySlots(currentUser(principal), from, to));
     }
 
-    // Usuario: ver huecos libres de su psicólogo
     @GetMapping("/availability")
     public ResponseEntity<List<AppointmentEntity>> availability(Principal principal,
-        @RequestParam("from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
-        @RequestParam("to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to) {
-        var user = userRepository.findByEmail(principal.getName()).orElseThrow();
-        var rel = userPsychologistRepository.findByUserId(user.getId());
-        if (rel.isEmpty()) return ResponseEntity.ok(List.of());
-        var now = Instant.now();
-        var slots = appointmentRepository.findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(rel.get().getPsychologist().getId(), from, to)
-            .stream()
-            .filter(s -> s.getStartTime().isAfter(now) || s.getStartTime().atZone(ZoneId.systemDefault()).toLocalDate().equals(now.atZone(ZoneId.systemDefault()).toLocalDate()))
-            .collect(Collectors.toList());
-        // Incluir slots libres, citas solicitadas por este usuario, citas confirmadas y citas reservadas por este usuario
-        slots.removeIf(s -> {
-            if ("FREE".equals(s.getStatus()) || "REQUESTED".equals(s.getStatus())) {
-                return false; // Mostrar libres y solicitadas
-            }
-            if ("CONFIRMED".equals(s.getStatus()) || "BOOKED".equals(s.getStatus())) {
-                return !(s.getUser() != null && s.getUser().getId().equals(user.getId()));
-            }
-            return true; // Ocultar canceladas y otros estados
-        });
-        return ResponseEntity.ok(slots);
+            @RequestParam("from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
+            @RequestParam("to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to) {
+        return ResponseEntity.ok(calendarService.getAvailability(currentUser(principal), from, to));
     }
 
-    // Usuario: obtener sus citas (reservadas, confirmadas y solicitudes)
     @GetMapping("/my-appointments")
     @Transactional(readOnly = true)
-    public ResponseEntity<?> myAppointments(Principal principal) {
-        var user = userRepository.findByEmail(principal.getName()).orElseThrow();
-        
-        // Obtener citas confirmadas y reservadas (solo futuras)
-        var now = Instant.now();
-        var confirmedAppointments = appointmentRepository.findByUser_IdOrderByStartTimeAsc(user.getId())
-            .stream()
-            .filter(apt -> ("CONFIRMED".equals(apt.getStatus()) || "BOOKED".equals(apt.getStatus())) 
-                && (apt.getStartTime().isAfter(now) || apt.getStartTime().atZone(ZoneId.systemDefault()).toLocalDate().equals(now.atZone(ZoneId.systemDefault()).toLocalDate())))
-            .collect(Collectors.toList());
-        
-        // Obtener solicitudes pendientes del usuario
-        var pendingRequests = appointmentRequestRepository.findByUser_IdOrderByRequestedAtDesc(user.getId())
-            .stream()
-            .filter(req -> "PENDING".equals(req.getStatus()))
-            .collect(Collectors.toList());
-        
-        // Convertir citas confirmadas/reservadas a DTOs
-        List<Map<String, Object>> result = confirmedAppointments.stream().map(apt -> {
-            Map<String, Object> dto = new HashMap<>();
-            dto.put("id", apt.getId());
-            dto.put("startTime", apt.getStartTime() != null ? apt.getStartTime().toString() : null);
-            dto.put("endTime", apt.getEndTime() != null ? apt.getEndTime().toString() : null);
-            dto.put("status", apt.getStatus());
-            dto.put("price", apt.getPrice());
-            dto.put("paymentStatus", apt.getPaymentStatus());
-            dto.put("paymentDeadline", apt.getPaymentDeadline() != null ? apt.getPaymentDeadline().toString() : null);
-            dto.put("confirmedAt", apt.getConfirmedAt() != null ? apt.getConfirmedAt().toString() : null);
-            if (apt.getPsychologist() != null) {
-                Map<String, Object> psych = new HashMap<>();
-                psych.put("id", apt.getPsychologist().getId());
-                psych.put("name", apt.getPsychologist().getName());
-                psych.put("email", apt.getPsychologist().getEmail());
-                dto.put("psychologist", psych);
-            }
-            return dto;
-        }).collect(Collectors.toList());
-        
-        // Agregar solicitudes pendientes como citas con estado REQUESTED
-        for (var req : pendingRequests) {
-            var apt = req.getAppointment();
-            Map<String, Object> dto = new HashMap<>();
-            dto.put("id", apt.getId());
-            dto.put("requestId", req.getId());
-            dto.put("startTime", apt.getStartTime() != null ? apt.getStartTime().toString() : null);
-            dto.put("endTime", apt.getEndTime() != null ? apt.getEndTime().toString() : null);
-            dto.put("status", "REQUESTED");
-            dto.put("price", apt.getPrice());
-            dto.put("requestedAt", req.getRequestedAt().toString());
-            if (apt.getPsychologist() != null) {
-                Map<String, Object> psych = new HashMap<>();
-                psych.put("id", apt.getPsychologist().getId());
-                psych.put("name", apt.getPsychologist().getName());
-                psych.put("email", apt.getPsychologist().getEmail());
-                dto.put("psychologist", psych);
-            }
-            result.add(dto);
-        }
-        
-        // Ordenar por fecha de inicio
-        result.sort((a, b) -> {
-            String startA = (String) a.get("startTime");
-            String startB = (String) b.get("startTime");
-            if (startA == null) return 1;
-            if (startB == null) return -1;
-            return startA.compareTo(startB);
-        });
-        
-        return ResponseEntity.ok(result);
+    public ResponseEntity<List<CalendarDtos.AppointmentListItemDto>> myAppointments(Principal principal) {
+        return ResponseEntity.ok(calendarService.getMyAppointments(currentUser(principal)));
     }
 
-    // Usuario: solicitar cita (crea una solicitud, no reserva directamente)
     @PostMapping("/book/{appointmentId}")
     @Transactional
-    public ResponseEntity<?> book(Principal principal, @PathVariable Long appointmentId) {
-        var user = userRepository.findByEmail(principal.getName()).orElseThrow();
-        var appt = appointmentRepository.findById(appointmentId).orElseThrow();
-        
-        // Verificar que la cita esté libre o ya tenga solicitudes
-        if (!"FREE".equals(appt.getStatus()) && !"REQUESTED".equals(appt.getStatus())) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Esta cita ya no está disponible"));
-        }
-        
-        // Verificar que el usuario no haya solicitado ya esta cita
-        var existingRequest = appointmentRequestRepository.findByAppointment_IdAndUser_Id(appointmentId, user.getId());
-        if (existingRequest.isPresent()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Ya has solicitado esta cita"));
-        }
-        
-        // Crear la solicitud
-        AppointmentRequestEntity request = new AppointmentRequestEntity();
-        request.setAppointment(appt);
-        request.setUser(user);
-        request.setStatus("PENDING");
-        appointmentRequestRepository.save(request);
-        
-        // Actualizar el estado de la cita a REQUESTED si estaba FREE
-        if ("FREE".equals(appt.getStatus())) {
-            appt.setStatus("REQUESTED");
-            appointmentRepository.save(appt);
-        }
-        
-        return ResponseEntity.ok(Map.of("message", "Solicitud de cita enviada. El psicólogo la revisará y confirmará."));
+    public ResponseEntity<CalendarDtos.MessageResponse> book(Principal principal, @PathVariable Long appointmentId) {
+        calendarService.bookAppointment(currentUser(principal), appointmentId);
+        return ResponseEntity.ok(new CalendarDtos.MessageResponse("Solicitud de cita enviada. El psicólogo la revisará y confirmará."));
     }
 
-    // Psicólogo: obtener solicitudes pendientes
     @GetMapping("/requests/pending")
-    public ResponseEntity<?> getPendingRequests(Principal principal) {
-        var psychologist = userRepository.findByEmail(principal.getName()).orElseThrow();
-        if (!"PSYCHOLOGIST".equals(psychologist.getRole())) {
-            return ResponseEntity.status(403).build();
-        }
-        
-        var requests = appointmentRequestRepository.findPendingByPsychologist_Id(psychologist.getId());
-        
-        List<Map<String, Object>> result = requests.stream().map(req -> {
-            Map<String, Object> dto = new HashMap<>();
-            dto.put("id", req.getId());
-            dto.put("appointmentId", req.getAppointment().getId());
-            dto.put("requestedAt", req.getRequestedAt().toString());
-            dto.put("status", req.getStatus());
-            
-            Map<String, Object> userInfo = new HashMap<>();
-            userInfo.put("id", req.getUser().getId());
-            userInfo.put("name", req.getUser().getName());
-            userInfo.put("email", req.getUser().getEmail());
-            dto.put("user", userInfo);
-            
-            Map<String, Object> appointmentInfo = new HashMap<>();
-            appointmentInfo.put("id", req.getAppointment().getId());
-            appointmentInfo.put("startTime", req.getAppointment().getStartTime().toString());
-            appointmentInfo.put("endTime", req.getAppointment().getEndTime().toString());
-            appointmentInfo.put("price", req.getAppointment().getPrice());
-            dto.put("appointment", appointmentInfo);
-            
-            return dto;
-        }).collect(Collectors.toList());
-        
-        return ResponseEntity.ok(result);
+    public ResponseEntity<List<CalendarDtos.PendingRequestDto>> getPendingRequests(Principal principal) {
+        return ResponseEntity.ok(calendarService.getPendingRequests(currentUser(principal)));
     }
 
-    // Psicólogo: confirmar una solicitud de cita
     @PostMapping("/confirm/{requestId}")
     @Transactional
-    public ResponseEntity<?> confirmAppointment(Principal principal, @PathVariable Long requestId) {
-        var psychologist = userRepository.findByEmail(principal.getName()).orElseThrow();
-        if (!"PSYCHOLOGIST".equals(psychologist.getRole())) {
-            return ResponseEntity.status(403).build();
-        }
-        
-        var request = appointmentRequestRepository.findById(requestId).orElseThrow();
-        var appointment = request.getAppointment();
-        
-        // Verificar que la cita pertenece al psicólogo
-        if (!appointment.getPsychologist().getId().equals(psychologist.getId())) {
-            return ResponseEntity.status(403).body(Map.of("error", "No tienes permiso para confirmar esta cita"));
-        }
-        
-        // Verificar que la solicitud esté pendiente
-        if (!"PENDING".equals(request.getStatus())) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Esta solicitud ya fue procesada"));
-        }
-        
-        // Rechazar todas las demás solicitudes para esta cita
-        var allRequests = appointmentRequestRepository.findByAppointment_Id(appointment.getId());
-        for (var req : allRequests) {
-            if (req.getId().equals(requestId)) {
-                req.setStatus("CONFIRMED");
-            } else {
-                req.setStatus("REJECTED");
-            }
-            appointmentRequestRepository.save(req);
-        }
-        
-        // Confirmar la cita
-        Instant now = Instant.now();
-        appointment.setStatus("CONFIRMED");
-        appointment.setUser(request.getUser());
-        appointment.setConfirmedAt(now);
-        appointment.setConfirmedByUser(request.getUser());
-        // Sin Stripe: marcar como PAID para permitir videollamadas sin flujo de pago
-        appointment.setPaymentDeadline(null);
-        appointment.setPaymentStatus("PAID");
-        appointmentRepository.save(appointment);
-        
-        // Enviar email de confirmación
-        try {
-            emailService.sendAppointmentConfirmationEmail(
-                request.getUser().getEmail(),
-                request.getUser().getName(),
-                psychologist.getName(),
-                appointment.getStartTime(),
-                appointment.getPaymentDeadline(),
-                appointment.getPrice()
-            );
-        } catch (Exception e) {
-            System.err.println("Error enviando email de confirmación: " + e.getMessage());
-        }
-        
-        return ResponseEntity.ok(Map.of("message", "Cita confirmada exitosamente"));
+    public ResponseEntity<CalendarDtos.MessageResponse> confirmAppointment(Principal principal, @PathVariable Long requestId) {
+        calendarService.confirmAppointment(currentUser(principal), requestId);
+        return ResponseEntity.ok(new CalendarDtos.MessageResponse("Cita confirmada exitosamente"));
     }
 
-    // Psicólogo: cancelar una cita
     @PostMapping("/cancel/{appointmentId}")
     @Transactional
-    public ResponseEntity<?> cancelAppointment(Principal principal, @PathVariable Long appointmentId) {
-        var psychologist = userRepository.findByEmail(principal.getName()).orElseThrow();
-        if (!"PSYCHOLOGIST".equals(psychologist.getRole())) {
-            return ResponseEntity.status(403).build();
-        }
-        
-        var appointment = appointmentRepository.findById(appointmentId).orElseThrow();
-        
-        // Verificar que la cita pertenece al psicólogo
-        if (!appointment.getPsychologist().getId().equals(psychologist.getId())) {
-            return ResponseEntity.status(403).body(Map.of("error", "No tienes permiso para cancelar esta cita"));
-        }
-        
-        // Solo se pueden cancelar citas que no estén canceladas
-        if ("CANCELLED".equals(appointment.getStatus())) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Esta cita ya está cancelada"));
-        }
-        
-        // Rechazar todas las solicitudes pendientes
-        var pendingRequests = appointmentRequestRepository.findByAppointment_IdAndStatus(appointmentId, "PENDING");
-        for (var req : pendingRequests) {
-            req.setStatus("REJECTED");
-            appointmentRequestRepository.save(req);
-        }
-        
-        // Cancelar la cita
-        appointment.setStatus("CANCELLED");
-        appointmentRepository.save(appointment);
-        
-        return ResponseEntity.ok(Map.of("message", "Cita cancelada exitosamente"));
+    public ResponseEntity<CalendarDtos.MessageResponse> cancelAppointment(Principal principal, @PathVariable Long appointmentId) {
+        calendarService.cancelAppointment(currentUser(principal), appointmentId);
+        return ResponseEntity.ok(new CalendarDtos.MessageResponse("Cita cancelada exitosamente"));
     }
 
-    // Psicólogo: crear cita directamente vinculada a un paciente
     @PostMapping("/create-for-patient")
     @Transactional
-    public ResponseEntity<?> createForPatient(Principal principal, @RequestBody Map<String, Object> body) {
-        var psychologist = userRepository.findByEmail(principal.getName()).orElseThrow();
-        if (!"PSYCHOLOGIST".equals(psychologist.getRole())) {
-            return ResponseEntity.status(403).build();
-        }
-        
-        Long userId = Long.valueOf(String.valueOf(body.get("userId")));
-        Instant start = Instant.parse(String.valueOf(body.get("start")));
-        Instant end = Instant.parse(String.valueOf(body.get("end")));
-        
-        // Validar que las fechas no sean en el pasado
-        Instant now = Instant.now();
-        if (start.isBefore(now)) {
-            return ResponseEntity.badRequest().body(Map.of("error", "No se pueden crear citas en el pasado"));
-        }
-        
-        // Validar que end sea después de start
-        if (!end.isAfter(start)) {
-            return ResponseEntity.badRequest().body(Map.of("error", "La hora de fin debe ser posterior a la hora de inicio"));
-        }
-        
-        // Validar que la duración sea razonable
-        long durationMinutes = java.time.Duration.between(start, end).toMinutes();
-        if (durationMinutes < 30 || durationMinutes > 240) {
-            return ResponseEntity.badRequest().body(Map.of("error", "La duración de la cita debe estar entre 30 minutos y 4 horas"));
-        }
-        
-        // Validar que no haya solapamiento
-        List<AppointmentEntity> existingAppointments = appointmentRepository
-            .findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(psychologist.getId(), 
-                start.minusSeconds(1), end.plusSeconds(1));
-        
-        boolean hasOverlap = existingAppointments.stream()
-            .anyMatch(apt -> {
-                if ("CANCELLED".equals(apt.getStatus())) {
-                    return false;
-                }
-                return (start.isBefore(apt.getEndTime()) && end.isAfter(apt.getStartTime()));
-            });
-        
-        if (hasOverlap) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Ya existe una cita en este horario"));
-        }
-        
-        // Verificar que el usuario es paciente del psicólogo
-        var rel = userPsychologistRepository.findByUserId(userId);
-        if (rel.isEmpty() || !rel.get().getPsychologist().getId().equals(psychologist.getId())) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Este usuario no es tu paciente"));
-        }
-        
-        BigDecimal price = null;
-        if (body.get("price") != null) {
-            try {
-                if (body.get("price") instanceof Number) {
-                    price = BigDecimal.valueOf(((Number) body.get("price")).doubleValue());
-                } else if (body.get("price") instanceof String) {
-                    String priceStr = ((String) body.get("price")).trim();
-                    if (!priceStr.isEmpty()) {
-                        price = new BigDecimal(priceStr);
-                    }
-                }
-            } catch (Exception e) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Precio inválido: " + e.getMessage()));
-            }
-        }
-        
-        var user = userRepository.findById(userId).orElseThrow();
-        
-        AppointmentEntity appointment = new AppointmentEntity();
-        appointment.setPsychologist(psychologist);
-        appointment.setUser(user);
-        appointment.setStartTime(start);
-        appointment.setEndTime(end);
-        appointment.setStatus("CONFIRMED");
-        appointment.setPrice(price);
-        Instant confirmationTime = Instant.now();
-        appointment.setConfirmedAt(confirmationTime);
-        appointment.setConfirmedByUser(user);
-        // Sin Stripe: marcar como PAID para permitir videollamadas sin flujo de pago
-        appointment.setPaymentDeadline(null);
-        appointment.setPaymentStatus("PAID");
-        
-        var saved = appointmentRepository.save(appointment);
-        
-        // Enviar email de confirmación
-        try {
-            emailService.sendAppointmentConfirmationEmail(
-                user.getEmail(),
-                user.getName(),
-                psychologist.getName(),
-                appointment.getStartTime(),
-                appointment.getPaymentDeadline(),
-                appointment.getPrice()
-            );
-        } catch (Exception e) {
-            logger.error("Error enviando email de confirmación", e);
-        }
-        
-        // Devolver DTO para evitar error de serialización con proxies lazy de Hibernate
-        Map<String, Object> dto = new HashMap<>();
-        dto.put("id", saved.getId());
-        dto.put("startTime", saved.getStartTime().toString());
-        dto.put("endTime", saved.getEndTime().toString());
-        dto.put("status", saved.getStatus());
-        dto.put("userId", user.getId());
-        dto.put("psychologistId", psychologist.getId());
-        return ResponseEntity.ok(dto);
+    public ResponseEntity<CalendarDtos.CreateForPatientResponse> createForPatient(Principal principal,
+                                                                @Valid @RequestBody CalendarDtos.CreateForPatientRequest req) {
+        return ResponseEntity.ok(calendarService.createForPatient(currentUser(principal), req));
     }
 
-    // Usuario: obtener citas pasadas
     @GetMapping("/past-appointments")
     @Transactional(readOnly = true)
-    public ResponseEntity<List<Map<String, Object>>> getPastAppointments(Principal principal) {
-        var user = userRepository.findByEmail(principal.getName()).orElseThrow();
-        var now = Instant.now();
-        
-        var pastAppointments = appointmentRepository.findByUser_IdOrderByStartTimeAsc(user.getId())
-            .stream()
-            .filter(apt -> ("CONFIRMED".equals(apt.getStatus()) || "BOOKED".equals(apt.getStatus())) 
-                && apt.getEndTime().isBefore(now))
-            .map(apt -> {
-                Map<String, Object> dto = new HashMap<>();
-                dto.put("id", apt.getId());
-                dto.put("startTime", apt.getStartTime());
-                dto.put("endTime", apt.getEndTime());
-                dto.put("status", apt.getStatus());
-                dto.put("price", apt.getPrice());
-                dto.put("psychologist", Map.of(
-                    "id", apt.getPsychologist().getId(),
-                    "name", apt.getPsychologist().getName(),
-                    "email", apt.getPsychologist().getEmail()
-                ));
-                
-                // Obtener valoración si existe
-                var rating = appointmentRatingRepository.findByAppointment_IdAndUser_Id(apt.getId(), user.getId());
-                if (rating.isPresent()) {
-                    var r = rating.get();
-                    dto.put("rating", Map.of(
-                        "id", r.getId(),
-                        "rating", r.getRating(),
-                        "comment", r.getComment() != null ? r.getComment() : "",
-                        "createdAt", r.getCreatedAt()
-                    ));
-                } else {
-                    dto.put("rating", null);
-                }
-                
-                return dto;
-            })
-            .collect(Collectors.toList());
-        
-        return ResponseEntity.ok(pastAppointments);
+    public ResponseEntity<List<CalendarDtos.PastAppointmentDto>> getPastAppointments(Principal principal) {
+        return ResponseEntity.ok(calendarService.getPastAppointments(currentUser(principal)));
     }
 
-    // Usuario: guardar/actualizar valoración de cita
     @PostMapping("/appointments/{appointmentId}/rate")
     @Transactional
-    public ResponseEntity<Map<String, Object>> rateAppointment(
-            Principal principal,
-            @PathVariable Long appointmentId,
-            @RequestBody Map<String, Object> body) {
-        var user = userRepository.findByEmail(principal.getName()).orElseThrow();
-        var appointment = appointmentRepository.findById(appointmentId).orElseThrow();
-        
-        // Verificar que la cita pertenece al usuario
-        if (appointment.getUser() == null || !appointment.getUser().getId().equals(user.getId())) {
-            return ResponseEntity.status(403).body(Map.of("error", "No tienes permiso para valorar esta cita"));
-        }
-        
-        // Verificar que la cita ya pasó
-        if (appointment.getEndTime().isAfter(Instant.now())) {
-            return ResponseEntity.status(400).body(Map.of("error", "Solo puedes valorar citas que ya han finalizado"));
-        }
-        
-        // Verificar que el rating está entre 1 y 5
-        Integer ratingValue = (Integer) body.get("rating");
-        if (ratingValue == null || ratingValue < 1 || ratingValue > 5) {
-            return ResponseEntity.status(400).body(Map.of("error", "La valoración debe estar entre 1 y 5"));
-        }
-        
-        // Buscar valoración existente o crear nueva
-        var existingRating = appointmentRatingRepository.findByAppointment_IdAndUser_Id(appointmentId, user.getId());
-        AppointmentRatingEntity rating;
-        
-        if (existingRating.isPresent()) {
-            rating = existingRating.get();
-        } else {
-            rating = new AppointmentRatingEntity();
-            rating.setAppointment(appointment);
-            rating.setUser(user);
-            rating.setPsychologist(appointment.getPsychologist());
-        }
-        
-        rating.setRating(ratingValue);
-        if (body.containsKey("comment")) {
-            rating.setComment((String) body.get("comment"));
-        }
-        rating.setUpdatedAt(Instant.now());
-        
-        appointmentRatingRepository.save(rating);
-        
-        return ResponseEntity.ok(Map.of(
-            "message", "Valoración guardada exitosamente",
-            "rating", Map.of(
-                "id", rating.getId(),
-                "rating", rating.getRating(),
-                "comment", rating.getComment() != null ? rating.getComment() : ""
-            )
-        ));
+    public ResponseEntity<CalendarDtos.RateAppointmentResponse> rateAppointment(Principal principal,
+            @PathVariable Long appointmentId, @Valid @RequestBody CalendarDtos.RateAppointmentRequest req) {
+        return ResponseEntity.ok(calendarService.rateAppointment(currentUser(principal), appointmentId, req));
     }
 
-    // Obtener valoración promedio de un psicólogo
     @GetMapping("/psychologist/{psychologistId}/rating")
     @Transactional(readOnly = true)
-    public ResponseEntity<Map<String, Object>> getPsychologistRating(@PathVariable Long psychologistId) {
-        var psychologist = userRepository.findById(psychologistId).orElseThrow();
-        if (!"PSYCHOLOGIST".equals(psychologist.getRole())) {
-            return ResponseEntity.status(404).body(Map.of("error", "Psicólogo no encontrado"));
-        }
-        
-        Double averageRating = appointmentRatingRepository.findAverageRatingByPsychologistId(psychologistId);
-        Long totalRatings = appointmentRatingRepository.countByPsychologistId(psychologistId);
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("averageRating", averageRating != null ? Math.round(averageRating * 10.0) / 10.0 : null);
-        response.put("totalRatings", totalRatings != null ? totalRatings : 0);
-        
-        return ResponseEntity.ok(response);
+    public ResponseEntity<CalendarDtos.PsychologistRatingResponse> getPsychologistRating(@PathVariable Long psychologistId) {
+        return ResponseEntity.ok(calendarService.getPsychologistRating(psychologistId));
     }
 
-    // Psicólogo: obtener sus citas pasadas
     @GetMapping("/psychologist/past-appointments")
     @Transactional(readOnly = true)
-    public ResponseEntity<List<Map<String, Object>>> getPsychologistPastAppointments(Principal principal) {
-        var psychologist = userRepository.findByEmail(principal.getName()).orElseThrow();
-        if (!"PSYCHOLOGIST".equals(psychologist.getRole())) {
-            return ResponseEntity.status(403).build();
-        }
-        
-        var now = Instant.now();
-        
-        var pastAppointments = appointmentRepository.findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(
-            psychologist.getId(), 
-            Instant.ofEpochMilli(0), 
-            now
-        )
-        .stream()
-        .filter(apt -> ("CONFIRMED".equals(apt.getStatus()) || "BOOKED".equals(apt.getStatus())) 
-            && apt.getEndTime().isBefore(now) && apt.getUser() != null)
-        .map(apt -> {
-            Map<String, Object> dto = new HashMap<>();
-            dto.put("id", apt.getId());
-            dto.put("startTime", apt.getStartTime());
-            dto.put("endTime", apt.getEndTime());
-            dto.put("status", apt.getStatus());
-            dto.put("price", apt.getPrice());
-            dto.put("user", Map.of(
-                "id", apt.getUser().getId(),
-                "name", apt.getUser().getName(),
-                "email", apt.getUser().getEmail()
-            ));
-            
-            // Obtener valoración si existe
-            var rating = appointmentRatingRepository.findByAppointment_IdAndUser_Id(apt.getId(), apt.getUser().getId());
-            if (rating.isPresent()) {
-                var r = rating.get();
-                dto.put("rating", Map.of(
-                    "id", r.getId(),
-                    "rating", r.getRating(),
-                    "comment", r.getComment() != null ? r.getComment() : "",
-                    "createdAt", r.getCreatedAt()
-                ));
-            } else {
-                dto.put("rating", null);
-            }
-            
-            return dto;
-        })
-        .collect(Collectors.toList());
-        
-        return ResponseEntity.ok(pastAppointments);
+    public ResponseEntity<List<CalendarDtos.PsychologistPastAppointmentDto>> getPsychologistPastAppointments(Principal principal) {
+        return ResponseEntity.ok(calendarService.getPsychologistPastAppointments(currentUser(principal)));
     }
 }
-
-

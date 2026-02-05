@@ -27,5 +27,5 @@ export function generateJitsiRoomName(email1: string, email2: string): string {
     .replace(/^-|-$/g, '')
     .substring(0, 50); // Limitar longitud
   
-  return `psymatch-${roomName}`;
+  return `gantly-${roomName}`;
 }

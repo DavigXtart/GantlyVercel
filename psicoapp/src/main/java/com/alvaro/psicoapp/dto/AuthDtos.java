@@ -60,4 +60,10 @@ public class AuthDtos {
 		@Size(min = 6, max = 100, message = "La contraseña debe tener entre 6 y 100 caracteres")
 		public String newPassword;
 	}
+
+	/** Respuesta del endpoint me() */
+	public record MeResponse(String email, String role, String name, boolean emailVerified) {}
+
+	/** Respuesta genérica mensaje + estado para auth */
+	public record MessageStatusResponse(String message, String status) {}
 }

@@ -1,8 +1,9 @@
 package com.alvaro.psicoapp.service;
 
 import com.alvaro.psicoapp.domain.*;
+import com.alvaro.psicoapp.domain.RoleConstants;
+import com.alvaro.psicoapp.dto.MatchingDtos;
 import com.alvaro.psicoapp.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,24 +15,29 @@ import java.util.stream.Collectors;
 
 @Service
 public class MatchingService {
-    
-    @Autowired
-    private TestRepository testRepository;
-    
-    @Autowired
-    private QuestionRepository questionRepository;
-    
-    @Autowired
-    private UserAnswerRepository userAnswerRepository;
-    
-    @Autowired
-    private UserRepository userRepository;
-    
-    @Autowired
-    private UserPsychologistRepository userPsychologistRepository;
-    
-    @Autowired
-    private PsychologistProfileRepository psychologistProfileRepository;
+    private final TestRepository testRepository;
+    private final QuestionRepository questionRepository;
+    private final AnswerRepository answerRepository;
+    private final UserAnswerRepository userAnswerRepository;
+    private final UserRepository userRepository;
+    private final UserPsychologistRepository userPsychologistRepository;
+    private final PsychologistProfileRepository psychologistProfileRepository;
+    private final AppointmentRatingRepository appointmentRatingRepository;
+
+    public MatchingService(TestRepository testRepository, QuestionRepository questionRepository,
+                           AnswerRepository answerRepository, UserAnswerRepository userAnswerRepository,
+                           UserRepository userRepository, UserPsychologistRepository userPsychologistRepository,
+                           PsychologistProfileRepository psychologistProfileRepository,
+                           AppointmentRatingRepository appointmentRatingRepository) {
+        this.testRepository = testRepository;
+        this.questionRepository = questionRepository;
+        this.answerRepository = answerRepository;
+        this.userAnswerRepository = userAnswerRepository;
+        this.userRepository = userRepository;
+        this.userPsychologistRepository = userPsychologistRepository;
+        this.psychologistProfileRepository = psychologistProfileRepository;
+        this.appointmentRatingRepository = appointmentRatingRepository;
+    }
     
     private static final String PATIENT_MATCHING_TEST_CODE = "PATIENT_MATCHING";
     private static final String PSYCHOLOGIST_MATCHING_TEST_CODE = "PSYCHOLOGIST_MATCHING";
@@ -60,7 +66,7 @@ public class MatchingService {
         TestEntity psychologistTest = testRepository.findByCode(PSYCHOLOGIST_MATCHING_TEST_CODE)
             .orElseThrow(() -> new RuntimeException("Test de matching de psicólogo no encontrado"));
         
-        List<UserEntity> allPsychologists = userRepository.findByRole("PSYCHOLOGIST");
+        List<UserEntity> allPsychologists = userRepository.findByRole(RoleConstants.PSYCHOLOGIST);
         
         List<MatchingResult> results = new ArrayList<>();
         
@@ -680,6 +686,72 @@ public class MatchingService {
         public void setAffinityScore(double affinityScore) { this.affinityScore = affinityScore; }
         public int getMatchPercentage() { return matchPercentage; }
         public void setMatchPercentage(int matchPercentage) { this.matchPercentage = matchPercentage; }
+    }
+
+    @Transactional(readOnly = true)
+    public MatchingDtos.MatchingTestResponse getMatchingTest(String testCode) {
+        TestEntity test = testRepository.findByCode(testCode)
+                .orElseThrow(() -> new RuntimeException("Test de matching no encontrado."));
+        List<QuestionEntity> questions = questionRepository.findByTestOrderByPositionAsc(test);
+        List<MatchingDtos.QuestionDto> questionsList = questions.stream().map(q -> {
+            List<AnswerEntity> answers = answerRepository.findByQuestionOrderByPositionAsc(q);
+            var answersDto = answers.stream().map(a -> new MatchingDtos.AnswerDto(a.getId(), a.getText(), a.getValue(), a.getPosition()))
+                    .collect(Collectors.toList());
+            return new MatchingDtos.QuestionDto(q.getId(), q.getText(), q.getType(), q.getPosition(), answersDto);
+        }).collect(Collectors.toList());
+        return new MatchingDtos.MatchingTestResponse(test.getId(), test.getCode(), test.getTitle(), test.getDescription(), questionsList);
+    }
+
+    @Transactional
+    public void saveMatchingTestAnswers(UserEntity user, String testCode, MatchingDtos.SubmitMatchingRequest req) {
+        if (req.answers() == null) {
+            throw new IllegalArgumentException("No se proporcionaron respuestas");
+        }
+        TestEntity test = testRepository.findByCode(testCode)
+                .orElseThrow(() -> new RuntimeException("Test de matching no encontrado"));
+        List<UserAnswerEntity> existingAnswers = userAnswerRepository.findByUser(user).stream()
+                .filter(ua -> ua.getQuestion().getTest().getCode().equals(testCode))
+                .collect(Collectors.toList());
+        userAnswerRepository.deleteAll(existingAnswers);
+        for (MatchingDtos.MatchingAnswerItem it : req.answers()) {
+            if (it.questionId() == null) continue;
+            QuestionEntity question = questionRepository.findById(it.questionId()).orElse(null);
+            if (question == null || !question.getTest().getId().equals(test.getId())) continue;
+            boolean hasPayload = (it.answerId() != null) || (it.numericValue() != null)
+                    || (it.textValue() != null && !it.textValue().trim().isEmpty());
+            if (!hasPayload) continue;
+            UserAnswerEntity ua = new UserAnswerEntity();
+            ua.setUser(user);
+            ua.setQuestion(question);
+            if (it.answerId() != null) answerRepository.findById(it.answerId()).ifPresent(ua::setAnswer);
+            if (it.numericValue() != null) ua.setNumericValue(it.numericValue());
+            if (it.textValue() != null && !it.textValue().trim().isEmpty()) ua.setTextValue(it.textValue().trim());
+            userAnswerRepository.save(ua);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public MatchingDtos.MatchingPsychologistsResponse getMatchingPsychologistsWithRatings(Long patientId) {
+        List<MatchingResult> results = calculateMatching(patientId);
+        List<MatchingDtos.MatchingPsychologistDto> psychologistsList = results.stream().map(result -> {
+            UserEntity psychologist = result.getPsychologist();
+            Double averageRating = appointmentRatingRepository.findAverageRatingByPsychologistId(psychologist.getId());
+            long totalRatings = appointmentRatingRepository.countByPsychologistId(psychologist.getId());
+            return new MatchingDtos.MatchingPsychologistDto(
+                    psychologist.getId(), psychologist.getName(), psychologist.getEmail(),
+                    psychologist.getAvatarUrl(), psychologist.getGender(), psychologist.getAge(),
+                    result.getAffinityScore(), result.getMatchPercentage(),
+                    averageRating != null ? Math.round(averageRating * 10.0) / 10.0 : null, totalRatings);
+        }).collect(Collectors.toList());
+        return new MatchingDtos.MatchingPsychologistsResponse(psychologistsList);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean getPsychologistMatchingTestStatus(UserEntity user) {
+        List<UserAnswerEntity> answers = userAnswerRepository.findByUser(user).stream()
+                .filter(ua -> ua.getQuestion().getTest().getCode().equals(PSYCHOLOGIST_MATCHING_TEST_CODE))
+                .collect(Collectors.toList());
+        return !answers.isEmpty();
     }
 }
 

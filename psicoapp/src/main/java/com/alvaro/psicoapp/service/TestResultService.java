@@ -1,6 +1,7 @@
 package com.alvaro.psicoapp.service;
 
 import com.alvaro.psicoapp.domain.*;
+import com.alvaro.psicoapp.dto.TestResultDtos;
 import com.alvaro.psicoapp.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,6 +11,8 @@ import java.util.stream.Collectors;
 @Service
 public class TestResultService {
 	private final UserAnswerRepository userAnswerRepository;
+	private final UserRepository userRepository;
+	private final TestRepository testRepository;
 	private final TestResultRepository testResultRepository;
 	private final FactorResultRepository factorResultRepository;
 	private final SubfactorRepository subfactorRepository;
@@ -19,6 +22,8 @@ public class TestResultService {
 
 	public TestResultService(
 			UserAnswerRepository userAnswerRepository,
+			UserRepository userRepository,
+			TestRepository testRepository,
 			TestResultRepository testResultRepository,
 			FactorResultRepository factorResultRepository,
 			SubfactorRepository subfactorRepository,
@@ -26,6 +31,8 @@ public class TestResultService {
 			QuestionRepository questionRepository,
 			AnswerRepository answerRepository) {
 		this.userAnswerRepository = userAnswerRepository;
+		this.userRepository = userRepository;
+		this.testRepository = testRepository;
 		this.testResultRepository = testResultRepository;
 		this.factorResultRepository = factorResultRepository;
 		this.subfactorRepository = subfactorRepository;
@@ -212,6 +219,70 @@ public class TestResultService {
 
 		// Eliminar respuestas de sesión temporal
 		userAnswerRepository.deleteAll(sessionAnswers);
+	}
+
+	@Transactional(readOnly = true)
+	public TestResultDtos.MyResultsResponse getMyResults(UserEntity user) {
+		List<TestResultEntity> subfactorResults = testResultRepository.findByUser(user);
+		List<FactorResultEntity> factorResults = factorResultRepository.findByUser(user);
+		Map<Long, List<TestResultDtos.SubfactorResultDto>> subfactorsByTest = new HashMap<>();
+		Map<Long, List<TestResultDtos.FactorResultDto>> factorsByTest = new HashMap<>();
+		Map<Long, String> testTitles = new HashMap<>();
+		for (TestResultEntity result : subfactorResults) {
+			Long testId = result.getTest().getId();
+			subfactorsByTest.putIfAbsent(testId, new ArrayList<>());
+			subfactorsByTest.get(testId).add(new TestResultDtos.SubfactorResultDto(
+					result.getSubfactor().getCode(), result.getSubfactor().getName(),
+					result.getScore(), result.getMaxScore(), result.getPercentage()));
+			testTitles.put(testId, result.getTest().getTitle());
+		}
+		for (FactorResultEntity result : factorResults) {
+			Long testId = result.getTest().getId();
+			factorsByTest.putIfAbsent(testId, new ArrayList<>());
+			factorsByTest.get(testId).add(new TestResultDtos.FactorResultDto(
+					result.getFactor().getCode(), result.getFactor().getName(),
+					result.getScore(), result.getMaxScore(), result.getPercentage()));
+		}
+		Set<Long> allTestIds = new HashSet<>();
+		allTestIds.addAll(subfactorsByTest.keySet());
+		allTestIds.addAll(factorsByTest.keySet());
+		List<TestResultDtos.TestResultItemDto> results = allTestIds.stream()
+			 .map(testId -> new TestResultDtos.TestResultItemDto(testId, testTitles.getOrDefault(testId, ""),
+					 subfactorsByTest.getOrDefault(testId, List.of()),
+					 factorsByTest.getOrDefault(testId, List.of())))
+			 .collect(Collectors.toList());
+		return new TestResultDtos.MyResultsResponse(results);
+	}
+
+	@Transactional(readOnly = true)
+	public TestResultDtos.TestResultsResponse getTestResults(UserEntity user, Long testId) {
+		TestEntity test = testRepository.findById(testId).orElseThrow();
+		List<TestResultEntity> subfactorResults = testResultRepository.findByUserAndTest(user, test);
+		List<FactorResultEntity> factorResults = factorResultRepository.findByUserAndTest(user, test);
+		var subfactors = subfactorResults.stream()
+				.map(r -> new TestResultDtos.SubfactorResultDto(r.getSubfactor().getCode(), r.getSubfactor().getName(),
+						r.getScore(), r.getMaxScore(), r.getPercentage()))
+				.collect(Collectors.toList());
+		var factors = factorResults.stream()
+				.map(r -> new TestResultDtos.FactorResultDto(r.getFactor().getCode(), r.getFactor().getName(),
+						r.getScore(), r.getMaxScore(), r.getPercentage()))
+				.collect(Collectors.toList());
+		return new TestResultDtos.TestResultsResponse(test.getId(), test.getTitle(), subfactors, factors);
+	}
+
+	@Transactional(readOnly = true)
+	public TestResultDtos.UserTestResultsResponse getUserTestResults(Long userId, Long testId) {
+		UserEntity user = userRepository.findById(userId).orElseThrow();
+		TestEntity test = testRepository.findById(testId).orElseThrow();
+		List<TestResultEntity> subfactorResults = testResultRepository.findByUserAndTest(user, test);
+		List<FactorResultEntity> factorResults = factorResultRepository.findByUserAndTest(user, test);
+		var subfactors = subfactorResults.stream().map(r -> new TestResultDtos.SubfactorResultDetailDto(
+				r.getSubfactor().getId(), r.getSubfactor().getCode(), r.getSubfactor().getName(),
+				r.getScore(), r.getMaxScore(), r.getPercentage())).collect(Collectors.toList());
+		var factors = factorResults.stream().map(r -> new TestResultDtos.FactorResultDetailDto(
+				r.getFactor().getId(), r.getFactor().getCode(), r.getFactor().getName(),
+				r.getScore(), r.getMaxScore(), r.getPercentage())).collect(Collectors.toList());
+		return new TestResultDtos.UserTestResultsResponse(user.getId(), user.getEmail(), test.getId(), test.getTitle(), subfactors, factors);
 	}
 }
 

@@ -637,10 +637,10 @@ export default function PsychDashboard() {
             onClick={() => setTab(t.id as Tab)}
             style={{
               padding: '12px 24px',
-              background: tab === t.id ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'transparent',
+              background: tab === t.id ? 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)' : 'transparent',
               color: tab === t.id ? 'white' : '#6b7280',
               border: 'none',
-              borderBottom: tab === t.id ? '3px solid #764ba2' : '3px solid transparent',
+              borderBottom: tab === t.id ? '3px solid #4a8062' : '3px solid transparent',
               borderRadius: '8px 8px 0 0',
               cursor: 'pointer',
               fontWeight: tab === t.id ? 600 : 500,
@@ -677,7 +677,7 @@ export default function PsychDashboard() {
         }}>
           {/* Header con gradiente */}
           <div style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
             padding: '40px',
             color: 'white',
             position: 'relative'
@@ -781,7 +781,7 @@ export default function PsychDashboard() {
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = 'white';
-                    e.currentTarget.style.color = '#667eea';
+                    e.currentTarget.style.color = '#5a9270';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
@@ -945,7 +945,7 @@ export default function PsychDashboard() {
               <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Pacientes asignados
               </div>
-              <div style={{ fontSize: '24px', fontWeight: 700, color: '#667eea' }}>
+              <div style={{ fontSize: '24px', fontWeight: 700, color: '#5a9270' }}>
                 {patients.length}
               </div>
             </div>
@@ -1269,7 +1269,7 @@ export default function PsychDashboard() {
                     })}
                     style={{
                       padding: '8px 16px',
-                      background: '#667eea',
+                      background: '#5a9270',
                       color: 'white',
                       border: 'none',
                       borderRadius: '6px',
@@ -1397,7 +1397,7 @@ export default function PsychDashboard() {
                     })}
                     style={{
                       padding: '8px 16px',
-                      background: '#667eea',
+                      background: '#5a9270',
                       color: 'white',
                       border: 'none',
                       borderRadius: '6px',
@@ -1509,7 +1509,7 @@ export default function PsychDashboard() {
                     })}
                     style={{
                       padding: '8px 16px',
-                      background: '#667eea',
+                      background: '#5a9270',
                       color: 'white',
                       border: 'none',
                       borderRadius: '6px',
@@ -1642,7 +1642,7 @@ export default function PsychDashboard() {
                     }}
                     style={{
                       padding: '8px 16px',
-                      background: '#667eea',
+                      background: '#5a9270',
                       color: 'white',
                       border: 'none',
                       borderRadius: '6px',
@@ -1716,7 +1716,7 @@ export default function PsychDashboard() {
                     }}
                     style={{
                       padding: '8px 16px',
-                      background: '#667eea',
+                      background: '#5a9270',
                       color: 'white',
                       border: 'none',
                       borderRadius: '6px',
@@ -1785,7 +1785,7 @@ export default function PsychDashboard() {
                     })}
                     style={{
                       padding: '8px 16px',
-                      background: '#667eea',
+                      background: '#5a9270',
                       color: 'white',
                       border: 'none',
                       borderRadius: '6px',
@@ -1908,7 +1908,7 @@ export default function PsychDashboard() {
                   disabled={loadingPsychProfile}
                   style={{
                     padding: '14px 28px',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
                     color: 'white',
                     border: 'none',
                     borderRadius: '8px',
@@ -1988,14 +1988,14 @@ export default function PsychDashboard() {
           border: '1px solid #e5e7eb'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Mis Pacientes
             </h3>
             <button
               onClick={loadData}
               style={{
                 padding: '8px 16px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
@@ -2096,7 +2096,7 @@ export default function PsychDashboard() {
                           cursor: 'pointer'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.borderColor = '#667eea';
+                          e.currentTarget.style.borderColor = '#5a9270';
                           e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.15)';
                         }}
                         onMouseLeave={(e) => {
@@ -2157,7 +2157,7 @@ export default function PsychDashboard() {
                             style={{
                               width: '100%',
                               padding: '10px',
-                              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                              background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
                               color: 'white',
                               border: 'none',
                               borderRadius: '8px',
@@ -2228,7 +2228,7 @@ export default function PsychDashboard() {
                           cursor: 'pointer'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.borderColor = '#667eea';
+                          e.currentTarget.style.borderColor = '#5a9270';
                           e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.15)';
                           e.currentTarget.style.opacity = '0.9';
                         }}
@@ -2291,7 +2291,7 @@ export default function PsychDashboard() {
                             style={{
                               width: '100%',
                               padding: '10px',
-                              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                              background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
                               color: 'white',
                               border: 'none',
                               borderRadius: '8px',
@@ -2856,7 +2856,7 @@ export default function PsychDashboard() {
                   >
                     ← Volver a pacientes
                   </button>
-                  <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                     Tareas de {patients.find((p: any) => p.id === selectedPatientForTasks)?.name || 'Paciente'}
                   </h3>
                 </div>
@@ -2867,7 +2867,7 @@ export default function PsychDashboard() {
                   }}
                   style={{
                     padding: '10px 20px',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
                     color: 'white',
                     border: 'none',
                     borderRadius: '8px',
@@ -2959,7 +2959,7 @@ export default function PsychDashboard() {
                         }}
                         style={{
                           padding: '10px 20px',
-                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
                           color: 'white',
                           border: 'none',
                           borderRadius: '8px',
@@ -3105,14 +3105,14 @@ export default function PsychDashboard() {
               border: '1px solid #e5e7eb'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-                <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                   Tareas por Paciente
                 </h3>
                 <button
                   onClick={() => setShowTaskForm(true)}
                   style={{
                     padding: '10px 20px',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
                     color: 'white',
                     border: 'none',
                     borderRadius: '8px',
@@ -3219,7 +3219,7 @@ export default function PsychDashboard() {
                     }}
                     style={{
                       padding: '10px 20px',
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
                       color: 'white',
                       border: 'none',
                       borderRadius: '8px',
@@ -3330,7 +3330,7 @@ export default function PsychDashboard() {
           border: '1px solid #e5e7eb'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Tests Asignados
             </h3>
             <button
@@ -3367,7 +3367,7 @@ export default function PsychDashboard() {
               }}
               style={{
                 padding: '10px 20px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
@@ -3444,7 +3444,7 @@ export default function PsychDashboard() {
                         transition: 'border-color 0.2s',
                         background: '#ffffff'
                       }}
-                      onFocus={(e) => e.currentTarget.style.borderColor = '#667eea'}
+                      onFocus={(e) => e.currentTarget.style.borderColor = '#5a9270'}
                       onBlur={(e) => e.currentTarget.style.borderColor = '#e5e7eb'}
                     />
                     <span style={{
@@ -3582,7 +3582,7 @@ export default function PsychDashboard() {
                     }}
                     style={{
                       padding: '10px 20px',
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
                       color: 'white',
                       border: 'none',
                       borderRadius: '8px',
@@ -3892,7 +3892,7 @@ export default function PsychDashboard() {
       {tab === 'calendario' && (
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Gestión de Calendario
             </h3>
           </div>
@@ -4051,7 +4051,7 @@ export default function PsychDashboard() {
                     {req.appointment.price && (
                       <div style={{ 
                         fontSize: '14px', 
-                        color: '#667eea', 
+                        color: '#5a9270', 
                         fontWeight: 600,
                         fontFamily: "'Inter', sans-serif",
                         marginBottom: '12px'
@@ -4093,7 +4093,7 @@ export default function PsychDashboard() {
                         style={{
                           flex: 1,
                           padding: '12px 20px',
-                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
                           color: '#ffffff',
                           border: 'none',
                           borderRadius: '12px',
@@ -4527,7 +4527,7 @@ export default function PsychDashboard() {
                       onClick={() => setSelectedPatient(p.id)}
                       style={{
                         padding: '12px',
-                        background: selectedPatient === p.id ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#f9fafb',
+                        background: selectedPatient === p.id ? 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)' : '#f9fafb',
                         color: selectedPatient === p.id ? 'white' : '#1f2937',
                         borderRadius: '8px',
                         cursor: 'pointer',
@@ -4750,7 +4750,7 @@ export default function PsychDashboard() {
                             {test.answers.map((answer: any, idx: number) => (
                               <div key={answer.questionId} style={{ marginBottom: '12px', padding: '12px', background: '#f9fafb', borderRadius: '8px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                                  <span style={{ fontSize: '12px', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#667eea', color: 'white', borderRadius: '50%', fontWeight: 600 }}>
+                                  <span style={{ fontSize: '12px', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#5a9270', color: 'white', borderRadius: '50%', fontWeight: 600 }}>
                                     {idx + 1}
                                   </span>
                                   <strong style={{ fontSize: '15px' }}>{answer.questionText}</strong>
@@ -4901,7 +4901,7 @@ export default function PsychDashboard() {
                     {testAnswers.answers.map((answer: any, idx: number) => (
                       <div key={answer.questionId} style={{ marginBottom: '12px', padding: '12px', background: '#f9fafb', borderRadius: '8px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                          <span style={{ fontSize: '12px', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#667eea', color: 'white', borderRadius: '50%', fontWeight: 600 }}>
+                          <span style={{ fontSize: '12px', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#5a9270', color: 'white', borderRadius: '50%', fontWeight: 600 }}>
                             {idx + 1}
                           </span>
                           <strong style={{ fontSize: '15px' }}>{answer.questionText}</strong>

@@ -24,14 +24,17 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter, RateLimitFilter rateLimitFilter) throws Exception {
+	public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter, RateLimitFilter rateLimitFilter,
+			OAuth2SuccessHandler oauth2SuccessHandler) throws Exception {
 		http
             .cors(Customizer.withDefaults())
 			.csrf(csrf -> csrf.disable())
 			.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+			.oauth2Login(oauth2 -> oauth2.successHandler(oauth2SuccessHandler))
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers("/api/auth/**").permitAll()
+				.requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
 				.requestMatchers("/api/auth/verify-email").permitAll()
 				.requestMatchers("/api/tests/**").permitAll() // Tests visibles para todos
 				.requestMatchers("/api/initial-test/**").permitAll() // Test inicial público

@@ -1,18 +1,20 @@
 package com.alvaro.psicoapp.service;
 
-import com.alvaro.psicoapp.domain.UserEntity;
-import com.alvaro.psicoapp.domain.TestEntity;
-import com.alvaro.psicoapp.repository.UserRepository;
-import com.alvaro.psicoapp.repository.TestRepository;
-import com.alvaro.psicoapp.security.JwtService;
-import com.alvaro.psicoapp.util.InputSanitizer;
+import java.time.Instant;
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.time.Instant;
-import java.util.UUID;
+
+import com.alvaro.psicoapp.domain.RoleConstants;
+import com.alvaro.psicoapp.domain.UserEntity;
+import com.alvaro.psicoapp.repository.TestRepository;
+import com.alvaro.psicoapp.repository.UserRepository;
+import com.alvaro.psicoapp.security.JwtService;
+import com.alvaro.psicoapp.util.InputSanitizer;
 
 @Service
 public class AuthService {
@@ -47,7 +49,7 @@ public class AuthService {
 		if (userRepository.existsByEmail(sanitizedEmail)) throw new IllegalArgumentException("Email ya registrado");
 		
 		// Verificar que el test inicial fue completado si se proporciona sessionId (solo para usuarios)
-		if (sessionId != null && !sessionId.isEmpty() && (role == null || "USER".equals(role))) {
+		if (sessionId != null && !sessionId.isEmpty() && (role == null || RoleConstants.USER.equals(role))) {
 			var sessionOpt = sessionService.getSession(sessionId);
 			if (!sessionOpt.isPresent() || !sessionOpt.get().getInitialTestCompleted()) {
 				throw new IllegalArgumentException("Debe completar el test inicial antes de registrarse");
@@ -58,7 +60,7 @@ public class AuthService {
 		u.setName(sanitizedName);
 		u.setEmail(sanitizedEmail);
 		u.setPasswordHash(passwordEncoder.encode(password));
-		u.setRole(role != null && !role.isEmpty() ? role : "USER");
+		u.setRole(role != null && !role.isEmpty() ? role : RoleConstants.USER);
 		u.setEmailVerified(false);
 		
 		// Generar token de verificación
@@ -87,7 +89,7 @@ public class AuthService {
 		
 		// Enviar correo de verificación (para todos los usuarios, incluyendo psicólogos)
 		try {
-			boolean isPsychologist = "PSYCHOLOGIST".equals(u.getRole());
+			boolean isPsychologist = RoleConstants.PSYCHOLOGIST.equals(u.getRole());
 			emailService.sendVerificationEmail(u.getEmail(), u.getName(), verificationToken, isPsychologist);
 		} catch (Exception e) {
 			logger.error("Error enviando correo de verificación", e);
@@ -121,10 +123,57 @@ public class AuthService {
 		return true;
 	}
 
+	public com.alvaro.psicoapp.dto.AuthDtos.MeResponse getMe(String email) {
+		return userRepository.findByEmail(email)
+			.map(u -> new com.alvaro.psicoapp.dto.AuthDtos.MeResponse(
+					u.getEmail(), u.getRole(), u.getName(), Boolean.TRUE.equals(u.getEmailVerified())))
+			.orElse(null);
+	}
+
 	public String login(String email, String password) {
 		String sanitizedEmail = InputSanitizer.sanitizeEmail(email);
 		UserEntity u = userRepository.findByEmail(sanitizedEmail).orElseThrow(() -> new IllegalArgumentException("Credenciales inválidas"));
+		if (u.getPasswordHash() == null) throw new IllegalArgumentException("Esta cuenta usa inicio de sesión con Google. Usa el botón \"Continuar con Google\".");
 		if (!passwordEncoder.matches(password, u.getPasswordHash())) throw new IllegalArgumentException("Credenciales inválidas");
+		return jwtService.generateToken(u.getEmail());
+	}
+
+	@Transactional
+	public String processOAuth2User(String provider, String providerId, String email, String name, String avatarUrl) {
+		String sanitizedEmail = InputSanitizer.sanitizeEmail(email);
+		String sanitizedName = InputSanitizer.sanitizeAndValidate(name != null ? name : "", 100);
+		if (sanitizedName.isEmpty()) sanitizedName = "Usuario";
+
+		var existingOAuth = userRepository.findByOauth2ProviderAndOauth2ProviderId(provider, providerId);
+		if (existingOAuth.isPresent()) {
+			UserEntity u = existingOAuth.get();
+			if (avatarUrl != null && !avatarUrl.isEmpty()) u.setAvatarUrl(avatarUrl);
+			if (sanitizedName != null && !sanitizedName.isEmpty()) u.setName(sanitizedName);
+			userRepository.save(u);
+			return jwtService.generateToken(u.getEmail());
+		}
+
+		var existingEmail = userRepository.findByEmail(sanitizedEmail);
+		if (existingEmail.isPresent()) {
+			UserEntity u = existingEmail.get();
+			u.setOauth2Provider(provider);
+			u.setOauth2ProviderId(providerId);
+			if (avatarUrl != null && !avatarUrl.isEmpty()) u.setAvatarUrl(avatarUrl);
+			u.setEmailVerified(true);
+			userRepository.save(u);
+			return jwtService.generateToken(u.getEmail());
+		}
+
+		UserEntity u = new UserEntity();
+		u.setName(sanitizedName);
+		u.setEmail(sanitizedEmail);
+		u.setPasswordHash(null);
+		u.setOauth2Provider(provider);
+		u.setOauth2ProviderId(providerId);
+		u.setAvatarUrl(avatarUrl);
+		u.setRole(RoleConstants.USER);
+		u.setEmailVerified(true);
+		userRepository.save(u);
 		return jwtService.generateToken(u.getEmail());
 	}
 
@@ -212,7 +261,7 @@ public class AuthService {
 		
 		// Reenviar email
 		try {
-			boolean isPsychologist = "PSYCHOLOGIST".equals(user.getRole());
+			boolean isPsychologist = RoleConstants.PSYCHOLOGIST.equals(user.getRole());
 			emailService.resendVerificationEmail(user.getEmail(), user.getName(), verificationToken, isPsychologist);
 		} catch (Exception e) {
 			logger.error("Error reenviando correo de verificación", e);

@@ -25,6 +25,14 @@ spring:
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_OAUTH_CLIENT_ID:}
+            client-secret: ${GOOGLE_OAUTH_CLIENT_SECRET:}
+            scope: email, profile, openid
 
 springdoc:
   api-docs:
@@ -56,3 +64,5 @@ logging:
 app:
   base:
     url: http://localhost:5173
+
+# OAuth2: En AWS usar variables de entorno GOOGLE_OAUTH_CLIENT_ID y GOOGLE_OAUTH_CLIENT_SECRET

@@ -17,7 +17,7 @@ export default function PSYmatchLogo({ size = 'medium', className }: LogoProps) 
   return (
     <img
       src={psymatchLogo}
-      alt="PSYmatch"
+      alt="Gantly"
       className={className}
       style={{
         display: 'block',

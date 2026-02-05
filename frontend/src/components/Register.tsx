@@ -106,7 +106,7 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId }: Reg
             letterSpacing: '-0.02em',
             marginBottom: '8px',
           }}>
-            Psymatch
+            Gantly
           </div>
           <h1 style={{ 
             margin: 0, 

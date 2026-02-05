@@ -16,8 +16,14 @@ public class UserEntity {
 	@Column(nullable = false, unique = true, length = 255)
 	private String email;
 
-	@Column(name = "password_hash", nullable = false, length = 255)
-	private String passwordHash;
+	@Column(name = "password_hash", length = 255)
+	private String passwordHash; // nullable para usuarios OAuth2
+
+	@Column(name = "oauth2_provider", length = 50)
+	private String oauth2Provider; // ej: "google"
+
+	@Column(name = "oauth2_provider_id", length = 255)
+	private String oauth2ProviderId; // ID del usuario en el proveedor OAuth
 
 	@Column(length = 20)
 	private String gender;
@@ -86,4 +92,8 @@ public class UserEntity {
 	public void setPasswordResetTokenExpiresAt(Instant passwordResetTokenExpiresAt) { this.passwordResetTokenExpiresAt = passwordResetTokenExpiresAt; }
 	public Boolean getIsFull() { return isFull; }
 	public void setIsFull(Boolean isFull) { this.isFull = isFull; }
+	public String getOauth2Provider() { return oauth2Provider; }
+	public void setOauth2Provider(String oauth2Provider) { this.oauth2Provider = oauth2Provider; }
+	public String getOauth2ProviderId() { return oauth2ProviderId; }
+	public void setOauth2ProviderId(String oauth2ProviderId) { this.oauth2ProviderId = oauth2ProviderId; }
 }

@@ -398,7 +398,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
       <div style={{
         padding: '40px 20px',
         textAlign: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
         borderRadius: '12px',
         color: 'white'
       }}>
@@ -414,7 +414,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
       <div style={{
         padding: '40px 20px',
         textAlign: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
         borderRadius: '12px',
         color: 'white'
       }}>
@@ -439,7 +439,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
     }}>
       {/* Header */}
       <div style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
         padding: '16px 20px',
         color: 'white',
         display: 'flex',
@@ -574,7 +574,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
                   }}>
                     <div style={{
                       background: isMe 
-                        ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                        ? 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)'
                         : '#ffffff',
                       color: isMe ? 'white' : '#1f2937',
                       padding: '10px 14px',
@@ -602,7 +602,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
                       width: '32px',
                       height: '32px',
                       borderRadius: '50%',
-                      background: currentUser?.avatarUrl ? 'transparent' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      background: currentUser?.avatarUrl ? 'transparent' : 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -620,7 +620,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
                             const parent = e.currentTarget.parentElement;
                             if (parent) {
                               parent.innerHTML = mode === 'USER' ? '👤' : '👨‍⚕️';
-                              parent.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                              parent.style.background = 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)';
                               parent.style.display = 'flex';
                               parent.style.alignItems = 'center';
                               parent.style.justifyContent = 'center';
@@ -672,8 +672,8 @@ export default function ChatWidget({ mode, otherId }: Props) {
           }}
           onFocus={(e) => {
             if (connected) {
-              e.target.style.borderColor = '#667eea';
-              e.target.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.1)';
+              e.target.style.borderColor = '#5a9270';
+              e.target.style.boxShadow = '0 0 0 3px rgba(90, 146, 112, 0.1)';
             }
           }}
           onBlur={(e) => {
@@ -687,7 +687,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
           style={{
             padding: '12px 24px',
             background: connected && input.trim() 
-              ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+              ? 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)'
               : '#e5e7eb',
             color: connected && input.trim() ? 'white' : '#9ca3af',
             border: 'none',

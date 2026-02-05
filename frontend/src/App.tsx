@@ -17,7 +17,7 @@ import SoyProfesional from './components/SoyProfesional';
 import RegisterPsychologist from './components/RegisterPsychologist';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
-import { ToastContainer } from './components/ui/Toast';
+import { ToastContainer, toast } from './components/ui/Toast';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -30,6 +30,7 @@ function App() {
   const [showInitialTest, setShowInitialTest] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetPasswordToken, setResetPasswordToken] = useState<string | null>(null);
+  const [oauthError, setOauthError] = useState<string | null>(null);
   const [initialTestSessionId, setInitialTestSessionId] = useState<string | null>(null);
   const [selectedTestId, setSelectedTestId] = useState<number | null>(null);
   const [role, setRole] = useState<'USER'|'ADMIN'|'PSYCHOLOGIST'|null>(null);
@@ -59,26 +60,46 @@ function App() {
   const isUserNavigation = useRef(false); // Indica si la navegación fue iniciada por el usuario
 
   useEffect(() => {
-    // Inicializar el historial con la URL actual
+    // IMPORTANTE: Leer token/error de la URL ANTES de cualquier replaceState que borre la query string
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenFromUrl = urlParams.get('token');
+    const errorFromUrl = urlParams.get('error');
+
+    // Inicializar el historial con la URL actual (esto puede borrar ?token= de la barra de direcciones)
     const currentPath = window.location.pathname;
     const initialState = window.history.state;
     
     if (!initialState || !initialState.page) {
-      // Si no hay estado, inicializar con la ruta actual
       window.history.replaceState({ page: currentPath }, '', currentPath);
       lastHistoryPath.current = currentPath;
     } else {
       lastHistoryPath.current = initialState.page;
     }
-    
-    // Verificar si hay un token de reset de contraseña en la URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const resetToken = urlParams.get('token');
-    if (resetToken && window.location.pathname.includes('reset-password')) {
-      setResetPasswordToken(resetToken);
+    if (tokenFromUrl && window.location.pathname.includes('reset-password')) {
+      setResetPasswordToken(tokenFromUrl);
       setShowLanding(false);
       setShowLogin(false);
       setShowRegister(false);
+      window.history.replaceState(null, '', '/reset-password');
+      return;
+    }
+    // OAuth2: token en URL (cualquier path, el backend redirige a /?token=xxx)
+    if (tokenFromUrl && tokenFromUrl.length > 10) {
+      localStorage.setItem('token', tokenFromUrl);
+      window.history.replaceState(null, '', window.location.pathname || '/');
+      setIsAuthenticated(true);
+      setShowLanding(false);
+      setShowLogin(false);
+      setShowRegister(false);
+      toast.success('¡Sesión iniciada correctamente!');
+      checkRole().catch((err) => console.warn('Backend no disponible', err));
+      return;
+    }
+    if (errorFromUrl) {
+      setOauthError(decodeURIComponent(errorFromUrl));
+      setShowLogin(true);
+      setShowLanding(false);
+      window.history.replaceState(null, '', '/');
       return;
     }
 
@@ -493,7 +514,7 @@ function App() {
               onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
               onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
             >
-              PSYmatch
+              Gantly
             </h3>
             <button onClick={() => { isUserNavigation.current = true; setShowInitialTest(false); setShowLanding(true); }} className="btn-secondary">Volver</button>
           </div>
@@ -552,6 +573,8 @@ function App() {
           setShowLogin(false);
           setShowForgotPassword(true);
         }}
+        oauthError={oauthError}
+        onClearOauthError={() => setOauthError(null)}
       />;
     }
     // Si no hay ninguna vista específica, mostrar la landing (por defecto)
@@ -582,7 +605,7 @@ function App() {
               onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
               onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
             >
-              PSYmatch
+              Gantly
             </h3>
             <button onClick={handleBackToList} className="btn-secondary">Volver</button>
           </div>
@@ -608,7 +631,7 @@ function App() {
             onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
             onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
           >
-            PSYmatch
+            Gantly
           </h3>
           <div style={{ display: 'flex', gap: '12px' }}>
             {role === 'ADMIN' && (
@@ -652,10 +675,10 @@ function App() {
         <PsychDashboard />
       )}
 
-      {/* Si no tenemos el rol aún pero estamos autenticados */}
-      {isAuthenticated && !role && roleCheckInProgress.current && (
+      {/* Si no tenemos el rol aún pero estamos autenticados (ej. tras OAuth) */}
+      {isAuthenticated && !role && (
         <div className="container" style={{ maxWidth: '1200px', marginTop: 24, padding: '40px', textAlign: 'center' }}>
-          <div style={{ fontSize: '18px', marginBottom: '16px' }}>Cargando...</div>
+          <div style={{ fontSize: '18px', marginBottom: '16px' }}>Cargando tu cuenta...</div>
           <div style={{ fontSize: '14px', color: '#6b7280' }}>
             Si esto tarda mucho, verifica que el backend esté funcionando correctamente.
           </div>

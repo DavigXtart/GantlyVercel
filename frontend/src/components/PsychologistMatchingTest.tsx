@@ -815,7 +815,7 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
           color: '#5a9270',
           letterSpacing: '-0.02em',
         }}>
-          Psymatch
+          Gantly
         </div>
         {onBack && (
           <button

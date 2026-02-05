@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { Pricing } from './ui/pricing';
+import logoImage from '../assets/8e16ea61-e62c-4196-9aca-b95cf9b35322_removalai_preview.png';
+import testInicialImage from '../assets/Gemini_Generated_Image_2xvx8k2xvx8k2xvx.png';
 
 interface LandingProps {
   onGetStarted: () => void;
@@ -9,64 +9,11 @@ interface LandingProps {
 }
 
 export default function Landing({ onGetStarted, onLogin, onShowAbout, onShowSoyProfesional }: LandingProps) {
-  const [_scrollProgress, setScrollProgress] = useState(0);
-  const observerRef = useRef<any>(null);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const windowHeight = window.innerHeight;
-      const scrollY = window.scrollY;
-      const progress = Math.min(scrollY / windowHeight, 1);
-      setScrollProgress(progress);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-
-    // Intersection Observer para animaciones de aparición
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    document.querySelectorAll('.fade-in').forEach((el) => observerRef.current.observe(el));
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      observerRef.current?.disconnect();
-    };
-  }, []);
-
   return (
-    <div style={{ overflowX: 'hidden', background: '#f5f7f6' }}>
-      <style>{`
-        .fade-in {
-          opacity: 0;
-          transform: translateY(30px);
-          transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-        }
-        .fade-in.visible {
-          opacity: 1;
-          transform: translateY(0);
-        }
-        @keyframes bounce {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(10px); }
-        }
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-15px); }
-        }
-      `}</style>
-
+    <div className="min-h-screen bg-cream text-forest selection:bg-mint selection:text-forest">
       {/* Navigation bar */}
-      <nav style={{
+      <nav
+        style={{
         position: 'fixed',
         top: 0,
         left: 0,
@@ -74,20 +21,23 @@ export default function Landing({ onGetStarted, onLogin, onShowAbout, onShowSoyP
         zIndex: 1000,
         background: 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(93, 143, 168, 0.15)',
+          borderBottom: '1px solid rgba(90, 146, 112, 0.15)',
         padding: '20px 40px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-      }}>
-        <div style={{
+        }}
+      >
+        <div
+          style={{
           fontFamily: "'Nunito', sans-serif",
           fontSize: '28px',
           fontWeight: 700,
           color: '#5a9270',
           letterSpacing: '-0.02em',
-        }}>
-          Psymatch
+          }}
+        >
+          Gantly
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
           <button
@@ -95,15 +45,19 @@ export default function Landing({ onGetStarted, onLogin, onShowAbout, onShowSoyP
             style={{
               background: 'transparent',
               border: 'none',
-              color: '#3d5a4e',
+              color: '#3a5a4a',
               fontSize: '15px',
               fontWeight: 500,
               cursor: 'pointer',
               transition: 'color 0.3s',
               fontFamily: "'Inter', sans-serif",
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#5a9270'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = '#3d5a4e'; }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#5a9270';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = '#3a5a4a';
+            }}
           >
             Sobre nosotros
           </button>
@@ -112,40 +66,39 @@ export default function Landing({ onGetStarted, onLogin, onShowAbout, onShowSoyP
             style={{
               background: 'transparent',
               border: 'none',
-              color: '#3d5a4e',
+              color: '#3a5a4a',
               fontSize: '15px',
               fontWeight: 500,
               cursor: 'pointer',
               transition: 'color 0.3s',
               fontFamily: "'Inter', sans-serif",
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#5a9270'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = '#3d5a4e'; }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#5a9270';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = '#3a5a4a';
+            }}
           >
             Soy profesional
           </button>
           <button
             onClick={onLogin}
             style={{
-              padding: '10px 24px',
-              fontSize: '15px',
-              fontWeight: 600,
-              background: '#5a9270',
-              color: 'white',
+              background: 'transparent',
               border: 'none',
-              borderRadius: '24px',
+              color: '#3a5a4a',
+              fontSize: '15px',
+              fontWeight: 500,
               cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(90, 146, 112, 0.3)',
-              transition: 'all 0.3s',
+              transition: 'color 0.3s',
               fontFamily: "'Inter', sans-serif",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#4a8062';
-              e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
+              e.currentTarget.style.color = '#5a9270';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#5a9270';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
+              e.currentTarget.style.color = '#3a5a4a';
             }}
           >
             Iniciar sesión
@@ -153,731 +106,301 @@ export default function Landing({ onGetStarted, onLogin, onShowAbout, onShowSoyP
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: '140px 20px 80px',
-          position: 'relative',
-          overflow: 'hidden',
-          background: 'linear-gradient(135deg, #e8ece9 0%, #d4e0d8 50%, #e0e8e3 100%)',
-          color: '#2d4a3e',
-        }}
-      >
-        {/* Subtle background pattern */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'radial-gradient(circle at 20% 30%, rgba(90, 146, 112, 0.15), transparent 50%), radial-gradient(circle at 80% 70%, rgba(93, 143, 168, 0.12), transparent 50%)',
-            pointerEvents: 'none',
-          }}
-        />
-
-        {/* Logo */}
-        <div className="fade-in" style={{ marginBottom: '40px' }}>
-          <div style={{
-            fontFamily: "'Nunito', sans-serif",
-            fontSize: '64px',
-            fontWeight: 700,
-            color: '#5a9270',
-            letterSpacing: '-0.03em',
-            textAlign: 'center',
-          }}>
-            Gantly
-          </div>
-        </div>
-
-        <h1
-          className="fade-in"
-          style={{
-            fontSize: 'clamp(36px, 6vw, 60px)',
-            fontWeight: 600,
-            letterSpacing: '-0.02em',
-            textAlign: 'center',
-            marginBottom: '24px',
-            color: '#1a2e22',
-            lineHeight: '1.2',
-            fontFamily: "'Inter', sans-serif",
-          }}
-        >
-          Encuentra tu psicólogo ideal
+      {/* Hero */}
+      <section className="pt-32 pb-24 px-8 max-w-7xl mx-auto overflow-hidden" style={{ paddingTop: '140px' }}>
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="relative z-10">
+            <span className="inline-block px-4 py-1.5 bg-mint rounded-full text-xs font-medium tracking-widest uppercase mb-8">
+              Matching psicológico con cuidado humano
+            </span>
+            <h1 className="text-5xl lg:text-7xl font-normal leading-[0.9] mb-8 text-forest">
+              Encuentra al <span className="italic text-sage">psicólogo ideal</span> para ti.
         </h1>
-
-        <p
-          className="fade-in"
-          style={{
-            fontSize: 'clamp(18px, 2vw, 22px)',
-            color: '#3a5a4a',
-            textAlign: 'center',
-            maxWidth: '700px',
-            marginBottom: '48px',
-            lineHeight: '1.7',
-            fontWeight: 400,
-            fontFamily: "'Inter', sans-serif",
-          }}
-        >
-          Terapia psicológica profesional adaptada a tu ritmo y necesidades. Encuentra el apoyo que buscas con profesionales especializados.
-        </p>
-
-        <div
-          className="fade-in"
-          style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '64px' }}
-        >
+            <p className="text-lg text-forest/80 mb-10 max-w-xl leading-relaxed font-light">
+              Te acompañamos desde el primer test hasta la primera sesión. Menos fricción, más tiempo para tu bienestar
+              emocional.
+            </p>
+            <div className="flex flex-wrap gap-4">
           <button
+                type="button"
             onClick={onGetStarted}
-            style={{
-              padding: '16px 40px',
-              fontSize: '17px',
-              fontWeight: 600,
-              background: '#5a9270',
-              border: 'none',
-              borderRadius: '30px',
-              color: '#ffffff',
-              cursor: 'pointer',
-              transition: 'all 0.3s',
-              boxShadow: '0 6px 20px rgba(90, 146, 112, 0.35)',
-              fontFamily: "'Inter', sans-serif",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(90, 146, 112, 0.45)';
-              e.currentTarget.style.background = '#4a8062';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 6px 20px rgba(90, 146, 112, 0.35)';
-              e.currentTarget.style.background = '#5a9270';
-            }}
-          >
-            Comenzar evaluación
-          </button>
-          <button
-            onClick={onShowAbout}
-            style={{
-              padding: '16px 36px',
-              fontSize: '17px',
-              fontWeight: 500,
-              background: 'transparent',
-              color: '#5a9270',
-              border: '2px solid #5a9270',
-              borderRadius: '30px',
-              cursor: 'pointer',
-              transition: 'all 0.3s',
-              fontFamily: "'Inter', sans-serif",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#f0f5f3';
-              e.currentTarget.style.borderColor = '#4a8062';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.borderColor = '#5a9270';
-            }}
-          >
-            Conocer más
-          </button>
-        </div>
-
-      </section>
-
-      {/* Benefits Section */}
-      <section
-        className="fade-in"
-        style={{
-          padding: '100px 20px',
-          background: '#f8f9fa',
-          position: 'relative',
-        }}
-      >
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <h2 style={{
-            fontSize: 'clamp(32px, 4vw, 48px)',
-            textAlign: 'center',
-            marginBottom: '20px',
-            fontWeight: 700,
-            color: '#1a2e22',
-            letterSpacing: '-0.02em',
-            fontFamily: "'Inter', sans-serif",
-          }}>
-            Beneficios de Psymatch
-          </h2>
-          <p style={{
-            fontSize: 'clamp(16px, 1.8vw, 20px)',
-            color: '#3a5a4a',
-            textAlign: 'center',
-            maxWidth: '700px',
-            margin: '0 auto 60px',
-            lineHeight: '1.7',
-            fontFamily: "'Inter', sans-serif",
-          }}>
-            Pensamos en una forma de acceder a terapia que se ajuste a tu vida, manteniendo siempre la calidad profesional que mereces.
-          </p>
-
-          {/* Benefits Cards */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-            gap: '30px',
-            maxWidth: '1100px',
-            margin: '0 auto',
-          }}>
-            {[
-              {
-                title: 'Flexibilidad y comodidad',
-                description: 'Accede a terapia desde donde te encuentres, sin desplazamientos ni complicaciones de horarios que afecten tu día a día.',
-              },
-              {
-                title: 'Emparejamiento personalizado',
-                description: 'Nos encargamos de conectarte con el profesional que mejor se adapte a tus necesidades, evitando búsquedas frustrantes y listas de espera.',
-              },
-              {
-                title: 'Flexibilidad para cambiar',
-                description: 'Si sientes que necesitas un enfoque diferente, podemos facilitarte el cambio a otro terapeuta sin costes adicionales.',
-              },
-              {
-                title: 'Atención profesional accesible',
-                description: 'Ofrecemos terapia psicológica de calidad a precios que permiten el cuidado continuo de tu bienestar mental.',
-              },
-            ].map((benefit, index) => (
-              <div
-                key={index}
-                style={{
-                  padding: '40px 30px',
-                  background: '#ffffff',
-                  borderRadius: '20px',
-                  textAlign: 'center',
-                  border: '2px solid rgba(90, 146, 112, 0.2)',
-                  transition: 'all 0.3s',
-                  boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-8px)';
-                  e.currentTarget.style.boxShadow = '0 12px 28px rgba(90, 146, 112, 0.25)';
-                  e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.5)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(45, 74, 62, 0.12)';
-                  e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.2)';
-                }}
+                className="bg-forest text-cream px-8 py-3 rounded-full font-medium text-base hover:shadow-xl hover:shadow-sage/10 transition-all"
               >
-                <h3 style={{
-                  fontSize: '20px',
-                  marginBottom: '12px',
-                  fontWeight: 600,
-                  color: '#1a2e22',
-                  fontFamily: "'Inter', sans-serif",
-                }}>
-                  {benefit.title}
-                </h3>
-                <p style={{
-                  color: '#3a5a4a',
-                  lineHeight: '1.6',
-                  fontSize: '15px',
-                  fontFamily: "'Inter', sans-serif",
-                }}>
-                  {benefit.description}
-                </p>
+                Comenzar ahora
+          </button>
+              <a
+                href="#care"
+                className="group border border-sage/30 px-8 py-3 rounded-full font-medium text-base hover:bg-mint/40 transition-all flex items-center gap-2"
+              >
+                Cómo funciona
+                <span className="material-symbols-outlined text-sage group-hover:translate-x-1 transition-transform text-base">
+                  arrow_forward
+                </span>
+              </a>
+            </div>
               </div>
-            ))}
+          <div className="relative">
+            <div className="absolute inset-0 bg-mint/30 organic-shape -z-10 blur-3xl opacity-60" />
+            <img 
+              src={logoImage} 
+              alt="Gantly" 
+              className="mx-auto"
+              style={{ width: '139%', maxWidth: 'none', height: 'auto', marginLeft: '-100px' }}
+            />
           </div>
         </div>
       </section>
 
-      {/* Comparison Section */}
-      <section
-        className="fade-in"
-        style={{
-          padding: '100px 20px',
-          background: '#ffffff',
-          position: 'relative',
-        }}
-      >
-        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-          <h2 style={{
-            fontSize: 'clamp(32px, 4vw, 48px)',
-            textAlign: 'center',
-            marginBottom: '60px',
-            fontWeight: 700,
-            color: '#1a2e22',
-            letterSpacing: '-0.02em',
-            fontFamily: "'Inter', sans-serif",
-          }}>
-            Psymatch vs. Terapia Presencial
-          </h2>
+      {/* Mini features strip */}
+      <div className="px-8 py-16 bg-mint/20 border-y border-mint/40">
+        <div className="max-w-7xl mx-auto flex flex-wrap justify-center items-center gap-10" style={{ color: '#5a9270' }}>
+          <div className="flex items-center gap-2 text-xs uppercase tracking-widest font-medium">
+            <span className="material-symbols-outlined text-base" style={{ color: '#5a9270' }}>psychology</span>
+            Matching inteligente
+          </div>
+          <div className="flex items-center gap-2 text-xs uppercase tracking-widest font-medium">
+            <span className="material-symbols-outlined text-base" style={{ color: '#5a9270' }}>self_improvement</span>
+            Test inicial guiado
+          </div>
+          <div className="flex items-center gap-2 text-xs uppercase tracking-widest font-medium">
+            <span className="material-symbols-outlined text-base" style={{ color: '#5a9270' }}>calendar_today</span>
+            Agenda online
+          </div>
+          <div className="flex items-center gap-2 text-xs uppercase tracking-widest font-medium">
+            <span className="material-symbols-outlined text-base" style={{ color: '#5a9270' }}>chat</span>
+            Chat y videollamadas seguras
+          </div>
+        </div>
+      </div>
 
-          {/* Comparison Table */}
-          <div style={{
-            background: '#ffffff',
-            borderRadius: '20px',
-            overflow: 'hidden',
-            boxShadow: '0 10px 30px rgba(26, 46, 34, 0.15)',
-            border: '1px solid rgba(90, 146, 112, 0.15)',
-          }}>
-            {/* Header */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '2fr 1fr 1fr',
-              borderBottom: '2px solid #e8f0ed',
-            }}>
-              <div style={{
-                padding: '24px',
-                fontWeight: 600,
-                color: '#1a2e22',
-                fontSize: '16px',
-                fontFamily: "'Inter', sans-serif",
-              }}>
-                Características
+      {/* Philosophy */}
+      <section id="philosophy" className="py-24 px-8">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-20 items-center">
+          <div>
+            <h2 className="text-4xl lg:text-6xl font-normal mb-6 leading-tight text-forest">
+              Un espacio tranquilo para<span className="italic text-sage"> tomar decisiones con calma.</span>
+          </h2>
+            <p className="text-forest/80 text-base leading-relaxed mb-8 font-light">
+              Gantly no es solo un directorio de psicólogos. Es una experiencia completa: test inicial, matching
+              avanzado y un panel sencillo donde puedes gestionar tus sesiones, tareas y evolución emocional.
+            </p>
+            <div className="flex gap-3">
+              <div className="size-10 rounded-full border border-sage/30 flex items-center justify-center group cursor-pointer transition-all hover:border-sage hover:bg-mint/30">
+                <span className="material-symbols-outlined text-sage/60 text-base transition-colors group-hover:text-sage">spa</span>
               </div>
-              <div style={{
-                padding: '24px',
-                background: '#5a9270',
-                color: '#ffffff',
-                fontWeight: 600,
-                textAlign: 'center',
-                fontSize: '16px',
-                fontFamily: "'Inter', sans-serif",
-              }}>
-                Psymatch
+              <div className="size-10 rounded-full border border-sage/30 flex items-center justify-center group cursor-pointer transition-all hover:border-sage hover:bg-mint/30">
+                <span className="material-symbols-outlined text-sage/60 text-base transition-colors group-hover:text-sage">potted_plant</span>
               </div>
-              <div style={{
-                padding: '24px',
-                background: '#f8f9fa',
-                color: '#1a2e22',
-                fontWeight: 600,
-                textAlign: 'center',
-                fontSize: '16px',
-                borderLeft: '2px solid #d4e0d8',
-                fontFamily: "'Inter', sans-serif",
-              }}>
-                Presencial
+              <div className="size-10 rounded-full border border-sage/30 flex items-center justify-center group cursor-pointer transition-all hover:border-sage hover:bg-mint/30">
+                <span className="material-symbols-outlined text-sage/60 text-base transition-colors group-hover:text-sage">air</span>
               </div>
             </div>
-
-            {/* Rows */}
-            {[
-              { feature: 'Psicólogo licenciado en tu estado', psymatch: true, presencial: true },
-              { feature: 'Terapia desde cualquier lugar', psymatch: true, presencial: false },
-              { feature: 'Mensajea a tu terapeuta en cualquier momento', psymatch: true, presencial: false },
-              { feature: 'Recibe respuestas cuando lo necesites', psymatch: true, presencial: false },
-              { feature: 'Agenda citas fácilmente', psymatch: true, presencial: false },
-              { feature: 'Cambia de terapeuta fácilmente', psymatch: true, presencial: false },
-              { feature: 'Sin gastos de transporte ni tiempo perdido', psymatch: true, presencial: false },
-            ].map((row, index) => (
-              <div
-                key={index}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '2fr 1fr 1fr',
-                  borderBottom: index < 6 ? '1px solid #e8f0ed' : 'none',
-                }}
-              >
-                <div style={{
-                  padding: '20px 24px',
-                  color: '#1a2e22',
-                  fontSize: '15px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  fontFamily: "'Inter', sans-serif",
-                  background: '#ffffff',
-                }}>
-                  {row.feature}
                 </div>
-                <div style={{
-                  padding: '20px 24px',
-                  background: '#f0f5f3',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  {row.psymatch ? (
-                    <div style={{
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '50%',
-                      background: '#5a9270',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#ffffff',
-                      fontWeight: 'bold',
-                    }}>
-                      ✓
+          <div className="grid grid-cols-2 gap-6">
+            <div className="p-8 rounded-[3rem] bg-white soft-shadow border border-sage/10 hover:-translate-y-2 transition-transform duration-500">
+              <div className="size-12 bg-mint/50 organic-shape flex items-center justify-center text-sage mb-4">
+                <span className="material-symbols-outlined">person_search</span>
                     </div>
-                  ) : (
-                    <div style={{
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '50%',
-                      background: '#e8e8e8',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#999999',
-                    }}>
-                      ✗
+              <h3 className="text-2xl font-normal mb-2">Matching clínico</h3>
+              <p className="text-sm text-sage/70 leading-relaxed font-light">
+                Un test que tiene en cuenta tu historia, preferencias y nivel de malestar para proponerte perfiles
+                adecuados.
+              </p>
                     </div>
-                  )}
-                </div>
-                <div style={{
-                  padding: '20px 24px',
-                  background: '#f8f9fa',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderLeft: '2px solid #d4e0d8',
-                }}>
-                  {row.presencial ? (
-                    <div style={{
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '50%',
-                      background: '#5a9270',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#ffffff',
-                      fontWeight: 'bold',
-                    }}>
-                      ✓
-                    </div>
-                  ) : (
-                    <div style={{
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '50%',
-                      background: '#ffe5e5',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#d4a5a5',
-                    }}>
-                      ✗
-                    </div>
-                  )}
-                </div>
+            <div className="p-8 rounded-[3rem] bg-white soft-shadow border border-sage/10 translate-y-8 hover:-translate-y-2 transition-transform duration-500">
+              <div className="size-12 bg-mint/50 organic-shape flex items-center justify-center text-sage mb-4">
+                <span className="material-symbols-outlined">event_available</span>
               </div>
-            ))}
+              <h3 className="text-2xl font-normal mb-2">Todo en un solo lugar</h3>
+              <p className="text-sm text-sage/70 leading-relaxed font-light">
+                Citas, pagos, tareas, tests y seguimiento de tu estado de ánimo integrados en un panel sencillo.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* How it Works Section */}
-      <section
-        className="fade-in"
-        style={{
-          padding: '100px 20px',
-          background: '#f8f9fa',
-          position: 'relative',
-        }}
-      >
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <h2 style={{
-            fontSize: 'clamp(32px, 4vw, 48px)',
-            textAlign: 'center',
-            marginBottom: '20px',
-            fontWeight: 700,
-            color: '#1a2e22',
-            letterSpacing: '-0.02em',
-            fontFamily: "'Inter', sans-serif",
-          }}>
-            Cómo funciona
+      {/* Care paths */}
+      <section id="care" className="py-24 bg-mint/10">
+        <div className="max-w-7xl mx-auto px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl lg:text-5xl font-normal mb-4">
+              Cómo funciona <span className="italic text-sage">Gantly</span>
           </h2>
-          <p style={{
-            fontSize: 'clamp(16px, 1.8vw, 20px)',
-            color: '#3a5a4a',
-            textAlign: 'center',
-            maxWidth: '700px',
-            margin: '0 auto 60px',
-            lineHeight: '1.7',
-            fontFamily: "'Inter', sans-serif",
-          }}>
-            Un proceso sencillo para iniciar tu acompañamiento psicológico.
-          </p>
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '40px',
-            marginTop: '60px',
-          }}>
-            {[
-              {
-                number: '1',
-                title: 'Completa el test',
-                description: 'Comparte información sobre ti a través de un cuestionario sencillo que nos ayuda a conocerte mejor.',
-                color: '#5a9270',
-              },
-              {
-                number: '2',
-                title: 'Analizamos tu perfil',
-                description: 'Analizamos tus respuestas con cuidado para identificar qué tipo de acompañamiento se ajusta mejor a tu situación.',
-                color: '#5b8fa8',
-              },
-              {
-                number: '3',
-                title: 'Conecta con tu psicólogo',
-                description: 'Te ponemos en contacto con un psicólogo especializado cuya experiencia y enfoque encajan con lo que necesitas.',
-                color: '#7fb3a3',
-              },
-            ].map((step, index) => (
-              <div
-                key={index}
-                style={{
-                  textAlign: 'center',
-                  padding: '40px 30px',
-                  background: '#ffffff',
-                  borderRadius: '20px',
-                  border: '2px solid rgba(90, 146, 112, 0.2)',
-                  transition: 'all 0.3s',
-                  boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-8px)';
-                  e.currentTarget.style.boxShadow = '0 12px 28px rgba(90, 146, 112, 0.25)';
-                  e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.5)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(45, 74, 62, 0.12)';
-                  e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.2)';
-                }}
-              >
-                <div style={{
-                  width: '80px',
-                  height: '80px',
-                  borderRadius: '50%',
-                  background: step.color,
-                  margin: '0 auto 24px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '36px',
-                  fontWeight: 700,
-                  color: '#ffffff',
-                  boxShadow: `0 6px 20px ${step.color}40`,
-                  fontFamily: "'Inter', sans-serif",
-                }}>
-                  {step.number}
+            <p className="text-forest/80 max-w-xl mx-auto font-light">
+              Tres formas de conectar con tu psicólogo y seguir tu proceso terapéutico.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-10">
+            <div className="group">
+              <div className="relative h-[360px] w-full overflow-hidden rounded-[3rem] mb-6 bg-cream border border-sage/10">
+                <img
+                  alt="Evaluación inicial"
+                  className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700"
+                  style={{ objectPosition: 'center top' }}
+                  src={testInicialImage}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-cream/80 via-transparent to-transparent" />
+              </div>
+              <h3 className="text-3xl font-normal mb-2 flex items-center justify-between px-1">
+                1. Test inicial
+                <span className="material-symbols-outlined text-sage/40 group-hover:text-sage transition-colors text-base">
+                  arrow_outward
+                </span>
+              </h3>
+              <p className="text-forest/80 px-1 text-sm font-light">
+                Responde a un test diseñado por psicólogos clínicos para entender mejor tu situación actual.
+              </p>
+            </div>
+            <div className="group">
+              <div className="relative h-[360px] w-full overflow-hidden rounded-[3rem] mb-6 bg-cream border border-sage/10">
+                <img
+                  alt="Matching"
+                  className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuDl9XHOnef7e4cMADy1MLQXH3lijmCTkFM07ejnr1nlvV_EpLJswahIRm8490KjTB89daBx6g1sV4PMEJpIxS3uFf-1PeYlyFCo8Y260LhBkN9n3Ed7PhcbqwmDV6UUCmdIinacdzHCLXKKwq2n3T4dCpkZXfQRGT33izjg2l1_De-IaU5rY8Aj2wHhzCusx3hR6d_zrT7mjSfXhZkKSCSa9rEYjM9Jf4CqA0Sxg7bqlZvs21ng8FJ5pSQRv4JjHYb114tv4WEI-K-_"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-cream/80 via-transparent to-transparent" />
                 </div>
-                <h3 style={{
-                  fontSize: '22px',
-                  marginBottom: '16px',
-                  fontWeight: 600,
-                  color: '#1a2e22',
-                  fontFamily: "'Inter', sans-serif",
-                }}>
-                  {step.title}
+              <h3 className="text-3xl font-normal mb-2 flex items-center justify-between px-1">
+                2. Matching
+                <span className="material-symbols-outlined text-sage/40 group-hover:text-sage transition-colors text-base">
+                  arrow_outward
+                </span>
                 </h3>
-                <p style={{
-                  color: '#3a5a4a',
-                  lineHeight: '1.7',
-                  fontSize: '16px',
-                  fontFamily: "'Inter', sans-serif",
-                }}>
-                  {step.description}
-                </p>
+              <p className="text-forest/80 px-1 text-sm font-light">
+                Te mostramos psicólogos compatibles contigo, con información clara sobre su enfoque y experiencia.
+              </p>
+            </div>
+            <div className="group">
+              <div className="relative h-[360px] w-full overflow-hidden rounded-[3rem] mb-6 bg-cream border border-sage/10">
+                <img
+                  alt="Sesiones online"
+                  className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2YWC_tBvBTOttAXPFkZO-27_xC3xjDp_Wp_7M7yFODVyIk5u8NycdrvLyRt3z7Vfs8CpjKGGXQsI2RG2IHqIGBmiF8shOONg-fyue_vdcBH-GvfMe041v_WbCHVUqT0-r89tuNtJFzEn0RvkiChKd2Mi0rDBMX6hXTP-MWtSwE8x62UwGqCWrZJmkt9ITKg6jf1QOYxRYSHw4NwKcV7iofmhdpdwKnH0qXMh1Km7LjIqesuz7_frVuZCuTa6wJFnzUGsxxUdgkaW4"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-cream/80 via-transparent to-transparent" />
               </div>
-            ))}
+              <h3 className="text-3xl font-normal mb-2 flex items-center justify-between px-1">
+                3. Sesiones y seguimiento
+                <span className="material-symbols-outlined text-sage/40 group-hover:text-sage transition-colors text-base">
+                  arrow_outward
+                </span>
+              </h3>
+              <p className="text-forest/80 px-1 text-sm font-light">
+                Agenda online, chat seguro, videollamadas y herramientas de seguimiento de tu evolución.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section
-        className="fade-in"
-        style={{
-          padding: '100px 20px',
-          background: '#ffffff',
-          position: 'relative',
-        }}
-      >
-        <Pricing
-          plans={[
-            {
-              name: "PLAN PRUEBA 1",
-              price: "29",
-              yearlyPrice: "25",
-              period: "por mes",
-              features: [
-                "Texto de prueba feature 1",
-                "Texto de prueba feature 2",
-                "Texto de prueba feature 3",
-                "Texto de prueba feature 4",
-                "Texto de prueba feature 5",
-              ],
-              description: "Texto de prueba para el plan básico",
-              buttonText: "Comenzar prueba",
-              onClick: onGetStarted,
-              isPopular: false,
-            },
-            {
-              name: "PLAN PRUEBA 2",
-              price: "59",
-              yearlyPrice: "49",
-              period: "por mes",
-              features: [
-                "Texto de prueba feature 1",
-                "Texto de prueba feature 2",
-                "Texto de prueba feature 3",
-                "Texto de prueba feature 4",
-                "Texto de prueba feature 5",
-                "Texto de prueba feature 6",
-                "Texto de prueba feature 7",
-              ],
-              description: "Texto de prueba para el plan popular",
-              buttonText: "Comenzar prueba",
-              onClick: onGetStarted,
-              isPopular: true,
-            },
-            {
-              name: "PLAN PRUEBA 3",
-              price: "99",
-              yearlyPrice: "85",
-              period: "por mes",
-              features: [
-                "Texto de prueba feature 1",
-                "Texto de prueba feature 2",
-                "Texto de prueba feature 3",
-                "Texto de prueba feature 4",
-                "Texto de prueba feature 5",
-                "Texto de prueba feature 6",
-                "Texto de prueba feature 7",
-                "Texto de prueba feature 8",
-              ],
-              description: "Texto de prueba para el plan premium",
-              buttonText: "Comenzar prueba",
-              onClick: onGetStarted,
-              isPopular: false,
-            },
-          ]}
-          title="Planes de prueba"
-          description="Elige el plan que mejor se ajuste a tus necesidades\nTodos los planes incluyen características de prueba para evaluar el servicio."
-        />
+      {/* Team */}
+      <section id="team" className="py-24">
+        <div className="max-w-7xl mx-auto px-8 grid lg:grid-cols-4 gap-12">
+          <div>
+            <h2 className="text-4xl font-normal mb-6 leading-tight text-forest">
+              Un equipo<span className="italic text-sage"> cercano.</span>
+            </h2>
+            <p className="text-forest/80 font-light mb-8 leading-relaxed text-sm">
+              Psicólogos seleccionados por su experiencia clínica y su forma cálida de acompañar procesos complejos.
+            </p>
+            <button
+              type="button"
+              onClick={onShowSoyProfesional}
+              className="text-xs font-medium tracking-widest uppercase text-sage flex items-center gap-2 group"
+            >
+              ¿Eres profesional?
+              <span className="w-10 h-px bg-sage/40 group-hover:w-16 transition-all" />
+            </button>
+          </div>
+          <div className="lg:col-span-3 grid md:grid-cols-3 gap-8">
+            <div className="bg-white p-6 rounded-[2.5rem] border border-sage/10 soft-shadow">
+              <div className="aspect-[4/5] bg-mint rounded-[2rem] mb-6 overflow-hidden">
+                <img
+                  className="w-full h-full object-cover grayscale opacity-80"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnHq8RW26VBkKrvYu7FDWXM50zguYZOQn_M-FpIfsJf2z8nK-pDwROnmbXYNrkEz_qrKTley4iF6u7Y9H-c21WxA3oH31WDxFMBjso9Ob5VZGiOaiGOB82nf6W9dn8DHSHeq_VGKAk-R6s5-UNY07k26i9nCClo-3Zayf_omTz8X64rWFu40GFFlg1HdWjqp8-oj-hhUPDAevxKGCTHtOLKhonR5-DQEV4aOyzf3sYiGsoyyp6axCRBkOCKAgrIYVJysurmhKFF-yO"
+                  alt=""
+                />
+              </div>
+              <h4 className="text-2xl font-normal mb-1">Equipo clínico</h4>
+              <p className="text-xs text-sage/60 uppercase tracking-widest font-medium mb-3">Evaluación y matching</p>
+            </div>
+            <div className="bg-white p-6 rounded-[2.5rem] border border-sage/10 soft-shadow translate-y-8">
+              <div className="aspect-[4/5] bg-mint rounded-[2rem] mb-6 overflow-hidden">
+                <img
+                  className="w-full h-full object-cover grayscale opacity-80"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_fplQIpMFrUMQnOjnBo-r9O2kUBwurKqFeBPR0Byrx2vlg0hORFpJLWVKsO54jPnNzmtVbB8H22uii13qRTE15Z-4ya1hHDHLjL11wvVNZ50wu2teJ33XIzRy7yjtU6PwYmdmsTofY4RKe9tJ50kXKMiFlg6nuXxxvwlp-g8dD9m_aqI59myJ0ySLehZPpzOytiL1bT7p55fQKDupv99YHPhgS8p8VZdcFx-Hd1hd7sdCvWISECWRvsDscm1vSpvrLm_FIwcRvxUD"
+                  alt=""
+                />
+              </div>
+              <h4 className="text-2xl font-normal mb-1">Psicólogos colaboradores</h4>
+              <p className="text-xs text-sage/60 uppercase tracking-widest font-medium mb-3">Red nacional</p>
+            </div>
+            <div className="bg-white p-6 rounded-[2.5rem] border border-sage/10 soft-shadow translate-y-16">
+              <div className="aspect-[4/5] bg-mint rounded-[2rem] mb-6 overflow-hidden">
+                <img
+                  className="w-full h-full object-cover grayscale opacity-80"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnNvjXfG1GDMedezgIrHJhUBP8kfQopfwsTWJQIzJ021dsZX_dGL19Rpjqj8WUr_1ATZQLgsCV_puf2vE4bKnRkJDz5Rh5nbhPmiVV2dpspfsglDXuvFm3ijXHodBwx-SCfL3-HWUtfXk9r-7GKx1_bctNN-ZSPesHn9LAZsvhf--Pov1SCVPdJn6Nvm5eFq3aBClvX92o-qVg_XJIj-q_VqNUz8pVU94CG86gH3RpGW4fGdOmpo36fQI9ho8sozKORMq92dZYh4Vy"
+                  alt=""
+                />
+              </div>
+              <h4 className="text-2xl font-normal mb-1">Equipo producto</h4>
+              <p className="text-xs text-sage/60 uppercase tracking-widest font-medium mb-3">
+                Tecnología al servicio de la terapia
+              </p>
+            </div>
+          </div>
+        </div>
       </section>
 
-      {/* CTA Final */}
-      <section
-        className="fade-in"
-        style={{
-          minHeight: '70vh',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: '100px 20px',
-          background: 'linear-gradient(135deg, #5a9270 0%, #5b8fa8 100%)',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Decorative elements */}
-        <div style={{
-          position: 'absolute',
-          top: '-50px',
-          right: '-50px',
-          width: '300px',
-          height: '300px',
-          borderRadius: '50%',
-          background: 'rgba(255, 255, 255, 0.1)',
-          filter: 'blur(40px)',
-        }} />
-        <div style={{
-          position: 'absolute',
-          bottom: '-50px',
-          left: '-50px',
-          width: '300px',
-          height: '300px',
-          borderRadius: '50%',
-          background: 'rgba(255, 255, 255, 0.08)',
-          filter: 'blur(40px)',
-        }} />
-
-        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: '700px' }}>
-          <h2
-            style={{
-              fontSize: 'clamp(36px, 5vw, 56px)',
-              color: '#ffffff',
-              textAlign: 'center',
-              marginBottom: '24px',
-              fontWeight: 700,
-              letterSpacing: '-0.02em',
-              fontFamily: "'Inter', sans-serif",
-            }}
-          >
-            Tu bienestar empieza aquí
+      {/* Final CTA */}
+      <section className="py-32 px-8">
+        <div className="max-w-7xl mx-auto bg-forest rounded-[4rem] p-10 lg:p-20 text-center relative overflow-hidden text-cream">
+          <div className="absolute -top-1/2 -left-1/4 size-[500px] bg-sage/20 organic-shape blur-[100px] opacity-40" />
+          <div className="relative z-10">
+            <h2 className="text-4xl lg:text-6xl font-normal mb-8 max-w-3xl mx-auto leading-none">
+              Da un paso tranquilo hacia tu próxima sesión.
           </h2>
-          <p
-            style={{
-              fontSize: 'clamp(18px, 2vw, 22px)',
-              color: 'rgba(255, 255, 255, 0.95)',
-              textAlign: 'center',
-              marginBottom: '48px',
-              lineHeight: '1.7',
-              fontWeight: 400,
-              fontFamily: "'Inter', sans-serif",
-            }}
-          >
-            Da el primer paso. Completa una breve evaluación y descubre cómo podemos acompañarte en este momento.
-          </p>
+            <p className="text-mint text-lg mb-10 max-w-xl mx-auto font-light leading-relaxed">
+              Empieza con un test gratuito y descubre qué profesional encaja mejor contigo.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
+                type="button"
             onClick={onGetStarted}
-            style={{
-              padding: '18px 48px',
-              fontSize: '18px',
-              fontWeight: 600,
-              background: '#ffffff',
-              color: '#5a9270',
-              border: 'none',
-              borderRadius: '30px',
-              cursor: 'pointer',
-              transition: 'all 0.3s',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
-              fontFamily: "'Inter', sans-serif",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
-              e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.3)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0) scale(1)';
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.2)';
-            }}
+                className="bg-cream text-forest px-10 py-4 rounded-full font-medium text-lg hover:scale-105 transition-transform duration-300"
           >
             Comenzar evaluación
           </button>
+              <button
+                type="button"
+                onClick={onLogin}
+                className="bg-transparent text-cream px-10 py-4 rounded-full font-medium text-lg hover:bg-white/5 transition-all border border-cream/30"
+              >
+                Iniciar sesión
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer style={{
-        padding: '40px 20px',
-        background: '#2d4a3e',
-        color: '#ffffff',
-        textAlign: 'center',
-      }}>
-        <div style={{
-          fontFamily: "'Nunito', sans-serif",
-          fontSize: '24px',
-          fontWeight: 700,
-          color: '#ffffff',
-          marginBottom: '16px',
-        }}>
-          Psymatch
+      <footer className="bg-cream py-12 px-8 border-t border-sage/10">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-xs uppercase tracking-widest" style={{ color: '#5a9270' }}>
+            © {new Date().getFullYear()} Gantly. Todos los derechos reservados.
+          </p>
+          <div className="flex gap-4 text-xs" style={{ color: '#5a9270' }}>
+            <button type="button" onClick={onShowAbout} className="hover:text-forest transition-colors">
+              Sobre nosotros
+            </button>
+            <button type="button" onClick={onShowSoyProfesional} className="hover:text-forest transition-colors">
+              Soy profesional
+            </button>
+          </div>
         </div>
-        <p style={{
-          color: 'rgba(255, 255, 255, 0.8)',
-          fontSize: '14px',
-          fontFamily: "'Inter', sans-serif",
-        }}>
-          © 2024 Psymatch. Todos los derechos reservados.
-        </p>
       </footer>
     </div>
   );
 }
+

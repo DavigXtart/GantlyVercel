@@ -370,7 +370,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
     }}>
       {/* Header */}
       <div style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
         padding: '20px 24px',
         color: 'white',
         display: 'flex',
@@ -456,7 +456,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
               textAlign: 'center',
               fontWeight: isToday(d) ? 700 : 600,
               fontSize: '14px',
-              color: isToday(d) ? '#667eea' : '#1f2937'
+              color: isToday(d) ? '#5a9270' : '#1f2937'
             }}
           >
             <div>{d.toLocaleDateString('es-ES', { weekday: 'short' })}</div>
@@ -466,7 +466,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
             {isToday(d) && (
               <div style={{
                 fontSize: '10px',
-                color: '#667eea',
+                color: '#5a9270',
                 marginTop: '4px',
                 fontWeight: 600
               }}>
@@ -728,7 +728,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                                       }}
                                       style={{
                                         background: 'rgba(102, 126, 234, 0.1)',
-                                        color: '#667eea',
+                                        color: '#5a9270',
                                         border: 'none',
                                         borderRadius: '4px',
                                         padding: '0',
@@ -805,7 +805,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                   ) : (
                     mode === 'PSYCHO' && onCreateSlot && !isPastTime && (
                       <div style={{
-                        color: isHovered ? '#667eea' : '#d1d5db',
+                        color: isHovered ? '#5a9270' : '#d1d5db',
                         fontSize: '11px',
                         textAlign: 'center',
                         padding: '8px',
@@ -927,7 +927,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                     transition: 'border-color 0.2s',
                     background: 'white'
                   }}
-                  onFocus={(e) => e.currentTarget.style.borderColor = '#667eea'}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#5a9270'}
                   onBlur={(e) => e.currentTarget.style.borderColor = '#e5e7eb'}
                 >
                   <option value="">-- Seleccionar tipo de sesión --</option>
@@ -975,7 +975,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                   transition: 'border-color 0.2s',
                   background: selectedSessionType ? '#f9fafb' : 'white'
                 }}
-                onFocus={(e) => e.currentTarget.style.borderColor = '#667eea'}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#5a9270'}
                 onBlur={(e) => e.currentTarget.style.borderColor = '#e5e7eb'}
                 autoFocus={!selectedSessionType}
                 onKeyDown={(e) => {
@@ -1032,7 +1032,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                   padding: '10px 20px',
                   border: 'none',
                   borderRadius: '8px',
-                  background: '#667eea',
+                  background: '#5a9270',
                   color: 'white',
                   fontSize: '14px',
                   fontWeight: 600,
@@ -1043,7 +1043,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                   e.currentTarget.style.background = '#5568d3';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#667eea';
+                  e.currentTarget.style.background = '#5a9270';
                 }}
               >
                 {pendingRange ? `Crear ${pendingRange.count} citas` : 'Crear cita'}
@@ -1114,7 +1114,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                   outline: 'none',
                   transition: 'border-color 0.2s'
                 }}
-                onFocus={(e) => e.currentTarget.style.borderColor = '#667eea'}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#5a9270'}
                 onBlur={(e) => e.currentTarget.style.borderColor = '#e5e7eb'}
                 autoFocus
                 onKeyDown={(e) => {
@@ -1171,7 +1171,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                   padding: '10px 20px',
                   border: 'none',
                   borderRadius: '8px',
-                  background: '#667eea',
+                  background: '#5a9270',
                   color: 'white',
                   fontSize: '14px',
                   fontWeight: 600,
@@ -1182,7 +1182,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                   e.currentTarget.style.background = '#5568d3';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#667eea';
+                  e.currentTarget.style.background = '#5a9270';
                 }}
               >
                 Guardar cambios
@@ -1253,7 +1253,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
               {pendingBookSlot.price !== undefined && pendingBookSlot.price !== null && (
                 <div>
                   <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>Precio:</div>
-                  <div style={{ fontSize: '18px', fontWeight: 700, color: '#667eea' }}>
+                  <div style={{ fontSize: '18px', fontWeight: 700, color: '#5a9270' }}>
                     {pendingBookSlot.price.toFixed(2)}€
                   </div>
                 </div>
@@ -1308,7 +1308,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                   padding: '10px 20px',
                   border: 'none',
                   borderRadius: '8px',
-                  background: '#667eea',
+                  background: '#5a9270',
                   color: 'white',
                   fontSize: '14px',
                   fontWeight: 600,
@@ -1319,7 +1319,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                   e.currentTarget.style.background = '#5568d3';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#667eea';
+                  e.currentTarget.style.background = '#5a9270';
                 }}
               >
                 Sí, reservar cita
@@ -1407,7 +1407,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                   transition: 'border-color 0.2s',
                   background: 'white'
                 }}
-                onFocus={(e) => e.currentTarget.style.borderColor = '#667eea'}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#5a9270'}
                 onBlur={(e) => e.currentTarget.style.borderColor = '#e5e7eb'}
                 autoFocus
               >
@@ -1470,7 +1470,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                   padding: '10px 20px',
                   border: 'none',
                   borderRadius: '8px',
-                  background: '#667eea',
+                  background: '#5a9270',
                   color: 'white',
                   fontSize: '14px',
                   fontWeight: 600,
@@ -1481,7 +1481,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                   e.currentTarget.style.background = '#5568d3';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#667eea';
+                  e.currentTarget.style.background = '#5a9270';
                 }}
               >
                 Asignar cita

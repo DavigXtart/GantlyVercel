@@ -101,30 +101,18 @@ public class EvaluationTestService {
     }
 
     @Transactional
-    public EvaluationTestResultEntity saveResult(Long userId, Long testId, Map<String, Object> data) {
+    public EvaluationTestResultEntity saveResult(Long userId, Long testId, com.alvaro.psicoapp.dto.EvaluationTestDtos.SubmitResultRequest data) {
         UserEntity user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-        
         EvaluationTestEntity test = evaluationTestRepository.findById(testId)
             .orElseThrow(() -> new RuntimeException("Test no encontrado"));
-
         EvaluationTestResultEntity result = new EvaluationTestResultEntity();
         result.setUser(user);
         result.setTest(test);
-        
-        if (data.get("sessionId") != null) {
-            result.setSessionId(data.get("sessionId").toString());
-        }
-        if (data.get("score") != null) {
-            result.setScore(new BigDecimal(data.get("score").toString()));
-        }
-        if (data.get("level") != null) {
-            result.setLevel(data.get("level").toString());
-        }
-        if (data.get("answers") != null) {
-            result.setAnswers(data.get("answers").toString());
-        }
-
+        if (data.sessionId() != null) result.setSessionId(data.sessionId());
+        if (data.score() != null) result.setScore(data.score());
+        if (data.level() != null) result.setLevel(data.level());
+        if (data.answers() != null) result.setAnswers(com.alvaro.psicoapp.util.InputSanitizer.sanitize(data.answers()));
         return resultRepository.save(result);
     }
 
@@ -136,50 +124,27 @@ public class EvaluationTestService {
         return resultRepository.findByUser_IdAndTest_IdOrderByCompletedAtDesc(userId, testId);
     }
 
-    public Map<String, Object> getUserStatistics(Long userId) {
+    public com.alvaro.psicoapp.dto.EvaluationTestDtos.UserStatisticsResponse getUserStatistics(Long userId) {
         List<EvaluationTestResultEntity> results = getUserResults(userId);
-        
-        Map<String, Object> stats = new HashMap<>();
-        
         if (results.isEmpty()) {
-            stats.put("totalTests", 0);
-            stats.put("averageScore", 0.0);
-            stats.put("testsByTopic", new HashMap<>());
-            stats.put("recentResults", List.of());
-            return stats;
+            return new com.alvaro.psicoapp.dto.EvaluationTestDtos.UserStatisticsResponse(0, 0.0, Map.of(), List.of());
         }
-
         double averageScore = results.stream()
             .filter(r -> r.getScore() != null)
             .mapToDouble(r -> r.getScore().doubleValue())
             .average()
             .orElse(0.0);
-
         Map<String, Long> testsByTopic = results.stream()
-            .collect(Collectors.groupingBy(
-                r -> r.getTest().getTopic(),
-                Collectors.counting()
-            ));
-
-        List<Map<String, Object>> recentResults = results.stream()
-            .limit(10)
-            .map(r -> {
-                Map<String, Object> resultMap = new HashMap<>();
-                resultMap.put("testTitle", r.getTest().getTitle());
-                resultMap.put("topic", r.getTest().getTopic());
-                resultMap.put("score", r.getScore() != null ? r.getScore().doubleValue() : 0.0);
-                resultMap.put("level", r.getLevel() != null ? r.getLevel() : "N/A");
-                resultMap.put("completedAt", r.getCompletedAt().toString());
-                return resultMap;
-            })
+            .collect(Collectors.groupingBy(r -> r.getTest().getTopic(), Collectors.counting()));
+        var recentResults = results.stream().limit(10)
+            .map(r -> new com.alvaro.psicoapp.dto.EvaluationTestDtos.RecentResultDto(
+                    r.getTest().getTitle(), r.getTest().getTopic(),
+                    r.getScore() != null ? r.getScore().doubleValue() : 0.0,
+                    r.getLevel() != null ? r.getLevel() : "N/A",
+                    r.getCompletedAt().toString()))
             .collect(Collectors.toList());
-
-        stats.put("totalTests", results.size());
-        stats.put("averageScore", averageScore);
-        stats.put("testsByTopic", testsByTopic);
-        stats.put("recentResults", recentResults);
-        
-        return stats;
+        return new com.alvaro.psicoapp.dto.EvaluationTestDtos.UserStatisticsResponse(
+                results.size(), averageScore, testsByTopic, recentResults);
     }
 }
 

@@ -1,0 +1,39 @@
+# Copia este archivo a application-local.yml y configura tus credenciales
+# application-local.yml está en .gitignore y no se sube al repositorio
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/gantly?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: root
+    password: 1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: tu-email@gmail.com
+    password: tu-password-app
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_OAUTH_CLIENT_ID}
+            client-secret: ${GOOGLE_OAUTH_CLIENT_SECRET}
+            scope: email, profile, openid
+
+app:
+  base:
+    url: http://localhost:5173

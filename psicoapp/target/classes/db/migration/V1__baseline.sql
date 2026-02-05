@@ -1,1 +1,0 @@
-﻿-- Flyway baseline

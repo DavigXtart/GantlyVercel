@@ -560,7 +560,7 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
               color: '#5a9270',
               letterSpacing: '-0.02em',
             }}>
-              Psymatch
+              Gantly
             </div>
             <div>
               <h2 style={{ 

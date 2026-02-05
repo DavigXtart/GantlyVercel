@@ -75,6 +75,9 @@ export const authService = {
     const { data } = await api.post('/auth/resend-verification-email');
     return data as { message: string; status: string };
   },
+  getOAuth2LoginUrl: (provider: 'google' = 'google') => {
+    return `${API_BASE_URL}/oauth2/authorization/${provider}`;
+  },
 };
 
 type SubmitAnswerPayload = { questionId: number; answerId?: number; numericValue?: number; textValue?: string };

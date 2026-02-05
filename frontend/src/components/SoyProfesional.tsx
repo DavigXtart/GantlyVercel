@@ -56,7 +56,7 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted }: SoyPro
           onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
           onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
         >
-          Psymatch
+          Gantly
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
           <button
@@ -147,7 +147,7 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted }: SoyPro
               marginBottom: '24px',
               fontFamily: "'Nunito', sans-serif",
             }}>
-              ¿Quieres ser psicólogo online con Psymatch?
+              ¿Quieres ser psicólogo online con Gantly?
             </h1>
             <p style={{
               fontSize: '18px',
@@ -156,7 +156,7 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted }: SoyPro
               marginBottom: '32px',
               fontFamily: "'Inter', sans-serif",
             }}>
-              Enriquece tu práctica sanitaria dedicándote a lo más importante, nosotros nos encargamos del resto. Con Psymatch podrás ofrecer terapia online de forma fácil, segura y confidencial.
+              Enriquece tu práctica sanitaria dedicándote a lo más importante, nosotros nos encargamos del resto. Con Gantly podrás ofrecer terapia online de forma fácil, segura y confidencial.
             </p>
             <button
               onClick={onGetStarted}
@@ -269,7 +269,7 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted }: SoyPro
               lineHeight: 1.6,
               fontFamily: "'Inter', sans-serif",
             }}>
-              sesiones realizadas a través de Psymatch de forma segura
+              sesiones realizadas a través de Gantly de forma segura
             </p>
           </div>
           <div style={{ textAlign: 'center' }}>
@@ -288,7 +288,7 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted }: SoyPro
               lineHeight: 1.6,
               fontFamily: "'Inter', sans-serif",
             }}>
-              de los psicólogos recomiendan Psymatch a otros compañeros
+              de los psicólogos recomiendan Gantly a otros compañeros
             </p>
           </div>
           <div style={{ textAlign: 'center' }}>
@@ -480,7 +480,7 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted }: SoyPro
               lineHeight: 1.3,
               fontFamily: "'Nunito', sans-serif",
             }}>
-              Descubre todas las ventajas de Psymatch
+              Descubre todas las ventajas de Gantly
             </h2>
           </div>
 
@@ -618,7 +618,7 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted }: SoyPro
             lineHeight: 1.6,
             fontFamily: "'Inter', sans-serif",
           }}>
-            Psymatch se adhiere al Código de Conducta de Buenas Prácticas en Telepsicología del Colegio Oficial de Psicólogos de Madrid.
+            Gantly se adhiere al Código de Conducta de Buenas Prácticas en Telepsicología del Colegio Oficial de Psicólogos de Madrid.
           </p>
         </div>
       </section>

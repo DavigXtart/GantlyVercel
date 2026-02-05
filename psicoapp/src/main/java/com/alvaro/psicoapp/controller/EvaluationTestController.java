@@ -6,7 +6,6 @@ import com.alvaro.psicoapp.domain.UserEntity;
 import com.alvaro.psicoapp.repository.UserRepository;
 import com.alvaro.psicoapp.service.EvaluationTestService;
 import com.alvaro.psicoapp.util.InputSanitizer;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,11 +16,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/evaluation-tests")
 public class EvaluationTestController {
-    @Autowired
-    private EvaluationTestService evaluationTestService;
-    
-    @Autowired
-    private UserRepository userRepository;
+    private final EvaluationTestService evaluationTestService;
+    private final UserRepository userRepository;
+
+    public EvaluationTestController(EvaluationTestService evaluationTestService, UserRepository userRepository) {
+        this.evaluationTestService = evaluationTestService;
+        this.userRepository = userRepository;
+    }
 
     @GetMapping("/category/{category}")
     public ResponseEntity<?> getTestsByCategory(@PathVariable String category) {
@@ -54,20 +55,11 @@ public class EvaluationTestController {
     }
 
     @PostMapping("/{testId}/submit")
-    public ResponseEntity<?> submitResult(Principal principal, @PathVariable Long testId, @RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> submitResult(Principal principal, @PathVariable Long testId, @RequestBody com.alvaro.psicoapp.dto.EvaluationTestDtos.SubmitResultRequest req) {
         try {
-            // Obtener el usuario por email (principal.getName() devuelve el email)
-            String userEmail = principal.getName();
-            UserEntity user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-            Long userId = user.getId();
-            
-            // Sanitizar inputs
-            if (body.get("answers") != null) {
-                body.put("answers", InputSanitizer.sanitize(body.get("answers").toString()));
-            }
-            
-            EvaluationTestResultEntity result = evaluationTestService.saveResult(userId, testId, body);
+            UserEntity user = userRepository.findByEmail(principal.getName())
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+            EvaluationTestResultEntity result = evaluationTestService.saveResult(user.getId(), testId, req);
             return ResponseEntity.ok(Map.of("success", true, "result", result));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -77,12 +69,9 @@ public class EvaluationTestController {
     @GetMapping("/results")
     public ResponseEntity<?> getUserResults(Principal principal) {
         try {
-            // Obtener el usuario por email (principal.getName() devuelve el email)
-            String userEmail = principal.getName();
-            UserEntity user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-            Long userId = user.getId();
-            List<EvaluationTestResultEntity> results = evaluationTestService.getUserResults(userId);
+            UserEntity user = userRepository.findByEmail(principal.getName())
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+            List<EvaluationTestResultEntity> results = evaluationTestService.getUserResults(user.getId());
             return ResponseEntity.ok(Map.of("results", results));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -92,16 +81,11 @@ public class EvaluationTestController {
     @GetMapping("/statistics")
     public ResponseEntity<?> getUserStatistics(Principal principal) {
         try {
-            // Obtener el usuario por email (principal.getName() devuelve el email)
-            String userEmail = principal.getName();
-            UserEntity user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-            Long userId = user.getId();
-            Map<String, Object> stats = evaluationTestService.getUserStatistics(userId);
-            return ResponseEntity.ok(stats);
+            UserEntity user = userRepository.findByEmail(principal.getName())
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+            return ResponseEntity.ok(evaluationTestService.getUserStatistics(user.getId()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 }
-

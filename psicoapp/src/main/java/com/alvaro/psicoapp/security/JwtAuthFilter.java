@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import com.alvaro.psicoapp.domain.RoleConstants;
 import com.alvaro.psicoapp.repository.UserRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -31,7 +32,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 			String token = header.substring(7);
             try {
                 String subject = jwtService.parseSubject(token);
-                String role = userRepository.findByEmail(subject).map(u -> u.getRole()).orElse("USER");
+                String role = userRepository.findByEmail(subject).map(u -> u.getRole()).orElse(RoleConstants.USER);
                 var auth = new UsernamePasswordAuthenticationToken(subject, null, List.of(new SimpleGrantedAuthority("ROLE_" + role)));
                 SecurityContextHolder.getContext().setAuthentication(auth);
             } catch (Exception ignored) { }

@@ -994,7 +994,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           color: '#5a9270',
           letterSpacing: '-0.02em',
         }}>
-          Psymatch
+          Gantly
         </div>
         <button
           onClick={onBack}

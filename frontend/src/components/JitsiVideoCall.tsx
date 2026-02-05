@@ -149,9 +149,9 @@ function JitsiVideoCallComponent({
           SHOW_WATERMARK_FOR_GUESTS: false,
           SHOW_BRAND_WATERMARK: false,
           SHOW_POWERED_BY: false,
-          APP_NAME: 'PSYmatch',
-          NATIVE_APP_NAME: 'PSYmatch',
-          PROVIDER_NAME: 'PSYmatch',
+          APP_NAME: 'Gantly',
+          NATIVE_APP_NAME: 'Gantly',
+          PROVIDER_NAME: 'Gantly',
           DEFAULT_BACKGROUND: '#5a9270',
         },
         userInfo: {

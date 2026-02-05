@@ -1,4 +1,4 @@
-import alvaroPhoto from '../assets/alvarogan.jpeg';
+import alvaroPhoto from '../assets/chumte.jpeg';
 
 interface AboutProps {
   onBack: () => void;
@@ -50,7 +50,7 @@ export default function About({ onBack, onLogin, onGetStarted }: AboutProps) {
           color: '#5a9270',
           letterSpacing: '-0.02em',
         }}>
-          Psymatch
+          Gantly
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <button
@@ -138,7 +138,7 @@ export default function About({ onBack, onLogin, onGetStarted }: AboutProps) {
                 Álvaro García-Alonso
               </p>
               <p style={{ margin: '6px 0 0', fontSize: '14px', color: 'rgba(255, 255, 255, 0.9)', fontFamily: "'Inter', sans-serif" }}>
-                Licenciado en Psicología • Fundación PSYmatch
+                Licenciado en Psicología • Fundación Gantly
               </p>
             </div>
           </div>

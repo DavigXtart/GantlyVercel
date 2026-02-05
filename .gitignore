@@ -1,0 +1,5 @@
+# Credenciales locales - no subir a repositorio
+psicoapp/src/main/resources/application-local.yml
+
+# Maven / Java build output (puede contener copias de config con secretos)
+psicoapp/target/

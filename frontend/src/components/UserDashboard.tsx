@@ -61,6 +61,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
   
   // Ref para mantener el componente montado incluso si showVideoCall cambia temporalmente
   const videoCallRef = useRef<{ room: string | null; user: any; otherUser: any } | null>(null);
+  const hasRedirectedToMatching = useRef(false);
   
   // Determinar si el usuario tiene psicólogo asignado
   const hasPsychologist = psych?.status === 'ASSIGNED';
@@ -135,6 +136,14 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       loadAvailability();
     }
   }, [tab, hasPsychologist]);
+
+  // Usuarios nuevos sin psicólogo: mostrar "Mi Psicólogo" al cargar (solo la primera vez)
+  useEffect(() => {
+    if (!loading && !hasPsychologist && !hasRedirectedToMatching.current) {
+      hasRedirectedToMatching.current = true;
+      setTab('mi-psicologo');
+    }
+  }, [loading, hasPsychologist]);
 
   useEffect(() => {
     if (tab === 'tareas' && tasks.length > 0) {
