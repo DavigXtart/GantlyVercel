@@ -3,6 +3,14 @@ import { personalAgendaService } from '../services/api';
 import { toast } from './ui/Toast';
 import LoadingSpinner from './ui/LoadingSpinner';
 
+/** Formatea una fecha a YYYY-MM-DD usando hora local (evita el bug de toISOString en UTC) */
+function formatDateLocal(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 interface AgendaPersonalProps {
   onComplete?: () => void;
 }
@@ -35,9 +43,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
   });
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
   const [selectedDate, setSelectedDate] = useState<string>(() => {
-    // Inicializar con la fecha de hoy en formato YYYY-MM-DD
-    const today = new Date();
-    return today.toISOString().split('T')[0];
+    return formatDateLocal(new Date());
   });
   const [entryData, setEntryData] = useState({
     moodRating: 0,
@@ -153,20 +159,18 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
       return;
     }
     
-    // Validar fecha seleccionada
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const selectedDateObj = new Date(selectedDate);
-    selectedDateObj.setHours(0, 0, 0, 0);
-    const twoDaysAgo = new Date(today);
-    twoDaysAgo.setDate(today.getDate() - 2);
+    // Validar fecha seleccionada (usar formato local para evitar problemas de zona horaria)
+    const todayStr = formatDateLocal(new Date());
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const minDateStr = formatDateLocal(twoDaysAgo);
     
-    if (selectedDateObj > today) {
+    if (selectedDate > todayStr) {
       toast.error('No se pueden crear entradas con fechas futuras');
       return;
     }
     
-    if (selectedDateObj < twoDaysAgo) {
+    if (selectedDate < minDateStr) {
       toast.error('Solo se pueden crear entradas para hoy o máximo 2 días atrás');
       return;
     }
@@ -315,8 +319,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
   };
 
   const getEntryForDate = (date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
-    return entries.find(e => e.entryDate === dateStr);
+    return entries.find(e => e.entryDate === formatDateLocal(date));
   };
 
   const isDateValidForEntry = (date: Date): boolean => {
@@ -337,8 +340,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
       setSelectedEntry(entry);
     } else if (isDateValidForEntry(date)) {
       // Si no hay entrada pero la fecha es válida, abrir formulario con esa fecha
-      const dateStr = date.toISOString().split('T')[0];
-      setSelectedDate(dateStr);
+      setSelectedDate(formatDateLocal(date));
       setShowCalendar(false);
       setStep(1);
       setEntryData({
@@ -486,9 +488,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
               onClick={() => {
                 setShowCalendar(false);
                 setStep(1);
-                // Resetear fecha a hoy al crear nueva entrada
-                const today = new Date();
-                setSelectedDate(today.toISOString().split('T')[0]);
+                setSelectedDate(formatDateLocal(new Date()));
                 setEntryData({
                   moodRating: 0,
                   emotions: [],
@@ -1025,12 +1025,12 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                max={new Date().toISOString().split('T')[0]} // No permitir fechas futuras
+                max={formatDateLocal(new Date())}
                 min={(() => {
                   const today = new Date();
                   const twoDaysAgo = new Date(today);
                   twoDaysAgo.setDate(today.getDate() - 2);
-                  return twoDaysAgo.toISOString().split('T')[0];
+                  return formatDateLocal(twoDaysAgo);
                 })()}
                 style={{
                   padding: '12px 16px',

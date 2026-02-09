@@ -137,6 +137,13 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
     }
   }, [tab, hasPsychologist]);
 
+  // Al entrar al chat, hacer scroll al inicio para que no quede desplazado hacia abajo
+  useEffect(() => {
+    if (tab === 'chat') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [tab]);
+
   // Usuarios nuevos sin psicólogo: mostrar "Mi Psicólogo" al cargar (solo la primera vez)
   useEffect(() => {
     if (!loading && !hasPsychologist && !hasRedirectedToMatching.current) {
@@ -417,7 +424,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
         overflowX: 'auto'
       }}>
         {[
-          { id: 'perfil', label: 'Mi Perfil', icon: '👤', requiresPsych: false },
+          { id: 'perfil', label: 'Mi Perfil', icon: '', requiresPsych: false },
           { id: 'mi-psicologo', label: 'Mi Psicólogo', icon: '👨‍⚕️', requiresPsych: false },
           { id: 'tareas', label: 'Tareas', icon: '📋', requiresPsych: true },
           { id: 'tests-pendientes', label: 'Tests', icon: '📝', requiresPsych: true },
@@ -468,7 +475,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               }}
               title={isDisabled ? 'Requiere psicólogo asignado' : undefined}
             >
-              {t.icon} {t.label}
+              {t.icon ? `${t.icon} ` : ''}{t.label}
               {isDisabled && <span style={{ marginLeft: '6px', fontSize: '12px' }}>🔒</span>}
             </button>
           );
@@ -1336,23 +1343,12 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                   {psych.psychologist.email}
                 </div>
                 <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
-                  <div style={{
-                    display: 'inline-block',
-                    padding: '6px 12px',
-                    background: '#dcfce7',
-                    color: '#15803d',
-                    borderRadius: '20px',
-                    fontSize: '12px',
-                    fontWeight: 600
-                  }}>
-                    ✅ Asignado y disponible
-                  </div>
                   <button
                     onClick={() => loadPsychologistProfile(psych.psychologist.id)}
                     disabled={loadingPsychologistProfile}
                     style={{
                       padding: '8px 16px',
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
                       color: 'white',
                       border: 'none',
                       borderRadius: '8px',
@@ -3307,28 +3303,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
 
       {tab === 'chat' && hasPsychologist && (
         <div style={{ width: '100%' }}>
-          <div style={{
-            background: '#ffffff',
-            borderRadius: '20px',
-            boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
-            padding: '32px',
-            border: '1px solid rgba(90, 146, 112, 0.15)',
-            marginBottom: '24px'
-          }}>
-            <h3 style={{ 
-              margin: 0, 
-              fontSize: '28px', 
-              fontWeight: 700, 
-              color: '#1a2e22',
-              fontFamily: "'Inter', sans-serif",
-              letterSpacing: '-0.02em'
-            }}>
-            Chat con mi Psicólogo
-          </h3>
-          </div>
-          <div style={{ width: '100%' }}>
-            <ChatWidget mode="USER" />
-          </div>
+          <ChatWidget mode="USER" />
         </div>
       )}
 

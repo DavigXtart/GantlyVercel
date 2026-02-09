@@ -363,6 +363,24 @@ public class CalendarService {
     }
 
     @Transactional(readOnly = true)
+    public List<CalendarDtos.PsychologistRatingDetailDto> getPsychologistRatings(Long psychologistId) {
+        var psychologist = userRepository.findById(psychologistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Psicólogo no encontrado"));
+        if (!RoleConstants.PSYCHOLOGIST.equals(psychologist.getRole())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Psicólogo no encontrado");
+        }
+        return appointmentRatingRepository.findByPsychologist_IdOrderByCreatedAtDesc(psychologistId)
+                .stream()
+                .map(r -> new CalendarDtos.PsychologistRatingDetailDto(
+                        r.getRating(),
+                        r.getComment() != null ? r.getComment() : "",
+                        r.getUser() != null ? r.getUser().getName() : "Anónimo",
+                        r.getCreatedAt() != null ? r.getCreatedAt().toString() : ""
+                ))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public List<CalendarDtos.PsychologistPastAppointmentDto> getPsychologistPastAppointments(UserEntity psychologist) {
         requirePsychologist(psychologist);
         Instant now = Instant.now();

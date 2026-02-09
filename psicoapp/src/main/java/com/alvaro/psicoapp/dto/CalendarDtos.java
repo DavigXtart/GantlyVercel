@@ -33,6 +33,8 @@ public class CalendarDtos {
     public record CreateForPatientResponse(Long id, String startTime, String endTime, String status, Long userId, Long psychologistId) {}
     public record RateAppointmentResponse(String message, RatingDto rating) {}
     public record PsychologistRatingResponse(Double averageRating, long totalRatings) {}
+    /** Detalle de una reseña: puntuación, comentario, nombre del paciente, fecha */
+    public record PsychologistRatingDetailDto(Integer rating, String comment, String patientName, String createdAt) {}
     public record MessageResponse(String message) {}
     public record UpdateSlotResponse(String message, com.alvaro.psicoapp.domain.AppointmentEntity appointment) {}
 

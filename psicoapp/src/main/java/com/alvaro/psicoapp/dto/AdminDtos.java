@@ -130,4 +130,17 @@ public class AdminDtos {
     public record StatisticsDto(long totalUsers, long users, long psychologists, long admins,
                                 long totalTests, long evaluationTests, long totalAppointments, long bookedAppointments,
                                 long totalUserAnswers, long assignedRelations, long verifiedUsers) {}
+
+    // Panel admin de psicólogo
+    public record PsychologistAdminPatientDto(Long id, String name, String email, String status, String assignedAt) {}
+    public record PsychologistAdminAppointmentDto(Long id, String startTime, String endTime, String status,
+            java.math.BigDecimal price, String patientName, String patientEmail) {}
+    public record PsychologistAdminSummaryDto(
+            Long id, String name, String email, String createdAt,
+            Double averageRating, long totalRatings,
+            java.util.List<PsychologistAdminPatientDto> activePatients,
+            java.util.List<PsychologistAdminPatientDto> dischargedPatients,
+            java.util.List<PsychologistAdminAppointmentDto> scheduledAppointments,
+            java.util.List<PsychologistAdminAppointmentDto> pastAppointments,
+            java.math.BigDecimal totalBilled) {}
 }

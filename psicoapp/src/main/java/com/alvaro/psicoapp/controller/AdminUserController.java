@@ -2,6 +2,7 @@ package com.alvaro.psicoapp.controller;
 
 import com.alvaro.psicoapp.domain.UserEntity;
 import com.alvaro.psicoapp.dto.AdminDtos;
+import com.alvaro.psicoapp.service.AdminPsychologistService;
 import com.alvaro.psicoapp.service.AdminUserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,9 +14,11 @@ import java.util.List;
 @RequestMapping("/api/admin/users")
 public class AdminUserController {
     private final AdminUserService adminUserService;
+    private final AdminPsychologistService adminPsychologistService;
 
-    public AdminUserController(AdminUserService adminUserService) {
+    public AdminUserController(AdminUserService adminUserService, AdminPsychologistService adminPsychologistService) {
         this.adminUserService = adminUserService;
+        this.adminPsychologistService = adminPsychologistService;
     }
 
     @PostMapping("/role")
@@ -40,6 +43,11 @@ public class AdminUserController {
     @Transactional
     public ResponseEntity<AdminDtos.UnassignPsychologistResponse> unassignPsychologist(@PathVariable Long userId) {
         return ResponseEntity.ok(adminUserService.unassignPsychologist(userId));
+    }
+
+    @GetMapping("/psychologists/{psychologistId}/summary")
+    public ResponseEntity<AdminDtos.PsychologistAdminSummaryDto> getPsychologistSummary(@PathVariable Long psychologistId) {
+        return ResponseEntity.ok(adminPsychologistService.getPsychologistSummary(psychologistId));
     }
 }
 

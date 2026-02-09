@@ -39,18 +39,17 @@ export default function AdminStatistics() {
     );
   }
 
-  const StatCard = ({ title, value, icon, color }: { title: string; value: number; icon: string; color: string }) => (
+  const StatCard = ({ title, value, color }: { title: string; value: number; color: string }) => (
     <div style={{
       background: '#ffffff',
       borderRadius: '16px',
       padding: '32px',
       boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-      border: '1px solid #e5e7eb',
+      border: '1px solid rgba(90, 146, 112, 0.2)',
       display: 'flex',
       flexDirection: 'column',
       gap: '12px'
     }}>
-      <div style={{ fontSize: '32px' }}>{icon}</div>
       <div style={{
         fontSize: '36px',
         fontWeight: 700,
@@ -78,10 +77,10 @@ export default function AdminStatistics() {
         gap: '24px',
         marginBottom: '32px'
       }}>
-        <StatCard title="Total de Usuarios" value={stats.totalUsers} icon="👥" color="#5a9270" />
-        <StatCard title="Usuarios" value={stats.users} icon="👤" color="#3b82f6" />
-        <StatCard title="Psicólogos" value={stats.psychologists} icon="🧠" color="#8b5cf6" />
-        <StatCard title="Administradores" value={stats.admins} icon="👑" color="#f59e0b" />
+        <StatCard title="Total de Usuarios" value={stats.totalUsers} color="#5a9270" />
+        <StatCard title="Usuarios" value={stats.users} color="#5a9270" />
+        <StatCard title="Psicólogos" value={stats.psychologists} color="#5a9270" />
+        <StatCard title="Administradores" value={stats.admins} color="#5a9270" />
       </div>
 
       <div style={{
@@ -90,10 +89,10 @@ export default function AdminStatistics() {
         gap: '24px',
         marginBottom: '32px'
       }}>
-        <StatCard title="Tests Totales" value={stats.totalTests} icon="📝" color="#10b981" />
-        <StatCard title="Tests de Evaluación" value={stats.evaluationTests} icon="📊" color="#06b6d4" />
-        <StatCard title="Citas Totales" value={stats.totalAppointments} icon="📅" color="#f97316" />
-        <StatCard title="Citas Reservadas" value={stats.bookedAppointments} icon="✅" color="#22c55e" />
+        <StatCard title="Tests Totales" value={stats.totalTests} color="#5a9270" />
+        <StatCard title="Tests de Evaluación" value={stats.evaluationTests} color="#5a9270" />
+        <StatCard title="Citas Totales" value={stats.totalAppointments} color="#5a9270" />
+        <StatCard title="Citas Reservadas" value={stats.bookedAppointments} color="#5a9270" />
       </div>
 
       <div style={{
@@ -101,9 +100,9 @@ export default function AdminStatistics() {
         gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
         gap: '24px'
       }}>
-        <StatCard title="Respuestas de Usuarios" value={stats.totalUserAnswers} icon="💬" color="#6366f1" />
-        <StatCard title="Relaciones Asignadas" value={stats.assignedRelations} icon="🔗" color="#ec4899" />
-        <StatCard title="Usuarios Verificados" value={stats.verifiedUsers} icon="✓" color="#14b8a6" />
+        <StatCard title="Respuestas de Usuarios" value={stats.totalUserAnswers} color="#5a9270" />
+        <StatCard title="Relaciones Asignadas" value={stats.assignedRelations} color="#5a9270" />
+        <StatCard title="Usuarios Verificados" value={stats.verifiedUsers} color="#5a9270" />
       </div>
     </div>
   );

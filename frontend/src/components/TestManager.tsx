@@ -813,9 +813,6 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h2>Preguntas ({questions.length})</h2>
           <div style={{ display: 'flex', gap: '12px' }}>
-            <button className="btn-secondary" onClick={loadQuestions} disabled={loading} style={{ width: 'auto', padding: '8px 16px' }}>
-              🔄 Actualizar
-            </button>
             <button className="btn-secondary" onClick={loadTestUserAnswers} disabled={loading} style={{ width: 'auto', padding: '8px 16px' }}>
               👥 Ver Respuestas de Usuarios
             </button>

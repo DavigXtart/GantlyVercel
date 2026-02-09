@@ -507,7 +507,7 @@ function App() {
     return (
       <div>
         <nav>
-          <div className="container" style={{ maxWidth: '1200px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h3 
               onClick={() => { isUserNavigation.current = true; setShowInitialTest(false); setShowLanding(true); }}
               style={{ cursor: 'pointer', userSelect: 'none', transition: 'opacity 0.2s' }}
@@ -598,7 +598,7 @@ function App() {
     return (
       <div>
         <nav>
-          <div className="container" style={{ maxWidth: '1200px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h3 
               onClick={goToLanding}
               style={{ cursor: 'pointer', userSelect: 'none', transition: 'opacity 0.2s' }}
@@ -624,7 +624,7 @@ function App() {
   return (
     <div>
       <nav>
-        <div className="container" style={{ maxWidth: '1200px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 
             onClick={goToLanding}
             style={{ cursor: 'pointer', userSelect: 'none', transition: 'opacity 0.2s' }}

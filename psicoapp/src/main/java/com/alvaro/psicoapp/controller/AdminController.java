@@ -39,9 +39,9 @@ public class AdminController {
     }
 
     @PutMapping("/tests/{id}")
-    public ResponseEntity<TestEntity> updateTest(@PathVariable Long id, @RequestBody AdminDtos.TestUpdate req) {
+    public ResponseEntity<Void> updateTest(@PathVariable Long id, @RequestBody AdminDtos.TestUpdate req) {
         return adminService.updateTest(id, req)
-                .map(ResponseEntity::ok)
+                .map(t -> ResponseEntity.noContent().<Void>build())
                 .orElse(ResponseEntity.notFound().build());
     }
 

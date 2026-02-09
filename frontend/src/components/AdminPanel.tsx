@@ -11,6 +11,8 @@ interface Test {
   createdAt: string;
   category?: 'EVALUATION' | 'DISCOVERY' | null;
   topic?: string | null;
+  /** Indica si el test viene de evaluation_tests o de tests (para usar el endpoint correcto) */
+  _source?: 'test' | 'evaluation';
 }
 
 interface AdminPanelProps {
@@ -45,10 +47,11 @@ export default function AdminPanel({}: AdminPanelProps = {}) {
       ]);
       
       // Combinar ambos tipos de tests, excluyendo placeholders
-      const allTestsCombined = [
-        ...(testsData || []),
-        ...(evaluationTestsData || []).filter((et: any) => !et.code || !et.code.startsWith('SECTION_PLACEHOLDER_'))
-      ];
+      const fromTests = (testsData || []).map((t: any) => ({ ...t, _source: 'test' as const }));
+      const fromEvaluation = (evaluationTestsData || [])
+        .filter((et: any) => !et.code || !et.code.startsWith('SECTION_PLACEHOLDER_'))
+        .map((et: any) => ({ ...et, _source: 'evaluation' as const }));
+      const allTestsCombined = [...fromTests, ...fromEvaluation];
       
       console.log('Tests cargados en admin:', allTestsCombined);
       setTests(allTestsCombined);
@@ -100,26 +103,17 @@ export default function AdminPanel({}: AdminPanelProps = {}) {
         code: formData.get('code') as string,
         title: formData.get('title') as string,
         description: formData.get('description') as string || '',
-        active: formData.get('active') === 'true',
         category: (formData.get('category') as string) || undefined,
         topic: (formData.get('topic') as string) || undefined
       };
       
-      // Determinar si es un evaluation test (tiene category y topic definidos y no es placeholder)
-      const isEvaluationTest = editingTest.category !== null && editingTest.category !== undefined 
-        && editingTest.topic !== null && editingTest.topic !== undefined
-        && editingTest.code && !editingTest.code.startsWith('SECTION_PLACEHOLDER_');
-      
-      if (isEvaluationTest) {
-        // Intentar actualizar como evaluation test primero
-        try {
-          await adminService.updateEvaluationTest(editingTest.id, { ...updateData, category: (updateData.category as 'EVALUATION' | 'DISCOVERY') || undefined, topic: updateData.topic || undefined });
-        } catch (e) {
-          // Si falla, intentar como test normal
-          await adminService.updateTest(editingTest.id, updateData);
-        }
+      if (editingTest._source === 'evaluation') {
+        await adminService.updateEvaluationTest(editingTest.id, {
+          ...updateData,
+          category: (updateData.category as 'EVALUATION' | 'DISCOVERY') || undefined,
+          topic: updateData.topic || undefined
+        });
       } else {
-        // Actualizar como test normal
         await adminService.updateTest(editingTest.id, updateData);
       }
       
@@ -139,18 +133,9 @@ export default function AdminPanel({}: AdminPanelProps = {}) {
     }
     try {
       setLoading(true);
-      // Buscar el test para determinar su tipo
       const test = tests.find(t => t.id === id);
-      const isEvaluationTest = test && test.category !== null && test.category !== undefined 
-        && test.topic !== null && test.topic !== undefined
-        && test.code && !test.code.startsWith('SECTION_PLACEHOLDER_');
-      
-      if (isEvaluationTest) {
-        try {
-          await adminService.deleteEvaluationTest(id);
-        } catch (e) {
-          await adminService.deleteTest(id);
-        }
+      if (test?._source === 'evaluation') {
+        await adminService.deleteEvaluationTest(id);
       } else {
         await adminService.deleteTest(id);
       }
@@ -167,27 +152,24 @@ export default function AdminPanel({}: AdminPanelProps = {}) {
   };
 
   const toggleTestActive = async (test: Test) => {
+    const newActive = !test.active;
+    // Actualización optimista: cambia el badge al instante
+    setTests(prev => prev.map(t =>
+      t.id === test.id && t._source === test._source ? { ...t, active: newActive } : t
+    ));
     try {
-      setLoading(true);
-      // Determinar si es un evaluation test
-      const isEvaluationTest = test.category !== null && test.category !== undefined 
-        && test.topic !== null && test.topic !== undefined
-        && test.code && !test.code.startsWith('SECTION_PLACEHOLDER_');
-      
-      if (isEvaluationTest) {
-        try {
-          await adminService.updateEvaluationTest(test.id, { active: !test.active });
-        } catch (e) {
-          await adminService.updateTest(test.id, { active: !test.active });
-        }
+      if (test._source === 'evaluation') {
+        await adminService.updateEvaluationTest(test.id, { active: newActive });
       } else {
-        await adminService.updateTest(test.id, { active: !test.active });
+        await adminService.updateTest(test.id, { active: newActive });
       }
       await loadTests();
     } catch (err: any) {
+      // Revertir si falla
+      setTests(prev => prev.map(t =>
+        t.id === test.id && t._source === test._source ? { ...t, active: test.active } : t
+      ));
       alert('Error al actualizar test: ' + (err.response?.data?.message || err.message));
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -233,7 +215,7 @@ export default function AdminPanel({}: AdminPanelProps = {}) {
             disabled={loading}
             style={{ width: 'auto', padding: '12px 24px' }}
           >
-            {showCreateForm ? '✕ Cancelar' : '+ Nuevo Test'}
+            {showCreateForm ? 'Cancelar' : 'Nuevo Test'}
           </button>
         </div>
       </div>
@@ -292,7 +274,7 @@ export default function AdminPanel({}: AdminPanelProps = {}) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
             <h2>Editar Test</h2>
             <button className="btn-secondary" onClick={() => setEditingTest(null)} style={{ width: 'auto', padding: '8px 16px' }}>
-              ✕ Cerrar
+              Cerrar
             </button>
           </div>
           <form onSubmit={updateTest}>
@@ -378,21 +360,6 @@ export default function AdminPanel({}: AdminPanelProps = {}) {
               </small>
             </div>
               
-            <div className="form-group">
-              <label>
-                <input 
-                  type="checkbox" 
-                  name="active" 
-                  defaultChecked={editingTest.active}
-                  style={{ marginRight: '8px' }}
-                />
-                Test activo (disponible para psicólogos y usuarios)
-              </label>
-              <small style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'block', marginTop: '4px' }}>
-                Si está activo, estará disponible para psicólogos asignar a pacientes y aparecerá en las secciones correspondientes si tiene categoría asignada.
-              </small>
-            </div>
-              
             <div style={{ display: 'flex', gap: '12px' }}>
               <button type="submit" className="btn" disabled={loading}>
                 {loading ? 'Guardando...' : 'Guardar Cambios'}
@@ -429,9 +396,6 @@ export default function AdminPanel({}: AdminPanelProps = {}) {
                 minWidth: '220px'
               }}
             />
-            <button className="btn-secondary" onClick={loadTests} disabled={loading} style={{ width: 'auto', padding: '8px 16px' }}>
-              🔄 Actualizar
-            </button>
           </div>
         </div>
 
@@ -453,29 +417,17 @@ export default function AdminPanel({}: AdminPanelProps = {}) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                   <div style={{ flex: 1 }}>
                     {test.category && (
-                      <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                      <div style={{ marginBottom: '8px' }}>
                         <span style={{
                           padding: '4px 12px',
                           borderRadius: '6px',
                           fontSize: '12px',
                           fontWeight: 600,
-                          background: test.category === 'EVALUATION' ? '#fef3c7' : '#e0e7ff',
-                          color: test.category === 'EVALUATION' ? '#d97706' : '#6366f1'
+                          background: 'rgba(90, 146, 112, 0.15)',
+                          color: '#5a9270'
                         }}>
-                          {test.category === 'EVALUATION' ? '📊 Evaluación' : '🔍 Descubrimiento'}
+                          {test.category === 'EVALUATION' ? 'Evaluación' : 'Descubrimiento'}
                         </span>
-                        {test.topic && (
-                          <span style={{
-                            padding: '4px 12px',
-                            borderRadius: '6px',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            background: '#f3f4f6',
-                            color: '#6b7280'
-                          }}>
-                            {test.topic}
-                          </span>
-                        )}
                       </div>
                     )}
                     <h3>{test.title}</h3>
@@ -489,7 +441,7 @@ export default function AdminPanel({}: AdminPanelProps = {}) {
                     style={{ cursor: 'pointer' }}
                     title={test.active ? 'Click para desactivar' : 'Click para activar'}
                   >
-                    {test.active ? '✓ Activo' : '✕ Inactivo'}
+                    {test.active ? 'Activo' : 'Inactivo'}
                   </span>
                 </div>
                 {test.description && (
@@ -501,24 +453,23 @@ export default function AdminPanel({}: AdminPanelProps = {}) {
                   <button 
                     className="btn" 
                     onClick={() => setSelectedTestId(test.id)}
-                    style={{ flex: 1, minWidth: '120px', padding: '10px 16px', fontSize: '15px' }}
+                    style={{ flex: 1, minWidth: '100px', padding: '10px 16px', fontSize: '14px', borderRadius: '9999px' }}
                   >
-                    📝 Gestionar
+                    Gestionar
                   </button>
                   <button 
                     className="btn-secondary" 
                     onClick={() => setEditingTest(test)}
-                    style={{ padding: '10px 16px', fontSize: '15px' }}
+                    style={{ padding: '10px 16px', fontSize: '14px' }}
                   >
-                    ✏️ Editar
+                    Editar
                   </button>
                   <button 
-                    className="btn-danger" 
+                    className="btn-muted" 
                     onClick={() => deleteTest(test.id)}
                     disabled={loading}
-                    style={{ padding: '10px 16px', fontSize: '15px' }}
                   >
-                    🗑️
+                    Eliminar
                   </button>
                 </div>
               </div>

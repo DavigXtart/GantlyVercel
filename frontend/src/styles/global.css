@@ -71,9 +71,9 @@ p {
   font-size: 17px;
   font-weight: 400;
   color: white;
-  background: var(--accent);
+  background: #5a9270;
   border: none;
-  border-radius: 12px;
+  border-radius: 9999px;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -89,7 +89,7 @@ p {
 }
 
 .btn:hover {
-  background: var(--accent-hover);
+  background: #4a8062;
 }
 
 .btn:disabled {
@@ -99,13 +99,35 @@ p {
 
 .btn-secondary {
   background: transparent;
-  color: var(--accent);
-  border: 1px solid var(--accent);
+  color: #5a9270;
+  border: 1px solid #5a9270;
+  border-radius: 9999px;
 }
 
 .btn-secondary:hover {
-  background: var(--accent);
+  background: #5a9270;
   color: white;
+}
+
+.btn-muted {
+  background: transparent;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  border-radius: 9999px;
+  padding: 10px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-muted:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-muted:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Formularios */
@@ -149,11 +171,13 @@ nav {
 }
 
 nav .container {
-  padding: 0 20px;
+  padding: 0 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  max-width: 1200px;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
 }
 
 nav h3 {
@@ -318,11 +342,11 @@ nav button {
 
 .test-card-admin {
   padding: 16px 18px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 10px;
+  border: 1px solid rgba(90, 146, 112, 0.2);
+  border-radius: 12px;
   transition: all 0.2s;
-  background: linear-gradient(135deg, #fafbff 0%, #f5f7fb 100%);
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+  background: linear-gradient(135deg, #f8fbf9 0%, #eef5f1 100%);
+  box-shadow: 0 4px 12px rgba(90, 146, 112, 0.08);
 }
 
 .test-card-admin:hover {
@@ -347,13 +371,13 @@ nav button {
 }
 
 .status-active {
-  background: rgba(52, 199, 89, 0.1);
-  color: #34c759;
+  background: rgba(90, 146, 112, 0.2);
+  color: #5a9270;
 }
 
 .status-inactive {
-  background: rgba(215, 0, 21, 0.1);
-  color: #d70015;
+  background: #f3f4f6;
+  color: #6b7280;
 }
 
 /* Estilos para preguntas */
@@ -499,16 +523,16 @@ nav button {
 
 .user-card-admin {
   padding: 16px 18px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 10px;
+  border: 1px solid rgba(90, 146, 112, 0.25);
+  border-radius: 12px;
   transition: all 0.2s;
-  background: linear-gradient(135deg, #fdfefe 0%, #f5f7fb 100%);
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+  background: linear-gradient(135deg, #f8fbf9 0%, #eef5f1 100%);
+  box-shadow: 0 4px 12px rgba(90, 146, 112, 0.1);
 }
 
 .user-card-admin:hover {
-  border-color: rgba(59, 130, 246, 0.35);
-  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.18);
+  border-color: rgba(90, 146, 112, 0.5);
+  box-shadow: 0 8px 20px rgba(90, 146, 112, 0.2);
   transform: translateY(-2px);
 }
 

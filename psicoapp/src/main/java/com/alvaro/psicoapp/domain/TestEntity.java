@@ -1,5 +1,6 @@
 package com.alvaro.psicoapp.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.*;
@@ -33,6 +34,7 @@ public class TestEntity {
 	private Instant createdAt = Instant.now();
 
 	@OneToMany(mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true)
+	@JsonIgnore
 	private List<QuestionEntity> questions = new ArrayList<>();
 
 	public Long getId() { return id; }

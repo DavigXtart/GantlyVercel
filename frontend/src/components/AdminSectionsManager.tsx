@@ -214,7 +214,7 @@ export default function AdminSectionsManager() {
     
     // Crear un selector visual
     const options = ['Sin asignar', ...topics].map(t => 
-      t === currentTopic ? `✓ ${t}` : t
+      t === currentTopic ? `${t} (actual)` : t
     ).join('\n');
     
     const newTopic = prompt(
@@ -340,7 +340,7 @@ export default function AdminSectionsManager() {
                 transition: 'all 0.3s ease'
               }}
             >
-              📊 Evaluaciones
+              Evaluaciones
             </button>
             <button
               onClick={() => setSelectedCategory('DISCOVERY')}
@@ -360,7 +360,7 @@ export default function AdminSectionsManager() {
                 transition: 'all 0.3s ease'
             }}
             >
-              🔍 Descubrimiento
+              Descubrimiento
             </button>
           </div>
         </div>
@@ -493,7 +493,7 @@ export default function AdminSectionsManager() {
                         fontWeight: 600
                       }}
                     >
-                      🗑️ Eliminar sección
+                      Eliminar sección
                     </button>
                   </div>
                   <div
@@ -589,7 +589,7 @@ export default function AdminSectionsManager() {
                               fontSize: '11px',
                               fontWeight: 600
                             }}>
-                              {test.active ? '✓ Activo' : '✕ Inactivo'}
+                              {test.active ? 'Activo' : 'Inactivo'}
                             </span>
                             <span style={{
                               fontSize: '11px',
@@ -711,7 +711,7 @@ export default function AdminSectionsManager() {
                           fontSize: '11px',
                           fontWeight: 600
                         }}>
-                          {test.active ? '✓ Activo' : '✕ Inactivo'}
+                          {test.active ? 'Activo' : 'Inactivo'}
                         </span>
                         <span style={{
                           fontSize: '11px',

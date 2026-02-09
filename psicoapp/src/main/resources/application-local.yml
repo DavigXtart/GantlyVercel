@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/gantly?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-    username: root
-    password: 1234
+    url: ${DB_URL:jdbc:mysql://localhost:3306/gantly?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -14,8 +14,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: userapprovalgantly@gmail.com
-    password: xznhetmckdadxeib # Contraseña de aplicación de Gmail
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:} # Contraseña de aplicación de Gmail
     properties:
       mail:
         smtp:
@@ -65,4 +65,4 @@ app:
   base:
     url: http://localhost:5173
 
-# OAuth2: En AWS usar variables de entorno GOOGLE_OAUTH_CLIENT_ID y GOOGLE_OAUTH_CLIENT_SECRET
+# OAuth2: En producción usar variables de entorno. Este archivo está en .gitignore.

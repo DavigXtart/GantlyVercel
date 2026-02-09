@@ -125,6 +125,12 @@ public class CalendarController {
         return ResponseEntity.ok(calendarService.getPsychologistRating(psychologistId));
     }
 
+    @GetMapping("/psychologist/{psychologistId}/ratings")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<CalendarDtos.PsychologistRatingDetailDto>> getPsychologistRatings(@PathVariable Long psychologistId) {
+        return ResponseEntity.ok(calendarService.getPsychologistRatings(psychologistId));
+    }
+
     @GetMapping("/psychologist/past-appointments")
     @Transactional(readOnly = true)
     public ResponseEntity<List<CalendarDtos.PsychologistPastAppointmentDto>> getPsychologistPastAppointments(Principal principal) {

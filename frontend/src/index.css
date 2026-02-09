@@ -160,15 +160,15 @@ p {
   font-size: 17px;
   font-weight: 400;
   color: white;
-  background: var(--accent);
+  background: #5a9270;
   border: none;
-  border-radius: 12px;
+  border-radius: 9999px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn:hover {
-  background: var(--accent-hover);
+  background: #4a8062;
 }
 
 .btn:disabled {
@@ -178,12 +178,13 @@ p {
 
 .btn-secondary {
   background: transparent;
-  color: var(--accent);
-  border: 1px solid var(--accent);
+  color: #5a9270;
+  border: 1px solid #5a9270;
+  border-radius: 9999px;
 }
 
 .btn-secondary:hover {
-  background: var(--accent);
+  background: #5a9270;
   color: white;
 }
 
@@ -226,11 +227,13 @@ nav {
 }
 
 nav .container {
-  padding: 0 20px;
+  padding: 0 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  max-width: 1200px;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
 }
 
 nav h3 {

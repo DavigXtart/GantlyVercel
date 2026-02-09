@@ -69,6 +69,9 @@ export default function PsychDashboard() {
   const [pastAppointmentsPsych, setPastAppointmentsPsych] = useState<any[]>([]);
   const [loadingPastAppointmentsPsych, setLoadingPastAppointmentsPsych] = useState(false);
   const [myRating, setMyRating] = useState<{ averageRating: number | null; totalRatings: number } | null>(null);
+  const [showRatingsModal, setShowRatingsModal] = useState(false);
+  const [ratingsList, setRatingsList] = useState<Array<{ rating: number; comment: string; patientName: string; createdAt: string }>>([]);
+  const [loadingRatings, setLoadingRatings] = useState(false);
   
   // Estados para perfil profesional del psicólogo
   const [psychologistProfile, setPsychologistProfile] = useState<any>(null);
@@ -108,6 +111,13 @@ export default function PsychDashboard() {
     setVideoCallRoom(null);
     setVideoCallOtherUser(null);
   }, []);
+
+  // Al entrar al chat, hacer scroll al inicio para que no quede desplazado hacia abajo
+  useEffect(() => {
+    if (tab === 'chat') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [tab]);
 
   const loadData = async () => {
     try {
@@ -605,6 +615,74 @@ export default function PsychDashboard() {
 
   return (
     <div className="container" style={{ maxWidth: '1200px' }}>
+      {showRatingsModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '24px'
+          }}
+          onClick={() => setShowRatingsModal(false)}
+        >
+          <div
+            style={{
+              background: 'white',
+              borderRadius: '12px',
+              maxWidth: '520px',
+              width: '100%',
+              maxHeight: '80vh',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.15)'
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0 }}>Reseñas de pacientes</h3>
+              <button
+                className="btn-secondary"
+                style={{ padding: '8px 16px', fontSize: '14px' }}
+                onClick={() => setShowRatingsModal(false)}
+              >
+                Cerrar
+              </button>
+            </div>
+            <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
+              {loadingRatings ? (
+                <p style={{ color: 'var(--text-secondary)' }}>Cargando reseñas...</p>
+              ) : ratingsList.length === 0 ? (
+                <p style={{ color: 'var(--text-secondary)' }}>No hay reseñas</p>
+              ) : (
+                ratingsList.map((r, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      padding: '16px',
+                      marginBottom: '12px',
+                      background: '#f9fafb',
+                      borderRadius: '8px',
+                      border: '1px solid #e5e7eb'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <strong>{r.patientName}</strong>
+                      <span style={{ color: '#fbbf24', fontSize: '16px' }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
+                    </div>
+                    {r.comment && <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary)' }}>{r.comment}</p>}
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px' }}>{formatDate(r.createdAt)}</div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       <style>{`
         @keyframes pulseAlert {
           0%, 100% {
@@ -624,7 +702,7 @@ export default function PsychDashboard() {
         overflowX: 'auto'
       }}>
         {[
-          { id: 'perfil', label: '👤 Mi Perfil', icon: '👤' },
+          { id: 'perfil', label: 'Mi Perfil', icon: '👤' },
           { id: 'pacientes', label: '👥 Mis Pacientes', icon: '👥' },
           { id: 'tareas', label: '📋 Tareas', icon: '📋' },
           { id: 'tests-asignados', label: '📝 Tests Asignados', icon: '📝' },
@@ -682,7 +760,7 @@ export default function PsychDashboard() {
             color: 'white',
             position: 'relative'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '24px', flexWrap: 'wrap' }}>
               <div style={{ position: 'relative' }}>
                 {me?.avatarUrl ? (
                   <img
@@ -745,7 +823,30 @@ export default function PsychDashboard() {
                   {me?.name || 'Psicólogo'}
                 </h2>
                 {myRating && myRating.averageRating !== null && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <div
+                    onClick={async () => {
+                      if (myRating.totalRatings === 0 || !me?.id) return;
+                      setShowRatingsModal(true);
+                      setLoadingRatings(true);
+                      try {
+                        const list = await calendarService.getPsychologistRatings(me.id);
+                        setRatingsList(list);
+                      } catch (e) {
+                        console.error(e);
+                        setRatingsList([]);
+                      } finally {
+                        setLoadingRatings(false);
+                      }
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      marginBottom: '12px',
+                      cursor: myRating.totalRatings > 0 ? 'pointer' : 'default'
+                    }}
+                    title={myRating.totalRatings > 0 ? 'Click para ver todas las reseñas' : undefined}
+                  >
                     <span style={{ fontSize: '20px', color: '#fbbf24' }}>
                       {'★'.repeat(Math.round(myRating.averageRating))}
                       {'☆'.repeat(5 - Math.round(myRating.averageRating))}
@@ -790,6 +891,88 @@ export default function PsychDashboard() {
                 >
                   ✏️ Editar Perfil
                 </button>
+              </div>
+              {/* Toggle Aceptando nuevos pacientes - compacto en la esquina */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '8px 14px',
+                background: 'rgba(255, 255, 255, 0.2)',
+                borderRadius: '10px',
+                border: '2px solid rgba(255, 255, 255, 0.5)',
+                flexShrink: 0
+              }}>
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 600, opacity: 0.95 }}>
+                    {me?.isFull ? 'Lleno' : 'Aceptando nuevos pacientes'}
+                  </div>
+                  <div style={{ fontSize: '10px', opacity: 0.85 }}>
+                    {me?.isFull ? 'No en recomendaciones' : 'En recomendaciones'}
+                  </div>
+                </div>
+                <label style={{
+                  position: 'relative',
+                  display: 'inline-block',
+                  width: '36px',
+                  height: '20px',
+                  cursor: 'pointer',
+                  flexShrink: 0
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={me?.isFull || false}
+                    onChange={async (e) => {
+                      const newValue = e.target.checked;
+                      const previousValue = me?.isFull || false;
+                      setMe({ ...me, isFull: newValue });
+                      try {
+                        const response: any = await psychService.updateIsFull(newValue);
+                        if (response && response.isFull !== undefined) {
+                          setMe({ ...me, isFull: response.isFull });
+                          toast.success(response.isFull ? 'Marcado como lleno' : 'Aceptando nuevos pacientes');
+                        } else {
+                          const psychProfile: any = await psychService.getProfile();
+                          if (psychProfile && psychProfile.isFull !== undefined) {
+                            setMe({ ...me, isFull: psychProfile.isFull });
+                            toast.success(psychProfile.isFull ? 'Marcado como lleno' : 'Aceptando nuevos pacientes');
+                          } else {
+                            toast.success(newValue ? 'Marcado como lleno' : 'Aceptando nuevos pacientes');
+                          }
+                        }
+                      } catch (error: any) {
+                        setMe({ ...me, isFull: previousValue });
+                        toast.error('Error al actualizar: ' + (error.response?.data?.error || error.message));
+                      }
+                    }}
+                    style={{ opacity: 0, width: 0, height: 0, position: 'absolute' }}
+                  />
+                  <span style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: me?.isFull ? '#ef4444' : '#22c55e',
+                    borderRadius: '20px',
+                    transition: 'background-color 0.3s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '2px'
+                  }}>
+                    <span style={{
+                      content: '""',
+                      position: 'absolute',
+                      height: '16px',
+                      width: '16px',
+                      left: me?.isFull ? '18px' : '2px',
+                      backgroundColor: 'white',
+                      borderRadius: '50%',
+                      transition: 'left 0.3s',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                    }} />
+                  </span>
+                </label>
               </div>
             </div>
           </div>
@@ -840,101 +1023,8 @@ export default function PsychDashboard() {
             </div>
           )}
 
-          {/* Toggle "Estoy lleno" */}
-          <div style={{ padding: '0 32px 24px 32px', display: 'flex', justifyContent: 'center' }}>
-            <div style={{
-              padding: '16px 20px',
-              background: me?.isFull ? 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)' : 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
-              borderRadius: '12px',
-              border: `2px solid ${me?.isFull ? '#ef4444' : '#22c55e'}`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '16px',
-              position: 'relative',
-              maxWidth: '600px',
-              width: '100%'
-            }}>
-              <div style={{ textAlign: 'left', flex: 1 }}>
-                <div style={{ fontSize: '14px', fontWeight: 600, color: me?.isFull ? '#dc2626' : '#15803d', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  {me?.isFull ? '🔴 Estoy lleno - No acepto nuevos pacientes' : '🟢 Aceptando nuevos pacientes'}
-                </div>
-                <div style={{ fontSize: '12px', color: '#6b7280' }}>
-                  {me?.isFull ? 'No aparecerás en las recomendaciones para nuevos pacientes' : 'Apareces en las recomendaciones para nuevos pacientes'}
-                </div>
-              </div>
-              <label style={{
-                position: 'relative',
-                display: 'inline-block',
-                width: '52px',
-                height: '28px',
-                cursor: 'pointer',
-                flexShrink: 0
-              }}>
-                <input
-                  type="checkbox"
-                  checked={me?.isFull || false}
-                  onChange={async (e) => {
-                    const newValue = e.target.checked;
-                    const previousValue = me?.isFull || false;
-                    // Actualizar el estado inmediatamente para feedback visual
-                    setMe({ ...me, isFull: newValue });
-                    try {
-                      const response: any = await psychService.updateIsFull(newValue);
-                      // El servidor devuelve el nuevo estado en la respuesta según el backend
-                      if (response && response.isFull !== undefined) {
-                        setMe({ ...me, isFull: response.isFull });
-                        toast.success(response.isFull ? 'Ahora estás marcado como lleno' : 'Ahora aceptas nuevos pacientes');
-                      } else {
-                        // Si no viene en la respuesta, recargar el perfil del psicólogo
-                        const psychProfile: any = await psychService.getProfile();
-                        if (psychProfile && psychProfile.isFull !== undefined) {
-                          setMe({ ...me, isFull: psychProfile.isFull });
-                          toast.success(psychProfile.isFull ? 'Ahora estás marcado como lleno' : 'Ahora aceptas nuevos pacientes');
-                        } else {
-                          // Si todo falla, mantener el nuevo valor que ya establecimos
-                          toast.success(newValue ? 'Ahora estás marcado como lleno' : 'Ahora aceptas nuevos pacientes');
-                        }
-                      }
-                    } catch (error: any) {
-                      // Revertir el estado en caso de error
-                      setMe({ ...me, isFull: previousValue });
-                      toast.error('Error al actualizar el estado: ' + (error.response?.data?.error || error.message));
-                    }
-                  }}
-                  style={{ opacity: 0, width: 0, height: 0, position: 'absolute' }}
-                />
-                <span style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  backgroundColor: me?.isFull ? '#ef4444' : '#22c55e',
-                  borderRadius: '28px',
-                  transition: 'background-color 0.3s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '2px'
-                }}>
-                  <span style={{
-                    content: '""',
-                    position: 'absolute',
-                    height: '24px',
-                    width: '24px',
-                    left: me?.isFull ? '24px' : '2px',
-                    backgroundColor: 'white',
-                    borderRadius: '50%',
-                    transition: 'left 0.3s',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                  }} />
-                </span>
-              </label>
-            </div>
-          </div>
-
           {/* Estadísticas */}
-          <div style={{ padding: '0 32px 32px 32px', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ padding: '28px 32px 32px 32px', display: 'flex', justifyContent: 'center' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px', maxWidth: '1200px', width: '100%' }}>
             <div style={{
               padding: '20px',
@@ -2007,7 +2097,7 @@ export default function PsychDashboard() {
               onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
               onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
             >
-              🔄 Refrescar
+              Refrescar
             </button>
           </div>
 
@@ -2093,7 +2183,10 @@ export default function PsychDashboard() {
                           border: '2px solid #e5e7eb',
                           borderRadius: '12px',
                           transition: 'all 0.2s',
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          minHeight: '260px'
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.borderColor = '#5a9270';
@@ -2104,10 +2197,11 @@ export default function PsychDashboard() {
                           e.currentTarget.style.boxShadow = 'none';
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px', flex: 1, minHeight: 0 }}>
                           <div style={{
                             width: '60px',
                             height: '60px',
+                            flexShrink: 0,
                             borderRadius: '50%',
                             overflow: 'hidden',
                             background: '#e5e7eb',
@@ -2124,11 +2218,11 @@ export default function PsychDashboard() {
                               '👤'
                             )}
                           </div>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '4px' }}>
+                          <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                            <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.name}>
                               {p.name}
                             </div>
-                            <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
+                            <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.email}>
                               {p.email}
                             </div>
                             {p.lastVisit && (
@@ -2147,7 +2241,7 @@ export default function PsychDashboard() {
                             )}
                           </div>
                         </div>
-                        <div style={{ display: 'flex', gap: '8px', flexDirection: 'column' }}>
+                        <div style={{ display: 'flex', gap: '8px', flexDirection: 'column', flexShrink: 0 }}>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -2225,7 +2319,10 @@ export default function PsychDashboard() {
                           borderRadius: '12px',
                           opacity: 0.7,
                           transition: 'all 0.2s',
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          minHeight: '260px',
+                          display: 'flex',
+                          flexDirection: 'column'
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.borderColor = '#5a9270';
@@ -2238,10 +2335,11 @@ export default function PsychDashboard() {
                           e.currentTarget.style.opacity = '0.7';
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px', flex: 1, minHeight: 0 }}>
                           <div style={{
                             width: '60px',
                             height: '60px',
+                            flexShrink: 0,
                             borderRadius: '50%',
                             overflow: 'hidden',
                             background: '#e5e7eb',
@@ -2258,11 +2356,11 @@ export default function PsychDashboard() {
                               '👤'
                             )}
                           </div>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '4px' }}>
+                          <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                            <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.name}>
                               {p.name}
                             </div>
-                            <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
+                            <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.email}>
                               {p.email}
                             </div>
                             {p.lastVisit && (
@@ -2281,7 +2379,7 @@ export default function PsychDashboard() {
                             )}
                           </div>
                         </div>
-                        <div style={{ display: 'flex', gap: '8px', flexDirection: 'column' }}>
+                        <div style={{ display: 'flex', gap: '8px', flexDirection: 'column', flexShrink: 0 }}>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -4401,7 +4499,30 @@ export default function PsychDashboard() {
               Mis Citas Pasadas
             </h3>
             {myRating && myRating.averageRating !== null && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '16px' }}>
+              <div
+                onClick={async () => {
+                  if (myRating.totalRatings === 0 || !me?.id) return;
+                  setShowRatingsModal(true);
+                  setLoadingRatings(true);
+                  try {
+                    const list = await calendarService.getPsychologistRatings(me.id);
+                    setRatingsList(list);
+                  } catch (e) {
+                    console.error(e);
+                    setRatingsList([]);
+                  } finally {
+                    setLoadingRatings(false);
+                  }
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  marginTop: '16px',
+                  cursor: myRating.totalRatings > 0 ? 'pointer' : 'default'
+                }}
+                title={myRating.totalRatings > 0 ? 'Click para ver todas las reseñas' : undefined}
+              >
                 <span style={{ fontSize: '24px', color: '#fbbf24' }}>
                   {'★'.repeat(Math.round(myRating.averageRating))}
                   {'☆'.repeat(5 - Math.round(myRating.averageRating))}
@@ -4501,7 +4622,7 @@ export default function PsychDashboard() {
       {/* Chat */}
       {tab === 'chat' && (
         <div>
-          <div style={{ display: 'flex', gap: '24px' }}>
+          <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
             <div style={{
               width: '300px',
               background: '#ffffff',

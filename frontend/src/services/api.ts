@@ -245,6 +245,22 @@ export const adminService = {
   unassignPsychologist: async (userId: number) => {
     await api.delete(`/admin/users/assign/${userId}`);
   },
+  getPsychologistSummary: async (psychologistId: number) => {
+    const { data } = await api.get(`/admin/users/psychologists/${psychologistId}/summary`);
+    return data as {
+      id: number;
+      name: string;
+      email: string;
+      createdAt: string;
+      averageRating: number | null;
+      totalRatings: number;
+      activePatients: Array<{ id: number; name: string; email: string; status: string; assignedAt: string }>;
+      dischargedPatients: Array<{ id: number; name: string; email: string; status: string; assignedAt: string }>;
+      scheduledAppointments: Array<{ id: number; startTime: string; endTime: string; status: string; price: number; patientName: string; patientEmail: string }>;
+      pastAppointments: Array<{ id: number; startTime: string; endTime: string; status: string; price: number; patientName: string; patientEmail: string }>;
+      totalBilled: number;
+    };
+  },
   // Evaluation Tests (Evaluaciones y Descubrimiento)
   listEvaluationTests: async () => {
     const { data } = await api.get('/admin/evaluation-tests');
@@ -464,6 +480,10 @@ export const calendarService = {
   getPsychologistRating: async (psychologistId: number) => {
     const { data } = await api.get(`/calendar/psychologist/${psychologistId}/rating`);
     return data;
+  },
+  getPsychologistRatings: async (psychologistId: number) => {
+    const { data } = await api.get(`/calendar/psychologist/${psychologistId}/ratings`);
+    return data as Array<{ rating: number; comment: string; patientName: string; createdAt: string }>;
   },
   getPsychologistPastAppointments: async () => {
     const { data } = await api.get('/calendar/psychologist/past-appointments');
