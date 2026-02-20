@@ -1146,6 +1146,41 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
           </div>
         )}
 
+        {/* Test de Matching del Paciente */}
+        {tab === 'mi-psicologo' && showMatchingTest && !showMatchingResults && (
+          <div className="mt-10">
+            <PatientMatchingTest
+              onComplete={() => {
+                setShowMatchingTest(false);
+                setShowMatchingResults(true);
+              }}
+              onBack={() => setShowMatchingTest(false)}
+            />
+          </div>
+        )}
+
+        {/* Resultados del Matching - Psicólogos compatibles */}
+        {tab === 'mi-psicologo' && showMatchingResults && (
+          <div className="mt-10">
+            <MatchingPsychologists
+              onSelect={async () => {
+                setShowMatchingResults(false);
+                // Recargar datos del psicólogo asignado
+                try {
+                  const psychData = await profileService.myPsychologist();
+                  setPsych(psychData);
+                } catch (e) {
+                  // Recargar página si falla
+                  window.location.reload();
+                }
+              }}
+              onBack={() => {
+                setShowMatchingResults(false);
+              }}
+            />
+          </div>
+        )}
+
         {/* Perfil completo del psicólogo - plantilla tipo LinkedIn antigua */}
         {tab === 'perfil-psicologo' && psychologistProfile && (
           <div

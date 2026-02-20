@@ -420,15 +420,13 @@ export default function PsychDashboard() {
   }, [me, tab]);
   
   // Verificar si debe mostrar el test de matching al iniciar sesión (solo la primera vez que se carga)
-  // No forzar el cambio de pestaña si el usuario ya navegó a otra parte
   useEffect(() => {
-    if (me && me.role === 'PSYCHOLOGIST' && me.emailVerified && 
-        matchingTestCompleted === false && !checkingMatchingTest && 
-        !hasCheckedInitialStatus && tab === 'perfil') {
-      setHasCheckedInitialStatus(true);
+    if (!me || checkingMatchingTest || matchingTestCompleted === null) return; // Esperar a que todo cargue
+    if (hasCheckedInitialStatus) return; // Ya se verificó
+
+    setHasCheckedInitialStatus(true);
+    if (me.role === 'PSYCHOLOGIST' && matchingTestCompleted === false && tab === 'perfil') {
       setTab('matching-test');
-    } else if (matchingTestCompleted !== null) {
-      setHasCheckedInitialStatus(true);
     }
   }, [me, matchingTestCompleted, checkingMatchingTest, hasCheckedInitialStatus, tab]);
 
