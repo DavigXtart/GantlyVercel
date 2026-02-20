@@ -15,6 +15,8 @@ import UsersManager from './components/UsersManager';
 import About from './components/About';
 import SoyProfesional from './components/SoyProfesional';
 import RegisterPsychologist from './components/RegisterPsychologist';
+import RegisterCompany from './components/RegisterCompany';
+import CompanyDashboard from './components/CompanyDashboard';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
 import { ToastContainer, toast } from './components/ui/Toast';
@@ -27,13 +29,16 @@ function App() {
   const [showAbout, setShowAbout] = useState(false);
   const [showSoyProfesional, setShowSoyProfesional] = useState(false);
   const [showRegisterPsychologist, setShowRegisterPsychologist] = useState(false);
+  const [showRegisterCompany, setShowRegisterCompany] = useState(false);
+  const [showCompanyLogin, setShowCompanyLogin] = useState(false);
   const [showInitialTest, setShowInitialTest] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetPasswordToken, setResetPasswordToken] = useState<string | null>(null);
   const [oauthError, setOauthError] = useState<string | null>(null);
   const [initialTestSessionId, setInitialTestSessionId] = useState<string | null>(null);
   const [selectedTestId, setSelectedTestId] = useState<number | null>(null);
-  const [role, setRole] = useState<'USER'|'ADMIN'|'PSYCHOLOGIST'|null>(null);
+  const [role, setRole] = useState<'USER'|'ADMIN'|'PSYCHOLOGIST'|'EMPRESA'|null>(null);
+  const [psychologistReferralFromUrl, setPsychologistReferralFromUrl] = useState<string | null>(null);
   const [adminTab, setAdminTab] = useState<'tests'|'users'|'sections'|'admin-tests'|'admin-users'|'patients'|'psychologists'|'statistics'>('users');
 
   const checkRole = async () => {
@@ -103,24 +108,50 @@ function App() {
       return;
     }
 
+    // Referral de psicólogo: ?referral=juan-garcia o pathname /juan-garcia
+    const referralFromQuery = urlParams.get('referral');
+    const pathname = window.location.pathname || '/';
+    const pathSlug = pathname.replace(/^\//, '').toLowerCase().replace(/[^a-z0-9-]/g, '');
+    const KNOWN_PATHS = ['', 'about', 'login', 'register', 'initial-test', 'reset-password', 'soy-profesional'];
+    const isReferralSlug = pathSlug && pathSlug.length > 2 && !KNOWN_PATHS.includes(pathSlug);
+
+    if (referralFromQuery && referralFromQuery.trim()) {
+      setPsychologistReferralFromUrl(referralFromQuery.trim().toLowerCase().replace(/[^a-z0-9-]/g, ''));
+      setShowRegister(true);
+      setShowLanding(false);
+      setShowLogin(false);
+      setShowInitialTest(false);
+    } else if (isReferralSlug) {
+      setPsychologistReferralFromUrl(pathSlug);
+      setShowRegister(true);
+      setShowLanding(false);
+      setShowLogin(false);
+      setShowInitialTest(false);
+      window.history.replaceState({ page: '/register' }, '', '/register?referral=' + pathSlug);
+    }
+
     const token = localStorage.getItem('token');
     if (token) {
       setIsAuthenticated(true);
       setShowLanding(false);
+      setShowCompanyLogin(false);
       // Intentar verificar el rol, pero no bloquear si el backend no está disponible
       checkRole().catch((err) => {
         // Si el backend no está disponible, no es crítico - el usuario puede seguir usando la app
         console.warn('Backend no disponible, pero continuando...', err);
       });
     } else {
-      // Si no hay token, asegurarse de que esté en la landing
-      setShowLanding(true);
-      setShowAbout(false);
-      setShowSoyProfesional(false);
-      setShowLogin(false);
-      setShowRegister(false);
-      setShowInitialTest(false);
-      setShowForgotPassword(false);
+      // Si no hay token y no viene por referral, mostrar landing
+      if (!referralFromQuery && !isReferralSlug) {
+        setShowLanding(true);
+        setShowAbout(false);
+        setShowSoyProfesional(false);
+        setShowLogin(false);
+        setShowCompanyLogin(false);
+        setShowRegister(false);
+        setShowInitialTest(false);
+        setShowForgotPassword(false);
+      }
       setRole(null);
     }
   }, []);
@@ -139,6 +170,8 @@ function App() {
       currentPath = '/about';
     } else if (showSoyProfesional) {
       currentPath = '/soy-profesional';
+    } else if (showCompanyLogin) {
+      currentPath = '/login-empresa';
     } else if (showLogin) {
       currentPath = '/login';
     } else if (showRegister) {
@@ -183,7 +216,7 @@ function App() {
     }, 50);
 
     return () => clearTimeout(timer);
-  }, [showLanding, showAbout, showSoyProfesional, showLogin, showRegister, showInitialTest, isAuthenticated]);
+  }, [showLanding, showAbout, showSoyProfesional, showLogin, showCompanyLogin, showRegister, showInitialTest, isAuthenticated]);
 
   const goToLanding = useCallback(() => {
     isUserNavigation.current = true;
@@ -191,6 +224,7 @@ function App() {
     setShowAbout(false);
     setShowSoyProfesional(false);
     setShowLogin(false);
+    setShowCompanyLogin(false);
     setShowRegister(false);
     setShowInitialTest(false);
     setSelectedTestId(null);
@@ -203,6 +237,7 @@ function App() {
     setShowAbout(true);
     setShowSoyProfesional(false);
     setShowLogin(false);
+    setShowCompanyLogin(false);
     setShowRegister(false);
     setShowInitialTest(false);
     setSelectedTestId(null);
@@ -215,6 +250,7 @@ function App() {
     setShowAbout(false);
     setShowSoyProfesional(true);
     setShowLogin(false);
+    setShowCompanyLogin(false);
     setShowRegister(false);
     setShowInitialTest(false);
     setSelectedTestId(null);
@@ -227,6 +263,7 @@ function App() {
     setShowAbout(false);
     setShowSoyProfesional(false);
     setShowLogin(true);
+    setShowCompanyLogin(false);
     setShowRegister(false);
     setShowInitialTest(false);
     setSelectedTestId(null);
@@ -239,6 +276,7 @@ function App() {
     setShowAbout(false);
     setShowSoyProfesional(false);
     setShowLogin(false);
+    setShowCompanyLogin(false);
     setShowRegister(true);
     setShowInitialTest(false);
     setSelectedTestId(null);
@@ -317,6 +355,7 @@ function App() {
           setShowAbout(false);
           setShowSoyProfesional(false);
           setShowLogin(false);
+          setShowCompanyLogin(false);
           setShowRegister(false);
           setShowInitialTest(false);
           setSelectedTestId(null);
@@ -325,6 +364,7 @@ function App() {
           setShowAbout(true);
           setShowSoyProfesional(false);
           setShowLogin(false);
+          setShowCompanyLogin(false);
           setShowRegister(false);
           setShowInitialTest(false);
         } else if (statePath === '/soy-profesional') {
@@ -332,6 +372,7 @@ function App() {
           setShowAbout(false);
           setShowSoyProfesional(true);
           setShowLogin(false);
+          setShowCompanyLogin(false);
           setShowRegister(false);
           setShowInitialTest(false);
         } else if (statePath === '/login') {
@@ -339,6 +380,15 @@ function App() {
           setShowAbout(false);
           setShowSoyProfesional(false);
           setShowLogin(true);
+          setShowCompanyLogin(false);
+          setShowRegister(false);
+          setShowInitialTest(false);
+        } else if (statePath === '/login-empresa') {
+          setShowLanding(false);
+          setShowAbout(false);
+          setShowSoyProfesional(false);
+          setShowLogin(false);
+          setShowCompanyLogin(true);
           setShowRegister(false);
           setShowInitialTest(false);
         } else if (statePath === '/register') {
@@ -346,6 +396,7 @@ function App() {
           setShowAbout(false);
           setShowSoyProfesional(false);
           setShowLogin(false);
+          setShowCompanyLogin(false);
           setShowRegister(true);
           setShowInitialTest(false);
         } else if (statePath === '/initial-test') {
@@ -353,6 +404,7 @@ function App() {
           setShowAbout(false);
           setShowSoyProfesional(false);
           setShowLogin(false);
+          setShowCompanyLogin(false);
           setShowRegister(false);
           setShowInitialTest(true);
         } else if (statePath === '/dashboard') {
@@ -361,6 +413,7 @@ function App() {
           setShowAbout(false);
           setShowSoyProfesional(false);
           setShowLogin(false);
+          setShowCompanyLogin(false);
           setShowRegister(false);
           setShowInitialTest(false);
         } else {
@@ -369,6 +422,7 @@ function App() {
           setShowAbout(false);
           setShowSoyProfesional(false);
           setShowLogin(false);
+          setShowCompanyLogin(false);
           setShowRegister(false);
           setShowInitialTest(false);
         }
@@ -405,6 +459,7 @@ function App() {
     setShowAbout(false);
     setShowSoyProfesional(false);
     setShowLogin(false);
+    setShowCompanyLogin(false);
     setShowRegister(false);
     setShowInitialTest(false);
     setInitialTestSessionId(null);
@@ -421,6 +476,7 @@ function App() {
     setShowAbout(false);
     setShowSoyProfesional(false);
     setShowLogin(false);
+    setShowCompanyLogin(false);
     setShowRegister(false);
     setShowInitialTest(false);
     setInitialTestSessionId(null);
@@ -434,6 +490,7 @@ function App() {
     setShowAbout(false);
     setShowSoyProfesional(false);
     setShowLogin(false);
+    setShowCompanyLogin(false);
     setShowRegister(false);
     setInitialTestSessionId(null);
     checkRole();
@@ -444,6 +501,8 @@ function App() {
     setShowLanding(false);
     setShowAbout(false);
     setShowSoyProfesional(false);
+    setShowLogin(false);
+    setShowCompanyLogin(false);
     setShowInitialTest(true);
   };
 
@@ -453,6 +512,7 @@ function App() {
     setShowAbout(false);
     setShowSoyProfesional(false);
     setShowLogin(false);
+    setShowCompanyLogin(false);
     setShowRegister(false);
     setShowInitialTest(true);
     setSelectedTestId(null);
@@ -466,6 +526,8 @@ function App() {
     setShowRegister(true);
     setShowAbout(false);
     setShowSoyProfesional(false);
+    setShowLogin(false);
+    setShowCompanyLogin(false);
   };
 
 
@@ -491,6 +553,21 @@ function App() {
     />;
   }
 
+  if (showRegisterCompany) {
+    return <RegisterCompany
+      onBack={() => {
+        isUserNavigation.current = true;
+        setShowRegisterCompany(false);
+        setShowSoyProfesional(true);
+      }}
+      onLogin={handleShowLogin}
+      onSuccess={() => {
+        setShowRegisterCompany(false);
+        handleLogin();
+      }}
+    />;
+  }
+
   if (showSoyProfesional) {
     return <SoyProfesional 
       onBack={goToLanding} 
@@ -499,7 +576,12 @@ function App() {
         isUserNavigation.current = true;
         setShowSoyProfesional(false);
         setShowRegisterPsychologist(true);
-      }} 
+      }}
+      onRegisterCompany={() => {
+        isUserNavigation.current = true;
+        setShowSoyProfesional(false);
+        setShowRegisterCompany(true);
+      }}
     />;
   }
 
@@ -563,6 +645,21 @@ function App() {
         onRegister={handleRegister} 
         onSwitchToLogin={handleShowLogin}
         sessionId={initialTestSessionId}
+        psychologistReferralCode={psychologistReferralFromUrl || undefined}
+      />;
+    }
+    if (showCompanyLogin) {
+      return <Login
+        variant="company"
+        onLogin={handleLogin}
+        onSwitchToRegister={handleShowRegister}
+        onForgotPassword={() => {
+          setShowCompanyLogin(false);
+          setShowForgotPassword(true);
+        }}
+        oauthError={oauthError}
+        onClearOauthError={() => setOauthError(null)}
+        onSwitchToUserLogin={handleShowLogin}
       />;
     }
     if (showLogin) {
@@ -575,6 +672,11 @@ function App() {
         }}
         oauthError={oauthError}
         onClearOauthError={() => setOauthError(null)}
+        onSwitchToCompanyLogin={() => {
+          isUserNavigation.current = true;
+          setShowLogin(false);
+          setShowCompanyLogin(true);
+        }}
       />;
     }
     // Si no hay ninguna vista específica, mostrar la landing (por defecto)
@@ -673,6 +775,11 @@ function App() {
       {/* PSYCHOLOGIST: Mi perfil */}
       {role === 'PSYCHOLOGIST' && (
         <PsychDashboard />
+      )}
+
+      {/* EMPRESA: Panel de psicólogos */}
+      {role === 'EMPRESA' && (
+        <CompanyDashboard />
       )}
 
       {/* Si no tenemos el rol aún pero estamos autenticados (ej. tras OAuth) */}

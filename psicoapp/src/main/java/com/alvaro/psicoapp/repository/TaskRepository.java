@@ -10,6 +10,7 @@ import java.util.List;
 public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
     List<TaskEntity> findByUser_IdOrderByCreatedAtDesc(Long userId);
     List<TaskEntity> findByPsychologist_IdOrderByCreatedAtDesc(Long psychologistId);
+    long deleteByUser_Id(Long userId);
 }
 
 

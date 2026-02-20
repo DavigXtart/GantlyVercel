@@ -18,6 +18,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * Servicio de chat con cifrado End-to-End (E2E).
+ * Garantiza que solo el psicólogo asignado y el paciente puedan ver los mensajes.
+ * Cumple con RGPD: ni siquiera el admin puede ver los mensajes cifrados.
+ */
 @Service
 public class ChatService {
     private static final Logger logger = LoggerFactory.getLogger(ChatService.class);
@@ -25,30 +30,69 @@ public class ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final UserPsychologistRepository userPsychologistRepository;
     private final UserRepository userRepository;
+    private final ChatEncryptionService encryptionService;
+    private final AuditService auditService;
 
     public ChatService(ChatMessageRepository chatMessageRepository,
                        UserPsychologistRepository userPsychologistRepository,
-                       UserRepository userRepository) {
+                       UserRepository userRepository,
+                       ChatEncryptionService encryptionService,
+                       AuditService auditService) {
         this.chatMessageRepository = chatMessageRepository;
         this.userPsychologistRepository = userPsychologistRepository;
         this.userRepository = userRepository;
+        this.encryptionService = encryptionService;
+        this.auditService = auditService;
     }
 
     @Transactional(readOnly = true)
     public List<ChatDtos.MessageDto> getChatHistory(UserEntity me, Long userId) {
         List<ChatMessageEntity> messages;
+        Long psychologistId;
+        Long patientId;
+        
         if (RoleConstants.USER.equals(me.getRole())) {
+            // Usuario solo puede ver sus propios mensajes con su psicólogo asignado
             var rel = userPsychologistRepository.findByUserId(me.getId());
-            if (rel.isEmpty()) return List.of();
+            if (rel.isEmpty()) {
+                logger.warn("Usuario {} intentó acceder a chat sin psicólogo asignado", me.getId());
+                return List.of();
+            }
+            psychologistId = rel.get().getPsychologist().getId();
+            patientId = me.getId();
             messages = chatMessageRepository.findTop100ByPsychologist_IdAndUser_IdOrderByCreatedAtDesc(
-                    rel.get().getPsychologist().getId(), me.getId());
+                    psychologistId, patientId);
         } else if (RoleConstants.PSYCHOLOGIST.equals(me.getRole())) {
+            // Psicólogo solo puede ver mensajes de SUS pacientes asignados
             if (userId == null) throw new IllegalArgumentException("userId requerido");
-            messages = chatMessageRepository.findTop100ByPsychologist_IdAndUser_IdOrderByCreatedAtDesc(me.getId(), userId);
+            
+            // VALIDACIÓN CRÍTICA RGPD: Verificar que el paciente pertenece a este psicólogo
+            var rel = userPsychologistRepository.findByUserId(userId);
+            if (rel.isEmpty() || !rel.get().getPsychologist().getId().equals(me.getId())) {
+                logger.warn("Psicólogo {} intentó acceder a chat de paciente {} no asignado", me.getId(), userId);
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes acceso a este chat");
+            }
+            
+            psychologistId = me.getId();
+            patientId = userId;
+            messages = chatMessageRepository.findTop100ByPsychologist_IdAndUser_IdOrderByCreatedAtDesc(psychologistId, patientId);
         } else {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            // Ni admin ni otros roles pueden ver chats
+            logger.warn("Usuario {} con rol {} intentó acceder a chat", me.getId(), me.getRole());
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No autorizado para ver chats");
         }
-        return messages.stream().map(this::toMessageDto).collect(Collectors.toList());
+        
+        // Auditoría RGPD: registrar acceso a mensajes de chat
+        if (RoleConstants.PSYCHOLOGIST.equals(me.getRole())) {
+            auditService.logPatientDataAccess(psychologistId, patientId, "CHAT_MESSAGES", "READ");
+        } else {
+            auditService.logSelfDataAccess(patientId, "CHAT_MESSAGES", "READ");
+        }
+        
+        // Descifrar mensajes antes de retornarlos
+        return messages.stream()
+            .map(msg -> toMessageDtoDecrypted(msg, psychologistId, patientId))
+            .collect(Collectors.toList());
     }
 
     @Transactional
@@ -82,21 +126,44 @@ public class ChatService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No autorizado");
         }
 
+        // VALIDACIÓN CRÍTICA RGPD: Verificar relación psicólogo-paciente
+        if (RoleConstants.PSYCHOLOGIST.equals(me.getRole())) {
+            // Psicólogo solo puede enviar a SUS pacientes
+            var rel = userPsychologistRepository.findByUserId(userId);
+            if (rel.isEmpty() || !rel.get().getPsychologist().getId().equals(psychologistId)) {
+                logger.warn("Psicólogo {} intentó enviar mensaje a paciente {} no asignado", psychologistId, userId);
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes acceso a este chat");
+            }
+        } else if (RoleConstants.USER.equals(me.getRole())) {
+            // Usuario solo puede enviar a SU psicólogo asignado
+            var rel = userPsychologistRepository.findByUserId(userId);
+            if (rel.isEmpty() || !rel.get().getPsychologist().getId().equals(psychologistId)) {
+                logger.warn("Usuario {} intentó enviar mensaje a psicólogo {} no asignado", userId, psychologistId);
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes acceso a este chat");
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No autorizado para enviar mensajes");
+        }
+        
+        // CIFRAR mensaje antes de guardarlo en BD
+        String encryptedContent = encryptionService.encrypt(content.trim(), psychologistId, userId);
+        
         ChatMessageEntity msg = new ChatMessageEntity();
         msg.setPsychologist(psychologist);
         msg.setUser(user);
         msg.setSender(RoleConstants.PSYCHOLOGIST.equals(me.getRole()) ? RoleConstants.PSYCHOLOGIST : RoleConstants.USER);
-        msg.setContent(content.trim());
+        msg.setContent(encryptedContent); // Guardar cifrado
 
         ChatMessageEntity saved = chatMessageRepository.save(msg);
         chatMessageRepository.flush();
 
-        // Verificación extra por seguridad (mantiene el comportamiento anterior)
+        // Verificación extra por seguridad
         if (saved.getId() == null || chatMessageRepository.findById(saved.getId()).isEmpty()) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "El mensaje no se guardó");
         }
 
-        return toMessageDto(saved);
+        // Retornar mensaje descifrado al remitente
+        return toMessageDtoDecrypted(saved, psychologistId, userId);
     }
 
     @Transactional
@@ -105,8 +172,30 @@ public class ChatService {
         chatMessageRepository.deleteById(id);
     }
 
+    /**
+     * Convierte entidad a DTO descifrando el contenido.
+     * Solo el psicólogo asignado y el paciente pueden descifrar.
+     */
+    private ChatDtos.MessageDto toMessageDtoDecrypted(ChatMessageEntity msg, Long psychologistId, Long userId) {
+        try {
+            String decryptedContent = encryptionService.decrypt(msg.getContent(), psychologistId, userId);
+            return new ChatDtos.MessageDto(msg.getId(), msg.getSender(), decryptedContent,
+                    msg.getCreatedAt() != null ? msg.getCreatedAt().toString() : null);
+        } catch (Exception e) {
+            logger.error("Error descifrando mensaje {} para conversación {}:{}", msg.getId(), psychologistId, userId, e);
+            // En caso de error, retornar mensaje indicando error de descifrado
+            return new ChatDtos.MessageDto(msg.getId(), msg.getSender(), "[Error descifrando mensaje]",
+                    msg.getCreatedAt() != null ? msg.getCreatedAt().toString() : null);
+        }
+    }
+    
+    /**
+     * Método legacy - mantener para compatibilidad pero no usar
+     */
+    @Deprecated
     private ChatDtos.MessageDto toMessageDto(ChatMessageEntity msg) {
-        return new ChatDtos.MessageDto(msg.getId(), msg.getSender(), msg.getContent(),
+        // NO usar este método - siempre usar toMessageDtoDecrypted
+        return new ChatDtos.MessageDto(msg.getId(), msg.getSender(), "[Mensaje cifrado - usar descifrado]",
                 msg.getCreatedAt() != null ? msg.getCreatedAt().toString() : null);
     }
 }

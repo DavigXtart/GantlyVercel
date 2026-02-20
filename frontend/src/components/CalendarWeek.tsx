@@ -602,12 +602,12 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                                 )}
                                 {!s.user && s.status === 'FREE' && (
                                   <div style={{ fontSize: '11px', opacity: 0.8 }}>
-                                    {mode === 'USER' ? '✅ Disponible' : '⏳ Libre'}
+                                    {mode === 'USER' ? 'Disponible' : '⏳ Libre'}
                                   </div>
                                 )}
                                 {s.status === 'REQUESTED' && (
                                   <div style={{ fontSize: '11px', opacity: 0.8, fontWeight: 600 }}>
-                                    ⏳ Solicitud pendiente
+                                    Solicitud pendiente
                                   </div>
                                 )}
                                 {s.status === 'CONFIRMED' && (
@@ -617,7 +617,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                                 )}
                                 {isMyAppointment && (
                                   <div style={{ fontSize: '11px', opacity: 0.8, fontWeight: 600 }}>
-                                    ⭐ Mi cita
+                                    Mi cita
                                   </div>
                                 )}
                               </div>
@@ -813,7 +813,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                         transition: 'all 0.2s',
                         background: isHovered ? 'rgba(102, 126, 234, 0.05)' : 'transparent'
                       }}>
-                        {isHovered ? '✨ Click para crear' : '➕'}
+                        {isHovered ? 'Click para crear' : '➕'}
                       </div>
                     )
                   )}

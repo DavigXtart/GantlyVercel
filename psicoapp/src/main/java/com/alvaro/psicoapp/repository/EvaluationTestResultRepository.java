@@ -14,5 +14,6 @@ public interface EvaluationTestResultRepository extends JpaRepository<Evaluation
     List<EvaluationTestResultEntity> findByUser_IdAndTest_IdOrderByCompletedAtDesc(Long userId, Long testId);
     List<EvaluationTestResultEntity> findByUser_IdAndCompletedAtBetween(Long userId, Instant start, Instant end);
     Optional<EvaluationTestResultEntity> findByUser_IdAndTest_IdAndSessionId(Long userId, Long testId, String sessionId);
+    long deleteByUser_Id(Long userId);
 }
 

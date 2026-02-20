@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
-import { profileService, psychService, calendarService, tasksService, assignedTestsService, testService, jitsiService, resultsService, matchingService } from '../services/api';
+import { profileService, psychService, calendarService, tasksService, assignedTestsService, testService, jitsiService, resultsService, matchingService, consentService } from '../services/api';
 import ChatWidget from './ChatWidget';
 import CalendarWeek from './CalendarWeek';
 import JitsiVideoCall from './JitsiVideoCall';
@@ -45,11 +45,20 @@ export default function PsychDashboard() {
   const [videoCallRoom, setVideoCallRoom] = useState<string | null>(null);
   const [videoCallOtherUser, setVideoCallOtherUser] = useState<{ email: string; name: string } | null>(null);
   const [calendarWeekStart, setCalendarWeekStart] = useState<Date | null>(null);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [referralUrl, setReferralUrl] = useState<string | null>(null);
+  const [showReferralModal, setShowReferralModal] = useState(false);
   
   // Estados para filtros de pacientes
   const [patientSearchTerm, setPatientSearchTerm] = useState('');
   const [patientFilterGender, setPatientFilterGender] = useState<string>('');
   const [patientFilterLastVisit, setPatientFilterLastVisit] = useState<string>('');
+
+  // Consentimientos para menores
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [consentDocTypes, setConsentDocTypes] = useState<any[]>([]);
+  const [consentForm, setConsentForm] = useState({ userId: 0, documentTypeId: 0, place: '' });
+  const [sendingConsent, setSendingConsent] = useState(false);
   
   // Estados para vista de perfil de paciente
   const [viewingPatientId, setViewingPatientId] = useState<number | null>(null);
@@ -343,8 +352,10 @@ export default function PsychDashboard() {
   }, [patients, patientSearchTerm, patientFilterGender, patientFilterLastVisit]);
 
   // Separar pacientes por status
-  const activePatients = useMemo(() => filteredPatients.filter(p => (p.status || 'ACTIVE') === 'ACTIVE'), [filteredPatients]);
-  const dischargedPatients = useMemo(() => filteredPatients.filter(p => p.status === 'DISCHARGED'), [filteredPatients]);
+  const isPatientMinor = (p: any) => p.isMinor === true || p.minor === true;
+  const minorPatients = useMemo(() => filteredPatients.filter(isPatientMinor), [filteredPatients]);
+  const activePatients = useMemo(() => filteredPatients.filter(p => !isPatientMinor(p) && (p.status || 'ACTIVE') === 'ACTIVE'), [filteredPatients]);
+  const dischargedPatients = useMemo(() => filteredPatients.filter(p => !isPatientMinor(p) && p.status === 'DISCHARGED'), [filteredPatients]);
 
   // Agrupar tareas por paciente
   const tasksByPatient = tasks.reduce((acc: Record<number, any[]>, task: any) => {
@@ -614,7 +625,41 @@ export default function PsychDashboard() {
   }
 
   return (
-    <div className="container" style={{ maxWidth: '1200px' }}>
+    <div className="min-h-screen bg-cream text-forest flex">
+      {/* Sidebar */}
+      <aside className="w-24 bg-white border-r border-sage/10 h-screen sticky top-0 flex flex-col items-center py-10 z-40">
+        <nav className="flex flex-col gap-4 w-full px-3 pt-2">
+          {[
+            { id: 'perfil', icon: 'person', label: 'Perfil' },
+            { id: 'pacientes', icon: 'people', label: 'Pacientes' },
+            { id: 'tareas', icon: 'task_alt', label: 'Tareas' },
+            { id: 'tests-asignados', icon: 'assignment', label: 'Tests' },
+            { id: 'calendario', icon: 'calendar_today', label: 'Calendario' },
+            { id: 'chat', icon: 'chat', label: 'Chat' },
+            { id: 'citas-pasadas', icon: 'history', label: 'Citas' },
+          ].map((item) => {
+            const isActive = tab === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setTab(item.id as Tab)}
+                className={`sidebar-item ${isActive ? 'active' : ''}`}
+              >
+                <span className="material-symbols-outlined font-light text-lg">
+                  {item.icon}
+                </span>
+                <span className="text-[10px] font-medium uppercase tracking-tighter">
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
+      </aside>
+
+      {/* Main content */}
+      <main className="flex-1 p-8 lg:p-12 relative overflow-x-hidden">
       {showRatingsModal && (
         <div
           style={{
@@ -693,232 +738,56 @@ export default function PsychDashboard() {
           }
         }
       `}</style>
-      {/* Tabs */}
-      <div style={{
-        display: 'flex',
-        gap: '8px',
-        marginBottom: '24px',
-        borderBottom: '2px solid #e5e7eb',
-        overflowX: 'auto'
-      }}>
-        {[
-          { id: 'perfil', label: 'Mi Perfil', icon: '👤' },
-          { id: 'pacientes', label: '👥 Mis Pacientes', icon: '👥' },
-          { id: 'tareas', label: '📋 Tareas', icon: '📋' },
-          { id: 'tests-asignados', label: '📝 Tests Asignados', icon: '📝' },
-          { id: 'calendario', label: '📅 Calendario', icon: '📅' },
-          { id: 'chat', label: '💬 Chat', icon: '💬' },
-          { id: 'citas-pasadas', label: 'Citas Pasadas', icon: '📅' }
-        ].map(t => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id as Tab)}
-            style={{
-              padding: '12px 24px',
-              background: tab === t.id ? 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)' : 'transparent',
-              color: tab === t.id ? 'white' : '#6b7280',
-              border: 'none',
-              borderBottom: tab === t.id ? '3px solid #4a8062' : '3px solid transparent',
-              borderRadius: '8px 8px 0 0',
-              cursor: 'pointer',
-              fontWeight: tab === t.id ? 600 : 500,
-              fontSize: '14px',
-              transition: 'all 0.2s',
-              whiteSpace: 'nowrap'
-            }}
-            onMouseEnter={(e) => {
-              if (tab !== t.id) {
-                e.currentTarget.style.background = '#f3f4f6';
-                e.currentTarget.style.color = '#1f2937';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (tab !== t.id) {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = '#6b7280';
-              }
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
 
-      {/* Perfil */}
-      {tab === 'perfil' && (
-        <div style={{
-          background: '#ffffff',
-          borderRadius: '12px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          overflow: 'hidden',
-          border: '1px solid #e5e7eb'
-        }}>
-          {/* Header con gradiente */}
-          <div style={{
-            background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
-            padding: '40px',
-            color: 'white',
-            position: 'relative'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '24px', flexWrap: 'wrap' }}>
-              <div style={{ position: 'relative' }}>
-                {me?.avatarUrl ? (
-                  <img
-                    src={me.avatarUrl}
-                    alt="avatar"
-                    style={{
-                      width: '120px',
-                      height: '120px',
-                      borderRadius: '50%',
-                      objectFit: 'cover',
-                      border: '4px solid rgba(255, 255, 255, 0.3)',
-                      boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)'
-                    }}
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                      e.currentTarget.nextElementSibling?.setAttribute('style', 'display: flex');
-                    }}
-                  />
-                ) : null}
-                <div
-                  style={{
-                    width: '120px',
-                    height: '120px',
-                    borderRadius: '50%',
-                    background: 'rgba(255, 255, 255, 0.2)',
-                    display: me?.avatarUrl ? 'none' : 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '48px',
-                    border: '4px solid rgba(255, 255, 255, 0.3)',
-                    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)'
-                  }}
-                >
-                  👤
-                </div>
-                <label style={{
-                  position: 'absolute',
-                  bottom: '0',
-                  right: '0',
-                  background: 'white',
-                  borderRadius: '50%',
-                  width: '36px',
-                  height: '36px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                >
-                  📷
-                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={onAvatarChange} />
-                </label>
-              </div>
-              <div style={{ flex: 1 }}>
-                <h2 style={{ margin: '0 0 8px 0', fontSize: '32px', fontWeight: 700 }}>
-                  {me?.name || 'Psicólogo'}
-                </h2>
-                {myRating && myRating.averageRating !== null && (
-                  <div
-                    onClick={async () => {
-                      if (myRating.totalRatings === 0 || !me?.id) return;
-                      setShowRatingsModal(true);
-                      setLoadingRatings(true);
-                      try {
-                        const list = await calendarService.getPsychologistRatings(me.id);
-                        setRatingsList(list);
-                      } catch (e) {
-                        console.error(e);
-                        setRatingsList([]);
-                      } finally {
-                        setLoadingRatings(false);
-                      }
-                    }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      marginBottom: '12px',
-                      cursor: myRating.totalRatings > 0 ? 'pointer' : 'default'
-                    }}
-                    title={myRating.totalRatings > 0 ? 'Click para ver todas las reseñas' : undefined}
-                  >
-                    <span style={{ fontSize: '20px', color: '#fbbf24' }}>
-                      {'★'.repeat(Math.round(myRating.averageRating))}
-                      {'☆'.repeat(5 - Math.round(myRating.averageRating))}
-                    </span>
-                    <span style={{ fontSize: '16px', fontWeight: 600, opacity: 0.9 }}>
-                      {myRating.averageRating.toFixed(1)} ({myRating.totalRatings} valoraciones)
-                    </span>
+        {/* Header hero solo en PERFIL */}
+        {tab === 'perfil' && (
+          <header className="bg-sage/10 rounded-[4rem] p-8 lg:p-12 mb-10 relative overflow-hidden">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+              <div className="flex flex-col md:flex-row items-center gap-8">
+                <div className="relative">
+                  <div className="size-28 md:size-32 rounded-full overflow-hidden border-4 border-white soft-shadow bg-sage/20 flex items-center justify-center">
+                    {me?.avatarUrl ? (
+                      <img
+                        src={me.avatarUrl}
+                        alt={me.name || 'Psicólogo'}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-3xl md:text-4xl text-forest font-semibold">
+                        {me?.name ? me.name.charAt(0).toUpperCase() : 'P'}
+                      </span>
+                    )}
                   </div>
-                )}
-                <div style={{ fontSize: '16px', opacity: 0.9, marginBottom: '16px' }}>
-                  {me?.email}
                 </div>
-                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '14px', opacity: 0.9 }}>
-                  {me?.age && <div>👤 {me.age} años</div>}
-                  {me?.gender && <div>{me.gender === 'MALE' ? '♂️' : me.gender === 'FEMALE' ? '♀️' : '⚧️'} {me.gender === 'MALE' ? 'Masculino' : me.gender === 'FEMALE' ? 'Femenino' : 'Otro'}</div>}
-                  {me?.createdAt && <div>📅 Miembro desde {formatDate(me.createdAt)}</div>}
+                <div className="text-center md:text-left">
+                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-normal mb-2">
+                    Hola,{' '}
+                    <span className="italic text-sage">
+                      {me?.name || 'tu espacio profesional'}.
+                    </span>
+                  </h1>
+                  <p className="text-sage/70 font-light mb-4">
+                    {me?.email}
+                    {me?.createdAt && (
+                      <>
+                        {' • Miembro desde '}
+                        {formatDate(me.createdAt)}
+                      </>
+                    )}
+                  </p>
                 </div>
-                <button
-                  onClick={async () => {
-                    await loadPsychologistProfile();
-                    setTab('editar-perfil-profesional');
-                  }}
-                  style={{
-                    marginTop: '16px',
-                    padding: '10px 24px',
-                    background: 'rgba(255, 255, 255, 0.2)',
-                    color: 'white',
-                    border: '2px solid white',
-                    borderRadius: '8px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'white';
-                    e.currentTarget.style.color = '#5a9270';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
-                    e.currentTarget.style.color = 'white';
-                  }}
-                >
-                  ✏️ Editar Perfil
-                </button>
               </div>
-              {/* Toggle Aceptando nuevos pacientes - compacto en la esquina */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                padding: '8px 14px',
-                background: 'rgba(255, 255, 255, 0.2)',
-                borderRadius: '10px',
-                border: '2px solid rgba(255, 255, 255, 0.5)',
-                flexShrink: 0
-              }}>
-                <div style={{ textAlign: 'left' }}>
-                  <div style={{ fontSize: '12px', fontWeight: 600, opacity: 0.95 }}>
+              {/* Toggle Aceptando nuevos pacientes - integrado en el header */}
+              <div className="flex items-center gap-3 px-5 py-3 bg-white/60 backdrop-blur-sm rounded-full border border-sage/20 shadow-sm hover:bg-white/80 transition-all">
+                <div className="text-right">
+                  <div className="text-sm font-medium text-forest">
                     {me?.isFull ? 'Lleno' : 'Aceptando nuevos pacientes'}
                   </div>
-                  <div style={{ fontSize: '10px', opacity: 0.85 }}>
+                  <div className="text-xs text-sage/60">
                     {me?.isFull ? 'No en recomendaciones' : 'En recomendaciones'}
                   </div>
                 </div>
-                <label style={{
-                  position: 'relative',
-                  display: 'inline-block',
-                  width: '36px',
-                  height: '20px',
-                  cursor: 'pointer',
-                  flexShrink: 0
-                }}>
+                <label className="relative inline-block w-9 h-5 cursor-pointer flex-shrink-0">
                   <input
                     type="checkbox"
                     checked={me?.isFull || false}
@@ -945,315 +814,292 @@ export default function PsychDashboard() {
                         toast.error('Error al actualizar: ' + (error.response?.data?.error || error.message));
                       }
                     }}
-                    style={{ opacity: 0, width: 0, height: 0, position: 'absolute' }}
+                    className="sr-only"
                   />
-                  <span style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: me?.isFull ? '#ef4444' : '#22c55e',
-                    borderRadius: '20px',
-                    transition: 'background-color 0.3s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '2px'
-                  }}>
-                    <span style={{
-                      content: '""',
-                      position: 'absolute',
-                      height: '16px',
-                      width: '16px',
-                      left: me?.isFull ? '18px' : '2px',
-                      backgroundColor: 'white',
-                      borderRadius: '50%',
-                      transition: 'left 0.3s',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                    }} />
+                  <span className={`absolute inset-0 rounded-full transition-colors ${me?.isFull ? 'bg-red-400' : 'bg-green-400'}`}>
+                    <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform shadow-sm ${me?.isFull ? 'translate-x-4' : ''}`} />
                   </span>
                 </label>
               </div>
             </div>
-          </div>
+          </header>
+        )}
 
-          {/* Test de Matching - Aviso si no está completo */}
-          {matchingTestCompleted === false && (
-            <div style={{
-              padding: '24px 32px',
-              background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-              borderBottom: '1px solid #e5e7eb',
-              borderTop: '1px solid #e5e7eb'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-                <div style={{ flex: 1 }}>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 700, color: '#92400e' }}>
-                    ⚠️ Test de Matching Pendiente
-                  </h3>
-                  <p style={{ margin: 0, fontSize: '14px', color: '#78350f', lineHeight: 1.5 }}>
-                    Completa el test de matching para que los pacientes puedan encontrarte. Este test ayuda a conectar a los pacientes con psicólogos que mejor se adapten a sus necesidades.
-                  </p>
+      {/* Perfil */}
+      {/* Vista PERFIL: tarjetas resumen como en el diseño */}
+      {tab === 'perfil' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Columna izquierda */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Información del perfil */}
+            <div className="bg-white rounded-3xl p-8 border border-sage/10 soft-shadow">
+              <div className="flex flex-col md:flex-row items-start gap-6 mb-8">
+                <div className="flex-1">
+                  {myRating && myRating.averageRating !== null && (
+                    <div
+                      onClick={async () => {
+                        if (myRating.totalRatings === 0 || !me?.id) return;
+                        setShowRatingsModal(true);
+                        setLoadingRatings(true);
+                        try {
+                          const list = await calendarService.getPsychologistRatings(me.id);
+                          setRatingsList(list);
+                        } catch (e) {
+                          console.error(e);
+                          setRatingsList([]);
+                        } finally {
+                          setLoadingRatings(false);
+                        }
+                      }}
+                      className="flex items-center gap-2 mb-3 cursor-pointer"
+                      title={myRating.totalRatings > 0 ? 'Click para ver todas las reseñas' : undefined}
+                    >
+                      <div className="flex gap-0.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span
+                            key={star}
+                            className={star <= Math.round(myRating.averageRating!) ? 'text-yellow-400' : 'text-gray-300'}
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                      <span className="text-sm font-medium text-forest">
+                        {myRating.averageRating.toFixed(1)} ({myRating.totalRatings} valoraciones)
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex gap-4 flex-wrap mt-4">
+                    <button
+                      onClick={async () => {
+                        await loadPsychologistProfile();
+                        setTab('editar-perfil-profesional');
+                      }}
+                      className="px-4 py-2 rounded-full border border-sage/30 text-sm text-sage hover:bg-sage hover:text-white transition"
+                    >
+                      Editar Perfil Profesional
+                    </button>
+                    <button
+                      onClick={async () => {
+                        try {
+                          const referral = await psychService.getReferralUrl();
+                          if (referral && referral.referralCode && referral.fullUrl) {
+                            setReferralCode(referral.referralCode);
+                            setReferralUrl(referral.fullUrl);
+                            setShowReferralModal(true);
+                          } else {
+                            toast.error('No se pudo obtener el código de referencia. Contacta con tu empresa.');
+                          }
+                        } catch (error: any) {
+                          const errorMsg = error.response?.data?.error || error.message || 'Error desconocido';
+                          toast.error('Error al obtener el código de referencia: ' + errorMsg);
+                          console.error('Error obteniendo referral URL:', error);
+                        }
+                      }}
+                      className="px-4 py-2 rounded-full border border-sage/30 text-sm text-sage hover:bg-sage hover:text-white transition"
+                    >
+                      Invitar Paciente
+                    </button>
+                  </div>
                 </div>
-                <button
-                  onClick={() => setTab('matching-test')}
-                  style={{
-                    padding: '12px 24px',
-                    background: '#f59e0b',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    transition: 'all 0.2s',
-                    whiteSpace: 'nowrap'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#d97706';
-                    e.currentTarget.style.transform = 'scale(1.05)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = '#f59e0b';
-                    e.currentTarget.style.transform = 'scale(1)';
+              </div>
+
+              {/* Test de Matching - Aviso si no está completo */}
+              {matchingTestCompleted === false && (
+                <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-2xl mb-6">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-yellow-900 mb-2">
+                        ⚠️ Test de Matching Pendiente
+                      </h3>
+                      <p className="text-sm text-yellow-800">
+                        Completa el test de matching para que los pacientes puedan encontrarte. Este test ayuda a conectar a los pacientes con psicólogos que mejor se adapten a sus necesidades.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setTab('matching-test')}
+                      className="px-6 py-3 bg-yellow-500 text-white rounded-full font-semibold hover:bg-yellow-600 transition shadow-sm whitespace-nowrap"
+                    >
+                      Completar Test
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Estadísticas */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="p-6 bg-sage/5 rounded-2xl border border-sage/20">
+                  <div className="text-xs text-sage/70 mb-2 font-semibold uppercase tracking-wider">
+                    Pacientes asignados
+                  </div>
+                  <div className="text-3xl font-bold text-forest">
+                    {patients.length}
+                  </div>
+                </div>
+
+                <div className="p-6 bg-sage/5 rounded-2xl border border-sage/20">
+                  <div className="text-xs text-sage/70 mb-2 font-semibold uppercase tracking-wider">
+                    Tareas creadas
+                  </div>
+                  <div className="text-3xl font-bold text-green-600">
+                    {tasks.filter(t => t.createdBy === 'PSYCHOLOGIST').length}
+                  </div>
+                </div>
+
+                <div 
+                  className={`p-6 rounded-2xl border cursor-pointer transition-all ${
+                    pendingRequests.length > 0 
+                      ? 'bg-red-50 border-red-300 shadow-md animate-pulse' 
+                      : 'bg-sage/5 border-sage/20'
+                  }`}
+                  onClick={() => {
+                    setTab('calendario');
+                    setTimeout(() => {
+                      const pendingSection = document.getElementById('solicitudes-pendientes');
+                      if (pendingSection) {
+                        pendingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }
+                    }, 100);
                   }}
                 >
-                  Completar Test
-                </button>
+                  <div className={`text-xs mb-2 font-semibold uppercase tracking-wider ${
+                    pendingRequests.length > 0 ? 'text-red-700' : 'text-sage/70'
+                  }`}>
+                    {pendingRequests.length > 0 ? '⚠️ ' : ''}Citas por confirmar
+                  </div>
+                  <div className={`text-3xl font-bold ${
+                    pendingRequests.length > 0 ? 'text-red-600' : 'text-yellow-600'
+                  }`}>
+                    {pendingRequests.length}
+                  </div>
+                </div>
+
               </div>
             </div>
-          )}
+          </div>
 
-          {/* Estadísticas */}
-          <div style={{ padding: '28px 32px 32px 32px', display: 'flex', justifyContent: 'center' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px', maxWidth: '1200px', width: '100%' }}>
-            <div style={{
-              padding: '20px',
-              background: '#f9fafb',
-              borderRadius: '12px',
-              border: '1px solid #e5e7eb'
-            }}>
-              <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Pacientes asignados
+          {/* Columna derecha: próxima cita */}
+          <div className="lg:col-span-1">
+            <div className="bg-white p-10 rounded-[4rem] border border-sage/10 soft-shadow h-full flex flex-col">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="material-symbols-outlined text-amber-500 text-sm">
+                  alarm
+                </span>
+                <span className="text-[10px] uppercase tracking-widest font-bold text-sage/40">
+                  Próxima cita
+                </span>
               </div>
-              <div style={{ fontSize: '24px', fontWeight: 700, color: '#5a9270' }}>
-                {patients.length}
-              </div>
-            </div>
 
-            <div style={{
-              padding: '20px',
-              background: '#f9fafb',
-              borderRadius: '12px',
-              border: '1px solid #e5e7eb'
-            }}>
-              <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Tareas creadas
-              </div>
-              <div style={{ fontSize: '24px', fontWeight: 700, color: '#22c55e' }}>
-                {tasks.filter(t => t.createdBy === 'PSYCHOLOGIST').length}
-              </div>
-            </div>
-
-            <div 
-              style={{
-                padding: '20px',
-                background: pendingRequests.length > 0 
-                  ? 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)' 
-                  : '#f9fafb',
-                borderRadius: '12px',
-                border: pendingRequests.length > 0 
-                  ? '3px solid #ef4444' 
-                  : '1px solid #e5e7eb',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                boxShadow: pendingRequests.length > 0 
-                  ? '0 4px 12px rgba(239, 68, 68, 0.25)' 
-                  : 'none',
-                animation: pendingRequests.length > 0 
-                  ? 'pulseAlert 2s ease-in-out infinite' 
-                  : 'none'
-              }}
-              onClick={() => {
-                setTab('calendario');
-                setTimeout(() => {
-                  const pendingSection = document.getElementById('solicitudes-pendientes');
-                  if (pendingSection) {
-                    pendingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }
-                }, 100);
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = pendingRequests.length > 0 
-                  ? 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)' 
-                  : '#f3f4f6';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = pendingRequests.length > 0 
-                  ? '0 6px 16px rgba(239, 68, 68, 0.35)' 
-                  : '0 4px 12px rgba(0, 0, 0, 0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = pendingRequests.length > 0 
-                  ? 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)' 
-                  : '#f9fafb';
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = pendingRequests.length > 0 
-                  ? '0 4px 12px rgba(239, 68, 68, 0.25)' 
-                  : 'none';
-              }}
-            >
-              <div style={{ 
-                fontSize: '12px', 
-                color: pendingRequests.length > 0 ? '#dc2626' : '#6b7280', 
-                marginBottom: '8px', 
-                fontWeight: 600, 
-                textTransform: 'uppercase', 
-                letterSpacing: '0.5px' 
-              }}>
-                {pendingRequests.length > 0 ? '⚠️ ' : ''}Citas por confirmar
-              </div>
-              <div style={{ 
-                fontSize: '24px', 
-                fontWeight: 700, 
-                color: pendingRequests.length > 0 ? '#dc2626' : '#f59e0b' 
-              }}>
-                {pendingRequests.length}
-              </div>
-            </div>
-
-            {/* Citas Próximas - Nueva tarjeta */}
-            <div style={{
-              padding: '20px',
-              background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-              borderRadius: '12px',
-              border: '2px solid rgba(217, 119, 6, 0.3)',
-              gridColumn: 'span 1'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px)';
-              e.currentTarget.style.boxShadow = '0 6px 16px rgba(217, 119, 6, 0.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-            >
-              <div style={{ fontSize: '12px', color: '#92400e', marginBottom: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                ⏰ Próximas Citas
-              </div>
               {(() => {
                 const now = new Date();
-                const upcomingAppointments = slots
+                const upcomingAppointment = slots
                   .filter(s => (s.status === 'BOOKED' || s.status === 'CONFIRMED') && s.user)
                   .filter(apt => {
                     if (!apt.startTime || !apt.endTime) return false;
                     const aptDate = new Date(apt.startTime);
-                    const aptEndDate = new Date(apt.endTime);
-                    // Incluir citas en curso (ya comenzaron pero no han terminado) o futuras
-                    const nowTime = now.getTime();
-                    const aptStartTime = aptDate.getTime();
-                    const aptEndTime = aptEndDate.getTime();
-                    
-                    const isInProgress = aptStartTime <= nowTime && aptEndTime >= nowTime;
-                    const isUpcoming = aptStartTime >= nowTime;
-                    return isInProgress || isUpcoming;
+                    return aptDate > now;
                   })
-                  .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
-                  .slice(0, 2); // Mostrar las 2 más próximas
+                  .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())[0];
 
-                if (upcomingAppointments.length === 0) {
-                  return (
-                    <div style={{ fontSize: '14px', color: '#92400e', fontFamily: "'Inter', sans-serif" }}>
-                      No hay citas próximas
-                    </div>
-                  );
-                }
-
-                return (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {upcomingAppointments.map(apt => {
-                      const aptDate = new Date(apt.startTime);
-                      const aptEndDate = new Date(apt.endTime);
-                      const isInProgress = aptDate <= now && aptEndDate >= now;
-                      
-                      // Calcular si está dentro del rango permitido (máximo 1 hora antes, hasta 1 hora después del final)
-                      const oneHourBefore = new Date(aptDate.getTime() - 60 * 60 * 1000);
-                      const oneHourAfterEnd = new Date(aptEndDate.getTime() + 60 * 60 * 1000);
-                      const canStartCall = now >= oneHourBefore && now <= oneHourAfterEnd;
-                      
-                      // Formatear fecha y hora para mostrar: "martes a las 12:30"
-                      const weekday = aptDate.toLocaleDateString('es-ES', { weekday: 'long' });
-                      const time = aptDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-                      const dateTimeText = `${weekday.charAt(0).toUpperCase() + weekday.slice(1)} a las ${time}`;
-                      
-                      return (
-                        <div
-                          key={apt.id}
-                          style={{
-                            padding: '12px',
-                            background: 'white',
-                            borderRadius: '8px',
-                            border: '1px solid rgba(217, 119, 6, 0.2)',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            opacity: 1
-                          }}
-                          onClick={async () => {
-                            if (canStartCall && me && apt.user) {
-                              // Si está en curso (una hora antes), ir a la videollamada
-                              try {
-                                const roomInfo = await jitsiService.getRoomInfo(apt.user.email);
-                                setVideoCallRoom(roomInfo.roomName);
-                                setVideoCallOtherUser({ email: roomInfo.otherUser.email, name: roomInfo.otherUser.name });
-                                setShowVideoCall(true);
-                              } catch (error: any) {
-                                toast.error(error.response?.data?.error || 'No tienes permiso para iniciar esta videollamada');
-                              }
-                            } else {
-                              // Si no está en curso, ir al apartado de citas en el calendario
-                              setTab('calendario');
-                              setTimeout(() => {
-                                const appointmentsSection = document.getElementById('citas-confirmadas');
-                                if (appointmentsSection) {
-                                  appointmentsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                }
-                              }, 100);
-                            }
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.borderColor = '#d97706';
-                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(217, 119, 6, 0.15)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.borderColor = 'rgba(217, 119, 6, 0.2)';
-                            e.currentTarget.style.boxShadow = 'none';
-                          }}
-                        >
-                          <div style={{ fontSize: '13px', fontWeight: 600, color: '#1a2e22', marginBottom: '4px' }}>
-                            {aptDate.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })}
-                          </div>
-                          <div style={{ fontSize: '12px', color: '#3a5a4a', marginBottom: '2px' }}>
-                            🕐 {aptDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-                          </div>
-                          {apt.user && (
-                            <div style={{ fontSize: '11px', color: '#5a9270', fontWeight: 600, marginBottom: '4px' }}>
-                              👤 {apt.user.name || apt.user.email}
-                            </div>
-                          )}
-                          <div style={{ fontSize: '11px', color: isInProgress ? '#059669' : '#d97706', fontWeight: 600 }}>
-                            {isInProgress ? '🟢 En curso' : dateTimeText}
-                          </div>
-                          {!canStartCall && now < oneHourBefore && (
-                            <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '4px', fontStyle: 'italic' }}>
-                              Disponible 1h antes
-                            </div>
-                          )}
+                return upcomingAppointment ? (
+                  <div className="bg-amber-light/50 rounded-[3rem] p-8 flex-1 flex flex-col justify-between relative overflow-hidden">
+                    <div>
+                      <h4 className="text-3xl font-normal mb-4">
+                        {new Date(upcomingAppointment.startTime).toLocaleDateString(
+                          'es-ES',
+                          {
+                            weekday: 'short',
+                            day: 'numeric',
+                            month: 'short',
+                          },
+                        )}
+                      </h4>
+                      <div className="space-y-3 text-sage">
+                        <div className="flex items-center gap-3 text-sm">
+                          <span className="material-symbols-outlined text-lg">
+                            schedule
+                          </span>
+                          <span className="font-light">
+                            {new Date(
+                              upcomingAppointment.startTime,
+                            ).toLocaleTimeString('es-ES', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </span>
                         </div>
-                      );
-                    })}
+                        {upcomingAppointment.user && (
+                          <div className="flex items-center gap-3 text-sm">
+                            <span className="material-symbols-outlined text-lg">
+                              person
+                            </span>
+                            <span className="font-light">
+                              {upcomingAppointment.user.name || upcomingAppointment.user.email}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mt-6 pt-4 border-t border-amber-500/10 text-sm">
+                      <p className="text-amber-600 font-semibold">
+                        Podrás iniciar la videollamada 1 hora antes
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="mt-8 w-full py-3 bg-forest text-cream rounded-full font-medium hover:bg-sage transition-all shadow-lg shadow-forest/10 text-sm"
+                      onClick={async () => {
+                        if (me && upcomingAppointment.user) {
+                          try {
+                            const roomInfo = await jitsiService.getRoomInfo(
+                              upcomingAppointment.user.email,
+                            );
+                            setVideoCallRoom(roomInfo.roomName);
+                            setVideoCallOtherUser({ email: roomInfo.otherUser.email, name: roomInfo.otherUser.name });
+                            setShowVideoCall(true);
+                          } catch (error: any) {
+                            toast.error(
+                              error.response?.data?.error ||
+                                'No tienes permiso para iniciar esta videollamada',
+                            );
+                          }
+                        }
+                      }}
+                    >
+                      Join Call
+                    </button>
+
+                    <button
+                      type="button"
+                      className="mt-4 w-full py-2 text-sm text-sage hover:text-forest font-medium transition underline underline-offset-2"
+                      onClick={() => {
+                        setTab('calendario');
+                        setTimeout(() => {
+                          const citasSection = document.querySelector('[data-section="citas-confirmadas"]');
+                          if (citasSection) {
+                            citasSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }
+                        }, 100);
+                      }}
+                    >
+                      Ver todas
+                    </button>
+                  </div>
+                ) : (
+                  <div className="bg-amber-light/30 rounded-[3rem] p-8 flex-1 flex flex-col justify-center text-sage/70 text-sm">
+                    No tienes ninguna cita próxima.
+                    <button
+                      type="button"
+                      className="mt-4 px-4 py-2 rounded-full border border-sage/40 text-sage text-xs font-medium hover:bg-sage hover:text-white transition"
+                      onClick={() => setTab('calendario')}
+                    >
+                      Ir al calendario
+                    </button>
                   </div>
                 );
               })()}
-            </div>
             </div>
           </div>
         </div>
@@ -1261,13 +1107,7 @@ export default function PsychDashboard() {
 
       {/* Test de Matching */}
       {tab === 'matching-test' && (
-        <div style={{
-          background: '#ffffff',
-          borderRadius: '12px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          overflow: 'hidden',
-          border: '1px solid #e5e7eb'
-        }}>
+        <div className="mt-10 bg-white rounded-3xl p-8 border border-sage/10 soft-shadow">
           <PsychologistMatchingTest
             onComplete={async () => {
               // Marcar como completado optimísticamente
@@ -1289,31 +1129,14 @@ export default function PsychDashboard() {
 
       {/* Editar Perfil Profesional - Página completa estilo LinkedIn */}
       {tab === 'editar-perfil-profesional' && (
-        <div style={{
-          background: '#ffffff',
-          borderRadius: '20px',
-          boxShadow: '0 6px 20px rgba(0, 0, 0, 0.1)',
-          padding: '40px',
-          border: '1px solid #e5e7eb',
-          maxWidth: '1000px',
-          margin: '0 auto'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-            <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 700, color: '#1f2937' }}>
+        <div className="mt-10 bg-white rounded-3xl p-8 lg:p-12 border border-sage/10 soft-shadow max-w-5xl mx-auto">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-3xl font-normal text-forest">
               Editar Perfil Profesional
             </h2>
             <button
               onClick={() => setTab('perfil')}
-              style={{
-                padding: '10px 20px',
-                background: '#f3f4f6',
-                color: '#1f2937',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
+              className="px-6 py-3 bg-sage/10 text-forest rounded-full font-medium hover:bg-sage hover:text-white transition border border-sage/20"
             >
               ← Volver al Perfil
             </button>
@@ -2070,13 +1893,7 @@ export default function PsychDashboard() {
 
       {/* Pacientes */}
       {tab === 'pacientes' && (
-        <div style={{
-          background: '#ffffff',
-          borderRadius: '12px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          padding: '32px',
-          border: '1px solid #e5e7eb'
-        }}>
+        <div className="mt-10 bg-white rounded-3xl p-8 border border-sage/10 soft-shadow">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
             <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Mis Pacientes
@@ -2227,7 +2044,7 @@ export default function PsychDashboard() {
                             </div>
                             {p.lastVisit && (
                               <div style={{ fontSize: '12px', color: '#059669', fontWeight: 500, marginTop: '4px' }}>
-                                📅 Última visita: {new Date(p.lastVisit).toLocaleDateString('es-ES', { 
+                                Última visita: {new Date(p.lastVisit).toLocaleDateString('es-ES', { 
                                   day: 'numeric', 
                                   month: 'short', 
                                   year: 'numeric' 
@@ -2298,6 +2115,166 @@ export default function PsychDashboard() {
                 </div>
               )}
 
+              {/* Menores de edad */}
+              <div style={{ marginBottom: '32px' }}>
+                <h4 style={{ fontSize: '20px', fontWeight: 600, color: '#1f2937', marginBottom: '16px' }}>
+                  Menores de edad ({minorPatients.length})
+                </h4>
+                {minorPatients.length === 0 ? (
+                  <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '16px' }}>
+                    Los pacientes con fecha de nacimiento o edad menor de 18 años aparecerán aquí. Pueden requerir consentimiento firmado antes de acceder a todo el contenido.
+                  </p>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+                    {minorPatients.map((p: any) => {
+                      const consentSigned = p.consentStatus === 'SIGNED';
+                      const canOpenFullProfile = consentSigned;
+                      return (
+                        <div
+                          key={p.id}
+                          onClick={() => {
+                            if (!canOpenFullProfile) {
+                              toast.warning('Consentimiento pendiente: solo puedes abrir chat o enviar el consentimiento.');
+                              return;
+                            }
+                            loadPatientDetails(p.id);
+                            setTab('patient-profile');
+                          }}
+                          style={{
+                            padding: '24px',
+                            background: consentSigned ? '#f9fafb' : 'linear-gradient(135deg, #fff7ed 0%, #fffbeb 100%)',
+                            border: consentSigned ? '2px solid #e5e7eb' : '2px solid rgba(245, 158, 11, 0.35)',
+                            borderRadius: '12px',
+                            transition: 'all 0.2s',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            minHeight: '280px'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = consentSigned ? '#5a9270' : 'rgba(245, 158, 11, 0.55)';
+                            e.currentTarget.style.boxShadow = consentSigned ? '0 4px 12px rgba(102, 126, 234, 0.15)' : '0 6px 18px rgba(245, 158, 11, 0.18)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = consentSigned ? '#e5e7eb' : 'rgba(245, 158, 11, 0.35)';
+                            e.currentTarget.style.boxShadow = 'none';
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px', flex: 1, minHeight: 0 }}>
+                            <div style={{
+                              width: '60px',
+                              height: '60px',
+                              flexShrink: 0,
+                              borderRadius: '50%',
+                              overflow: 'hidden',
+                              background: '#e5e7eb',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '24px',
+                              border: '3px solid white',
+                              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                            }}>
+                              {p.avatarUrl ? (
+                                <img src={p.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              ) : (
+                                '👤'
+                              )}
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                              <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.name}>
+                                {p.name}
+                              </div>
+                              <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.email}>
+                                {p.email}
+                              </div>
+                              <div style={{ fontSize: '12px', fontWeight: 700, color: consentSigned ? '#059669' : '#b45309' }}>
+                                {consentSigned ? '✅ Consentimiento firmado' : '⚠️ Consentimiento pendiente'}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '8px', flexDirection: 'column', flexShrink: 0 }}>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedPatient(p.id);
+                                setTab('chat');
+                              }}
+                              style={{
+                                width: '100%',
+                                padding: '10px',
+                                background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                transition: 'all 0.2s'
+                              }}
+                            >
+                              💬 Abrir Chat
+                            </button>
+
+                            {!consentSigned ? (
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  try {
+                                    const types = await consentService.listDocumentTypes();
+                                    setConsentDocTypes(types || []);
+                                    const first = (types || [])[0];
+                                    setConsentForm({ userId: p.id, documentTypeId: first?.id || 0, place: '' });
+                                    setShowConsentModal(true);
+                                  } catch (err: any) {
+                                    toast.error('No se pudieron cargar los tipos de documento');
+                                  }
+                                }}
+                                style={{
+                                  width: '100%',
+                                  padding: '10px',
+                                  background: '#fff7ed',
+                                  color: '#b45309',
+                                  border: '1px solid rgba(245, 158, 11, 0.35)',
+                                  borderRadius: '8px',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  fontSize: '13px',
+                                  transition: 'all 0.2s'
+                                }}
+                              >
+                                📎 Adjuntar consentimiento
+                              </button>
+                            ) : (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  updatePatientStatus(p.id, 'DISCHARGED');
+                                }}
+                                style={{
+                                  width: '100%',
+                                  padding: '8px',
+                                  background: '#f3f4f6',
+                                  color: '#6b7280',
+                                  border: '1px solid #d1d5db',
+                                  borderRadius: '8px',
+                                  fontWeight: 600,
+                                  cursor: 'pointer',
+                                  fontSize: '13px'
+                                }}
+                              >
+                                Dar de Alta
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
               {/* Pacientes Dados de Alta */}
               {dischargedPatients.length > 0 && (
                 <div>
@@ -2365,7 +2342,7 @@ export default function PsychDashboard() {
                             </div>
                             {p.lastVisit && (
                               <div style={{ fontSize: '12px', color: '#059669', fontWeight: 500, marginTop: '4px' }}>
-                                📅 Última visita: {new Date(p.lastVisit).toLocaleDateString('es-ES', { 
+                                Última visita: {new Date(p.lastVisit).toLocaleDateString('es-ES', { 
                                   day: 'numeric', 
                                   month: 'short', 
                                   year: 'numeric' 
@@ -2437,6 +2414,135 @@ export default function PsychDashboard() {
               )}
             </>
           )}
+
+          {/* Modal: Enviar consentimiento a menor */}
+          {showConsentModal && (
+            <div
+              onClick={() => !sendingConsent && setShowConsentModal(false)}
+              style={{
+                position: 'fixed',
+                inset: 0,
+                background: 'rgba(0,0,0,0.35)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '24px',
+                zIndex: 9999,
+              }}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  width: '100%',
+                  maxWidth: '560px',
+                  background: 'white',
+                  borderRadius: '16px',
+                  border: '1px solid rgba(90, 146, 112, 0.2)',
+                  boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+                  padding: '22px',
+                  fontFamily: "'Inter', sans-serif",
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                  <div>
+                    <div style={{ fontSize: '18px', fontWeight: 800, color: '#1a2e22' }}>Adjuntar consentimiento</div>
+                    <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px' }}>
+                      Selecciona el tipo de documento y el lugar. El contenido se rellenará automáticamente (psicólogo, fecha, hora, etc.).
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => !sendingConsent && setShowConsentModal(false)}
+                    style={{ border: 'none', background: 'transparent', cursor: sendingConsent ? 'not-allowed' : 'pointer', color: '#6b7280', fontSize: '18px' }}
+                    aria-label="Cerrar"
+                    disabled={sendingConsent}
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div style={{ marginTop: '18px', display: 'grid', gap: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#1f2937', marginBottom: '6px' }}>
+                      Tipo de documento
+                    </label>
+                    <select
+                      value={consentForm.documentTypeId || 0}
+                      onChange={(e) => setConsentForm({ ...consentForm, documentTypeId: parseInt(e.target.value, 10) })}
+                      style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #e5e7eb', fontSize: '14px' }}
+                    >
+                      {(consentDocTypes || []).length === 0 && <option value={0}>No hay tipos disponibles</option>}
+                      {(consentDocTypes || []).map((t: any) => (
+                        <option key={t.id} value={t.id}>
+                          {t.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#1f2937', marginBottom: '6px' }}>
+                      Lugar (opcional)
+                    </label>
+                    <input
+                      type="text"
+                      value={consentForm.place}
+                      onChange={(e) => setConsentForm({ ...consentForm, place: e.target.value })}
+                      placeholder="Ej: Madrid"
+                      style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #e5e7eb', fontSize: '14px' }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '18px' }}>
+                  <button
+                    type="button"
+                    onClick={() => !sendingConsent && setShowConsentModal(false)}
+                    disabled={sendingConsent}
+                    style={{
+                      padding: '10px 14px',
+                      borderRadius: '10px',
+                      border: '1px solid #e5e7eb',
+                      background: '#f3f4f6',
+                      color: '#374151',
+                      fontWeight: 700,
+                      cursor: sendingConsent ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    disabled={sendingConsent || !consentForm.userId || !consentForm.documentTypeId}
+                    onClick={async () => {
+                      try {
+                        setSendingConsent(true);
+                        await consentService.sendConsent(consentForm.userId, consentForm.documentTypeId, consentForm.place || undefined);
+                        toast.success('Consentimiento enviado');
+                        setShowConsentModal(false);
+                        await loadData();
+                      } catch (err: any) {
+                        toast.error(err.response?.data?.error || err.response?.data?.message || 'Error al enviar el consentimiento');
+                      } finally {
+                        setSendingConsent(false);
+                      }
+                    }}
+                    style={{
+                      padding: '10px 14px',
+                      borderRadius: '10px',
+                      border: 'none',
+                      background: sendingConsent ? '#cbd5d1' : 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
+                      color: 'white',
+                      fontWeight: 800,
+                      cursor: sendingConsent ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    {sendingConsent ? 'Enviando...' : 'Enviar'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -2445,13 +2551,7 @@ export default function PsychDashboard() {
         <>
           {selectedTaskId && selectedTask ? (
             // Vista detallada de la tarea (igual que en UserDashboard)
-            <div style={{
-              background: '#ffffff',
-              borderRadius: '20px',
-              boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
-              padding: '40px',
-              border: '1px solid rgba(90, 146, 112, 0.15)'
-            }}>
+            <div className="mt-10 bg-white rounded-3xl p-8 border border-sage/10 soft-shadow">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
                 <h3 style={{ 
                   margin: 0, 
@@ -2977,7 +3077,7 @@ export default function PsychDashboard() {
                   onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
                   onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                  ➕ Nueva Tarea
+                  + Nueva Tarea
                 </button>
               </div>
               
@@ -3134,7 +3234,7 @@ export default function PsychDashboard() {
                             </div>
                             {t.createdAt && (
                               <div style={{ fontSize: '12px', color: '#9ca3af' }}>
-                                📅 Creada: {new Date(t.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                Creada: {new Date(t.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                               </div>
                             )}
                             {t.dueDate && (
@@ -3222,7 +3322,7 @@ export default function PsychDashboard() {
                   onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
                   onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                  ➕ Nueva Tarea
+                  + Nueva Tarea
                 </button>
               </div>
           
@@ -3420,13 +3520,7 @@ export default function PsychDashboard() {
 
       {/* Tests Asignados */}
       {tab === 'tests-asignados' && (
-        <div style={{
-          background: '#ffffff',
-          borderRadius: '12px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          padding: '32px',
-          border: '1px solid #e5e7eb'
-        }}>
+        <div className="mt-10 bg-white rounded-3xl p-8 border border-sage/10 soft-shadow">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
             <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Tests Asignados
@@ -3477,7 +3571,7 @@ export default function PsychDashboard() {
               onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
               onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
             >
-              ➕ Asignar Test
+              Asignar Test
             </button>
           </div>
 
@@ -3855,7 +3949,7 @@ export default function PsychDashboard() {
                                 fontSize: '11px',
                                 fontWeight: 600
                               }}>
-                                ✅ {completedCount} completado{completedCount !== 1 ? 's' : ''}
+                                {completedCount} completado{completedCount !== 1 ? 's' : ''}
                               </div>
                             )}
                             {pendingCount > 0 && (
@@ -3867,7 +3961,7 @@ export default function PsychDashboard() {
                                 fontSize: '11px',
                                 fontWeight: 600
                               }}>
-                                ⏳ {pendingCount} pendiente{pendingCount !== 1 ? 's' : ''}
+                                {pendingCount} pendiente{pendingCount !== 1 ? 's' : ''}
                               </div>
                             )}
                           </div>
@@ -3923,7 +4017,7 @@ export default function PsychDashboard() {
                                       fontSize: '11px',
                                       fontWeight: 600
                                     }}>
-                                      {at.completedAt ? '✅ Completado' : '⏳ Pendiente'}
+                                      {at.completedAt ? 'Completado' : 'Pendiente'}
                                     </div>
                                     {at.assignedAt && (
                                       <div style={{ fontSize: '12px', color: '#9ca3af' }}>
@@ -3988,9 +4082,9 @@ export default function PsychDashboard() {
 
       {/* Calendario */}
       {tab === 'calendario' && (
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+        <div className="mt-10">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-3xl font-normal text-forest">
               Gestión de Calendario
             </h3>
           </div>
@@ -4087,94 +4181,75 @@ export default function PsychDashboard() {
           {pendingRequests.length > 0 && (
             <div 
               id="solicitudes-pendientes"
-              style={{
-                marginTop: '32px',
-                background: '#ffffff',
-                borderRadius: '20px',
-                boxShadow: '0 6px 20px rgba(102, 126, 234, 0.12)',
-                border: '1px solid rgba(102, 126, 234, 0.15)',
-                padding: '32px'
-              }}>
-              <h4 style={{
-                margin: '0 0 24px 0',
-                fontSize: '24px',
-                fontWeight: 700,
-                color: '#1a2e22',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                fontFamily: "'Inter', sans-serif",
-                letterSpacing: '-0.01em'
-              }}>
-                ⏳ Solicitudes de Citas Pendientes
-              </h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '16px' }}>
+              className="mt-10 bg-white rounded-3xl p-8 border border-sage/10 soft-shadow"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-[22px] font-normal text-forest flex items-center gap-2">
+                  <span className="material-symbols-outlined text-xl text-sage">
+                    schedule
+                  </span>
+                  Citas por confirmar
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {pendingRequests.map((req: any) => (
                   <div
                     key={req.id}
-                    style={{
-                      background: 'linear-gradient(135deg, #f0f4ff 0%, #e8edff 100%)',
-                      border: '2px solid rgba(102, 126, 234, 0.3)',
-                      borderRadius: '16px',
-                      padding: '24px',
-                      transition: 'all 0.3s ease',
-                      boxShadow: '0 2px 8px rgba(102, 126, 234, 0.08)'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-4px)';
-                      e.currentTarget.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.15)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.08)';
-                    }}
+                    className="rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow border border-sage/15 flex flex-col min-h-[190px] bg-white"
                   >
-                    <div style={{ 
-                      fontSize: '18px', 
-                      fontWeight: 700, 
-                      color: '#1a2e22', 
-                      marginBottom: '12px',
-                      fontFamily: "'Inter', sans-serif"
-                    }}>
-                      {new Date(req.appointment.startTime).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                    </div>
-                    <div style={{ 
-                      fontSize: '15px', 
-                      color: '#3a5a4a', 
-                      marginBottom: '8px',
-                      fontFamily: "'Inter', sans-serif"
-                    }}>
-                      🕐 {new Date(req.appointment.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - {new Date(req.appointment.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                    {req.appointment.price && (
-                      <div style={{ 
-                        fontSize: '14px', 
-                        color: '#5a9270', 
-                        fontWeight: 600,
-                        fontFamily: "'Inter', sans-serif",
-                        marginBottom: '12px'
-                      }}>
-                        {req.appointment.price} €
+                    <div className="flex items-start justify-between mb-6">
+                      <p className="text-[10px] tracking-[0.25em] font-bold text-sage/50 uppercase">
+                        Próxima cita
+                      </p>
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center bg-[#FAF5E6]">
+                        <span className="material-symbols-outlined text-xl text-[#B29D6B]">
+                          psychology
+                        </span>
                       </div>
+                    </div>
+
+                    <h4 className="serif-font text-3xl text-forest mb-1">
+                      {new Date(req.appointment.startTime).toLocaleDateString('es-ES', {
+                        weekday: 'short',
+                        day: '2-digit',
+                        month: 'short',
+                      })}
+                    </h4>
+
+                    <p className="text-sm text-sage/70 font-medium mb-4">
+                      {new Date(req.appointment.startTime).toLocaleTimeString('es-ES', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}{' '}
+                      -{' '}
+                      {new Date(req.appointment.endTime).toLocaleTimeString('es-ES', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </p>
+
+                    {req.appointment.price && (
+                      <p className="text-sm text-sage font-semibold mb-2">
+                        {req.appointment.price} €
+                      </p>
                     )}
-                    <div style={{ 
-                      fontSize: '14px', 
-                      color: '#5a9270', 
-                      fontWeight: 600,
-                      fontFamily: "'Inter', sans-serif",
-                      marginBottom: '16px'
-                    }}>
-                      👤 {req.user.name || req.user.email}
-                    </div>
-                    <div style={{ 
-                      fontSize: '12px', 
-                      color: '#6b7280',
-                      fontFamily: "'Inter', sans-serif",
-                      marginBottom: '16px'
-                    }}>
-                      📅 Solicitada: {new Date(req.requestedAt).toLocaleString('es-ES')}
-                    </div>
-                    <div style={{ display: 'flex', gap: '12px' }}>
+
+                    <p className="text-sm text-sage/80 font-medium mb-2">
+                      {req.user.name || req.user.email}
+                    </p>
+
+                    <p className="text-xs text-sage/60 mb-6">
+                      Solicitada: {new Date(req.requestedAt).toLocaleDateString('es-ES', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                      })} {new Date(req.requestedAt).toLocaleTimeString('es-ES', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </p>
+
+                    <div className="mt-auto flex gap-3">
                       <button
                         onClick={async () => {
                           if (confirm('¿Confirmar esta cita para ' + (req.user.name || req.user.email) + '?')) {
@@ -4188,29 +4263,9 @@ export default function PsychDashboard() {
                             }
                           }
                         }}
-                        style={{
-                          flex: 1,
-                          padding: '12px 20px',
-                          background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
-                          color: '#ffffff',
-                          border: 'none',
-                          borderRadius: '12px',
-                          fontSize: '14px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          fontFamily: "'Inter', sans-serif",
-                          transition: 'all 0.3s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'scale(1.05)';
-                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'scale(1)';
-                          e.currentTarget.style.boxShadow = 'none';
-                        }}
+                        className="flex-1 px-4 py-2 bg-sage text-white rounded-xl hover:bg-sage/90 transition font-medium text-sm"
                       >
-                        ✅ Confirmar
+                        Confirmar
                       </button>
                       <button
                         onClick={async () => {
@@ -4225,29 +4280,9 @@ export default function PsychDashboard() {
                             }
                           }
                         }}
-                        style={{
-                          flex: 1,
-                          padding: '12px 20px',
-                          background: '#ef4444',
-                          color: '#ffffff',
-                          border: 'none',
-                          borderRadius: '12px',
-                          fontSize: '14px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          fontFamily: "'Inter', sans-serif",
-                          transition: 'all 0.3s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'scale(1.05)';
-                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.4)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'scale(1)';
-                          e.currentTarget.style.boxShadow = 'none';
-                        }}
+                        className="flex-1 px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition font-medium text-sm"
                       >
-                        ❌ Cancelar
+                        Cancelar
                       </button>
                     </div>
                   </div>
@@ -4260,6 +4295,7 @@ export default function PsychDashboard() {
           {!loadingSlots && slots.filter(s => (s.status === 'CONFIRMED' || s.status === 'BOOKED') && s.user).length > 0 && (
             <div 
               id="citas-confirmadas"
+              data-section="citas-confirmadas"
               style={{
                 marginTop: '32px',
                 background: '#ffffff',
@@ -4268,207 +4304,75 @@ export default function PsychDashboard() {
                 border: '1px solid rgba(90, 146, 112, 0.15)',
                 padding: '32px'
               }}>
-              <h4 style={{
-                margin: '0 0 24px 0',
-                fontSize: '24px',
-                fontWeight: 700,
-                color: '#1a2e22',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                fontFamily: "'Inter', sans-serif",
-                letterSpacing: '-0.01em'
-              }}>
-                📅 Citas Confirmadas y Reservadas
-              </h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
-                {slots.filter(s => (s.status === 'CONFIRMED' || s.status === 'BOOKED') && s.user).map(apt => (
-                  <div
-                    key={apt.id}
-                    style={{
-                      background: 'linear-gradient(135deg, #f0f5f3 0%, #e8f0ed 100%)',
-                      border: '2px solid rgba(90, 146, 112, 0.3)',
-                      borderRadius: '16px',
-                      padding: '24px',
-                      transition: 'all 0.3s ease',
-                      boxShadow: '0 2px 8px rgba(90, 146, 112, 0.08)'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-4px)';
-                      e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.15)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.08)';
-                    }}
-                  >
-                    <div style={{ 
-                      fontSize: '18px', 
-                      fontWeight: 700, 
-                      color: '#1a2e22', 
-                      marginBottom: '12px',
-                      fontFamily: "'Inter', sans-serif"
-                    }}>
-                      {new Date(apt.startTime).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                    </div>
-                    <div style={{ 
-                      fontSize: '15px', 
-                      color: '#3a5a4a', 
-                      marginBottom: '8px',
-                      fontFamily: "'Inter', sans-serif"
-                    }}>
-                      🕐 {new Date(apt.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - {new Date(apt.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                    {apt.user && (
-                      <div style={{ 
-                        fontSize: '14px', 
-                        color: '#5a9270', 
-                        fontWeight: 600,
-                        fontFamily: "'Inter', sans-serif",
-                        marginBottom: '12px'
-                      }}>
-                        👤 {apt.user.name || apt.user.email}
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-[22px] font-normal text-forest flex items-center gap-2">
+                  <span className="material-symbols-outlined text-xl text-sage">
+                    calendar_today
+                  </span>
+                  Citas Confirmadas y Reservadas
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {slots.filter(s => (s.status === 'CONFIRMED' || s.status === 'BOOKED') && s.user).map(apt => {
+                  const status = apt.status as string | undefined;
+                  const isConfirmed = status === 'CONFIRMED';
+                  const isBooked = status === 'BOOKED';
+                  
+                  const statusLabel = isConfirmed ? 'Confirmada' : isBooked ? 'Reservada' : 'Programada';
+                  const statusClasses = isConfirmed 
+                    ? 'bg-[#F1F8F6] text-[#6B8B7E]'
+                    : 'bg-[#FAF5E6] text-[#9A8754]';
+                  const badgeBg = isConfirmed ? 'bg-[#E9F0EE]' : 'bg-[#F7F3E6]';
+                  const badgeIconColor = isConfirmed ? 'text-[#8DA399]' : 'text-[#B29D6B]';
+                  
+                  return (
+                    <div
+                      key={apt.id}
+                      className="rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow border border-sage/15 flex flex-col min-h-[190px] bg-white"
+                    >
+                      <div className="flex items-start justify-between mb-6">
+                        <p className="text-[10px] tracking-[0.25em] font-bold text-sage/50 uppercase">
+                          Próxima cita
+                        </p>
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center ${badgeBg}`}>
+                          <span className={`material-symbols-outlined text-xl ${badgeIconColor}`}>
+                            psychology
+                          </span>
+                        </div>
                       </div>
-                    )}
-                    {apt.status === 'CONFIRMED' && apt.paymentStatus && (
-                      <div style={{ 
-                        fontSize: '13px', 
-                        color: apt.paymentStatus === 'PAID' ? '#059669' : apt.paymentStatus === 'EXPIRED' ? '#dc2626' : '#d97706',
-                        fontWeight: 600,
-                        fontFamily: "'Inter', sans-serif",
-                        marginBottom: '8px',
-                        padding: '8px 12px',
-                        background: apt.paymentStatus === 'PAID' ? '#d1fae5' : apt.paymentStatus === 'EXPIRED' ? '#fee2e2' : '#fef3c7',
-                        borderRadius: '8px'
-                      }}>
-                        💳 Estado de pago: {apt.paymentStatus === 'PAID' ? '✅ Pagado' : apt.paymentStatus === 'EXPIRED' ? '❌ Expirado' : '⏳ Pendiente'}
-                        {apt.paymentDeadline && apt.paymentStatus === 'PENDING' && (
-                          <div style={{ fontSize: '11px', marginTop: '4px', color: '#6b7280' }}>
-                            Plazo: {new Date(apt.paymentDeadline).toLocaleString('es-ES')}
-                          </div>
-                        )}
+
+                      <h4 className="serif-font text-3xl text-forest mb-1">
+                        {new Date(apt.startTime).toLocaleDateString('es-ES', {
+                          weekday: 'short',
+                          day: '2-digit',
+                          month: 'short',
+                        })}
+                      </h4>
+
+                      <p className="text-sm text-sage/70 font-medium mb-10">
+                        {new Date(apt.startTime).toLocaleTimeString('es-ES', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}{' '}
+                        -{' '}
+                        {apt.endTime &&
+                          new Date(apt.endTime).toLocaleTimeString('es-ES', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                      </p>
+
+                      <div className="mt-auto flex items-center justify-between">
+                        <span className="text-sm text-sage/80 font-medium">
+                          {apt.user?.name || 'Paciente'}
+                        </span>
+                        <span className={`inline-flex items-center justify-center rounded-full px-4 py-1 text-[13px] font-medium shadow-sm ${statusClasses}`}>
+                          {statusLabel}
+                        </span>
                       </div>
-                    )}
-                    {apt.status === 'CONFIRMED' && (
-                      <button
-                        onClick={async () => {
-                          if (confirm('¿Cancelar esta cita confirmada?')) {
-                            try {
-                              await calendarService.cancelAppointment(apt.id);
-                              toast.success('Cita cancelada exitosamente');
-                              await loadMySlots();
-                              await loadPendingRequests();
-                            } catch (e: any) {
-                              toast.error(e?.response?.data?.error || 'Error al cancelar la cita');
-                            }
-                          }
-                        }}
-                        style={{
-                          width: '100%',
-                          padding: '8px 16px',
-                          background: '#ef4444',
-                          color: '#ffffff',
-                          border: 'none',
-                          borderRadius: '8px',
-                          fontSize: '13px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          fontFamily: "'Inter', sans-serif",
-                          transition: 'all 0.3s ease',
-                          marginBottom: '8px'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'scale(1.02)';
-                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.4)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'scale(1)';
-                          e.currentTarget.style.boxShadow = 'none';
-                        }}
-                      >
-                        ❌ Cancelar Cita
-                      </button>
-                    )}
-                    {(() => {
-                      const now = new Date();
-                      const aptDate = new Date(apt.startTime);
-                      const aptEndDate = new Date(apt.endTime);
-                      // Calcular si está dentro del rango permitido (máximo 1 hora antes, hasta 1 hora después del final)
-                      const oneHourBefore = new Date(aptDate.getTime() - 60 * 60 * 1000);
-                      const oneHourAfterEnd = new Date(aptEndDate.getTime() + 60 * 60 * 1000);
-                      const canStartCall = now >= oneHourBefore && now <= oneHourAfterEnd;
-                      
-                      if (!canStartCall) {
-                        if (now < oneHourBefore) {
-                          const minutesUntil = Math.floor((oneHourBefore.getTime() - now.getTime()) / (1000 * 60));
-                          return (
-                            <div style={{
-                              width: '100%',
-                              padding: '12px 20px',
-                              background: '#f3f4f6',
-                              color: '#6b7280',
-                              border: '1px solid #e5e7eb',
-                              borderRadius: '12px',
-                              fontSize: '14px',
-                              textAlign: 'center',
-                              fontFamily: "'Inter', sans-serif"
-                            }}>
-                              Disponible en {Math.floor(minutesUntil / 60)}h {minutesUntil % 60}m
-                            </div>
-                          );
-                        }
-                        return null;
-                      }
-                      
-                      return (
-                        <button
-                          onClick={async () => {
-                            if (me && apt.user) {
-                              try {
-                                // Validar con backend antes de iniciar
-                                const roomInfo = await jitsiService.getRoomInfo(apt.user.email);
-                                setVideoCallRoom(roomInfo.roomName);
-                                setVideoCallOtherUser({ email: roomInfo.otherUser.email, name: roomInfo.otherUser.name });
-                                setShowVideoCall(true);
-                              } catch (error: any) {
-                                toast.error(error.response?.data?.error || 'No tienes permiso para iniciar esta videollamada');
-                              }
-                            }
-                          }}
-                          style={{
-                            width: '100%',
-                            padding: '12px 20px',
-                            background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '12px',
-                            fontSize: '15px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            transition: 'all 0.3s ease',
-                            fontFamily: "'Inter', sans-serif",
-                            boxShadow: '0 4px 12px rgba(90, 146, 112, 0.3)',
-                            marginTop: '8px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '8px'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'translateY(-2px)';
-                            e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
-                          }}
-                        >
-                          📹 Iniciar Videollamada
-                        </button>
-                      );
-                    })()}
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -4479,23 +4383,9 @@ export default function PsychDashboard() {
 
       {/* Citas Pasadas */}
       {tab === 'citas-pasadas' && (
-        <div style={{ width: '100%' }}>
-          <div style={{
-            background: '#ffffff',
-            borderRadius: '20px',
-            boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
-            padding: '32px',
-            border: '1px solid rgba(90, 146, 112, 0.15)',
-            marginBottom: '24px'
-          }}>
-            <h3 style={{
-              margin: 0,
-              fontSize: '28px',
-              fontWeight: 700,
-              color: '#1a2e22',
-              fontFamily: "'Inter', sans-serif",
-              letterSpacing: '-0.02em'
-            }}>
+        <div className="mt-10 w-full">
+          <div className="bg-white rounded-3xl p-8 border border-sage/10 soft-shadow mb-6">
+            <h3 className="text-3xl font-normal text-forest mb-6">
               Mis Citas Pasadas
             </h3>
             {myRating && myRating.averageRating !== null && (
@@ -4621,18 +4511,9 @@ export default function PsychDashboard() {
 
       {/* Chat */}
       {tab === 'chat' && (
-        <div>
-          <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
-            <div style={{
-              width: '300px',
-              background: '#ffffff',
-              borderRadius: '12px',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-              border: '1px solid #e5e7eb',
-              padding: '20px',
-              maxHeight: '600px',
-              overflowY: 'auto'
-            }}>
+        <div className="mt-10">
+          <div className="flex gap-6 items-start">
+            <div className="w-80 bg-white rounded-3xl p-6 border border-sage/10 soft-shadow max-h-[600px] overflow-y-auto">
               <h4 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 600, color: '#1f2937' }}>
                 Seleccionar Paciente
               </h4>
@@ -5099,6 +4980,107 @@ export default function PsychDashboard() {
           </div>
         ) : null;
       })()}
+      </main>
+
+      {/* Modal de Código de Referencia */}
+      {showReferralModal && referralCode && referralUrl && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowReferralModal(false)}
+        >
+          <div
+            className="bg-white rounded-3xl p-8 max-w-md w-full border border-sage/10 soft-shadow"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-normal text-forest">
+                Invitar Paciente
+              </h3>
+              <button
+                onClick={() => setShowReferralModal(false)}
+                className="text-sage/60 hover:text-forest transition"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <p className="text-sage/70 mb-4">
+              Comparte este enlace con tus pacientes para que se unan directamente a tu consulta:
+            </p>
+
+            <div className="bg-sage/5 rounded-2xl p-4 mb-4 border border-sage/20">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs text-sage/70 font-semibold uppercase tracking-wider">
+                  Enlace de invitación
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={referralUrl}
+                  className="flex-1 bg-white border border-sage/20 rounded-xl px-4 py-2 text-sm text-forest"
+                  onClick={(e) => (e.target as HTMLInputElement).select()}
+                />
+                <button
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(referralUrl);
+                      toast.success('Enlace copiado al portapapeles');
+                    } catch (error) {
+                      toast.error('Error al copiar el enlace');
+                    }
+                  }}
+                  className="px-4 py-2 bg-sage text-white rounded-xl hover:bg-sage/90 transition text-sm font-medium"
+                >
+                  Copiar
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-sage/5 rounded-2xl p-4 mb-4 border border-sage/20">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs text-sage/70 font-semibold uppercase tracking-wider">
+                  Código de referencia
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={referralCode}
+                  className="flex-1 bg-white border border-sage/20 rounded-xl px-4 py-2 text-sm text-forest font-mono"
+                  onClick={(e) => (e.target as HTMLInputElement).select()}
+                />
+                <button
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(referralCode);
+                      toast.success('Código copiado al portapapeles');
+                    } catch (error) {
+                      toast.error('Error al copiar el código');
+                    }
+                  }}
+                  className="px-4 py-2 bg-sage text-white rounded-xl hover:bg-sage/90 transition text-sm font-medium"
+                >
+                  Copiar
+                </button>
+              </div>
+            </div>
+
+            <p className="text-xs text-sage/60 mb-4">
+              Los pacientes que usen este enlace o código se unirán automáticamente a tu consulta como pacientes asignados.
+            </p>
+
+            <button
+              onClick={() => setShowReferralModal(false)}
+              className="w-full px-4 py-2 rounded-full border border-sage/30 text-sm text-sage hover:bg-sage hover:text-white transition"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

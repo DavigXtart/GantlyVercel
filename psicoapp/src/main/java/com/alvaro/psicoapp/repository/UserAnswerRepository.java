@@ -12,4 +12,5 @@ public interface UserAnswerRepository extends JpaRepository<UserAnswerEntity, Lo
 	List<UserAnswerEntity> findByQuestion(QuestionEntity question);
 	List<UserAnswerEntity> findByUserOrderByCreatedAtDesc(UserEntity user);
 	List<UserAnswerEntity> findBySession(TemporarySessionEntity session);
+    long deleteByUser_Id(Long userId);
 }

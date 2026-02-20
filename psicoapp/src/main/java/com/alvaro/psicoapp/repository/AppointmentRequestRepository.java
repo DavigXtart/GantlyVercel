@@ -14,6 +14,7 @@ public interface AppointmentRequestRepository extends JpaRepository<AppointmentR
     List<AppointmentRequestEntity> findByAppointment_Id(Long appointmentId);
     List<AppointmentRequestEntity> findByAppointment_IdAndStatus(Long appointmentId, String status);
     List<AppointmentRequestEntity> findByUser_IdOrderByRequestedAtDesc(Long userId);
+    long deleteByUser_Id(Long userId);
     
     @Query("SELECT ar FROM AppointmentRequestEntity ar WHERE ar.appointment.id = :appointmentId AND ar.user.id = :userId")
     Optional<AppointmentRequestEntity> findByAppointment_IdAndUser_Id(@Param("appointmentId") Long appointmentId, @Param("userId") Long userId);

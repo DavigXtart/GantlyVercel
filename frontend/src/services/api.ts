@@ -27,33 +27,136 @@ api.interceptors.request.use(config => {
   return config;
 });
 
-// Interceptor para manejar errores de respuesta
+// Interceptor para manejar errores de respuesta y refresh token
+let isRefreshing = false;
+let failedQueue: Array<{ resolve: (value?: any) => void; reject: (reason?: any) => void }> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 api.interceptors.response.use(
   response => response,
-  error => {
+  async error => {
+    const originalRequest = error.config;
+
     // Manejar errores comunes sin depender de toast (evitar importación circular)
     if (error.code === 'ECONNREFUSED' || error.message.includes('Network Error')) {
       console.error('❌ Error de conexión: El backend no está disponible en http://localhost:8080');
       error.message = 'No se pudo conectar al servidor. Verifica que el backend esté corriendo.';
-    } else if (error.response?.status === 401) {
-      console.warn('Sesión expirada');
-      localStorage.removeItem('token');
-      // No recargar automáticamente, dejar que el componente maneje esto
+      return Promise.reject(error);
     }
+
+    // Si es 401 y tenemos refresh token, intentar refrescar
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      const refreshToken = localStorage.getItem('refreshToken');
+      
+      if (refreshToken && !isRefreshing) {
+        isRefreshing = true;
+        originalRequest._retry = true;
+
+        try {
+          const { data } = await axios.post(`${API_URL}/auth/refresh`, { refreshToken });
+          const newToken = data.accessToken || data.token;
+          
+          if (newToken) {
+            localStorage.setItem('token', newToken);
+            if (data.refreshToken) {
+              localStorage.setItem('refreshToken', data.refreshToken);
+            }
+            
+            // Actualizar header de la request original
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            
+            // Procesar cola de requests fallidos
+            processQueue(null, newToken);
+            
+            // Reintentar request original
+            return api(originalRequest);
+          }
+        } catch (refreshError) {
+          // Refresh falló, limpiar tokens y procesar cola con error
+          localStorage.removeItem('token');
+          localStorage.removeItem('refreshToken');
+          processQueue(refreshError);
+          console.warn('Sesión expirada - refresh token inválido');
+          return Promise.reject(refreshError);
+        } finally {
+          isRefreshing = false;
+        }
+      } else if (refreshToken && isRefreshing) {
+        // Ya hay un refresh en curso, encolar esta request
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(token => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch(err => {
+            return Promise.reject(err);
+          });
+      } else {
+        // No hay refresh token, limpiar y rechazar
+        console.warn('Sesión expirada');
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+      }
+    }
+
     return Promise.reject(error);
   }
 );
 
 export const authService = {
-  register: async (name: string, email: string, password: string, sessionId?: string, role?: string) => {
-    const { data } = await api.post<{ token: string }>('/auth/register', { name, email, password, sessionId, role });
-    localStorage.setItem('token', data.token);
-    return data.token;
+  register: async (
+    name: string,
+    email: string,
+    password: string,
+    sessionId?: string,
+    role?: string,
+    companyReferralCode?: string,
+    psychologistReferralCode?: string,
+    birthDate?: string
+  ) => {
+    const { data } = await api.post<{ token?: string; accessToken?: string; refreshToken?: string; expiresIn?: number }>('/auth/register', {
+      name,
+      email,
+      password,
+      sessionId,
+      role,
+      companyReferralCode,
+      psychologistReferralCode,
+      birthDate: birthDate || undefined
+    });
+    // Compatibilidad: usar accessToken si existe, sino token (legacy)
+    const token = data.accessToken || data.token;
+    if (token) {
+      localStorage.setItem('token', token);
+      if (data.refreshToken) {
+        localStorage.setItem('refreshToken', data.refreshToken);
+      }
+    }
+    return token || '';
   },
   login: async (email: string, password: string) => {
-    const { data } = await api.post<{ token: string }>('/auth/login', { email, password });
-    localStorage.setItem('token', data.token);
-    return data.token;
+    const { data } = await api.post<{ token?: string; accessToken?: string; refreshToken?: string; expiresIn?: number }>('/auth/login', { email, password });
+    // Compatibilidad: usar accessToken si existe, sino token (legacy)
+    const token = data.accessToken || data.token;
+    if (token) {
+      localStorage.setItem('token', token);
+      if (data.refreshToken) {
+        localStorage.setItem('refreshToken', data.refreshToken);
+      }
+    }
+    return token || '';
   },
   me: async () => {
     const { data } = await api.get('/auth/me');
@@ -78,6 +181,46 @@ export const authService = {
   getOAuth2LoginUrl: (provider: 'google' = 'google') => {
     return `${API_BASE_URL}/oauth2/authorization/${provider}`;
   },
+};
+
+export const companyAuthService = {
+  register: async (name: string, email: string, password: string) => {
+    const { data } = await api.post<{ token?: string; accessToken?: string; refreshToken?: string }>('/auth/company/register', { name, email, password });
+    const token = data.accessToken || data.token;
+    if (token) {
+      localStorage.setItem('token', token);
+      if (data.refreshToken) {
+        localStorage.setItem('refreshToken', data.refreshToken);
+      }
+    }
+    return token || '';
+  },
+  login: async (email: string, password: string) => {
+    const { data } = await api.post<{ token?: string; accessToken?: string; refreshToken?: string }>('/auth/company/login', { email, password });
+    const token = data.accessToken || data.token;
+    if (token) {
+      localStorage.setItem('token', token);
+      if (data.refreshToken) {
+        localStorage.setItem('refreshToken', data.refreshToken);
+      }
+    }
+    return token || '';
+  }
+};
+
+export const companyService = {
+  getMe: async () => {
+    const { data } = await api.get('/company/me');
+    return data as { name: string; email: string; referralCode: string };
+  },
+  getPsychologists: async () => {
+    const { data } = await api.get('/company/psychologists');
+    return data as Array<{ id: number; name: string; email: string; referralCode: string; averageRating: number | null; totalRatings: number; activePatients: number; upcomingAppointments: number }>;
+  },
+  getPsychologistDetail: async (psychologistId: number) => {
+    const { data } = await api.get(`/company/psychologists/${psychologistId}`);
+    return data;
+  }
 };
 
 type SubmitAnswerPayload = { questionId: number; answerId?: number; numericValue?: number; textValue?: string };
@@ -317,10 +460,10 @@ export const adminService = {
 export const profileService = {
   me: async () => {
     const { data } = await api.get('/profile');
-    const user = data as { id: number; name: string; email: string; role: string; avatarUrl?: string | null; darkMode?: boolean; gender?: string; age?: number; createdAt?: string };
+    const user = data as { id: number; name: string; email: string; role: string; avatarUrl?: string | null; darkMode?: boolean; gender?: string; age?: number; birthDate?: string; createdAt?: string };
     return { ...user, avatarUrl: resolveAssetUrl(user.avatarUrl) };
   },
-  update: async (updates: { name?: string; darkMode?: boolean; gender?: string | null; age?: number | null }) => {
+  update: async (updates: { name?: string; darkMode?: boolean; gender?: string | null; age?: number | null; birthDate?: string | null }) => {
     await api.put('/profile', updates);
   },
   uploadAvatar: async (file: File) => {
@@ -345,6 +488,10 @@ export const profileService = {
       profile.avatarUrl = resolveAssetUrl(profile.avatarUrl) ?? undefined;
     }
     return profile;
+  },
+  useReferralCode: async (referralCode: string) => {
+    const { data } = await api.post('/profile/use-referral-code', { referralCode });
+    return data as { success: boolean; message: string };
   }
 };
 
@@ -495,7 +642,21 @@ export const calendarService = {
 export const psychService = {
   patients: async () => {
     const { data } = await api.get('/psych/patients');
-    const list = data as Array<{ id: number; name: string; email: string; avatarUrl?: string | null; gender?: string; age?: number; status?: string; assignedAt?: string }>;
+    const list = data as Array<{
+      id: number;
+      name: string;
+      email: string;
+      avatarUrl?: string | null;
+      gender?: string;
+      age?: number;
+      birthDate?: string | null;
+      isMinor?: boolean;
+      consentStatus?: string;
+      latestConsentId?: number | null;
+      status?: string;
+      assignedAt?: string;
+      lastVisit?: string | null;
+    }>;
     return list.map((patient) => ({
       ...patient,
       avatarUrl: resolveAssetUrl(patient.avatarUrl) ?? undefined,
@@ -535,6 +696,30 @@ export const psychService = {
   updatePatientStatus: async (patientId: number, status: 'ACTIVE' | 'DISCHARGED') => {
     const { data } = await api.put(`/psych/patients/${patientId}/status`, { status });
     return data;
+  },
+  getReferralUrl: async () => {
+    const { data } = await api.get('/psych/referral-url');
+    return data as { referralCode: string; fullUrl: string };
+  }
+};
+
+// Consentimientos (menores)
+export const consentService = {
+  listDocumentTypes: async () => {
+    const { data } = await api.get('/consent/document-types');
+    return data as Array<{ id: number; code: string; title: string; active: boolean }>;
+  },
+  sendConsent: async (userId: number, documentTypeId: number, place?: string) => {
+    const { data } = await api.post('/consent/requests', { userId, documentTypeId, place });
+    return data as any;
+  },
+  myPending: async () => {
+    const { data } = await api.get('/consent/requests/me');
+    return data as Array<any>;
+  },
+  sign: async (consentId: number, signerName: string) => {
+    const { data } = await api.post(`/consent/requests/${consentId}/sign`, { signerName });
+    return data as any;
   }
 };
 

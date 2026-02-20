@@ -1,6 +1,7 @@
 package com.alvaro.psicoapp.dto;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 /**
  * DTOs para perfil de usuario.
@@ -19,6 +20,7 @@ public final class UserProfileDtos {
             Boolean darkMode,
             String gender,
             Integer age,
+            LocalDate birthDate,
             Instant createdAt
     ) {}
 
@@ -33,6 +35,12 @@ public final class UserProfileDtos {
 
     /** Respuesta de selección exitosa */
     public record SelectPsychologistResponse(Boolean success, String message) {}
+
+    /** Request para usar código de referencia de psicólogo */
+    public record UseReferralCodeRequest(String referralCode) {}
+
+    /** Respuesta de uso de código de referencia */
+    public record UseReferralCodeResponse(Boolean success, String message) {}
 
     /** Perfil completo del psicólogo (para ver detalles) */
     public record PsychologistProfileDetailDto(
@@ -55,7 +63,7 @@ public final class UserProfileDtos {
     ) {}
 
     /** Request para actualizar perfil de usuario */
-    public record UpdateProfileRequest(String name, Boolean darkMode, String gender, Integer age) {}
+    public record UpdateProfileRequest(String name, Boolean darkMode, String gender, Integer age, LocalDate birthDate) {}
 
     /** Respuesta de subida de avatar */
     public record AvatarResponse(String avatarUrl) {}

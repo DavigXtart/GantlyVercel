@@ -7,13 +7,16 @@ interface RegisterProps {
   onRegister: () => void;
   onSwitchToLogin: () => void;
   sessionId?: string | null;
+  /** Slug del psicólogo (ej: juan-garcia) - si viene por enlace, el usuario se asigna como paciente suyo */
+  psychologistReferralCode?: string;
 }
 
-export default function Register({ onRegister, onSwitchToLogin, sessionId }: RegisterProps) {
+export default function Register({ onRegister, onSwitchToLogin, sessionId, psychologistReferralCode }: RegisterProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string }>({});
+  const [birthDate, setBirthDate] = useState('');
+  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; birthDate?: string }>({});
   const [loading, setLoading] = useState(false);
 
   const validateName = (name: string): string | undefined => {
@@ -49,7 +52,16 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId }: Reg
     setLoading(true);
 
     try {
-      await authService.register(name, email, password, sessionId || undefined);
+      await authService.register(
+        name,
+        email,
+        password,
+        sessionId || undefined,
+        'USER',
+        undefined,
+        psychologistReferralCode || undefined,
+        birthDate.trim() || undefined
+      );
       toast.success('Registro exitoso. Bienvenido!');
       onRegister();
     } catch (err: any) {
@@ -118,6 +130,18 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId }: Reg
           }}>
             Comienza tu camino
           </h1>
+          {psychologistReferralCode && (
+            <div style={{
+              padding: '12px 16px',
+              background: 'rgba(90, 146, 112, 0.15)',
+              borderRadius: '12px',
+              fontSize: '15px',
+              color: '#3a5a4a',
+              marginBottom: '12px',
+            }}>
+              Serás asignado directamente a tu psicólogo tras registrarte.
+            </div>
+          )}
           <p style={{ 
             margin: 0, 
             fontSize: '17px', 
@@ -280,6 +304,20 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId }: Reg
               required
               placeholder="Mínimo 6 caracteres"
               ariaLabel="Contraseña"
+            />
+
+            <FormField
+              label="Fecha de nacimiento"
+              name="birthDate"
+              type="date"
+              value={birthDate}
+              onChange={(e) => {
+                setBirthDate(e.target.value);
+                if (errors.birthDate) setErrors({ ...errors, birthDate: undefined });
+              }}
+              error={errors.birthDate}
+              placeholder=""
+              ariaLabel="Fecha de nacimiento"
             />
 
             <button

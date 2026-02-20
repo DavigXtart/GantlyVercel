@@ -15,5 +15,6 @@ public interface AssignedTestRepository extends JpaRepository<AssignedTestEntity
     List<AssignedTestEntity> findByPsychologist_IdOrderByAssignedAtDesc(Long psychologistId);
     List<AssignedTestEntity> findByUser_IdAndCompletedAtIsNullOrderByAssignedAtDesc(Long userId);
     Optional<AssignedTestEntity> findByUserAndTest(UserEntity user, TestEntity test);
+    long deleteByUser_Id(Long userId);
 }
 

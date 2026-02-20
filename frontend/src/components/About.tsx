@@ -8,7 +8,7 @@ interface AboutProps {
 
 export default function About({ onBack, onLogin, onGetStarted }: AboutProps) {
   return (
-    <div style={{ minHeight: '100vh', background: '#f5f7f6', color: '#1a2e22' }}>
+    <div className="gantly-font" style={{ minHeight: '100vh', background: '#f5f7f6', color: '#1a2e22' }}>
       <nav
         style={{
           position: 'sticky',
@@ -107,7 +107,7 @@ export default function About({ onBack, onLogin, onGetStarted }: AboutProps) {
         </div>
       </nav>
 
-      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '100px 24px 80px', display: 'flex', flexDirection: 'column', gap: '80px' }}>
+      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '100px 24px 80px', display: 'flex', flexDirection: 'column', gap: '80px', color: '#18382e' }}>
         <section style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 350px) 1fr', gap: '60px', alignItems: 'center' }}>
           <div
             style={{
@@ -150,26 +150,23 @@ export default function About({ onBack, onLogin, onGetStarted }: AboutProps) {
               color: '#5a9270',
               textTransform: 'uppercase',
               fontWeight: 600,
-              fontFamily: "'Inter', sans-serif",
             }}>
               Visión ejecutiva del bienestar mental
             </span>
             <h1 style={{
-              fontSize: 'clamp(36px, 5vw, 52px)',
-              fontWeight: 700,
+              fontSize: 'clamp(40px, 6vw, 64px)',
+              fontWeight: 400,
               letterSpacing: '-0.02em',
-              lineHeight: 1.2,
+              lineHeight: 0.9,
               margin: 0,
-              color: '#1a2e22',
-              fontFamily: "'Inter', sans-serif",
+              color: '#18382e',
             }}>
               Psicología estratégica para profesionales y organizaciones
             </h1>
             <p style={{
               fontSize: '18px',
               lineHeight: 1.7,
-              color: '#3a5a4a',
-              fontFamily: "'Inter', sans-serif",
+              color: 'rgba(24, 56, 46, 0.8)',
             }}>
               Álvaro combina formación académica en psicología con experiencia en evaluación psicoemocional orientada a resultados. Su enfoque integra
               herramientas clínicas y metodologías de acompañamiento ejecutivo para ofrecer un servicio confidencial, medible y adaptado a cada etapa

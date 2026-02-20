@@ -19,6 +19,8 @@ public class TestResultService {
 	private final FactorRepository factorRepository;
 	private final QuestionRepository questionRepository;
 	private final AnswerRepository answerRepository;
+	private final UserPsychologistRepository userPsychologistRepository;
+	private final AuditService auditService;
 
 	public TestResultService(
 			UserAnswerRepository userAnswerRepository,
@@ -29,7 +31,9 @@ public class TestResultService {
 			SubfactorRepository subfactorRepository,
 			FactorRepository factorRepository,
 			QuestionRepository questionRepository,
-			AnswerRepository answerRepository) {
+			AnswerRepository answerRepository,
+			UserPsychologistRepository userPsychologistRepository,
+			AuditService auditService) {
 		this.userAnswerRepository = userAnswerRepository;
 		this.userRepository = userRepository;
 		this.testRepository = testRepository;
@@ -39,6 +43,8 @@ public class TestResultService {
 		this.factorRepository = factorRepository;
 		this.questionRepository = questionRepository;
 		this.answerRepository = answerRepository;
+		this.userPsychologistRepository = userPsychologistRepository;
+		this.auditService = auditService;
 	}
 
 	/**
@@ -271,7 +277,30 @@ public class TestResultService {
 	}
 
 	@Transactional(readOnly = true)
-	public TestResultDtos.UserTestResultsResponse getUserTestResults(Long userId, Long testId) {
+	public TestResultDtos.UserTestResultsResponse getUserTestResults(UserEntity requester, Long userId, Long testId) {
+		// VALIDACIÓN CRÍTICA RGPD: Solo el psicólogo asignado puede ver resultados de pacientes
+		// Ni siquiera el admin puede ver estos datos
+		if (!RoleConstants.PSYCHOLOGIST.equals(requester.getRole())) {
+			auditService.logUnauthorizedAccess(requester.getId(), requester.getRole(), userId, "TEST_RESULTS", "Requester is not a psychologist");
+			throw new org.springframework.web.server.ResponseStatusException(
+				org.springframework.http.HttpStatus.FORBIDDEN, 
+				"Solo psicólogos pueden ver resultados de pacientes"
+			);
+		}
+		
+		// Verificar que el paciente pertenece a este psicólogo
+		var rel = userPsychologistRepository.findByUserId(userId);
+		if (rel.isEmpty() || !rel.get().getPsychologist().getId().equals(requester.getId())) {
+			auditService.logUnauthorizedAccess(requester.getId(), requester.getRole(), userId, "TEST_RESULTS", "Patient not assigned to psychologist");
+			throw new org.springframework.web.server.ResponseStatusException(
+				org.springframework.http.HttpStatus.FORBIDDEN,
+				"Este usuario no es tu paciente"
+			);
+		}
+		
+		// Auditoría RGPD: registrar acceso a resultados de test
+		auditService.logPatientDataAccess(requester.getId(), userId, "TEST_RESULTS", "READ");
+		
 		UserEntity user = userRepository.findById(userId).orElseThrow();
 		TestEntity test = testRepository.findById(testId).orElseThrow();
 		List<TestResultEntity> subfactorResults = testResultRepository.findByUserAndTest(user, test);

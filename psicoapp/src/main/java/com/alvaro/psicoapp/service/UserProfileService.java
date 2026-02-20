@@ -17,6 +17,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 @Service
@@ -44,6 +46,7 @@ public class UserProfileService {
                 user.getDarkMode(),
                 user.getGender(),
                 user.getAge(),
+                user.getBirthDate(),
                 user.getCreatedAt()
         );
     }
@@ -80,6 +83,32 @@ public class UserProfileService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo crear la relación");
         }
         return new UserProfileDtos.SelectPsychologistResponse(true, "Psicólogo seleccionado correctamente");
+    }
+
+    @Transactional
+    public UserProfileDtos.UseReferralCodeResponse useReferralCode(UserEntity user, UserProfileDtos.UseReferralCodeRequest req) {
+        var existingRel = userPsychologistRepository.findByUserId(user.getId());
+        if (existingRel.isPresent()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ya tienes un psicólogo asignado");
+        }
+        String referralCode = req.referralCode();
+        if (referralCode == null || referralCode.trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se proporcionó el código de referencia");
+        }
+        String code = referralCode.trim().toLowerCase().replaceAll("[^a-z0-9-]", "");
+        UserEntity psychologist = userRepository.findByReferralCode(code)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código de referencia no válido"));
+        if (!RoleConstants.PSYCHOLOGIST.equals(psychologist.getRole())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El código de referencia no pertenece a un psicólogo");
+        }
+        if (user.getId() == null || psychologist.getId() == null) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "IDs inválidos");
+        }
+        int rowsAffected = userPsychologistRepository.insertRelation(user.getId(), psychologist.getId());
+        if (rowsAffected == 0) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo crear la relación");
+        }
+        return new UserProfileDtos.UseReferralCodeResponse(true, "Te has unido correctamente a la consulta de " + psychologist.getName());
     }
 
     @Transactional(readOnly = true)
@@ -134,6 +163,10 @@ public class UserProfileService {
         if (req.darkMode() != null) user.setDarkMode(req.darkMode());
         if (req.gender() != null) user.setGender(req.gender());
         if (req.age() != null) user.setAge(req.age());
+        if (req.birthDate() != null) {
+            user.setBirthDate(req.birthDate());
+            user.setAge((int) ChronoUnit.YEARS.between(req.birthDate(), LocalDate.now()));
+        }
         userRepository.save(user);
     }
 

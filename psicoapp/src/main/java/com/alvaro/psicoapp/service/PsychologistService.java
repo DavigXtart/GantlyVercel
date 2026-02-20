@@ -6,46 +6,66 @@ import com.alvaro.psicoapp.domain.UserAnswerEntity;
 import com.alvaro.psicoapp.domain.UserEntity;
 import com.alvaro.psicoapp.dto.PsychologistDtos;
 import com.alvaro.psicoapp.repository.*;
-import org.springframework.cache.annotation.Cacheable;
+import com.alvaro.psicoapp.util.ReferralCodeUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.Instant;
 import java.util.*;
 
 @Service
 public class PsychologistService {
+    @Value("${app.base.url:http://localhost:5173}")
+    private String appBaseUrl;
+
     private final UserRepository userRepository;
     private final UserPsychologistRepository userPsychologistRepository;
     private final UserAnswerRepository userAnswerRepository;
     private final TestRepository testRepository;
     private final PsychologistProfileRepository psychologistProfileRepository;
     private final AppointmentRepository appointmentRepository;
+    private final AuditService auditService;
+    private final ConsentService consentService;
 
     public PsychologistService(UserRepository userRepository, UserPsychologistRepository userPsychologistRepository,
                                UserAnswerRepository userAnswerRepository, TestRepository testRepository,
                                PsychologistProfileRepository psychologistProfileRepository,
-                               AppointmentRepository appointmentRepository) {
+                               AppointmentRepository appointmentRepository,
+                               AuditService auditService,
+                               ConsentService consentService) {
         this.userRepository = userRepository;
         this.userPsychologistRepository = userPsychologistRepository;
         this.userAnswerRepository = userAnswerRepository;
         this.testRepository = testRepository;
         this.psychologistProfileRepository = psychologistProfileRepository;
         this.appointmentRepository = appointmentRepository;
+        this.auditService = auditService;
+        this.consentService = consentService;
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "psychologistPatients", key = "#psychologist.email")
     public List<PsychologistDtos.PatientSummaryDto> getPatients(UserEntity psychologist) {
         requirePsychologist(psychologist);
         var rels = userPsychologistRepository.findByPsychologist_Id(psychologist.getId());
         Instant now = Instant.now();
         List<PsychologistDtos.PatientSummaryDto> out = new ArrayList<>();
+        List<Long> patientIds = new ArrayList<>();
+        Map<Long, Boolean> minorMap = new HashMap<>();
+        for (var r : rels) {
+            Long pid = r.getUser().getId();
+            patientIds.add(pid);
+            minorMap.put(pid, consentService.isMinor(r.getUser()));
+        }
+        var consentStatusMap = consentService.statusForPatients(psychologist, patientIds, minorMap);
+
         for (var r : rels) {
             var lastAppts = appointmentRepository.findLastCompletedAppointment(psychologist.getId(), r.getUser().getId(), now);
             Instant lastVisit = lastAppts.isEmpty() ? null : lastAppts.get(0).getEndTime();
+            var cs = consentStatusMap.get(r.getUser().getId());
             out.add(new PsychologistDtos.PatientSummaryDto(
                     r.getUser().getId(),
                     r.getUser().getName(),
@@ -53,6 +73,10 @@ public class PsychologistService {
                     r.getUser().getAvatarUrl() != null ? r.getUser().getAvatarUrl() : "",
                     r.getUser().getGender(),
                     r.getUser().getAge(),
+                    r.getUser().getBirthDate(),
+                    cs != null ? cs.isMinor() : consentService.isMinor(r.getUser()),
+                    cs != null ? cs.consentStatus() : "NONE",
+                    cs != null ? cs.latestConsentId() : null,
                     r.getStatus() != null ? r.getStatus() : "ACTIVE",
                     r.getAssignedAt(),
                     lastVisit
@@ -65,6 +89,9 @@ public class PsychologistService {
     public PsychologistDtos.PatientDetailDto getPatientDetails(UserEntity psychologist, Long patientId) {
         requirePsychologist(psychologist);
         requirePatientOf(psychologist.getId(), patientId);
+        
+        // Auditoría RGPD: registrar acceso a datos de paciente
+        auditService.logPatientDataAccess(psychologist.getId(), patientId, "PATIENT_DETAILS", "READ");
 
         var patient = userRepository.findById(patientId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         var allAnswers = userAnswerRepository.findByUserOrderByCreatedAtDesc(patient);
@@ -85,6 +112,7 @@ public class PsychologistService {
                 patient.getCreatedAt(),
                 patient.getGender(),
                 patient.getAge(),
+                patient.getBirthDate(),
                 patient.getAvatarUrl(),
                 new ArrayList<>(testsMap.values())
         );
@@ -94,6 +122,9 @@ public class PsychologistService {
     public PsychologistDtos.PatientTestAnswersDto getPatientTestAnswers(UserEntity psychologist, Long patientId, Long testId) {
         requirePsychologist(psychologist);
         requirePatientOf(psychologist.getId(), patientId);
+        
+        // Auditoría RGPD: registrar acceso a respuestas de test
+        auditService.logPatientDataAccess(psychologist.getId(), patientId, "TEST_ANSWERS", "READ");
 
         var patient = userRepository.findById(patientId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         var test = testRepository.findById(testId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -186,6 +217,38 @@ public class PsychologistService {
         rel.setStatus(req.status());
         userPsychologistRepository.save(rel);
         return new PsychologistDtos.UpdatePatientStatusResponse("Status del paciente actualizado exitosamente", rel.getStatus());
+    }
+
+    @Transactional
+    public PsychologistDtos.ReferralUrlResponse getReferralUrl(UserEntity psychologist) {
+        requirePsychologist(psychologist);
+        String code = psychologist.getReferralCode();
+        
+        // Si no tiene código de referencia, generarlo automáticamente
+        if (code == null || code.isEmpty()) {
+            String sanitizedName = psychologist.getName() != null ? psychologist.getName().trim() : "";
+            if (sanitizedName.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se puede generar un código de referencia sin nombre. Actualiza tu perfil primero.");
+            }
+            String slug = ReferralCodeUtil.nameToSlug(sanitizedName);
+            code = ensureUniqueReferralCode(slug);
+            psychologist.setReferralCode(code);
+            userRepository.save(psychologist);
+        }
+        
+        String base = appBaseUrl.replaceAll("/$", "");
+        String fullUrl = base + "/register?referral=" + code;
+        return new PsychologistDtos.ReferralUrlResponse(code, fullUrl);
+    }
+
+    private String ensureUniqueReferralCode(String base) {
+        String slug = base;
+        int suffix = 0;
+        while (userRepository.findByReferralCode(slug).isPresent()) {
+            suffix++;
+            slug = base + "-" + suffix;
+        }
+        return slug;
     }
 
     private void requirePsychologist(UserEntity user) {

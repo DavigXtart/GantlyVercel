@@ -98,13 +98,10 @@ export default function FormField({
             fontSize: '13px',
             color: '#ef4444',
             fontFamily: "'Inter', sans-serif",
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px'
+            display: 'block'
           }}
         >
-          <span>⚠️</span>
-          <span>{error}</span>
+          {error}
         </div>
       )}
     </div>

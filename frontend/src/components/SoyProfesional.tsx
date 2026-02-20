@@ -10,11 +10,12 @@ interface SoyProfesionalProps {
   onBack: () => void;
   onLogin: () => void;
   onGetStarted: () => void;
+  onRegisterCompany?: () => void;
 }
 
-export default function SoyProfesional({ onBack, onLogin, onGetStarted }: SoyProfesionalProps) {
+export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegisterCompany }: SoyProfesionalProps) {
   return (
-    <div style={{ overflowX: 'hidden', background: '#f5f7f6', minHeight: '100vh' }}>
+    <div className="gantly-font" style={{ overflowX: 'hidden', background: '#f5f7f6', minHeight: '100vh' }}>
       <style>{`
         .fade-in {
           opacity: 0;
@@ -129,63 +130,83 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted }: SoyPro
           {/* Left Side - Text */}
           <div>
             <div style={{
-              fontSize: '14px',
+              fontSize: '13px',
               fontWeight: 600,
               color: '#5a9270',
               textTransform: 'uppercase',
-              letterSpacing: '0.1em',
+              letterSpacing: '0.12em',
               marginBottom: '16px',
-              fontFamily: "'Inter', sans-serif",
             }}>
               Para profesionales
             </div>
             <h1 style={{
-              fontSize: 'clamp(36px, 5vw, 56px)',
-              fontWeight: 700,
-              color: '#1a2e22',
-              lineHeight: 1.2,
+              fontSize: 'clamp(40px, 6vw, 64px)',
+              fontWeight: 400,
+              color: '#18382e',
+              lineHeight: 0.9,
               marginBottom: '24px',
-              fontFamily: "'Nunito', sans-serif",
             }}>
               ¿Quieres ser psicólogo online con Gantly?
             </h1>
             <p style={{
               fontSize: '18px',
               lineHeight: 1.7,
-              color: '#3a5a4a',
+              color: 'rgba(24, 56, 46, 0.8)',
               marginBottom: '32px',
-              fontFamily: "'Inter', sans-serif",
             }}>
               Enriquece tu práctica sanitaria dedicándote a lo más importante, nosotros nos encargamos del resto. Con Gantly podrás ofrecer terapia online de forma fácil, segura y confidencial.
             </p>
-            <button
-              onClick={onGetStarted}
-              style={{
-                padding: '16px 32px',
-                fontSize: '16px',
-                fontWeight: 600,
-                background: '#5a9270',
-                color: 'white',
-                border: 'none',
-                borderRadius: '28px',
-                cursor: 'pointer',
-                boxShadow: '0 4px 16px rgba(90, 146, 112, 0.3)',
-                transition: 'all 0.3s',
-                fontFamily: "'Inter', sans-serif",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#4a8062';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(90, 146, 112, 0.4)';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#5a9270';
-                e.currentTarget.style.boxShadow = '0 4px 16px rgba(90, 146, 112, 0.3)';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
-            >
-              Comenzar registro
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-start' }}>
+              <button
+                onClick={onGetStarted}
+                style={{
+                  padding: '16px 32px',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  background: '#5a9270',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '28px',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 16px rgba(90, 146, 112, 0.3)',
+                  transition: 'all 0.3s',
+                  fontFamily: "'Inter', sans-serif",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#4a8062';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(90, 146, 112, 0.4)';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#5a9270';
+                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(90, 146, 112, 0.3)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                Registrarme como psicólogo
+              </button>
+              {onRegisterCompany && (
+                <button
+                  onClick={onRegisterCompany}
+                  style={{
+                    padding: '12px 24px',
+                    fontSize: '15px',
+                    fontWeight: 600,
+                    background: 'transparent',
+                    color: '#5a9270',
+                    border: '2px solid #5a9270',
+                    borderRadius: '24px',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s',
+                    fontFamily: "'Inter', sans-serif",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(90, 146, 112, 0.1)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  Soy empresa
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Right Side - Images Grid */}

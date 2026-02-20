@@ -1,12 +1,12 @@
 package com.alvaro.psicoapp.security;
 
+import org.springframework.core.env.Environment;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.authorization.AuthorizationDecision;
-import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -14,7 +14,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-import com.alvaro.psicoapp.security.RateLimitFilter;
+import com.alvaro.psicoapp.security.filter.JwtAuthFilter;
+import com.alvaro.psicoapp.security.filter.RateLimitFilter;
 
 @Configuration
 public class SecurityConfig {
@@ -25,13 +26,27 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter, RateLimitFilter rateLimitFilter,
-			OAuth2SuccessHandler oauth2SuccessHandler) throws Exception {
+			OAuth2SuccessHandler oauth2SuccessHandler, Environment env) throws Exception {
+        boolean isProd = java.util.Arrays.stream(env.getActiveProfiles()).anyMatch(p -> "prod".equalsIgnoreCase(p));
+
 		http
             .cors(Customizer.withDefaults())
 			.csrf(csrf -> csrf.disable())
 			.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
 			.oauth2Login(oauth2 -> oauth2.successHandler(oauth2SuccessHandler))
+            .requiresChannel(channel -> {
+                if (isProd) channel.anyRequest().requiresSecure();
+            })
+            .headers(headers -> {
+                if (isProd) {
+                    headers.httpStrictTransportSecurity(hsts -> hsts
+                        .includeSubDomains(true)
+                        .preload(true)
+                        .maxAgeInSeconds(31536000)
+                    );
+                }
+            })
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers("/api/auth/**").permitAll()
 				.requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
@@ -47,6 +62,7 @@ public class SecurityConfig {
 				.requestMatchers("/api/calendar/**").authenticated()
 				.requestMatchers("/api/psych/**").authenticated()
 				.requestMatchers("/api/chat/**").authenticated()
+				.requestMatchers("/api/consent/**").authenticated()
 				.requestMatchers("/api/results/**").authenticated()
 				.requestMatchers("/api/jitsi/**").authenticated()
 				.requestMatchers("/api/stripe/webhook").permitAll() // Webhook debe ser público
@@ -58,6 +74,11 @@ public class SecurityConfig {
                     var authn = authentication.get();
                     boolean isAdmin = authn != null && authn.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
                     return new AuthorizationDecision(isAdmin);
+                })
+				.requestMatchers("/api/company/**").access((authentication, context) -> {
+                    var authn = authentication.get();
+                    boolean isCompany = authn != null && authn.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_EMPRESA"));
+                    return new AuthorizationDecision(isCompany);
                 })
                 .requestMatchers("/error", "/favicon.ico").permitAll()
                 .anyRequest().authenticated()

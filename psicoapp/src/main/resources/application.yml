@@ -1,8 +1,11 @@
-﻿spring:
+spring:
   application:
     name: psicoapp
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
   servlet:
     multipart:
       enabled: true

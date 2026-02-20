@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { authService } from '../services/api';
+import { authService, companyAuthService } from '../services/api';
 import FormField from './ui/FormField';
 import { toast } from './ui/Toast';
 
@@ -9,12 +9,32 @@ interface LoginProps {
   onForgotPassword?: () => void;
   oauthError?: string | null;
   onClearOauthError?: () => void;
+  /** Variante visual/funcional del login */
+  variant?: 'user' | 'company';
+  /** Desde login usuario → navegar a login empresa */
+  onSwitchToCompanyLogin?: () => void;
+  /** Desde login empresa → volver a login usuario */
+  onSwitchToUserLogin?: () => void;
 }
 
-export default function Login({ onLogin, onSwitchToRegister, onForgotPassword, oauthError, onClearOauthError }: LoginProps) {
+export default function Login({
+  onLogin,
+  onSwitchToRegister,
+  onForgotPassword,
+  oauthError,
+  onClearOauthError,
+  variant = 'user',
+  onSwitchToCompanyLogin,
+  onSwitchToUserLogin,
+}: LoginProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  // En modo empresa forzado, siempre usamos login de empresa; en modo usuario se puede cambiar internamente
+  const isCompanyMode = variant === 'company';
+  const [internalIsCompanyLogin, setInternalIsCompanyLogin] = useState(false);
+  const isCompanyLogin = isCompanyMode ? true : internalIsCompanyLogin;
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [formError, setFormError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -38,6 +58,7 @@ export default function Login({ onLogin, onSwitchToRegister, onForgotPassword, o
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     const emailError = validateEmail(email);
     const passwordError = validatePassword(password);
     
@@ -50,13 +71,34 @@ export default function Login({ onLogin, onSwitchToRegister, onForgotPassword, o
     setLoading(true);
 
     try {
-      await authService.login(email, password);
+      if (isCompanyLogin) {
+        await companyAuthService.login(email, password);
+      } else {
+        await authService.login(email, password);
+      }
+      setFormError(null);
       toast.success('Sesión iniciada correctamente');
       onLogin();
     } catch (err: any) {
-      const errorMsg = err.response?.data?.message || 'Error al iniciar sesión';
-      toast.error(errorMsg);
-      setErrors({ email: errorMsg.includes('email') ? errorMsg : undefined });
+      const status = err.response?.status;
+      const backendMessage: string | undefined = err.response?.data?.message;
+      let friendlyMessage = backendMessage || 'Error al iniciar sesión';
+
+      // Mensaje claro para credenciales incorrectas
+      if (status === 401 || status === 403) {
+        friendlyMessage = 'Email o contraseña incorrectos';
+        // En el login de usuario, sugerir el acceso de empresa si corresponde
+        if (!isCompanyMode) {
+          friendlyMessage += '. Si eres una empresa, utiliza el acceso de empresas.';
+        }
+      }
+
+      toast.error(friendlyMessage);
+      setFormError(friendlyMessage);
+      setErrors({
+        email: friendlyMessage.toLowerCase().includes('email') ? friendlyMessage : undefined,
+        password: !friendlyMessage.toLowerCase().includes('email') ? friendlyMessage : undefined,
+      });
     } finally {
       setLoading(false);
     }
@@ -117,7 +159,7 @@ export default function Login({ onLogin, onSwitchToRegister, onForgotPassword, o
             fontFamily: "'Nunito', sans-serif",
             fontWeight: 700,
           }}>
-            Bienvenido de nuevo
+            {isCompanyMode ? 'Acceso empresas' : 'Bienvenido de nuevo'}
           </h1>
           <p style={{ 
             margin: 0, 
@@ -126,7 +168,9 @@ export default function Login({ onLogin, onSwitchToRegister, onForgotPassword, o
             color: '#3a5a4a',
             marginBottom: '8px',
           }}>
-            Conecta con tu espacio de bienestar emocional. Accede a tus evaluaciones, seguimiento personalizado y sesiones con profesionales de la psicología.
+            {isCompanyMode
+              ? 'Gestiona a tus psicólogos y el bienestar emocional de tu equipo desde un panel unificado y seguro.'
+              : 'Conecta con tu espacio de bienestar emocional. Accede a tus evaluaciones, seguimiento personalizado y sesiones con profesionales de la psicología.'}
           </p>
           <div style={{ 
             marginTop: '24px', 
@@ -221,53 +265,74 @@ export default function Login({ onLogin, onSwitchToRegister, onForgotPassword, o
             fontFamily: "'Nunito', sans-serif",
             fontWeight: 700,
           }}>
-            Iniciar sesión
+            {isCompanyMode ? 'Iniciar sesión como empresa' : 'Iniciar sesión'}
           </h2>
           <p style={{ 
             margin: '0 0 32px', 
             fontSize: '16px', 
             color: '#3a5a4a',
           }}>
-            Ingresa tus datos para acceder a tu espacio personal.
+            {isCompanyMode
+              ? 'Introduce las credenciales de tu cuenta de empresa para acceder al panel de Gantly.'
+              : 'Ingresa tus datos para acceder a tu espacio personal.'}
           </p>
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <a
-              href={authService.getOAuth2LoginUrl('google')}
+          {formError && (
+            <div
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '12px',
-                padding: '14px 24px',
-                borderRadius: '24px',
-                border: '1px solid rgba(90, 146, 112, 0.3)',
-                background: '#fff',
-                color: '#1a2e22',
-                fontSize: '16px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                textDecoration: 'none',
+                marginBottom: '24px',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                background: '#fee2e2',
+                border: '1px solid #ef4444',
+                color: '#991b1b',
+                fontSize: '14px',
                 fontFamily: "'Inter', sans-serif",
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#f8fbf7';
-                e.currentTarget.style.borderColor = '#5a9270';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#fff';
-                e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
               }}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-              Continuar con Google
-            </a>
+              {formError}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {!isCompanyMode && (
+              <a
+                href={authService.getOAuth2LoginUrl('google')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '12px',
+                  padding: '14px 24px',
+                  borderRadius: '24px',
+                  border: '1px solid rgba(90, 146, 112, 0.3)',
+                  background: '#fff',
+                  color: '#1a2e22',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  textDecoration: 'none',
+                  fontFamily: "'Inter', sans-serif",
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#f8fbf7';
+                  e.currentTarget.style.borderColor = '#5a9270';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#fff';
+                  e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Continuar con Google
+              </a>
+            )}
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{ flex: 1, height: '1px', background: 'rgba(90, 146, 112, 0.2)' }} />
               <span style={{ fontSize: '13px', color: '#3a5a4a' }}>o</span>
@@ -307,6 +372,52 @@ export default function Login({ onLogin, onSwitchToRegister, onForgotPassword, o
               ariaLabel="Contraseña"
             />
 
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+              {!isCompanyMode ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Navegar a pantalla de login de empresa
+                      onSwitchToCompanyLogin?.();
+                    }}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#5a9270',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      padding: 0,
+                      fontFamily: "'Inter', sans-serif",
+                      textDecoration: 'none',
+                    }}
+                  >
+                    Soy empresa
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSwitchToUserLogin?.();
+                  }}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#5a9270',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    padding: 0,
+                    fontFamily: "'Inter', sans-serif",
+                    textDecoration: 'none',
+                  }}
+                >
+                  Acceder como usuario
+                </button>
+              )}
+            </div>
             <div style={{ marginTop: '-8px', marginBottom: '8px' }}>
               <button
                 type="button"

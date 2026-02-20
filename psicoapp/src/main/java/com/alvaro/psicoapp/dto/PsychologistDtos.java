@@ -1,6 +1,9 @@
 package com.alvaro.psicoapp.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -18,6 +21,10 @@ public final class PsychologistDtos {
             String avatarUrl,
             String gender,
             Integer age,
+            LocalDate birthDate,
+            @JsonProperty("isMinor") Boolean isMinor,
+            String consentStatus,
+            Long latestConsentId,
             String status,
             Instant assignedAt,
             Instant lastVisit
@@ -54,6 +61,7 @@ public final class PsychologistDtos {
             Instant createdAt,
             String gender,
             Integer age,
+            LocalDate birthDate,
             String avatarUrl,
             List<TestWithAnswersDto> tests
     ) {}
@@ -116,4 +124,7 @@ public final class PsychologistDtos {
 
     /** Respuesta de actualización de status del paciente */
     public record UpdatePatientStatusResponse(String message, String status) {}
+
+    /** URL de registro para enviar a pacientes (con referral del psicólogo) */
+    public record ReferralUrlResponse(String referralCode, String fullUrl) {}
 }

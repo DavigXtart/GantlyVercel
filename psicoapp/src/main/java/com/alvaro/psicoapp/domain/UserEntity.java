@@ -2,6 +2,7 @@ package com.alvaro.psicoapp.domain;
 
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "users")
@@ -29,6 +30,9 @@ public class UserEntity {
 	private String gender;
 
 	private Integer age;
+
+	@Column(name = "birth_date")
+	private LocalDate birthDate;
 
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private Instant createdAt = Instant.now();
@@ -60,6 +64,12 @@ public class UserEntity {
 	@Column(name = "is_full")
 	private Boolean isFull = false;
 
+	@Column(name = "company_id")
+	private Long companyId; // Solo para PSYCHOLOGIST: empresa a la que pertenece
+
+	@Column(name = "referral_code", unique = true, length = 100)
+	private String referralCode; // Slug para psicólogos: "juan-garcia" (URL amigable)
+
 	public Long getId() { return id; }
 	public void setId(Long id) { this.id = id; }
 	public String getName() { return name; }
@@ -72,6 +82,8 @@ public class UserEntity {
 	public void setGender(String gender) { this.gender = gender; }
 	public Integer getAge() { return age; }
 	public void setAge(Integer age) { this.age = age; }
+	public LocalDate getBirthDate() { return birthDate; }
+	public void setBirthDate(LocalDate birthDate) { this.birthDate = birthDate; }
 	public Instant getCreatedAt() { return createdAt; }
 	public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 	public String getRole() { return role; }
@@ -96,4 +108,8 @@ public class UserEntity {
 	public void setOauth2Provider(String oauth2Provider) { this.oauth2Provider = oauth2Provider; }
 	public String getOauth2ProviderId() { return oauth2ProviderId; }
 	public void setOauth2ProviderId(String oauth2ProviderId) { this.oauth2ProviderId = oauth2ProviderId; }
+	public Long getCompanyId() { return companyId; }
+	public void setCompanyId(Long companyId) { this.companyId = companyId; }
+	public String getReferralCode() { return referralCode; }
+	public void setReferralCode(String referralCode) { this.referralCode = referralCode; }
 }

@@ -4,6 +4,12 @@ import com.alvaro.psicoapp.domain.DailyMoodEntryEntity;
 import com.alvaro.psicoapp.dto.DailyMoodDtos;
 import com.alvaro.psicoapp.service.CurrentUserService;
 import com.alvaro.psicoapp.service.DailyMoodService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +21,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/personal-agenda")
+@Tag(name = "Agenda Personal", description = "APIs para gestión del diario de estado de ánimo y estadísticas personales")
 public class PersonalAgendaController {
     private final DailyMoodService dailyMoodService;
     private final CurrentUserService currentUserService;
@@ -25,6 +32,11 @@ public class PersonalAgendaController {
     }
 
     @PostMapping("/entry")
+    @Operation(summary = "Guardar entrada de estado de ánimo", description = "Guarda o actualiza una entrada del diario de estado de ánimo")
+    @ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Entrada guardada exitosamente"),
+		@ApiResponse(responseCode = "400", description = "Datos inválidos")
+	})
     public ResponseEntity<?> saveEntry(Principal principal, @Valid @RequestBody DailyMoodDtos.SaveEntryRequest req) {
         try {
             var user = currentUserService.getCurrentUser(principal);
@@ -48,6 +60,11 @@ public class PersonalAgendaController {
     }
 
     @GetMapping("/entry/today")
+    @Operation(summary = "Obtener entrada de hoy", description = "Obtiene la entrada del diario de estado de ánimo del día actual")
+    @ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Entrada obtenida exitosamente"),
+		@ApiResponse(responseCode = "400", description = "Error al obtener la entrada")
+	})
     public ResponseEntity<?> getTodayEntry(Principal principal) {
         try {
             var user = currentUserService.getCurrentUser(principal);
@@ -59,6 +76,11 @@ public class PersonalAgendaController {
     }
 
     @GetMapping("/entries")
+    @Operation(summary = "Obtener todas las entradas", description = "Obtiene todas las entradas del diario de estado de ánimo del usuario")
+    @ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Entradas obtenidas exitosamente"),
+		@ApiResponse(responseCode = "400", description = "Error al obtener las entradas")
+	})
     public ResponseEntity<?> getUserEntries(Principal principal) {
         try {
             var user = currentUserService.getCurrentUser(principal);
@@ -70,6 +92,11 @@ public class PersonalAgendaController {
     }
 
     @GetMapping("/statistics")
+    @Operation(summary = "Obtener estadísticas", description = "Obtiene estadísticas del estado de ánimo del usuario en un período de días")
+    @ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Estadísticas obtenidas exitosamente"),
+		@ApiResponse(responseCode = "400", description = "Error al obtener estadísticas")
+	})
     public ResponseEntity<?> getStatistics(Principal principal, @RequestParam(defaultValue = "30") int days) {
         try {
             var user = currentUserService.getCurrentUser(principal);

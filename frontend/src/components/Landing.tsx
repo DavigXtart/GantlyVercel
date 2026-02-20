@@ -1,4 +1,4 @@
-import logoImage from '../assets/8e16ea61-e62c-4196-9aca-b95cf9b35322_removalai_preview.png';
+import logoImage from '../assets/7442f63c-5cbb-4d4f-bef4-7209cc3f4880_removalai_preview.png';
 import testInicialImage from '../assets/Gemini_Generated_Image_2xvx8k2xvx8k2xvx.png';
 
 interface LandingProps {
@@ -107,7 +107,7 @@ export default function Landing({ onGetStarted, onLogin, onShowAbout, onShowSoyP
       </nav>
 
       {/* Hero */}
-      <section className="pt-32 pb-24 px-8 max-w-7xl mx-auto overflow-hidden" style={{ paddingTop: '140px' }}>
+      <section className="pb-24 px-8 max-w-7xl mx-auto overflow-hidden" style={{ paddingTop: '120px' }}>
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <div className="relative z-10">
             <span className="inline-block px-4 py-1.5 bg-mint rounded-full text-xs font-medium tracking-widest uppercase mb-8">

@@ -13,6 +13,7 @@ import java.util.List;
 public interface AppointmentRepository extends JpaRepository<AppointmentEntity, Long> {
     List<AppointmentEntity> findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(Long psychologistId, Instant from, Instant to);
     List<AppointmentEntity> findByUser_IdOrderByStartTimeAsc(Long userId);
+    long deleteByUser_Id(Long userId);
     
     
     // Obtener todas las citas reservadas por el usuario

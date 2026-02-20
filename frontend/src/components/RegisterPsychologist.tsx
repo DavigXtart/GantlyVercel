@@ -17,6 +17,7 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
     name: '',
     email: '',
     phone: '',
+    companyReferralCode: '',
     
     // Paso 2: Credenciales profesionales
     license: '',
@@ -108,8 +109,17 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
     setError('');
 
     try {
-      // Registrar como psicólogo con role PSYCHOLOGIST
-      await authService.register(formData.name, formData.email, formData.password, undefined, 'PSYCHOLOGIST');
+      const companyCode = formData.companyReferralCode.trim();
+      // Registrar como psicólogo con role PSYCHOLOGIST (el código de empresa es opcional)
+      await authService.register(
+        formData.name,
+        formData.email,
+        formData.password,
+        undefined,
+        'PSYCHOLOGIST',
+        companyCode ? companyCode.toUpperCase() : undefined,
+        undefined
+      );
       onSuccess();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al registrarse. Por favor, intenta de nuevo.');
@@ -409,6 +419,44 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
                         e.currentTarget.style.boxShadow = 'none';
                       }}
                     />
+                  </div>
+
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: '#1a2e22',
+                      marginBottom: '8px',
+                    }}>
+                      Código de empresa (opcional)
+                    </label>
+                    <input
+                      type="text"
+                      name="companyReferralCode"
+                      value={formData.companyReferralCode}
+                      onChange={handleChange}
+                      placeholder="Ej: EMP-XXXXXXXX (solicítalo a tu empresa)"
+                      style={{
+                        width: '100%',
+                        padding: '14px 18px',
+                        borderRadius: '12px',
+                        border: '1px solid #d4e0d8',
+                        fontSize: '16px',
+                        transition: 'all 0.3s',
+                      }}
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = '#5a9270';
+                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(90, 146, 112, 0.1)';
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = '#d4e0d8';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
+                    />
+                    <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '6px' }}>
+                      Si trabajas con una empresa o clínica que usa Gantly, introduce aquí el código que te hayan dado. Si no, puedes dejarlo vacío.
+                    </p>
                   </div>
                 </div>
               </div>
