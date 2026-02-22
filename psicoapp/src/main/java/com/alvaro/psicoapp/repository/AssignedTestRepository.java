@@ -17,4 +17,3 @@ public interface AssignedTestRepository extends JpaRepository<AssignedTestEntity
     Optional<AssignedTestEntity> findByUserAndTest(UserEntity user, TestEntity test);
     long deleteByUser_Id(Long userId);
 }
-

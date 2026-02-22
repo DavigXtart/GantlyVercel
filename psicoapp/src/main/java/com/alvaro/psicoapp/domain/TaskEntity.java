@@ -25,7 +25,7 @@ public class TaskEntity {
     private String description;
 
     @Column(name = "created_by", nullable = false, length = 20)
-    private String createdBy; // USER o PSYCHOLOGIST
+    private String createdBy;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
@@ -65,5 +65,3 @@ public class TaskEntity {
     public Instant getCompletedAt() { return completedAt; }
     public void setCompletedAt(Instant completedAt) { this.completedAt = completedAt; }
 }
-
-

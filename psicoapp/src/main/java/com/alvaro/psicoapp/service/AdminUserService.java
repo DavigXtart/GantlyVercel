@@ -73,19 +73,16 @@ public class AdminUserService {
         }
 
         try {
-            // Eliminar relación existente si existe
+
             userPsychologistRepository.deleteByUserId(userId);
 
-            // Insertar nueva relación
             int inserted = userPsychologistRepository.insertRelation(userId, psychologistId);
             if (inserted == 0) {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo insertar la relación");
             }
 
-            // Limpiar el caché de entidades para asegurar que la siguiente consulta lea de la BD
             entityManager.clear();
 
-            // Verificar que se guardó correctamente
             var verify = userPsychologistRepository.findByUserId(userId);
             if (verify.isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "La relación no se guardó correctamente");
@@ -116,4 +113,3 @@ public class AdminUserService {
         return new AdminDtos.UnassignPsychologistResponse(true, userId, deleted > 0);
     }
 }
-

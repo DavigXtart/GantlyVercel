@@ -393,8 +393,6 @@ public class CalendarService {
                 .collect(Collectors.toList());
     }
 
-    // --- Helpers ---
-
     private void requirePsychologist(UserEntity user) {
         if (!RoleConstants.PSYCHOLOGIST.equals(user.getRole())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);

@@ -11,4 +11,3 @@ public interface FactorRepository extends JpaRepository<FactorEntity, Long> {
 	List<FactorEntity> findByTestOrderByPositionAsc(TestEntity test);
 	Optional<FactorEntity> findByTestAndCode(TestEntity test, String code);
 }
-

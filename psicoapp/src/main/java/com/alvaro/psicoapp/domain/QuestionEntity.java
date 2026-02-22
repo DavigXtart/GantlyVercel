@@ -17,14 +17,14 @@ public class QuestionEntity {
 	private String text;
 
 	@Column(nullable = false, length = 30)
-	private String type; // SINGLE, MULTI, SCALE
+	private String type;
 
 	@Column(nullable = false)
 	private Integer position;
 
 	@ManyToOne
 	@JoinColumn(name = "subfactor_id")
-	private SubfactorEntity subfactor; // Subfactor al que pertenece esta pregunta
+	private SubfactorEntity subfactor;
 
 	public Long getId() { return id; }
 	public void setId(Long id) { this.id = id; }

@@ -55,9 +55,9 @@ public class AuthService {
 	public String register(String name, String email, String password, String sessionId, String role,
 			String companyReferralCode, String psychologistReferralCode, LocalDate birthDate) {
 		var tokenPair = registerWithRefresh(name, email, password, sessionId, role, companyReferralCode, psychologistReferralCode, birthDate);
-		return tokenPair.accessToken; // Mantener compatibilidad temporal
+		return tokenPair.accessToken;
 	}
-	
+
 	@Transactional
 	public com.alvaro.psicoapp.security.JwtService.TokenPair registerWithRefresh(String name, String email, String password, String sessionId, String role,
 			String companyReferralCode, String psychologistReferralCode, LocalDate birthDate) {
@@ -66,15 +66,13 @@ public class AuthService {
 		if (sanitizedName.isEmpty()) throw new IllegalArgumentException("El nombre es requerido");
 
 		if (userRepository.existsByEmail(sanitizedEmail)) throw new IllegalArgumentException("Email ya registrado");
-		
-		// Psicólogo: si viene código de empresa, validarlo (pero ahora es opcional)
+
 		if (RoleConstants.PSYCHOLOGIST.equals(role) && companyReferralCode != null && !companyReferralCode.trim().isEmpty()) {
 			String code = companyReferralCode.trim().toUpperCase();
 			companyRepository.findByReferralCode(code)
 					.orElseThrow(() -> new IllegalArgumentException("Código de empresa no válido"));
 		}
-		
-		// Usuario con referral de psicólogo: puede saltarse el test inicial (el código viene de la URL: juan-garcia)
+
 		String psychologistSlug = (psychologistReferralCode != null) ? psychologistReferralCode.trim().toLowerCase().replaceAll("[^a-z0-9-]", "") : "";
 		boolean hasPsychologistReferral = false;
 		if (!psychologistSlug.isEmpty() && (role == null || RoleConstants.USER.equals(role))) {
@@ -85,15 +83,14 @@ public class AuthService {
 				throw new IllegalArgumentException("Enlace de registro no válido");
 			}
 		}
-		
-		// Verificar test inicial solo si NO viene por referral de psicólogo
+
 		if (!hasPsychologistReferral && sessionId != null && !sessionId.isEmpty() && (role == null || RoleConstants.USER.equals(role))) {
 			var sessionOpt = sessionService.getSession(sessionId);
 			if (!sessionOpt.isPresent() || !sessionOpt.get().getInitialTestCompleted()) {
 				throw new IllegalArgumentException("Debe completar el test inicial antes de registrarse");
 			}
 		}
-		
+
 		UserEntity u = new UserEntity();
 		u.setName(sanitizedName);
 		u.setEmail(sanitizedEmail);
@@ -104,8 +101,7 @@ public class AuthService {
 			u.setBirthDate(birthDate);
 			u.setAge((int) ChronoUnit.YEARS.between(birthDate, LocalDate.now()));
 		}
-		
-		// Psicólogo: vincular empresa (si hay código) y generar referral code
+
 		if (RoleConstants.PSYCHOLOGIST.equals(role)) {
 			if (companyReferralCode != null && !companyReferralCode.trim().isEmpty()) {
 				String code = companyReferralCode.trim().toUpperCase();
@@ -116,15 +112,13 @@ public class AuthService {
 			String slug = ReferralCodeUtil.nameToSlug(sanitizedName);
 			u.setReferralCode(ensureUniqueReferralCode(slug));
 		}
-		
-		// Generar token de verificación
+
 		String verificationToken = UUID.randomUUID().toString();
 		u.setVerificationToken(verificationToken);
-		u.setVerificationTokenExpiresAt(Instant.now().plusSeconds(24 * 60 * 60)); // 24 horas
-		
+		u.setVerificationTokenExpiresAt(Instant.now().plusSeconds(24 * 60 * 60));
+
 		userRepository.save(u);
 
-		// Usuario con referral de psicólogo: asignar como paciente automáticamente
 		if (hasPsychologistReferral) {
 			userRepository.findByReferralCode(psychologistSlug).ifPresent(psych -> {
 				UserPsychologistEntity rel = new UserPsychologistEntity();
@@ -135,32 +129,28 @@ public class AuthService {
 			});
 		}
 
-		// Si hay sesión temporal, transferir respuestas al usuario
 		if (sessionId != null && !sessionId.isEmpty()) {
 			var sessionOpt = sessionService.getSession(sessionId);
 			if (sessionOpt.isPresent()) {
 				testResultService.transferSessionAnswersToUser(sessionOpt.get(), u);
-				
-				// Calcular resultados del test inicial
+
 				var testOpt = testRepository.findByCode(INITIAL_TEST_CODE);
 				if (testOpt.isPresent()) {
 					testResultService.calculateAndSaveResults(u, null, testOpt.get());
 				}
-				
-				// Eliminar sesión temporal
+
 				sessionService.deleteSession(sessionId);
 			}
 		}
-		
-		// Enviar correo de verificación (para todos los usuarios, incluyendo psicólogos)
+
 		try {
 			boolean isPsychologist = RoleConstants.PSYCHOLOGIST.equals(u.getRole());
 			emailService.sendVerificationEmail(u.getEmail(), u.getName(), verificationToken, isPsychologist);
 		} catch (Exception e) {
 			logger.error("Error enviando correo de verificación", e);
-			// No fallar el registro si falla el envío del correo
+
 		}
-		
+
 		return jwtService.generateTokenPair(u.getEmail());
 	}
 
@@ -173,28 +163,26 @@ public class AuthService {
 		}
 		return slug;
 	}
-	
+
 	@Transactional
 	public boolean verifyEmail(String token) {
 		var userOpt = userRepository.findByVerificationToken(token);
 		if (userOpt.isEmpty()) {
 			return false;
 		}
-		
+
 		UserEntity user = userOpt.get();
-		
-		// Verificar que el token no haya expirado
-		if (user.getVerificationTokenExpiresAt() != null && 
+
+		if (user.getVerificationTokenExpiresAt() != null &&
 		    user.getVerificationTokenExpiresAt().isBefore(Instant.now())) {
 			return false;
 		}
-		
-		// Verificar el email
+
 		user.setEmailVerified(true);
 		user.setVerificationToken(null);
 		user.setVerificationTokenExpiresAt(null);
 		userRepository.save(user);
-		
+
 		return true;
 	}
 
@@ -211,12 +199,9 @@ public class AuthService {
 		if (u.getPasswordHash() == null) throw new IllegalArgumentException("Esta cuenta usa inicio de sesión con Google. Usa el botón \"Continuar con Google\".");
 		if (!passwordEncoder.matches(password, u.getPasswordHash())) throw new IllegalArgumentException("Credenciales inválidas");
 		var tokenPair = jwtService.generateTokenPair(u.getEmail());
-		return tokenPair.accessToken; // Mantener compatibilidad temporal
+		return tokenPair.accessToken;
 	}
-	
-	/**
-	 * Login mejorado que retorna ambos tokens (access y refresh)
-	 */
+
 	public com.alvaro.psicoapp.security.JwtService.TokenPair loginWithRefresh(String email, String password) {
 		String sanitizedEmail = InputSanitizer.sanitizeEmail(email);
 		UserEntity u = userRepository.findByEmail(sanitizedEmail).orElseThrow(() -> new IllegalArgumentException("Credenciales inválidas"));
@@ -224,10 +209,7 @@ public class AuthService {
 		if (!passwordEncoder.matches(password, u.getPasswordHash())) throw new IllegalArgumentException("Credenciales inválidas");
 		return jwtService.generateTokenPair(u.getEmail());
 	}
-	
-	/**
-	 * Refresca un access token usando un refresh token válido
-	 */
+
 	public String refreshAccessToken(String refreshToken) {
 		try {
 			String email = jwtService.parseRefreshToken(refreshToken);
@@ -251,7 +233,7 @@ public class AuthService {
 			if (sanitizedName != null && !sanitizedName.isEmpty()) u.setName(sanitizedName);
 			userRepository.save(u);
 			var tokenPair = jwtService.generateTokenPair(u.getEmail());
-			return tokenPair.accessToken; // Mantener compatibilidad temporal
+			return tokenPair.accessToken;
 		}
 
 		var existingEmail = userRepository.findByEmail(sanitizedEmail);
@@ -263,7 +245,7 @@ public class AuthService {
 			u.setEmailVerified(true);
 			userRepository.save(u);
 			var tokenPair = jwtService.generateTokenPair(u.getEmail());
-			return tokenPair.accessToken; // Mantener compatibilidad temporal
+			return tokenPair.accessToken;
 		}
 
 		UserEntity u = new UserEntity();
@@ -277,12 +259,9 @@ public class AuthService {
 		u.setEmailVerified(true);
 		userRepository.save(u);
 		var tokenPair = jwtService.generateTokenPair(u.getEmail());
-		return tokenPair.accessToken; // Mantener compatibilidad temporal
+		return tokenPair.accessToken;
 	}
-	
-	/**
-	 * Procesa OAuth2 y retorna ambos tokens
-	 */
+
 	@Transactional
 	public com.alvaro.psicoapp.security.JwtService.TokenPair processOAuth2UserWithRefresh(String provider, String providerId, String email, String name, String avatarUrl) {
 		String sanitizedEmail = InputSanitizer.sanitizeEmail(email);
@@ -327,20 +306,18 @@ public class AuthService {
 		String sanitizedEmail = InputSanitizer.sanitizeEmail(email);
 		UserEntity user = userRepository.findByEmail(sanitizedEmail)
 			.orElseThrow(() -> new IllegalArgumentException("No existe una cuenta con ese email"));
-		
-		// Generar token de reset
+
 		String resetToken = UUID.randomUUID().toString();
 		user.setPasswordResetToken(resetToken);
-		user.setPasswordResetTokenExpiresAt(Instant.now().plusSeconds(60 * 60)); // 1 hora
-		
+		user.setPasswordResetTokenExpiresAt(Instant.now().plusSeconds(60 * 60));
+
 		userRepository.save(user);
-		
-		// Enviar email de reset
+
 		try {
 			emailService.sendPasswordResetEmail(user.getEmail(), user.getName(), resetToken);
 		} catch (Exception e) {
 			logger.error("Error enviando correo de recuperación de contraseña", e);
-			// No lanzar excepción para evitar que usuarios descubran emails válidos
+
 		}
 	}
 
@@ -353,21 +330,19 @@ public class AuthService {
 		if (userOpt.isEmpty()) {
 			return false;
 		}
-		
+
 		UserEntity user = userOpt.get();
-		
-		// Verificar que el token no haya expirado
-		if (user.getPasswordResetTokenExpiresAt() != null && 
+
+		if (user.getPasswordResetTokenExpiresAt() != null &&
 		    user.getPasswordResetTokenExpiresAt().isBefore(Instant.now())) {
 			return false;
 		}
-		
-		// Cambiar la contraseña
+
 		user.setPasswordHash(passwordEncoder.encode(newPassword));
 		user.setPasswordResetToken(null);
 		user.setPasswordResetTokenExpiresAt(null);
 		userRepository.save(user);
-		
+
 		return true;
 	}
 
@@ -378,13 +353,11 @@ public class AuthService {
 		}
 		UserEntity user = userRepository.findByEmail(email)
 			.orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
-		
-		// Verificar contraseña actual
+
 		if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
 			throw new IllegalArgumentException("Contraseña actual incorrecta");
 		}
-		
-		// Cambiar la contraseña
+
 		user.setPasswordHash(passwordEncoder.encode(newPassword));
 		userRepository.save(user);
 	}
@@ -393,18 +366,16 @@ public class AuthService {
 	public void resendVerificationEmail(String email) {
 		UserEntity user = userRepository.findByEmail(email)
 			.orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
-		
+
 		if (user.getEmailVerified()) {
 			throw new IllegalArgumentException("El email ya está verificado");
 		}
-		
-		// Generar nuevo token de verificación
+
 		String verificationToken = UUID.randomUUID().toString();
 		user.setVerificationToken(verificationToken);
-		user.setVerificationTokenExpiresAt(Instant.now().plusSeconds(24 * 60 * 60)); // 24 horas
+		user.setVerificationTokenExpiresAt(Instant.now().plusSeconds(24 * 60 * 60));
 		userRepository.save(user);
-		
-		// Reenviar email
+
 		try {
 			boolean isPsychologist = RoleConstants.PSYCHOLOGIST.equals(user.getRole());
 			emailService.resendVerificationEmail(user.getEmail(), user.getName(), verificationToken, isPsychologist);

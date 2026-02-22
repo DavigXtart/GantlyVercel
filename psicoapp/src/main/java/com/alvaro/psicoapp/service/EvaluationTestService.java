@@ -26,37 +26,34 @@ import java.util.stream.Collectors;
 public class EvaluationTestService {
     @Autowired
     private EvaluationTestRepository evaluationTestRepository;
-    
+
     @Autowired
     private TestRepository testRepository;
-    
+
     @Autowired
     private EvaluationTestResultRepository resultRepository;
-    
+
     @Autowired
     private UserRepository userRepository;
 
     public List<EvaluationTestEntity> getTestsByCategory(String category) {
         List<EvaluationTestEntity> evaluationTests = evaluationTestRepository.findByCategoryAndActiveTrue(category);
-        
-        // También incluir tests de la tabla tests que tengan esta categoría
+
         List<TestEntity> testsWithCategory = testRepository.findAll().stream()
-            .filter(t -> t.getActive() != null && t.getActive() 
+            .filter(t -> t.getActive() != null && t.getActive()
                 && t.getCategory() != null && t.getCategory().equals(category))
             .collect(Collectors.toList());
-        
-        // Convertir TestEntity a EvaluationTestEntity para mantener compatibilidad
+
         List<EvaluationTestEntity> convertedTests = testsWithCategory.stream()
             .map(this::convertTestToEvaluationTest)
             .collect(Collectors.toList());
-        
-        // Combinar ambas listas
+
         List<EvaluationTestEntity> allTests = new ArrayList<>(evaluationTests);
         allTests.addAll(convertedTests);
-        
+
         return allTests;
     }
-    
+
     private EvaluationTestEntity convertTestToEvaluationTest(TestEntity test) {
         EvaluationTestEntity evalTest = new EvaluationTestEntity();
         evalTest.setId(test.getId());
@@ -72,23 +69,20 @@ public class EvaluationTestService {
 
     public List<EvaluationTestEntity> getTestsByTopic(String category, String topic) {
         List<EvaluationTestEntity> evaluationTests = evaluationTestRepository.findByCategoryAndTopicAndActiveTrue(category, topic);
-        
-        // También incluir tests de la tabla tests que tengan esta categoría y topic
+
         List<TestEntity> testsWithCategoryAndTopic = testRepository.findAll().stream()
-            .filter(t -> t.getActive() != null && t.getActive() 
+            .filter(t -> t.getActive() != null && t.getActive()
                 && t.getCategory() != null && t.getCategory().equals(category)
                 && t.getTopic() != null && t.getTopic().equals(topic))
             .collect(Collectors.toList());
-        
-        // Convertir TestEntity a EvaluationTestEntity
+
         List<EvaluationTestEntity> convertedTests = testsWithCategoryAndTopic.stream()
             .map(this::convertTestToEvaluationTest)
             .collect(Collectors.toList());
-        
-        // Combinar ambas listas
+
         List<EvaluationTestEntity> allTests = new ArrayList<>(evaluationTests);
         allTests.addAll(convertedTests);
-        
+
         return allTests;
     }
 
@@ -147,4 +141,3 @@ public class EvaluationTestService {
                 results.size(), averageScore, testsByTopic, recentResults);
     }
 }
-

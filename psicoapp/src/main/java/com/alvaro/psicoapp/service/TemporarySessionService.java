@@ -16,25 +16,19 @@ public class TemporarySessionService {
 		this.sessionRepository = sessionRepository;
 	}
 
-	/**
-	 * Crea una nueva sesión temporal
-	 */
 	public TemporarySessionEntity createSession() {
 		TemporarySessionEntity session = new TemporarySessionEntity();
 		session.setSessionId(UUID.randomUUID().toString());
 		session.setInitialTestCompleted(false);
-		session.setExpiresAt(Instant.now().plusSeconds(24 * 60 * 60)); // 24 horas
+		session.setExpiresAt(Instant.now().plusSeconds(24 * 60 * 60));
 		return sessionRepository.save(session);
 	}
 
-	/**
-	 * Obtiene una sesión por su ID
-	 */
 	public Optional<TemporarySessionEntity> getSession(String sessionId) {
 		Optional<TemporarySessionEntity> session = sessionRepository.findBySessionId(sessionId);
 		if (session.isPresent()) {
 			TemporarySessionEntity s = session.get();
-			// Verificar si la sesión ha expirado
+
 			if (s.getExpiresAt().isBefore(Instant.now())) {
 				sessionRepository.delete(s);
 				return Optional.empty();
@@ -43,9 +37,6 @@ public class TemporarySessionService {
 		return session;
 	}
 
-	/**
-	 * Marca el test inicial como completado
-	 */
 	@Transactional
 	public void markInitialTestCompleted(String sessionId) {
 		TemporarySessionEntity session = sessionRepository.findBySessionId(sessionId)
@@ -54,16 +45,10 @@ public class TemporarySessionService {
 		sessionRepository.save(session);
 	}
 
-	/**
-	 * Elimina una sesión temporal
-	 */
 	public void deleteSession(String sessionId) {
 		sessionRepository.findBySessionId(sessionId).ifPresent(sessionRepository::delete);
 	}
 
-	/**
-	 * Limpia sesiones expiradas
-	 */
 	@Transactional
 	public void cleanupExpiredSessions() {
 		sessionRepository.findAll().stream()
@@ -71,4 +56,3 @@ public class TemporarySessionService {
 				.forEach(sessionRepository::delete);
 	}
 }
-

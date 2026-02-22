@@ -11,10 +11,10 @@ import org.springframework.stereotype.Service;
 public class EmailService {
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
     private final JavaMailSender mailSender;
-    
+
     @Value("${app.base.url:http://localhost:5173}")
     private String baseUrl;
-    
+
     @Value("${spring.mail.username}")
     private String fromEmail;
 
@@ -32,13 +32,13 @@ public class EmailService {
             message.setFrom(fromEmail);
             message.setTo(toEmail);
             message.setSubject("Verifica tu cuenta - PSYmatch");
-            
+
             String verificationUrl = baseUrl + "/verify-email?token=" + verificationToken;
-            
-            String greeting = isPsychologist 
+
+            String greeting = isPsychologist
                 ? "Gracias por unirte a PSYmatch como profesional de la psicología."
                 : "Gracias por registrarte en PSYmatch.";
-            
+
             String emailBody = String.format(
                 "Hola %s,\n\n" +
                 "%s\n\n" +
@@ -48,14 +48,14 @@ public class EmailService {
                 "%s\n\n" +
                 "Saludos,\n" +
                 "El equipo de PSYmatch",
-                name, 
+                name,
                 greeting,
                 verificationUrl,
-                isPsychologist 
+                isPsychologist
                     ? "Una vez verificado tu correo, podrás comenzar a gestionar tu práctica profesional y recibir pacientes."
                     : "Si no creaste una cuenta en PSYmatch, puedes ignorar este correo."
             );
-            
+
             message.setText(emailBody);
             mailSender.send(message);
         } catch (Exception e) {
@@ -64,23 +64,23 @@ public class EmailService {
         }
     }
 
-    public void sendAppointmentConfirmationEmail(String toEmail, String patientName, String psychologistName, 
-                                                 java.time.Instant appointmentStart, java.time.Instant paymentDeadline, 
+    public void sendAppointmentConfirmationEmail(String toEmail, String patientName, String psychologistName,
+                                                 java.time.Instant appointmentStart, java.time.Instant paymentDeadline,
                                                  java.math.BigDecimal price) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
             message.setTo(toEmail);
             message.setSubject("Cita confirmada - PSYmatch");
-            
+
             java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter
                 .ofPattern("dd/MM/yyyy 'a las' HH:mm")
                 .withZone(java.time.ZoneId.systemDefault());
-            
+
             java.time.format.DateTimeFormatter deadlineFormatter = java.time.format.DateTimeFormatter
                 .ofPattern("dd/MM/yyyy 'a las' HH:mm")
                 .withZone(java.time.ZoneId.systemDefault());
-            
+
             String appointmentDate = formatter.format(appointmentStart);
             String emailBody;
             if (paymentDeadline != null) {
@@ -104,7 +104,7 @@ public class EmailService {
                     deadlineDate
                 );
             } else {
-                // Sin Stripe: mensaje sin flujo de pago
+
                 emailBody = String.format(
                     "Hola %s,\n\n" +
                     "¡Tu cita ha sido confirmada!\n\n" +
@@ -121,15 +121,15 @@ public class EmailService {
                     price != null ? price.doubleValue() : 0.0
                 );
             }
-            
+
             message.setText(emailBody);
             mailSender.send(message);
         } catch (Exception e) {
             logger.error("Error enviando correo de confirmación de cita", e);
-            // No lanzar excepción para no interrumpir el flujo si falla el envío de email
+
         }
     }
-    
+
     public void sendAppointmentReminderEmail(String toEmail, String patientName, String psychologistName,
                                              java.time.Instant appointmentStart, java.time.Instant appointmentEnd,
                                              java.math.BigDecimal price) {
@@ -138,14 +138,14 @@ public class EmailService {
             message.setFrom(fromEmail);
             message.setTo(toEmail);
             message.setSubject("Recordatorio de cita - PSYmatch");
-            
+
             java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter
                 .ofPattern("dd/MM/yyyy 'a las' HH:mm")
                 .withZone(java.time.ZoneId.systemDefault());
-            
+
             String appointmentDate = formatter.format(appointmentStart);
             String appointmentEndTime = formatter.format(appointmentEnd);
-            
+
             String emailBody = String.format(
                 "Hola %s,\n\n" +
                 "Este es un recordatorio de tu próxima cita.\n\n" +
@@ -165,14 +165,14 @@ public class EmailService {
                 appointmentEndTime,
                 price != null ? price.doubleValue() : 0.0
             );
-            
+
             message.setText(emailBody);
             mailSender.send(message);
         } catch (Exception e) {
             logger.error("Error enviando correo de recordatorio", e);
         }
     }
-    
+
     public void sendPaymentReminderEmail(String toEmail, String patientName, String psychologistName,
                                         java.time.Instant appointmentStart, java.time.Instant paymentDeadline,
                                         java.math.BigDecimal price) {
@@ -181,23 +181,23 @@ public class EmailService {
             message.setFrom(fromEmail);
             message.setTo(toEmail);
             message.setSubject("Recordatorio de pago - PSYmatch");
-            
+
             java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter
                 .ofPattern("dd/MM/yyyy 'a las' HH:mm")
                 .withZone(java.time.ZoneId.systemDefault());
-            
+
             String appointmentDate = formatter.format(appointmentStart);
             String deadlineDate = formatter.format(paymentDeadline);
-            
+
             java.time.Duration timeUntilDeadline = java.time.Duration.between(java.time.Instant.now(), paymentDeadline);
             long hoursRemaining = timeUntilDeadline.toHours();
-            
-            String urgencyMessage = hoursRemaining < 6 
-                ? "URGENTE: " 
-                : hoursRemaining < 24 
-                    ? "IMPORTANTE: " 
+
+            String urgencyMessage = hoursRemaining < 6
+                ? "URGENTE: "
+                : hoursRemaining < 24
+                    ? "IMPORTANTE: "
                     : "";
-            
+
             String emailBody = String.format(
                 "Hola %s,\n\n" +
                 "%sTienes una cita pendiente de pago.\n\n" +
@@ -219,7 +219,7 @@ public class EmailService {
                 deadlineDate,
                 hoursRemaining
             );
-            
+
             message.setText(emailBody);
             mailSender.send(message);
         } catch (Exception e) {
@@ -233,9 +233,9 @@ public class EmailService {
             message.setFrom(fromEmail);
             message.setTo(toEmail);
             message.setSubject("Recuperación de contraseña - PSYmatch");
-            
+
             String resetUrl = baseUrl + "/reset-password?token=" + resetToken;
-            
+
             String emailBody = String.format(
                 "Hola %s,\n\n" +
                 "Recibimos una solicitud para restablecer la contraseña de tu cuenta en PSYmatch.\n\n" +
@@ -248,7 +248,7 @@ public class EmailService {
                 name,
                 resetUrl
             );
-            
+
             message.setText(emailBody);
             mailSender.send(message);
         } catch (Exception e) {
@@ -266,4 +266,3 @@ public class EmailService {
         }
     }
 }
-

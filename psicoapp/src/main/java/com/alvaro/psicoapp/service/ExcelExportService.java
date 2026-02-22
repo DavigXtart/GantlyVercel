@@ -27,16 +27,12 @@ public class ExcelExportService {
 		this.testRepository = testRepository;
 	}
 
-	/**
-	 * Exporta todos los resultados de un usuario a Excel
-	 */
 	public byte[] exportUserResults(Long userId) throws IOException {
 		UserEntity user = userRepository.findById(userId).orElseThrow();
-		
+
 		Workbook workbook = new XSSFWorkbook();
 		CreationHelper createHelper = workbook.getCreationHelper();
 
-		// Estilos
 		CellStyle headerStyle = workbook.createCellStyle();
 		Font headerFont = workbook.createFont();
 		headerFont.setBold(true);
@@ -48,11 +44,9 @@ public class ExcelExportService {
 		CellStyle dataStyle = workbook.createCellStyle();
 		dataStyle.setDataFormat(createHelper.createDataFormat().getFormat("#,##0.00"));
 
-		// Obtener todos los tests con resultados
 		List<TestResultEntity> allResults = testResultRepository.findByUser(user);
 		List<FactorResultEntity> allFactorResults = factorResultRepository.findByUser(user);
 
-		// Agrupar por test
 		java.util.Map<Long, List<TestResultEntity>> resultsByTest = allResults.stream()
 				.collect(java.util.stream.Collectors.groupingBy(r -> r.getTest().getId()));
 
@@ -62,13 +56,11 @@ public class ExcelExportService {
 			TestEntity test = testRepository.findById(testId).orElseThrow();
 			List<TestResultEntity> testResults = entry.getValue();
 
-			// Crear hoja para este test
 			Sheet sheet = workbook.createSheet(test.getTitle());
 			sheetIndex++;
 
 			int rowNum = 0;
 
-			// Título del test
 			Row titleRow = sheet.createRow(rowNum++);
 			Cell titleCell = titleRow.createCell(0);
 			titleCell.setCellValue("Resultados del Test: " + test.getTitle());
@@ -79,9 +71,8 @@ public class ExcelExportService {
 			titleStyle.setFont(titleFont);
 			titleCell.setCellStyle(titleStyle);
 
-			rowNum++; // Espacio
+			rowNum++;
 
-			// Encabezados de subfactores
 			Row headerRow = sheet.createRow(rowNum++);
 			headerRow.createCell(0).setCellValue("Subfactor");
 			headerRow.createCell(1).setCellValue("Código");
@@ -93,28 +84,26 @@ public class ExcelExportService {
 				headerRow.getCell(i).setCellStyle(headerStyle);
 			}
 
-			// Datos de subfactores
 			for (TestResultEntity result : testResults) {
 				Row row = sheet.createRow(rowNum++);
 				row.createCell(0).setCellValue(result.getSubfactor().getName());
 				row.createCell(1).setCellValue(result.getSubfactor().getCode());
-				
+
 				Cell scoreCell = row.createCell(2);
 				scoreCell.setCellValue(result.getScore());
 				scoreCell.setCellStyle(dataStyle);
-				
+
 				Cell maxScoreCell = row.createCell(3);
 				maxScoreCell.setCellValue(result.getMaxScore());
 				maxScoreCell.setCellStyle(dataStyle);
-				
+
 				Cell percentageCell = row.createCell(4);
 				percentageCell.setCellValue(result.getPercentage());
 				percentageCell.setCellStyle(dataStyle);
 			}
 
-			rowNum++; // Espacio
+			rowNum++;
 
-			// Encabezados de factores generales
 			List<FactorResultEntity> testFactorResults = allFactorResults.stream()
 					.filter(r -> r.getTest().getId().equals(testId))
 					.toList();
@@ -131,33 +120,30 @@ public class ExcelExportService {
 					factorHeaderRow.getCell(i).setCellStyle(headerStyle);
 				}
 
-				// Datos de factores generales
 				for (FactorResultEntity result : testFactorResults) {
 					Row row = sheet.createRow(rowNum++);
 					row.createCell(0).setCellValue(result.getFactor().getName());
 					row.createCell(1).setCellValue(result.getFactor().getCode());
-					
+
 					Cell scoreCell = row.createCell(2);
 					scoreCell.setCellValue(result.getScore());
 					scoreCell.setCellStyle(dataStyle);
-					
+
 					Cell maxScoreCell = row.createCell(3);
 					maxScoreCell.setCellValue(result.getMaxScore());
 					maxScoreCell.setCellStyle(dataStyle);
-					
+
 					Cell percentageCell = row.createCell(4);
 					percentageCell.setCellValue(result.getPercentage());
 					percentageCell.setCellStyle(dataStyle);
 				}
 			}
 
-			// Ajustar ancho de columnas
 			for (int i = 0; i < 5; i++) {
 				sheet.autoSizeColumn(i);
 			}
 		}
 
-		// Convertir a bytes
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		workbook.write(outputStream);
 		workbook.close();
@@ -165,9 +151,6 @@ public class ExcelExportService {
 		return outputStream.toByteArray();
 	}
 
-	/**
-	 * Exporta resultados de un test específico a Excel
-	 */
 	public byte[] exportTestResults(Long userId, Long testId) throws IOException {
 		UserEntity user = userRepository.findById(userId).orElseThrow();
 		TestEntity test = testRepository.findById(testId).orElseThrow();
@@ -175,7 +158,6 @@ public class ExcelExportService {
 		Workbook workbook = new XSSFWorkbook();
 		CreationHelper createHelper = workbook.getCreationHelper();
 
-		// Estilos
 		CellStyle headerStyle = workbook.createCellStyle();
 		Font headerFont = workbook.createFont();
 		headerFont.setBold(true);
@@ -190,7 +172,6 @@ public class ExcelExportService {
 		Sheet sheet = workbook.createSheet(test.getTitle());
 		int rowNum = 0;
 
-		// Título
 		Row titleRow = sheet.createRow(rowNum++);
 		Cell titleCell = titleRow.createCell(0);
 		titleCell.setCellValue("Resultados del Test: " + test.getTitle());
@@ -203,7 +184,6 @@ public class ExcelExportService {
 
 		rowNum++;
 
-		// Subfactores
 		List<TestResultEntity> subfactorResults = testResultRepository.findByUserAndTest(user, test);
 		if (!subfactorResults.isEmpty()) {
 			Row headerRow = sheet.createRow(rowNum++);
@@ -221,15 +201,15 @@ public class ExcelExportService {
 				Row row = sheet.createRow(rowNum++);
 				row.createCell(0).setCellValue(result.getSubfactor().getName());
 				row.createCell(1).setCellValue(result.getSubfactor().getCode());
-				
+
 				Cell scoreCell = row.createCell(2);
 				scoreCell.setCellValue(result.getScore());
 				scoreCell.setCellStyle(dataStyle);
-				
+
 				Cell maxScoreCell = row.createCell(3);
 				maxScoreCell.setCellValue(result.getMaxScore());
 				maxScoreCell.setCellStyle(dataStyle);
-				
+
 				Cell percentageCell = row.createCell(4);
 				percentageCell.setCellValue(result.getPercentage());
 				percentageCell.setCellStyle(dataStyle);
@@ -238,7 +218,6 @@ public class ExcelExportService {
 			rowNum++;
 		}
 
-		// Factores generales
 		List<FactorResultEntity> factorResults = factorResultRepository.findByUserAndTest(user, test);
 		if (!factorResults.isEmpty()) {
 			Row factorHeaderRow = sheet.createRow(rowNum++);
@@ -256,22 +235,21 @@ public class ExcelExportService {
 				Row row = sheet.createRow(rowNum++);
 				row.createCell(0).setCellValue(result.getFactor().getName());
 				row.createCell(1).setCellValue(result.getFactor().getCode());
-				
+
 				Cell scoreCell = row.createCell(2);
 				scoreCell.setCellValue(result.getScore());
 				scoreCell.setCellStyle(dataStyle);
-				
+
 				Cell maxScoreCell = row.createCell(3);
 				maxScoreCell.setCellValue(result.getMaxScore());
 				maxScoreCell.setCellStyle(dataStyle);
-				
+
 				Cell percentageCell = row.createCell(4);
 				percentageCell.setCellValue(result.getPercentage());
 				percentageCell.setCellStyle(dataStyle);
 			}
 		}
 
-		// Ajustar ancho de columnas
 		for (int i = 0; i < 5; i++) {
 			sheet.autoSizeColumn(i);
 		}
@@ -283,4 +261,3 @@ public class ExcelExportService {
 		return outputStream.toByteArray();
 	}
 }
-

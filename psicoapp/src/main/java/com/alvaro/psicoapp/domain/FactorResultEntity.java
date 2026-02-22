@@ -23,13 +23,13 @@ public class FactorResultEntity {
 	private FactorEntity factor;
 
 	@Column(nullable = false, columnDefinition = "DECIMAL(10,2)")
-	private Double score; // Puntuación total del factor (suma de subfactores)
+	private Double score;
 
 	@Column(nullable = false, columnDefinition = "DECIMAL(10,2)")
-	private Double maxScore; // Puntuación máxima posible del factor
+	private Double maxScore;
 
 	@Column(nullable = false, columnDefinition = "DECIMAL(5,2)")
-	private Double percentage; // Porcentaje (score/maxScore * 100)
+	private Double percentage;
 
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private Instant createdAt = Instant.now();
@@ -51,4 +51,3 @@ public class FactorResultEntity {
 	public Instant getCreatedAt() { return createdAt; }
 	public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }
-

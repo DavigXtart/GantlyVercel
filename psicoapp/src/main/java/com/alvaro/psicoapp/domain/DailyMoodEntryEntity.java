@@ -21,16 +21,16 @@ public class DailyMoodEntryEntity {
     private LocalDate entryDate;
 
     @Column(name = "mood_rating", nullable = false)
-    private Integer moodRating; // 1-5
+    private Integer moodRating;
 
     @Column(columnDefinition = "TEXT")
-    private String emotions; // JSON array
+    private String emotions;
 
     @Column(columnDefinition = "TEXT")
-    private String activities; // JSON array
+    private String activities;
 
     @Column(columnDefinition = "TEXT")
-    private String companions; // JSON array
+    private String companions;
 
     @Column(length = 100)
     private String location;
@@ -44,7 +44,6 @@ public class DailyMoodEntryEntity {
     @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
 
-    // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public UserEntity getUser() { return user; }
@@ -68,4 +67,3 @@ public class DailyMoodEntryEntity {
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
 }
-

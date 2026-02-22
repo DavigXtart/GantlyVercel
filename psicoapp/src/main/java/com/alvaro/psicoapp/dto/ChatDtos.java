@@ -1,8 +1,5 @@
 package com.alvaro.psicoapp.dto;
 
-/**
- * DTOs para el módulo de chat.
- */
 public final class ChatDtos {
     private ChatDtos() {}
 

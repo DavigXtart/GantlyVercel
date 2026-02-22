@@ -11,5 +11,3 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessageEntity, 
     List<ChatMessageEntity> findTop100ByPsychologist_IdAndUser_IdOrderByCreatedAtDesc(Long psychologistId, Long userId);
     long deleteByUser_Id(Long userId);
 }
-
-

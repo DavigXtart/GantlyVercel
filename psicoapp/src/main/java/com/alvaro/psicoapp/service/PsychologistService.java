@@ -89,8 +89,7 @@ public class PsychologistService {
     public PsychologistDtos.PatientDetailDto getPatientDetails(UserEntity psychologist, Long patientId) {
         requirePsychologist(psychologist);
         requirePatientOf(psychologist.getId(), patientId);
-        
-        // Auditoría RGPD: registrar acceso a datos de paciente
+
         auditService.logPatientDataAccess(psychologist.getId(), patientId, "PATIENT_DETAILS", "READ");
 
         var patient = userRepository.findById(patientId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -122,8 +121,7 @@ public class PsychologistService {
     public PsychologistDtos.PatientTestAnswersDto getPatientTestAnswers(UserEntity psychologist, Long patientId, Long testId) {
         requirePsychologist(psychologist);
         requirePatientOf(psychologist.getId(), patientId);
-        
-        // Auditoría RGPD: registrar acceso a respuestas de test
+
         auditService.logPatientDataAccess(psychologist.getId(), patientId, "TEST_ANSWERS", "READ");
 
         var patient = userRepository.findById(patientId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -223,8 +221,7 @@ public class PsychologistService {
     public PsychologistDtos.ReferralUrlResponse getReferralUrl(UserEntity psychologist) {
         requirePsychologist(psychologist);
         String code = psychologist.getReferralCode();
-        
-        // Si no tiene código de referencia, generarlo automáticamente
+
         if (code == null || code.isEmpty()) {
             String sanitizedName = psychologist.getName() != null ? psychologist.getName().trim() : "";
             if (sanitizedName.isEmpty()) {
@@ -235,7 +232,7 @@ public class PsychologistService {
             psychologist.setReferralCode(code);
             userRepository.save(psychologist);
         }
-        
+
         String base = appBaseUrl.replaceAll("/$", "");
         String fullUrl = base + "/register?referral=" + code;
         return new PsychologistDtos.ReferralUrlResponse(code, fullUrl);

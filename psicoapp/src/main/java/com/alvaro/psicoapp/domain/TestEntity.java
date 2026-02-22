@@ -25,10 +25,10 @@ public class TestEntity {
 	private Boolean active = true;
 
 	@Column(length = 100)
-	private String category; // 'EVALUATION' o 'DISCOVERY' (opcional)
+	private String category;
 
 	@Column(length = 100)
-	private String topic; // 'Ansiedad', 'Depresión', etc. (opcional)
+	private String topic;
 
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private Instant createdAt = Instant.now();

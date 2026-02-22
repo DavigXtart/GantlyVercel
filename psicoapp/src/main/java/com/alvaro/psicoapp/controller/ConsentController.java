@@ -52,4 +52,3 @@ public class ConsentController {
         return ResponseEntity.ok(consentService.sign(currentUserService.getCurrentUser(principal), consentId, req));
     }
 }
-

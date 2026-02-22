@@ -22,7 +22,7 @@ public class UserPsychologistEntity {
     private Instant assignedAt;
 
     @Column(name = "status", length = 20)
-    private String status = "ACTIVE"; // ACTIVE o DISCHARGED
+    private String status = "ACTIVE";
 
     @PrePersist
     protected void onCreate() {
@@ -36,21 +36,21 @@ public class UserPsychologistEntity {
 
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
-    
+
     public UserEntity getUser() { return user; }
-    public void setUser(UserEntity user) { 
-        this.user = user; 
+    public void setUser(UserEntity user) {
+        this.user = user;
         if (user != null && user.getId() != null) {
             this.userId = user.getId();
         }
     }
-    
+
     public UserEntity getPsychologist() { return psychologist; }
     public void setPsychologist(UserEntity psychologist) { this.psychologist = psychologist; }
-    
+
     public Instant getAssignedAt() { return assignedAt; }
     public void setAssignedAt(Instant assignedAt) { this.assignedAt = assignedAt; }
-    
+
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 }

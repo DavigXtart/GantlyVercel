@@ -1,8 +1,5 @@
 package com.alvaro.psicoapp.domain;
 
-/**
- * Constantes para estados de citas y solicitudes.
- */
 public final class AppointmentStatus {
     private AppointmentStatus() {}
 
@@ -20,4 +17,3 @@ public final class AppointmentStatus {
     public static final String PAYMENT_PAID = "PAID";
     public static final String PAYMENT_EXPIRED = "EXPIRED";
 }
-

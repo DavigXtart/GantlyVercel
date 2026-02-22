@@ -16,10 +16,10 @@ public class FactorEntity {
 	private TestEntity test;
 
 	@Column(nullable = false, length = 50)
-	private String code; // Ej: "EXTRAVERSION", "ANSIEDAD"
+	private String code;
 
 	@Column(nullable = false, length = 100)
-	private String name; // Ej: "Extraversión", "Ansiedad"
+	private String name;
 
 	@Column(columnDefinition = "TEXT")
 	private String description;
@@ -45,4 +45,3 @@ public class FactorEntity {
 	public List<SubfactorEntity> getSubfactors() { return subfactors; }
 	public void setSubfactors(List<SubfactorEntity> subfactors) { this.subfactors = subfactors; }
 }
-

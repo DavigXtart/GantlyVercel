@@ -11,4 +11,3 @@ public interface TaskCommentRepository extends JpaRepository<TaskCommentEntity, 
     List<TaskCommentEntity> findByTask_IdOrderByCreatedAtAsc(Long taskId);
     long deleteByTask_User_Id(Long userId);
 }
-

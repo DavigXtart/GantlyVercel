@@ -34,21 +34,20 @@ public class ChatController {
                 logger.warn("ChatController: Principal es null - no hay autenticación");
                 return;
             }
-            
+
             String principalName = principal.getName();
             logger.debug("ChatController: Mensaje recibido desde: {}", principalName);
-            
+
             String content = body.getOrDefault("content", "");
-            
+
             savedDto = chatService.createMessage(principalName, psychologistId, userId, content);
-            
+
             String topic = "/topic/chat/" + psychologistId + "/" + userId;
             logger.debug("Enviando mensaje a topic: {}, payload: {}", topic, savedDto);
-            
-            // Enviar a ambos usuarios que están suscritos al mismo topic
+
             messagingTemplate.convertAndSend(topic, savedDto);
             logger.debug("Mensaje enviado exitosamente al topic");
-            
+
         } catch (Exception e) {
             logger.error("ChatController: Error enviando mensaje", e);
             if (savedDto != null && savedDto.id() != null) {
@@ -62,6 +61,3 @@ public class ChatController {
         }
     }
 }
-
-//V1
-

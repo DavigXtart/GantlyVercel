@@ -47,8 +47,7 @@ public class ConsentService {
     @PostConstruct
     @Transactional
     public void ensureDefaultDocType() {
-        // Seed mínimo para entorno local/desarrollo: evita que la UI quede vacía.
-        // El texto real aún no está redactado; este es un placeholder editable en BBDD.
+
         if (documentTypeRepository.count() > 0) return;
         ConsentDocumentTypeEntity t = new ConsentDocumentTypeEntity();
         t.setCode("MINOR_CONSENT_PLACEHOLDER");
@@ -84,7 +83,7 @@ public class ConsentService {
         }
 
         Long patientId = req.userId();
-        // RGPD: el psicólogo solo puede operar sobre sus pacientes
+
         var relOpt = userPsychologistRepository.findByUserId(patientId);
         if (relOpt.isEmpty() || relOpt.get().getPsychologist() == null || !Objects.equals(relOpt.get().getPsychologist().getId(), psychologist.getId())) {
             auditService.logUnauthorizedAccess(psychologist.getId(), psychologist.getRole(), patientId, "CONSENT_SEND", "FORBIDDEN");
@@ -112,7 +111,6 @@ public class ConsentService {
         consent.setStatus(ConsentRequestStatus.SENT);
         consent.setSentAt(Instant.now());
 
-        // Snapshot del contenido renderizado en el momento del envío
         String rendered = renderTemplate(docType.getTemplate(), psychologist, patient, consent);
         consent.setRenderedContent(rendered);
 
@@ -126,7 +124,7 @@ public class ConsentService {
         if (user == null || user.getId() == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         var list = consentRequestRepository.findByUser_IdAndStatusInOrderByCreatedAtDesc(
                 user.getId(), List.of(ConsentRequestStatus.SENT, ConsentRequestStatus.DRAFT));
-        // El paciente ve contenido para firmar
+
         return list.stream().map(c -> toDto(c, true)).toList();
     }
 
@@ -166,7 +164,7 @@ public class ConsentService {
         for (ConsentRequestEntity c : all) {
             Long uid = c.getUser() != null ? c.getUser().getId() : null;
             if (uid == null) continue;
-            latest.putIfAbsent(uid, c); // ya viene ordenado desc
+            latest.putIfAbsent(uid, c);
         }
         Map<Long, ConsentDtos.ConsentStatusSummary> out = new HashMap<>();
         for (Long uid : patientIds) {
@@ -223,7 +221,6 @@ public class ConsentService {
         vars.put("DATE", date);
         vars.put("TIME", time);
 
-        // Sustitución simple: {{VAR}}
         String out = t;
         for (var e : vars.entrySet()) {
             out = out.replace("{{" + e.getKey() + "}}", e.getValue());
@@ -248,4 +245,3 @@ public class ConsentService {
         }
     }
 }
-

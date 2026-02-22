@@ -64,7 +64,7 @@ public class UserProfileService {
     public UserProfileDtos.SelectPsychologistResponse selectPsychologist(UserEntity user, UserProfileDtos.SelectPsychologistRequest req) {
         var existingRel = userPsychologistRepository.findByUserId(user.getId());
         if (existingRel.isPresent()) {
-            // Permitir cambiar de psicólogo: borrar la relación anterior
+
             userPsychologistRepository.delete(existingRel.get());
             userPsychologistRepository.flush();
         }

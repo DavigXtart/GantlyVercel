@@ -6,14 +6,10 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * DTOs para el módulo de psicólogo.
- */
 public final class PsychologistDtos {
 
     private PsychologistDtos() {}
 
-    /** Resumen de un paciente para la lista del psicólogo */
     public record PatientSummaryDto(
             Long id,
             String name,
@@ -30,7 +26,6 @@ public final class PsychologistDtos {
             Instant lastVisit
     ) {}
 
-    /** Respuesta de una pregunta de test */
     public record AnswerInfoDto(
             Long questionId,
             String questionText,
@@ -44,7 +39,6 @@ public final class PsychologistDtos {
             Instant createdAt
     ) {}
 
-    /** Test con sus respuestas (para detalle de paciente) */
     public record TestWithAnswersDto(
             Long testId,
             String testCode,
@@ -52,7 +46,6 @@ public final class PsychologistDtos {
             List<AnswerInfoDto> answers
     ) {}
 
-    /** Detalle completo de un paciente */
     public record PatientDetailDto(
             Long id,
             String name,
@@ -66,7 +59,6 @@ public final class PsychologistDtos {
             List<TestWithAnswersDto> tests
     ) {}
 
-    /** Respuestas de un test específico de un paciente */
     public record PatientTestAnswersDto(
             Long testId,
             String testCode,
@@ -74,7 +66,6 @@ public final class PsychologistDtos {
             List<AnswerInfoDto> answers
     ) {}
 
-    /** Perfil del psicólogo */
     public record PsychologistProfileDto(
             Long userId,
             String name,
@@ -96,7 +87,6 @@ public final class PsychologistDtos {
             Instant updatedAt
     ) {}
 
-    /** Request para actualizar perfil del psicólogo */
     public record PsychologistProfileUpdateRequest(
             String bio,
             String education,
@@ -110,21 +100,15 @@ public final class PsychologistDtos {
             String sessionPrices
     ) {}
 
-    /** Request para actualizar flag isFull */
     public record UpdateIsFullRequest(Boolean isFull) {}
 
-    /** Request para actualizar status del paciente */
     public record UpdatePatientStatusRequest(String status) {}
 
-    /** Respuesta simple con mensaje */
     public record MessageResponse(String message) {}
 
-    /** Respuesta de actualización de isFull */
     public record UpdateIsFullResponse(String message, Boolean isFull) {}
 
-    /** Respuesta de actualización de status del paciente */
     public record UpdatePatientStatusResponse(String message, String status) {}
 
-    /** URL de registro para enviar a pacientes (con referral del psicólogo) */
     public record ReferralUrlResponse(String referralCode, String fullUrl) {}
 }

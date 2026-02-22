@@ -14,4 +14,3 @@ public interface EvaluationTestRepository extends JpaRepository<EvaluationTestEn
     List<EvaluationTestEntity> findByCategoryAndTopicAndActiveTrue(String category, String topic);
     List<EvaluationTestEntity> findByActiveTrue();
 }
-

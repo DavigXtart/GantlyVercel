@@ -27,12 +27,9 @@ public class CompanyAuthService {
     @Transactional
     public String register(String name, String email, String password) {
         var tokenPair = registerWithRefresh(name, email, password);
-        return tokenPair.accessToken; // Mantener compatibilidad temporal
+        return tokenPair.accessToken;
     }
-    
-    /**
-     * Registro mejorado que retorna ambos tokens
-     */
+
     @Transactional
     public com.alvaro.psicoapp.security.JwtService.TokenPair registerWithRefresh(String name, String email, String password) {
         String sanitizedEmail = InputSanitizer.sanitizeEmail(email);
@@ -52,10 +49,7 @@ public class CompanyAuthService {
 
         return jwtService.generateTokenPair(COMPANY_PREFIX + c.getEmail());
     }
-    
-    /**
-     * Login mejorado que retorna ambos tokens
-     */
+
     public com.alvaro.psicoapp.security.JwtService.TokenPair loginWithRefresh(String email, String password) {
         String sanitizedEmail = InputSanitizer.sanitizeEmail(email);
         CompanyEntity c = companyRepository.findByEmail(sanitizedEmail)
@@ -74,7 +68,7 @@ public class CompanyAuthService {
             throw new IllegalArgumentException("Credenciales inválidas");
         }
         var tokenPair = jwtService.generateTokenPair(COMPANY_PREFIX + c.getEmail());
-        return tokenPair.accessToken; // Mantener compatibilidad temporal
+        return tokenPair.accessToken;
     }
 
     public CompanyMeResponse getMe(String email) {

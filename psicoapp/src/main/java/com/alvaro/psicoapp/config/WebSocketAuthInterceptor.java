@@ -65,7 +65,6 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                 List.of(new SimpleGrantedAuthority("ROLE_" + role))
             );
 
-            // Establecer en el accessor Y en el SecurityContext
             accessor.setUser(auth);
             SecurityContextHolder.getContext().setAuthentication(auth);
 
@@ -77,7 +76,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                     logger.debug("WebSocket SEND autenticado: {} con rol: {}, Destino: {}", subject, role, destination);
                 case SUBSCRIBE ->
                     logger.debug("WebSocket SUBSCRIBE autenticado: {} con rol: {}, Topic: {}", subject, role, destination);
-                default -> { /* no-op */ }
+                default -> {  }
             }
         } catch (Exception e) {
             logger.error("Error autenticando WebSocket {}: {}", command, e.getMessage(), e);
@@ -86,4 +85,3 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         return message;
     }
 }
-

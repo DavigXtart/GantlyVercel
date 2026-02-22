@@ -50,5 +50,3 @@ public class TaskFileEntity {
     public Instant getUploadedAt() { return uploadedAt; }
     public void setUploadedAt(Instant uploadedAt) { this.uploadedAt = uploadedAt; }
 }
-
-

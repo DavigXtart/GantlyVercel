@@ -51,22 +51,22 @@ public class SecurityConfig {
 				.requestMatchers("/api/auth/**").permitAll()
 				.requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
 				.requestMatchers("/api/auth/verify-email").permitAll()
-				.requestMatchers("/api/tests/**").permitAll() // Tests visibles para todos
-				.requestMatchers("/api/initial-test/**").permitAll() // Test inicial público
-				.requestMatchers("/api/matching/**").authenticated() // Tests de matching requieren autenticación
-				.requestMatchers("/api/flow/**").authenticated() // Flujo de respuestas requiere autenticación
+				.requestMatchers("/api/tests/**").permitAll()
+				.requestMatchers("/api/initial-test/**").permitAll()
+				.requestMatchers("/api/matching/**").authenticated()
+				.requestMatchers("/api/flow/**").authenticated()
 				.requestMatchers("/api/profile/**").authenticated()
 				.requestMatchers("/api/tasks/**").authenticated()
-				.requestMatchers("/uploads/**").permitAll() // Permitir acceso a archivos subidos
-				.requestMatchers("/api/assigned-tests/**").authenticated() // Tests asignados requieren autenticación
+				.requestMatchers("/uploads/**").permitAll()
+				.requestMatchers("/api/assigned-tests/**").authenticated()
 				.requestMatchers("/api/calendar/**").authenticated()
 				.requestMatchers("/api/psych/**").authenticated()
 				.requestMatchers("/api/chat/**").authenticated()
 				.requestMatchers("/api/consent/**").authenticated()
 				.requestMatchers("/api/results/**").authenticated()
 				.requestMatchers("/api/jitsi/**").authenticated()
-				.requestMatchers("/api/stripe/webhook").permitAll() // Webhook debe ser público
-				.requestMatchers("/api/stripe/**").authenticated() // Otros endpoints de Stripe requieren autenticación
+				.requestMatchers("/api/stripe/webhook").permitAll()
+				.requestMatchers("/api/stripe/**").authenticated()
 				.requestMatchers("/ws/**", "/topic/**", "/app/**").permitAll()
 				.requestMatchers("/actuator/**").permitAll()
 				.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui.html", "/webjars/**").permitAll()

@@ -14,4 +14,3 @@ public interface FactorResultRepository extends JpaRepository<FactorResultEntity
 	List<FactorResultEntity> findByFactor(FactorEntity factor);
     long deleteByUser_Id(Long userId);
 }
-

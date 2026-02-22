@@ -19,7 +19,7 @@ public class ChatMessageEntity {
     private UserEntity user;
 
     @Column(length = 20, nullable = false)
-    private String sender; // USER o PSYCHOLOGIST
+    private String sender;
 
     @Column(columnDefinition = "TEXT")
     private String content;
@@ -45,5 +45,3 @@ public class ChatMessageEntity {
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }
-
-

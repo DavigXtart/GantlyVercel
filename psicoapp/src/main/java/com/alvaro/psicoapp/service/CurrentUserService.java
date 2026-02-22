@@ -24,4 +24,3 @@ public class CurrentUserService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no encontrado"));
     }
 }
-

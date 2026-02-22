@@ -16,4 +16,3 @@ public interface EvaluationTestResultRepository extends JpaRepository<Evaluation
     Optional<EvaluationTestResultEntity> findByUser_IdAndTest_IdAndSessionId(Long userId, Long testId, String sessionId);
     long deleteByUser_Id(Long userId);
 }
-

@@ -47,15 +47,9 @@ public class TestResultService {
 		this.auditService = auditService;
 	}
 
-	/**
-	 * Calcula y guarda los resultados de un test para un usuario
-	 * @param user Usuario que completó el test (puede ser null si es sesión temporal)
-	 * @param session Sesión temporal (puede ser null si es usuario registrado)
-	 * @param test Test completado
-	 */
 	@Transactional
 	public void calculateAndSaveResults(UserEntity user, TemporarySessionEntity session, TestEntity test) {
-		// Obtener todas las respuestas del usuario/sesión para este test
+
 		List<UserAnswerEntity> userAnswers;
 		if (user != null) {
 			userAnswers = userAnswerRepository.findByUser(user).stream()
@@ -69,27 +63,22 @@ public class TestResultService {
 			throw new IllegalArgumentException("Debe proporcionar usuario o sesión");
 		}
 
-		// Solo procesar si hay respuestas
 		if (userAnswers.isEmpty()) {
 			return;
 		}
 
-		// Si el usuario es null (sesión temporal), no guardamos resultados aún
-		// Los resultados se guardarán cuando se registre el usuario
 		if (user == null) {
 			return;
 		}
 
-		// Obtener todos los subfactores del test
 		List<SubfactorEntity> subfactors = subfactorRepository.findByTestOrderByPositionAsc(test);
 
-		// Calcular resultados por subfactor
 		Map<Long, TestResultEntity> subfactorResults = new HashMap<>();
 		for (SubfactorEntity subfactor : subfactors) {
-			// Obtener preguntas de este subfactor
+
 			List<QuestionEntity> subfactorQuestions = questionRepository.findAll().stream()
-					.filter(q -> q.getTest().getId().equals(test.getId()) 
-							&& q.getSubfactor() != null 
+					.filter(q -> q.getTest().getId().equals(test.getId())
+							&& q.getSubfactor() != null
 							&& q.getSubfactor().getId().equals(subfactor.getId()))
 					.collect(Collectors.toList());
 
@@ -97,7 +86,7 @@ public class TestResultService {
 			double maxScore = 0.0;
 
 			for (QuestionEntity question : subfactorQuestions) {
-				// Buscar respuesta del usuario para esta pregunta
+
 				Optional<UserAnswerEntity> userAnswer = userAnswers.stream()
 						.filter(ua -> ua.getQuestion().getId().equals(question.getId()))
 						.findFirst();
@@ -106,7 +95,6 @@ public class TestResultService {
 					UserAnswerEntity ua = userAnswer.get();
 					double score = 0.0;
 
-					// Calcular puntuación según el tipo de pregunta
 					if (ua.getAnswer() != null && ua.getAnswer().getValue() != null) {
 						score = ua.getAnswer().getValue().doubleValue();
 					} else if (ua.getNumericValue() != null) {
@@ -115,7 +103,6 @@ public class TestResultService {
 
 					totalScore += score;
 
-					// Calcular puntuación máxima posible para esta pregunta
 					List<AnswerEntity> answers = answerRepository.findByQuestionOrderByPositionAsc(question);
 					double questionMaxScore = answers.stream()
 							.mapToDouble(a -> a.getValue() != null ? a.getValue().doubleValue() : 0.0)
@@ -123,7 +110,7 @@ public class TestResultService {
 							.orElse(0.0);
 					maxScore += questionMaxScore;
 				} else {
-					// Si no hay respuesta, calcular el máximo posible igualmente
+
 					List<AnswerEntity> answers = answerRepository.findByQuestionOrderByPositionAsc(question);
 					double questionMaxScore = answers.stream()
 							.mapToDouble(a -> a.getValue() != null ? a.getValue().doubleValue() : 0.0)
@@ -133,19 +120,16 @@ public class TestResultService {
 				}
 			}
 
-			// Guardar resultado del subfactor
 			if (maxScore > 0) {
 				double percentage = (totalScore / maxScore) * 100.0;
 
-				// Buscar y eliminar resultado anterior si existe (para re-calcular)
-				// Usar findAll y filtrar para evitar problemas de lazy loading
 				List<TestResultEntity> existingResults = testResultRepository.findByUserAndTest(user, test);
 				for (TestResultEntity existing : existingResults) {
 					if (existing.getSubfactor() != null && existing.getSubfactor().getId().equals(subfactor.getId())) {
 						testResultRepository.delete(existing);
 					}
 				}
-				// Forzar flush para asegurar que el delete se ejecute antes del insert
+
 				testResultRepository.flush();
 
 				TestResultEntity result = new TestResultEntity();
@@ -160,10 +144,9 @@ public class TestResultService {
 			}
 		}
 
-		// Calcular resultados por factor general
 		List<FactorEntity> factors = factorRepository.findByTestOrderByPositionAsc(test);
 		for (FactorEntity factor : factors) {
-			// Obtener subfactores de este factor
+
 			List<SubfactorEntity> factorSubfactors = subfactorRepository.findByFactorId(factor.getId());
 
 			double totalFactorScore = 0.0;
@@ -177,11 +160,9 @@ public class TestResultService {
 				}
 			}
 
-			// Guardar resultado del factor
 			if (totalFactorMaxScore > 0) {
 				double percentage = (totalFactorScore / totalFactorMaxScore) * 100.0;
 
-				// Eliminar resultado anterior si existe
 				factorResultRepository.findByUserAndTest(user, test).stream()
 						.filter(fr -> fr.getFactor().getId().equals(factor.getId()))
 						.forEach(factorResultRepository::delete);
@@ -198,21 +179,18 @@ public class TestResultService {
 		}
 	}
 
-	/**
-	 * Transfiere las respuestas de una sesión temporal a un usuario registrado
-	 */
 	@Transactional
 	public void transferSessionAnswersToUser(TemporarySessionEntity session, UserEntity user) {
 		List<UserAnswerEntity> sessionAnswers = userAnswerRepository.findBySession(session);
-		
+
 		for (UserAnswerEntity sessionAnswer : sessionAnswers) {
-			// Verificar si ya existe una respuesta del usuario para esta pregunta
+
 			Optional<UserAnswerEntity> existingAnswer = userAnswerRepository.findByUser(user).stream()
 					.filter(ua -> ua.getQuestion().getId().equals(sessionAnswer.getQuestion().getId()))
 					.findFirst();
 
 			if (!existingAnswer.isPresent()) {
-				// Crear nueva respuesta asociada al usuario
+
 				UserAnswerEntity userAnswer = new UserAnswerEntity();
 				userAnswer.setUser(user);
 				userAnswer.setQuestion(sessionAnswer.getQuestion());
@@ -223,7 +201,6 @@ public class TestResultService {
 			}
 		}
 
-		// Eliminar respuestas de sesión temporal
 		userAnswerRepository.deleteAll(sessionAnswers);
 	}
 
@@ -278,17 +255,15 @@ public class TestResultService {
 
 	@Transactional(readOnly = true)
 	public TestResultDtos.UserTestResultsResponse getUserTestResults(UserEntity requester, Long userId, Long testId) {
-		// VALIDACIÓN CRÍTICA RGPD: Solo el psicólogo asignado puede ver resultados de pacientes
-		// Ni siquiera el admin puede ver estos datos
+
 		if (!RoleConstants.PSYCHOLOGIST.equals(requester.getRole())) {
 			auditService.logUnauthorizedAccess(requester.getId(), requester.getRole(), userId, "TEST_RESULTS", "Requester is not a psychologist");
 			throw new org.springframework.web.server.ResponseStatusException(
-				org.springframework.http.HttpStatus.FORBIDDEN, 
+				org.springframework.http.HttpStatus.FORBIDDEN,
 				"Solo psicólogos pueden ver resultados de pacientes"
 			);
 		}
-		
-		// Verificar que el paciente pertenece a este psicólogo
+
 		var rel = userPsychologistRepository.findByUserId(userId);
 		if (rel.isEmpty() || !rel.get().getPsychologist().getId().equals(requester.getId())) {
 			auditService.logUnauthorizedAccess(requester.getId(), requester.getRole(), userId, "TEST_RESULTS", "Patient not assigned to psychologist");
@@ -297,10 +272,9 @@ public class TestResultService {
 				"Este usuario no es tu paciente"
 			);
 		}
-		
-		// Auditoría RGPD: registrar acceso a resultados de test
+
 		auditService.logPatientDataAccess(requester.getId(), userId, "TEST_RESULTS", "READ");
-		
+
 		UserEntity user = userRepository.findById(userId).orElseThrow();
 		TestEntity test = testRepository.findById(testId).orElseThrow();
 		List<TestResultEntity> subfactorResults = testResultRepository.findByUserAndTest(user, test);
@@ -314,4 +288,3 @@ public class TestResultService {
 		return new TestResultDtos.UserTestResultsResponse(user.getId(), user.getEmail(), test.getId(), test.getTitle(), subfactors, factors);
 	}
 }
-

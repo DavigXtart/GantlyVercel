@@ -70,7 +70,7 @@ public class TestResultController {
     @GetMapping("/user/{userId}/test/{testId}/export")
     @Operation(summary = "Exportar resultados de usuario para un test", description = "Exporta los resultados de un usuario para un test en formato Excel (solo psicólogos asignados)")
     @ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Archivo Excel generado exitosamente", 
+		@ApiResponse(responseCode = "200", description = "Archivo Excel generado exitosamente",
 			content = @Content(mediaType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")),
 		@ApiResponse(responseCode = "403", description = "No autorizado - solo el psicólogo asignado puede exportar"),
 		@ApiResponse(responseCode = "500", description = "Error al generar el archivo")

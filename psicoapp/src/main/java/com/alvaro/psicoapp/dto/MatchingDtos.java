@@ -2,9 +2,6 @@ package com.alvaro.psicoapp.dto;
 
 import java.util.List;
 
-/**
- * DTOs para el módulo de matching.
- */
 public final class MatchingDtos {
     private MatchingDtos() {}
 

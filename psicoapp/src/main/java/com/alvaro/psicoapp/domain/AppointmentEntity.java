@@ -16,7 +16,7 @@ public class AppointmentEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private UserEntity user; // null si slot libre
+    private UserEntity user;
 
     @Column(name = "start_time", nullable = false)
     private Instant startTime;
@@ -25,7 +25,7 @@ public class AppointmentEntity {
     private Instant endTime;
 
     @Column(length = 20, nullable = false)
-    private String status = "FREE"; // FREE, REQUESTED, CONFIRMED, BOOKED, CANCELLED
+    private String status = "FREE";
 
     @Column(length = 500)
     private String notes;
@@ -43,7 +43,7 @@ public class AppointmentEntity {
     private Instant paymentDeadline;
 
     @Column(name = "payment_status", length = 20)
-    private String paymentStatus = "PENDING"; // PENDING, PAID, EXPIRED
+    private String paymentStatus = "PENDING";
 
     @ManyToOne
     @JoinColumn(name = "confirmed_by_user_id")
@@ -76,5 +76,3 @@ public class AppointmentEntity {
     public UserEntity getConfirmedByUser() { return confirmedByUser; }
     public void setConfirmedByUser(UserEntity confirmedByUser) { this.confirmedByUser = confirmedByUser; }
 }
-
-

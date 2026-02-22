@@ -1,8 +1,5 @@
 package com.alvaro.psicoapp.dto;
 
-/**
- * DTOs para videollamadas Jitsi.
- */
 public final class JitsiDtos {
     private JitsiDtos() {}
 

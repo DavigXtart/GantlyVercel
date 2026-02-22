@@ -1,8 +1,5 @@
 package com.alvaro.psicoapp.dto;
 
-/**
- * DTO para respuestas de error globales.
- */
 public final class ErrorDtos {
     private ErrorDtos() {}
 

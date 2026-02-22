@@ -31,7 +31,7 @@ public class AuthController {
 	@PostMapping("/register")
 	@Operation(summary = "Registrar nuevo usuario", description = "Crea una nueva cuenta de usuario. Soporta registro con código de referencia de empresa o psicólogo.")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Usuario registrado exitosamente", 
+		@ApiResponse(responseCode = "200", description = "Usuario registrado exitosamente",
 			content = @Content(schema = @Schema(implementation = AuthDtos.TokenResponse.class))),
 		@ApiResponse(responseCode = "400", description = "Datos de registro inválidos")
 	})
@@ -44,7 +44,7 @@ public class AuthController {
 	@PostMapping("/login")
 	@Operation(summary = "Iniciar sesión", description = "Autentica un usuario con email y contraseña, retorna access token y refresh token")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Login exitoso", 
+		@ApiResponse(responseCode = "200", description = "Login exitoso",
 			content = @Content(schema = @Schema(implementation = AuthDtos.TokenResponse.class))),
 		@ApiResponse(responseCode = "401", description = "Credenciales inválidas")
 	})
@@ -52,7 +52,7 @@ public class AuthController {
 		var tokenPair = authService.loginWithRefresh(req.email, req.password);
 		return ResponseEntity.ok(new AuthDtos.TokenResponse(tokenPair.accessToken, tokenPair.refreshToken, 900));
 	}
-	
+
 	@PostMapping("/refresh")
 	@Operation(summary = "Refrescar access token", description = "Genera un nuevo access token usando un refresh token válido")
 	@ApiResponses(value = {
@@ -67,7 +67,7 @@ public class AuthController {
 	@PostMapping("/company/register")
 	@Operation(summary = "Registrar nueva empresa", description = "Crea una nueva cuenta de empresa")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Empresa registrada exitosamente", 
+		@ApiResponse(responseCode = "200", description = "Empresa registrada exitosamente",
 			content = @Content(schema = @Schema(implementation = AuthDtos.TokenResponse.class))),
 		@ApiResponse(responseCode = "400", description = "Datos de registro inválidos")
 	})
@@ -79,7 +79,7 @@ public class AuthController {
 	@PostMapping("/company/login")
 	@Operation(summary = "Iniciar sesión como empresa", description = "Autentica una empresa con email y contraseña")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Login exitoso", 
+		@ApiResponse(responseCode = "200", description = "Login exitoso",
 			content = @Content(schema = @Schema(implementation = AuthDtos.TokenResponse.class))),
 		@ApiResponse(responseCode = "401", description = "Credenciales inválidas")
 	})
@@ -91,7 +91,7 @@ public class AuthController {
     @GetMapping("/me")
     @Operation(summary = "Obtener información del usuario autenticado", description = "Retorna la información del usuario o empresa autenticada")
     @ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Información del usuario", 
+		@ApiResponse(responseCode = "200", description = "Información del usuario",
 			content = @Content(schema = @Schema(implementation = AuthDtos.MeResponse.class))),
 		@ApiResponse(responseCode = "401", description = "No autenticado")
 	})
@@ -114,7 +114,7 @@ public class AuthController {
     @GetMapping("/verify-email")
     @Operation(summary = "Verificar email", description = "Verifica el email del usuario usando el token enviado por correo")
     @ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Email verificado o token inválido", 
+		@ApiResponse(responseCode = "200", description = "Email verificado o token inválido",
 			content = @Content(schema = @Schema(implementation = AuthDtos.MessageStatusResponse.class)))
 	})
     public ResponseEntity<AuthDtos.MessageStatusResponse> verifyEmail(@RequestParam("token") String token) {
@@ -127,16 +127,16 @@ public class AuthController {
     @PostMapping("/forgot-password")
     @Operation(summary = "Solicitar recuperación de contraseña", description = "Envía un email con enlace para restablecer la contraseña")
     @ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Si el email existe, se enviará un enlace de recuperación", 
+		@ApiResponse(responseCode = "200", description = "Si el email existe, se enviará un enlace de recuperación",
 			content = @Content(schema = @Schema(implementation = AuthDtos.MessageStatusResponse.class)))
 	})
     public ResponseEntity<AuthDtos.MessageStatusResponse> forgotPassword(@Valid @RequestBody AuthDtos.ForgotPasswordRequest req) {
         try {
             authService.requestPasswordReset(req.email);
-            // Siempre devolver éxito para evitar que usuarios descubran emails válidos
+
             return ResponseEntity.ok(new AuthDtos.MessageStatusResponse("Si el email existe, se enviará un enlace de recuperación", "success"));
         } catch (Exception e) {
-            // Siempre devolver éxito para evitar que usuarios descubran emails válidos
+
             return ResponseEntity.ok(new AuthDtos.MessageStatusResponse("Si el email existe, se enviará un enlace de recuperación", "success"));
         }
     }
@@ -144,7 +144,7 @@ public class AuthController {
     @PostMapping("/reset-password")
     @Operation(summary = "Restablecer contraseña", description = "Restablece la contraseña usando el token recibido por email")
     @ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Contraseña restablecida exitosamente", 
+		@ApiResponse(responseCode = "200", description = "Contraseña restablecida exitosamente",
 			content = @Content(schema = @Schema(implementation = AuthDtos.MessageStatusResponse.class))),
 		@ApiResponse(responseCode = "400", description = "Token inválido o expirado")
 	})
@@ -164,7 +164,7 @@ public class AuthController {
     @PostMapping("/change-password")
     @Operation(summary = "Cambiar contraseña", description = "Cambia la contraseña del usuario autenticado")
     @ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Contraseña cambiada exitosamente", 
+		@ApiResponse(responseCode = "200", description = "Contraseña cambiada exitosamente",
 			content = @Content(schema = @Schema(implementation = AuthDtos.MessageStatusResponse.class))),
 		@ApiResponse(responseCode = "400", description = "Contraseña actual incorrecta o datos inválidos"),
 		@ApiResponse(responseCode = "401", description = "No autenticado")
@@ -186,7 +186,7 @@ public class AuthController {
     @PostMapping("/resend-verification-email")
     @Operation(summary = "Reenviar email de verificación", description = "Reenvía el email de verificación al usuario autenticado")
     @ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Email de verificación reenviado", 
+		@ApiResponse(responseCode = "200", description = "Email de verificación reenviado",
 			content = @Content(schema = @Schema(implementation = AuthDtos.MessageStatusResponse.class))),
 		@ApiResponse(responseCode = "400", description = "Error al reenviar el email"),
 		@ApiResponse(responseCode = "401", description = "No autenticado")

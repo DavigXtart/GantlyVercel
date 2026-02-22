@@ -2,9 +2,6 @@ package com.alvaro.psicoapp.dto;
 
 import java.util.List;
 
-/**
- * DTOs para resultados de tests.
- */
 public final class TestResultDtos {
     private TestResultDtos() {}
 

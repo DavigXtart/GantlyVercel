@@ -34,4 +34,3 @@ public final class ConsentDtos {
             Long latestConsentId
     ) {}
 }
-

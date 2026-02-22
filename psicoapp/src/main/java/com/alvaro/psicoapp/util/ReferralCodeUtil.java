@@ -2,9 +2,6 @@ package com.alvaro.psicoapp.util;
 
 import java.text.Normalizer;
 
-/**
- * Genera slugs para referral codes de psicólogos: "Juan García López" -> "juan-garcia-lopez"
- */
 public final class ReferralCodeUtil {
 
     private ReferralCodeUtil() {}

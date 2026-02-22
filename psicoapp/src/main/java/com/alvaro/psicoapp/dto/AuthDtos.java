@@ -21,12 +21,12 @@ public class AuthDtos {
 		@Size(min = 6, max = 100, message = "La contraseña debe tener entre 6 y 100 caracteres")
 		public String password;
 
-		public String sessionId; // ID de sesión temporal después de completar test inicial
+		public String sessionId;
 		@Size(max = 20)
-		public String role; // USER o PSYCHOLOGIST
-		public String companyReferralCode; // Código de empresa (obligatorio para PSYCHOLOGIST)
-		public String psychologistReferralCode; // Slug del psicólogo (ej: juan-garcia) - auto-asigna como paciente
-		/** Fecha de nacimiento (formato ISO: yyyy-MM-dd). Opcional en registro; se pedirá también en perfil. */
+		public String role;
+		public String companyReferralCode;
+		public String psychologistReferralCode;
+
 		public LocalDate birthDate;
 	}
 
@@ -41,29 +41,27 @@ public class AuthDtos {
 	public static class TokenResponse {
 		public String accessToken;
 		public String refreshToken;
-		public long expiresIn; // segundos hasta expiración del access token
-		
-		// Campo legacy para compatibilidad con frontend antiguo
+		public long expiresIn;
+
 		@Deprecated
 		public String token;
-		
+
 		public TokenResponse(String accessToken, String refreshToken, long expiresIn) {
 			this.accessToken = accessToken;
 			this.refreshToken = refreshToken;
 			this.expiresIn = expiresIn;
-			// Compatibilidad: también exponer como "token" para frontend antiguo
+
 			this.token = accessToken;
 		}
-		
-		// Constructor legacy para compatibilidad temporal
+
 		public TokenResponse(String token) {
 			this.accessToken = token;
 			this.refreshToken = null;
-			this.expiresIn = 900; // 15 minutos en segundos
+			this.expiresIn = 900;
 			this.token = token;
 		}
 	}
-	
+
 	public static class RefreshTokenRequest {
 		@NotBlank(message = "El refresh token es requerido")
 		public String refreshToken;
@@ -93,10 +91,8 @@ public class AuthDtos {
 		public String newPassword;
 	}
 
-	/** Respuesta del endpoint me() */
 	public record MeResponse(String email, String role, String name, boolean emailVerified) {}
 
-	/** Respuesta genérica mensaje + estado para auth */
 	public record MessageStatusResponse(String message, String status) {}
 
 	public static class CompanyRegisterRequest {

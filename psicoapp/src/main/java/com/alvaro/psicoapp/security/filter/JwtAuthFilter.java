@@ -18,7 +18,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
-
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthFilter.class);
@@ -38,19 +37,18 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
 		String header = request.getHeader("Authorization");
-		
 
 		if (header != null && header.startsWith("Bearer ")) {
 			String token = header.substring(7);
             try {
                 String subject = jwtService.parseSubject(token);
-                
+
                 if (subject == null || subject.trim().isEmpty()) {
                     logger.debug("Token sin subject válido");
                     filterChain.doFilter(request, response);
                     return;
                 }
-                
+
                 String role;
                 if (subject.startsWith(COMPANY_PREFIX)) {
                     String companyEmail = subject.substring(COMPANY_PREFIX.length());
@@ -62,14 +60,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         .map(u -> u.getRole())
                         .orElse(RoleConstants.USER);
                 }
-                
+
                 var auth = new UsernamePasswordAuthenticationToken(
-                    subject, 
-                    null, 
+                    subject,
+                    null,
                     List.of(new SimpleGrantedAuthority("ROLE_" + role))
                 );
                 SecurityContextHolder.getContext().setAuthentication(auth);
-                
+
             } catch (SecurityException e) {
 
                 logger.debug("Token inválido o expirado: {}", e.getMessage());
@@ -79,7 +77,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 logger.warn("Error procesando token JWT: {}", e.getMessage());
             }
 		}
-		
+
 		filterChain.doFilter(request, response);
 	}
 }

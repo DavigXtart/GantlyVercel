@@ -20,10 +20,10 @@ public class EvaluationTestEntity {
     private String description;
 
     @Column(length = 100, nullable = false)
-    private String category; // 'EVALUATION' o 'DISCOVERY'
+    private String category;
 
     @Column(length = 100, nullable = false)
-    private String topic; // 'Ansiedad', 'Depresión', etc.
+    private String topic;
 
     @Column(nullable = false)
     private Boolean active = true;
@@ -34,7 +34,6 @@ public class EvaluationTestEntity {
     @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
 
-    // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getCode() { return code; }
@@ -54,4 +53,3 @@ public class EvaluationTestEntity {
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
 }
-

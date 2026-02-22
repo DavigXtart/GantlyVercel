@@ -16,10 +16,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 
-/**
- * Servicio de exportación de resultados con validaciones RGPD.
- * Solo el psicólogo asignado puede exportar datos de pacientes.
- */
 @Service
 public class TestResultExportService {
     private final UserRepository userRepository;
@@ -45,23 +41,21 @@ public class TestResultExportService {
 
     @Transactional(readOnly = true)
     public ResponseEntity<byte[]> exportUserTestResults(UserEntity requester, Long userId, Long testId) throws IOException {
-        // VALIDACIÓN CRÍTICA RGPD: Solo el psicólogo asignado puede exportar resultados
+
         if (!RoleConstants.PSYCHOLOGIST.equals(requester.getRole())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo psicólogos pueden exportar resultados de pacientes");
         }
-        
-        // Verificar que el paciente pertenece a este psicólogo
+
         var rel = userPsychologistRepository.findByUserId(userId);
         if (rel.isEmpty() || !rel.get().getPsychologist().getId().equals(requester.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Este usuario no es tu paciente");
         }
-        
+
         TestEntity test = testRepository.findById(testId).orElseThrow();
         UserEntity user = userRepository.findById(userId).orElseThrow();
-        
-        // Auditoría RGPD: registrar exportación de datos
+
         auditService.logDataExport(requester.getId(), requester.getRole(), userId, "TEST_RESULTS", "EXCEL");
-        
+
         byte[] excelBytes = excelExportService.exportTestResults(userId, testId);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
@@ -71,22 +65,20 @@ public class TestResultExportService {
 
     @Transactional(readOnly = true)
     public ResponseEntity<byte[]> exportUserAllResults(UserEntity requester, Long userId) throws IOException {
-        // VALIDACIÓN CRÍTICA RGPD: Solo el psicólogo asignado puede exportar resultados
+
         if (!RoleConstants.PSYCHOLOGIST.equals(requester.getRole())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo psicólogos pueden exportar resultados de pacientes");
         }
-        
-        // Verificar que el paciente pertenece a este psicólogo
+
         var rel = userPsychologistRepository.findByUserId(userId);
         if (rel.isEmpty() || !rel.get().getPsychologist().getId().equals(requester.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Este usuario no es tu paciente");
         }
-        
+
         UserEntity user = userRepository.findById(userId).orElseThrow();
-        
-        // Auditoría RGPD: registrar exportación de datos
+
         auditService.logDataExport(requester.getId(), requester.getRole(), userId, "ALL_TEST_RESULTS", "EXCEL");
-        
+
         byte[] excelBytes = excelExportService.exportUserResults(userId);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
@@ -123,4 +115,3 @@ public class TestResultExportService {
         return ResponseEntity.ok().headers(headers).body(excelBytes);
     }
 }
-

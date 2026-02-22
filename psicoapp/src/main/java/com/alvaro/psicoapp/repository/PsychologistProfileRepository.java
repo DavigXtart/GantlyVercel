@@ -12,4 +12,3 @@ public interface PsychologistProfileRepository extends JpaRepository<Psychologis
     Optional<PsychologistProfileEntity> findByUser(UserEntity user);
     Optional<PsychologistProfileEntity> findByUser_Id(Long userId);
 }
-

@@ -26,15 +26,14 @@ public class EvaluationTestResultEntity {
     private BigDecimal score;
 
     @Column(length = 50)
-    private String level; // 'Bajo', 'Moderado', 'Alto', etc.
+    private String level;
 
     @Column(columnDefinition = "TEXT")
-    private String answers; // JSON con las respuestas
+    private String answers;
 
     @Column(name = "completed_at", nullable = false, updatable = false)
     private Instant completedAt = Instant.now();
 
-    // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public UserEntity getUser() { return user; }
@@ -52,4 +51,3 @@ public class EvaluationTestResultEntity {
     public Instant getCompletedAt() { return completedAt; }
     public void setCompletedAt(Instant completedAt) { this.completedAt = completedAt; }
 }
-

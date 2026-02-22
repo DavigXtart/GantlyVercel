@@ -12,4 +12,3 @@ public interface SubfactorRepository extends JpaRepository<SubfactorEntity, Long
 	Optional<SubfactorEntity> findByTestAndCode(TestEntity test, String code);
 	List<SubfactorEntity> findByFactorId(Long factorId);
 }
-

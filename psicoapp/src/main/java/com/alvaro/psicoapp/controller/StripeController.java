@@ -13,7 +13,7 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class StripeController {
     private final StripeService stripeService;
-    
+
     @Value("${stripe.public.key:}")
     private String stripePublicKey;
 
@@ -34,18 +34,18 @@ public class StripeController {
             Principal principal) {
         String planId = (String) request.get("planId");
         Boolean isYearly = (Boolean) request.get("isYearly");
-        
+
         if (planId == null) {
             Map<String, String> error = new HashMap<>();
             error.put("error", "planId es requerido");
             return ResponseEntity.badRequest().body(error);
         }
-        
+
         String userEmail = principal != null ? principal.getName() : null;
-        
+
         try {
             Map<String, String> session = stripeService.createCheckoutSession(
-                planId, 
+                planId,
                 isYearly != null && isYearly,
                 userEmail
             );
@@ -67,4 +67,3 @@ public class StripeController {
         }
     }
 }
-

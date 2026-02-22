@@ -23,7 +23,7 @@ public class AppointmentRatingEntity {
     private UserEntity psychologist;
 
     @Column(nullable = false)
-    private Integer rating; // 1-5 estrellas
+    private Integer rating;
 
     @Column(columnDefinition = "TEXT")
     private String comment;
@@ -51,4 +51,3 @@ public class AppointmentRatingEntity {
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
 }
-

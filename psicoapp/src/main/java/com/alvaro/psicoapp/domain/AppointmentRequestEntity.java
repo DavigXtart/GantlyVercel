@@ -22,7 +22,7 @@ public class AppointmentRequestEntity {
     private Instant requestedAt = Instant.now();
 
     @Column(length = 20, nullable = false)
-    private String status = "PENDING"; // PENDING, CONFIRMED, REJECTED
+    private String status = "PENDING";
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -35,4 +35,3 @@ public class AppointmentRequestEntity {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 }
-

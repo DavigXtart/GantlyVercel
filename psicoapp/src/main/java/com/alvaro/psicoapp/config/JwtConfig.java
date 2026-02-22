@@ -5,20 +5,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
-/**
- * Configuración mejorada de JWT con access tokens (15 min) y refresh tokens (7 días).
- * Cumple con estándares de seguridad para aplicaciones médicas/psicológicas.
- */
 @Configuration
 public class JwtConfig {
 
-    // Secret de desarrollo: mínimo 32 bytes (256 bits) para AES-256
     private static final String DEV_SECRET = "dev-secret-key-32-bytes-minimo-dev-seed-256bit";
-    
-    // Access token: 15 minutos (tokens de corta duración para mayor seguridad)
+
     private static final long ACCESS_TOKEN_EXPIRATION_MS = 1000L * 60 * 15;
-    
-    // Refresh token: 7 días (permite renovar sin re-login frecuente)
+
     private static final long REFRESH_TOKEN_EXPIRATION_MS = 1000L * 60 * 60 * 24 * 7;
 
     @Bean
@@ -36,7 +29,6 @@ public class JwtConfig {
             secret = DEV_SECRET;
         }
 
-        // Validar longitud mínima del secret
         if (secret.getBytes().length < 32) {
             throw new IllegalStateException(
                 "JWT_SECRET debe tener al menos 32 bytes (256 bits) para seguridad AES-256. " +

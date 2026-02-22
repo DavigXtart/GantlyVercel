@@ -2,9 +2,6 @@ package com.alvaro.psicoapp.dto;
 
 import java.util.List;
 
-/**
- * DTOs para el test inicial.
- */
 public final class InitialTestDtos {
     private InitialTestDtos() {}
 

@@ -1,15 +1,5 @@
 package com.alvaro.psicoapp.service;
 
-import com.alvaro.psicoapp.domain.RoleConstants;
-import com.alvaro.psicoapp.repository.*;
-import com.alvaro.psicoapp.domain.UserEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -17,18 +7,31 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * RGPD - Retención y borrado/anominización automática de datos de pacientes.
- *
- * Requisito: borrar los datos de pacientes cada 5 años.
- *
- * Implementación:
- * - Selecciona usuarios con role=USER y createdAt anterior a cutoff (5 años).
- * - Borra datos dependientes (chat, respuestas, resultados, tareas, citas, etc).
- * - Anonimiza la fila de usuario para evitar PII y mantener integridad referencial.
- *
- * Nota: Esto es "borrado lógico" de PII + borrado físico de datos clínicos/transaccionales.
- */
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.alvaro.psicoapp.domain.RoleConstants;
+import com.alvaro.psicoapp.domain.UserEntity;
+import com.alvaro.psicoapp.repository.AppointmentRatingRepository;
+import com.alvaro.psicoapp.repository.AppointmentRepository;
+import com.alvaro.psicoapp.repository.AppointmentRequestRepository;
+import com.alvaro.psicoapp.repository.AssignedTestRepository;
+import com.alvaro.psicoapp.repository.ChatMessageRepository;
+import com.alvaro.psicoapp.repository.DailyMoodEntryRepository;
+import com.alvaro.psicoapp.repository.EvaluationTestResultRepository;
+import com.alvaro.psicoapp.repository.FactorResultRepository;
+import com.alvaro.psicoapp.repository.TaskCommentRepository;
+import com.alvaro.psicoapp.repository.TaskFileRepository;
+import com.alvaro.psicoapp.repository.TaskRepository;
+import com.alvaro.psicoapp.repository.TestResultRepository;
+import com.alvaro.psicoapp.repository.UserAnswerRepository;
+import com.alvaro.psicoapp.repository.UserPsychologistRepository;
+import com.alvaro.psicoapp.repository.UserRepository;
+
 @Service
 public class PatientDataRetentionService {
     private static final Logger logger = LoggerFactory.getLogger(PatientDataRetentionService.class);
@@ -88,9 +91,6 @@ public class PatientDataRetentionService {
         this.auditService = auditService;
     }
 
-    /**
-     * Ejecuta diariamente a las 02:30.
-     */
     @Scheduled(cron = "0 30 2 * * *")
     public void runRetentionJob() {
         Instant cutoff = Instant.now().minus(RETENTION_YEARS, ChronoUnit.YEARS);
@@ -116,37 +116,29 @@ public class PatientDataRetentionService {
         if (user == null) return;
         if (!RoleConstants.USER.equals(user.getRole())) return;
 
-        // Auditoría RGPD
         auditService.logDataDeletion(userId, RoleConstants.USER, userId, "PATIENT_DATA_ERASURE");
 
-        // 1) Borrar comentarios y ficheros de tareas (y ficheros en disco)
         deleteTaskFilesOnDisk(userId);
         taskCommentRepository.deleteByTask_User_Id(userId);
         taskFileRepository.deleteByTask_User_Id(userId);
         taskRepository.deleteByUser_Id(userId);
 
-        // 2) Borrar ratings/requests/appointments
         appointmentRatingRepository.deleteByUser_Id(userId);
         appointmentRequestRepository.deleteByUser_Id(userId);
         appointmentRepository.deleteByUser_Id(userId);
 
-        // 3) Borrar chat
         chatMessageRepository.deleteByUser_Id(userId);
 
-        // 4) Borrar respuestas y resultados
         userAnswerRepository.deleteByUser_Id(userId);
         evaluationTestResultRepository.deleteByUser_Id(userId);
         testResultRepository.deleteByUser_Id(userId);
         factorResultRepository.deleteByUser_Id(userId);
         assignedTestRepository.deleteByUser_Id(userId);
 
-        // 5) Borrar entradas de ánimo
         dailyMoodEntryRepository.deleteByUser_Id(userId);
 
-        // 6) Borrar relación con psicólogo
         userPsychologistRepository.deleteByUserId(userId);
 
-        // 7) Anonimizar PII del usuario
         anonymizeUser(user);
         userRepository.save(user);
     }
@@ -173,7 +165,7 @@ public class PatientDataRetentionService {
         String nonce = UUID.randomUUID().toString().substring(0, 8);
 
         user.setName("Usuario eliminado");
-        // Mantener unicidad: email único por ID + nonce
+
         user.setEmail("anon-" + id + "-" + nonce + "@deleted.local");
         user.setPasswordHash(null);
         user.setOauth2Provider(null);
@@ -192,4 +184,3 @@ public class PatientDataRetentionService {
         user.setIsFull(false);
     }
 }
-

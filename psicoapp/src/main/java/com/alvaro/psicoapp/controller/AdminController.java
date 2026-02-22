@@ -38,7 +38,7 @@ public class AdminController {
     @GetMapping("/tests/{id}")
     @Operation(summary = "Obtener test con detalles", description = "Obtiene un test específico con todas sus preguntas y respuestas")
     @ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Test encontrado", 
+		@ApiResponse(responseCode = "200", description = "Test encontrado",
 			content = @Content(schema = @Schema(implementation = TestEntity.class))),
 		@ApiResponse(responseCode = "404", description = "Test no encontrado")
 	})
@@ -51,7 +51,7 @@ public class AdminController {
     @PostMapping("/tests")
     @Operation(summary = "Crear nuevo test", description = "Crea un nuevo test en el sistema")
     @ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Test creado exitosamente", 
+		@ApiResponse(responseCode = "200", description = "Test creado exitosamente",
 			content = @Content(schema = @Schema(implementation = TestEntity.class))),
 		@ApiResponse(responseCode = "400", description = "Datos inválidos")
 	})

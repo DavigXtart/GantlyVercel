@@ -18,13 +18,13 @@ public class UserEntity {
 	private String email;
 
 	@Column(name = "password_hash", length = 255)
-	private String passwordHash; // nullable para usuarios OAuth2
+	private String passwordHash;
 
 	@Column(name = "oauth2_provider", length = 50)
-	private String oauth2Provider; // ej: "google"
+	private String oauth2Provider;
 
 	@Column(name = "oauth2_provider_id", length = 255)
-	private String oauth2ProviderId; // ID del usuario en el proveedor OAuth
+	private String oauth2ProviderId;
 
 	@Column(length = 20)
 	private String gender;
@@ -38,7 +38,7 @@ public class UserEntity {
 	private Instant createdAt = Instant.now();
 
 	@Column(length = 20)
-	private String role = "USER"; // USER o ADMIN
+	private String role = "USER";
 
 	@Column(name = "avatar_url", length = 500)
 	private String avatarUrl;
@@ -65,10 +65,10 @@ public class UserEntity {
 	private Boolean isFull = false;
 
 	@Column(name = "company_id")
-	private Long companyId; // Solo para PSYCHOLOGIST: empresa a la que pertenece
+	private Long companyId;
 
 	@Column(name = "referral_code", unique = true, length = 100)
-	private String referralCode; // Slug para psicólogos: "juan-garcia" (URL amigable)
+	private String referralCode;
 
 	public Long getId() { return id; }
 	public void setId(Long id) { this.id = id; }

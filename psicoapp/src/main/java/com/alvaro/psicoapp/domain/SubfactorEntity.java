@@ -16,17 +16,17 @@ public class SubfactorEntity {
 	private TestEntity test;
 
 	@Column(nullable = false, length = 10)
-	private String code; // Ej: "A", "C", "Q4"
+	private String code;
 
 	@Column(nullable = false, length = 100)
-	private String name; // Ej: "Afabilidad", "Tensión"
+	private String name;
 
 	@Column(columnDefinition = "TEXT")
 	private String description;
 
 	@ManyToOne
 	@JoinColumn(name = "factor_id")
-	private FactorEntity factor; // Factor general al que pertenece
+	private FactorEntity factor;
 
 	@Column(nullable = false)
 	private Integer position;
@@ -51,4 +51,3 @@ public class SubfactorEntity {
 	public List<QuestionEntity> getQuestions() { return questions; }
 	public void setQuestions(List<QuestionEntity> questions) { this.questions = questions; }
 }
-

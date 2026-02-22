@@ -15,4 +15,3 @@ public interface DailyMoodEntryRepository extends JpaRepository<DailyMoodEntryEn
     List<DailyMoodEntryEntity> findByUser_IdAndEntryDateBetween(Long userId, LocalDate start, LocalDate end);
     long deleteByUser_Id(Long userId);
 }
-

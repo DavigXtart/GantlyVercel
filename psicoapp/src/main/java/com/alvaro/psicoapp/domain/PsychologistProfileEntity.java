@@ -18,22 +18,22 @@ public class PsychologistProfileEntity {
     private String bio;
 
     @Column(columnDefinition = "TEXT")
-    private String education; // JSON array: [{"institution": "...", "degree": "...", "field": "...", "startDate": "...", "endDate": "..."}]
+    private String education;
 
     @Column(columnDefinition = "TEXT")
-    private String certifications; // JSON array: [{"name": "...", "issuer": "...", "date": "...", "credentialId": "..."}]
+    private String certifications;
 
     @Column(columnDefinition = "TEXT")
-    private String interests; // JSON array: ["interés1", "interés2", ...]
+    private String interests;
 
     @Column(columnDefinition = "TEXT")
-    private String specializations; // JSON array: ["especialización1", "especialización2", ...]
+    private String specializations;
 
     @Column(columnDefinition = "TEXT")
-    private String experience; // JSON array: [{"title": "...", "company": "...", "description": "...", "startDate": "...", "endDate": "..."}]
+    private String experience;
 
     @Column(columnDefinition = "TEXT")
-    private String languages; // JSON array: [{"language": "...", "level": "..."}]
+    private String languages;
 
     @Column(name = "linkedin_url", length = 500)
     private String linkedinUrl;
@@ -42,7 +42,7 @@ public class PsychologistProfileEntity {
     private String website;
 
     @Column(name = "session_prices", columnDefinition = "TEXT")
-    private String sessionPrices; // JSON: {"individual": 45, "pareja": 100, "menores": 50}
+    private String sessionPrices;
 
     @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
@@ -74,4 +74,3 @@ public class PsychologistProfileEntity {
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
 }
-

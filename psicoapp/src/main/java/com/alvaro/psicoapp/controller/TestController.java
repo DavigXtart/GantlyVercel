@@ -27,14 +27,14 @@ public class TestController {
 	@GetMapping
 	@Operation(summary = "Listar tests disponibles", description = "Obtiene la lista de todos los tests disponibles (sin preguntas)")
 	@ApiResponse(responseCode = "200", description = "Lista de tests obtenida exitosamente")
-	public List<TestEntity> list() { 
+	public List<TestEntity> list() {
 		return testService.listTestsWithoutQuestions();
 	}
 
 	@GetMapping("/{id}")
 	@Operation(summary = "Obtener detalles de test", description = "Obtiene los detalles completos de un test incluyendo preguntas y respuestas")
 	@ApiResponses(value = {
-		@ApiResponse(responseCode = "200", description = "Test encontrado", 
+		@ApiResponse(responseCode = "200", description = "Test encontrado",
 			content = @Content(schema = @Schema(implementation = TestDtos.TestDetailResponse.class))),
 		@ApiResponse(responseCode = "404", description = "Test no encontrado")
 	})

@@ -2,9 +2,6 @@ package com.alvaro.psicoapp.dto;
 
 import java.util.List;
 
-/**
- * DTOs para el TestController (estructura de test público).
- */
 public final class TestDtos {
     private TestDtos() {}
 

@@ -10,4 +10,3 @@ public interface ConsentDocumentTypeRepository extends JpaRepository<ConsentDocu
     List<ConsentDocumentTypeEntity> findByActiveTrueOrderByTitleAsc();
     Optional<ConsentDocumentTypeEntity> findByCode(String code);
 }
-

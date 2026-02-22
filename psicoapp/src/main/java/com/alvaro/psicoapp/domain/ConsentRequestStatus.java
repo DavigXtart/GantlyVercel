@@ -6,4 +6,3 @@ public enum ConsentRequestStatus {
     SIGNED,
     REVOKED
 }
-

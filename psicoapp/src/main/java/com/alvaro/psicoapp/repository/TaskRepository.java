@@ -12,5 +12,3 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
     List<TaskEntity> findByPsychologist_IdOrderByCreatedAtDesc(Long psychologistId);
     long deleteByUser_Id(Long userId);
 }
-
-

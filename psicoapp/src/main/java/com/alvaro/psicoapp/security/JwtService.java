@@ -16,7 +16,6 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SecurityException;
 
-
 public class JwtService {
 	private static final Logger logger = LoggerFactory.getLogger(JwtService.class);
 	private final Key key;
@@ -33,7 +32,6 @@ public class JwtService {
 		this.refreshTokenExpirationMs = refreshTokenExpirationMs;
 	}
 
-
 	public String generateAccessToken(String subject) {
 		Date now = new Date();
 		Date exp = new Date(now.getTime() + accessTokenExpirationMs);
@@ -45,7 +43,6 @@ public class JwtService {
 			.signWith(key, SignatureAlgorithm.HS256)
 			.compact();
 	}
-
 
 	public String generateRefreshToken(String subject) {
 		Date now = new Date();
@@ -59,15 +56,9 @@ public class JwtService {
 			.compact();
 	}
 
-
 	public TokenPair generateTokenPair(String subject) {
 		return new TokenPair(generateAccessToken(subject), generateRefreshToken(subject));
 	}
-
-	/**
-	 * Parsea el subject del token con validaciones mejoradas.
-	 * Compatibilidad hacia atrás: acepta tokens sin claim "type" (tokens antiguos).
-	 */
 
 	public String parseSubject(String token) {
 		try {
@@ -75,29 +66,26 @@ public class JwtService {
 				.setSigningKey(key)
 				.build()
 				.parseClaimsJws(token);
-			
+
 			Claims claims = jws.getBody();
-			
-			// Si el token tiene claim "type", validar que sea "access"
+
 			String tokenType = claims.get("type", String.class);
 			if (tokenType != null && !"access".equals(tokenType)) {
 				logger.debug("Token rechazado: tipo incorrecto (esperado 'access', encontrado '{}')", tokenType);
 				throw new SecurityException("Token inválido: tipo incorrecto");
 			}
-			
-			//  token que no sea antiguo prevenir replay attacks
 
 			if (tokenType != null) {
 				Date issuedAt = claims.getIssuedAt();
 				if (issuedAt != null) {
 					long age = System.currentTimeMillis() - issuedAt.getTime();
-					// Rechazar tokens con más de 24 horas de antigüedad (aunque no hayan expirado)
+
 					if (age > 24 * 60 * 60 * 1000) {
 						throw new SecurityException("Token demasiado antiguo");
 					}
 				}
 			}
-			
+
 			return claims.getSubject();
 		} catch (ExpiredJwtException e) {
 			logger.debug("Token expirado: {}", e.getMessage());
@@ -113,9 +101,6 @@ public class JwtService {
 		}
 	}
 
-	/**
-	 * Valida un refresh token (sin requerir tipo específico)
-	 */
 	public String parseRefreshToken(String refreshToken) {
 		try {
 			Jws<Claims> jws = Jwts.parserBuilder()
@@ -123,7 +108,7 @@ public class JwtService {
 				.require("type", "refresh")
 				.build()
 				.parseClaimsJws(refreshToken);
-			
+
 			return jws.getBody().getSubject();
 		} catch (ExpiredJwtException e) {
 			logger.debug("Refresh token expirado");
@@ -133,7 +118,6 @@ public class JwtService {
 			throw new SecurityException("Refresh token inválido");
 		}
 	}
-
 
 	public static class TokenPair {
 		public final String accessToken;

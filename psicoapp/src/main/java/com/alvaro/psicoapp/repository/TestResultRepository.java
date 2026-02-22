@@ -14,5 +14,3 @@ public interface TestResultRepository extends JpaRepository<TestResultEntity, Lo
 	List<TestResultEntity> findBySubfactor(SubfactorEntity subfactor);
     long deleteByUser_Id(Long userId);
 }
-
-   

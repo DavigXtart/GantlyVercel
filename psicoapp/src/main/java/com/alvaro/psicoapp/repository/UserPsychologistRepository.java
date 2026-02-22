@@ -14,14 +14,12 @@ import java.util.List;
 public interface UserPsychologistRepository extends JpaRepository<UserPsychologistEntity, Long> {
     Optional<UserPsychologistEntity> findByUserId(Long userId);
     List<UserPsychologistEntity> findByPsychologist_Id(Long psychologistId);
-    
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = "DELETE FROM user_psychologist WHERE user_id = :userId", nativeQuery = true)
     int deleteByUserId(@Param("userId") Long userId);
-    
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = "INSERT INTO user_psychologist (user_id, psychologist_id, assigned_at) VALUES (:userId, :psychologistId, CURRENT_TIMESTAMP)", nativeQuery = true)
     int insertRelation(@Param("userId") Long userId, @Param("psychologistId") Long psychologistId);
 }
-
-

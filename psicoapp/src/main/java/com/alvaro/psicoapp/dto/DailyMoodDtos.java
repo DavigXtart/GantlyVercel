@@ -5,9 +5,6 @@ import jakarta.validation.constraints.Min;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * DTOs para agenda personal / estado de ánimo.
- */
 public final class DailyMoodDtos {
     private DailyMoodDtos() {}
 

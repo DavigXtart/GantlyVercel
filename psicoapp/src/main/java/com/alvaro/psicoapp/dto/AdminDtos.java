@@ -93,8 +93,6 @@ public class AdminDtos {
         public Boolean active;
     }
 
-    // --- DTOs de respuesta ---
-
     public record SubfactorDto(Long id, String code, String name) {}
     public record FactorDto(Long id, String code, String name, List<SubfactorDto> subfactors) {}
     public record TestStructureResponse(List<FactorDto> factors) {}
@@ -131,7 +129,6 @@ public class AdminDtos {
                                 long totalTests, long evaluationTests, long totalAppointments, long bookedAppointments,
                                 long totalUserAnswers, long assignedRelations, long verifiedUsers) {}
 
-    // Panel admin de psicólogo
     public record PsychologistAdminPatientDto(Long id, String name, String email, String status, String assignedAt) {}
     public record PsychologistAdminAppointmentDto(Long id, String startTime, String endTime, String status,
             java.math.BigDecimal price, String patientName, String patientEmail) {}

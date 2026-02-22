@@ -1,8 +1,5 @@
 package com.alvaro.psicoapp.domain;
 
-/**
- * Constantes para los roles de usuario.
- */
 public final class RoleConstants {
     private RoleConstants() {}
 
@@ -11,4 +8,3 @@ public final class RoleConstants {
     public static final String ADMIN = "ADMIN";
     public static final String EMPRESA = "EMPRESA";
 }
-

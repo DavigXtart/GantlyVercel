@@ -4,9 +4,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
-/**
- * DTOs para tests de evaluación.
- */
 public final class EvaluationTestDtos {
     private EvaluationTestDtos() {}
 
