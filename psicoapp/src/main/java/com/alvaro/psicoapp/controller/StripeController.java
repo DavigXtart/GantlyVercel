@@ -56,6 +56,32 @@ public class StripeController {
         }
     }
 
+    @PostMapping("/billing-portal")
+    public ResponseEntity<Map<String, String>> createBillingPortal(Principal principal) {
+        if (principal == null) return ResponseEntity.status(401).build();
+        try {
+            Map<String, String> result = stripeService.createBillingPortalSession(principal.getName());
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.internalServerError().body(error);
+        }
+    }
+
+    @GetMapping("/payment-history")
+    public ResponseEntity<?> getPaymentHistory(Principal principal) {
+        if (principal == null) return ResponseEntity.status(401).build();
+        try {
+            var history = stripeService.getPaymentHistory(principal.getName());
+            return ResponseEntity.ok(history);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.internalServerError().body(error);
+        }
+    }
+
     @PostMapping("/webhook")
     public ResponseEntity<String> handleWebhook(@RequestBody String payload, @RequestHeader("Stripe-Signature") String sigHeader) {
         try {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, lazy, Suspense } from 'react';
 import {
   profileService,
   authService,
@@ -24,6 +24,11 @@ import JitsiVideoCall from './JitsiVideoCall';
 import NotificationBell from './ui/NotificationBell';
 import OnboardingWizard from './OnboardingWizard';
 
+const ProgressDashboard = lazy(() => import('./ProgressDashboard'));
+const BillingPortal = lazy(() => import('./BillingPortal'));
+const GroupSessions = lazy(() => import('./GroupSessions'));
+const TwoFactorSetup = lazy(() => import('./TwoFactorSetup'));
+
 type Tab =
   | 'perfil'
   | 'editar-perfil'
@@ -38,7 +43,10 @@ type Tab =
   | 'descubrimiento'
   | 'chat'
   | 'perfil-psicologo'
-  | 'privacidad';
+  | 'privacidad'
+  | 'progreso'
+  | 'facturacion'
+  | 'grupos';
 
 interface UserDashboardProps {
   onStartTest?: (testId: number) => void;
@@ -364,7 +372,10 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             { id: 'tests-pendientes', icon: 'assignment', label: 'Tests', requiresPsych: true },
             { id: 'calendario', icon: 'calendar_today', label: 'Calendario', requiresPsych: true },
             { id: 'agenda-personal', icon: 'book', label: 'Agenda', requiresPsych: false },
+            { id: 'progreso', icon: 'trending_up', label: 'Progreso', requiresPsych: false },
             { id: 'chat', icon: 'chat', label: 'Chat', requiresPsych: true },
+            { id: 'grupos', icon: 'group', label: 'Grupos', requiresPsych: false },
+            { id: 'facturacion', icon: 'receipt_long', label: 'Pagos', requiresPsych: false },
             { id: 'privacidad', icon: 'shield', label: 'Privacidad', requiresPsych: false },
           ].map((item) => {
             const isDisabled = item.requiresPsych && !hasPsychologist;
@@ -2524,6 +2535,19 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
         {/* Tab: Privacidad y Datos (RGPD) */}
         {tab === 'privacidad' && (
           <div className="space-y-8">
+            {/* 2FA Setup */}
+            <div className="bg-white rounded-3xl p-8 border border-sage/10 soft-shadow">
+              <h2 className="text-2xl font-normal text-forest flex items-center gap-2 mb-4">
+                <span className="material-symbols-outlined text-xl text-sage">lock</span>
+                Seguridad de la cuenta
+              </h2>
+              <Suspense fallback={<LoadingSpinner />}>
+                <TwoFactorSetup
+                  isEnabled={me?.totpEnabled || false}
+                  onStatusChange={() => { authService.me().then((data: any) => setMe(data)).catch(() => {}); }}
+                />
+              </Suspense>
+            </div>
             <div className="bg-white rounded-3xl p-8 border border-sage/10 soft-shadow">
               <h2 className="text-2xl font-normal text-forest flex items-center gap-2 mb-2">
                 <span className="material-symbols-outlined text-xl text-sage">shield</span>
@@ -2612,6 +2636,26 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               </div>
             </div>
           </div>
+        )}
+        {/* Tab: Progreso */}
+        {tab === 'progreso' && (
+          <Suspense fallback={<LoadingSpinner />}>
+            <ProgressDashboard />
+          </Suspense>
+        )}
+
+        {/* Tab: Facturación */}
+        {tab === 'facturacion' && (
+          <Suspense fallback={<LoadingSpinner />}>
+            <BillingPortal />
+          </Suspense>
+        )}
+
+        {/* Tab: Grupos */}
+        {tab === 'grupos' && (
+          <Suspense fallback={<LoadingSpinner />}>
+            <GroupSessions role="USER" />
+          </Suspense>
         )}
       </main>
 

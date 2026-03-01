@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /psych-dashboard
+Disallow: /admin
+Sitemap: https://gantly.es/sitemap.xml

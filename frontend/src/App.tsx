@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
+import * as Sentry from '@sentry/react';
 import Login from './components/Login';
 import Register from './components/Register';
 import Landing from './components/Landing';
@@ -6,6 +7,8 @@ import { authService } from './services/api';
 import { ToastContainer, toast } from './components/ui/Toast';
 import GlobalLoader from './components/ui/GlobalLoader';
 import Maintenance from './components/Maintenance';
+import CookieBanner from './components/ui/CookieBanner';
+import CrisisButton from './components/CrisisButton';
 
 // Lazy-loaded heavy components
 const AdminPanel = lazy(() => import('./components/AdminPanel'));
@@ -24,6 +27,8 @@ const RegisterCompany = lazy(() => import('./components/RegisterCompany'));
 const CompanyDashboard = lazy(() => import('./components/CompanyDashboard'));
 const ForgotPassword = lazy(() => import('./components/ForgotPassword'));
 const ResetPassword = lazy(() => import('./components/ResetPassword'));
+const PrivacyPolicy = lazy(() => import('./components/legal/PrivacyPolicy'));
+const TermsOfService = lazy(() => import('./components/legal/TermsOfService'));
 
 const LazyFallback = () => (
   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -53,6 +58,8 @@ function App() {
   const [psychologistReferralFromUrl, setPsychologistReferralFromUrl] = useState<string | null>(null);
   const [adminTab, setAdminTab] = useState<'tests'|'users'|'sections'|'admin-tests'|'admin-users'|'patients'|'psychologists'|'statistics'>('users');
   const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [showTermsOfService, setShowTermsOfService] = useState(false);
 
   const checkRole = async () => {
     try {
@@ -123,11 +130,24 @@ function App() {
       return;
     }
 
+    // Legal pages from URL
+    const currentPathname = window.location.pathname || '/';
+    if (currentPathname === '/privacidad') {
+      setShowPrivacyPolicy(true);
+      setShowLanding(false);
+      return;
+    }
+    if (currentPathname === '/terminos') {
+      setShowTermsOfService(true);
+      setShowLanding(false);
+      return;
+    }
+
     // Referral de psicólogo: ?referral=juan-garcia o pathname /juan-garcia
     const referralFromQuery = urlParams.get('referral');
-    const pathname = window.location.pathname || '/';
+    const pathname = currentPathname;
     const pathSlug = pathname.replace(/^\//, '').toLowerCase().replace(/[^a-z0-9-]/g, '');
-    const KNOWN_PATHS = ['', 'about', 'login', 'register', 'initial-test', 'reset-password', 'soy-profesional'];
+    const KNOWN_PATHS = ['', 'about', 'login', 'register', 'initial-test', 'reset-password', 'soy-profesional', 'privacidad', 'terminos'];
     const isReferralSlug = pathSlug && pathSlug.length > 2 && !KNOWN_PATHS.includes(pathSlug);
 
     if (referralFromQuery && referralFromQuery.trim()) {
@@ -565,8 +585,30 @@ function App() {
 
 
   // Renderizar según el estado
-  // Prioridad: About > InitialTest > Register/Login > Landing > Authenticated views
-  
+  // Prioridad: Legal Pages > About > InitialTest > Register/Login > Landing > Authenticated views
+
+  if (showPrivacyPolicy) {
+    return (
+      <>
+        <Suspense fallback={<LazyFallback />}>
+          <PrivacyPolicy onBack={() => { setShowPrivacyPolicy(false); setShowLanding(true); window.history.replaceState({ page: '/' }, '', '/'); }} />
+        </Suspense>
+        <CookieBanner onPrivacyClick={() => {}} />
+      </>
+    );
+  }
+
+  if (showTermsOfService) {
+    return (
+      <>
+        <Suspense fallback={<LazyFallback />}>
+          <TermsOfService onBack={() => { setShowTermsOfService(false); setShowLanding(true); window.history.replaceState({ page: '/' }, '', '/'); }} />
+        </Suspense>
+        <CookieBanner />
+      </>
+    );
+  }
+
   if (showAbout) {
     return <Suspense fallback={<LazyFallback />}><About onBack={goToLanding} onLogin={handleShowLogin} onGetStarted={handleGetStarted} /></Suspense>;
   }
@@ -840,8 +882,28 @@ function App() {
       <GlobalLoader />
       {/* Toast Container para notificaciones */}
       <ToastContainer />
+      {/* Cookie consent banner */}
+      <CookieBanner onPrivacyClick={() => { setShowPrivacyPolicy(true); }} />
+      {/* Crisis button for authenticated users */}
+      <CrisisButton />
     </div>
   );
 }
 
-export default App;
+function AppWithErrorBoundary() {
+  return (
+    <Sentry.ErrorBoundary fallback={
+      <div style={{ padding: '40px', textAlign: 'center', fontFamily: "'Inter', sans-serif" }}>
+        <h2 style={{ color: '#dc2626', marginBottom: '16px' }}>Ha ocurrido un error inesperado</h2>
+        <p style={{ color: '#6b7280', marginBottom: '24px' }}>Lo sentimos, algo salió mal. Por favor, recarga la página.</p>
+        <button onClick={() => window.location.reload()} style={{ background: '#5a9270', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '8px', cursor: 'pointer', fontSize: '16px' }}>
+          Recargar página
+        </button>
+      </div>
+    }>
+      <App />
+    </Sentry.ErrorBoundary>
+  );
+}
+
+export default AppWithErrorBoundary;

@@ -399,6 +399,31 @@ public class CalendarService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void updateAppointmentNotes(Long appointmentId, String notes, UserEntity psychologist) {
+        requirePsychologist(psychologist);
+        var appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cita no encontrada"));
+        requireOwnership(appointment.getPsychologist().getId(), psychologist.getId(), "editar notas de");
+        if (!appointment.getEndTime().isBefore(Instant.now())) {
+            throw new IllegalArgumentException("Solo puedes añadir notas a citas que ya han finalizado");
+        }
+        if (notes != null && notes.length() > 500) {
+            throw new IllegalArgumentException("Las notas no pueden superar los 500 caracteres");
+        }
+        appointment.setNotes(notes);
+        appointmentRepository.save(appointment);
+    }
+
+    @Transactional(readOnly = true)
+    public String getAppointmentNotes(Long appointmentId, UserEntity psychologist) {
+        requirePsychologist(psychologist);
+        var appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cita no encontrada"));
+        requireOwnership(appointment.getPsychologist().getId(), psychologist.getId(), "ver notas de");
+        return appointment.getNotes();
+    }
+
     private void requirePsychologist(UserEntity user) {
         if (!RoleConstants.PSYCHOLOGIST.equals(user.getRole())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);

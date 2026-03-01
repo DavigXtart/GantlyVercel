@@ -175,4 +175,25 @@ public class CalendarController {
     public ResponseEntity<List<CalendarDtos.PsychologistPastAppointmentDto>> getPsychologistPastAppointments(Principal principal) {
         return ResponseEntity.ok(calendarService.getPsychologistPastAppointments(currentUser(principal)));
     }
+
+    @PutMapping("/appointments/{appointmentId}/notes")
+    @Transactional
+    @Operation(summary = "Actualizar notas de cita", description = "Permite al psicólogo añadir notas a una cita pasada")
+    @ApiResponse(responseCode = "200", description = "Notas actualizadas exitosamente")
+    public ResponseEntity<CalendarDtos.MessageResponse> updateAppointmentNotes(Principal principal,
+            @PathVariable Long appointmentId, @RequestBody Map<String, String> body) {
+        String notes = body.get("notes");
+        calendarService.updateAppointmentNotes(appointmentId, notes, currentUser(principal));
+        return ResponseEntity.ok(new CalendarDtos.MessageResponse("Notas actualizadas exitosamente"));
+    }
+
+    @GetMapping("/appointments/{appointmentId}/notes")
+    @Transactional(readOnly = true)
+    @Operation(summary = "Obtener notas de cita", description = "Obtiene las notas de una cita (solo psicólogo asignado)")
+    @ApiResponse(responseCode = "200", description = "Notas obtenidas exitosamente")
+    public ResponseEntity<Map<String, String>> getAppointmentNotes(Principal principal,
+            @PathVariable Long appointmentId) {
+        String notes = calendarService.getAppointmentNotes(appointmentId, currentUser(principal));
+        return ResponseEntity.ok(Map.of("notes", notes != null ? notes : ""));
+    }
 }

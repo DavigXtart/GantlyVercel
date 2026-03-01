@@ -3,6 +3,9 @@ package com.alvaro.psicoapp.controller;
 import com.alvaro.psicoapp.dto.AuthDtos;
 import com.alvaro.psicoapp.service.AuthService;
 import com.alvaro.psicoapp.service.CompanyAuthService;
+import com.alvaro.psicoapp.service.TotpService;
+import com.alvaro.psicoapp.domain.UserEntity;
+import com.alvaro.psicoapp.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,10 +25,15 @@ public class AuthController {
 
 	private final AuthService authService;
 	private final CompanyAuthService companyAuthService;
+	private final TotpService totpService;
+	private final UserRepository userRepository;
 
-	public AuthController(AuthService authService, CompanyAuthService companyAuthService) {
+	public AuthController(AuthService authService, CompanyAuthService companyAuthService,
+			TotpService totpService, UserRepository userRepository) {
 		this.authService = authService;
 		this.companyAuthService = companyAuthService;
+		this.totpService = totpService;
+		this.userRepository = userRepository;
 	}
 
 	@PostMapping("/register")
@@ -48,9 +56,16 @@ public class AuthController {
 			content = @Content(schema = @Schema(implementation = AuthDtos.TokenResponse.class))),
 		@ApiResponse(responseCode = "401", description = "Credenciales inválidas")
 	})
-	public ResponseEntity<AuthDtos.TokenResponse> login(@Valid @RequestBody AuthDtos.LoginRequest req) {
-		var tokenPair = authService.loginWithRefresh(req.email, req.password);
-		return ResponseEntity.ok(new AuthDtos.TokenResponse(tokenPair.accessToken, tokenPair.refreshToken, 900));
+	public ResponseEntity<?> login(@Valid @RequestBody AuthDtos.LoginRequest req) {
+		try {
+			var tokenPair = authService.loginWithRefresh(req.email, req.password);
+			return ResponseEntity.ok(new AuthDtos.TokenResponse(tokenPair.accessToken, tokenPair.refreshToken, 900));
+		} catch (AuthService.TwoFactorRequiredException e) {
+			return ResponseEntity.ok(java.util.Map.of(
+					"requires2FA", true,
+					"tempToken", e.getTempToken()
+			));
+		}
 	}
 
 	@PostMapping("/refresh")
@@ -202,6 +217,62 @@ public class AuthController {
             return ResponseEntity.badRequest().body(new AuthDtos.MessageStatusResponse(e.getMessage(), "error"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new AuthDtos.MessageStatusResponse("Error al reenviar el email de verificación: " + e.getMessage(), "error"));
+        }
+    }
+
+    @PostMapping("/2fa/setup")
+    public ResponseEntity<?> setup2FA(Principal principal) {
+        if (principal == null) return ResponseEntity.status(401).build();
+        UserEntity user = userRepository.findByEmail(principal.getName()).orElse(null);
+        if (user == null) return ResponseEntity.status(401).build();
+        String secret = totpService.generateSecret();
+        String qrCode = totpService.getQrCodeDataUri(secret, user.getEmail());
+        user.setTotpSecret(secret);
+        userRepository.save(user);
+        return ResponseEntity.ok(java.util.Map.of("secret", secret, "qrCode", qrCode));
+    }
+
+    @PostMapping("/2fa/verify")
+    public ResponseEntity<AuthDtos.MessageStatusResponse> verify2FA(Principal principal, @RequestBody java.util.Map<String, String> body) {
+        if (principal == null) return ResponseEntity.status(401).build();
+        UserEntity user = userRepository.findByEmail(principal.getName()).orElse(null);
+        if (user == null) return ResponseEntity.status(401).build();
+        String code = body.get("code");
+        if (user.getTotpSecret() == null) {
+            return ResponseEntity.badRequest().body(new AuthDtos.MessageStatusResponse("Primero debes configurar 2FA", "error"));
+        }
+        if (!totpService.verifyCode(user.getTotpSecret(), code)) {
+            return ResponseEntity.badRequest().body(new AuthDtos.MessageStatusResponse("Código inválido", "error"));
+        }
+        user.setTotpEnabled(true);
+        userRepository.save(user);
+        return ResponseEntity.ok(new AuthDtos.MessageStatusResponse("2FA activado exitosamente", "success"));
+    }
+
+    @PostMapping("/2fa/disable")
+    public ResponseEntity<AuthDtos.MessageStatusResponse> disable2FA(Principal principal, @RequestBody java.util.Map<String, String> body) {
+        if (principal == null) return ResponseEntity.status(401).build();
+        UserEntity user = userRepository.findByEmail(principal.getName()).orElse(null);
+        if (user == null) return ResponseEntity.status(401).build();
+        String password = body.get("password");
+        if (user.getPasswordHash() == null || !new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder().matches(password, user.getPasswordHash())) {
+            return ResponseEntity.badRequest().body(new AuthDtos.MessageStatusResponse("Contraseña incorrecta", "error"));
+        }
+        user.setTotpEnabled(false);
+        user.setTotpSecret(null);
+        userRepository.save(user);
+        return ResponseEntity.ok(new AuthDtos.MessageStatusResponse("2FA desactivado exitosamente", "success"));
+    }
+
+    @PostMapping("/2fa/login")
+    public ResponseEntity<?> login2FA(@RequestBody java.util.Map<String, String> body) {
+        String tempToken = body.get("tempToken");
+        String code = body.get("code");
+        try {
+            var tokenPair = authService.verify2FA(tempToken, code);
+            return ResponseEntity.ok(new AuthDtos.TokenResponse(tokenPair.accessToken, tokenPair.refreshToken, 900));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new AuthDtos.MessageStatusResponse(e.getMessage(), "error"));
         }
     }
 }

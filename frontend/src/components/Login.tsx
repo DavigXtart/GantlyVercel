@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { authService, companyAuthService } from '../services/api';
+import { authService, companyAuthService, twoFactorService } from '../services/api';
 import FormField from './ui/FormField';
 import { toast } from './ui/Toast';
 
@@ -36,6 +36,9 @@ export default function Login({
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [requires2FA, setRequires2FA] = useState(false);
+  const [tempToken, setTempToken] = useState<string | null>(null);
+  const [totpCode, setTotpCode] = useState('');
 
   useEffect(() => {
     if (oauthError) {
@@ -74,7 +77,13 @@ export default function Login({
       if (isCompanyLogin) {
         await companyAuthService.login(email, password);
       } else {
-        await authService.login(email, password);
+        const result = await authService.login(email, password);
+        if (result && typeof result === 'object' && result.requires2FA) {
+          setRequires2FA(true);
+          setTempToken(result.tempToken);
+          setLoading(false);
+          return;
+        }
       }
       setFormError(null);
       toast.success('Sesión iniciada correctamente');
@@ -103,6 +112,56 @@ export default function Login({
       setLoading(false);
     }
   };
+
+  const handle2FASubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!tempToken || !totpCode.trim()) return;
+    setLoading(true);
+    setFormError(null);
+    try {
+      await twoFactorService.login(tempToken, totpCode.trim());
+      toast.success('Sesión iniciada correctamente');
+      onLogin();
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Código incorrecto';
+      toast.error(msg);
+      setFormError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (requires2FA) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #e8ece9 0%, #d4e0d8 50%, #e0e8e3 100%)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '80px 24px', fontFamily: "'Inter', sans-serif" }}>
+        <div style={{ width: '100%', maxWidth: '420px', background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(90,146,112,0.2)', borderRadius: '24px', padding: '48px 40px', boxShadow: '0 8px 32px rgba(90,146,112,0.15)' }}>
+          <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: '28px', fontWeight: 700, color: '#5a9270', marginBottom: '8px', textAlign: 'center' }}>Verificación 2FA</div>
+          <p style={{ color: '#3a5a4a', fontSize: '15px', textAlign: 'center', marginBottom: '24px' }}>Introduce el código de tu aplicación de autenticación.</p>
+          <form onSubmit={handle2FASubmit}>
+            <div style={{ marginBottom: '20px' }}>
+              <input
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                value={totpCode}
+                onChange={e => setTotpCode(e.target.value.replace(/\D/g, ''))}
+                placeholder="000000"
+                style={{ width: '100%', padding: '14px 16px', fontSize: '24px', textAlign: 'center', letterSpacing: '0.3em', border: '1px solid rgba(90,146,112,0.3)', borderRadius: '12px', outline: 'none', fontFamily: "'Inter', sans-serif" }}
+              />
+            </div>
+            {formError && <p style={{ color: '#dc2626', fontSize: '14px', marginBottom: '16px', textAlign: 'center' }}>{formError}</p>}
+            <button type="submit" disabled={loading || totpCode.length !== 6} style={{ width: '100%', padding: '14px', background: '#5a9270', color: 'white', border: 'none', borderRadius: '12px', fontSize: '16px', fontWeight: 600, cursor: 'pointer', opacity: loading || totpCode.length !== 6 ? 0.6 : 1 }}>
+              {loading ? 'Verificando...' : 'Verificar'}
+            </button>
+          </form>
+          <button onClick={() => { setRequires2FA(false); setTempToken(null); setTotpCode(''); setFormError(null); }} style={{ width: '100%', marginTop: '12px', padding: '12px', background: 'transparent', border: '1px solid rgba(90,146,112,0.3)', borderRadius: '12px', color: '#5a9270', fontSize: '14px', cursor: 'pointer' }}>
+            Volver al login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

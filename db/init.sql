@@ -978,4 +978,50 @@ CREATE TABLE `notifications` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
+-- --------------------------------------------------------
+-- New columns for users table (account lockout + 2FA)
+-- --------------------------------------------------------
+
+ALTER TABLE `users` ADD COLUMN `failed_login_attempts` INT NOT NULL DEFAULT 0;
+ALTER TABLE `users` ADD COLUMN `account_locked_until` DATETIME(6) NULL;
+ALTER TABLE `users` ADD COLUMN `totp_secret` VARCHAR(255) NULL;
+ALTER TABLE `users` ADD COLUMN `totp_enabled` TINYINT(1) NOT NULL DEFAULT 0;
+
+-- --------------------------------------------------------
+-- Table structure for table `group_sessions`
+-- --------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `group_sessions` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL,
+  `description` text,
+  `psychologist_id` bigint NOT NULL,
+  `max_participants` int NOT NULL DEFAULT 10,
+  `start_time` datetime(6) NOT NULL,
+  `end_time` datetime(6) NOT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'SCHEDULED',
+  `jitsi_room_name` varchar(255) NOT NULL,
+  `created_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  PRIMARY KEY (`id`),
+  KEY `idx_group_sessions_psychologist` (`psychologist_id`),
+  KEY `idx_group_sessions_status_start` (`status`, `start_time`),
+  CONSTRAINT `fk_group_sessions_psychologist` FOREIGN KEY (`psychologist_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table structure for table `group_session_participants`
+-- --------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `group_session_participants` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `group_session_id` bigint NOT NULL,
+  `user_id` bigint NOT NULL,
+  `joined_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_group_participant` (`group_session_id`, `user_id`),
+  KEY `idx_group_participants_user` (`user_id`),
+  CONSTRAINT `fk_group_participants_session` FOREIGN KEY (`group_session_id`) REFERENCES `group_sessions` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_group_participants_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Dump completed on 2026-02-20 10:44:10

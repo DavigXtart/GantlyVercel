@@ -34,12 +34,13 @@ public class AuthService {
 	private final TestResultService testResultService;
 	private final TestRepository testRepository;
 	private final EmailService emailService;
+	private final TotpService totpService;
 	private static final String INITIAL_TEST_CODE = "INITIAL";
 
 	public AuthService(UserRepository userRepository, CompanyRepository companyRepository,
 			UserPsychologistRepository userPsychologistRepository, PasswordEncoder passwordEncoder,
 			JwtService jwtService, TemporarySessionService sessionService, TestResultService testResultService,
-			TestRepository testRepository, EmailService emailService) {
+			TestRepository testRepository, EmailService emailService, TotpService totpService) {
 		this.userRepository = userRepository;
 		this.companyRepository = companyRepository;
 		this.userPsychologistRepository = userPsychologistRepository;
@@ -49,6 +50,7 @@ public class AuthService {
 		this.testResultService = testResultService;
 		this.testRepository = testRepository;
 		this.emailService = emailService;
+		this.totpService = totpService;
 	}
 
 	@Transactional
@@ -206,8 +208,71 @@ public class AuthService {
 		String sanitizedEmail = InputSanitizer.sanitizeEmail(email);
 		UserEntity u = userRepository.findByEmail(sanitizedEmail).orElseThrow(() -> new IllegalArgumentException("Credenciales inválidas"));
 		if (u.getPasswordHash() == null) throw new IllegalArgumentException("Esta cuenta usa inicio de sesión con Google. Usa el botón \"Continuar con Google\".");
-		if (!passwordEncoder.matches(password, u.getPasswordHash())) throw new IllegalArgumentException("Credenciales inválidas");
+
+		// Account lockout check
+		if (u.getAccountLockedUntil() != null && u.getAccountLockedUntil().isAfter(java.time.Instant.now())) {
+			long minutesLeft = java.time.Duration.between(java.time.Instant.now(), u.getAccountLockedUntil()).toMinutes() + 1;
+			throw new IllegalArgumentException("Cuenta bloqueada temporalmente. Intenta en " + minutesLeft + " minutos.");
+		}
+
+		if (!passwordEncoder.matches(password, u.getPasswordHash())) {
+			// Increment failed attempts
+			int attempts = (u.getFailedLoginAttempts() != null ? u.getFailedLoginAttempts() : 0) + 1;
+			u.setFailedLoginAttempts(attempts);
+			if (attempts >= 5) {
+				u.setAccountLockedUntil(java.time.Instant.now().plusSeconds(15 * 60));
+				userRepository.save(u);
+				throw new IllegalArgumentException("Cuenta bloqueada temporalmente por demasiados intentos fallidos. Intenta en 15 minutos.");
+			}
+			userRepository.save(u);
+			throw new IllegalArgumentException("Credenciales inválidas");
+		}
+
+		// Reset failed attempts on successful login
+		if (u.getFailedLoginAttempts() != null && u.getFailedLoginAttempts() > 0) {
+			u.setFailedLoginAttempts(0);
+			u.setAccountLockedUntil(null);
+			userRepository.save(u);
+		}
+
+		// 2FA check
+		if (Boolean.TRUE.equals(u.getTotpEnabled())) {
+			// Return a special temporary token indicating 2FA is required
+			String tempToken = jwtService.generateAccessToken(u.getEmail());
+			throw new TwoFactorRequiredException(tempToken);
+		}
+
 		return jwtService.generateTokenPair(u.getEmail());
+	}
+
+	public com.alvaro.psicoapp.security.JwtService.TokenPair verify2FA(String tempToken, String totpCode) {
+		try {
+			String email = jwtService.parseSubject(tempToken);
+			UserEntity u = userRepository.findByEmail(email)
+					.orElseThrow(() -> new IllegalArgumentException("Token inválido"));
+			if (!Boolean.TRUE.equals(u.getTotpEnabled()) || u.getTotpSecret() == null) {
+				throw new IllegalArgumentException("2FA no está habilitado para esta cuenta");
+			}
+			if (!totpService.verifyCode(u.getTotpSecret(), totpCode)) {
+				throw new IllegalArgumentException("Código 2FA inválido");
+			}
+			return jwtService.generateTokenPair(u.getEmail());
+		} catch (TwoFactorRequiredException e) {
+			throw e;
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new IllegalArgumentException("Token temporal inválido o expirado");
+		}
+	}
+
+	public static class TwoFactorRequiredException extends RuntimeException {
+		private final String tempToken;
+		public TwoFactorRequiredException(String tempToken) {
+			super("Se requiere autenticación de dos factores");
+			this.tempToken = tempToken;
+		}
+		public String getTempToken() { return tempToken; }
 	}
 
 	public String refreshAccessToken(String refreshToken) {

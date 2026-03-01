@@ -162,7 +162,11 @@ export const authService = {
     return token || '';
   },
   login: async (email: string, password: string) => {
-    const { data } = await api.post<{ token?: string; accessToken?: string; refreshToken?: string; expiresIn?: number }>('/auth/login', { email, password });
+    const { data } = await api.post<{ token?: string; accessToken?: string; refreshToken?: string; expiresIn?: number; requires2FA?: boolean; tempToken?: string }>('/auth/login', { email, password });
+    // Handle 2FA requirement
+    if (data.requires2FA && data.tempToken) {
+      return { requires2FA: true, tempToken: data.tempToken } as any;
+    }
     // Compatibilidad: usar accessToken si existe, sino token (legacy)
     const token = data.accessToken;
     if (token) {
@@ -768,7 +772,15 @@ export const stripeService = {
   getPublicKey: async () => {
     const { data } = await api.get('/stripe/public-key');
     return data as { publicKey: string };
-  }
+  },
+  createBillingPortal: async () => {
+    const { data } = await api.post('/stripe/billing-portal');
+    return data as { url: string };
+  },
+  getPaymentHistory: async () => {
+    const { data } = await api.get('/stripe/payment-history');
+    return data as Array<{ id: string; amount: number; currency: string; status: string; date: string; invoicePdf: string | null }>;
+  },
 };
 
 export const personalAgendaService = {
@@ -853,6 +865,72 @@ export const evaluationTestService = {
     const { data } = await api.get('/evaluation-tests/statistics');
     return data;
   }
+};
+
+// Calendar notes (session notes for psychologists)
+export const calendarNotesService = {
+  updateNotes: async (appointmentId: number, notes: string) => {
+    const { data } = await api.put(`/calendar/appointments/${appointmentId}/notes`, { notes });
+    return data;
+  },
+  getNotes: async (appointmentId: number) => {
+    const { data } = await api.get(`/calendar/appointments/${appointmentId}/notes`);
+    return data as { notes: string };
+  },
+};
+
+// Group sessions
+export const groupSessionService = {
+  list: async () => {
+    const { data } = await api.get('/group-sessions');
+    return data as Array<any>;
+  },
+  getMy: async () => {
+    const { data } = await api.get('/group-sessions/my');
+    return data as Array<any>;
+  },
+  get: async (id: number) => {
+    const { data } = await api.get(`/group-sessions/${id}`);
+    return data;
+  },
+  create: async (session: { title: string; description: string; maxParticipants: number; startTime: string; endTime: string }) => {
+    const { data } = await api.post('/group-sessions', session);
+    return data;
+  },
+  join: async (id: number) => {
+    const { data } = await api.post(`/group-sessions/${id}/join`);
+    return data;
+  },
+  leave: async (id: number) => {
+    await api.delete(`/group-sessions/${id}/leave`);
+  },
+};
+
+// 2FA / TOTP
+export const twoFactorService = {
+  setup: async () => {
+    const { data } = await api.post('/auth/2fa/setup');
+    return data as { secret: string; qrCodeUri: string };
+  },
+  verify: async (code: string) => {
+    const { data } = await api.post('/auth/2fa/verify', { code });
+    return data;
+  },
+  disable: async (password: string) => {
+    const { data } = await api.post('/auth/2fa/disable', { password });
+    return data;
+  },
+  login: async (tempToken: string, code: string) => {
+    const { data } = await api.post<{ accessToken?: string; refreshToken?: string }>('/auth/2fa/login', { tempToken, code });
+    const token = data.accessToken;
+    if (token) {
+      localStorage.setItem('token', token);
+      if (data.refreshToken) {
+        localStorage.setItem('refreshToken', data.refreshToken);
+      }
+    }
+    return token || '';
+  },
 };
 
 // Notificaciones

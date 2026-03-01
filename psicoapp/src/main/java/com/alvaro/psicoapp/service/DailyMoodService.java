@@ -29,6 +29,9 @@ public class DailyMoodService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private CrisisDetectionService crisisDetectionService;
+
     @Transactional
     public DailyMoodEntryEntity saveOrUpdate(Long userId, DailyMoodDtos.SaveEntryRequest req) {
         UserEntity user = userRepository.findById(userId)
@@ -70,6 +73,12 @@ public class DailyMoodService {
 
         try {
             DailyMoodEntryEntity saved = dailyMoodEntryRepository.save(entry);
+            // Trigger crisis detection analysis after saving mood entry
+            try {
+                crisisDetectionService.analyzeMoodTrend(userId);
+            } catch (Exception crisisEx) {
+                logger.error("Error en análisis de crisis para usuario {}", userId, crisisEx);
+            }
             return saved;
         } catch (Exception e) {
             throw new RuntimeException("Error al guardar en la base de datos: " + e.getMessage(), e);

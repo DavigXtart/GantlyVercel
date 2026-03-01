@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
-import { profileService, psychService, calendarService, tasksService, assignedTestsService, testService, jitsiService, resultsService, matchingService, consentService, API_BASE_URL } from '../services/api';
+import { useEffect, useState, useCallback, useRef, useMemo, lazy, Suspense } from 'react';
+import { profileService, psychService, calendarService, tasksService, assignedTestsService, testService, jitsiService, resultsService, matchingService, consentService, calendarNotesService, API_BASE_URL } from '../services/api';
 import ChatWidget from './ChatWidget';
 import CalendarWeek from './CalendarWeek';
 import JitsiVideoCall from './JitsiVideoCall';
@@ -12,7 +12,62 @@ import InitialTestSummary from './InitialTestSummary';
 import PsychologistMatchingTest from './PsychologistMatchingTest';
 import NotificationBell from './ui/NotificationBell';
 
-type Tab = 'perfil' | 'pacientes' | 'calendario' | 'tareas' | 'chat' | 'citas-pasadas' | 'tests-asignados' | 'patient-profile' | 'test-details' | 'editar-perfil-profesional' | 'matching-test';
+const GroupSessions = lazy(() => import('./GroupSessions'));
+
+type Tab = 'perfil' | 'pacientes' | 'calendario' | 'tareas' | 'chat' | 'citas-pasadas' | 'tests-asignados' | 'patient-profile' | 'test-details' | 'editar-perfil-profesional' | 'matching-test' | 'grupos';
+
+function SessionNotesSection({ appointmentId, existingNotes }: { appointmentId: number; existingNotes?: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const [notes, setNotes] = useState(existingNotes || '');
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await calendarNotesService.updateNotes(appointmentId, notes);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch {
+      // silent fail
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div style={{ marginTop: '12px', borderTop: '1px solid rgba(90,146,112,0.1)', paddingTop: '12px' }}>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: '#5a9270', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px', padding: 0 }}
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{expanded ? 'expand_less' : 'expand_more'}</span>
+        Notas de sesión {existingNotes ? '(editadas)' : ''}
+      </button>
+      {expanded && (
+        <div style={{ marginTop: '8px' }}>
+          <textarea
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+            maxLength={500}
+            placeholder="Escribe notas sobre esta sesión..."
+            style={{ width: '100%', minHeight: '80px', padding: '12px', border: '1px solid rgba(90,146,112,0.2)', borderRadius: '12px', fontSize: '14px', fontFamily: "'Inter', sans-serif", resize: 'vertical' }}
+          />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+            <span style={{ fontSize: '12px', color: '#9ca3af' }}>{notes.length}/500</span>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              style={{ padding: '6px 16px', background: '#5a9270', color: 'white', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', opacity: saving ? 0.6 : 1 }}
+            >
+              {saving ? 'Guardando...' : saved ? 'Guardado!' : 'Guardar notas'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function PsychDashboard() {
   const [tab, setTab] = useState<Tab>('perfil');
@@ -619,6 +674,7 @@ export default function PsychDashboard() {
             { id: 'calendario', icon: 'calendar_today', label: 'Calendario' },
             { id: 'chat', icon: 'chat', label: 'Chat' },
             { id: 'citas-pasadas', icon: 'history', label: 'Citas' },
+            { id: 'grupos', icon: 'group', label: 'Grupos' },
           ].map((item) => {
             const isActive = tab === item.id;
             return (
@@ -4464,6 +4520,8 @@ export default function PsychDashboard() {
                       </div>
                     )}
                   </div>
+                  {/* Session Notes */}
+                  <SessionNotesSection appointmentId={apt.id} existingNotes={apt.notes} />
                 </div>
               ))}
             </div>
@@ -4918,6 +4976,13 @@ export default function PsychDashboard() {
             <EmptyState icon="📊" title="Test no encontrado" description="No se pudieron cargar los detalles del test." />
           )}
         </div>
+      )}
+
+      {/* Tab: Grupos */}
+      {tab === 'grupos' && (
+        <Suspense fallback={<LoadingSpinner />}>
+          <GroupSessions role="PSYCHOLOGIST" />
+        </Suspense>
       )}
 
       {/* Videollamada Jitsi - NUNCA desmontar, usar ref para mantener montado */}

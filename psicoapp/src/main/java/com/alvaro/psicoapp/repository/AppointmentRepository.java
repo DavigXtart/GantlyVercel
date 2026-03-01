@@ -59,4 +59,6 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
         @Param("userId") Long userId,
         @Param("now") Instant now
     );
+
+    List<AppointmentEntity> findByStartTimeBetweenAndStatus(Instant from, Instant to, String status);
 }

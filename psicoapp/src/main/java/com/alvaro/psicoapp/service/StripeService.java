@@ -164,4 +164,70 @@ public class StripeService {
         logger.info("Suscripción actualizada: {}, Estado: {}, Evento: {}", customerId, status, eventType);
 
     }
+
+    public Map<String, String> createBillingPortalSession(String customerEmail) {
+        if (!isStripeConfigured()) {
+            throw new RuntimeException("Stripe no está configurado");
+        }
+        try {
+            var customers = com.stripe.model.Customer.list(
+                    com.stripe.param.CustomerListParams.builder()
+                            .setEmail(customerEmail)
+                            .setLimit(1L)
+                            .build()
+            );
+            if (customers.getData().isEmpty()) {
+                throw new RuntimeException("No se encontró un cliente con ese email");
+            }
+            String customerId = customers.getData().get(0).getId();
+            var params = com.stripe.param.billingportal.SessionCreateParams.builder()
+                    .setCustomer(customerId)
+                    .setReturnUrl(baseUrl + "/dashboard")
+                    .build();
+            var session = com.stripe.model.billingportal.Session.create(params);
+            Map<String, String> response = new HashMap<>();
+            response.put("url", session.getUrl());
+            return response;
+        } catch (Exception e) {
+            throw new RuntimeException("Error creando portal de facturación: " + e.getMessage(), e);
+        }
+    }
+
+    public java.util.List<Map<String, Object>> getPaymentHistory(String customerEmail) {
+        if (!isStripeConfigured()) {
+            throw new RuntimeException("Stripe no está configurado");
+        }
+        try {
+            var customers = com.stripe.model.Customer.list(
+                    com.stripe.param.CustomerListParams.builder()
+                            .setEmail(customerEmail)
+                            .setLimit(1L)
+                            .build()
+            );
+            if (customers.getData().isEmpty()) {
+                return java.util.List.of();
+            }
+            String customerId = customers.getData().get(0).getId();
+            var invoices = com.stripe.model.Invoice.list(
+                    com.stripe.param.InvoiceListParams.builder()
+                            .setCustomer(customerId)
+                            .setLimit(20L)
+                            .build()
+            );
+            java.util.List<Map<String, Object>> result = new java.util.ArrayList<>();
+            for (var invoice : invoices.getData()) {
+                Map<String, Object> inv = new HashMap<>();
+                inv.put("id", invoice.getId());
+                inv.put("date", invoice.getCreated());
+                inv.put("amount", invoice.getAmountPaid());
+                inv.put("currency", invoice.getCurrency());
+                inv.put("status", invoice.getStatus());
+                inv.put("invoicePdf", invoice.getInvoicePdf());
+                result.add(inv);
+            }
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException("Error obteniendo historial de pagos: " + e.getMessage(), e);
+        }
+    }
 }

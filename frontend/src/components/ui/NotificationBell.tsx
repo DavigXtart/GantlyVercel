@@ -84,6 +84,8 @@ export default function NotificationBell() {
     TASK: 'task_alt',
     APPOINTMENT: 'calendar_today',
     MESSAGE: 'chat',
+    CRISIS: 'emergency',
+    REMINDER: 'alarm',
   };
 
   return (
@@ -127,11 +129,11 @@ export default function NotificationBell() {
                   onClick={() => !n.read && handleMarkRead(n.id)}
                   className={`w-full text-left px-4 py-3 border-b border-sage/5 hover:bg-cream/50 transition-colors flex gap-3 ${!n.read ? 'bg-emerald-50/50' : ''}`}
                 >
-                  <span className="material-symbols-outlined text-lg text-sage mt-0.5">
+                  <span className={`material-symbols-outlined text-lg mt-0.5 ${n.type === 'CRISIS' ? 'text-red-500' : 'text-sage'}`}>
                     {typeIcon[n.type] || 'circle_notifications'}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm ${!n.read ? 'font-medium text-forest' : 'text-sage/80'}`}>
+                    <p className={`text-sm ${n.type === 'CRISIS' ? 'font-bold text-red-600' : !n.read ? 'font-medium text-forest' : 'text-sage/80'}`}>
                       {n.title}
                     </p>
                     <p className="text-xs text-sage/60 truncate">{n.message}</p>

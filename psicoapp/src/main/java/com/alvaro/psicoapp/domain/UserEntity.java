@@ -70,6 +70,18 @@ public class UserEntity {
 	@Column(name = "referral_code", unique = true, length = 100)
 	private String referralCode;
 
+	@Column(name = "failed_login_attempts", nullable = false)
+	private Integer failedLoginAttempts = 0;
+
+	@Column(name = "account_locked_until")
+	private Instant accountLockedUntil;
+
+	@Column(name = "totp_secret", length = 255)
+	private String totpSecret;
+
+	@Column(name = "totp_enabled", nullable = false)
+	private Boolean totpEnabled = false;
+
 	public Long getId() { return id; }
 	public void setId(Long id) { this.id = id; }
 	public String getName() { return name; }
@@ -112,4 +124,12 @@ public class UserEntity {
 	public void setCompanyId(Long companyId) { this.companyId = companyId; }
 	public String getReferralCode() { return referralCode; }
 	public void setReferralCode(String referralCode) { this.referralCode = referralCode; }
+	public Integer getFailedLoginAttempts() { return failedLoginAttempts; }
+	public void setFailedLoginAttempts(Integer failedLoginAttempts) { this.failedLoginAttempts = failedLoginAttempts; }
+	public Instant getAccountLockedUntil() { return accountLockedUntil; }
+	public void setAccountLockedUntil(Instant accountLockedUntil) { this.accountLockedUntil = accountLockedUntil; }
+	public String getTotpSecret() { return totpSecret; }
+	public void setTotpSecret(String totpSecret) { this.totpSecret = totpSecret; }
+	public Boolean getTotpEnabled() { return totpEnabled; }
+	public void setTotpEnabled(Boolean totpEnabled) { this.totpEnabled = totpEnabled; }
 }

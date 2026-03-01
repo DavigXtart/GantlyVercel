@@ -71,6 +71,12 @@ logging:
     max-size: 10MB
     max-history: 30
 
+# Sentry
+sentry:
+  dsn: ${SENTRY_DSN:}
+  traces-sample-rate: 0.2
+  environment: production
+
 # Actuator (monitoreo)
 management:
   endpoints:
@@ -80,10 +86,19 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+  info:
+    env:
+      enabled: true
   metrics:
     export:
       simple:
         enabled: true
+
+info:
+  app:
+    name: Gantly
+    version: 1.0.0
+    description: Plataforma de salud mental
 
 # Configuración del servidor
 server:

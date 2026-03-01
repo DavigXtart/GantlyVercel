@@ -397,6 +397,12 @@ export default function Landing({ onGetStarted, onLogin, onShowAbout, onShowSoyP
             <button type="button" onClick={onShowSoyProfesional} className="hover:text-forest transition-colors">
               Soy profesional
             </button>
+            <a href="/privacidad" onClick={(e) => { e.preventDefault(); window.history.pushState({ page: '/privacidad' }, '', '/privacidad'); window.location.reload(); }} className="hover:text-forest transition-colors">
+              Privacidad
+            </a>
+            <a href="/terminos" onClick={(e) => { e.preventDefault(); window.history.pushState({ page: '/terminos' }, '', '/terminos'); window.location.reload(); }} className="hover:text-forest transition-colors">
+              Términos
+            </a>
           </div>
         </div>
       </footer>

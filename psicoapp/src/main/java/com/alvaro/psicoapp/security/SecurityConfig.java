@@ -81,6 +81,7 @@ public class SecurityConfig {
 				.requestMatchers("/api/jitsi/**").authenticated()
 				.requestMatchers("/api/stripe/webhook").permitAll()
 				.requestMatchers("/api/stripe/**").authenticated()
+				.requestMatchers("/api/group-sessions/**").authenticated()
 				.requestMatchers("/ws/**", "/topic/**", "/app/**").permitAll()
 				.requestMatchers("/actuator/health").permitAll()
 				.requestMatchers("/actuator/**").authenticated()
