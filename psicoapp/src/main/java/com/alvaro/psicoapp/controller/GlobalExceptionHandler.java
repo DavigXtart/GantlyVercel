@@ -63,9 +63,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseBody
     public ResponseEntity<ErrorDtos.ErrorResponse> handleException(Exception e) {
-        logger.error("Error inesperado", e);
-        String msg = e.getMessage() != null ? e.getMessage() : "Error interno del servidor";
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse("INTERNAL_ERROR", msg));
+        String errorId = java.util.UUID.randomUUID().toString().substring(0, 8);
+        logger.error("Error inesperado [{}]: {}", errorId, e.getMessage(), e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(createErrorResponse("INTERNAL_ERROR", "Error interno del servidor. Ref: " + errorId));
     }
 
     private ErrorDtos.ErrorResponse createErrorResponse(String code, String message) {

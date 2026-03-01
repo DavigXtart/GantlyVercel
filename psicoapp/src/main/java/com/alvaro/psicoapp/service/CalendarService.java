@@ -41,19 +41,22 @@ public class CalendarService {
     private final UserRepository userRepository;
     private final UserPsychologistRepository userPsychologistRepository;
     private final EmailService emailService;
+    private final NotificationService notificationService;
 
     public CalendarService(AppointmentRepository appointmentRepository,
                            AppointmentRequestRepository appointmentRequestRepository,
                            AppointmentRatingRepository appointmentRatingRepository,
                            UserRepository userRepository,
                            UserPsychologistRepository userPsychologistRepository,
-                           EmailService emailService) {
+                           EmailService emailService,
+                           NotificationService notificationService) {
         this.appointmentRepository = appointmentRepository;
         this.appointmentRequestRepository = appointmentRequestRepository;
         this.appointmentRatingRepository = appointmentRatingRepository;
         this.userRepository = userRepository;
         this.userPsychologistRepository = userPsychologistRepository;
         this.emailService = emailService;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -239,6 +242,9 @@ public class CalendarService {
         } catch (Exception e) {
             logger.error("Error enviando email de confirmación", e);
         }
+
+        notificationService.createNotification(request.getUser().getId(), "APPOINTMENT",
+            "Cita confirmada", "Tu cita con " + psychologist.getName() + " ha sido confirmada.");
     }
 
     @Transactional

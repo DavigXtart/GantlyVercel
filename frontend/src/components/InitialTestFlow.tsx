@@ -89,52 +89,39 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
   useEffect(() => {
     initializeTest();
     // Cargar animaciones Lottie (archivos ZIP comprimidos)
-    const loadLottieFile = async (url: string, setData: (data: any) => void, name: string) => {
+    const loadLottieFile = async (url: string, setData: (data: any) => void, _name: string) => {
       try {
-        console.log(`Cargando ${name} desde ${url}`);
         const response = await fetch(url);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const arrayBuffer = await response.arrayBuffer();
-        console.log(`${name}: Archivo descargado, tamaño: ${arrayBuffer.byteLength} bytes`);
         const zip = await JSZip.loadAsync(arrayBuffer);
-        console.log(`${name}: ZIP descomprimido, archivos:`, Object.keys(zip.files));
-        
-        // Los archivos .lottie contienen un manifest.json que indica el archivo de animación
+
         let jsonFile = null;
         const manifestFile = zip.file('manifest.json');
-        
+
         if (manifestFile) {
           const manifestData = await manifestFile.async('string');
           const manifest = JSON.parse(manifestData);
-          console.log(`${name}: Manifest encontrado:`, manifest);
-          
-          // El manifest tiene información sobre el archivo de animación
-          // Puede estar en manifest.animations[0].file o similar
+
           if (manifest.animations && manifest.animations.length > 0) {
             const animationInfo = manifest.animations[0];
-            console.log(`${name}: Información de animación:`, animationInfo);
-            console.log(`${name}: Tipo de animationInfo:`, typeof animationInfo);
-            console.log(`${name}: Keys de animationInfo:`, typeof animationInfo === 'object' ? Object.keys(animationInfo) : 'N/A');
-            
-            // El archivo puede estar en diferentes propiedades
+
             let animationFile = null;
             if (typeof animationInfo === 'string') {
               animationFile = animationInfo;
             } else if (typeof animationInfo === 'object' && animationInfo !== null) {
-              // Intentar todas las propiedades posibles
-              animationFile = animationInfo.file || 
-                             animationInfo.id || 
+              animationFile = animationInfo.file ||
+                             animationInfo.id ||
                              animationInfo.uuid ||
                              animationInfo.path ||
                              animationInfo.name ||
                              (animationInfo.animations && animationInfo.animations[0]) ||
                              Object.values(animationInfo).find(v => typeof v === 'string' && v.length > 10);
             }
-            
+
             if (animationFile && typeof animationFile === 'string') {
-              // Buscar el archivo en la carpeta animations/ si existe
               let filePath = animationFile;
               if (!filePath.includes('/')) {
                 filePath = `animations/${filePath}`;
@@ -143,35 +130,26 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
                 filePath = `${filePath}.json`;
               }
               jsonFile = zip.file(filePath);
-              console.log(`${name}: Buscando archivo de animación: ${filePath}`);
-            } else {
-              console.log(`${name}: No se pudo extraer el nombre del archivo del manifest`);
             }
           }
         }
-        
-        // Si no encontramos el archivo a través del manifest, buscar cualquier JSON excepto manifest.json
+
         if (!jsonFile) {
-          const jsonFiles = Object.keys(zip.files).filter(fname => 
+          const jsonFiles = Object.keys(zip.files).filter(fname =>
             fname.endsWith('.json') && fname !== 'manifest.json'
           );
           if (jsonFiles.length > 0) {
-            console.log(`${name}: Usando archivo JSON: ${jsonFiles[0]}`);
             jsonFile = zip.file(jsonFiles[0]);
           }
         }
-        
+
         if (jsonFile) {
           const jsonData = await jsonFile.async('string');
           const parsedData = JSON.parse(jsonData);
           setData(parsedData);
-          console.log(`${name}: Animación cargada correctamente`);
-        } else {
-          console.error(`No se encontró archivo JSON de animación en ${name}`);
-          console.log(`${name}: Archivos disponibles:`, Object.keys(zip.files));
         }
       } catch (err) {
-        console.error(`Error cargando ${name}:`, err);
+        // error handled silently
       }
     };
     
@@ -199,7 +177,6 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
       }
       setTest(testData);
     } catch (err: any) {
-      console.error('Error inicializando test:', err);
       toast.error('Error al cargar el test inicial: ' + (err.response?.data?.message || err.message));
     } finally {
       setLoading(false);
@@ -432,7 +409,6 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
       await initialTestService.submitAnswers(sessionId, submitData);
       onComplete(sessionId);
     } catch (err: any) {
-      console.error('Error enviando respuestas:', err);
       toast.error('Error al enviar las respuestas: ' + (err.response?.data?.message || err.message));
     } finally {
       setSubmitting(false);
@@ -932,9 +908,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           zIndex: 0,
           pointerEvents: 'none',
         }}
-        onLoad={() => {
-          console.log('Imagen de fondo cargada correctamente');
-        }}
+        onLoad={() => {}}
       />
       
       {/* Lottie Animations */}

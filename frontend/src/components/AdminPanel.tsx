@@ -53,18 +53,10 @@ export default function AdminPanel({}: AdminPanelProps = {}) {
         .map((et: any) => ({ ...et, _source: 'evaluation' as const }));
       const allTestsCombined = [...fromTests, ...fromEvaluation];
       
-      console.log('Tests cargados en admin:', allTestsCombined);
       setTests(allTestsCombined);
     } catch (err: any) {
-      console.error('Error cargando tests:', err);
       const errorMsg = err.response?.data?.message || err.message || 'Error desconocido';
-      console.error('Detalles del error:', {
-        status: err.response?.status,
-        statusText: err.response?.statusText,
-        data: err.response?.data,
-        message: errorMsg
-      });
-      alert(`Error al cargar los tests: ${errorMsg}\n\nVerifica que:\n- El backend esté corriendo en http://localhost:8080\n- Estés autenticado como ADMIN\n- No haya errores en la consola del navegador`);
+      alert(`Error al cargar los tests: ${errorMsg}\n\nVerifica que:\n- El backend esté corriendo\n- Estés autenticado como ADMIN`);
     } finally {
       setLoading(false);
     }

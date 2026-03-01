@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
-import { profileService, psychService, calendarService, tasksService, assignedTestsService, testService, jitsiService, resultsService, matchingService, consentService } from '../services/api';
+import { profileService, psychService, calendarService, tasksService, assignedTestsService, testService, jitsiService, resultsService, matchingService, consentService, API_BASE_URL } from '../services/api';
 import ChatWidget from './ChatWidget';
 import CalendarWeek from './CalendarWeek';
 import JitsiVideoCall from './JitsiVideoCall';
@@ -10,6 +10,7 @@ import BarChart from './BarChart';
 import FactorChart from './FactorChart';
 import InitialTestSummary from './InitialTestSummary';
 import PsychologistMatchingTest from './PsychologistMatchingTest';
+import NotificationBell from './ui/NotificationBell';
 
 type Tab = 'perfil' | 'pacientes' | 'calendario' | 'tareas' | 'chat' | 'citas-pasadas' | 'tests-asignados' | 'patient-profile' | 'test-details' | 'editar-perfil-profesional' | 'matching-test';
 
@@ -141,7 +142,6 @@ export default function PsychDashboard() {
       const t = await tasksService.list();
       setTasks(t);
     } catch (error: any) {
-      console.error('Error cargando datos:', error);
       toast.error('Error al cargar los datos. Por favor recarga la página.');
     } finally {
       setLoading(false);
@@ -153,7 +153,6 @@ export default function PsychDashboard() {
         const at = await assignedTestsService.list();
         setAssignedTests(at || []);
       } catch (error: any) {
-        console.error('Error cargando tests asignados (no crítico):', error);
         setAssignedTests([]);
       }
     }, 100);
@@ -165,7 +164,6 @@ export default function PsychDashboard() {
         const activeTests = (tests || []).filter((t: any) => t.active !== false);
         setAvailableTests(activeTests);
       } catch (error: any) {
-        console.error('Error cargando tests disponibles (no crítico):', error);
         setAvailableTests([]);
       }
     }, 200);
@@ -176,7 +174,7 @@ export default function PsychDashboard() {
       const files = await tasksService.getFiles(taskId);
       setTaskFiles((prev) => ({ ...prev, [taskId]: files }));
     } catch (error) {
-      console.error('Error cargando archivos de tarea:', error);
+      // error handled silently
     }
   };
 
@@ -187,7 +185,6 @@ export default function PsychDashboard() {
       await loadTaskFiles(taskId);
       await loadTaskComments(taskId);
     } catch (error) {
-      console.error('Error cargando detalles de tarea:', error);
       toast.error('Error al cargar los detalles de la tarea');
     }
   };
@@ -197,7 +194,7 @@ export default function PsychDashboard() {
       const comments = await tasksService.getComments(taskId);
       setTaskComments((prev) => ({ ...prev, [taskId]: comments }));
     } catch (error) {
-      console.error('Error cargando comentarios:', error);
+      // error handled silently
     }
   };
 
@@ -209,7 +206,6 @@ export default function PsychDashboard() {
       await loadTaskComments(taskId);
       toast.success('Comentario agregado exitosamente');
     } catch (error: any) {
-      console.error('Error agregando comentario:', error);
       toast.error('Error al agregar el comentario: ' + (error.response?.data?.error || error.message));
     }
   };
@@ -248,10 +244,9 @@ export default function PsychDashboard() {
           setPatientOverallStats(null);
         }
       } catch (e) {
-        console.warn('No se pudo calcular media general', e);
+        // error handled silently
       }
     } catch (err: any) {
-      console.error('Error cargando detalles del paciente:', err);
       toast.error('Error al cargar los detalles del paciente: ' + (err.response?.data?.error || err.message));
     } finally {
       setLoadingPatientDetails(false);
@@ -264,7 +259,6 @@ export default function PsychDashboard() {
       const data = await resultsService.getUserTest(patientId, testId);
       setPatientStats(data);
     } catch (err: any) {
-      console.error('Error cargando estadísticas:', err);
       toast.error('Error al cargar estadísticas: ' + (err.response?.data?.error || err.message));
     } finally {
       setLoadingPatientDetails(false);
@@ -284,7 +278,6 @@ export default function PsychDashboard() {
       const statsData = await resultsService.getUserTest(patientId, testId);
       setTestDetailsData(statsData);
     } catch (err: any) {
-      console.error('Error cargando detalles del test:', err);
       toast.error('Error al cargar los detalles del test: ' + (err.response?.data?.error || err.message));
     } finally {
       setLoadingTestDetails(false);
@@ -297,7 +290,6 @@ export default function PsychDashboard() {
       setPatients(patients.map(p => p.id === patientId ? { ...p, status } : p));
       toast.success(`Paciente ${status === 'ACTIVE' ? 'reactivado' : 'dado de alta'} exitosamente`);
     } catch (err: any) {
-      console.error('Error actualizando status del paciente:', err);
       toast.error('Error al actualizar el status: ' + (err.response?.data?.error || err.message));
     }
   };
@@ -397,11 +389,9 @@ export default function PsychDashboard() {
       const status = await matchingService.getPsychologistTestStatus();
       setMatchingTestCompleted(status.completed || false);
     } catch (error: any) {
-      console.error('Error verificando estado del test de matching:', error);
       // Si es un 404, significa que el endpoint aún no está disponible (servidor no reiniciado)
       // En ese caso, asumimos que el test no está completo para mostrar el banner
       if (error.response?.status === 404) {
-        console.warn('Endpoint de estado del test de matching no disponible aún. Reinicia el servidor backend.');
         setMatchingTestCompleted(false);
       } else {
         // Para otros errores, también asumimos false para mostrar el banner
@@ -446,7 +436,6 @@ export default function PsychDashboard() {
       const list = await calendarService.mySlots(from.toISOString(), to.toISOString());
       setSlots(list);
     } catch (error: any) {
-      console.error('Error cargando slots:', error);
       toast.error('Error al cargar el calendario');
     } finally {
       setLoadingSlots(false);
@@ -458,7 +447,6 @@ export default function PsychDashboard() {
       const requests = await calendarService.getPendingRequests();
       setPendingRequests(requests);
     } catch (error: any) {
-      console.error('Error cargando solicitudes pendientes:', error);
       // No mostrar toast para esto, es no crítico
     }
   };
@@ -497,7 +485,6 @@ export default function PsychDashboard() {
       setMe({ ...me, avatarUrl: res.avatarUrl });
       toast.success('Avatar actualizado exitosamente');
     } catch (error: any) {
-      console.error('Error al subir avatar:', error);
       toast.error('Error al subir el avatar: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
     } finally {
       // Permitir seleccionar el mismo archivo nuevamente
@@ -547,7 +534,6 @@ export default function PsychDashboard() {
         website: profile.website || ''
       });
     } catch (error: any) {
-      console.error('Error cargando perfil profesional:', error);
       toast.error('Error al cargar el perfil profesional');
     } finally {
       setLoadingPsychProfile(false);
@@ -574,7 +560,6 @@ export default function PsychDashboard() {
       toast.success('Perfil profesional actualizado exitosamente');
       setTab('perfil');
     } catch (error: any) {
-      console.error('Error guardando perfil profesional:', error);
       toast.error('Error al guardar el perfil profesional: ' + (error.response?.data?.error || error.message));
     } finally {
       setLoadingPsychProfile(false);
@@ -587,7 +572,6 @@ export default function PsychDashboard() {
       const appointments = await calendarService.getPsychologistPastAppointments();
       setPastAppointmentsPsych(appointments);
     } catch (err: any) {
-      console.error('Error cargando citas pasadas:', err);
       toast.error('Error al cargar las citas pasadas: ' + (err.response?.data?.error || err.message));
     } finally {
       setLoadingPastAppointmentsPsych(false);
@@ -600,7 +584,7 @@ export default function PsychDashboard() {
       const rating = await calendarService.getPsychologistRating(me.id);
       setMyRating(rating);
     } catch (err: any) {
-      console.error('Error cargando valoración:', err);
+      // error handled silently
     }
   };
 
@@ -658,6 +642,10 @@ export default function PsychDashboard() {
 
       {/* Main content */}
       <main className="flex-1 p-8 lg:p-12 relative overflow-x-hidden">
+      {/* Notification bell */}
+      <div className="flex justify-end mb-4">
+        <NotificationBell />
+      </div>
       {showRatingsModal && (
         <div
           style={{
@@ -843,7 +831,6 @@ export default function PsychDashboard() {
                           const list = await calendarService.getPsychologistRatings(me.id);
                           setRatingsList(list);
                         } catch (e) {
-                          console.error(e);
                           setRatingsList([]);
                         } finally {
                           setLoadingRatings(false);
@@ -891,7 +878,6 @@ export default function PsychDashboard() {
                         } catch (error: any) {
                           const errorMsg = error.response?.data?.error || error.message || 'Error desconocido';
                           toast.error('Error al obtener el código de referencia: ' + errorMsg);
-                          console.error('Error obteniendo referral URL:', error);
                         }
                       }}
                       className="px-4 py-2 rounded-full border border-sage/30 text-sm text-sage hover:bg-sage hover:text-white transition"
@@ -1115,7 +1101,6 @@ export default function PsychDashboard() {
                 await checkMatchingTestStatus();
               } catch (error) {
                 // Si falla (por ejemplo, 404 porque el servidor no se reinició), mantener true
-                console.warn('No se pudo verificar el estado, pero el test se completó');
               }
               setTab('perfil');
               toast.success('Test de matching completado correctamente');
@@ -2793,8 +2778,6 @@ export default function PsychDashboard() {
                             // Resetear el input para permitir subir el mismo archivo de nuevo
                             e.target.value = '';
                           } catch (error: any) {
-                            console.error('Error al subir archivo:', error);
-                            console.error('Error completo:', JSON.stringify(error, null, 2));
                             const errorMessage = error.response?.data?.error || error.response?.data?.message || error.response?.data?.details || error.message || 'Error desconocido';
                             toast.error('Error al subir el archivo: ' + errorMessage);
                             // Resetear el input incluso si hay error
@@ -2837,7 +2820,7 @@ export default function PsychDashboard() {
                           </div>
                         </div>
                         <a
-                          href={`http://localhost:8080${file.filePath}`}
+                          href={`${API_BASE_URL}${file.filePath}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           style={{
@@ -3149,7 +3132,6 @@ export default function PsychDashboard() {
                             setTaskForm({ userId: '', title: '', description: '', dueDate: '' });
                             // Tarea creada exitosamente (sin pop-up)
                           } catch (error: any) {
-                            console.error('Error al crear la tarea:', error);
                             toast.error('Error al crear la tarea: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
                           }
                         }}
@@ -3409,7 +3391,6 @@ export default function PsychDashboard() {
                         setTaskForm({ userId: '', title: '', description: '', dueDate: '' });
                         // Tarea creada exitosamente (sin pop-up)
                       } catch (error: any) {
-                        console.error('Error al crear la tarea:', error);
                         toast.error('Error al crear la tarea: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
                       }
                     }}
@@ -3528,30 +3509,22 @@ export default function PsychDashboard() {
                 setShowAssignTestForm(true);
                 // Asegurar que los tests estén cargados
                 try {
-                  console.log('Cargando tests al abrir formulario...');
                   const tests = await testService.list();
-                  console.log('Tests recibidos del servidor:', tests);
-                  console.log('Número de tests recibidos:', tests?.length || 0);
-                  
+
                   // Filtrar tests activos
                   const activeTests = (tests || []).filter((t: any) => {
                     if (t.active === false) {
-                      console.log(`Test ${t.id} (${t.title}) excluido: active=false`);
                       return false;
                     }
-                    console.log(`Test ${t.id} (${t.title}) incluido: active=${t.active}`);
                     return true;
                   });
-                  
-                  console.log('Tests activos después del filtro:', activeTests);
-                  console.log('Número de tests activos:', activeTests.length);
+
                   setAvailableTests(activeTests);
                   
                   if (activeTests.length === 0) {
                     toast.warning('No hay tests disponibles para asignar. Verifica que haya tests activos en el sistema.');
                   }
                 } catch (error: any) {
-                  console.error('Error cargando tests:', error);
                   toast.error('Error al cargar los tests. Por favor intenta de nuevo.');
                 }
               }}
@@ -3734,10 +3707,7 @@ export default function PsychDashboard() {
                       try {
                         const userId = parseInt(assignTestForm.userId);
                         const testId = parseInt(assignTestForm.testId);
-                        
-                        console.log('Asignando test:', { userId, testId });
-                        console.log('Valores del formulario:', assignTestForm);
-                        
+
                         if (isNaN(userId) || isNaN(testId)) {
                           toast.error('Error: Los valores seleccionados no son válidos');
                           return;
@@ -3748,17 +3718,12 @@ export default function PsychDashboard() {
                           testId
                         });
                         
-                        console.log('Test asignado exitosamente:', result);
                         // Test asignado exitosamente (sin pop-up)
                         await loadData();
                         setShowAssignTestForm(false);
                         setAssignTestForm({ userId: '', testId: '' });
                         setTestSearchTerm('');
                       } catch (error: any) {
-                        console.error('Error al asignar el test:', error);
-                        console.error('Detalles del error:', error.response?.data || error.message);
-                        console.error('Status code:', error.response?.status);
-                        
                         let errorMessage = 'Error desconocido al asignar el test';
                         if (error.response?.data) {
                           // El backend puede devolver { error: "mensaje" } o { message: "mensaje" }
@@ -4159,7 +4124,7 @@ export default function PsychDashboard() {
                 await loadMySlots();
                 await loadPendingRequests();
               } catch (e: any) {
-                console.error('Error al eliminar la cita:', e);
+                // error handled silently
               }
             }}
             onUpdateSlot={async (appointmentId, updates) => {
@@ -4396,7 +4361,6 @@ export default function PsychDashboard() {
                     const list = await calendarService.getPsychologistRatings(me.id);
                     setRatingsList(list);
                   } catch (e) {
-                    console.error(e);
                     setRatingsList([]);
                   } finally {
                     setLoadingRatings(false);

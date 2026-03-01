@@ -59,7 +59,6 @@ export default function AdminUsersPanel() {
         msg = e.message;
       }
       alert(`No se pudo asignar: ${msg}`);
-      console.error('Error asignando:', e);
     }
   };
 
@@ -84,7 +83,6 @@ export default function AdminUsersPanel() {
         msg = e.message;
       }
       alert(`No se pudo desvincular: ${msg}`);
-      console.error('Error desvinculando:', e);
     }
   };
 

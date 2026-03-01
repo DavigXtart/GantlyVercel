@@ -32,15 +32,18 @@ public class TaskService {
     private final TaskCommentRepository taskCommentRepository;
     private final UserRepository userRepository;
     private final UserPsychologistRepository userPsychologistRepository;
+    private final NotificationService notificationService;
 
     public TaskService(TaskRepository taskRepository, TaskFileRepository taskFileRepository,
                        TaskCommentRepository taskCommentRepository, UserRepository userRepository,
-                       UserPsychologistRepository userPsychologistRepository) {
+                       UserPsychologistRepository userPsychologistRepository,
+                       NotificationService notificationService) {
         this.taskRepository = taskRepository;
         this.taskFileRepository = taskFileRepository;
         this.taskCommentRepository = taskCommentRepository;
         this.userRepository = userRepository;
         this.userPsychologistRepository = userPsychologistRepository;
+        this.notificationService = notificationService;
     }
 
     @Transactional(readOnly = true)
@@ -69,7 +72,10 @@ public class TaskService {
         t.setDueDate(dueDate);
         t.setCreatedBy(RoleConstants.PSYCHOLOGIST.equals(actor.getRole()) ? RoleConstants.PSYCHOLOGIST : RoleConstants.USER);
         t.setCreatedAt(Instant.now());
-        return taskRepository.save(t);
+        TaskEntity saved = taskRepository.save(t);
+        notificationService.createNotification(user.getId(), "TASK", "Nueva tarea asignada",
+            "Tu psicólogo te ha asignado la tarea: " + req.title());
+        return saved;
     }
 
     @Transactional(readOnly = true)

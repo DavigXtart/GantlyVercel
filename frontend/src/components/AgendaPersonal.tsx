@@ -99,7 +99,6 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
         setShowCalendar(false);
       }
     } catch (error: any) {
-      console.error('Error verificando entrada de hoy:', error);
       // Si hay error, mostrar formulario por defecto
       setShowCalendar(false);
     } finally {
@@ -199,20 +198,12 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
         payload.notes = entryData.notes;
       }
       
-      console.log('Sending payload:', JSON.stringify(payload, null, 2));
-      
-      const response = await personalAgendaService.saveEntry(payload);
-      console.log('Response received:', response);
+      await personalAgendaService.saveEntry(payload);
       toast.success('Entrada guardada correctamente');
       await loadEntries(); // Recargar entradas después de guardar
       setShowCalendar(true);
     } catch (error: any) {
-      console.error('Error saving entry:', error);
-      console.error('Error response:', error.response);
-      console.error('Error response data:', error.response?.data);
-      console.error('Error response data (stringified):', JSON.stringify(error.response?.data, null, 2));
       const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message || 'Error al guardar la entrada';
-      console.error('Error message to show:', errorMessage);
       toast.error(errorMessage);
       setSaving(false);
     }

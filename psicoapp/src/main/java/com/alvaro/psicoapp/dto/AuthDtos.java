@@ -18,7 +18,7 @@ public class AuthDtos {
 		public String email;
 
 		@NotBlank(message = "La contraseña es requerida")
-		@Size(min = 6, max = 100, message = "La contraseña debe tener entre 6 y 100 caracteres")
+		@Size(min = 8, max = 100, message = "La contraseña debe tener entre 8 y 100 caracteres")
 		public String password;
 
 		public String sessionId;
@@ -43,22 +43,16 @@ public class AuthDtos {
 		public String refreshToken;
 		public long expiresIn;
 
-		@Deprecated
-		public String token;
-
 		public TokenResponse(String accessToken, String refreshToken, long expiresIn) {
 			this.accessToken = accessToken;
 			this.refreshToken = refreshToken;
 			this.expiresIn = expiresIn;
-
-			this.token = accessToken;
 		}
 
-		public TokenResponse(String token) {
-			this.accessToken = token;
+		public TokenResponse(String accessToken) {
+			this.accessToken = accessToken;
 			this.refreshToken = null;
 			this.expiresIn = 900;
-			this.token = token;
 		}
 	}
 
@@ -78,7 +72,7 @@ public class AuthDtos {
 		public String token;
 
 		@NotBlank(message = "La nueva contraseña es requerida")
-		@Size(min = 6, max = 100, message = "La contraseña debe tener entre 6 y 100 caracteres")
+		@Size(min = 8, max = 100, message = "La contraseña debe tener entre 8 y 100 caracteres")
 		public String newPassword;
 	}
 
@@ -87,7 +81,7 @@ public class AuthDtos {
 		public String currentPassword;
 
 		@NotBlank(message = "La nueva contraseña es requerida")
-		@Size(min = 6, max = 100, message = "La contraseña debe tener entre 6 y 100 caracteres")
+		@Size(min = 8, max = 100, message = "La contraseña debe tener entre 8 y 100 caracteres")
 		public String newPassword;
 	}
 
@@ -104,7 +98,7 @@ public class AuthDtos {
 		@Size(max = 255)
 		public String email;
 		@NotBlank(message = "La contraseña es requerida")
-		@Size(min = 6, max = 100, message = "La contraseña debe tener entre 6 y 100 caracteres")
+		@Size(min = 8, max = 100, message = "La contraseña debe tener entre 8 y 100 caracteres")
 		public String password;
 	}
 

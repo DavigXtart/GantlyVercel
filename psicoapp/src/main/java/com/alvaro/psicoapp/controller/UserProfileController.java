@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/profile")
@@ -82,5 +83,22 @@ public class UserProfileController {
     @ApiResponse(responseCode = "200", description = "Avatar subido exitosamente")
     public ResponseEntity<UserProfileDtos.AvatarResponse> uploadAvatar(Principal principal, @RequestParam("file") MultipartFile file) {
         return ResponseEntity.ok(userProfileService.uploadAvatar(currentUserService.getCurrentUser(principal), file));
+    }
+
+    @GetMapping("/export-data")
+    @Transactional(readOnly = true)
+    @Operation(summary = "Exportar mis datos (RGPD)", description = "Exporta todos los datos del usuario en formato JSON conforme al RGPD Art. 20")
+    @ApiResponse(responseCode = "200", description = "Datos exportados exitosamente")
+    public ResponseEntity<Map<String, Object>> exportMyData(Principal principal) {
+        return ResponseEntity.ok(userProfileService.exportUserData(currentUserService.getCurrentUser(principal)));
+    }
+
+    @DeleteMapping("/delete-account")
+    @Transactional
+    @Operation(summary = "Eliminar mi cuenta (RGPD)", description = "Elimina la cuenta del usuario y todos sus datos conforme al RGPD Art. 17")
+    @ApiResponse(responseCode = "200", description = "Cuenta eliminada exitosamente")
+    public ResponseEntity<Map<String, String>> deleteMyAccount(Principal principal) {
+        userProfileService.deleteAccount(currentUserService.getCurrentUser(principal));
+        return ResponseEntity.ok(Map.of("message", "Cuenta eliminada correctamente"));
     }
 }

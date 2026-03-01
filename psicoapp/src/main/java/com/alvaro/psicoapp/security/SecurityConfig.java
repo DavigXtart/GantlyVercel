@@ -1,5 +1,6 @@
 package com.alvaro.psicoapp.security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,17 +16,24 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 import com.alvaro.psicoapp.security.filter.JwtAuthFilter;
+import com.alvaro.psicoapp.security.filter.MaintenanceFilter;
 import com.alvaro.psicoapp.security.filter.RateLimitFilter;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 public class SecurityConfig {
+
+	@Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:4200}")
+	private String allowedOrigins;
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
 
 	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter, RateLimitFilter rateLimitFilter,
+	public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter, RateLimitFilter rateLimitFilter, MaintenanceFilter maintenanceFilter,
 			OAuth2SuccessHandler oauth2SuccessHandler, Environment env) throws Exception {
         boolean isProd = java.util.Arrays.stream(env.getActiveProfiles()).anyMatch(p -> "prod".equalsIgnoreCase(p));
 
@@ -33,12 +41,17 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
 			.csrf(csrf -> csrf.disable())
 			.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+			.addFilterBefore(maintenanceFilter, UsernamePasswordAuthenticationFilter.class)
 			.addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
 			.oauth2Login(oauth2 -> oauth2.successHandler(oauth2SuccessHandler))
             .requiresChannel(channel -> {
                 if (isProd) channel.anyRequest().requiresSecure();
             })
             .headers(headers -> {
+                headers.contentTypeOptions(Customizer.withDefaults());
+                headers.frameOptions(frame -> frame.deny());
+                headers.referrerPolicy(referrer -> referrer.policy(
+                    org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN));
                 if (isProd) {
                     headers.httpStrictTransportSecurity(hsts -> hsts
                         .includeSubDomains(true)
@@ -62,13 +75,15 @@ public class SecurityConfig {
 				.requestMatchers("/api/calendar/**").authenticated()
 				.requestMatchers("/api/psych/**").authenticated()
 				.requestMatchers("/api/chat/**").authenticated()
+				.requestMatchers("/api/notifications/**").authenticated()
 				.requestMatchers("/api/consent/**").authenticated()
 				.requestMatchers("/api/results/**").authenticated()
 				.requestMatchers("/api/jitsi/**").authenticated()
 				.requestMatchers("/api/stripe/webhook").permitAll()
 				.requestMatchers("/api/stripe/**").authenticated()
 				.requestMatchers("/ws/**", "/topic/**", "/app/**").permitAll()
-				.requestMatchers("/actuator/**").permitAll()
+				.requestMatchers("/actuator/health").permitAll()
+				.requestMatchers("/actuator/**").authenticated()
 				.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui.html", "/webjars/**").permitAll()
 				.requestMatchers("/api/admin/**").access((authentication, context) -> {
                     var authn = authentication.get();
@@ -91,7 +106,8 @@ public class SecurityConfig {
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOriginPattern("*");
+        List<String> origins = Arrays.asList(allowedOrigins.split(","));
+        origins.forEach(origin -> config.addAllowedOriginPattern(origin.trim()));
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setAllowCredentials(true);

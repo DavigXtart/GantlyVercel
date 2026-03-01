@@ -83,10 +83,10 @@ public class MatchingService {
             boolean passesFilters = passesAbsoluteFilters(patientAnswers, psychologistAnswers, patient);
 
             if (!passesFilters) {
-                affinityScore = Math.max(0.01, affinityScore * 0.3);
+                affinityScore = Math.max(0.15, affinityScore * 0.3);
             }
 
-            affinityScore = Math.max(0.01, affinityScore);
+            affinityScore = Math.max(0.15, affinityScore);
 
             MatchingResult result = new MatchingResult();
             result.setPsychologist(psychologist);
@@ -107,8 +107,8 @@ public class MatchingService {
 
                     MatchingResult result = new MatchingResult();
                     result.setPsychologist(psychologist);
-                    result.setAffinityScore(0.01);
-                    result.setMatchPercentage(1);
+                    result.setAffinityScore(0.15);
+                    result.setMatchPercentage(15);
                     results.add(result);
                     break;
                 }
@@ -395,16 +395,32 @@ public class MatchingService {
             int totalPatientAreas = patientAreas.size();
 
             for (String patientArea : patientAreas) {
+                boolean matched = false;
                 for (String psychArea : psychAreas) {
                     if (patientArea.contains(psychArea) || psychArea.contains(patientArea)) {
-                        matches++;
+                        matched = true;
                         break;
                     }
                 }
+                if (!matched) {
+                    for (Map.Entry<String, Set<String>> entry : areaMapping.entrySet()) {
+                        Set<String> synonyms = entry.getValue();
+                        boolean patientInGroup = synonyms.stream().anyMatch(s -> patientArea.contains(s) || s.contains(patientArea));
+                        if (patientInGroup) {
+                            boolean psychInGroup = psychAreas.stream().anyMatch(pa ->
+                                synonyms.stream().anyMatch(s -> pa.contains(s) || s.contains(pa)));
+                            if (psychInGroup) {
+                                matched = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (matched) matches++;
             }
 
             if (totalPatientAreas > 0) {
-                double weight = 0.20;
+                double weight = 0.25;
                 maxPossibleScore += weight;
                 totalScore += weight * (matches / (double) totalPatientAreas);
             }
@@ -623,10 +639,10 @@ public class MatchingService {
         if (maxPossibleScore > 0) {
             double normalizedScore = Math.min(1.0, totalScore / maxPossibleScore);
 
-            return Math.max(0.01, normalizedScore);
+            return Math.max(0.15, normalizedScore);
         }
 
-        return 0.01;
+        return 0.15;
     }
 
     public static class MatchingResult {

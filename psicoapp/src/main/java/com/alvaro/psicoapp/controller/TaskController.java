@@ -19,7 +19,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/tasks")
-@CrossOrigin(origins = "*")
 @Tag(name = "Tareas", description = "APIs para gestión de tareas asignadas por psicólogos a pacientes")
 public class TaskController {
     private final CurrentUserService currentUserService;

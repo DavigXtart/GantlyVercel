@@ -3,6 +3,7 @@ import axios from 'axios';
 // Usar variable de entorno en producción, localhost en desarrollo
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 const API_BASE_URL = API_URL.replace(/\/$/, '').replace(/\/api$/, '');
+export { API_BASE_URL };
 
 const api = axios.create({
   baseURL: API_URL,
@@ -18,8 +19,16 @@ const resolveAssetUrl = (value?: string | null): string | undefined => {
   return `${base}${trimmed.startsWith('/') ? trimmed : `/${trimmed}`}`;
 };
 
+// Global loading counter
+let activeRequests = 0;
+function updateLoadingState(delta: number) {
+  activeRequests = Math.max(0, activeRequests + delta);
+  window.dispatchEvent(new CustomEvent('loading-change', { detail: { loading: activeRequests > 0 } }));
+}
+
 // Interceptor para añadir token a las peticiones
 api.interceptors.request.use(config => {
+  updateLoadingState(1);
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -43,13 +52,19 @@ const processQueue = (error: any, token: string | null = null) => {
 };
 
 api.interceptors.response.use(
-  response => response,
+  response => { updateLoadingState(-1); return response; },
   async error => {
+    updateLoadingState(-1);
     const originalRequest = error.config;
+
+    // Detectar modo mantenimiento (503)
+    if (error.response?.status === 503 && error.response?.data?.maintenance) {
+      window.dispatchEvent(new CustomEvent('maintenance-mode'));
+      return Promise.reject(error);
+    }
 
     // Manejar errores comunes sin depender de toast (evitar importación circular)
     if (error.code === 'ECONNREFUSED' || error.message.includes('Network Error')) {
-      console.error('❌ Error de conexión: El backend no está disponible en http://localhost:8080');
       error.message = 'No se pudo conectar al servidor. Verifica que el backend esté corriendo.';
       return Promise.reject(error);
     }
@@ -64,7 +79,7 @@ api.interceptors.response.use(
 
         try {
           const { data } = await axios.post(`${API_URL}/auth/refresh`, { refreshToken });
-          const newToken = data.accessToken || data.token;
+          const newToken = data.accessToken;
           
           if (newToken) {
             localStorage.setItem('token', newToken);
@@ -86,7 +101,7 @@ api.interceptors.response.use(
           localStorage.removeItem('token');
           localStorage.removeItem('refreshToken');
           processQueue(refreshError);
-          console.warn('Sesión expirada - refresh token inválido');
+          window.dispatchEvent(new CustomEvent('session-expired'));
           return Promise.reject(refreshError);
         } finally {
           isRefreshing = false;
@@ -105,9 +120,9 @@ api.interceptors.response.use(
           });
       } else {
         // No hay refresh token, limpiar y rechazar
-        console.warn('Sesión expirada');
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
+        window.dispatchEvent(new CustomEvent('session-expired'));
       }
     }
 
@@ -137,7 +152,7 @@ export const authService = {
       birthDate: birthDate || undefined
     });
     // Compatibilidad: usar accessToken si existe, sino token (legacy)
-    const token = data.accessToken || data.token;
+    const token = data.accessToken;
     if (token) {
       localStorage.setItem('token', token);
       if (data.refreshToken) {
@@ -149,7 +164,7 @@ export const authService = {
   login: async (email: string, password: string) => {
     const { data } = await api.post<{ token?: string; accessToken?: string; refreshToken?: string; expiresIn?: number }>('/auth/login', { email, password });
     // Compatibilidad: usar accessToken si existe, sino token (legacy)
-    const token = data.accessToken || data.token;
+    const token = data.accessToken;
     if (token) {
       localStorage.setItem('token', token);
       if (data.refreshToken) {
@@ -186,7 +201,7 @@ export const authService = {
 export const companyAuthService = {
   register: async (name: string, email: string, password: string) => {
     const { data } = await api.post<{ token?: string; accessToken?: string; refreshToken?: string }>('/auth/company/register', { name, email, password });
-    const token = data.accessToken || data.token;
+    const token = data.accessToken;
     if (token) {
       localStorage.setItem('token', token);
       if (data.refreshToken) {
@@ -197,7 +212,7 @@ export const companyAuthService = {
   },
   login: async (email: string, password: string) => {
     const { data } = await api.post<{ token?: string; accessToken?: string; refreshToken?: string }>('/auth/company/login', { email, password });
-    const token = data.accessToken || data.token;
+    const token = data.accessToken;
     if (token) {
       localStorage.setItem('token', token);
       if (data.refreshToken) {
@@ -492,6 +507,14 @@ export const profileService = {
   useReferralCode: async (referralCode: string) => {
     const { data } = await api.post('/profile/use-referral-code', { referralCode });
     return data as { success: boolean; message: string };
+  },
+  exportMyData: async () => {
+    const { data } = await api.get('/profile/export-data');
+    return data;
+  },
+  deleteMyAccount: async () => {
+    const { data } = await api.delete('/profile/delete-account');
+    return data as { message: string };
   }
 };
 
@@ -525,11 +548,6 @@ export const tasksService = {
       });
       return data as any;
     } catch (error: any) {
-      console.error('Error en uploadFile service:', error);
-      if (error.response) {
-        console.error('Response data:', error.response.data);
-        console.error('Response status:', error.response.status);
-      }
       throw error;
     }
   },
@@ -759,12 +777,6 @@ export const personalAgendaService = {
       const { data } = await api.post('/personal-agenda/entry', entryData);
       return data;
     } catch (error: any) {
-      console.error('API Error in personalAgendaService.saveEntry:', error);
-      console.error('Request payload:', entryData);
-      if (error.response) {
-        console.error('Response status:', error.response.status);
-        console.error('Response data:', error.response.data);
-      }
       throw error;
     }
   },
@@ -840,6 +852,24 @@ export const evaluationTestService = {
   getUserStatistics: async () => {
     const { data } = await api.get('/evaluation-tests/statistics');
     return data;
+  }
+};
+
+// Notificaciones
+export const notificationService = {
+  list: async () => {
+    const { data } = await api.get('/notifications');
+    return data as Array<{ id: number; type: string; title: string; message: string; read: boolean; createdAt: string }>;
+  },
+  unreadCount: async () => {
+    const { data } = await api.get('/notifications/count');
+    return (data as { count: number }).count;
+  },
+  markAsRead: async (id: number) => {
+    await api.post(`/notifications/${id}/read`);
+  },
+  markAllAsRead: async () => {
+    await api.post('/notifications/read-all');
   }
 };
 

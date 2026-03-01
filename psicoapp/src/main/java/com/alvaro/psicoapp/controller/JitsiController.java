@@ -1,6 +1,7 @@
 package com.alvaro.psicoapp.controller;
 
 import com.alvaro.psicoapp.service.JitsiService;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +19,7 @@ public class JitsiController {
 
     @GetMapping("/room-info")
     @Transactional(readOnly = true)
-    @CrossOrigin(origins = "*")
-    public ResponseEntity<?> getRoomInfo(Principal principal, @RequestParam String otherUserEmail) {
+    public ResponseEntity<?> getRoomInfo(Principal principal, @RequestParam @NotBlank String otherUserEmail) {
         return ResponseEntity.ok(jitsiService.getRoomInfo(principal.getName(), otherUserEmail));
     }
 }

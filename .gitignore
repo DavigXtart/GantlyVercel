@@ -1,5 +1,7 @@
-# Credenciales locales - no subir a repositorio
+# Credenciales - no subir a repositorio
 .env
+.env.prod
+.env.local
 
 # Maven / Java build output (puede contener copias de config con secretos)
 psicoapp/target/

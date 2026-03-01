@@ -1,25 +1,37 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import Login from './components/Login';
 import Register from './components/Register';
-import AdminPanel from './components/AdminPanel';
 import Landing from './components/Landing';
-import TestFlow from './components/TestFlow';
-import InitialTestFlow from './components/InitialTestFlow';
 import { authService } from './services/api';
-import UserDashboard from './components/UserDashboard';
-import PsychDashboard from './components/PsychDashboard';
-import AdminUsersPanel from './components/AdminUsersPanel';
-import AdminSectionsManager from './components/AdminSectionsManager';
-import AdminStatistics from './components/AdminStatistics';
-import UsersManager from './components/UsersManager';
-import About from './components/About';
-import SoyProfesional from './components/SoyProfesional';
-import RegisterPsychologist from './components/RegisterPsychologist';
-import RegisterCompany from './components/RegisterCompany';
-import CompanyDashboard from './components/CompanyDashboard';
-import ForgotPassword from './components/ForgotPassword';
-import ResetPassword from './components/ResetPassword';
 import { ToastContainer, toast } from './components/ui/Toast';
+import GlobalLoader from './components/ui/GlobalLoader';
+import Maintenance from './components/Maintenance';
+
+// Lazy-loaded heavy components
+const AdminPanel = lazy(() => import('./components/AdminPanel'));
+const TestFlow = lazy(() => import('./components/TestFlow'));
+const InitialTestFlow = lazy(() => import('./components/InitialTestFlow'));
+const UserDashboard = lazy(() => import('./components/UserDashboard'));
+const PsychDashboard = lazy(() => import('./components/PsychDashboard'));
+const AdminUsersPanel = lazy(() => import('./components/AdminUsersPanel'));
+const AdminSectionsManager = lazy(() => import('./components/AdminSectionsManager'));
+const AdminStatistics = lazy(() => import('./components/AdminStatistics'));
+const UsersManager = lazy(() => import('./components/UsersManager'));
+const About = lazy(() => import('./components/About'));
+const SoyProfesional = lazy(() => import('./components/SoyProfesional'));
+const RegisterPsychologist = lazy(() => import('./components/RegisterPsychologist'));
+const RegisterCompany = lazy(() => import('./components/RegisterCompany'));
+const CompanyDashboard = lazy(() => import('./components/CompanyDashboard'));
+const ForgotPassword = lazy(() => import('./components/ForgotPassword'));
+const ResetPassword = lazy(() => import('./components/ResetPassword'));
+
+const LazyFallback = () => (
+  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+    <div style={{ textAlign: 'center', color: '#6b7280' }}>
+      <div style={{ fontSize: '24px', marginBottom: '8px' }}>Cargando...</div>
+    </div>
+  </div>
+);
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -40,13 +52,13 @@ function App() {
   const [role, setRole] = useState<'USER'|'ADMIN'|'PSYCHOLOGIST'|'EMPRESA'|null>(null);
   const [psychologistReferralFromUrl, setPsychologistReferralFromUrl] = useState<string | null>(null);
   const [adminTab, setAdminTab] = useState<'tests'|'users'|'sections'|'admin-tests'|'admin-users'|'patients'|'psychologists'|'statistics'>('users');
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
 
   const checkRole = async () => {
     try {
       const userData: any = await authService.me();
       setRole(userData?.role || null);
     } catch (err: any) {
-      console.error('Error verificando rol:', err);
       // Si hay un error de autenticación, limpiar el token
       if (err.response?.status === 401 || err.response?.status === 403) {
         localStorage.removeItem('token');
@@ -65,10 +77,12 @@ function App() {
   const isUserNavigation = useRef(false); // Indica si la navegación fue iniciada por el usuario
 
   useEffect(() => {
-    // IMPORTANTE: Leer token/error de la URL ANTES de cualquier replaceState que borre la query string
+    // Leer token/error del fragment (#) o query string (?) para compatibilidad
+    const hash = window.location.hash.substring(1); // quitar el #
+    const hashParams = new URLSearchParams(hash);
     const urlParams = new URLSearchParams(window.location.search);
-    const tokenFromUrl = urlParams.get('token');
-    const errorFromUrl = urlParams.get('error');
+    const tokenFromUrl = hashParams.get('token') || urlParams.get('token');
+    const errorFromUrl = hashParams.get('error') || urlParams.get('error');
 
     // Inicializar el historial con la URL actual (esto puede borrar ?token= de la barra de direcciones)
     const currentPath = window.location.pathname;
@@ -88,16 +102,17 @@ function App() {
       window.history.replaceState(null, '', '/reset-password');
       return;
     }
-    // OAuth2: token en URL (cualquier path, el backend redirige a /?token=xxx)
+    // OAuth2: token en URL (el backend redirige a /#token=xxx)
     if (tokenFromUrl && tokenFromUrl.length > 10) {
       localStorage.setItem('token', tokenFromUrl);
       window.history.replaceState(null, '', window.location.pathname || '/');
+      window.location.hash = '';
       setIsAuthenticated(true);
       setShowLanding(false);
       setShowLogin(false);
       setShowRegister(false);
       toast.success('¡Sesión iniciada correctamente!');
-      checkRole().catch((err) => console.warn('Backend no disponible', err));
+      checkRole().catch(() => {});
       return;
     }
     if (errorFromUrl) {
@@ -136,9 +151,8 @@ function App() {
       setShowLanding(false);
       setShowCompanyLogin(false);
       // Intentar verificar el rol, pero no bloquear si el backend no está disponible
-      checkRole().catch((err) => {
+      checkRole().catch(() => {
         // Si el backend no está disponible, no es crítico - el usuario puede seguir usando la app
-        console.warn('Backend no disponible, pero continuando...', err);
       });
     } else {
       // Si no hay token y no viene por referral, mostrar landing
@@ -154,6 +168,25 @@ function App() {
       }
       setRole(null);
     }
+  }, []);
+
+  // Escuchar evento de sesión expirada para mostrar toast y redirigir a login
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      toast.warning('Tu sesión ha expirado. Por favor, inicia sesión de nuevo.');
+      setIsAuthenticated(false);
+      setRole(null);
+      setShowLanding(false);
+      setShowLogin(true);
+      setShowRegister(false);
+    };
+    const handleMaintenance = () => setMaintenanceMode(true);
+    window.addEventListener('session-expired', handleSessionExpired);
+    window.addEventListener('maintenance-mode', handleMaintenance);
+    return () => {
+      window.removeEventListener('session-expired', handleSessionExpired);
+      window.removeEventListener('maintenance-mode', handleMaintenance);
+    };
   }, []);
 
   // Manejar el historial del navegador de forma más simple y segura
@@ -535,11 +568,11 @@ function App() {
   // Prioridad: About > InitialTest > Register/Login > Landing > Authenticated views
   
   if (showAbout) {
-    return <About onBack={goToLanding} onLogin={handleShowLogin} onGetStarted={handleGetStarted} />;
+    return <Suspense fallback={<LazyFallback />}><About onBack={goToLanding} onLogin={handleShowLogin} onGetStarted={handleGetStarted} /></Suspense>;
   }
 
   if (showRegisterPsychologist) {
-    return <RegisterPsychologist 
+    return <Suspense fallback={<LazyFallback />}><RegisterPsychologist 
       onBack={() => {
         isUserNavigation.current = true;
         setShowRegisterPsychologist(false);
@@ -549,12 +582,12 @@ function App() {
       onSuccess={() => {
         setShowRegisterPsychologist(false);
         handleLogin();
-      }} 
-    />;
+      }}
+    /></Suspense>;
   }
 
   if (showRegisterCompany) {
-    return <RegisterCompany
+    return <Suspense fallback={<LazyFallback />}><RegisterCompany
       onBack={() => {
         isUserNavigation.current = true;
         setShowRegisterCompany(false);
@@ -565,11 +598,11 @@ function App() {
         setShowRegisterCompany(false);
         handleLogin();
       }}
-    />;
+    /></Suspense>;
   }
 
   if (showSoyProfesional) {
-    return <SoyProfesional 
+    return <Suspense fallback={<LazyFallback />}><SoyProfesional 
       onBack={goToLanding} 
       onLogin={handleShowLogin} 
       onGetStarted={() => {
@@ -582,7 +615,7 @@ function App() {
         setShowSoyProfesional(false);
         setShowRegisterCompany(true);
       }}
-    />;
+    /></Suspense>;
   }
 
   if (showInitialTest) {
@@ -601,10 +634,12 @@ function App() {
             <button onClick={() => { isUserNavigation.current = true; setShowInitialTest(false); setShowLanding(true); }} className="btn-secondary">Volver</button>
           </div>
         </nav>
-        <InitialTestFlow 
-          onComplete={handleInitialTestComplete}
-          onBack={() => { isUserNavigation.current = true; setShowInitialTest(false); setShowLanding(true); }}
-        />
+        <Suspense fallback={<LazyFallback />}>
+          <InitialTestFlow
+            onComplete={handleInitialTestComplete}
+            onBack={() => { isUserNavigation.current = true; setShowInitialTest(false); setShowLanding(true); }}
+          />
+        </Suspense>
       </div>
     );
   }
@@ -612,7 +647,7 @@ function App() {
   if (!isAuthenticated) {
     // Manejar reset de contraseña desde URL
     if (resetPasswordToken) {
-      return <ResetPassword 
+      return <Suspense fallback={<LazyFallback />}><ResetPassword 
         token={resetPasswordToken} 
         onSuccess={() => {
           setResetPasswordToken(null);
@@ -624,11 +659,11 @@ function App() {
           window.history.replaceState(null, '', '/login');
           handleShowLogin();
         }}
-      />;
+      /></Suspense>;
     }
 
     if (showForgotPassword) {
-      return <ForgotPassword 
+      return <Suspense fallback={<LazyFallback />}><ForgotPassword 
         onBack={() => {
           setShowForgotPassword(false);
           handleShowLogin();
@@ -637,7 +672,7 @@ function App() {
           setShowForgotPassword(false);
           handleShowLogin();
         }}
-      />;
+      /></Suspense>;
     }
 
     if (showRegister) {
@@ -712,15 +747,22 @@ function App() {
             <button onClick={handleBackToList} className="btn-secondary">Volver</button>
           </div>
         </nav>
-        <TestFlow 
-          testId={selectedTestId} 
-          onBack={handleBackToList}
-          onComplete={handleBackToList}
-        />
+        <Suspense fallback={<LazyFallback />}>
+          <TestFlow
+            testId={selectedTestId}
+            onBack={handleBackToList}
+            onComplete={handleBackToList}
+          />
+        </Suspense>
       </div>
     );
   }
 
+
+  // Modo mantenimiento
+  if (maintenanceMode) {
+    return <Maintenance />;
+  }
 
   // Navegación principal autenticado según rol
   return (
@@ -751,36 +793,38 @@ function App() {
         </div>
       </nav>
 
-      {/* ADMIN: sólo panel admin */}
-      {role === 'ADMIN' && (
-        <div>
-          {adminTab === 'users' ? <AdminUsersPanel /> : 
-           adminTab === 'admin-tests' ? <AdminPanel /> : 
-           adminTab === 'patients' ? <UsersManager filterRole="USER" /> :
-           adminTab === 'psychologists' ? <UsersManager filterRole="PSYCHOLOGIST" /> :
-           adminTab === 'sections' ? <AdminSectionsManager /> :
-           adminTab === 'statistics' ? <AdminStatistics /> :
-           <AdminPanel />}
-        </div>
-      )}
+      <Suspense fallback={<LazyFallback />}>
+        {/* ADMIN: sólo panel admin */}
+        {role === 'ADMIN' && (
+          <div>
+            {adminTab === 'users' ? <AdminUsersPanel /> :
+             adminTab === 'admin-tests' ? <AdminPanel /> :
+             adminTab === 'patients' ? <UsersManager filterRole="USER" /> :
+             adminTab === 'psychologists' ? <UsersManager filterRole="PSYCHOLOGIST" /> :
+             adminTab === 'sections' ? <AdminSectionsManager /> :
+             adminTab === 'statistics' ? <AdminStatistics /> :
+             <AdminPanel />}
+          </div>
+        )}
 
-      {/* USER: Mi perfil */}
-      {role === 'USER' && (
-        <UserDashboard onStartTest={(testId) => {
-          lastProcessedTestIdRef.current = testId;
-          setSelectedTestId(testId);
-        }} />
-      )}
+        {/* USER: Mi perfil */}
+        {role === 'USER' && (
+          <UserDashboard onStartTest={(testId) => {
+            lastProcessedTestIdRef.current = testId;
+            setSelectedTestId(testId);
+          }} />
+        )}
 
-      {/* PSYCHOLOGIST: Mi perfil */}
-      {role === 'PSYCHOLOGIST' && (
-        <PsychDashboard />
-      )}
+        {/* PSYCHOLOGIST: Mi perfil */}
+        {role === 'PSYCHOLOGIST' && (
+          <PsychDashboard />
+        )}
 
-      {/* EMPRESA: Panel de psicólogos */}
-      {role === 'EMPRESA' && (
-        <CompanyDashboard />
-      )}
+        {/* EMPRESA: Panel de psicólogos */}
+        {role === 'EMPRESA' && (
+          <CompanyDashboard />
+        )}
+      </Suspense>
 
       {/* Si no tenemos el rol aún pero estamos autenticados (ej. tras OAuth) */}
       {isAuthenticated && !role && (
@@ -792,6 +836,8 @@ function App() {
         </div>
       )}
       
+      {/* Global loading indicator */}
+      <GlobalLoader />
       {/* Toast Container para notificaciones */}
       <ToastContainer />
     </div>

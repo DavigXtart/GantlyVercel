@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -80,14 +79,7 @@ public class JitsiService {
                     .orElse(null);
 
             if (validAppointment != null) {
-                String email1 = currentUser.getEmail().toLowerCase().trim();
-                String email2 = otherUser.getEmail().toLowerCase().trim();
-                String[] emails = {email1, email2};
-                Arrays.sort(emails);
-                String roomName = "psymatch-" + emails[0].replace("@", "-at-").replace(".", "-")
-                        + "-" + emails[1].replace("@", "-at-").replace(".", "-");
-                roomName = roomName.replaceAll("--+", "-").replaceAll("^-|-$", "");
-                if (roomName.length() > 50) roomName = roomName.substring(0, 50);
+                String roomName = "gantly-" + validAppointment.getId();
 
                 logger.info("Videollamada iniciada: {} <-> {} (Sala: {})", currentUser.getEmail(), otherUser.getEmail(), roomName);
                 return new JitsiDtos.RoomInfoResponse(roomName,

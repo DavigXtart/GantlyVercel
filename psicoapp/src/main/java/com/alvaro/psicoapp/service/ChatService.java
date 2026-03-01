@@ -173,10 +173,4 @@ public class ChatService {
         }
     }
 
-    @Deprecated
-    private ChatDtos.MessageDto toMessageDto(ChatMessageEntity msg) {
-
-        return new ChatDtos.MessageDto(msg.getId(), msg.getSender(), "[Mensaje cifrado - usar descifrado]",
-                msg.getCreatedAt() != null ? msg.getCreatedAt().toString() : null);
-    }
 }

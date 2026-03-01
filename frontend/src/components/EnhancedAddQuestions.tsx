@@ -63,7 +63,6 @@ export default function EnhancedAddQuestions({ testId, onBack }: AddQuestionsPro
       const answers = await adminService.getAnswers(selectedQuestionId);
       setAnswersForQuestion(answers || []);
     } catch (err) {
-      console.error('Error cargando respuestas:', err);
       setAnswersForQuestion([]);
     }
   };

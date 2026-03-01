@@ -20,6 +20,7 @@ function JitsiVideoCallComponent({
 }: JitsiVideoCallProps) {
   const jitsiContainerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const apiRef = useRef<any>(null);
   const isInitializedRef = useRef(false); // Prevenir múltiples inicializaciones
   const hasJoinedRef = useRef(false); // Rastrear si el usuario se ha unido
@@ -76,7 +77,9 @@ function JitsiVideoCallComponent({
   useEffect(() => {
     // Cargar el script de Jitsi Meet desde 8x8.vc
     const script = document.createElement('script');
-    script.src = 'https://8x8.vc/vpaas-magic-cookie-f12e21682859419797e6f54f98c1c559/external_api.js';
+    const jitsiMagicCookie = import.meta.env.VITE_JITSI_MAGIC_COOKIE || 'vpaas-magic-cookie-f12e21682859419797e6f54f98c1c559';
+    const jitsiDomain = import.meta.env.VITE_JITSI_DOMAIN || '8x8.vc';
+    script.src = `https://${jitsiDomain}/${jitsiMagicCookie}/external_api.js`;
     script.async = true;
     
     script.onload = () => {
@@ -100,10 +103,8 @@ function JitsiVideoCallComponent({
         }
 
       // Configuración para 8x8.vc (Jitsi as a Service)
-      const domain = '8x8.vc';
-      // Para 8x8.vc, el roomName debe incluir el magic cookie como prefijo
-      const magicCookie = 'vpaas-magic-cookie-f12e21682859419797e6f54f98c1c559';
-      const fullRoomName = `${magicCookie}/${roomName}`;
+      const domain = jitsiDomain;
+      const fullRoomName = `${jitsiMagicCookie}/${roomName}`;
       const options = {
         roomName: fullRoomName,
         parentNode: jitsiContainerRef.current,
@@ -471,15 +472,7 @@ function JitsiVideoCallComponent({
       window.addEventListener('message', messageErrorHandler, false);
 
       try {
-        // Envolver la creación de la API en un try-catch adicional
-        let api: any;
-        try {
-          api = new JitsiMeetExternalAPI(domain, options);
-        } catch (initError) {
-          console.warn('Error al inicializar Jitsi API (intentando continuar):', initError);
-          // Intentar continuar de todas formas
-          api = new JitsiMeetExternalAPI(domain, options);
-        }
+        const api = new JitsiMeetExternalAPI(domain, options);
         
         apiRef.current = api;
         setIsLoading(false);
@@ -523,12 +516,10 @@ function JitsiVideoCallComponent({
           // NO LLAMAR A onClose - está completamente deshabilitado
         });
 
-        // Evento cuando la API está lista para cerrar - IGNORAR también
-        // Solo cerramos cuando el usuario hace clic en el botón de cerrar
+        // Evento cuando la API está lista para cerrar (usuario colgó dentro de Jitsi)
         safeAddEventListener('readyToClose', () => {
-          // NO HACER NADA - no cerrar automáticamente
-          // El usuario debe hacer clic explícitamente en el botón de cerrar
-          // NO LLAMAR A onClose - está completamente deshabilitado
+          allowCloseRef.current = true;
+          onCloseRef.current();
         });
         
         // Interceptar cualquier intento de cerrar desde el iframe
@@ -580,11 +571,6 @@ function JitsiVideoCallComponent({
           
           // Para otros errores, también silenciar
           // No loguear nada
-        });
-
-        // Escuchar cuando se recupera del error (cuando el usuario hace clic en "Soy el anfitrión")
-        safeAddEventListener('videoConferenceJoined', () => {
-          console.log('✅ Usuario se unió a la videollamada (puede ser después de reclamar host)');
         });
 
         // Escuchar cuando se sale del lobby (después de hacer clic en "Soy el anfitrión")
@@ -642,6 +628,7 @@ function JitsiVideoCallComponent({
       } catch (error) {
         console.error('Error al inicializar Jitsi Meet:', error);
         setIsLoading(false);
+        setLoadError(true);
       }
       } catch (loadError) {
         // Catch para cualquier error en el onload
@@ -653,6 +640,7 @@ function JitsiVideoCallComponent({
     script.onerror = () => {
       console.error('Error al cargar el script de Jitsi Meet');
       setIsLoading(false);
+      setLoadError(true);
     };
 
     document.body.appendChild(script);
@@ -757,7 +745,7 @@ function JitsiVideoCallComponent({
           console.warn('Error capturado en contenedor Jitsi (ignorado)');
         }}
       >
-        {isLoading && (
+        {isLoading && !loadError && (
           <div style={{
             position: 'absolute',
             top: '50%',
@@ -772,6 +760,57 @@ function JitsiVideoCallComponent({
             </div>
             <div style={{ fontSize: '14px', marginTop: '8px', opacity: 0.8 }}>
               Conectando con cifrado de extremo a extremo
+            </div>
+          </div>
+        )}
+        {loadError && (
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            textAlign: 'center',
+            color: 'white',
+            maxWidth: '400px'
+          }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
+            <div style={{ fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>
+              No se pudo cargar la videollamada
+            </div>
+            <div style={{ fontSize: '14px', opacity: 0.8, marginBottom: '24px' }}>
+              Comprueba tu conexion a internet e intentalo de nuevo
+            </div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button
+                onClick={() => window.location.reload()}
+                style={{
+                  background: '#5a9270',
+                  border: 'none',
+                  color: 'white',
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: '14px'
+                }}
+              >
+                Reintentar
+              </button>
+              <button
+                onClick={() => { allowCloseRef.current = true; onCloseRef.current(); }}
+                style={{
+                  background: 'rgba(255,255,255,0.2)',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  color: 'white',
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: '14px'
+                }}
+              >
+                Cerrar
+              </button>
             </div>
           </div>
         )}

@@ -1,88 +1,87 @@
-# PsicoApp - Migration React → Angular
+# Gantly (PsicoApp) - Plataforma de Salud Mental
 
 ## Project Overview
-Mental health platform (Gantly/PSYmatch) connecting patients with psychologists.
-- **Backend**: Spring Boot (Java) at `localhost:8080/api`
-- **Frontend React** (original): `frontend/` - React 18 + TypeScript + Vite + Tailwind
-- **Frontend Angular** (migration): `frontend-angular/` - Angular 21 + Tailwind
-- **Branch**: `rama-angular`
+Plataforma de salud mental que conecta pacientes con psicólogos.
+- **Backend**: Spring Boot 3.4.7 (Java 21) en `localhost:8080/api`
+- **Frontend**: React 18 + TypeScript + Vite + Tailwind en `frontend/`
+- **Base de datos**: MySQL 8.0 (UTF8MB4)
+- **Docker**: `docker-compose.yml` levanta MySQL + Backend + Frontend
 
-## Course Requirements (Proyecto Full-Stack 2.0) - ALL MET
-1. Dashboard with indicators/counters/summary ✅ (hero + serif italic counters)
-2. Entity CRUD (list, detail, create/edit, delete, search/filter/sort) ✅ (tests, tasks, agenda, admin)
-3. Forms for creating/modifying data + interacting with external API ✅ (Reactive Forms everywhere)
-4. HttpClient with REST (GET, POST, PUT, DELETE) via Angular services ✅
-5. External REST API consumption ✅ (ZenQuotes)
-6. Angular CLI, 10 routes, standalone components, services, TypeScript models, Reactive Forms ✅
-7. Clear design and usability, intuitive navigation, common layout ✅
+## Tech Stack
+- **Backend**: Spring Boot 3.4.7, Spring Security, JWT (JJWT 0.11.5), WebSocket STOMP/SockJS, JPA/Hibernate
+- **Frontend**: React 18.3.1, TypeScript 5.6.3, Vite 5.4.10, Tailwind 3.4.18, Axios, Framer Motion, i18next, Stripe JS
+- **DB**: MySQL 8.0, 26 entidades JPA, 22+ tablas
+- **Infra**: Docker (2-stage build), Nginx reverse proxy
 
-## Angular Migration Status
+## Architecture
+- Backend: Controllers → Services → Repositories → JPA Entities
+- Frontend: Monolithic App.tsx router (32 useState hooks), single api.ts service (846 lines)
+- Auth: JWT (15min access + 7d refresh) + Google OAuth2
+- Chat: WebSocket STOMP con AES-256-GCM encryption
+- Roles: USER, PSYCHOLOGIST, ADMIN, EMPRESA
 
-### Migrated (including recent work)
-- Auth flow (login, register, forgot/reset password, Google OAuth2) - with gradient design
-- Route guards (auth, noAuth, role)
-- JWT interceptor with refresh token logic
-- All 3 role dashboards (USER, PSYCHOLOGIST, ADMIN) with tab navigation
-- **Visual parity with React** - hero headers, organic cards, Material Symbols icons, serif italic counters
-- **Sidebar redesign** - w-24 icon-only with Material Symbols, logout button, mobile bottom nav
-- **TestFlow** - Question-by-question test taking UI with progress bar, auto-advance, multiple question types
-- **AgendaPersonal** - Daily mood journal with 2-step form, emotion/activity tags, weekly calendar view
-- WebSocket chat (STOMP/SockJS)
-- Calendar/booking system
-- Task management
-- Test listing, assignment, search/filter
-- All backend API services wired (including agenda.service.ts)
-- Shared components: Header, Sidebar, Toast, LoadingSpinner
-- TypeScript models/interfaces
-- External API: ZenQuotes (quotes.service.ts)
-- Tailwind design system with custom tokens
-- **Image migration from React assets** (all images from `frontend/src/assets/` reused in Angular):
-  - SoyProfesional: 6 Gemini circular psychologist images in hero grid + `imagenProfesional.jpg` in advantages section
-  - TestFlow: background image (`Adobe Express - file (1).png`) as fixed fullscreen background
-- **Landing rewritten to match React structure** (7 sections):
-  1. Hero: large title left + big logo illustration right (`7442f63c-...png` at 139% width with organic blur)
-  2. Mini features strip: 4 Material Symbols icons on mint background
-  3. Daily quote (ZenQuotes API)
-  4. Philosophy: "Un espacio tranquilo..." + 2 staggered feature cards (Matching clínico, Todo en un solo lugar)
-  5. Care paths: "Cómo funciona Gantly" + 3 rounded image cards (test inicial with `Gemini_Generated_Image_2xvx8k...png`)
-  6. Team: "Un equipo cercano" + 3 staggered team cards with Material icons
-  7. Final CTA: dark forest rounded-[4rem] box + footer with links
-- **About page redesigned like React**:
-  - Hero: Álvaro's photo (`chumte.jpeg`) on left with gradient overlay + bio text + 3 expertise cards
-  - Methodology section: 3-column card (Formación continua, Metodología, Confidencialidad)
-  - Gradient CTA section (green-to-blue gradient with blur orbs)
-
-### NOT Yet Migrated (not needed for course)
-- Evaluaciones / Descubrimiento test categories
-- MisEstadisticas / charts
-- InitialTestFlow / Matching system
-- Jitsi video calls
-- AdminSectionsManager (drag/drop)
-- CompanyDashboard / RegisterCompany / RegisterPsychologist
-- Consent UI, Pricing/Stripe, BarChart/FactorChart, i18n
-
-## Key Architecture Decisions
-- Angular 21 standalone components (no NgModule)
-- Lazy-loaded routes
-- Functional interceptors/guards (Angular 15+ style)
-- Dashboards are monolithic single-file components (inline templates)
-- Tailwind CSS for styling (matching React's design system)
-- `@if` / `@for` control flow syntax (Angular 17+)
-- Material Symbols Outlined for icons (font-based)
-
-## File Structure (Angular)
+## Key Backend Files
 ```
-frontend-angular/src/app/
-├── core/
-│   ├── guards/        (auth, no-auth, role)
-│   ├── interceptors/  (auth interceptor)
-│   ├── models/        (index.ts - all interfaces)
-│   └── services/      (auth, profile, psych, calendar, chat, task, test, admin, quotes, toast, agenda)
-├── features/
-│   ├── auth/          (login, register, forgot-password, reset-password)
-│   ├── landing/       (landing, about, soy-profesional)
-│   ├── user-dashboard/ (user-dashboard, test-flow/, agenda-personal/)
-│   ├── psych-dashboard/ (psych-dashboard)
-│   └── admin/         (admin)
-└── shared/components/ (header, sidebar, toast, loading-spinner)
+psicoapp/src/main/java/com/alvaro/psicoapp/
+├── controller/     (20+ controllers: Auth, Admin, Task, Calendar, Chat, Test, Stripe, Jitsi, Matching...)
+├── service/        (32+ services: Auth, Email, JWT, Task, Test, Calendar, Chat, Matching, Audit, Stripe...)
+├── domain/         (26 JPA entities)
+├── repository/     (35+ Spring Data repositories)
+├── dto/            (23+ DTO classes with validation)
+├── security/       (SecurityConfig, JwtAuthFilter, RateLimitFilter, OAuth2SuccessHandler)
+└── config/         (JwtConfig, WebSocketConfig)
 ```
+
+## Key Frontend Files
+```
+frontend/src/
+├── App.tsx                    (801 lines - monolithic router)
+├── services/api.ts            (846 lines - all API calls)
+├── components/                (52 .tsx components)
+│   ├── Auth: Login, Register, ForgotPassword, ResetPassword
+│   ├── Dashboards: UserDashboard (13 tabs), PsychDashboard (11 tabs), AdminPanel (6 tabs)
+│   ├── Flows: TestFlow, InitialTestFlow, AgendaPersonal, PatientMatchingTest
+│   └── UI: ChatWidget, CalendarWeek, Landing, About, Toast, pricing
+├── i18n/                      (ES/EN translations)
+└── assets/                    (images, lottie animations)
+```
+
+## Database Schema (Main Tables)
+- **users** - Core user entity (roles: USER/PSYCHOLOGIST/ADMIN/EMPRESA)
+- **tests/questions/answers** - Personality test system (16PF, INITIAL, MATCHING)
+- **subfactors/factors** - Test scoring dimensions
+- **test_results/factor_results** - Test results per subfactor/factor
+- **evaluation_tests/evaluation_test_results** - Clinical tests (GAD-7, PANIC, SOCIAL_ANXIETY)
+- **daily_mood_entries** - Daily mood journal (mood_rating, emotions JSON, activities JSON)
+- **appointments/appointment_requests/appointment_ratings** - Booking system
+- **chat_messages** - Encrypted chat (AES-256-GCM)
+- **tasks/task_comments/task_files** - Therapeutic tasks
+- **psychologist_profiles** - Extended psychologist info
+- **user_psychologist** - Patient-psychologist assignment
+- **consent_requests/consent_document_types** - Consent management (minors)
+
+## Test System Architecture
+Two parallel systems:
+1. **TestEntity** (personality/matching): Full question→answer→subfactor→factor hierarchy with scoring
+2. **EvaluationTestEntity** (clinical): Simpler score+level system, answers stored as JSON
+
+Currently only personality tests exist. Planned: clinical psychological tests (Beck, Hamilton, etc.)
+
+## Known Critical Issues (Production Blockers)
+1. **Secrets hardcoded** in application-prod.yml (Gmail password, Google OAuth fallbacks)
+2. **CORS wildcard** `*` with credentials=true in SecurityConfig
+3. **OAuth2 token in URL** (sendRedirect with ?token=) - visible in browser history/logs
+4. **Zero unit/integration tests** in both backend and frontend
+5. **No GDPR compliance**: No privacy policy, no consent for health data, no data subject rights endpoints
+6. **Chat encryption key deterministic** (derived from user IDs, no salt/PBKDF2)
+7. **Health data unencrypted** in DB (mood entries, test results, evaluations)
+8. **SQL debug logging in prod** (logs PII)
+9. **WebSocket CORS wildcard** + no wss:// enforcement
+10. **Hardcoded localhost URLs** in React components (file download links)
+
+## Pending Features
+- **Stripe**: Backend StripeController exists but frontend integration incomplete
+- **Emails**: EmailService works (Gmail SMTP) but needs HTML templates, credentials externalized
+- **GDPR**: Need privacy policy, consent flow, data export/deletion endpoints, DPO assignment
+- **Tests**: Need to support clinical psychological tests beyond personality
+- **Missing**: Error boundary (global), .env.production, Nginx security headers, CSP

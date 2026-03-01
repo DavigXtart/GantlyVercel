@@ -21,20 +21,12 @@ export default function TestsList({ onSelectTest }: { onSelectTest: (id: number)
     try {
       setLoading(true);
       const data = await testService.list();
-      console.log('Tests cargados:', data);
       // Filtrar solo tests activos
       const activeTests = data.filter((test: any) => test.active !== false);
       setTests(activeTests);
     } catch (err: any) {
-      console.error('Error cargando tests:', err);
       const errorMsg = err.response?.data?.message || err.message || 'Error desconocido';
-      console.error('Detalles del error:', {
-        status: err.response?.status,
-        statusText: err.response?.statusText,
-        data: err.response?.data,
-        message: errorMsg
-      });
-      alert(`Error al cargar los tests: ${errorMsg}\n\nVerifica que:\n- El backend esté corriendo en http://localhost:8080\n- No haya errores en la consola del navegador`);
+      alert(`Error al cargar los tests: ${errorMsg}\n\nVerifica que:\n- El backend esté corriendo`);
     } finally {
       setLoading(false);
     }

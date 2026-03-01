@@ -63,7 +63,6 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
         setPsychologists(sorted.slice(0, 3));
       }
     } catch (error: any) {
-      console.error('Error cargando psicólogos:', error);
       toast.error('Error al cargar psicólogos: ' + (error.response?.data?.error || error.message));
     } finally {
       setLoading(false);
@@ -79,7 +78,6 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
         onSelect(psychologistId);
       }
     } catch (error: any) {
-      console.error('Error seleccionando psicólogo:', error);
       toast.error('Error al seleccionar psicólogo: ' + (error.response?.data?.error || error.message));
     } finally {
       setSelecting(null);
@@ -97,12 +95,11 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
         const rating = await calendarService.getPsychologistRating(psychologistId);
         setPsychologistRating(rating);
       } catch (err) {
-        console.error('Error cargando valoración del psicólogo:', err);
+        // error handled silently
       }
       
       setSelectedPsychologist(psychologistId);
     } catch (err: any) {
-      console.error('Error cargando perfil del psicólogo:', err);
       toast.error('Error al cargar el perfil del psicólogo: ' + (err.response?.data?.error || err.message));
     } finally {
       setLoadingProfile(false);

@@ -73,7 +73,6 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
     try {
       setLoading(true);
       const questionsData = await adminService.getQuestions(testId);
-      console.log('Preguntas cargadas:', questionsData);
       setQuestions(questionsData || []);
       
       // Cargar respuestas para cada pregunta
@@ -81,16 +80,13 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
       for (const question of questionsData || []) {
         try {
           const answers = await adminService.getAnswers(question.id);
-          console.log(`Respuestas para pregunta ${question.id}:`, answers);
           answersMap[question.id] = answers;
         } catch (err) {
-          console.error(`Error cargando respuestas para pregunta ${question.id}:`, err);
           answersMap[question.id] = [];
         }
       }
       setAnswersByQuestion(answersMap);
     } catch (err: any) {
-      console.error('Error cargando preguntas:', err);
       const errorMsg = err.response?.data?.message || err.message || 'Error desconocido';
       alert(`Error al cargar las preguntas: ${errorMsg}`);
     } finally {
@@ -101,16 +97,12 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
   const loadStructure = async () => {
     try {
       const data = await adminService.getTestStructure(testId);
-      console.log('Estructura cargada:', data);
       if (data && data.factors && data.factors.length > 0) {
         setStructure(data);
       } else {
-        console.warn('El test no tiene factores/subfactores configurados aún');
         setStructure({ factors: [] });
       }
     } catch (e: any) {
-      console.error('Error cargando estructura del test:', e);
-      console.error('Detalles:', e.response?.data || e.message);
       setStructure({ factors: [] });
     }
   };
@@ -191,7 +183,6 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
       setSubfactorByQuestion(map);
     } catch (e) {
       // opcional: ignorar si endpoint público no disponible
-      console.warn('No se pudieron cargar subfactores del test', e);
     }
   };
 
@@ -348,7 +339,6 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
       setUserAnswers(data);
       setShowUserAnswers(true);
     } catch (err) {
-      console.error('Error cargando respuestas de usuarios:', err);
       alert('Error al cargar las respuestas de usuarios');
     } finally {
       setLoading(false);

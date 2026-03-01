@@ -47,15 +47,15 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 		}
 
 		if (providerId == null || email == null || email.isEmpty()) {
-			response.sendRedirect(frontendBaseUrl + "/?error=oauth_missing_data");
+			response.sendRedirect(frontendBaseUrl + "/#error=oauth_missing_data");
 			return;
 		}
 
 		try {
 			String token = authService.processOAuth2User(provider, providerId, email, name, picture);
-			response.sendRedirect(frontendBaseUrl + "/?token=" + java.net.URLEncoder.encode(token, "UTF-8"));
+			response.sendRedirect(frontendBaseUrl + "/#token=" + java.net.URLEncoder.encode(token, "UTF-8"));
 		} catch (Exception e) {
-			response.sendRedirect(frontendBaseUrl + "/?error=" + java.net.URLEncoder.encode(e.getMessage(), "UTF-8"));
+			response.sendRedirect(frontendBaseUrl + "/#error=" + java.net.URLEncoder.encode(e.getMessage(), "UTF-8"));
 		}
 	}
 

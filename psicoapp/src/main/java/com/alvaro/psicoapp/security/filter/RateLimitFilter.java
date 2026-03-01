@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 @Order(1)
@@ -22,11 +23,13 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private static final int MAX_REQUESTS_PER_MINUTE = 60;
     private static final int MAX_REQUESTS_PER_MINUTE_AUTH = 30;
+    private static final int MAX_REQUESTS_PER_MINUTE_GLOBAL = 300;
     private static final long TIME_WINDOW_MS = 60_000;
 
     private final Map<String, RequestCounter> requestCounters = new ConcurrentHashMap<>();
+    private final Map<String, RequestCounter> globalIpCounters = new ConcurrentHashMap<>();
 
-    private long lastCleanup = System.currentTimeMillis();
+    private final AtomicLong lastCleanup = new AtomicLong(System.currentTimeMillis());
     private static final long CLEANUP_INTERVAL_MS = 300_000;
 
     @Override
@@ -40,20 +43,28 @@ public class RateLimitFilter extends OncePerRequestFilter {
         String key = ipAddress + ":" + endpoint;
 
         boolean isAuthEndpoint = endpoint.startsWith("/api/auth/");
-        boolean isPublicEndpoint = endpoint.startsWith("/api/tests/") ||
-                                   endpoint.startsWith("/api/initial-test/") ||
-                                   endpoint.startsWith("/uploads/");
-
         int maxRequests = isAuthEndpoint ? MAX_REQUESTS_PER_MINUTE_AUTH : MAX_REQUESTS_PER_MINUTE;
 
-        RequestCounter counter = requestCounters.computeIfAbsent(key, k -> new RequestCounter());
-
+        // Global per-IP rate limit (across all endpoints)
+        RequestCounter globalCounter = globalIpCounters.computeIfAbsent(ipAddress, k -> new RequestCounter());
         long now = System.currentTimeMillis();
+        if (now - globalCounter.getFirstRequestTime() > TIME_WINDOW_MS) {
+            globalCounter.reset(now);
+        }
+        int globalCount = globalCounter.incrementAndGet();
+        if (globalCount > MAX_REQUESTS_PER_MINUTE_GLOBAL) {
+            logger.warn("Global rate limit excedido para IP: {} ({} requests)", ipAddress, globalCount);
+            response.setStatus(429);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"Demasiadas peticiones. Por favor intenta mas tarde.\"}");
+            return;
+        }
 
+        // Per-endpoint rate limit
+        RequestCounter counter = requestCounters.computeIfAbsent(key, k -> new RequestCounter());
         if (now - counter.getFirstRequestTime() > TIME_WINDOW_MS) {
             counter.reset(now);
         }
-
         int currentCount = counter.incrementAndGet();
 
         if (currentCount > maxRequests) {
@@ -61,7 +72,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
                        ipAddress, endpoint, currentCount);
             response.setStatus(429);
             response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"Demasiadas peticiones. Por favor intenta más tarde.\"}");
+            response.getWriter().write("{\"error\":\"Demasiadas peticiones. Por favor intenta mas tarde.\"}");
             return;
         }
 
@@ -85,11 +96,14 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private void cleanupOldCounters() {
         long now = System.currentTimeMillis();
-        if (now - lastCleanup > CLEANUP_INTERVAL_MS) {
+        long last = lastCleanup.get();
+        if (now - last > CLEANUP_INTERVAL_MS && lastCleanup.compareAndSet(last, now)) {
             requestCounters.entrySet().removeIf(entry ->
                 now - entry.getValue().getFirstRequestTime() > TIME_WINDOW_MS * 2
             );
-            lastCleanup = now;
+            globalIpCounters.entrySet().removeIf(entry ->
+                now - entry.getValue().getFirstRequestTime() > TIME_WINDOW_MS * 2
+            );
         }
     }
 

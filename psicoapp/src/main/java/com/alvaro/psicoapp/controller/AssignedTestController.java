@@ -14,7 +14,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/assigned-tests")
-@CrossOrigin(origins = "*")
 public class AssignedTestController {
     private final AssignedTestService assignedTestService;
     private final UserRepository userRepository;

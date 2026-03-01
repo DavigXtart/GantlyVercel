@@ -42,13 +42,19 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
         List<String> authHeaders = accessor.getNativeHeader("Authorization");
         if (authHeaders == null || authHeaders.isEmpty()) {
-            if (StompCommand.SEND.equals(command)) logger.warn("No hay header de autorización en mensaje SEND");
+            if (StompCommand.SEND.equals(command) || StompCommand.SUBSCRIBE.equals(command)) {
+                logger.warn("WebSocket {} rechazado: sin header de autorizacion", command);
+                throw new org.springframework.messaging.MessageDeliveryException("Autenticacion requerida");
+            }
             return message;
         }
 
         String authHeader = authHeaders.get(0);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            logger.warn("Header de autorización no válido para comando: {}", command);
+            logger.warn("Header de autorizacion no valido para comando: {}", command);
+            if (StompCommand.SEND.equals(command) || StompCommand.SUBSCRIBE.equals(command)) {
+                throw new org.springframework.messaging.MessageDeliveryException("Token no valido");
+            }
             return message;
         }
 
@@ -68,18 +74,12 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             accessor.setUser(auth);
             SecurityContextHolder.getContext().setAuthentication(auth);
 
-            String destination = accessor.getDestination() != null ? accessor.getDestination() : "";
-            switch (command) {
-                case CONNECT ->
-                    logger.debug("WebSocket CONNECT autenticado: {} con rol: {}", subject, role);
-                case SEND ->
-                    logger.debug("WebSocket SEND autenticado: {} con rol: {}, Destino: {}", subject, role, destination);
-                case SUBSCRIBE ->
-                    logger.debug("WebSocket SUBSCRIBE autenticado: {} con rol: {}, Topic: {}", subject, role, destination);
-                default -> {  }
-            }
+            logger.debug("WebSocket {} autenticado: {} con rol: {}", command, subject, role);
         } catch (Exception e) {
-            logger.error("Error autenticando WebSocket {}: {}", command, e.getMessage(), e);
+            logger.error("Error autenticando WebSocket {}: {}", command, e.getMessage());
+            if (StompCommand.CONNECT.equals(command) || StompCommand.SEND.equals(command)) {
+                throw new org.springframework.messaging.MessageDeliveryException("Token JWT invalido");
+            }
         }
 
         return message;

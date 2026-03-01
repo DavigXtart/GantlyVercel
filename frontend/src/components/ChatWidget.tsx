@@ -41,7 +41,6 @@ export default function ChatWidget({ mode, otherId }: Props) {
   useEffect(() => {
     // Limpiar conexión anterior solo si cambian los IDs
     if (clientRef.current) {
-      console.log('Desconectando cliente WebSocket anterior');
       clientRef.current.deactivate();
       clientRef.current = null;
     }
@@ -60,25 +59,18 @@ export default function ChatWidget({ mode, otherId }: Props) {
           
           // SIEMPRE cargar historial primero antes de conectar
           try {
-            console.log('📥 Cargando historial para USER');
             const { data } = await api.get(`/chat/history`);
-            console.log('📥 Historial recibido:', data);
             if (Array.isArray(data) && data.length > 0) {
               const reversed = [...data].reverse();
-              console.log('📥 Mensajes después de reverso:', reversed.length, 'mensajes');
               setMessages(reversed);
-              console.log('📥 Estado de mensajes actualizado con historial');
             } else {
-              console.log('📥 No hay historial previo, empezando con mensajes vacíos');
               setMessages([]);
             }
           } catch (e) {
-            console.error('❌ Error cargando historial:', e);
             setMessages([]);
           }
           
           // Conectar con psicólogoId primero, luego userId
-          console.log('🔌 Conectando WebSocket para USER:', rel.psychologist!.id, me.id);
           connect(rel.psychologist!.id, me.id);
         } else {
           // No hay psicólogo asignado
@@ -95,30 +87,23 @@ export default function ChatWidget({ mode, otherId }: Props) {
             const patient = patients.find((p: any) => p.id === otherId);
             if (patient) setOtherUser(patient);
           } catch (e) {
-            console.error('Error cargando paciente:', e);
+            // error handled silently
           }
           
           // SIEMPRE cargar historial primero antes de conectar
           try {
-            console.log('📥 Cargando historial para psicólogo con userId:', otherId);
             const { data } = await api.get(`/chat/history`, { params: { userId: otherId } });
-            console.log('📥 Historial recibido:', data);
             if (Array.isArray(data) && data.length > 0) {
               const reversed = [...data].reverse();
-              console.log('📥 Mensajes después de reverso:', reversed.length, 'mensajes');
               setMessages(reversed);
-              console.log('📥 Estado de mensajes actualizado con historial');
             } else {
-              console.log('📥 No hay historial previo, empezando con mensajes vacíos');
               setMessages([]);
             }
           } catch (e) {
-            console.error('❌ Error cargando historial:', e);
             setMessages([]);
           }
           
           // Conectar con psicólogoId primero (me.id), luego userId (otherId)
-          console.log('🔌 Conectando WebSocket para PSYCHOLOGIST:', me.id, otherId);
           connect(me.id, otherId);
         } else {
           // No hay paciente seleccionado
@@ -130,7 +115,6 @@ export default function ChatWidget({ mode, otherId }: Props) {
     return () => { 
       // Solo desconectar si realmente cambian los parámetros de conexión
       if (clientRef.current) {
-        console.log('Cleanup: Desconectando WebSocket');
         clientRef.current.deactivate();
         clientRef.current = null;
       }
@@ -141,27 +125,9 @@ export default function ChatWidget({ mode, otherId }: Props) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Efecto para depurar cambios en mensajes
-  useEffect(() => {
-    console.log('📊 Estado de mensajes actualizado:', {
-      modo: mode,
-      cantidad: messages.length,
-      mensajes: messages.map(m => ({
-        id: m.id,
-        sender: m.sender,
-        content: m.content?.substring(0, 30),
-        createdAt: m.createdAt
-      })),
-      psychId,
-      userId,
-      connected
-    });
-  }, [messages, mode, psychId, userId, connected]);
-
   const connect = (psychologistId: number, uId: number) => {
     const token = localStorage.getItem('token');
     if (!token) {
-      console.error('No hay token disponible para la conexión WebSocket');
       return;
     }
 
@@ -176,53 +142,34 @@ export default function ChatWidget({ mode, otherId }: Props) {
       connectHeaders: {
         Authorization: `Bearer ${token}`
       },
-      debug: (str) => {
-        console.log('STOMP:', str);
-      },
+      debug: () => {},
     });
     
     client.onConnect = () => {
-      console.log('✅ WebSocket conectado exitosamente para chat:', psychologistId, uId);
       setConnected(true);
       const topic = `/topic/chat/${psychologistId}/${uId}`;
-      console.log('📡 Suscribiéndose al topic:', topic);
-      console.log('📡 psychologistId:', psychologistId, 'userId:', uId);
-      
-      const subscription = client.subscribe(topic, (msg: IMessage) => {
-        console.log('📨 ===== MENSAJE RECIBIDO =====');
-        console.log('📨 Topic:', topic);
-        console.log('📨 Modo:', mode);
-        console.log('📨 Callback ejecutado para topic:', topic);
-        console.log('📨 Mensaje recibido del servidor, body:', msg.body);
-        console.log('📨 Headers:', msg.headers);
-        
+
+      client.subscribe(topic, (msg: IMessage) => {
         try {
           const message = JSON.parse(msg.body);
-          console.log('📨 Mensaje parseado:', message);
-          console.log('📨 ID:', message.id, 'Sender:', message.sender, 'Content:', message.content);
-          
+
           setMessages(prev => {
-            console.log('📨 Estado actual de mensajes:', prev.length, 'mensajes');
-            
             // Buscar si hay un mensaje optimista temporal con el mismo contenido
-            const tempIndex = prev.findIndex(m => 
+            const tempIndex = prev.findIndex(m =>
               m.id && m.id > 1000000000000 && // IDs temporales son timestamps grandes
               m.content === message.content &&
               m.sender === message.sender
             );
-            
+
             if (tempIndex !== -1) {
-              console.log('🔄 Reemplazando mensaje optimista en índice:', tempIndex);
               const newMessages = [...prev];
               newMessages[tempIndex] = message;
-              console.log('🔄 Nuevo estado después de reemplazo:', newMessages.length, 'mensajes');
               return newMessages;
             }
-            
+
             // Evitar duplicados: verificar por ID primero
             const exists = prev.some(m => {
               if (m.id && message.id && m.id === message.id) {
-                console.log('⚠️ Mensaje duplicado detectado por ID:', message.id);
                 return true;
               }
               // Si no hay ID, verificar por contenido y timestamp (dentro de 5 segundos)
@@ -230,88 +177,54 @@ export default function ChatWidget({ mode, otherId }: Props) {
                 const mTime = new Date(m.createdAt).getTime();
                 const msgTime = new Date(message.createdAt).getTime();
                 if (Math.abs(mTime - msgTime) < 5000) {
-                  console.log('⚠️ Mensaje duplicado detectado por contenido/timestamp');
                   return true;
                 }
               }
               return false;
             });
-            
+
             if (exists) {
-              console.log('❌ Mensaje duplicado ignorado');
               return prev;
             }
-            
-            console.log('✅ Agregando mensaje nuevo a la lista');
+
             const newMessages = [...prev, message];
-            console.log('✅ Nuevo estado después de agregar:', newMessages.length, 'mensajes');
-            console.log('✅ Último mensaje:', newMessages[newMessages.length - 1]);
-            
-            // Forzar actualización del estado
-            setTimeout(() => {
-              console.log('🔍 Verificación post-actualización: Estado de mensajes:', newMessages.length);
-            }, 100);
-            
             return newMessages;
           });
         } catch (e) {
-          console.error('❌ Error parsing message:', e, 'body:', msg.body);
+          // error handled silently
         }
       });
-      
-      console.log('✅ Suscripción creada con ID:', subscription.id);
-      console.log('✅ Topic suscrito:', topic);
     };
     
     client.onDisconnect = () => {
-      console.log('WebSocket desconectado');
       setConnected(false);
     };
     
-    client.onStompError = (frame) => {
-      console.error('❌ STOMP error:', frame);
-      console.error('❌ Comando:', frame.command);
-      console.error('❌ Mensaje:', frame.headers['message']);
-      console.error('❌ Headers:', frame.headers);
+    client.onStompError = () => {
       setConnected(false);
     };
-    
-    client.onWebSocketError = (error) => {
-      console.error('❌ WebSocket error:', error);
-    };
-    
-    client.onWebSocketClose = (event) => {
-      console.log('⚠️ WebSocket cerrado:', event.code, event.reason);
+
+    client.onWebSocketError = () => {};
+
+    client.onWebSocketClose = () => {
       setConnected(false);
     };
-    
-    console.log('🔄 Activando cliente WebSocket...');
+
     client.activate();
     clientRef.current = client;
-    
-    // Verificar estado después de un momento
-    setTimeout(() => {
-      console.log('🔍 Estado del cliente después de activar:');
-      console.log('   Conectado:', client.connected);
-      console.log('   Active:', client.active);
-      console.log('   Topic esperado:', `/topic/chat/${psychologistId}/${uId}`);
-    }, 1000);
   };
 
   const send = async () => {
     if (!input.trim()) {
-      console.warn('⚠️ Input vacío');
       return;
     }
-    
+
     if (!connected) {
-      console.error('❌ No conectado al WebSocket');
       toast.warning('No estás conectado. Por favor espera a que se establezca la conexión.');
       return;
     }
-    
+
     if (psychId == null || userId == null) {
-      console.error('❌ IDs faltantes: psychId=', psychId, 'userId=', userId);
       return;
     }
     
@@ -332,20 +245,15 @@ export default function ChatWidget({ mode, otherId }: Props) {
     try {
       const messageData = { content: messageContent };
       const destination = `/app/chat/${psychId}/${userId}`;
-      console.log('📤 Enviando mensaje a:', destination);
-      console.log('📤 Modo:', mode, 'psychId:', psychId, 'userId:', userId);
-      console.log('📤 Contenido:', messageContent);
-      console.log('📤 Cliente conectado:', clientRef.current?.connected);
-      
+
       if (!clientRef.current || !clientRef.current.connected) {
-        console.error('❌ Cliente WebSocket no está conectado');
         toast.error('Error: No estás conectado al servidor. Por favor recarga la página.');
         // Remover mensaje optimista si falla
         setMessages(prev => prev.filter(m => m.id !== tempId));
         return;
       }
       
-      const publishResult = clientRef.current.publish({ 
+      clientRef.current.publish({
         destination: destination,
         body: JSON.stringify(messageData),
         headers: {
@@ -353,15 +261,10 @@ export default function ChatWidget({ mode, otherId }: Props) {
         }
       });
       
-      console.log('📤 Resultado del publish:', publishResult);
-      
-      console.log('✅ Mensaje publicado exitosamente');
-      
       // El mensaje optimista será reemplazado por el mensaje real cuando llegue del servidor
       // o removido si hay un error
       
     } catch (e) {
-      console.error('❌ Error enviando mensaje:', e);
       toast.error('Error al enviar el mensaje. Intenta de nuevo.');
       // Remover mensaje optimista si falla
       setMessages(prev => prev.filter(m => m.id !== tempId));

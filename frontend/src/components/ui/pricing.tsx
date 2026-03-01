@@ -43,7 +43,6 @@ export function Pricing({
 
   const handleStripeCheckout = async (plan: PricingPlan) => {
     if (!plan.planId) {
-      console.error("Plan ID no definido para Stripe");
       return;
     }
 
@@ -56,7 +55,6 @@ export function Pricing({
       // Redirigir a Stripe Checkout
       window.location.href = response.url;
     } catch (error) {
-      console.error("Error creando sesión de checkout:", error);
       alert("Error al procesar el pago. Por favor, intenta de nuevo.");
       setLoading(null);
     }

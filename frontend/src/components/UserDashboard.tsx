@@ -7,6 +7,7 @@ import {
   assignedTestsService,
   jitsiService,
   consentService,
+  API_BASE_URL,
 } from '../services/api';
 import CalendarWeek from './CalendarWeek';
 import ChatWidget from './ChatWidget';
@@ -20,6 +21,8 @@ import { toast } from './ui/Toast';
 import PatientMatchingTest from './PatientMatchingTest';
 import MatchingPsychologists from './MatchingPsychologists';
 import JitsiVideoCall from './JitsiVideoCall';
+import NotificationBell from './ui/NotificationBell';
+import OnboardingWizard from './OnboardingWizard';
 
 type Tab =
   | 'perfil'
@@ -34,7 +37,8 @@ type Tab =
   | 'evaluaciones'
   | 'descubrimiento'
   | 'chat'
-  | 'perfil-psicologo';
+  | 'perfil-psicologo'
+  | 'privacidad';
 
 interface UserDashboardProps {
   onStartTest?: (testId: number) => void;
@@ -83,6 +87,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
   const [loadingConsents, setLoadingConsents] = useState(false);
   const [signerNameForConsent, setSignerNameForConsent] = useState('');
   const [signingConsentId, setSigningConsentId] = useState<number | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('onboarding-completed'));
 
   const hasPsychologist = psych?.status === 'ASSIGNED';
 
@@ -139,7 +144,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       setAssignedTests(ats || []);
       setMyAppointments(apps || []);
     } catch (err: any) {
-      console.error(err);
       toast.error('Error al cargar tu panel. Intenta recargar la página.');
     } finally {
       setLoading(false);
@@ -187,7 +191,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       setPsychologistProfile(profile);
       setTab('perfil-psicologo');
     } catch (err: any) {
-      console.error('Error cargando perfil del psicólogo:', err);
       toast.error(
         'Error al cargar el perfil del psicólogo: ' +
           (err.response?.data?.error || err.message),
@@ -215,10 +218,9 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
         );
         setMyAppointments(validAppointments);
       } catch (error) {
-        console.error('Error cargando citas:', error);
+        // error handled silently
       }
     } catch (error: any) {
-      console.error('Error cargando disponibilidad:', error);
       toast.error('Error al cargar el calendario');
     } finally {
       setLoadingSlots(false);
@@ -231,7 +233,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       const appointments = await calendarService.getPastAppointments();
       setPastAppointments(appointments || []);
     } catch (err: any) {
-      console.error('Error cargando citas pasadas:', err);
       toast.error(
         'Error al cargar las citas pasadas: ' +
           (err.response?.data?.error || err.message),
@@ -258,7 +259,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       setRatingComment('');
       await loadPastAppointments();
     } catch (err: any) {
-      console.error('Error guardando valoración:', err);
       toast.error(
         'Error al guardar la valoración: ' +
           (err.response?.data?.error || err.message),
@@ -273,7 +273,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       const files = await tasksService.getFiles(taskId);
       setTaskFiles((prev) => ({ ...prev, [taskId]: files }));
     } catch (error) {
-      console.error('Error cargando archivos de tarea:', error);
+      // error handled silently
     }
   };
 
@@ -282,7 +282,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       const comments = await tasksService.getComments(taskId);
       setTaskComments((prev) => ({ ...prev, [taskId]: comments }));
     } catch (error) {
-      console.error('Error cargando comentarios:', error);
+      // error handled silently
     }
   };
 
@@ -292,7 +292,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       setSelectedTask(task);
       await Promise.all([loadTaskFiles(taskId), loadTaskComments(taskId)]);
     } catch (error) {
-      console.error('Error cargando detalles de tarea:', error);
       toast.error('Error al cargar los detalles de la tarea');
     }
   };
@@ -304,7 +303,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       setNewComment('');
       await loadTaskComments(taskId);
     } catch (error: any) {
-      console.error('Error agregando comentario:', error);
       toast.error(
         'Error al agregar el comentario: ' +
           (error.response?.data?.error || error.message),
@@ -367,6 +365,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             { id: 'calendario', icon: 'calendar_today', label: 'Calendario', requiresPsych: true },
             { id: 'agenda-personal', icon: 'book', label: 'Agenda', requiresPsych: false },
             { id: 'chat', icon: 'chat', label: 'Chat', requiresPsych: true },
+            { id: 'privacidad', icon: 'shield', label: 'Privacidad', requiresPsych: false },
           ].map((item) => {
             const isDisabled = item.requiresPsych && !hasPsychologist;
             const isActive = tab === item.id;
@@ -416,6 +415,10 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
 
       {/* Main content */}
       <main className="flex-1 p-8 lg:p-12 relative overflow-x-hidden">
+        {/* Notification bell */}
+        <div className="flex justify-end mb-4">
+          <NotificationBell />
+        </div>
         {/* Header hero solo en PERFIL */}
         {tab === 'perfil' && (
           <header className="bg-sage/10 rounded-[4rem] p-8 lg:p-12 mb-10 relative overflow-hidden">
@@ -1981,7 +1984,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                             </div>
                           </div>
                           <a
-                            href={`http://localhost:8080${file.filePath}`}
+                            href={`${API_BASE_URL}${file.filePath}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{
@@ -2193,7 +2196,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                             onStartTest(testId);
                           }
                         } catch (error) {
-                          console.error('Error al iniciar el test:', error);
                           toast.error(
                             'Error al iniciar el test. Por favor intenta de nuevo.',
                           );
@@ -2519,7 +2521,109 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             )}
           </div>
         )}
+        {/* Tab: Privacidad y Datos (RGPD) */}
+        {tab === 'privacidad' && (
+          <div className="space-y-8">
+            <div className="bg-white rounded-3xl p-8 border border-sage/10 soft-shadow">
+              <h2 className="text-2xl font-normal text-forest flex items-center gap-2 mb-2">
+                <span className="material-symbols-outlined text-xl text-sage">shield</span>
+                Privacidad y Datos
+              </h2>
+              <p className="text-sage/70 text-sm mb-8">
+                Gestiona tus datos personales conforme al Reglamento General de Protección de Datos (RGPD).
+              </p>
+
+              {/* Exportar datos */}
+              <div className="bg-cream rounded-2xl p-6 mb-6 border border-sage/10">
+                <h3 className="text-lg font-medium text-forest mb-2 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-lg text-sage">download</span>
+                  Descargar mis datos
+                </h3>
+                <p className="text-sage/70 text-sm mb-4">
+                  Descarga una copia de todos tus datos en formato JSON (Art. 20 RGPD - Derecho de portabilidad).
+                </p>
+                <button
+                  onClick={async () => {
+                    try {
+                      const data = await profileService.exportMyData();
+                      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `mis-datos-psymatch-${new Date().toISOString().split('T')[0]}.json`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                      toast.success('Datos exportados correctamente');
+                    } catch {
+                      toast.error('Error al exportar los datos');
+                    }
+                  }}
+                  className="px-6 py-2.5 bg-forest text-white rounded-xl text-sm font-medium hover:bg-forest/90 transition-colors"
+                >
+                  Descargar mis datos
+                </button>
+              </div>
+
+              {/* Info retención */}
+              <div className="bg-cream rounded-2xl p-6 mb-6 border border-sage/10">
+                <h3 className="text-lg font-medium text-forest mb-2 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-lg text-sage">info</span>
+                  Política de retención
+                </h3>
+                <p className="text-sage/70 text-sm">
+                  Tus datos se conservan durante un máximo de 5 años desde tu registro, conforme a la legislación sanitaria.
+                  Tras ese periodo, tus datos son anonimizados automáticamente.
+                </p>
+              </div>
+
+              {/* Eliminar cuenta */}
+              <div className="bg-red-50 rounded-2xl p-6 border border-red-200">
+                <h3 className="text-lg font-medium text-red-700 mb-2 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-lg text-red-500">delete_forever</span>
+                  Eliminar mi cuenta
+                </h3>
+                <p className="text-red-600/70 text-sm mb-4">
+                  Esta acción es irreversible. Todos tus datos serán eliminados permanentemente (Art. 17 RGPD - Derecho de supresión).
+                </p>
+                <button
+                  onClick={async () => {
+                    const confirmed = window.confirm(
+                      '¿Estás seguro de que quieres eliminar tu cuenta? Esta acción es IRREVERSIBLE y todos tus datos serán eliminados permanentemente.'
+                    );
+                    if (!confirmed) return;
+                    const doubleConfirmed = window.confirm(
+                      'Última confirmación: ¿Realmente deseas eliminar tu cuenta y todos tus datos?'
+                    );
+                    if (!doubleConfirmed) return;
+                    try {
+                      await profileService.deleteMyAccount();
+                      toast.success('Cuenta eliminada correctamente');
+                      localStorage.removeItem('token');
+                      localStorage.removeItem('refreshToken');
+                      window.location.reload();
+                    } catch {
+                      toast.error('Error al eliminar la cuenta');
+                    }
+                  }}
+                  className="px-6 py-2.5 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition-colors"
+                >
+                  Eliminar mi cuenta permanentemente
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
+
+      {/* Onboarding Wizard */}
+      {showOnboarding && !hasPsychologist && me && (
+        <OnboardingWizard
+          userName={me.name || 'Usuario'}
+          onComplete={() => setShowOnboarding(false)}
+          onGoToProfile={() => { setShowOnboarding(false); setTab('editar-perfil'); }}
+          onGoToMatching={() => { setShowOnboarding(false); setTab('mi-psicologo'); setShowMatchingTest(true); }}
+        />
+      )}
 
       {/* Video Call Component */}
       {showVideoCall && videoCallRoom && videoCallOtherUser && me && (

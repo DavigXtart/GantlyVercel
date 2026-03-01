@@ -1,16 +1,27 @@
 package com.alvaro.psicoapp.service;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+
+import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 @Service
 public class EmailService {
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
     private final JavaMailSender mailSender;
+    private final TemplateEngine templateEngine;
 
     @Value("${app.base.url:http://localhost:5173}")
     private String baseUrl;
@@ -18,8 +29,13 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
-    public EmailService(JavaMailSender mailSender) {
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter
+        .ofPattern("dd/MM/yyyy 'a las' HH:mm")
+        .withZone(ZoneId.systemDefault());
+
+    public EmailService(JavaMailSender mailSender, TemplateEngine templateEngine) {
         this.mailSender = mailSender;
+        this.templateEngine = templateEngine;
     }
 
     public void sendVerificationEmail(String toEmail, String name, String verificationToken) {
@@ -28,36 +44,24 @@ public class EmailService {
 
     public void sendVerificationEmail(String toEmail, String name, String verificationToken, boolean isPsychologist) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(toEmail);
-            message.setSubject("Verifica tu cuenta - PSYmatch");
-
             String verificationUrl = baseUrl + "/verify-email?token=" + verificationToken;
 
             String greeting = isPsychologist
                 ? "Gracias por unirte a PSYmatch como profesional de la psicología."
                 : "Gracias por registrarte en PSYmatch.";
 
-            String emailBody = String.format(
-                "Hola %s,\n\n" +
-                "%s\n\n" +
-                "Para completar tu registro, por favor verifica tu dirección de correo electrónico haciendo clic en el siguiente enlace:\n\n" +
-                "%s\n\n" +
-                "Este enlace expirará en 24 horas.\n\n" +
-                "%s\n\n" +
-                "Saludos,\n" +
-                "El equipo de PSYmatch",
-                name,
-                greeting,
-                verificationUrl,
-                isPsychologist
-                    ? "Una vez verificado tu correo, podrás comenzar a gestionar tu práctica profesional y recibir pacientes."
-                    : "Si no creaste una cuenta en PSYmatch, puedes ignorar este correo."
-            );
+            String extraMessage = isPsychologist
+                ? "Una vez verificado tu correo, podrás comenzar a gestionar tu práctica profesional y recibir pacientes."
+                : "Si no creaste una cuenta en PSYmatch, puedes ignorar este correo.";
 
-            message.setText(emailBody);
-            mailSender.send(message);
+            Context ctx = new Context();
+            ctx.setVariable("name", name);
+            ctx.setVariable("greeting", greeting);
+            ctx.setVariable("verificationUrl", verificationUrl);
+            ctx.setVariable("extraMessage", extraMessage);
+
+            String html = templateEngine.process("email/verification", ctx);
+            sendHtmlEmail(toEmail, "Verifica tu cuenta - PSYmatch", html);
         } catch (Exception e) {
             logger.error("Error enviando correo de verificación", e);
             throw new RuntimeException("Error al enviar el correo de verificación", e);
@@ -65,163 +69,65 @@ public class EmailService {
     }
 
     public void sendAppointmentConfirmationEmail(String toEmail, String patientName, String psychologistName,
-                                                 java.time.Instant appointmentStart, java.time.Instant paymentDeadline,
-                                                 java.math.BigDecimal price) {
+                                                 Instant appointmentStart, Instant paymentDeadline,
+                                                 BigDecimal price) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(toEmail);
-            message.setSubject("Cita confirmada - PSYmatch");
-
-            java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter
-                .ofPattern("dd/MM/yyyy 'a las' HH:mm")
-                .withZone(java.time.ZoneId.systemDefault());
-
-            java.time.format.DateTimeFormatter deadlineFormatter = java.time.format.DateTimeFormatter
-                .ofPattern("dd/MM/yyyy 'a las' HH:mm")
-                .withZone(java.time.ZoneId.systemDefault());
-
-            String appointmentDate = formatter.format(appointmentStart);
-            String emailBody;
+            Context ctx = new Context();
+            ctx.setVariable("patientName", patientName);
+            ctx.setVariable("psychologistName", psychologistName);
+            ctx.setVariable("appointmentDate", DATE_FORMATTER.format(appointmentStart));
+            ctx.setVariable("price", price != null ? String.format("%.2f", price.doubleValue()) : "0.00");
+            ctx.setVariable("paymentDeadline", paymentDeadline);
             if (paymentDeadline != null) {
-                String deadlineDate = deadlineFormatter.format(paymentDeadline);
-                emailBody = String.format(
-                    "Hola %s,\n\n" +
-                    "¡Tu solicitud de cita ha sido confirmada!\n\n" +
-                    "Detalles de la cita:\n" +
-                    "- Psicólogo: %s\n" +
-                    "- Fecha y hora: %s\n" +
-                    "- Precio: %.2f €\n\n" +
-                    "IMPORTANTE: Tienes hasta el %s para realizar el pago de tu cita.\n" +
-                    "Si no realizas el pago antes de esta fecha, la cita será cancelada automáticamente.\n\n" +
-                    "Puedes acceder a tu panel de usuario para realizar el pago y gestionar tus citas.\n\n" +
-                    "Saludos,\n" +
-                    "El equipo de PSYmatch",
-                    patientName,
-                    psychologistName,
-                    appointmentDate,
-                    price != null ? price.doubleValue() : 0.0,
-                    deadlineDate
-                );
-            } else {
-
-                emailBody = String.format(
-                    "Hola %s,\n\n" +
-                    "¡Tu cita ha sido confirmada!\n\n" +
-                    "Detalles de la cita:\n" +
-                    "- Psicólogo: %s\n" +
-                    "- Fecha y hora: %s\n" +
-                    "- Precio: %.2f €\n\n" +
-                    "Puedes acceder a la videollamada desde tu panel de usuario 1 hora antes del inicio de la cita.\n\n" +
-                    "Saludos,\n" +
-                    "El equipo de PSYmatch",
-                    patientName,
-                    psychologistName,
-                    appointmentDate,
-                    price != null ? price.doubleValue() : 0.0
-                );
+                ctx.setVariable("deadlineDate", DATE_FORMATTER.format(paymentDeadline));
             }
 
-            message.setText(emailBody);
-            mailSender.send(message);
+            String html = templateEngine.process("email/appointment-confirmation", ctx);
+            sendHtmlEmail(toEmail, "Cita confirmada - PSYmatch", html);
         } catch (Exception e) {
             logger.error("Error enviando correo de confirmación de cita", e);
-
         }
     }
 
     public void sendAppointmentReminderEmail(String toEmail, String patientName, String psychologistName,
-                                             java.time.Instant appointmentStart, java.time.Instant appointmentEnd,
-                                             java.math.BigDecimal price) {
+                                             Instant appointmentStart, Instant appointmentEnd,
+                                             BigDecimal price) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(toEmail);
-            message.setSubject("Recordatorio de cita - PSYmatch");
+            Context ctx = new Context();
+            ctx.setVariable("patientName", patientName);
+            ctx.setVariable("psychologistName", psychologistName);
+            ctx.setVariable("appointmentDate", DATE_FORMATTER.format(appointmentStart));
+            ctx.setVariable("appointmentEndTime", DATE_FORMATTER.format(appointmentEnd));
+            ctx.setVariable("price", price != null ? String.format("%.2f", price.doubleValue()) : "0.00");
 
-            java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter
-                .ofPattern("dd/MM/yyyy 'a las' HH:mm")
-                .withZone(java.time.ZoneId.systemDefault());
-
-            String appointmentDate = formatter.format(appointmentStart);
-            String appointmentEndTime = formatter.format(appointmentEnd);
-
-            String emailBody = String.format(
-                "Hola %s,\n\n" +
-                "Este es un recordatorio de tu próxima cita.\n\n" +
-                "Detalles de la cita:\n" +
-                "- Psicólogo: %s\n" +
-                "- Fecha y hora: %s\n" +
-                "- Duración: hasta las %s\n" +
-                "- Precio: %.2f €\n\n" +
-                "Te recordamos que puedes acceder a la videollamada desde tu panel de usuario.\n" +
-                "La videollamada estará disponible 1 hora antes del inicio de la cita.\n\n" +
-                "Si necesitas cancelar o modificar tu cita, por favor contacta con tu psicólogo.\n\n" +
-                "Saludos,\n" +
-                "El equipo de PSYmatch",
-                patientName,
-                psychologistName,
-                appointmentDate,
-                appointmentEndTime,
-                price != null ? price.doubleValue() : 0.0
-            );
-
-            message.setText(emailBody);
-            mailSender.send(message);
+            String html = templateEngine.process("email/appointment-reminder", ctx);
+            sendHtmlEmail(toEmail, "Recordatorio de cita - PSYmatch", html);
         } catch (Exception e) {
             logger.error("Error enviando correo de recordatorio", e);
         }
     }
 
     public void sendPaymentReminderEmail(String toEmail, String patientName, String psychologistName,
-                                        java.time.Instant appointmentStart, java.time.Instant paymentDeadline,
-                                        java.math.BigDecimal price) {
+                                        Instant appointmentStart, Instant paymentDeadline,
+                                        BigDecimal price) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(toEmail);
-            message.setSubject("Recordatorio de pago - PSYmatch");
-
-            java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter
-                .ofPattern("dd/MM/yyyy 'a las' HH:mm")
-                .withZone(java.time.ZoneId.systemDefault());
-
-            String appointmentDate = formatter.format(appointmentStart);
-            String deadlineDate = formatter.format(paymentDeadline);
-
-            java.time.Duration timeUntilDeadline = java.time.Duration.between(java.time.Instant.now(), paymentDeadline);
+            Duration timeUntilDeadline = Duration.between(Instant.now(), paymentDeadline);
             long hoursRemaining = timeUntilDeadline.toHours();
 
-            String urgencyMessage = hoursRemaining < 6
-                ? "URGENTE: "
-                : hoursRemaining < 24
-                    ? "IMPORTANTE: "
-                    : "";
+            String urgencyMessage = hoursRemaining < 6 ? "URGENTE: "
+                : hoursRemaining < 24 ? "IMPORTANTE: " : "";
 
-            String emailBody = String.format(
-                "Hola %s,\n\n" +
-                "%sTienes una cita pendiente de pago.\n\n" +
-                "Detalles de la cita:\n" +
-                "- Psicólogo: %s\n" +
-                "- Fecha y hora: %s\n" +
-                "- Precio: %.2f €\n\n" +
-                "Plazo de pago: %s\n" +
-                "Tiempo restante: %d horas\n\n" +
-                "Por favor, realiza el pago antes de que expire el plazo para evitar la cancelación automática de tu cita.\n\n" +
-                "Puedes acceder a tu panel de usuario para realizar el pago.\n\n" +
-                "Saludos,\n" +
-                "El equipo de PSYmatch",
-                patientName,
-                urgencyMessage,
-                psychologistName,
-                appointmentDate,
-                price != null ? price.doubleValue() : 0.0,
-                deadlineDate,
-                hoursRemaining
-            );
+            Context ctx = new Context();
+            ctx.setVariable("patientName", patientName);
+            ctx.setVariable("urgencyMessage", urgencyMessage);
+            ctx.setVariable("psychologistName", psychologistName);
+            ctx.setVariable("appointmentDate", DATE_FORMATTER.format(appointmentStart));
+            ctx.setVariable("price", price != null ? String.format("%.2f", price.doubleValue()) : "0.00");
+            ctx.setVariable("deadlineDate", DATE_FORMATTER.format(paymentDeadline));
+            ctx.setVariable("hoursRemaining", hoursRemaining);
 
-            message.setText(emailBody);
-            mailSender.send(message);
+            String html = templateEngine.process("email/payment-reminder", ctx);
+            sendHtmlEmail(toEmail, "Recordatorio de pago - PSYmatch", html);
         } catch (Exception e) {
             logger.error("Error enviando correo de recordatorio de pago", e);
         }
@@ -229,28 +135,14 @@ public class EmailService {
 
     public void sendPasswordResetEmail(String toEmail, String name, String resetToken) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(toEmail);
-            message.setSubject("Recuperación de contraseña - PSYmatch");
-
             String resetUrl = baseUrl + "/reset-password?token=" + resetToken;
 
-            String emailBody = String.format(
-                "Hola %s,\n\n" +
-                "Recibimos una solicitud para restablecer la contraseña de tu cuenta en PSYmatch.\n\n" +
-                "Para restablecer tu contraseña, haz clic en el siguiente enlace:\n\n" +
-                "%s\n\n" +
-                "Este enlace expirará en 1 hora.\n\n" +
-                "Si no solicitaste restablecer tu contraseña, puedes ignorar este correo. Tu contraseña no será cambiada.\n\n" +
-                "Saludos,\n" +
-                "El equipo de PSYmatch",
-                name,
-                resetUrl
-            );
+            Context ctx = new Context();
+            ctx.setVariable("name", name);
+            ctx.setVariable("resetUrl", resetUrl);
 
-            message.setText(emailBody);
-            mailSender.send(message);
+            String html = templateEngine.process("email/password-reset", ctx);
+            sendHtmlEmail(toEmail, "Recuperación de contraseña - PSYmatch", html);
         } catch (Exception e) {
             logger.error("Error enviando correo de recuperación de contraseña", e);
             throw new RuntimeException("Error al enviar el correo de recuperación de contraseña", e);
@@ -258,11 +150,16 @@ public class EmailService {
     }
 
     public void resendVerificationEmail(String toEmail, String name, String verificationToken, boolean isPsychologist) {
-        try {
-            sendVerificationEmail(toEmail, name, verificationToken, isPsychologist);
-        } catch (Exception e) {
-            logger.error("Error reenviando correo de verificación", e);
-            throw new RuntimeException("Error al reenviar el correo de verificación", e);
-        }
+        sendVerificationEmail(toEmail, name, verificationToken, isPsychologist);
+    }
+
+    private void sendHtmlEmail(String to, String subject, String htmlContent) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        helper.setFrom(fromEmail);
+        helper.setTo(to);
+        helper.setSubject(subject);
+        helper.setText(htmlContent, true);
+        mailSender.send(message);
     }
 }

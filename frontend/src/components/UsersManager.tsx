@@ -108,7 +108,6 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
       const data = await adminService.listUsers();
       setUsers(data);
     } catch (err) {
-      console.error('Error cargando usuarios:', err);
       alert('Error al cargar los usuarios');
     } finally {
       setLoading(false);
@@ -120,7 +119,7 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
       const data = await adminService.listTests();
       setTests(data || []);
     } catch (err) {
-      console.error('Error cargando tests:', err);
+      // error handled silently
     }
   };
 
@@ -130,7 +129,6 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
       const data = await resultsService.getUserTest(userId, testId);
       setUserStats(data);
     } catch (err) {
-      console.error('Error cargando estadísticas de usuario:', err);
       alert('Error al cargar estadísticas');
     } finally {
       setLoading(false);
@@ -144,7 +142,6 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
       const data = await adminService.getPsychologistSummary(psychologistId);
       setPsychologistSummary(data);
     } catch (err) {
-      console.error('Error cargando resumen del psicólogo:', err);
       alert('Error al cargar los datos del psicólogo');
     } finally {
       setLoading(false);
@@ -184,10 +181,9 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
           setOverallStats(null);
         }
       } catch (e) {
-        console.warn('No se pudo calcular media general', e);
+        // error handled silently
       }
     } catch (err) {
-      console.error('Error cargando detalles del usuario:', err);
       alert('Error al cargar los detalles del usuario');
     } finally {
       setLoading(false);
@@ -250,7 +246,6 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
                       const list = await calendarService.getPsychologistRatings(ps.id);
                       setRatingsList(list);
                     } catch (e) {
-                      console.error(e);
                       setRatingsList([]);
                     } finally {
                       setLoadingRatings(false);
@@ -476,7 +471,6 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
                     a.click();
                     window.URL.revokeObjectURL(url);
                   } catch (e) {
-                    console.error(e);
                     alert('Error al exportar los datos del paciente');
                   }
                 }}

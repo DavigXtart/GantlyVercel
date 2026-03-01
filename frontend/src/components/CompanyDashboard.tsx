@@ -71,7 +71,7 @@ export default function CompanyDashboard() {
       const data = await companyService.getPsychologists();
       setPsychologists(data || []);
     } catch (err) {
-      console.error('Error cargando psicólogos:', err);
+      // error handled silently
     } finally {
       setLoading(false);
     }
@@ -83,7 +83,6 @@ export default function CompanyDashboard() {
       const data = await companyService.getPsychologistDetail(id);
       setDetail(data as PsychologistDetail);
     } catch (err) {
-      console.error('Error cargando detalle:', err);
       setDetail(null);
     } finally {
       setLoading(false);
