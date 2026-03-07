@@ -9,6 +9,7 @@ import GlobalLoader from './components/ui/GlobalLoader';
 import Maintenance from './components/Maintenance';
 import CookieBanner from './components/ui/CookieBanner';
 import CrisisButton from './components/CrisisButton';
+import NotificationBell from './components/ui/NotificationBell';
 
 // Lazy-loaded heavy components
 const AdminPanel = lazy(() => import('./components/AdminPanel'));
@@ -819,7 +820,7 @@ function App() {
           >
             Gantly
           </h3>
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             {role === 'ADMIN' && (
               <>
                 <button className={`btn-secondary ${adminTab==='users'?'active':''}`} onClick={() => setAdminTab('users')}>Roles</button>
@@ -830,6 +831,7 @@ function App() {
                 <button className={`btn-secondary ${adminTab==='statistics'?'active':''}`} onClick={() => setAdminTab('statistics')}>Estadísticas</button>
               </>
             )}
+            {(role === 'USER' || role === 'PSYCHOLOGIST') && <NotificationBell />}
             <button onClick={handleLogout} className="btn-secondary">Cerrar sesión</button>
           </div>
         </div>
@@ -884,8 +886,8 @@ function App() {
       <ToastContainer />
       {/* Cookie consent banner */}
       <CookieBanner onPrivacyClick={() => { setShowPrivacyPolicy(true); }} />
-      {/* Crisis button for authenticated users */}
-      <CrisisButton />
+      {/* Crisis button for patients only */}
+      {role === 'USER' && <CrisisButton />}
     </div>
   );
 }

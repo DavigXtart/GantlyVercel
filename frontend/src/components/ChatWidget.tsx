@@ -37,6 +37,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const clientRef = useRef<Client | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     // Limpiar conexión anterior solo si cambian los IDs
@@ -122,7 +123,9 @@ export default function ChatWidget({ mode, otherId }: Props) {
   }, [mode, otherId]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   }, [messages]);
 
   const connect = (psychologistId: number, uId: number) => {
@@ -332,7 +335,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      height: '600px',
+      height: '75vh',
       width: '100%',
       background: '#ffffff',
       borderRadius: '12px',
@@ -397,7 +400,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
       </div>
 
       {/* Messages */}
-      <div style={{
+      <div ref={messagesContainerRef} style={{
         flex: 1,
         overflowY: 'auto',
         padding: '20px',

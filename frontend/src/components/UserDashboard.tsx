@@ -21,17 +21,16 @@ import { toast } from './ui/Toast';
 import PatientMatchingTest from './PatientMatchingTest';
 import MatchingPsychologists from './MatchingPsychologists';
 import JitsiVideoCall from './JitsiVideoCall';
-import NotificationBell from './ui/NotificationBell';
+
 import OnboardingWizard from './OnboardingWizard';
 
-const ProgressDashboard = lazy(() => import('./ProgressDashboard'));
 const BillingPortal = lazy(() => import('./BillingPortal'));
 const GroupSessions = lazy(() => import('./GroupSessions'));
 const TwoFactorSetup = lazy(() => import('./TwoFactorSetup'));
 
 type Tab =
   | 'perfil'
-  | 'editar-perfil'
+  | 'configuracion'
   | 'mi-psicologo'
   | 'tareas'
   | 'tests-pendientes'
@@ -43,10 +42,9 @@ type Tab =
   | 'descubrimiento'
   | 'chat'
   | 'perfil-psicologo'
-  | 'privacidad'
-  | 'progreso'
-  | 'facturacion'
   | 'grupos';
+
+type SettingsSection = 'perfil' | 'seguridad' | 'pagos' | 'privacidad';
 
 interface UserDashboardProps {
   onStartTest?: (testId: number) => void;
@@ -54,6 +52,7 @@ interface UserDashboardProps {
 
 export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) {
   const [tab, setTab] = useState<Tab>('perfil');
+  const [settingsSection, setSettingsSection] = useState<SettingsSection>('perfil');
   const [me, setMe] = useState<any>(null);
   const [psych, setPsych] = useState<any>(null);
   const [tasks, setTasks] = useState<any[]>([]);
@@ -363,8 +362,8 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
   return (
     <div className="min-h-screen bg-cream text-forest flex">
       {/* Sidebar */}
-      <aside className="w-24 bg-white border-r border-sage/10 h-screen sticky top-0 flex flex-col items-center py-10 z-40">
-        <nav className="flex flex-col gap-4 w-full px-3 pt-2">
+      <aside className="w-24 bg-cream sticky top-0 h-screen flex flex-col items-center pt-2 pb-10 z-40 border-none">
+        <nav className="flex flex-col gap-4 w-full px-3">
           {[
             { id: 'perfil', icon: 'person', label: 'Perfil', requiresPsych: false },
             { id: 'mi-psicologo', icon: 'medical_services', label: 'Psicólogo', requiresPsych: false },
@@ -372,11 +371,8 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             { id: 'tests-pendientes', icon: 'assignment', label: 'Tests', requiresPsych: true },
             { id: 'calendario', icon: 'calendar_today', label: 'Calendario', requiresPsych: true },
             { id: 'agenda-personal', icon: 'book', label: 'Agenda', requiresPsych: false },
-            { id: 'progreso', icon: 'trending_up', label: 'Progreso', requiresPsych: false },
             { id: 'chat', icon: 'chat', label: 'Chat', requiresPsych: true },
             { id: 'grupos', icon: 'group', label: 'Grupos', requiresPsych: false },
-            { id: 'facturacion', icon: 'receipt_long', label: 'Pagos', requiresPsych: false },
-            { id: 'privacidad', icon: 'shield', label: 'Privacidad', requiresPsych: false },
           ].map((item) => {
             const isDisabled = item.requiresPsych && !hasPsychologist;
             const isActive = tab === item.id;
@@ -410,26 +406,10 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             );
           })}
         </nav>
-        <div className="mt-auto">
-          <button
-            type="button"
-            className="sidebar-item text-sage/40 hover:text-red-400"
-            onClick={() => {
-              localStorage.removeItem('token');
-              window.location.href = '/';
-            }}
-          >
-            <span className="material-symbols-outlined font-light">logout</span>
-          </button>
-        </div>
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 p-8 lg:p-12 relative overflow-x-hidden">
-        {/* Notification bell */}
-        <div className="flex justify-end mb-4">
-          <NotificationBell />
-        </div>
+      <main className="flex-1 px-8 lg:px-12 py-4 relative overflow-x-hidden">
         {/* Header hero solo en PERFIL */}
         {tab === 'perfil' && (
           <header className="bg-sage/10 rounded-[4rem] p-8 lg:p-12 mb-10 relative overflow-hidden">
@@ -483,11 +463,13 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                       birthDate: me?.birthDate ? (typeof me.birthDate === 'string' ? me.birthDate.slice(0, 10) : '') : '',
                     });
                     setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-                    setTab('editar-perfil');
+                    setSettingsSection('perfil');
+                    setTab('configuracion');
                   }}
-                  className="px-4 py-2 rounded-full border border-sage/30 text-sm text-sage hover:bg-sage hover:text-white transition"
+                  className="px-4 py-2 rounded-full border border-sage/30 text-sm text-sage hover:bg-sage hover:text-white transition inline-flex items-center gap-2"
                 >
-                  Editar perfil y contraseña
+                  <span className="material-symbols-outlined text-base">settings</span>
+                  Configuración
                 </button>
               </div>
             </div>
@@ -710,198 +692,350 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
           </div>
         )}
 
-        {/* Editar perfil (paciente): datos y contraseña */}
-        {tab === 'editar-perfil' && (
-          <div className="max-w-2xl">
-            <button
-              type="button"
-              onClick={() => setTab('perfil')}
-              className="mb-6 inline-flex items-center gap-2 text-sage hover:text-forest font-medium transition"
-            >
-              <span className="material-symbols-outlined text-lg">arrow_back</span>
-              Volver al perfil
-            </button>
-            <div className="bg-white rounded-3xl p-8 border border-sage/10 soft-shadow space-y-8">
-              <h2 className="text-2xl font-semibold text-forest">Editar perfil</h2>
+        {/* Configuración: Perfil, Seguridad, Pagos, Privacidad */}
+        {tab === 'configuracion' && (
+          <div>
+            {/* Header */}
+            <div className="flex items-center gap-4 mb-8">
+              <button
+                type="button"
+                onClick={() => setTab('perfil')}
+                className="p-2 rounded-xl hover:bg-sage/10 transition-colors"
+              >
+                <span className="material-symbols-outlined text-xl text-sage">arrow_back</span>
+              </button>
+              <div>
+                <h1 className="text-2xl font-semibold text-forest">Configuración</h1>
+                <p className="text-sm text-sage/60">Gestiona tu cuenta, seguridad y privacidad</p>
+              </div>
+            </div>
 
-              {/* Avatar */}
-              <div className="flex flex-col items-start gap-4">
-                <span className="text-sm font-medium text-forest">Foto de perfil</span>
-                <div className="flex items-center gap-4">
-                  <div className="size-24 rounded-full overflow-hidden border-2 border-sage/20 bg-sage/10 flex items-center justify-center">
-                    {me?.avatarUrl ? (
-                      <img src={me.avatarUrl} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-2xl text-forest font-semibold">
-                        {me?.name ? me.name.charAt(0).toUpperCase() : 'U'}
-                      </span>
-                    )}
+            {/* Section tabs */}
+            <div className="flex gap-1 bg-sage/5 rounded-2xl p-1.5 mb-8">
+              {([
+                { id: 'perfil' as SettingsSection, icon: 'person', label: 'Perfil' },
+                { id: 'seguridad' as SettingsSection, icon: 'lock', label: 'Seguridad' },
+                { id: 'pagos' as SettingsSection, icon: 'receipt_long', label: 'Pagos' },
+                { id: 'privacidad' as SettingsSection, icon: 'shield', label: 'Privacidad' },
+              ]).map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setSettingsSection(s.id)}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-medium transition-all ${
+                    settingsSection === s.id
+                      ? 'bg-white text-forest shadow-sm'
+                      : 'text-sage/60 hover:text-sage'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-base">{s.icon}</span>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+
+            {/* === SECTION: Perfil === */}
+            {settingsSection === 'perfil' && (
+              <div className="space-y-6">
+                {/* Avatar card */}
+                <div className="bg-white rounded-2xl p-6 border border-sage/10">
+                  <h3 className="text-sm font-semibold text-forest/50 uppercase tracking-wider mb-5">Foto de perfil</h3>
+                  <div className="flex items-center gap-5">
+                    <div className="size-20 rounded-full overflow-hidden border-2 border-sage/15 bg-sage/5 flex items-center justify-center flex-shrink-0">
+                      {me?.avatarUrl ? (
+                        <img src={me.avatarUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-2xl text-forest font-semibold">
+                          {me?.name ? me.name.charAt(0).toUpperCase() : 'U'}
+                        </span>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <label className="cursor-pointer">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={uploadingAvatar}
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file || !file.type.startsWith('image/')) {
+                              toast.error('Selecciona una imagen válida');
+                              return;
+                            }
+                            try {
+                              setUploadingAvatar(true);
+                              const res = await profileService.uploadAvatar(file);
+                              setMe({ ...me, avatarUrl: res.avatarUrl });
+                              toast.success('Foto actualizada');
+                            } catch (err: any) {
+                              toast.error(err.response?.data?.error || 'Error al subir la foto');
+                            } finally {
+                              setUploadingAvatar(false);
+                              e.target.value = '';
+                            }
+                          }}
+                        />
+                        <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sage/10 text-sm text-sage font-medium hover:bg-sage/20 transition cursor-pointer">
+                          <span className="material-symbols-outlined text-base">upload</span>
+                          {uploadingAvatar ? 'Subiendo...' : 'Cambiar foto'}
+                        </span>
+                      </label>
+                      <p className="text-xs text-sage/40">JPG, PNG. Máximo 10MB.</p>
+                    </div>
                   </div>
-                  <label className="cursor-pointer">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      disabled={uploadingAvatar}
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file || !file.type.startsWith('image/')) {
-                          toast.error('Selecciona una imagen válida');
-                          return;
-                        }
-                        try {
-                          setUploadingAvatar(true);
-                          const res = await profileService.uploadAvatar(file);
-                          setMe({ ...me, avatarUrl: res.avatarUrl });
-                          toast.success('Foto actualizada');
-                        } catch (err: any) {
-                          toast.error(err.response?.data?.error || 'Error al subir la foto');
-                        } finally {
-                          setUploadingAvatar(false);
-                          e.target.value = '';
-                        }
-                      }}
-                    />
-                    <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-sage/30 text-sm text-sage hover:bg-sage hover:text-white transition">
-                      {uploadingAvatar ? 'Subiendo...' : 'Cambiar foto'}
-                    </span>
-                  </label>
+                </div>
+
+                {/* Personal info card */}
+                <div className="bg-white rounded-2xl p-6 border border-sage/10">
+                  <h3 className="text-sm font-semibold text-forest/50 uppercase tracking-wider mb-5">Información personal</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-forest mb-1.5">Nombre</label>
+                      <input
+                        type="text"
+                        value={editProfileForm.name}
+                        onChange={(e) => setEditProfileForm({ ...editProfileForm, name: e.target.value })}
+                        className="w-full px-4 py-2.5 rounded-xl border border-sage/15 bg-cream/30 focus:border-sage focus:ring-2 focus:ring-sage/10 outline-none transition text-sm"
+                        placeholder="Tu nombre"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-forest mb-1.5">Género</label>
+                        <select
+                          value={editProfileForm.gender}
+                          onChange={(e) => setEditProfileForm({ ...editProfileForm, gender: e.target.value })}
+                          className="w-full px-4 py-2.5 rounded-xl border border-sage/15 bg-cream/30 focus:border-sage focus:ring-2 focus:ring-sage/10 outline-none transition text-sm"
+                        >
+                          <option value="">No especificado</option>
+                          <option value="MALE">Hombre</option>
+                          <option value="FEMALE">Mujer</option>
+                          <option value="OTHER">Otro</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-forest mb-1.5">Fecha de nacimiento</label>
+                        <input
+                          type="date"
+                          value={editProfileForm.birthDate}
+                          onChange={(e) => setEditProfileForm({ ...editProfileForm, birthDate: e.target.value })}
+                          className="w-full px-4 py-2.5 rounded-xl border border-sage/15 bg-cream/30 focus:border-sage focus:ring-2 focus:ring-sage/10 outline-none transition text-sm"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end pt-2">
+                      <button
+                        type="button"
+                        disabled={savingProfile}
+                        onClick={async () => {
+                          try {
+                            setSavingProfile(true);
+                            await profileService.update({
+                              name: editProfileForm.name || undefined,
+                              gender: editProfileForm.gender || undefined,
+                              birthDate: editProfileForm.birthDate || undefined,
+                            });
+                            const ageFromBirth = editProfileForm.birthDate
+                              ? Math.floor((Date.now() - new Date(editProfileForm.birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+                              : undefined;
+                            setMe({
+                              ...me,
+                              name: editProfileForm.name,
+                              gender: editProfileForm.gender,
+                              birthDate: editProfileForm.birthDate || undefined,
+                              age: ageFromBirth,
+                            });
+                            toast.success('Perfil actualizado');
+                          } catch (err: any) {
+                            toast.error(err.response?.data?.error || 'Error al guardar');
+                          } finally {
+                            setSavingProfile(false);
+                          }
+                        }}
+                        className="px-6 py-2.5 rounded-xl bg-sage text-white text-sm font-medium hover:bg-sage/90 transition disabled:opacity-60"
+                      >
+                        {savingProfile ? 'Guardando...' : 'Guardar cambios'}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
+            )}
 
-              {/* Nombre, género, edad */}
-              <div className="grid gap-4">
-                <label className="block text-sm font-medium text-forest">
-                  Nombre
-                </label>
-                <input
-                  type="text"
-                  value={editProfileForm.name}
-                  onChange={(e) => setEditProfileForm({ ...editProfileForm, name: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:ring-2 focus:ring-sage/20 outline-none transition"
-                  placeholder="Tu nombre"
-                />
-                <label className="block text-sm font-medium text-forest">
-                  Género
-                </label>
-                <select
-                  value={editProfileForm.gender}
-                  onChange={(e) => setEditProfileForm({ ...editProfileForm, gender: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:ring-2 focus:ring-sage/20 outline-none transition"
-                >
-                  <option value="">No especificado</option>
-                  <option value="MALE">Hombre</option>
-                  <option value="FEMALE">Mujer</option>
-                  <option value="OTHER">Otro</option>
-                </select>
-                <label className="block text-sm font-medium text-forest">
-                  Fecha de nacimiento
-                </label>
-                <input
-                  type="date"
-                  value={editProfileForm.birthDate}
-                  onChange={(e) => setEditProfileForm({ ...editProfileForm, birthDate: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:ring-2 focus:ring-sage/20 outline-none transition"
-                />
-                <button
-                  type="button"
-                  disabled={savingProfile}
-                  onClick={async () => {
-                    try {
-                      setSavingProfile(true);
-                      await profileService.update({
-                        name: editProfileForm.name || undefined,
-                        gender: editProfileForm.gender || undefined,
-                        birthDate: editProfileForm.birthDate || undefined,
-                      });
-                      const ageFromBirth = editProfileForm.birthDate
-                        ? Math.floor((Date.now() - new Date(editProfileForm.birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
-                        : undefined;
-                      setMe({
-                        ...me,
-                        name: editProfileForm.name,
-                        gender: editProfileForm.gender,
-                        birthDate: editProfileForm.birthDate || undefined,
-                        age: ageFromBirth,
-                      });
-                      toast.success('Perfil actualizado');
-                    } catch (err: any) {
-                      toast.error(err.response?.data?.error || 'Error al guardar');
-                    } finally {
-                      setSavingProfile(false);
-                    }
-                  }}
-                  className="mt-2 px-6 py-3 rounded-full bg-sage text-white font-medium hover:bg-sage/90 transition disabled:opacity-60"
-                >
-                  {savingProfile ? 'Guardando...' : 'Guardar datos'}
-                </button>
+            {/* === SECTION: Seguridad === */}
+            {settingsSection === 'seguridad' && (
+              <div className="space-y-6">
+                {/* Change password */}
+                <div className="bg-white rounded-2xl p-6 border border-sage/10">
+                  <h3 className="text-sm font-semibold text-forest/50 uppercase tracking-wider mb-5">Cambiar contraseña</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-forest mb-1.5">Contraseña actual</label>
+                      <input
+                        type="password"
+                        value={passwordForm.currentPassword}
+                        onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                        className="w-full px-4 py-2.5 rounded-xl border border-sage/15 bg-cream/30 focus:border-sage focus:ring-2 focus:ring-sage/10 outline-none transition text-sm"
+                        placeholder="••••••••"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-forest mb-1.5">Nueva contraseña</label>
+                        <input
+                          type="password"
+                          value={passwordForm.newPassword}
+                          onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                          className="w-full px-4 py-2.5 rounded-xl border border-sage/15 bg-cream/30 focus:border-sage focus:ring-2 focus:ring-sage/10 outline-none transition text-sm"
+                          placeholder="Mínimo 6 caracteres"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-forest mb-1.5">Confirmar contraseña</label>
+                        <input
+                          type="password"
+                          value={passwordForm.confirmPassword}
+                          onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                          className="w-full px-4 py-2.5 rounded-xl border border-sage/15 bg-cream/30 focus:border-sage focus:ring-2 focus:ring-sage/10 outline-none transition text-sm"
+                          placeholder="••••••••"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end pt-2">
+                      <button
+                        type="button"
+                        disabled={savingPassword || !passwordForm.currentPassword || !passwordForm.newPassword || passwordForm.newPassword !== passwordForm.confirmPassword}
+                        onClick={async () => {
+                          if (passwordForm.newPassword.length < 6) {
+                            toast.error('La nueva contraseña debe tener al menos 6 caracteres');
+                            return;
+                          }
+                          if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+                            toast.error('Las contraseñas no coinciden');
+                            return;
+                          }
+                          try {
+                            setSavingPassword(true);
+                            await authService.changePassword(passwordForm.currentPassword, passwordForm.newPassword);
+                            setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                            toast.success('Contraseña actualizada');
+                          } catch (err: any) {
+                            const msg = err.response?.data?.error ?? err.response?.data?.message ?? 'Error al cambiar la contraseña';
+                            toast.error(msg);
+                          } finally {
+                            setSavingPassword(false);
+                          }
+                        }}
+                        className="px-6 py-2.5 rounded-xl bg-forest text-cream text-sm font-medium hover:bg-forest/90 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        {savingPassword ? 'Guardando...' : 'Cambiar contraseña'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2FA */}
+                <div className="bg-white rounded-2xl p-6 border border-sage/10">
+                  <h3 className="text-sm font-semibold text-forest/50 uppercase tracking-wider mb-5">Autenticación en dos pasos</h3>
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <TwoFactorSetup
+                      isEnabled={me?.totpEnabled || false}
+                      onStatusChange={() => { authService.me().then((data: any) => setMe(data)).catch(() => {}); }}
+                    />
+                  </Suspense>
+                </div>
               </div>
+            )}
 
-              {/* Cambiar contraseña */}
-              <div className="pt-8 border-t border-sage/20">
-                <h3 className="text-lg font-semibold text-forest mb-4">Cambiar contraseña</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-forest mb-1">Contraseña actual</label>
-                    <input
-                      type="password"
-                      value={passwordForm.currentPassword}
-                      onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:ring-2 focus:ring-sage/20 outline-none transition"
-                      placeholder="••••••••"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-forest mb-1">Nueva contraseña</label>
-                    <input
-                      type="password"
-                      value={passwordForm.newPassword}
-                      onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:ring-2 focus:ring-sage/20 outline-none transition"
-                      placeholder="Mínimo 6 caracteres"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-forest mb-1">Repetir nueva contraseña</label>
-                    <input
-                      type="password"
-                      value={passwordForm.confirmPassword}
-                      onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border border-sage/20 focus:border-sage focus:ring-2 focus:ring-sage/20 outline-none transition"
-                      placeholder="••••••••"
-                    />
-                  </div>
+            {/* === SECTION: Pagos === */}
+            {settingsSection === 'pagos' && (
+              <div className="bg-white rounded-2xl p-6 border border-sage/10">
+                <h3 className="text-sm font-semibold text-forest/50 uppercase tracking-wider mb-5">Facturación y pagos</h3>
+                <Suspense fallback={<LoadingSpinner />}>
+                  <BillingPortal />
+                </Suspense>
+              </div>
+            )}
+
+            {/* === SECTION: Privacidad === */}
+            {settingsSection === 'privacidad' && (
+              <div className="space-y-6">
+                {/* Export data */}
+                <div className="bg-white rounded-2xl p-6 border border-sage/10">
+                  <h3 className="text-sm font-semibold text-forest/50 uppercase tracking-wider mb-5">Descargar mis datos</h3>
+                  <p className="text-sage/60 text-sm mb-4">
+                    Descarga una copia de todos tus datos en formato JSON (Art. 20 RGPD — Derecho de portabilidad).
+                  </p>
                   <button
-                    type="button"
-                    disabled={savingPassword || !passwordForm.currentPassword || !passwordForm.newPassword || passwordForm.newPassword !== passwordForm.confirmPassword}
                     onClick={async () => {
-                      if (passwordForm.newPassword.length < 6) {
-                        toast.error('La nueva contraseña debe tener al menos 6 caracteres');
-                        return;
-                      }
-                      if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-                        toast.error('Las contraseñas no coinciden');
-                        return;
-                      }
                       try {
-                        setSavingPassword(true);
-                        await authService.changePassword(passwordForm.currentPassword, passwordForm.newPassword);
-                        setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-                        toast.success('Contraseña actualizada');
-                      } catch (err: any) {
-                        const msg = err.response?.data?.error ?? err.response?.data?.message ?? 'Error al cambiar la contraseña';
-                        toast.error(msg);
-                      } finally {
-                        setSavingPassword(false);
+                        const data = await profileService.exportMyData();
+                        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `mis-datos-psymatch-${new Date().toISOString().split('T')[0]}.json`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        toast.success('Datos exportados correctamente');
+                      } catch {
+                        toast.error('Error al exportar los datos');
                       }
                     }}
-                    className="px-6 py-3 rounded-full bg-forest text-cream font-medium hover:bg-forest/90 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-forest text-white text-sm font-medium hover:bg-forest/90 transition"
                   >
-                    {savingPassword ? 'Guardando...' : 'Cambiar contraseña'}
+                    <span className="material-symbols-outlined text-base">download</span>
+                    Descargar mis datos
+                  </button>
+                </div>
+
+                {/* Retention policy */}
+                <div className="bg-white rounded-2xl p-6 border border-sage/10">
+                  <h3 className="text-sm font-semibold text-forest/50 uppercase tracking-wider mb-5">Política de retención</h3>
+                  <div className="flex items-start gap-3">
+                    <span className="material-symbols-outlined text-sage/40 mt-0.5">info</span>
+                    <p className="text-sage/60 text-sm leading-relaxed">
+                      Tus datos se conservan durante un máximo de 5 años desde tu registro, conforme a la legislación sanitaria.
+                      Tras ese periodo, tus datos son anonimizados automáticamente.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Delete account */}
+                <div className="bg-white rounded-2xl p-6 border border-red-100">
+                  <h3 className="text-sm font-semibold text-red-400 uppercase tracking-wider mb-3">Zona de peligro</h3>
+                  <p className="text-sage/60 text-sm mb-4">
+                    Eliminar tu cuenta es una acción irreversible. Todos tus datos serán eliminados permanentemente (Art. 17 RGPD — Derecho de supresión).
+                  </p>
+                  <button
+                    onClick={async () => {
+                      const confirmed = window.confirm(
+                        '¿Estás seguro de que quieres eliminar tu cuenta? Esta acción es IRREVERSIBLE y todos tus datos serán eliminados permanentemente.'
+                      );
+                      if (!confirmed) return;
+                      const doubleConfirmed = window.confirm(
+                        'Última confirmación: ¿Realmente deseas eliminar tu cuenta y todos tus datos?'
+                      );
+                      if (!doubleConfirmed) return;
+                      try {
+                        await profileService.deleteMyAccount();
+                        toast.success('Cuenta eliminada correctamente');
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('refreshToken');
+                        window.location.reload();
+                      } catch {
+                        toast.error('Error al eliminar la cuenta');
+                      }
+                    }}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-red-200 text-red-500 text-sm font-medium hover:bg-red-50 transition"
+                  >
+                    <span className="material-symbols-outlined text-base">delete_forever</span>
+                    Eliminar mi cuenta permanentemente
                   </button>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         )}
 
@@ -2532,125 +2666,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             )}
           </div>
         )}
-        {/* Tab: Privacidad y Datos (RGPD) */}
-        {tab === 'privacidad' && (
-          <div className="space-y-8">
-            {/* 2FA Setup */}
-            <div className="bg-white rounded-3xl p-8 border border-sage/10 soft-shadow">
-              <h2 className="text-2xl font-normal text-forest flex items-center gap-2 mb-4">
-                <span className="material-symbols-outlined text-xl text-sage">lock</span>
-                Seguridad de la cuenta
-              </h2>
-              <Suspense fallback={<LoadingSpinner />}>
-                <TwoFactorSetup
-                  isEnabled={me?.totpEnabled || false}
-                  onStatusChange={() => { authService.me().then((data: any) => setMe(data)).catch(() => {}); }}
-                />
-              </Suspense>
-            </div>
-            <div className="bg-white rounded-3xl p-8 border border-sage/10 soft-shadow">
-              <h2 className="text-2xl font-normal text-forest flex items-center gap-2 mb-2">
-                <span className="material-symbols-outlined text-xl text-sage">shield</span>
-                Privacidad y Datos
-              </h2>
-              <p className="text-sage/70 text-sm mb-8">
-                Gestiona tus datos personales conforme al Reglamento General de Protección de Datos (RGPD).
-              </p>
-
-              {/* Exportar datos */}
-              <div className="bg-cream rounded-2xl p-6 mb-6 border border-sage/10">
-                <h3 className="text-lg font-medium text-forest mb-2 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-lg text-sage">download</span>
-                  Descargar mis datos
-                </h3>
-                <p className="text-sage/70 text-sm mb-4">
-                  Descarga una copia de todos tus datos en formato JSON (Art. 20 RGPD - Derecho de portabilidad).
-                </p>
-                <button
-                  onClick={async () => {
-                    try {
-                      const data = await profileService.exportMyData();
-                      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = `mis-datos-psymatch-${new Date().toISOString().split('T')[0]}.json`;
-                      a.click();
-                      URL.revokeObjectURL(url);
-                      toast.success('Datos exportados correctamente');
-                    } catch {
-                      toast.error('Error al exportar los datos');
-                    }
-                  }}
-                  className="px-6 py-2.5 bg-forest text-white rounded-xl text-sm font-medium hover:bg-forest/90 transition-colors"
-                >
-                  Descargar mis datos
-                </button>
-              </div>
-
-              {/* Info retención */}
-              <div className="bg-cream rounded-2xl p-6 mb-6 border border-sage/10">
-                <h3 className="text-lg font-medium text-forest mb-2 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-lg text-sage">info</span>
-                  Política de retención
-                </h3>
-                <p className="text-sage/70 text-sm">
-                  Tus datos se conservan durante un máximo de 5 años desde tu registro, conforme a la legislación sanitaria.
-                  Tras ese periodo, tus datos son anonimizados automáticamente.
-                </p>
-              </div>
-
-              {/* Eliminar cuenta */}
-              <div className="bg-red-50 rounded-2xl p-6 border border-red-200">
-                <h3 className="text-lg font-medium text-red-700 mb-2 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-lg text-red-500">delete_forever</span>
-                  Eliminar mi cuenta
-                </h3>
-                <p className="text-red-600/70 text-sm mb-4">
-                  Esta acción es irreversible. Todos tus datos serán eliminados permanentemente (Art. 17 RGPD - Derecho de supresión).
-                </p>
-                <button
-                  onClick={async () => {
-                    const confirmed = window.confirm(
-                      '¿Estás seguro de que quieres eliminar tu cuenta? Esta acción es IRREVERSIBLE y todos tus datos serán eliminados permanentemente.'
-                    );
-                    if (!confirmed) return;
-                    const doubleConfirmed = window.confirm(
-                      'Última confirmación: ¿Realmente deseas eliminar tu cuenta y todos tus datos?'
-                    );
-                    if (!doubleConfirmed) return;
-                    try {
-                      await profileService.deleteMyAccount();
-                      toast.success('Cuenta eliminada correctamente');
-                      localStorage.removeItem('token');
-                      localStorage.removeItem('refreshToken');
-                      window.location.reload();
-                    } catch {
-                      toast.error('Error al eliminar la cuenta');
-                    }
-                  }}
-                  className="px-6 py-2.5 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition-colors"
-                >
-                  Eliminar mi cuenta permanentemente
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-        {/* Tab: Progreso */}
-        {tab === 'progreso' && (
-          <Suspense fallback={<LoadingSpinner />}>
-            <ProgressDashboard />
-          </Suspense>
-        )}
-
-        {/* Tab: Facturación */}
-        {tab === 'facturacion' && (
-          <Suspense fallback={<LoadingSpinner />}>
-            <BillingPortal />
-          </Suspense>
-        )}
-
         {/* Tab: Grupos */}
         {tab === 'grupos' && (
           <Suspense fallback={<LoadingSpinner />}>
@@ -2664,7 +2679,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
         <OnboardingWizard
           userName={me.name || 'Usuario'}
           onComplete={() => setShowOnboarding(false)}
-          onGoToProfile={() => { setShowOnboarding(false); setTab('editar-perfil'); }}
+          onGoToProfile={() => { setShowOnboarding(false); setSettingsSection('perfil'); setTab('configuracion'); }}
           onGoToMatching={() => { setShowOnboarding(false); setTab('mi-psicologo'); setShowMatchingTest(true); }}
         />
       )}

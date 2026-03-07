@@ -1,5 +1,6 @@
 package com.alvaro.psicoapp.security;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.context.annotation.Bean;
@@ -10,6 +11,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -27,6 +29,10 @@ public class SecurityConfig {
 
 	@Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:4200}")
 	private String allowedOrigins;
+
+	@Autowired(required = false)
+	private ClientRegistrationRepository clientRegistrationRepository;
+
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
@@ -42,8 +48,11 @@ public class SecurityConfig {
 			.csrf(csrf -> csrf.disable())
 			.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.addFilterBefore(maintenanceFilter, UsernamePasswordAuthenticationFilter.class)
-			.addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
-			.oauth2Login(oauth2 -> oauth2.successHandler(oauth2SuccessHandler))
+			.addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class);
+		if (clientRegistrationRepository != null) {
+			http.oauth2Login(oauth2 -> oauth2.successHandler(oauth2SuccessHandler));
+		}
+		http
             .requiresChannel(channel -> {
                 if (isProd) channel.anyRequest().requiresSecure();
             })

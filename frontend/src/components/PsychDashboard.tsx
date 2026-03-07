@@ -10,7 +10,7 @@ import BarChart from './BarChart';
 import FactorChart from './FactorChart';
 import InitialTestSummary from './InitialTestSummary';
 import PsychologistMatchingTest from './PsychologistMatchingTest';
-import NotificationBell from './ui/NotificationBell';
+
 
 const GroupSessions = lazy(() => import('./GroupSessions'));
 
@@ -664,8 +664,8 @@ export default function PsychDashboard() {
   return (
     <div className="min-h-screen bg-cream text-forest flex">
       {/* Sidebar */}
-      <aside className="w-24 bg-white border-r border-sage/10 h-screen sticky top-0 flex flex-col items-center py-10 z-40">
-        <nav className="flex flex-col gap-4 w-full px-3 pt-2">
+      <aside className="w-24 bg-cream sticky top-0 h-screen flex flex-col items-center pt-2 pb-10 z-40 border-none">
+        <nav className="flex flex-col gap-4 w-full px-3">
           {[
             { id: 'perfil', icon: 'person', label: 'Perfil' },
             { id: 'pacientes', icon: 'people', label: 'Pacientes' },
@@ -697,11 +697,7 @@ export default function PsychDashboard() {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 p-8 lg:p-12 relative overflow-x-hidden">
-      {/* Notification bell */}
-      <div className="flex justify-end mb-4">
-        <NotificationBell />
-      </div>
+      <main className="flex-1 px-8 lg:px-12 py-4 relative overflow-x-hidden">
       {showRatingsModal && (
         <div
           style={{
