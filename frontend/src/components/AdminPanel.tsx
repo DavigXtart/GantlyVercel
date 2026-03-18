@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { adminService } from '../services/api';
 import TestManager from './TestManager';
+import TestImporter from './TestImporter';
 
 interface Test {
   id: number;
@@ -23,6 +24,7 @@ export default function AdminPanel({}: AdminPanelProps = {}) {
   const [loading, setLoading] = useState(false);
   const [selectedTestId, setSelectedTestId] = useState<number | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showImportForm, setShowImportForm] = useState(false);
   const [editingTest, setEditingTest] = useState<Test | null>(null);
   const [testSearch, setTestSearch] = useState('');
   const [availableTopics, setAvailableTopics] = useState<string[]>([]);
@@ -201,14 +203,24 @@ export default function AdminPanel({}: AdminPanelProps = {}) {
       <div className="card" style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2>Gestión de Tests</h2>
-          <button 
-            className="btn" 
-            onClick={() => setShowCreateForm(!showCreateForm)}
-            disabled={loading}
-            style={{ width: 'auto', padding: '12px 24px' }}
-          >
-            {showCreateForm ? 'Cancelar' : 'Nuevo Test'}
-          </button>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button
+              className="btn-secondary"
+              onClick={() => { setShowImportForm(!showImportForm); setShowCreateForm(false); }}
+              disabled={loading}
+              style={{ width: 'auto', padding: '12px 24px' }}
+            >
+              {showImportForm ? 'Cancelar' : 'Importar Excel'}
+            </button>
+            <button
+              className="btn"
+              onClick={() => { setShowCreateForm(!showCreateForm); setShowImportForm(false); }}
+              disabled={loading}
+              style={{ width: 'auto', padding: '12px 24px' }}
+            >
+              {showCreateForm ? 'Cancelar' : 'Nuevo Test'}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -258,6 +270,15 @@ export default function AdminPanel({}: AdminPanelProps = {}) {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {showImportForm && (
+        <div className="card admin-form-card">
+          <TestImporter
+            onImported={() => { setShowImportForm(false); loadTests(); }}
+            onCancel={() => setShowImportForm(false)}
+          />
         </div>
       )}
 
@@ -406,14 +427,14 @@ export default function AdminPanel({}: AdminPanelProps = {}) {
           <div className="tests-grid-admin">
             {filteredTests.filter((t: any) => t && t.id).map(test => (
               <div key={test.id} className="test-card-admin">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                  <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', gap: '8px' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     {test.category && (
-                      <div style={{ marginBottom: '8px' }}>
+                      <div style={{ marginBottom: '6px' }}>
                         <span style={{
-                          padding: '4px 12px',
+                          padding: '3px 10px',
                           borderRadius: '6px',
-                          fontSize: '12px',
+                          fontSize: '11px',
                           fontWeight: 600,
                           background: 'rgba(90, 146, 112, 0.15)',
                           color: '#5a9270'
@@ -423,43 +444,46 @@ export default function AdminPanel({}: AdminPanelProps = {}) {
                       </div>
                     )}
                     <h3>{test.title}</h3>
-                    <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       <strong>Código:</strong> {test.code}
                     </p>
                   </div>
-                  <span 
+                  <span
                     className={`status-badge ${test.active ? 'status-active' : 'status-inactive'}`}
                     onClick={() => toggleTestActive(test)}
-                    style={{ cursor: 'pointer' }}
+                    style={{ cursor: 'pointer', flexShrink: 0 }}
                     title={test.active ? 'Click para desactivar' : 'Click para activar'}
                   >
                     {test.active ? 'Activo' : 'Inactivo'}
                   </span>
                 </div>
-                {test.description && (
-                  <p style={{ fontSize: '15px', marginBottom: '16px', color: 'var(--text-secondary)' }}>
-                    {test.description}
-                  </p>
-                )}
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <button 
-                    className="btn" 
+                <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+                  {test.description && (
+                    <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any }}>
+                      {test.description}
+                    </p>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: 'auto', paddingTop: '12px' }}>
+                  <button
+                    className="btn"
                     onClick={() => setSelectedTestId(test.id)}
-                    style={{ flex: 1, minWidth: '100px', padding: '10px 16px', fontSize: '14px', borderRadius: '9999px' }}
+                    style={{ flex: 1, minWidth: '80px', padding: '8px 12px', fontSize: '13px', borderRadius: '9999px' }}
                   >
                     Gestionar
                   </button>
-                  <button 
-                    className="btn-secondary" 
+                  <button
+                    className="btn-secondary"
                     onClick={() => setEditingTest(test)}
-                    style={{ padding: '10px 16px', fontSize: '14px' }}
+                    style={{ padding: '8px 12px', fontSize: '13px' }}
                   >
                     Editar
                   </button>
-                  <button 
-                    className="btn-muted" 
+                  <button
+                    className="btn-muted"
                     onClick={() => deleteTest(test.id)}
                     disabled={loading}
+                    style={{ padding: '8px 12px', fontSize: '13px' }}
                   >
                     Eliminar
                   </button>

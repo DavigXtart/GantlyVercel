@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { adminService, testService } from '../services/api';
+import TestImporter from './TestImporter';
 
 interface TestManagerProps {
   testId: number;
@@ -55,13 +56,14 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
     { text: 'Alguna vez', value: 2 },
     { text: 'Nunca', value: 1 }
   ];
-  const [structure, setStructure] = useState<{ factors: Array<{ id: number; code: string; name: string; subfactors: Array<{ id: number; code: string; name: string }> }> } | null>(null);
+  const [structure, setStructure] = useState<{ factors: Array<{ id: number; code: string; name: string; minLabel?: string; maxLabel?: string; formula?: string; calculated?: boolean; subfactors: Array<{ id: number; code: string; name: string; minLabel?: string; maxLabel?: string }> }> } | null>(null);
   const [selectedSubfactorId, setSelectedSubfactorId] = useState<number | ''>('');
   const [editingSubfactorId, setEditingSubfactorId] = useState<number | ''>('');
   const [showStructureSection, setShowStructureSection] = useState(false);
   const [showFactorForm, setShowFactorForm] = useState(false);
   const [showSubfactorForm, setShowSubfactorForm] = useState(false);
   const [selectedFactorForSubfactor, setSelectedFactorForSubfactor] = useState<number | ''>('');
+  const [showImporter, setShowImporter] = useState(false);
 
   useEffect(() => {
     loadQuestions();
@@ -120,7 +122,10 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
         formData.get('code') as string,
         formData.get('name') as string,
         formData.get('description') as string || undefined,
-        position
+        position,
+        formData.get('minLabel') as string || undefined,
+        formData.get('maxLabel') as string || undefined,
+        formData.get('formula') as string || undefined
       );
       await loadStructure();
       setShowFactorForm(false);
@@ -154,7 +159,9 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
         formData.get('name') as string,
         formData.get('description') as string || undefined,
         factorId,
-        position
+        position,
+        formData.get('minLabel') as string || undefined,
+        formData.get('maxLabel') as string || undefined
       );
       await loadStructure();
       setShowSubfactorForm(false);
@@ -668,6 +675,18 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
                         <h3 style={{ margin: 0, fontSize: '18px' }}>
                           <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>{factor.code}</span> - {factor.name}
                         </h3>
+                        {(factor.minLabel || factor.maxLabel) && (
+                          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                            <span style={{ fontStyle: 'italic' }}>{factor.minLabel || '?'}</span>
+                            <span style={{ margin: '0 8px' }}>&larr;&rarr;</span>
+                            <span style={{ fontStyle: 'italic' }}>{factor.maxLabel || '?'}</span>
+                          </div>
+                        )}
+                        {factor.formula && (
+                          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                            Formula: <code style={{ backgroundColor: 'var(--bg-secondary)', padding: '1px 6px', borderRadius: '4px' }}>{factor.formula}</code>
+                          </div>
+                        )}
                       </div>
                     </div>
                     {factor.subfactors && factor.subfactors.length > 0 ? (
@@ -675,18 +694,23 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
                         <h4 style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '8px' }}>Subfactores:</h4>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                           {factor.subfactors.map((subfactor) => (
-                            <span 
+                            <div
                               key={subfactor.id}
-                              style={{ 
-                                padding: '6px 12px', 
-                                backgroundColor: 'var(--bg-secondary)', 
+                              style={{
+                                padding: '6px 12px',
+                                backgroundColor: 'var(--bg-secondary)',
                                 borderRadius: '6px',
                                 fontSize: '13px',
                                 border: '1px solid var(--border)'
                               }}
                             >
-                              <strong>{subfactor.code}</strong> - {subfactor.name}
-                            </span>
+                              <div><strong>{subfactor.code}</strong> - {subfactor.name}</div>
+                              {(subfactor.minLabel || subfactor.maxLabel) && (
+                                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px', fontStyle: 'italic' }}>
+                                  {subfactor.minLabel || '?'} &larr;&rarr; {subfactor.maxLabel || '?'}
+                                </div>
+                              )}
+                            </div>
                           ))}
                         </div>
                       </div>
@@ -735,6 +759,23 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
             <div className="form-group">
               <label>Descripción (opcional)</label>
               <textarea name="description" rows={3} placeholder="Ej: Tendencia a buscar estimulación y disfrutar del contacto social" />
+            </div>
+            <div style={{ display: 'flex', gap: '16px' }}>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label>Polo bajo (min)</label>
+                <input name="minLabel" placeholder="Ej: Introvertido" />
+              </div>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label>Polo alto (max)</label>
+                <input name="maxLabel" placeholder="Ej: Extravertido" />
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Fórmula (opcional)</label>
+              <input name="formula" placeholder="Ej: A+F+H+Q2(-)" />
+              <small style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                Suma de códigos de subfactores. Operadores: +, -
+              </small>
             </div>
             <button type="submit" className="btn" disabled={loading}>
               {loading ? 'Creando...' : 'Crear Factor'}
@@ -792,6 +833,16 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
               <label>Descripción (opcional)</label>
               <textarea name="description" rows={3} placeholder="Ej: Facilidad para relacionarse con otros" />
             </div>
+            <div style={{ display: 'flex', gap: '16px' }}>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label>Polo bajo (min)</label>
+                <input name="minLabel" placeholder="Ej: Reservado" />
+              </div>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label>Polo alto (max)</label>
+                <input name="maxLabel" placeholder="Ej: Abierto" />
+              </div>
+            </div>
             <button type="submit" className="btn" disabled={loading}>
               {loading ? 'Creando...' : 'Crear Subfactor'}
             </button>
@@ -799,12 +850,22 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
         </div>
       )}
 
+      {showImporter && (
+        <TestImporter
+          onImported={() => { setShowImporter(false); loadQuestions(); }}
+          onCancel={() => setShowImporter(false)}
+        />
+      )}
+
       <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h2>Preguntas ({questions.length})</h2>
           <div style={{ display: 'flex', gap: '12px' }}>
+            <button className="btn-secondary" onClick={() => setShowImporter(true)} disabled={loading} style={{ width: 'auto', padding: '8px 16px' }}>
+              Importar Excel
+            </button>
             <button className="btn-secondary" onClick={loadTestUserAnswers} disabled={loading} style={{ width: 'auto', padding: '8px 16px' }}>
-              👥 Ver Respuestas de Usuarios
+              Ver Respuestas
             </button>
             <button className="btn" onClick={() => setShowQuestionForm(true)} style={{ width: 'auto', padding: '12px 24px' }}>
               + Nueva Pregunta

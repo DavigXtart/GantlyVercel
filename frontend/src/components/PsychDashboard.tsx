@@ -9,6 +9,8 @@ import { toast } from './ui/Toast';
 import BarChart from './BarChart';
 import FactorChart from './FactorChart';
 import InitialTestSummary from './InitialTestSummary';
+import type { TestReportHandle, TestReportData } from './TestReport';
+import TestReport from './TestReport';
 import PsychologistMatchingTest from './PsychologistMatchingTest';
 
 
@@ -160,6 +162,7 @@ export default function PsychDashboard() {
   
   // Ref para mantener el componente montado incluso si showVideoCall cambia temporalmente
   const videoCallRef = useRef<{ room: string | null; user: any; otherUser: any } | null>(null);
+  const testReportRef = useRef<TestReportHandle>(null);
   
   // Actualizar ref cuando hay una videollamada activa
   useEffect(() => {
@@ -4708,6 +4711,8 @@ export default function PsychDashboard() {
                               data={patientStats.subfactors.map((sf: any) => ({
                                 label: sf.subfactorName || sf.subfactorCode,
                                 value: Number(sf.percentage) || 0,
+                                lowPole: sf.minLabel,
+                                highPole: sf.maxLabel,
                               }))}
                               maxValue={100}
                             />
@@ -4726,8 +4731,10 @@ export default function PsychDashboard() {
                                 const value = Math.round((percentage / 100) * 10);
                                 const code = f.factorCode || '';
                                 return {
-                                  label: code,
+                                  label: f.factorName || code,
                                   value: Math.max(1, Math.min(10, value)),
+                                  lowPole: f.minLabel,
+                                  highPole: f.maxLabel,
                                 };
                               })}
                               maxValue={10}
@@ -4840,6 +4847,7 @@ export default function PsychDashboard() {
             <LoadingSpinner text="Cargando detalles del test..." />
           ) : testDetailsData && testAnswers ? (
             <>
+              {/* Header con botones */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <div>
                   <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 700 }}>{testAnswers.testTitle}</h2>
@@ -4847,73 +4855,102 @@ export default function PsychDashboard() {
                     Código: {testAnswers.testCode}
                   </p>
                 </div>
-                <button
-                  onClick={() => {
-                    setTab('tests-asignados');
-                    setViewingTestDetails(null);
-                    setTestDetailsData(null);
-                    setTestAnswers(null);
-                  }}
-                  style={{
-                    padding: '10px 20px',
-                    background: '#f3f4f6',
-                    color: '#1f2937',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    fontSize: '14px'
-                  }}
-                >
-                  ← Volver
-                </button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={() => testReportRef.current?.exportPdf()}
+                    style={{
+                      padding: '10px 20px',
+                      background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>picture_as_pdf</span>
+                    Exportar PDF
+                  </button>
+                  <button
+                    onClick={() => {
+                      setTab('tests-asignados');
+                      setViewingTestDetails(null);
+                      setTestDetailsData(null);
+                      setTestAnswers(null);
+                    }}
+                    style={{
+                      padding: '10px 20px',
+                      background: '#f3f4f6',
+                      color: '#1f2937',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontSize: '14px'
+                    }}
+                  >
+                    Volver
+                  </button>
+                </div>
               </div>
 
-              {/* Gráficas de factores y subfactores */}
-              {testDetailsData.subfactors && testDetailsData.subfactors.length > 0 && (
-                <div style={{ marginBottom: '24px', padding: '24px', background: '#ffffff', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
-                  <h3 style={{ marginTop: 0, marginBottom: '16px' }}>Subfactores</h3>
-                  <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <div style={{ flex: 1, minWidth: 260 }}>
-                      <BarChart
-                        data={testDetailsData.subfactors.map((sf: any) => ({
-                          label: sf.subfactorName || sf.subfactorCode,
-                          value: Number(sf.percentage) || 0,
-                        }))}
-                        maxValue={100}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
+              {/* Informe estilo Delphos */}
+              {(() => {
+                const answers = testAnswers.answers || [];
+                const sortedByTime = answers.filter((a: any) => a.createdAt).sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                const startTime = sortedByTime.length > 0 ? sortedByTime[0].createdAt : undefined;
+                const endTime = sortedByTime.length > 0 ? sortedByTime[sortedByTime.length - 1].createdAt : undefined;
+                let duration: string | undefined;
+                if (startTime && endTime) {
+                  const diffMs = new Date(endTime).getTime() - new Date(startTime).getTime();
+                  const mins = Math.round(diffMs / 60000);
+                  duration = mins >= 60 ? `${Math.floor(mins / 60)}h ${mins % 60}min` : `${mins} min`;
+                }
+                const patientName = viewingTestDetails
+                  ? (patients.find((p: any) => p.id === viewingTestDetails.patientId)?.name || testDetailsData.userEmail || 'Paciente')
+                  : 'Paciente';
 
-              {testDetailsData.factors && testDetailsData.factors.length > 0 && (
-                <div style={{ marginBottom: '24px', padding: '24px', background: '#ffffff', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
-                  <h3 style={{ marginTop: 0, marginBottom: '16px' }}>Factores</h3>
-                  <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <div style={{ flex: 1, minWidth: 260 }}>
-                      <FactorChart
-                        data={testDetailsData.factors.map((f: any) => {
-                          const percentage = Number(f.percentage) || 0;
-                          const value = Math.round((percentage / 100) * 10);
-                          const code = f.factorCode || '';
-                          return {
-                            label: code,
-                            value: Math.max(1, Math.min(10, value)),
-                          };
-                        })}
-                        maxValue={10}
-                      />
-                    </div>
+                const reportData: TestReportData = {
+                  testTitle: testAnswers.testTitle || '',
+                  userName: patientName,
+                  startTime,
+                  endTime,
+                  duration,
+                  subfactors: (testDetailsData.subfactors || []).map((sf: any) => ({
+                    code: sf.subfactorCode || '',
+                    name: sf.subfactorName || sf.subfactorCode || '',
+                    score: Number(sf.score) || 0,
+                    maxScore: Number(sf.maxScore) || 0,
+                    percentage: Number(sf.percentage) || 0,
+                    minLabel: sf.minLabel,
+                    maxLabel: sf.maxLabel,
+                  })),
+                  factors: (testDetailsData.factors || []).map((f: any) => ({
+                    code: f.factorCode || '',
+                    name: f.factorName || f.factorCode || '',
+                    score: Number(f.score) || 0,
+                    maxScore: Number(f.maxScore) || 0,
+                    percentage: Number(f.percentage) || 0,
+                    minLabel: f.minLabel,
+                    maxLabel: f.maxLabel,
+                  })),
+                };
+                return (
+                  <div style={{ marginBottom: '24px', border: '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden' }}>
+                    <TestReport ref={testReportRef} data={reportData} />
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
-              {/* Respuestas */}
-              <div style={{ marginBottom: '24px', padding: '24px', background: '#ffffff', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
-                <h3 style={{ marginTop: 0, marginBottom: '16px' }}>
+              {/* Respuestas (colapsable) */}
+              <details style={{ marginBottom: '24px', padding: '24px', background: '#ffffff', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                <summary style={{ cursor: 'pointer', fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>
                   Respuestas ({testAnswers.answers?.length || 0})
-                </h3>
+                </summary>
                 {testAnswers.answers && testAnswers.answers.length > 0 ? (
                   <div>
                     {testAnswers.answers.map((answer: any, idx: number) => (
@@ -4966,7 +5003,7 @@ export default function PsychDashboard() {
                 ) : (
                   <p style={{ color: '#6b7280' }}>No hay respuestas registradas para este test.</p>
                 )}
-              </div>
+              </details>
             </>
           ) : (
             <EmptyState icon="📊" title="Test no encontrado" description="No se pudieron cargar los detalles del test." />

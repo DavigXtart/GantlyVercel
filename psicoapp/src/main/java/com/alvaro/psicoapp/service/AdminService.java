@@ -112,6 +112,10 @@ public class AdminService {
                 put("id", fid);
                 put("code", f != null ? f.getCode() : "-");
                 put("name", f != null ? f.getName() : "Sin factor");
+                put("minLabel", f != null ? f.getMinLabel() : null);
+                put("maxLabel", f != null ? f.getMaxLabel() : null);
+                put("formula", f != null ? f.getFormula() : null);
+                put("calculated", f != null ? f.getCalculated() : false);
                 put("subfactors", new ArrayList<>());
             }});
             @SuppressWarnings("unchecked")
@@ -120,6 +124,8 @@ public class AdminService {
             sfm.put("id", sf.getId());
             sfm.put("code", sf.getCode());
             sfm.put("name", sf.getName());
+            sfm.put("minLabel", sf.getMinLabel());
+            sfm.put("maxLabel", sf.getMaxLabel());
             sflist.add(sfm);
         }
         factors.addAll(factorMap.values());
@@ -138,10 +144,16 @@ public class AdminService {
         f.setName(req.name);
         if (req.description != null) f.setDescription(req.description);
         f.setPosition(req.position != null ? req.position : 1);
+        if (req.minLabel != null) f.setMinLabel(req.minLabel);
+        if (req.maxLabel != null) f.setMaxLabel(req.maxLabel);
+        if (req.formula != null) f.setFormula(req.formula);
+        if (req.calculated != null) f.setCalculated(req.calculated);
         FactorEntity saved = factorRepository.save(f);
         return new AdminDtos.FactorCreateResponse(
                 saved.getId(), saved.getCode(), saved.getName(),
-                saved.getTest().getId(), saved.getPosition()
+                saved.getTest().getId(), saved.getPosition(),
+                saved.getMinLabel(), saved.getMaxLabel(),
+                saved.getFormula(), saved.getCalculated()
         );
     }
 
@@ -157,6 +169,8 @@ public class AdminService {
             factorRepository.findById(req.factorId).ifPresent(sf::setFactor);
         }
         sf.setPosition(req.position != null ? req.position : 1);
+        if (req.minLabel != null) sf.setMinLabel(req.minLabel);
+        if (req.maxLabel != null) sf.setMaxLabel(req.maxLabel);
         SubfactorEntity saved = subfactorRepository.save(sf);
         Map<String, Object> result = new HashMap<>();
         result.put("id", saved.getId());
@@ -165,6 +179,8 @@ public class AdminService {
         result.put("testId", saved.getTest().getId());
         result.put("position", saved.getPosition());
         if (saved.getFactor() != null) result.put("factorId", saved.getFactor().getId());
+        if (saved.getMinLabel() != null) result.put("minLabel", saved.getMinLabel());
+        if (saved.getMaxLabel() != null) result.put("maxLabel", saved.getMaxLabel());
         return result;
     }
 
@@ -178,29 +194,28 @@ public class AdminService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El test ya tiene factores configurados");
         }
 
-        FactorEntity f1 = saveFactor(test, "sociales", "Competencias sociales", "Competencias relacionadas con la interacción social", 1);
-        FactorEntity f2 = saveFactor(test, "autonomia", "Competencias de autonomía e independencia", "Competencias relacionadas con la autonomía e independencia", 2);
-        FactorEntity f3 = saveFactor(test, "apertura", "Competencias de apertura y adaptación", "Competencias relacionadas con la apertura y adaptación", 3);
-        FactorEntity f4 = saveFactor(test, "autocontrol", "Competencias de autocontrol", "Competencias relacionadas con el autocontrol", 4);
-        FactorEntity f5 = saveFactor(test, "ansiedad", "Competencias de gestión de la ansiedad", "Competencias relacionadas con la gestión de la ansiedad", 5);
-
-        saveSubfactor(test, f1, "A", "Extroversión", "Cercanía afectiva, trato cordial e interés genuino por las personas.", 1);
-        saveSubfactor(test, f1, "F", "Animación", "Energía visible, expresividad en la interacción, tono vital alto.", 2);
-        saveSubfactor(test, f1, "N(-)", "Espontaneidad / Privacidad–Astucia", "Filtra y dosifica lo que muestra; gestiona su imagen y lee subtextos.", 3);
-        saveSubfactor(test, f1, "Q2(-)", "Participación grupal", "Preferencia por actuar solo; baja orientación grupal.", 4);
-        saveSubfactor(test, f2, "E", "Dominancia", "Asumir control e influir en interacciones.", 1);
-        saveSubfactor(test, f2, "H", "Emprendimiento", "Atrevimiento y desenvoltura ante exposición social y situaciones nuevas.", 2);
-        saveSubfactor(test, f2, "Q2", "Autosuficiencia", "Baja dependencia del grupo; autonomía para avanzar y decidir.", 3);
-        saveSubfactor(test, f2, "Q1", "Crítico", "Actitud analítica; revisa creencias y adopta cambios con evidencia.", 4);
-        saveSubfactor(test, f3, "I", "Idealismo", "Sensibilidad y orientación a principios éticos y armonía.", 1);
-        saveSubfactor(test, f3, "M", "Creatividad", "Pensamiento imaginativo y asociativo; generación de ideas nuevas.", 2);
-        saveSubfactor(test, f3, "Q1", "Apertura al cambio", "Flexibilidad ante nuevas ideas y experiencias.", 3);
-        saveSubfactor(test, f4, "G", "Sentido del deber", "Responsabilidad, adherencia a normas y estándares.", 1);
-        saveSubfactor(test, f4, "Q3", "Control de emociones", "Perfeccionismo, organización y autorregulación emocional.", 2);
-        saveSubfactor(test, f5, "C", "Estabilidad", "Calma, equilibrio emocional y recuperación ante el estrés.", 1);
-        saveSubfactor(test, f5, "O", "Aprehensión", "Autocrítica, auto-duda y tendencia a la culpabilidad.", 2);
-        saveSubfactor(test, f5, "L", "Vigilancia", "Cautela, expectativa de segundas intenciones.", 3);
-        saveSubfactor(test, f5, "Q4", "Tensión", "Activación interna, impaciencia e irritabilidad ante contratiempos.", 4);
+        FactorEntity f1 = saveFactor(test, "sociales", "Competencias sociales", "Competencias relacionadas con la interacción social", 1, "Introvertido", "Extravertido", "A+F+H+Q2(-)");
+        FactorEntity f2 = saveFactor(test, "autonomia", "Competencias de autonomía e independencia", "Competencias relacionadas con la autonomía e independencia", 2, "Acomodaticio", "Independiente", "E+H+Q2+Q1");
+        FactorEntity f3 = saveFactor(test, "apertura", "Competencias de apertura y adaptación", "Competencias relacionadas con la apertura y adaptación", 3, "Duro/Rígido", "Receptivo/Flexible", "I+M+Q1_AP");
+        FactorEntity f4 = saveFactor(test, "autocontrol", "Competencias de autocontrol", "Competencias relacionadas con el autocontrol", 4, "Desinhibido", "Autocontrolado", "G+Q3");
+        FactorEntity f5 = saveFactor(test, "ansiedad", "Competencias de gestión de la ansiedad", "Competencias relacionadas con la gestión de la ansiedad", 5, "Imperturbable", "Ansioso", "C+O+L+Q4");
+        saveSubfactor(test, f1, "A", "Extroversión", "Cercanía afectiva, trato cordial e interés genuino por las personas.", 1, "Reservado", "Abierto");
+        saveSubfactor(test, f1, "F", "Animación", "Energía visible, expresividad en la interacción, tono vital alto.", 2, "Sobrio", "Entusiasta");
+        saveSubfactor(test, f1, "N(-)", "Espontaneidad / Privacidad–Astucia", "Filtra y dosifica lo que muestra; gestiona su imagen y lee subtextos.", 3, "Espontáneo", "Calculador");
+        saveSubfactor(test, f1, "Q2(-)", "Participación grupal", "Preferencia por actuar solo; baja orientación grupal.", 4, "Dependiente del grupo", "Autosuficiente");
+        saveSubfactor(test, f2, "E", "Dominancia", "Asumir control e influir en interacciones.", 1, "Sumiso", "Dominante");
+        saveSubfactor(test, f2, "H", "Emprendimiento", "Atrevimiento y desenvoltura ante exposición social y situaciones nuevas.", 2, "Tímido", "Atrevido");
+        saveSubfactor(test, f2, "Q2", "Autosuficiencia", "Baja dependencia del grupo; autonomía para avanzar y decidir.", 3, "Dependiente", "Autosuficiente");
+        saveSubfactor(test, f2, "Q1", "Crítico", "Actitud analítica; revisa creencias y adopta cambios con evidencia.", 4, "Conservador", "Innovador");
+        saveSubfactor(test, f3, "I", "Idealismo", "Sensibilidad y orientación a principios éticos y armonía.", 1, "Objetivo/Duro", "Sensible/Idealista");
+        saveSubfactor(test, f3, "M", "Creatividad", "Pensamiento imaginativo y asociativo; generación de ideas nuevas.", 2, "Práctico", "Imaginativo");
+        saveSubfactor(test, f3, "Q1_AP", "Apertura al cambio", "Flexibilidad ante nuevas ideas y experiencias.", 3, "Tradicional", "Abierto al cambio");
+        saveSubfactor(test, f4, "G", "Sentido del deber", "Responsabilidad, adherencia a normas y estándares.", 1, "Inconformista", "Cumplidor");
+        saveSubfactor(test, f4, "Q3", "Control de emociones", "Perfeccionismo, organización y autorregulación emocional.", 2, "Flexible/Desordenado", "Controlado/Perfeccionista");
+        saveSubfactor(test, f5, "C", "Estabilidad", "Calma, equilibrio emocional y recuperación ante el estrés.", 1, "Emocionalmente reactivo", "Estable");
+        saveSubfactor(test, f5, "O", "Aprehensión", "Autocrítica, auto-duda y tendencia a la culpabilidad.", 2, "Seguro de sí", "Aprensivo");
+        saveSubfactor(test, f5, "L", "Vigilancia", "Cautela, expectativa de segundas intenciones.", 3, "Confiado", "Vigilante");
+        saveSubfactor(test, f5, "Q4", "Tensión", "Activación interna, impaciencia e irritabilidad ante contratiempos.", 4, "Relajado", "Tenso");
 
         return new AdminDtos.InitDefaultStructureResponse(true, "Estructura por defecto inicializada correctamente");
     }
@@ -476,41 +491,46 @@ public class AdminService {
 
     private void initDefaultStructureForTest(Long testId) {
         TestEntity test = testRepository.findById(testId).orElseThrow();
-        FactorEntity f1 = saveFactor(test, "sociales", "Competencias sociales", "Competencias relacionadas con la interacción social", 1);
-        FactorEntity f2 = saveFactor(test, "autonomia", "Competencias de autonomía e independencia", "Competencias relacionadas con la autonomía e independencia", 2);
-        FactorEntity f3 = saveFactor(test, "apertura", "Competencias de apertura y adaptación", "Competencias relacionadas con la apertura y adaptación", 3);
-        FactorEntity f4 = saveFactor(test, "autocontrol", "Competencias de autocontrol", "Competencias relacionadas con el autocontrol", 4);
-        FactorEntity f5 = saveFactor(test, "ansiedad", "Competencias de gestión de la ansiedad", "Competencias relacionadas con la gestión de la ansiedad", 5);
-        saveSubfactor(test, f1, "A", "Extroversión", "Cercanía afectiva, trato cordial e interés genuino por las personas.", 1);
-        saveSubfactor(test, f1, "F", "Animación", "Energía visible, expresividad en la interacción, tono vital alto.", 2);
-        saveSubfactor(test, f1, "N(-)", "Espontaneidad / Privacidad–Astucia", "Filtra y dosifica lo que muestra; gestiona su imagen y lee subtextos.", 3);
-        saveSubfactor(test, f1, "Q2(-)", "Participación grupal", "Preferencia por actuar solo; baja orientación grupal.", 4);
-        saveSubfactor(test, f2, "E", "Dominancia", "Asumir control e influir en interacciones.", 1);
-        saveSubfactor(test, f2, "H", "Emprendimiento", "Atrevimiento y desenvoltura ante exposición social y situaciones nuevas.", 2);
-        saveSubfactor(test, f2, "Q2", "Autosuficiencia", "Baja dependencia del grupo; autonomía para avanzar y decidir.", 3);
-        saveSubfactor(test, f2, "Q1", "Crítico", "Actitud analítica; revisa creencias y adopta cambios con evidencia.", 4);
-        saveSubfactor(test, f3, "I", "Idealismo", "Sensibilidad y orientación a principios éticos y armonía.", 1);
-        saveSubfactor(test, f3, "M", "Creatividad", "Pensamiento imaginativo y asociativo; generación de ideas nuevas.", 2);
-        saveSubfactor(test, f3, "Q1_AP", "Apertura al cambio", "Flexibilidad ante nuevas ideas y experiencias.", 3);
-        saveSubfactor(test, f4, "G", "Sentido del deber", "Responsabilidad, adherencia a normas y estándares.", 1);
-        saveSubfactor(test, f4, "Q3", "Control de emociones", "Perfeccionismo, organización y autorregulación emocional.", 2);
-        saveSubfactor(test, f5, "C", "Estabilidad", "Calma, equilibrio emocional y recuperación ante el estrés.", 1);
-        saveSubfactor(test, f5, "O", "Aprehensión", "Autocrítica, auto-duda y tendencia a la culpabilidad.", 2);
-        saveSubfactor(test, f5, "L", "Vigilancia", "Cautela, expectativa de segundas intenciones.", 3);
-        saveSubfactor(test, f5, "Q4", "Tensión", "Activación interna, impaciencia e irritabilidad ante contratiempos.", 4);
+        FactorEntity f1 = saveFactor(test, "sociales", "Competencias sociales", "Competencias relacionadas con la interacción social", 1, "Introvertido", "Extravertido", "A+F+H+Q2(-)");
+        FactorEntity f2 = saveFactor(test, "autonomia", "Competencias de autonomía e independencia", "Competencias relacionadas con la autonomía e independencia", 2, "Acomodaticio", "Independiente", "E+H+Q2+Q1");
+        FactorEntity f3 = saveFactor(test, "apertura", "Competencias de apertura y adaptación", "Competencias relacionadas con la apertura y adaptación", 3, "Duro/Rígido", "Receptivo/Flexible", "I+M+Q1_AP");
+        FactorEntity f4 = saveFactor(test, "autocontrol", "Competencias de autocontrol", "Competencias relacionadas con el autocontrol", 4, "Desinhibido", "Autocontrolado", "G+Q3");
+        FactorEntity f5 = saveFactor(test, "ansiedad", "Competencias de gestión de la ansiedad", "Competencias relacionadas con la gestión de la ansiedad", 5, "Imperturbable", "Ansioso", "C+O+L+Q4");
+        saveSubfactor(test, f1, "A", "Extroversión", "Cercanía afectiva, trato cordial e interés genuino por las personas.", 1, "Reservado", "Abierto");
+        saveSubfactor(test, f1, "F", "Animación", "Energía visible, expresividad en la interacción, tono vital alto.", 2, "Sobrio", "Entusiasta");
+        saveSubfactor(test, f1, "N(-)", "Espontaneidad / Privacidad–Astucia", "Filtra y dosifica lo que muestra; gestiona su imagen y lee subtextos.", 3, "Espontáneo", "Calculador");
+        saveSubfactor(test, f1, "Q2(-)", "Participación grupal", "Preferencia por actuar solo; baja orientación grupal.", 4, "Dependiente del grupo", "Autosuficiente");
+        saveSubfactor(test, f2, "E", "Dominancia", "Asumir control e influir en interacciones.", 1, "Sumiso", "Dominante");
+        saveSubfactor(test, f2, "H", "Emprendimiento", "Atrevimiento y desenvoltura ante exposición social y situaciones nuevas.", 2, "Tímido", "Atrevido");
+        saveSubfactor(test, f2, "Q2", "Autosuficiencia", "Baja dependencia del grupo; autonomía para avanzar y decidir.", 3, "Dependiente", "Autosuficiente");
+        saveSubfactor(test, f2, "Q1", "Crítico", "Actitud analítica; revisa creencias y adopta cambios con evidencia.", 4, "Conservador", "Innovador");
+        saveSubfactor(test, f3, "I", "Idealismo", "Sensibilidad y orientación a principios éticos y armonía.", 1, "Objetivo/Duro", "Sensible/Idealista");
+        saveSubfactor(test, f3, "M", "Creatividad", "Pensamiento imaginativo y asociativo; generación de ideas nuevas.", 2, "Práctico", "Imaginativo");
+        saveSubfactor(test, f3, "Q1_AP", "Apertura al cambio", "Flexibilidad ante nuevas ideas y experiencias.", 3, "Tradicional", "Abierto al cambio");
+        saveSubfactor(test, f4, "G", "Sentido del deber", "Responsabilidad, adherencia a normas y estándares.", 1, "Inconformista", "Cumplidor");
+        saveSubfactor(test, f4, "Q3", "Control de emociones", "Perfeccionismo, organización y autorregulación emocional.", 2, "Flexible/Desordenado", "Controlado/Perfeccionista");
+        saveSubfactor(test, f5, "C", "Estabilidad", "Calma, equilibrio emocional y recuperación ante el estrés.", 1, "Emocionalmente reactivo", "Estable");
+        saveSubfactor(test, f5, "O", "Aprehensión", "Autocrítica, auto-duda y tendencia a la culpabilidad.", 2, "Seguro de sí", "Aprensivo");
+        saveSubfactor(test, f5, "L", "Vigilancia", "Cautela, expectativa de segundas intenciones.", 3, "Confiado", "Vigilante");
+        saveSubfactor(test, f5, "Q4", "Tensión", "Activación interna, impaciencia e irritabilidad ante contratiempos.", 4, "Relajado", "Tenso");
     }
 
-    private FactorEntity saveFactor(TestEntity test, String code, String name, String description, int position) {
+    private FactorEntity saveFactor(TestEntity test, String code, String name, String description, int position,
+                                    String minLabel, String maxLabel, String formula) {
         FactorEntity f = new FactorEntity();
         f.setTest(test);
         f.setCode(code);
         f.setName(name);
         f.setDescription(description);
         f.setPosition(position);
+        f.setMinLabel(minLabel);
+        f.setMaxLabel(maxLabel);
+        f.setFormula(formula);
         return factorRepository.save(f);
     }
 
-    private void saveSubfactor(TestEntity test, FactorEntity factor, String code, String name, String description, int position) {
+    private void saveSubfactor(TestEntity test, FactorEntity factor, String code, String name, String description,
+                               int position, String minLabel, String maxLabel) {
         SubfactorEntity sf = new SubfactorEntity();
         sf.setTest(test);
         sf.setFactor(factor);
@@ -518,6 +538,8 @@ public class AdminService {
         sf.setName(name);
         sf.setDescription(description);
         sf.setPosition(position);
+        sf.setMinLabel(minLabel);
+        sf.setMaxLabel(maxLabel);
         subfactorRepository.save(sf);
     }
 

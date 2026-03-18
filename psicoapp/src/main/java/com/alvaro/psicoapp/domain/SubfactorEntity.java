@@ -31,6 +31,12 @@ public class SubfactorEntity {
 	@Column(nullable = false)
 	private Integer position;
 
+	@Column(name = "min_label", length = 100)
+	private String minLabel;
+
+	@Column(name = "max_label", length = 100)
+	private String maxLabel;
+
 	@OneToMany(mappedBy = "subfactor", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<QuestionEntity> questions = new ArrayList<>();
 
@@ -48,6 +54,10 @@ public class SubfactorEntity {
 	public void setFactor(FactorEntity factor) { this.factor = factor; }
 	public Integer getPosition() { return position; }
 	public void setPosition(Integer position) { this.position = position; }
+	public String getMinLabel() { return minLabel; }
+	public void setMinLabel(String minLabel) { this.minLabel = minLabel; }
+	public String getMaxLabel() { return maxLabel; }
+	public void setMaxLabel(String maxLabel) { this.maxLabel = maxLabel; }
 	public List<QuestionEntity> getQuestions() { return questions; }
 	public void setQuestions(List<QuestionEntity> questions) { this.questions = questions; }
 }

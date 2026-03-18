@@ -334,12 +334,14 @@ export const adminService = {
     const { data } = await api.post(`/admin/tests/${testId}/init-structure`);
     return data;
   },
-  createFactor: async (testId: number, code: string, name: string, description?: string, position?: number) => {
-    const { data } = await api.post('/admin/factors', { testId, code, name, description, position });
+  createFactor: async (testId: number, code: string, name: string, description?: string, position?: number,
+                       minLabel?: string, maxLabel?: string, formula?: string) => {
+    const { data } = await api.post('/admin/factors', { testId, code, name, description, position, minLabel, maxLabel, formula });
     return data;
   },
-  createSubfactor: async (testId: number, code: string, name: string, description?: string, factorId?: number, position?: number) => {
-    const { data } = await api.post('/admin/subfactors', { testId, code, name, description, factorId, position });
+  createSubfactor: async (testId: number, code: string, name: string, description?: string, factorId?: number, position?: number,
+                          minLabel?: string, maxLabel?: string) => {
+    const { data } = await api.post('/admin/subfactors', { testId, code, name, description, factorId, position, minLabel, maxLabel });
     return data;
   },
   createQuestion: async (testId: number, text: string, type: string, position: number, answers?: Array<{ text: string; value: number; position: number }>, subfactorId?: number) => {
@@ -456,6 +458,38 @@ export const adminService = {
   },
   deleteEvaluationTest: async (id: number) => {
     await api.delete(`/admin/evaluation-tests/${id}`);
+  },
+  // Import Excel
+  parseTestExcel: async (file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    const { data } = await api.post('/admin/tests/import/parse', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 30000
+    });
+    return data as {
+      detectedTitle: string;
+      questionCount: number;
+      questions: Array<{
+        position: number;
+        text: string;
+        answers: Array<{ text: string; value: number | null; position: number }>;
+      }>;
+    };
+  },
+  confirmTestImport: async (importData: {
+    code: string;
+    title: string;
+    description?: string;
+    testType?: string;
+    questions: Array<{
+      position: number;
+      text: string;
+      answers: Array<{ text: string; value: number | null; position: number }>;
+    }>;
+  }) => {
+    const { data } = await api.post('/admin/tests/import/confirm', importData);
+    return data as { testId: number; code: string; questionsCreated: number; answersCreated: number };
   },
   getStatistics: async () => {
     const { data } = await api.get('/admin/statistics');

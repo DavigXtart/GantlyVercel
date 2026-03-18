@@ -26,6 +26,9 @@ public class QuestionEntity {
 	@JoinColumn(name = "subfactor_id")
 	private SubfactorEntity subfactor;
 
+	@Column(nullable = false)
+	private Boolean inverse = false;
+
 	public Long getId() { return id; }
 	public void setId(Long id) { this.id = id; }
 	public TestEntity getTest() { return test; }
@@ -38,4 +41,6 @@ public class QuestionEntity {
 	public void setPosition(Integer position) { this.position = position; }
 	public SubfactorEntity getSubfactor() { return subfactor; }
 	public void setSubfactor(SubfactorEntity subfactor) { this.subfactor = subfactor; }
+	public Boolean getInverse() { return inverse; }
+	public void setInverse(Boolean inverse) { this.inverse = inverse; }
 }

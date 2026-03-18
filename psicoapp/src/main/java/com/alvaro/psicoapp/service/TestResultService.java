@@ -76,11 +76,7 @@ public class TestResultService {
 		Map<Long, TestResultEntity> subfactorResults = new HashMap<>();
 		for (SubfactorEntity subfactor : subfactors) {
 
-			List<QuestionEntity> subfactorQuestions = questionRepository.findAll().stream()
-					.filter(q -> q.getTest().getId().equals(test.getId())
-							&& q.getSubfactor() != null
-							&& q.getSubfactor().getId().equals(subfactor.getId()))
-					.collect(Collectors.toList());
+			List<QuestionEntity> subfactorQuestions = questionRepository.findByTestAndSubfactor(test, subfactor);
 
 			double totalScore = 0.0;
 			double maxScore = 0.0;
@@ -90,6 +86,13 @@ public class TestResultService {
 				Optional<UserAnswerEntity> userAnswer = userAnswers.stream()
 						.filter(ua -> ua.getQuestion().getId().equals(question.getId()))
 						.findFirst();
+
+				List<AnswerEntity> answers = answerRepository.findByQuestionOrderByPositionAsc(question);
+				double questionMaxScore = answers.stream()
+						.mapToDouble(a -> a.getValue() != null ? a.getValue().doubleValue() : 0.0)
+						.max()
+						.orElse(0.0);
+				maxScore += questionMaxScore;
 
 				if (userAnswer.isPresent()) {
 					UserAnswerEntity ua = userAnswer.get();
@@ -101,22 +104,12 @@ public class TestResultService {
 						score = ua.getNumericValue();
 					}
 
+					// Items inversos: invertir la puntuación
+					if (Boolean.TRUE.equals(question.getInverse()) && questionMaxScore > 0) {
+						score = questionMaxScore - score;
+					}
+
 					totalScore += score;
-
-					List<AnswerEntity> answers = answerRepository.findByQuestionOrderByPositionAsc(question);
-					double questionMaxScore = answers.stream()
-							.mapToDouble(a -> a.getValue() != null ? a.getValue().doubleValue() : 0.0)
-							.max()
-							.orElse(0.0);
-					maxScore += questionMaxScore;
-				} else {
-
-					List<AnswerEntity> answers = answerRepository.findByQuestionOrderByPositionAsc(question);
-					double questionMaxScore = answers.stream()
-							.mapToDouble(a -> a.getValue() != null ? a.getValue().doubleValue() : 0.0)
-							.max()
-							.orElse(0.0);
-					maxScore += questionMaxScore;
 				}
 			}
 
@@ -216,7 +209,8 @@ public class TestResultService {
 			subfactorsByTest.putIfAbsent(testId, new ArrayList<>());
 			subfactorsByTest.get(testId).add(new TestResultDtos.SubfactorResultDto(
 					result.getSubfactor().getCode(), result.getSubfactor().getName(),
-					result.getScore(), result.getMaxScore(), result.getPercentage()));
+					result.getScore(), result.getMaxScore(), result.getPercentage(),
+					result.getSubfactor().getMinLabel(), result.getSubfactor().getMaxLabel()));
 			testTitles.put(testId, result.getTest().getTitle());
 		}
 		for (FactorResultEntity result : factorResults) {
@@ -224,7 +218,8 @@ public class TestResultService {
 			factorsByTest.putIfAbsent(testId, new ArrayList<>());
 			factorsByTest.get(testId).add(new TestResultDtos.FactorResultDto(
 					result.getFactor().getCode(), result.getFactor().getName(),
-					result.getScore(), result.getMaxScore(), result.getPercentage()));
+					result.getScore(), result.getMaxScore(), result.getPercentage(),
+					result.getFactor().getMinLabel(), result.getFactor().getMaxLabel()));
 		}
 		Set<Long> allTestIds = new HashSet<>();
 		allTestIds.addAll(subfactorsByTest.keySet());
@@ -244,11 +239,13 @@ public class TestResultService {
 		List<FactorResultEntity> factorResults = factorResultRepository.findByUserAndTest(user, test);
 		var subfactors = subfactorResults.stream()
 				.map(r -> new TestResultDtos.SubfactorResultDto(r.getSubfactor().getCode(), r.getSubfactor().getName(),
-						r.getScore(), r.getMaxScore(), r.getPercentage()))
+						r.getScore(), r.getMaxScore(), r.getPercentage(),
+						r.getSubfactor().getMinLabel(), r.getSubfactor().getMaxLabel()))
 				.collect(Collectors.toList());
 		var factors = factorResults.stream()
 				.map(r -> new TestResultDtos.FactorResultDto(r.getFactor().getCode(), r.getFactor().getName(),
-						r.getScore(), r.getMaxScore(), r.getPercentage()))
+						r.getScore(), r.getMaxScore(), r.getPercentage(),
+						r.getFactor().getMinLabel(), r.getFactor().getMaxLabel()))
 				.collect(Collectors.toList());
 		return new TestResultDtos.TestResultsResponse(test.getId(), test.getTitle(), subfactors, factors);
 	}
@@ -281,10 +278,12 @@ public class TestResultService {
 		List<FactorResultEntity> factorResults = factorResultRepository.findByUserAndTest(user, test);
 		var subfactors = subfactorResults.stream().map(r -> new TestResultDtos.SubfactorResultDetailDto(
 				r.getSubfactor().getId(), r.getSubfactor().getCode(), r.getSubfactor().getName(),
-				r.getScore(), r.getMaxScore(), r.getPercentage())).collect(Collectors.toList());
+				r.getScore(), r.getMaxScore(), r.getPercentage(),
+				r.getSubfactor().getMinLabel(), r.getSubfactor().getMaxLabel())).collect(Collectors.toList());
 		var factors = factorResults.stream().map(r -> new TestResultDtos.FactorResultDetailDto(
 				r.getFactor().getId(), r.getFactor().getCode(), r.getFactor().getName(),
-				r.getScore(), r.getMaxScore(), r.getPercentage())).collect(Collectors.toList());
+				r.getScore(), r.getMaxScore(), r.getPercentage(),
+				r.getFactor().getMinLabel(), r.getFactor().getMaxLabel())).collect(Collectors.toList());
 		return new TestResultDtos.UserTestResultsResponse(user.getId(), user.getEmail(), test.getId(), test.getTitle(), subfactors, factors);
 	}
 }

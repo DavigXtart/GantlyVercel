@@ -25,6 +25,10 @@ public class AdminDtos {
         public String name;
         public String description;
         public Integer position;
+        public String minLabel;
+        public String maxLabel;
+        public String formula;
+        public Boolean calculated;
     }
 
     public static class SubfactorCreate {
@@ -34,6 +38,8 @@ public class AdminDtos {
         public String description;
         public Long factorId;
         public Integer position;
+        public String minLabel;
+        public String maxLabel;
     }
 
     public static class QuestionCreate {
@@ -93,12 +99,15 @@ public class AdminDtos {
         public Boolean active;
     }
 
-    public record SubfactorDto(Long id, String code, String name) {}
-    public record FactorDto(Long id, String code, String name, List<SubfactorDto> subfactors) {}
+    public record SubfactorDto(Long id, String code, String name, String minLabel, String maxLabel) {}
+    public record FactorDto(Long id, String code, String name, String minLabel, String maxLabel,
+                           String formula, Boolean calculated, List<SubfactorDto> subfactors) {}
     public record TestStructureResponse(List<FactorDto> factors) {}
 
-    public record FactorCreateResponse(Long id, String code, String name, Long testId, Integer position) {}
-    public record SubfactorCreateResponse(Long id, String code, String name, Long testId, Integer position, Long factorId) {}
+    public record FactorCreateResponse(Long id, String code, String name, Long testId, Integer position,
+                                      String minLabel, String maxLabel, String formula, Boolean calculated) {}
+    public record SubfactorCreateResponse(Long id, String code, String name, Long testId, Integer position, Long factorId,
+                                         String minLabel, String maxLabel) {}
     public record InitDefaultStructureResponse(boolean success, String message) {}
 
     public record QuestionDto(Long id, String text, String type, Integer position) {}

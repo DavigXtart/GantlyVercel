@@ -43,26 +43,35 @@ export default function FactorChart({
         const widthPercent = Math.min(100, (datum.value / computedMax) * 100);
         const color = DEFAULT_COLORS[idx % DEFAULT_COLORS.length];
 
+        const hasLabels = datum.lowPole || datum.highPole;
         return (
-          <div key={datum.label} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 120, fontSize: 14, color: 'var(--text-secondary)' }}>{datum.label}</div>
-            <div style={{ flex: 1, background: 'var(--bg-secondary, #f3f4f6)', borderRadius: 9999, height: barHeight, position: 'relative' }}>
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  height: '100%',
-                  width: `${widthPercent}%`,
-                  background: color,
-                  borderRadius: 9999,
-                  transition: 'width 0.3s ease',
-                }}
-              />
+          <div key={datum.label} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 120, fontSize: 14, color: 'var(--text-secondary)' }}>{datum.label}</div>
+              <div style={{ flex: 1, background: 'var(--bg-secondary, #f3f4f6)', borderRadius: 9999, height: barHeight, position: 'relative' }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    height: '100%',
+                    width: `${widthPercent}%`,
+                    background: color,
+                    borderRadius: 9999,
+                    transition: 'width 0.3s ease',
+                  }}
+                />
+              </div>
+              {showValues && (
+                <div style={{ minWidth: 48, textAlign: 'right', fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+                  {formatValue(datum.value)}
+                </div>
+              )}
             </div>
-            {showValues && (
-              <div style={{ minWidth: 48, textAlign: 'right', fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
-                {formatValue(datum.value)}
+            {hasLabels && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', paddingLeft: 132, paddingRight: showValues ? 60 : 0 }}>
+                <span style={{ fontSize: 11, color: 'var(--text-secondary)', fontStyle: 'italic' }}>{datum.lowPole || ''}</span>
+                <span style={{ fontSize: 11, color: 'var(--text-secondary)', fontStyle: 'italic' }}>{datum.highPole || ''}</span>
               </div>
             )}
           </div>

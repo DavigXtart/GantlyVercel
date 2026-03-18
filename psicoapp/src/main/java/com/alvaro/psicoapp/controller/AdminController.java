@@ -2,7 +2,9 @@ package com.alvaro.psicoapp.controller;
 
 import com.alvaro.psicoapp.domain.*;
 import com.alvaro.psicoapp.dto.AdminDtos;
+import com.alvaro.psicoapp.dto.TestImportDtos;
 import com.alvaro.psicoapp.service.AdminService;
+import com.alvaro.psicoapp.service.TestImportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -13,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -23,9 +26,11 @@ import java.util.Map;
 public class AdminController {
     private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
     private final AdminService adminService;
+    private final TestImportService testImportService;
 
-    public AdminController(AdminService adminService) {
+    public AdminController(AdminService adminService, TestImportService testImportService) {
         this.adminService = adminService;
+        this.testImportService = testImportService;
     }
 
     @GetMapping("/tests")
@@ -281,6 +286,27 @@ public class AdminController {
 	})
     public ResponseEntity<Void> deleteEvaluationTest(@PathVariable Long id) {
         return adminService.deleteEvaluationTest(id) ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/tests/import/parse")
+    @Operation(summary = "Parsear Excel para importar test", description = "Recibe un archivo .xlsx y devuelve una preview de las preguntas detectadas")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Excel parseado exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Error al parsear el archivo")
+    })
+    public ResponseEntity<TestImportDtos.ParseResult> parseTestExcel(@RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(testImportService.parseExcel(file));
+    }
+
+    @PostMapping("/tests/import/confirm")
+    @Operation(summary = "Confirmar importación de test", description = "Crea el test con las preguntas y respuestas parseadas del Excel")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Test importado exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Datos inválidos"),
+        @ApiResponse(responseCode = "409", description = "Ya existe un test con ese código")
+    })
+    public ResponseEntity<TestImportDtos.ImportResponse> confirmTestImport(@RequestBody TestImportDtos.ImportRequest req) {
+        return ResponseEntity.ok(testImportService.importTest(req));
     }
 
     @GetMapping("/statistics")
