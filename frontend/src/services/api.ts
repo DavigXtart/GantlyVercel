@@ -197,6 +197,14 @@ export const authService = {
     const { data } = await api.post('/auth/resend-verification-email');
     return data as { message: string; status: string };
   },
+  resendVerificationByEmail: async (email: string) => {
+    const { data } = await api.post('/auth/resend-verification', { email });
+    return data as { message: string; status: string };
+  },
+  verifyCode: async (email: string, code: string) => {
+    const { data } = await api.post('/auth/verify-code', { email, code });
+    return data as { message: string; status: string };
+  },
   getOAuth2LoginUrl: (provider: 'google' = 'google') => {
     return `${API_BASE_URL}/oauth2/authorization/${provider}`;
   },
@@ -238,6 +246,14 @@ export const companyService = {
   },
   getPsychologistDetail: async (psychologistId: number) => {
     const { data } = await api.get(`/company/psychologists/${psychologistId}`);
+    return data;
+  },
+  getPsychologistAvailability: async (psychologistId: number, from: string, to: string) => {
+    const { data } = await api.get(`/company/psychologists/${psychologistId}/availability`, { params: { from, to } });
+    return data as Array<{ id: number; startTime: string; endTime: string; price: number | null }>;
+  },
+  bookForPatient: async (psychologistId: number, appointmentId: number, patientId: number) => {
+    const { data } = await api.post(`/company/psychologists/${psychologistId}/book`, { appointmentId, patientId });
     return data;
   }
 };
@@ -507,6 +523,31 @@ export const adminService = {
       verifiedUsers: number;
     };
   },
+  // Psychologist approval
+  getPendingPsychologists: async () => {
+    const { data } = await api.get('/admin/psychologists/pending');
+    return data as Array<{
+      profileId: number;
+      userId: number;
+      name: string;
+      email: string;
+      licenseNumber: string | null;
+      education: string | null;
+      certifications: string | null;
+      experience: string | null;
+      specializations: string | null;
+      createdAt: string;
+      rejectionReason: string | null;
+    }>;
+  },
+  approvePsychologist: async (profileId: number) => {
+    const { data } = await api.post(`/admin/psychologists/${profileId}/approve`);
+    return data;
+  },
+  rejectPsychologist: async (profileId: number, reason?: string) => {
+    const { data } = await api.post(`/admin/psychologists/${profileId}/reject`, { reason });
+    return data;
+  },
 };
 
 // Perfil de usuario
@@ -691,6 +732,10 @@ export const calendarService = {
   getPsychologistPastAppointments: async () => {
     const { data } = await api.get('/calendar/psychologist/past-appointments');
     return data;
+  },
+  getBillingAppointments: async () => {
+    const { data } = await api.get('/calendar/psychologist/billing-appointments');
+    return data;
   }
 };
 
@@ -815,6 +860,14 @@ export const stripeService = {
     const { data } = await api.get('/stripe/payment-history');
     return data as Array<{ id: string; amount: number; currency: string; status: string; date: string; invoicePdf: string | null }>;
   },
+  createAppointmentCheckout: async (appointmentId: number) => {
+    const { data } = await api.post('/stripe/appointment-checkout', { appointmentId });
+    return data as { sessionId: string; url: string };
+  },
+  verifyAppointmentPayment: async (appointmentId: number) => {
+    const { data } = await api.post('/stripe/verify-appointment-payment', { appointmentId });
+    return data as { status: string };
+  },
 };
 
 export const personalAgendaService = {
@@ -910,33 +963,6 @@ export const calendarNotesService = {
   getNotes: async (appointmentId: number) => {
     const { data } = await api.get(`/calendar/appointments/${appointmentId}/notes`);
     return data as { notes: string };
-  },
-};
-
-// Group sessions
-export const groupSessionService = {
-  list: async () => {
-    const { data } = await api.get('/group-sessions');
-    return data as Array<any>;
-  },
-  getMy: async () => {
-    const { data } = await api.get('/group-sessions/my');
-    return data as Array<any>;
-  },
-  get: async (id: number) => {
-    const { data } = await api.get(`/group-sessions/${id}`);
-    return data;
-  },
-  create: async (session: { title: string; description: string; maxParticipants: number; startTime: string; endTime: string }) => {
-    const { data } = await api.post('/group-sessions', session);
-    return data;
-  },
-  join: async (id: number) => {
-    const { data } = await api.post(`/group-sessions/${id}/join`);
-    return data;
-  },
-  leave: async (id: number) => {
-    await api.delete(`/group-sessions/${id}/leave`);
   },
 };
 

@@ -63,9 +63,18 @@ public class MatchingService {
 
         List<UserEntity> allPsychologists = userRepository.findByRole(RoleConstants.PSYCHOLOGIST);
 
+        // Only include approved psychologists
+        Set<Long> approvedPsychIds = psychologistProfileRepository.findByApprovedTrueOrderByUpdatedAtDesc().stream()
+            .map(p -> p.getUser().getId())
+            .collect(Collectors.toSet());
+
         List<MatchingResult> results = new ArrayList<>();
 
         for (UserEntity psychologist : allPsychologists) {
+
+            if (!approvedPsychIds.contains(psychologist.getId())) {
+                continue;
+            }
 
             if (psychologist.getIsFull() != null && psychologist.getIsFull()) {
                 continue;

@@ -17,12 +17,17 @@
             <tr><td style="padding:40px;">
                 <h2 style="color:#065f46;margin:0 0 16px;font-size:22px;" th:text="'Hola ' + ${name} + ','">Hola,</h2>
                 <p style="color:#374151;font-size:16px;line-height:1.6;" th:text="${greeting}">Gracias por registrarte.</p>
-                <p style="color:#374151;font-size:16px;line-height:1.6;">Para completar tu registro, verifica tu correo electrónico:</p>
-                <div style="text-align:center;margin:32px 0;">
+                <p style="color:#374151;font-size:16px;line-height:1.6;">Tu codigo de verificacion es:</p>
+                <div style="text-align:center;margin:24px 0;">
+                    <div style="display:inline-block;background:#f0fdf4;border:2px solid #10b981;border-radius:12px;padding:16px 40px;letter-spacing:8px;font-size:32px;font-weight:700;color:#065f46;" th:text="${verificationCode}">123456</div>
+                </div>
+                <p style="color:#6b7280;font-size:14px;line-height:1.6;text-align:center;">Introduce este codigo en la aplicacion para verificar tu cuenta.</p>
+                <p style="color:#9ca3af;font-size:13px;line-height:1.6;text-align:center;">O tambien puedes hacer clic en el siguiente enlace:</p>
+                <div style="text-align:center;margin:16px 0;">
                     <a th:href="${verificationUrl}" style="display:inline-block;background:#10b981;color:#ffffff;text-decoration:none;padding:14px 40px;border-radius:8px;font-size:16px;font-weight:600;">Verificar mi cuenta</a>
                 </div>
                 <p style="color:#6b7280;font-size:14px;line-height:1.6;" th:text="${extraMessage}">Mensaje adicional.</p>
-                <p style="color:#9ca3af;font-size:13px;margin-top:24px;">Este enlace expira en 24 horas.</p>
+                <p style="color:#9ca3af;font-size:13px;margin-top:24px;">Este codigo y enlace expiran en 24 horas.</p>
             </td></tr>
             <!-- Footer -->
             <tr><td style="background:#f9fafb;padding:24px 40px;text-align:center;border-top:1px solid #e5e7eb;">

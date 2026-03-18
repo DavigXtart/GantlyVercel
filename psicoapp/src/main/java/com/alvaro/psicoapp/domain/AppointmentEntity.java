@@ -49,6 +49,9 @@ public class AppointmentEntity {
     @JoinColumn(name = "confirmed_by_user_id")
     private UserEntity confirmedByUser;
 
+    @Column(name = "stripe_session_id", length = 255)
+    private String stripeSessionId;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public UserEntity getPsychologist() { return psychologist; }
@@ -75,4 +78,6 @@ public class AppointmentEntity {
     public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
     public UserEntity getConfirmedByUser() { return confirmedByUser; }
     public void setConfirmedByUser(UserEntity confirmedByUser) { this.confirmedByUser = confirmedByUser; }
+    public String getStripeSessionId() { return stripeSessionId; }
+    public void setStripeSessionId(String stripeSessionId) { this.stripeSessionId = stripeSessionId; }
 }

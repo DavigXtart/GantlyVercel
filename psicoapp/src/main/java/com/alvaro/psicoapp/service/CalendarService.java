@@ -91,6 +91,8 @@ public class CalendarService {
                 .forEach(req -> {
                     req.setStatus(AppointmentStatus.REQUEST_REJECTED);
                     appointmentRequestRepository.save(req);
+                    notificationService.createNotification(req.getUser().getId(), "APPOINTMENT",
+                        "Horario eliminado", "El horario que solicitaste con " + psychologist.getName() + " ya no está disponible.");
                 });
         appointmentRepository.delete(appointment);
     }
@@ -197,6 +199,9 @@ public class CalendarService {
             appt.setStatus("REQUESTED");
             appointmentRepository.save(appt);
         }
+
+        notificationService.createNotification(appt.getPsychologist().getId(), "APPOINTMENT",
+            "Nueva solicitud de cita", user.getName() + " ha solicitado una cita contigo.");
     }
 
     @Transactional(readOnly = true)
@@ -222,7 +227,13 @@ public class CalendarService {
         }
 
         appointmentRequestRepository.findByAppointment_Id(appointment.getId()).forEach(req -> {
-            req.setStatus(req.getId().equals(requestId) ? "CONFIRMED" : "REJECTED");
+            if (req.getId().equals(requestId)) {
+                req.setStatus("CONFIRMED");
+            } else {
+                req.setStatus("REJECTED");
+                notificationService.createNotification(req.getUser().getId(), "APPOINTMENT",
+                    "Solicitud rechazada", "Tu solicitud de cita con " + psychologist.getName() + " no ha sido aceptada.");
+            }
             appointmentRequestRepository.save(req);
         });
 
@@ -231,8 +242,8 @@ public class CalendarService {
         appointment.setUser(request.getUser());
         appointment.setConfirmedAt(now);
         appointment.setConfirmedByUser(request.getUser());
-        appointment.setPaymentDeadline(null);
-        appointment.setPaymentStatus("PAID");
+        appointment.setPaymentDeadline(now.plusSeconds(48 * 60 * 60));
+        appointment.setPaymentStatus("PENDING");
         appointmentRepository.save(appointment);
 
         try {
@@ -266,6 +277,19 @@ public class CalendarService {
                 });
         appointment.setStatus("CANCELLED");
         appointmentRepository.save(appointment);
+
+        if (appointment.getUser() != null) {
+            notificationService.createNotification(appointment.getUser().getId(), "APPOINTMENT",
+                "Cita cancelada", "Tu cita con " + psychologist.getName() + " ha sido cancelada.");
+
+            try {
+                emailService.sendAppointmentCancellationEmail(
+                    appointment.getUser().getEmail(), appointment.getUser().getName(),
+                    psychologist.getName(), appointment.getStartTime());
+            } catch (Exception e) {
+                logger.error("Error enviando email de cancelación", e);
+            }
+        }
     }
 
     @Transactional
@@ -293,7 +317,7 @@ public class CalendarService {
         appointment.setConfirmedAt(now);
         appointment.setConfirmedByUser(user);
         appointment.setPaymentDeadline(null);
-        appointment.setPaymentStatus("PAID");
+        appointment.setPaymentStatus("PENDING");
 
         var saved = appointmentRepository.save(appointment);
 
@@ -304,6 +328,9 @@ public class CalendarService {
         } catch (Exception e) {
             logger.error("Error enviando email de confirmación", e);
         }
+
+        notificationService.createNotification(user.getId(), "APPOINTMENT",
+            "Nueva cita programada", psychologist.getName() + " ha programado una cita contigo.");
 
         return new CalendarDtos.CreateForPatientResponse(
                 saved.getId(), saved.getStartTime().toString(), saved.getEndTime().toString(),
@@ -395,6 +422,18 @@ public class CalendarService {
                 .stream()
                 .filter(apt -> ("CONFIRMED".equals(apt.getStatus()) || "BOOKED".equals(apt.getStatus()))
                         && apt.getEndTime().isBefore(now) && apt.getUser() != null)
+                .map(this::toPsychologistPastAppointmentDto)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<CalendarDtos.PsychologistPastAppointmentDto> getBillingAppointments(UserEntity psychologist) {
+        requirePsychologist(psychologist);
+        return appointmentRepository.findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(
+                        psychologist.getId(), Instant.ofEpochMilli(0), Instant.now().plusSeconds(365L * 24 * 3600))
+                .stream()
+                .filter(apt -> ("CONFIRMED".equals(apt.getStatus()) || "BOOKED".equals(apt.getStatus()))
+                        && apt.getUser() != null)
                 .map(this::toPsychologistPastAppointmentDto)
                 .collect(Collectors.toList());
     }
@@ -523,6 +562,6 @@ public class CalendarService {
         var rating = appointmentRatingRepository.findByAppointment_IdAndUser_Id(apt.getId(), apt.getUser().getId())
                 .map(r -> new CalendarDtos.RatingDto(r.getId(), r.getRating(), r.getComment() != null ? r.getComment() : "", r.getCreatedAt() != null ? r.getCreatedAt().toString() : null))
                 .orElse(null);
-        return new CalendarDtos.PsychologistPastAppointmentDto(apt.getId(), apt.getStartTime(), apt.getEndTime(), apt.getStatus(), apt.getPrice(), user, rating);
+        return new CalendarDtos.PsychologistPastAppointmentDto(apt.getId(), apt.getStartTime(), apt.getEndTime(), apt.getStatus(), apt.getPrice(), apt.getPaymentStatus(), apt.getConfirmedAt(), user, rating);
     }
 }

@@ -44,6 +44,18 @@ public class PsychologistProfileEntity {
     @Column(name = "session_prices", columnDefinition = "TEXT")
     private String sessionPrices;
 
+    @Column(name = "approved", nullable = false)
+    private Boolean approved = false;
+
+    @Column(name = "approved_at")
+    private Instant approvedAt;
+
+    @Column(name = "rejection_reason", length = 500)
+    private String rejectionReason;
+
+    @Column(name = "license_number", length = 100)
+    private String licenseNumber;
+
     @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
 
@@ -71,6 +83,14 @@ public class PsychologistProfileEntity {
     public void setWebsite(String website) { this.website = website; }
     public String getSessionPrices() { return sessionPrices; }
     public void setSessionPrices(String sessionPrices) { this.sessionPrices = sessionPrices; }
+    public Boolean getApproved() { return approved; }
+    public void setApproved(Boolean approved) { this.approved = approved; }
+    public Instant getApprovedAt() { return approvedAt; }
+    public void setApprovedAt(Instant approvedAt) { this.approvedAt = approvedAt; }
+    public String getRejectionReason() { return rejectionReason; }
+    public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
+    public String getLicenseNumber() { return licenseNumber; }
+    public void setLicenseNumber(String licenseNumber) { this.licenseNumber = licenseNumber; }
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
 }

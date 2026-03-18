@@ -52,6 +52,9 @@ public class UserEntity {
 	@Column(name = "verification_token", length = 255)
 	private String verificationToken;
 
+	@Column(name = "verification_code", length = 6)
+	private String verificationCode;
+
 	@Column(name = "verification_token_expires_at")
 	private Instant verificationTokenExpiresAt;
 
@@ -108,6 +111,8 @@ public class UserEntity {
 	public void setEmailVerified(Boolean emailVerified) { this.emailVerified = emailVerified; }
 	public String getVerificationToken() { return verificationToken; }
 	public void setVerificationToken(String verificationToken) { this.verificationToken = verificationToken; }
+	public String getVerificationCode() { return verificationCode; }
+	public void setVerificationCode(String verificationCode) { this.verificationCode = verificationCode; }
 	public Instant getVerificationTokenExpiresAt() { return verificationTokenExpiresAt; }
 	public void setVerificationTokenExpiresAt(Instant verificationTokenExpiresAt) { this.verificationTokenExpiresAt = verificationTokenExpiresAt; }
 	public String getPasswordResetToken() { return passwordResetToken; }

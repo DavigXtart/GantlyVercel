@@ -10,7 +10,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
+import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/company")
@@ -69,5 +71,35 @@ public class CompanyController {
         String email = getCompanyEmail(principal);
         if (email == null) return ResponseEntity.status(401).build();
         return ResponseEntity.ok(companyService.getPsychologistDetail(email, psychologistId));
+    }
+
+    @GetMapping("/psychologists/{psychologistId}/availability")
+    @Operation(summary = "Obtener disponibilidad de psicólogo", description = "Obtiene los horarios libres del psicólogo")
+    public ResponseEntity<List<CompanyService.CompanySlotDto>> getPsychologistAvailability(
+            Principal principal,
+            @PathVariable Long psychologistId,
+            @RequestParam String from,
+            @RequestParam String to) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return ResponseEntity.status(401).build();
+        return ResponseEntity.ok(companyService.getPsychologistAvailability(email, psychologistId,
+                Instant.parse(from), Instant.parse(to)));
+    }
+
+    @PostMapping("/psychologists/{psychologistId}/book")
+    @Operation(summary = "Agendar cita para paciente", description = "La empresa agenda una cita de un psicólogo para uno de sus pacientes")
+    public ResponseEntity<Map<String, String>> bookForPatient(
+            Principal principal,
+            @PathVariable Long psychologistId,
+            @RequestBody Map<String, Long> request) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return ResponseEntity.status(401).build();
+        Long appointmentId = request.get("appointmentId");
+        Long patientId = request.get("patientId");
+        if (appointmentId == null || patientId == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "appointmentId y patientId son requeridos"));
+        }
+        companyService.bookForPatient(email, psychologistId, appointmentId, patientId);
+        return ResponseEntity.ok(Map.of("message", "Cita agendada exitosamente"));
     }
 }

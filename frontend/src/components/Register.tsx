@@ -18,6 +18,9 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
   const [birthDate, setBirthDate] = useState('');
   const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; birthDate?: string }>({});
   const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState<'form' | 'verify'>('form');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verifying, setVerifying] = useState(false);
 
   const validateName = (name: string): string | undefined => {
     if (!name.trim()) return 'El nombre es obligatorio';
@@ -62,14 +65,45 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
         psychologistReferralCode || undefined,
         birthDate.trim() || undefined
       );
-      toast.success('Registro exitoso. Bienvenido!');
-      onRegister();
+      toast.success('Te hemos enviado un codigo de verificacion a tu email');
+      setStep('verify');
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || 'Error al registrarse';
       toast.error(errorMsg);
       setErrors({ email: errorMsg.includes('email') ? errorMsg : undefined });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (verificationCode.length !== 6) {
+      toast.warning('Introduce el codigo de 6 digitos');
+      return;
+    }
+    setVerifying(true);
+    try {
+      const res = await authService.verifyCode(email, verificationCode);
+      if (res.status === 'success') {
+        toast.success('Email verificado. Bienvenido!');
+        onRegister();
+      } else {
+        toast.error(res.message || 'Codigo invalido o expirado');
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Error al verificar el codigo');
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    try {
+      await authService.resendVerificationEmail();
+      toast.success('Codigo reenviado a tu email');
+    } catch {
+      toast.error('Error al reenviar el codigo');
     }
   };
 
@@ -227,7 +261,7 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
           </div>
         </div>
 
-        {/* Panel derecho - Formulario */}
+        {/* Panel derecho - Formulario / Verificación */}
         <div
           style={{
             background: 'rgba(255, 255, 255, 0.95)',
@@ -237,122 +271,106 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
             boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
           }}
         >
-          <h2 style={{ 
-            margin: '0 0 8px', 
-            fontSize: '28px', 
-            color: '#1a2e22',
-            fontFamily: "'Nunito', sans-serif",
-            fontWeight: 700,
-          }}>
-            Crear cuenta
-          </h2>
-          <p style={{ 
-            margin: '0 0 32px', 
-            fontSize: '16px', 
-            color: '#3a5a4a',
-          }}>
-            Completa tus datos para comenzar tu experiencia.
-          </p>
+          {step === 'form' ? (
+            <>
+              <h2 style={{ margin: '0 0 8px', fontSize: '28px', color: '#1a2e22', fontFamily: "'Nunito', sans-serif", fontWeight: 700 }}>
+                Crear cuenta
+              </h2>
+              <p style={{ margin: '0 0 32px', fontSize: '16px', color: '#3a5a4a' }}>
+                Completa tus datos para comenzar tu experiencia.
+              </p>
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }} aria-label="Formulario de registro">
-            <FormField
-              label="Nombre completo"
-              name="name"
-              type="text"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                if (errors.name) {
-                  setErrors({ ...errors, name: validateName(e.target.value) });
-                }
-              }}
-              error={errors.name}
-              required
-              placeholder="Tu nombre"
-              ariaLabel="Nombre completo"
-            />
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }} aria-label="Formulario de registro">
+                <FormField label="Nombre completo" name="name" type="text" value={name}
+                  onChange={(e) => { setName(e.target.value); if (errors.name) setErrors({ ...errors, name: validateName(e.target.value) }); }}
+                  error={errors.name} required placeholder="Tu nombre" ariaLabel="Nombre completo" />
+                <FormField label="Email" name="email" type="email" value={email}
+                  onChange={(e) => { setEmail(e.target.value); if (errors.email) setErrors({ ...errors, email: validateEmail(e.target.value) }); }}
+                  error={errors.email} required placeholder="tu@email.com" ariaLabel="Correo electrónico" />
+                <FormField label="Contraseña" name="password" type="password" value={password}
+                  onChange={(e) => { setPassword(e.target.value); if (errors.password) setErrors({ ...errors, password: validatePassword(e.target.value) }); }}
+                  error={errors.password} required placeholder="Minimo 6 caracteres" ariaLabel="Contraseña" />
+                <FormField label="Fecha de nacimiento" name="birthDate" type="date" value={birthDate}
+                  onChange={(e) => { setBirthDate(e.target.value); if (errors.birthDate) setErrors({ ...errors, birthDate: undefined }); }}
+                  error={errors.birthDate} placeholder="" ariaLabel="Fecha de nacimiento" />
+                <button type="submit" disabled={loading} style={{
+                  marginTop: '8px', padding: '14px 24px', borderRadius: '24px', border: 'none',
+                  background: loading ? '#cbd5d1' : '#5a9270', color: '#ffffff', fontSize: '16px',
+                  fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer',
+                  boxShadow: loading ? 'none' : '0 4px 12px rgba(90, 146, 112, 0.3)',
+                  transition: 'all 0.3s', fontFamily: "'Inter', sans-serif",
+                }}>
+                  {loading ? 'Creando cuenta...' : 'Crear cuenta'}
+                </button>
+              </form>
+            </>
+          ) : (
+            <>
+              <h2 style={{ margin: '0 0 8px', fontSize: '28px', color: '#1a2e22', fontFamily: "'Nunito', sans-serif", fontWeight: 700 }}>
+                Verifica tu email
+              </h2>
+              <p style={{ margin: '0 0 8px', fontSize: '16px', color: '#3a5a4a' }}>
+                Hemos enviado un codigo de 6 digitos a:
+              </p>
+              <p style={{ margin: '0 0 32px', fontSize: '16px', color: '#1a2e22', fontWeight: 600 }}>
+                {email}
+              </p>
 
-            <FormField
-              label="Email"
-              name="email"
-              type="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                if (errors.email) {
-                  setErrors({ ...errors, email: validateEmail(e.target.value) });
-                }
-              }}
-              error={errors.email}
-              required
-              placeholder="tu@email.com"
-              ariaLabel="Correo electrónico"
-            />
+              <form onSubmit={handleVerifyCode} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#3a5a4a', marginBottom: '8px', fontFamily: "'Inter', sans-serif" }}>
+                    Codigo de verificacion
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="000000"
+                    autoFocus
+                    style={{
+                      width: '100%', padding: '16px', borderRadius: '12px', border: '2px solid rgba(90, 146, 112, 0.3)',
+                      fontSize: '24px', fontWeight: 700, textAlign: 'center', letterSpacing: '8px',
+                      fontFamily: "'Inter', sans-serif", outline: 'none', boxSizing: 'border-box',
+                      transition: 'border-color 0.2s ease',
+                    }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = '#5a9270'; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)'; }}
+                  />
+                </div>
 
-            <FormField
-              label="Contraseña"
-              name="password"
-              type="password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (errors.password) {
-                  setErrors({ ...errors, password: validatePassword(e.target.value) });
-                }
-              }}
-              error={errors.password}
-              required
-              placeholder="Mínimo 6 caracteres"
-              ariaLabel="Contraseña"
-            />
+                <button type="submit" disabled={verifying || verificationCode.length !== 6} style={{
+                  padding: '14px 24px', borderRadius: '24px', border: 'none',
+                  background: (verifying || verificationCode.length !== 6) ? '#cbd5d1' : '#5a9270',
+                  color: '#ffffff', fontSize: '16px', fontWeight: 600,
+                  cursor: (verifying || verificationCode.length !== 6) ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 4px 12px rgba(90, 146, 112, 0.3)', transition: 'all 0.3s',
+                  fontFamily: "'Inter', sans-serif",
+                }}>
+                  {verifying ? 'Verificando...' : 'Verificar'}
+                </button>
 
-            <FormField
-              label="Fecha de nacimiento"
-              name="birthDate"
-              type="date"
-              value={birthDate}
-              onChange={(e) => {
-                setBirthDate(e.target.value);
-                if (errors.birthDate) setErrors({ ...errors, birthDate: undefined });
-              }}
-              error={errors.birthDate}
-              placeholder=""
-              ariaLabel="Fecha de nacimiento"
-            />
+                <div style={{ textAlign: 'center', fontSize: '14px', color: '#6b7280' }}>
+                  ¿No recibiste el codigo?{' '}
+                  <button onClick={handleResendCode} type="button" style={{
+                    border: 'none', background: 'transparent', color: '#5a9270',
+                    fontWeight: 600, cursor: 'pointer', fontFamily: "'Inter', sans-serif", fontSize: '14px',
+                  }}>
+                    Reenviar
+                  </button>
+                </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                marginTop: '8px',
-                padding: '14px 24px',
-                borderRadius: '24px',
-                border: 'none',
-                background: loading ? '#cbd5d1' : '#5a9270',
-                color: '#ffffff',
-                fontSize: '16px',
-                fontWeight: 600,
-                cursor: loading ? 'not-allowed' : 'pointer',
-                boxShadow: loading ? 'none' : '0 4px 12px rgba(90, 146, 112, 0.3)',
-                transition: 'all 0.3s',
-                fontFamily: "'Inter', sans-serif",
-              }}
-              onMouseEnter={(e) => {
-                if (!loading) {
-                  e.currentTarget.style.background = '#4a8062';
-                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!loading) {
-                  e.currentTarget.style.background = '#5a9270';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
-                }
-              }}
-            >
-              {loading ? 'Creando cuenta...' : 'Crear cuenta'}
-            </button>
-          </form>
+                <button onClick={() => { setStep('form'); setVerificationCode(''); }} type="button" style={{
+                  border: 'none', background: 'transparent', color: '#6b7280',
+                  cursor: 'pointer', fontFamily: "'Inter', sans-serif", fontSize: '14px',
+                  textAlign: 'center',
+                }}>
+                  Volver al formulario
+                </button>
+              </form>
+            </>
+          )}
         </div>
       </div>
     </div>

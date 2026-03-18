@@ -75,11 +75,14 @@ function JitsiVideoCallComponent({
   }, []);
 
   useEffect(() => {
-    // Cargar el script de Jitsi Meet desde 8x8.vc
+    // Cargar el script de Jitsi Meet (self-hosted o JaaS)
     const script = document.createElement('script');
-    const jitsiMagicCookie = import.meta.env.VITE_JITSI_MAGIC_COOKIE || 'vpaas-magic-cookie-f12e21682859419797e6f54f98c1c559';
-    const jitsiDomain = import.meta.env.VITE_JITSI_DOMAIN || '8x8.vc';
-    script.src = `https://${jitsiDomain}/${jitsiMagicCookie}/external_api.js`;
+    const jitsiMagicCookie = import.meta.env.VITE_JITSI_MAGIC_COOKIE || '';
+    const jitsiDomain = import.meta.env.VITE_JITSI_DOMAIN || 'localhost:8000';
+    const isSelfHosted = !jitsiDomain.includes('8x8.vc');
+    script.src = isSelfHosted
+      ? `http://${jitsiDomain}/external_api.js`
+      : `https://${jitsiDomain}/${jitsiMagicCookie}/external_api.js`;
     script.async = true;
     
     script.onload = () => {
@@ -102,9 +105,9 @@ function JitsiVideoCallComponent({
           return;
         }
 
-      // Configuración para 8x8.vc (Jitsi as a Service)
+      // Configuración para self-hosted o JaaS (8x8.vc)
       const domain = jitsiDomain;
-      const fullRoomName = `${jitsiMagicCookie}/${roomName}`;
+      const fullRoomName = isSelfHosted ? roomName : `${jitsiMagicCookie}/${roomName}`;
       const options = {
         roomName: fullRoomName,
         parentNode: jitsiContainerRef.current,
@@ -115,10 +118,8 @@ function JitsiVideoCallComponent({
           startWithVideoMuted: false,
           enableNoAudioDetection: true,
           enableNoisyMicDetection: true,
-          // Habilitar cifrado E2E
-          e2ee: {
-            enabled: true
-          },
+          // E2EE solo en JaaS (self-hosted usa oportunistic SRTP)
+          ...(isSelfHosted ? {} : { e2ee: { enabled: true } }),
           // Configuración de privacidad
           disableThirdPartyRequests: true,
           analytics: {
@@ -647,7 +648,8 @@ function JitsiVideoCallComponent({
 
     return () => {
       // Limpiar script al desmontar
-      const existingScript = document.querySelector('script[src*="8x8.vc"]');
+      const scriptSelector = isSelfHosted ? 'script[src*="external_api.js"]' : 'script[src*="8x8.vc"]';
+      const existingScript = document.querySelector(scriptSelector);
       if (existingScript && existingScript.parentNode) {
         existingScript.parentNode.removeChild(existingScript);
       }
@@ -759,7 +761,7 @@ function JitsiVideoCallComponent({
               Cargando videollamada...
             </div>
             <div style={{ fontSize: '14px', marginTop: '8px', opacity: 0.8 }}>
-              Conectando con cifrado de extremo a extremo
+              Conectando de forma segura...
             </div>
           </div>
         )}

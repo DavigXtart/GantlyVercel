@@ -123,21 +123,21 @@ class RateLimitFilterTest {
     // ── Auth endpoints have lower limits ────────────────────────────────
 
     @Test
-    @DisplayName("Auth endpoints have a lower rate limit of 30")
-    void authEndpoints_lowerLimit() throws ServletException, IOException {
+    @DisplayName("Sensitive auth endpoints (login/register) have rate limit of 5")
+    void sensitiveEndpoints_lowerLimit() throws ServletException, IOException {
         String uniqueIp = "10.3.0.1";
 
-        // Send 30 requests to auth endpoint (the auth limit)
-        for (int i = 0; i < 30; i++) {
+        // Send 5 requests to login endpoint (the sensitive limit)
+        for (int i = 0; i < 5; i++) {
             MockHttpServletRequest req = new MockHttpServletRequest();
             MockHttpServletResponse res = new MockHttpServletResponse();
             req.setRemoteAddr(uniqueIp);
             req.setRequestURI("/api/auth/login");
             rateLimitFilter.doFilterInternal(req, res, filterChain);
-            assertEquals(200, res.getStatus(), "Auth request " + (i + 1) + " should pass");
+            assertEquals(200, res.getStatus(), "Sensitive request " + (i + 1) + " should pass");
         }
 
-        // The 31st auth request should be blocked
+        // The 6th request should be blocked
         MockHttpServletRequest blockedReq = new MockHttpServletRequest();
         MockHttpServletResponse blockedRes = new MockHttpServletResponse();
         blockedReq.setRemoteAddr(uniqueIp);
@@ -149,15 +149,15 @@ class RateLimitFilterTest {
     }
 
     @Test
-    @DisplayName("Auth endpoints report limit as 30 in headers")
-    void authEndpoints_headerShowsLowerLimit() throws ServletException, IOException {
+    @DisplayName("Sensitive endpoints report limit as 5 in headers")
+    void sensitiveEndpoints_headerShowsLimit() throws ServletException, IOException {
         request.setRemoteAddr("10.4.0.1");
         request.setRequestURI("/api/auth/register");
 
         rateLimitFilter.doFilterInternal(request, response, filterChain);
 
-        assertEquals("30", response.getHeader("X-RateLimit-Limit"));
-        assertEquals("29", response.getHeader("X-RateLimit-Remaining"));
+        assertEquals("5", response.getHeader("X-RateLimit-Limit"));
+        assertEquals("4", response.getHeader("X-RateLimit-Remaining"));
     }
 
     @Test

@@ -52,8 +52,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 		}
 
 		try {
-			String token = authService.processOAuth2User(provider, providerId, email, name, picture);
-			response.sendRedirect(frontendBaseUrl + "/#token=" + java.net.URLEncoder.encode(token, "UTF-8"));
+			var tokenPair = authService.processOAuth2UserWithRefresh(provider, providerId, email, name, picture);
+			response.sendRedirect(frontendBaseUrl + "/#token=" + java.net.URLEncoder.encode(tokenPair.accessToken, "UTF-8"));
 		} catch (Exception e) {
 			response.sendRedirect(frontendBaseUrl + "/#error=" + java.net.URLEncoder.encode(e.getMessage(), "UTF-8"));
 		}

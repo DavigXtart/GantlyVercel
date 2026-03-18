@@ -86,6 +86,9 @@ export default function NotificationBell() {
     MESSAGE: 'chat',
     CRISIS: 'emergency',
     REMINDER: 'alarm',
+    PAYMENT: 'payments',
+    APPROVAL: 'verified',
+    WARNING: 'warning',
   };
 
   return (

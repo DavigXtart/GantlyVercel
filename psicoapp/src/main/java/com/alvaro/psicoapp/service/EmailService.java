@@ -38,11 +38,7 @@ public class EmailService {
         this.templateEngine = templateEngine;
     }
 
-    public void sendVerificationEmail(String toEmail, String name, String verificationToken) {
-        sendVerificationEmail(toEmail, name, verificationToken, false);
-    }
-
-    public void sendVerificationEmail(String toEmail, String name, String verificationToken, boolean isPsychologist) {
+    public void sendVerificationEmail(String toEmail, String name, String verificationToken, String verificationCode, boolean isPsychologist) {
         try {
             String verificationUrl = baseUrl + "/verify-email?token=" + verificationToken;
 
@@ -58,6 +54,7 @@ public class EmailService {
             ctx.setVariable("name", name);
             ctx.setVariable("greeting", greeting);
             ctx.setVariable("verificationUrl", verificationUrl);
+            ctx.setVariable("verificationCode", verificationCode);
             ctx.setVariable("extraMessage", extraMessage);
 
             String html = templateEngine.process("email/verification", ctx);
@@ -149,8 +146,49 @@ public class EmailService {
         }
     }
 
-    public void resendVerificationEmail(String toEmail, String name, String verificationToken, boolean isPsychologist) {
-        sendVerificationEmail(toEmail, name, verificationToken, isPsychologist);
+    public void resendVerificationEmail(String toEmail, String name, String verificationToken, String verificationCode, boolean isPsychologist) {
+        sendVerificationEmail(toEmail, name, verificationToken, verificationCode, isPsychologist);
+    }
+
+    public void sendPsychologistApprovalEmail(String toEmail, String name) {
+        try {
+            Context ctx = new Context();
+            ctx.setVariable("name", name);
+            ctx.setVariable("loginUrl", baseUrl + "/login");
+
+            String html = templateEngine.process("email/psychologist-approval", ctx);
+            sendHtmlEmail(toEmail, "Cuenta aprobada - PSYmatch", html);
+        } catch (Exception e) {
+            logger.error("Error enviando correo de aprobación de psicólogo", e);
+        }
+    }
+
+    public void sendPsychologistRejectionEmail(String toEmail, String name, String reason) {
+        try {
+            Context ctx = new Context();
+            ctx.setVariable("name", name);
+            ctx.setVariable("reason", reason != null ? reason : "No se proporcionó un motivo específico");
+
+            String html = templateEngine.process("email/psychologist-rejection", ctx);
+            sendHtmlEmail(toEmail, "Solicitud de cuenta - PSYmatch", html);
+        } catch (Exception e) {
+            logger.error("Error enviando correo de rechazo de psicólogo", e);
+        }
+    }
+
+    public void sendAppointmentCancellationEmail(String toEmail, String patientName,
+                                                  String psychologistName, Instant appointmentStart) {
+        try {
+            Context ctx = new Context();
+            ctx.setVariable("patientName", patientName);
+            ctx.setVariable("psychologistName", psychologistName);
+            ctx.setVariable("appointmentDate", DATE_FORMATTER.format(appointmentStart));
+
+            String html = templateEngine.process("email/appointment-cancellation", ctx);
+            sendHtmlEmail(toEmail, "Cita cancelada - PSYmatch", html);
+        } catch (Exception e) {
+            logger.error("Error enviando correo de cancelación de cita", e);
+        }
     }
 
     private void sendHtmlEmail(String to, String subject, String htmlContent) throws MessagingException {

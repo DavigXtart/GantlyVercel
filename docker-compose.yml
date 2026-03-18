@@ -43,5 +43,113 @@ services:
     depends_on:
       - backend
 
+  # Jitsi Meet self-hosted (videollamadas)
+  jitsi-web:
+    image: jitsi/web:stable-9584
+    container_name: gantly-jitsi-web
+    ports:
+      - "8000:80"
+    volumes:
+      - jitsi-web-config:/config
+      - jitsi-web-crontabs:/var/spool/cron/crontabs
+      - jitsi-web-transcripts:/usr/share/jitsi-meet/transcripts
+    environment:
+      - ENABLE_AUTH=0
+      - ENABLE_GUESTS=1
+      - ENABLE_LOBBY=0
+      - ENABLE_PREJOIN_PAGE=0
+      - DISABLE_HTTPS=1
+      - XMPP_AUTH_DOMAIN=auth.meet.jitsi
+      - XMPP_BOSH_URL_BASE=http://prosody:5280
+      - XMPP_DOMAIN=meet.jitsi
+      - XMPP_GUEST_DOMAIN=guest.meet.jitsi
+      - XMPP_MUC_DOMAIN=muc.meet.jitsi
+      - XMPP_RECORDER_DOMAIN=recorder.meet.jitsi
+      - TZ=Europe/Madrid
+      - PUBLIC_URL=${JITSI_PUBLIC_URL:-http://localhost:8000}
+    networks:
+      meet.jitsi:
+        aliases:
+          - meet.jitsi
+      default:
+
+  prosody:
+    image: jitsi/prosody:stable-9584
+    container_name: gantly-prosody
+    expose:
+      - "5222"
+      - "5280"
+      - "5347"
+    volumes:
+      - jitsi-prosody-config:/config
+      - jitsi-prosody-plugins:/prosody-plugins-custom
+    environment:
+      - ENABLE_AUTH=0
+      - ENABLE_GUESTS=1
+      - ENABLE_LOBBY=0
+      - XMPP_DOMAIN=meet.jitsi
+      - XMPP_AUTH_DOMAIN=auth.meet.jitsi
+      - XMPP_GUEST_DOMAIN=guest.meet.jitsi
+      - XMPP_MUC_DOMAIN=muc.meet.jitsi
+      - XMPP_INTERNAL_MUC_DOMAIN=internal-muc.meet.jitsi
+      - XMPP_RECORDER_DOMAIN=recorder.meet.jitsi
+      - XMPP_CROSS_DOMAIN=true
+      - TZ=Europe/Madrid
+    networks:
+      meet.jitsi:
+        aliases:
+          - prosody
+
+  jicofo:
+    image: jitsi/jicofo:stable-9584
+    container_name: gantly-jicofo
+    volumes:
+      - jitsi-jicofo-config:/config
+    environment:
+      - XMPP_DOMAIN=meet.jitsi
+      - XMPP_AUTH_DOMAIN=auth.meet.jitsi
+      - XMPP_INTERNAL_MUC_DOMAIN=internal-muc.meet.jitsi
+      - XMPP_MUC_DOMAIN=muc.meet.jitsi
+      - XMPP_SERVER=prosody
+      - JICOFO_AUTH_USER=focus
+      - JICOFO_AUTH_PASSWORD=${JICOFO_AUTH_PASSWORD:-jicofo_pass_12345}
+      - TZ=Europe/Madrid
+    depends_on:
+      - prosody
+    networks:
+      meet.jitsi:
+
+  jvb:
+    image: jitsi/jvb:stable-9584
+    container_name: gantly-jvb
+    ports:
+      - "10000:10000/udp"
+    volumes:
+      - jitsi-jvb-config:/config
+    environment:
+      - XMPP_AUTH_DOMAIN=auth.meet.jitsi
+      - XMPP_INTERNAL_MUC_DOMAIN=internal-muc.meet.jitsi
+      - XMPP_SERVER=prosody
+      - JVB_AUTH_USER=jvb
+      - JVB_AUTH_PASSWORD=${JVB_AUTH_PASSWORD:-jvb_pass_12345}
+      - JVB_PORT=10000
+      - JVB_ADVERTISE_IPS=${JVB_ADVERTISE_IPS:-127.0.0.1}
+      - TZ=Europe/Madrid
+    depends_on:
+      - prosody
+    networks:
+      meet.jitsi:
+
+networks:
+  meet.jitsi:
+    driver: bridge
+
 volumes:
   gantly-db-data:
+  jitsi-web-config:
+  jitsi-web-crontabs:
+  jitsi-web-transcripts:
+  jitsi-prosody-config:
+  jitsi-prosody-plugins:
+  jitsi-jicofo-config:
+  jitsi-jvb-config:

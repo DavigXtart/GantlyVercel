@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
+import { Routes, Route, Navigate, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import * as Sentry from '@sentry/react';
 import Login from './components/Login';
 import Register from './components/Register';
@@ -30,6 +31,7 @@ const ForgotPassword = lazy(() => import('./components/ForgotPassword'));
 const ResetPassword = lazy(() => import('./components/ResetPassword'));
 const PrivacyPolicy = lazy(() => import('./components/legal/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./components/legal/TermsOfService'));
+const PricingPage = lazy(() => import('./components/PricingPage'));
 
 const LazyFallback = () => (
   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -39,167 +41,51 @@ const LazyFallback = () => (
   </div>
 );
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [showRegister, setShowRegister] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
-  const [showLanding, setShowLanding] = useState(true);
-  const [showAbout, setShowAbout] = useState(false);
-  const [showSoyProfesional, setShowSoyProfesional] = useState(false);
-  const [showRegisterPsychologist, setShowRegisterPsychologist] = useState(false);
-  const [showRegisterCompany, setShowRegisterCompany] = useState(false);
-  const [showCompanyLogin, setShowCompanyLogin] = useState(false);
-  const [showInitialTest, setShowInitialTest] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [resetPasswordToken, setResetPasswordToken] = useState<string | null>(null);
-  const [oauthError, setOauthError] = useState<string | null>(null);
-  const [initialTestSessionId, setInitialTestSessionId] = useState<string | null>(null);
-  const [selectedTestId, setSelectedTestId] = useState<number | null>(null);
-  const [role, setRole] = useState<'USER'|'ADMIN'|'PSYCHOLOGIST'|'EMPRESA'|null>(null);
-  const [psychologistReferralFromUrl, setPsychologistReferralFromUrl] = useState<string | null>(null);
-  const [adminTab, setAdminTab] = useState<'tests'|'users'|'sections'|'admin-tests'|'admin-users'|'patients'|'psychologists'|'statistics'>('users');
+// Auth context shared across routes
+function useAuth() {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem('token'));
+  const [role, setRole] = useState<'USER' | 'ADMIN' | 'PSYCHOLOGIST' | 'EMPRESA' | null>(null);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
-  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
-  const [showTermsOfService, setShowTermsOfService] = useState(false);
+  const roleCheckInProgress = useRef(false);
 
-  const checkRole = async () => {
+  const checkRole = useCallback(async () => {
+    if (roleCheckInProgress.current) return;
+    roleCheckInProgress.current = true;
     try {
       const userData: any = await authService.me();
       setRole(userData?.role || null);
     } catch (err: any) {
-      // Si hay un error de autenticación, limpiar el token
       if (err.response?.status === 401 || err.response?.status === 403) {
         localStorage.removeItem('token');
         setIsAuthenticated(false);
-        setShowLanding(true);
       }
       setRole(null);
-    }
-  };
-
-  // Referencia para evitar actualizar el historial cuando se hace popstate
-  const isNavigatingBack = useRef(false);
-  const roleCheckInProgress = useRef(false);
-  const lastProcessedTestIdRef = useRef<number | null>(null);
-  const lastHistoryPath = useRef<string | null>(null);
-  const isUserNavigation = useRef(false); // Indica si la navegación fue iniciada por el usuario
-
-  useEffect(() => {
-    // Leer token/error del fragment (#) o query string (?) para compatibilidad
-    const hash = window.location.hash.substring(1); // quitar el #
-    const hashParams = new URLSearchParams(hash);
-    const urlParams = new URLSearchParams(window.location.search);
-    const tokenFromUrl = hashParams.get('token') || urlParams.get('token');
-    const errorFromUrl = hashParams.get('error') || urlParams.get('error');
-
-    // Inicializar el historial con la URL actual (esto puede borrar ?token= de la barra de direcciones)
-    const currentPath = window.location.pathname;
-    const initialState = window.history.state;
-    
-    if (!initialState || !initialState.page) {
-      window.history.replaceState({ page: currentPath }, '', currentPath);
-      lastHistoryPath.current = currentPath;
-    } else {
-      lastHistoryPath.current = initialState.page;
-    }
-    if (tokenFromUrl && window.location.pathname.includes('reset-password')) {
-      setResetPasswordToken(tokenFromUrl);
-      setShowLanding(false);
-      setShowLogin(false);
-      setShowRegister(false);
-      window.history.replaceState(null, '', '/reset-password');
-      return;
-    }
-    // OAuth2: token en URL (el backend redirige a /#token=xxx)
-    if (tokenFromUrl && tokenFromUrl.length > 10) {
-      localStorage.setItem('token', tokenFromUrl);
-      window.history.replaceState(null, '', window.location.pathname || '/');
-      window.location.hash = '';
-      setIsAuthenticated(true);
-      setShowLanding(false);
-      setShowLogin(false);
-      setShowRegister(false);
-      toast.success('¡Sesión iniciada correctamente!');
-      checkRole().catch(() => {});
-      return;
-    }
-    if (errorFromUrl) {
-      setOauthError(decodeURIComponent(errorFromUrl));
-      setShowLogin(true);
-      setShowLanding(false);
-      window.history.replaceState(null, '', '/');
-      return;
-    }
-
-    // Legal pages from URL
-    const currentPathname = window.location.pathname || '/';
-    if (currentPathname === '/privacidad') {
-      setShowPrivacyPolicy(true);
-      setShowLanding(false);
-      return;
-    }
-    if (currentPathname === '/terminos') {
-      setShowTermsOfService(true);
-      setShowLanding(false);
-      return;
-    }
-
-    // Referral de psicólogo: ?referral=juan-garcia o pathname /juan-garcia
-    const referralFromQuery = urlParams.get('referral');
-    const pathname = currentPathname;
-    const pathSlug = pathname.replace(/^\//, '').toLowerCase().replace(/[^a-z0-9-]/g, '');
-    const KNOWN_PATHS = ['', 'about', 'login', 'register', 'initial-test', 'reset-password', 'soy-profesional', 'privacidad', 'terminos'];
-    const isReferralSlug = pathSlug && pathSlug.length > 2 && !KNOWN_PATHS.includes(pathSlug);
-
-    if (referralFromQuery && referralFromQuery.trim()) {
-      setPsychologistReferralFromUrl(referralFromQuery.trim().toLowerCase().replace(/[^a-z0-9-]/g, ''));
-      setShowRegister(true);
-      setShowLanding(false);
-      setShowLogin(false);
-      setShowInitialTest(false);
-    } else if (isReferralSlug) {
-      setPsychologistReferralFromUrl(pathSlug);
-      setShowRegister(true);
-      setShowLanding(false);
-      setShowLogin(false);
-      setShowInitialTest(false);
-      window.history.replaceState({ page: '/register' }, '', '/register?referral=' + pathSlug);
-    }
-
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsAuthenticated(true);
-      setShowLanding(false);
-      setShowCompanyLogin(false);
-      // Intentar verificar el rol, pero no bloquear si el backend no está disponible
-      checkRole().catch(() => {
-        // Si el backend no está disponible, no es crítico - el usuario puede seguir usando la app
-      });
-    } else {
-      // Si no hay token y no viene por referral, mostrar landing
-      if (!referralFromQuery && !isReferralSlug) {
-        setShowLanding(true);
-        setShowAbout(false);
-        setShowSoyProfesional(false);
-        setShowLogin(false);
-        setShowCompanyLogin(false);
-        setShowRegister(false);
-        setShowInitialTest(false);
-        setShowForgotPassword(false);
-      }
-      setRole(null);
+    } finally {
+      roleCheckInProgress.current = false;
     }
   }, []);
 
-  // Escuchar evento de sesión expirada para mostrar toast y redirigir a login
+  const login = useCallback(() => {
+    setIsAuthenticated(true);
+    checkRole();
+  }, [checkRole]);
+
+  const logout = useCallback(() => {
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+    setRole(null);
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      checkRole().catch(() => {});
+    }
+  }, [isAuthenticated, checkRole]);
+
   useEffect(() => {
     const handleSessionExpired = () => {
       toast.warning('Tu sesión ha expirado. Por favor, inicia sesión de nuevo.');
-      setIsAuthenticated(false);
-      setRole(null);
-      setShowLanding(false);
-      setShowLogin(true);
-      setShowRegister(false);
+      logout();
     };
     const handleMaintenance = () => setMaintenanceMode(true);
     window.addEventListener('session-expired', handleSessionExpired);
@@ -208,612 +94,80 @@ function App() {
       window.removeEventListener('session-expired', handleSessionExpired);
       window.removeEventListener('maintenance-mode', handleMaintenance);
     };
-  }, []);
+  }, [logout]);
 
-  // Manejar el historial del navegador de forma más simple y segura
+  return { isAuthenticated, role, maintenanceMode, login, logout, checkRole };
+}
+
+// Component to handle OAuth callback (token in URL hash or query)
+function OAuthHandler({ onLogin }: { onLogin: () => void }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   useEffect(() => {
-    // Solo manejar el historial después de que el componente se haya renderizado
-    if (isNavigatingBack.current) {
-      isNavigatingBack.current = false;
+    const hash = window.location.hash.substring(1);
+    const hashParams = new URLSearchParams(hash);
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenFromUrl = hashParams.get('token') || urlParams.get('token');
+    const errorFromUrl = hashParams.get('error') || urlParams.get('error');
+
+    if (tokenFromUrl && location.pathname.includes('reset-password')) {
+      return; // Let ResetPassword route handle it
+    }
+
+    if (tokenFromUrl && tokenFromUrl.length > 10) {
+      localStorage.setItem('token', tokenFromUrl);
+      window.location.hash = '';
+      onLogin();
+      toast.success('¡Sesión iniciada correctamente!');
+      navigate('/dashboard', { replace: true });
       return;
     }
 
-    // Determinar qué página mostrar según el estado
-    let currentPath = '/';
-    if (showAbout) {
-      currentPath = '/about';
-    } else if (showSoyProfesional) {
-      currentPath = '/soy-profesional';
-    } else if (showCompanyLogin) {
-      currentPath = '/login-empresa';
-    } else if (showLogin) {
-      currentPath = '/login';
-    } else if (showRegister) {
-      currentPath = '/register';
-    } else if (showInitialTest) {
-      currentPath = '/initial-test';
-    } else if (isAuthenticated && !showLanding && !showAbout && !showSoyProfesional && !showLogin && !showRegister && !showInitialTest) {
-      currentPath = '/dashboard';
-    } else {
-      currentPath = '/';
+    if (errorFromUrl) {
+      navigate('/login', { replace: true, state: { oauthError: decodeURIComponent(errorFromUrl) } });
     }
-
-    // Solo actualizar si el path es diferente
-    const timer = setTimeout(() => {
-      const browserPath = window.location.pathname;
-      const currentState = window.history.state;
-      const currentHash = window.location.hash;
-      
-      // Si hay un hash de test, NO actualizar el historial para no perderlo
-      if (currentHash && currentHash.startsWith('#/test/')) {
-        return;
-      }
-      
-      // Si el path no ha cambiado desde la última vez, no hacer nada
-      if (lastHistoryPath.current === currentPath && browserPath === currentPath) {
-        return;
-      }
-      
-      const urlToUse = currentPath + (currentHash || '');
-      
-      // Si es navegación del usuario, usar pushState; si no, replaceState
-      if (isUserNavigation.current && currentPath !== lastHistoryPath.current) {
-        // Navegación explícita del usuario - crear nueva entrada en el historial
-        window.history.pushState({ page: currentPath }, '', urlToUse);
-        lastHistoryPath.current = currentPath;
-        isUserNavigation.current = false; // Resetear después de usar
-      } else if (currentPath !== browserPath || (currentState && currentState.page !== currentPath)) {
-        // Actualización interna - reemplazar la entrada actual
-        window.history.replaceState({ page: currentPath }, '', urlToUse);
-        lastHistoryPath.current = currentPath;
-      }
-    }, 50);
-
-    return () => clearTimeout(timer);
-  }, [showLanding, showAbout, showSoyProfesional, showLogin, showCompanyLogin, showRegister, showInitialTest, isAuthenticated]);
-
-  const goToLanding = useCallback(() => {
-    isUserNavigation.current = true;
-    setShowLanding(true);
-    setShowAbout(false);
-    setShowSoyProfesional(false);
-    setShowLogin(false);
-    setShowCompanyLogin(false);
-    setShowRegister(false);
-    setShowInitialTest(false);
-    setSelectedTestId(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-  const handleShowAbout = useCallback(() => {
-    isUserNavigation.current = true;
-    setShowLanding(false);
-    setShowAbout(true);
-    setShowSoyProfesional(false);
-    setShowLogin(false);
-    setShowCompanyLogin(false);
-    setShowRegister(false);
-    setShowInitialTest(false);
-    setSelectedTestId(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+  return null;
+}
 
-  const handleShowSoyProfesional = useCallback(() => {
-    isUserNavigation.current = true;
-    setShowLanding(false);
-    setShowAbout(false);
-    setShowSoyProfesional(true);
-    setShowLogin(false);
-    setShowCompanyLogin(false);
-    setShowRegister(false);
-    setShowInitialTest(false);
-    setSelectedTestId(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+// Detect referral slug from URL path
+function ReferralRedirect() {
+  const location = useLocation();
+  const pathSlug = location.pathname.replace(/^\//, '').toLowerCase().replace(/[^a-z0-9-]/g, '');
+  const KNOWN_PATHS = ['', 'about', 'login', 'register', 'initial-test', 'reset-password', 'soy-profesional', 'privacidad', 'terminos', 'login-empresa', 'register-psicologo', 'register-empresa', 'forgot-password', 'dashboard', 'test'];
 
-  const handleShowLogin = useCallback(() => {
-    isUserNavigation.current = true;
-    setShowLanding(false);
-    setShowAbout(false);
-    setShowSoyProfesional(false);
-    setShowLogin(true);
-    setShowCompanyLogin(false);
-    setShowRegister(false);
-    setShowInitialTest(false);
-    setSelectedTestId(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
-
-  const handleShowRegister = useCallback(() => {
-    isUserNavigation.current = true;
-    setShowLanding(false);
-    setShowAbout(false);
-    setShowSoyProfesional(false);
-    setShowLogin(false);
-    setShowCompanyLogin(false);
-    setShowRegister(true);
-    setShowInitialTest(false);
-    setSelectedTestId(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
-
-  // Escuchar cambios en el hash para rutas de tests
-  useEffect(() => {
-    if (!isAuthenticated) return;
-
-    let lastProcessedHash = window.location.hash;
-
-    const checkHashRoute = () => {
-      const hash = window.location.hash;
-      
-      // Si el hash no cambió, no hacer nada
-      if (hash === lastProcessedHash) {
-        return;
-      }
-      
-      lastProcessedHash = hash;
-      
-      if (hash && hash.startsWith('#/test/')) {
-        const testIdMatch = hash.match(/#\/test\/(\d+)/);
-        if (testIdMatch) {
-          const testId = parseInt(testIdMatch[1]);
-          if (!isNaN(testId) && testId > 0 && testId !== lastProcessedTestIdRef.current) {
-            lastProcessedTestIdRef.current = testId;
-            setSelectedTestId(testId);
-          }
-        }
-      }
-    };
-
-    // Verificar al cargar
-    checkHashRoute();
-
-    // Escuchar cambios en el hash
-    const handleHashChange = () => {
-      checkHashRoute();
-    };
-
-    // Verificar periódicamente (solo si hay un hash de test)
-    const intervalId = setInterval(() => {
-      const hash = window.location.hash;
-      if (hash && hash.startsWith('#/test/')) {
-        checkHashRoute();
-      }
-    }, 100);
-
-    window.addEventListener('hashchange', handleHashChange);
-
-    return () => {
-      clearInterval(intervalId);
-      window.removeEventListener('hashchange', handleHashChange);
-    };
-  }, [isAuthenticated]);
-
-  // NO limpiar el hash automáticamente - dejarlo para que el usuario pueda usar el botón atrás del navegador
-
-  // Escuchar el evento popstate (botón atrás/adelante del navegador)
-  useEffect(() => {
-    const handlePopState = (event: PopStateEvent) => {
-      isNavigatingBack.current = true;
-      isUserNavigation.current = false; // No es navegación del usuario, es del navegador
-      
-      // Actualizar lastHistoryPath para evitar actualizaciones innecesarias
-      const path = (event.state && event.state.page) ? event.state.page : window.location.pathname;
-      lastHistoryPath.current = path;
-      
-      // Cuando el usuario hace clic en "Atrás", navegar según el historial
-      if (event.state && event.state.page) {
-        const statePath = event.state.page;
-        if (statePath === '/') {
-          setShowLanding(true);
-          setShowAbout(false);
-          setShowSoyProfesional(false);
-          setShowLogin(false);
-          setShowCompanyLogin(false);
-          setShowRegister(false);
-          setShowInitialTest(false);
-          setSelectedTestId(null);
-        } else if (statePath === '/about') {
-          setShowLanding(false);
-          setShowAbout(true);
-          setShowSoyProfesional(false);
-          setShowLogin(false);
-          setShowCompanyLogin(false);
-          setShowRegister(false);
-          setShowInitialTest(false);
-        } else if (statePath === '/soy-profesional') {
-          setShowLanding(false);
-          setShowAbout(false);
-          setShowSoyProfesional(true);
-          setShowLogin(false);
-          setShowCompanyLogin(false);
-          setShowRegister(false);
-          setShowInitialTest(false);
-        } else if (statePath === '/login') {
-          setShowLanding(false);
-          setShowAbout(false);
-          setShowSoyProfesional(false);
-          setShowLogin(true);
-          setShowCompanyLogin(false);
-          setShowRegister(false);
-          setShowInitialTest(false);
-        } else if (statePath === '/login-empresa') {
-          setShowLanding(false);
-          setShowAbout(false);
-          setShowSoyProfesional(false);
-          setShowLogin(false);
-          setShowCompanyLogin(true);
-          setShowRegister(false);
-          setShowInitialTest(false);
-        } else if (statePath === '/register') {
-          setShowLanding(false);
-          setShowAbout(false);
-          setShowSoyProfesional(false);
-          setShowLogin(false);
-          setShowCompanyLogin(false);
-          setShowRegister(true);
-          setShowInitialTest(false);
-        } else if (statePath === '/initial-test') {
-          setShowLanding(false);
-          setShowAbout(false);
-          setShowSoyProfesional(false);
-          setShowLogin(false);
-          setShowCompanyLogin(false);
-          setShowRegister(false);
-          setShowInitialTest(true);
-        } else if (statePath === '/dashboard') {
-          // Si el usuario está autenticado y vuelve al dashboard
-          setShowLanding(false);
-          setShowAbout(false);
-          setShowSoyProfesional(false);
-          setShowLogin(false);
-          setShowCompanyLogin(false);
-          setShowRegister(false);
-          setShowInitialTest(false);
-        } else {
-          // Para cualquier otra ruta, volver a la landing
-          setShowLanding(true);
-          setShowAbout(false);
-          setShowSoyProfesional(false);
-          setShowLogin(false);
-          setShowCompanyLogin(false);
-          setShowRegister(false);
-          setShowInitialTest(false);
-        }
-      } else {
-        // Si no hay estado, verificar la URL actual
-        const currentPath = window.location.pathname;
-        if (currentPath === '/' || !currentPath) {
-          setShowLanding(true);
-          setShowAbout(false);
-          setShowSoyProfesional(false);
-          setShowLogin(false);
-          setShowRegister(false);
-          setShowInitialTest(false);
-        } else {
-          // Intentar restaurar según la URL
-          lastHistoryPath.current = currentPath;
-        }
-      }
-      
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    window.addEventListener('popstate', handlePopState);
-
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, []);
-
-  const handleLogin = () => {
-    isUserNavigation.current = true;
-    setIsAuthenticated(true);
-    setShowLanding(false);
-    setShowAbout(false);
-    setShowSoyProfesional(false);
-    setShowLogin(false);
-    setShowCompanyLogin(false);
-    setShowRegister(false);
-    setShowInitialTest(false);
-    setInitialTestSessionId(null);
-    checkRole();
-  };
-
-  const handleLogout = () => {
-    isUserNavigation.current = true;
-    localStorage.removeItem('token');
-    setIsAuthenticated(false);
-    setSelectedTestId(null);
-    setRole(null);
-    setShowLanding(true);
-    setShowAbout(false);
-    setShowSoyProfesional(false);
-    setShowLogin(false);
-    setShowCompanyLogin(false);
-    setShowRegister(false);
-    setShowInitialTest(false);
-    setInitialTestSessionId(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleRegister = () => {
-    isUserNavigation.current = true;
-    setIsAuthenticated(true);
-    setShowLanding(false);
-    setShowAbout(false);
-    setShowSoyProfesional(false);
-    setShowLogin(false);
-    setShowCompanyLogin(false);
-    setShowRegister(false);
-    setInitialTestSessionId(null);
-    checkRole();
-  };
-
-  const handleGetStarted = () => {
-    isUserNavigation.current = true;
-    setShowLanding(false);
-    setShowAbout(false);
-    setShowSoyProfesional(false);
-    setShowLogin(false);
-    setShowCompanyLogin(false);
-    setShowInitialTest(true);
-  };
-
-  const _handleStartInitialTest = useCallback(() => {
-    isUserNavigation.current = true;
-    setShowLanding(false);
-    setShowAbout(false);
-    setShowSoyProfesional(false);
-    setShowLogin(false);
-    setShowCompanyLogin(false);
-    setShowRegister(false);
-    setShowInitialTest(true);
-    setSelectedTestId(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
-
-  const handleInitialTestComplete = (sessionId: string) => {
-    isUserNavigation.current = true;
-    setInitialTestSessionId(sessionId);
-    setShowInitialTest(false);
-    setShowRegister(true);
-    setShowAbout(false);
-    setShowSoyProfesional(false);
-    setShowLogin(false);
-    setShowCompanyLogin(false);
-  };
-
-
-  // Renderizar según el estado
-  // Prioridad: Legal Pages > About > InitialTest > Register/Login > Landing > Authenticated views
-
-  if (showPrivacyPolicy) {
-    return (
-      <>
-        <Suspense fallback={<LazyFallback />}>
-          <PrivacyPolicy onBack={() => { setShowPrivacyPolicy(false); setShowLanding(true); window.history.replaceState({ page: '/' }, '', '/'); }} />
-        </Suspense>
-        <CookieBanner onPrivacyClick={() => {}} />
-      </>
-    );
+  if (pathSlug && pathSlug.length > 2 && !KNOWN_PATHS.includes(pathSlug)) {
+    return <Navigate to={`/register?referral=${pathSlug}`} replace />;
   }
 
-  if (showTermsOfService) {
-    return (
-      <>
-        <Suspense fallback={<LazyFallback />}>
-          <TermsOfService onBack={() => { setShowTermsOfService(false); setShowLanding(true); window.history.replaceState({ page: '/' }, '', '/'); }} />
-        </Suspense>
-        <CookieBanner />
-      </>
-    );
-  }
+  return <Navigate to="/" replace />;
+}
 
-  if (showAbout) {
-    return <Suspense fallback={<LazyFallback />}><About onBack={goToLanding} onLogin={handleShowLogin} onGetStarted={handleGetStarted} /></Suspense>;
-  }
-
-  if (showRegisterPsychologist) {
-    return <Suspense fallback={<LazyFallback />}><RegisterPsychologist 
-      onBack={() => {
-        isUserNavigation.current = true;
-        setShowRegisterPsychologist(false);
-        setShowSoyProfesional(true);
-      }} 
-      onLogin={handleShowLogin} 
-      onSuccess={() => {
-        setShowRegisterPsychologist(false);
-        handleLogin();
-      }}
-    /></Suspense>;
-  }
-
-  if (showRegisterCompany) {
-    return <Suspense fallback={<LazyFallback />}><RegisterCompany
-      onBack={() => {
-        isUserNavigation.current = true;
-        setShowRegisterCompany(false);
-        setShowSoyProfesional(true);
-      }}
-      onLogin={handleShowLogin}
-      onSuccess={() => {
-        setShowRegisterCompany(false);
-        handleLogin();
-      }}
-    /></Suspense>;
-  }
-
-  if (showSoyProfesional) {
-    return <Suspense fallback={<LazyFallback />}><SoyProfesional 
-      onBack={goToLanding} 
-      onLogin={handleShowLogin} 
-      onGetStarted={() => {
-        isUserNavigation.current = true;
-        setShowSoyProfesional(false);
-        setShowRegisterPsychologist(true);
-      }}
-      onRegisterCompany={() => {
-        isUserNavigation.current = true;
-        setShowSoyProfesional(false);
-        setShowRegisterCompany(true);
-      }}
-    /></Suspense>;
-  }
-
-  if (showInitialTest) {
-    return (
-      <div>
-        <nav>
-          <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 
-              onClick={() => { isUserNavigation.current = true; setShowInitialTest(false); setShowLanding(true); }}
-              style={{ cursor: 'pointer', userSelect: 'none', transition: 'opacity 0.2s' }}
-              onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
-            >
-              Gantly
-            </h3>
-            <button onClick={() => { isUserNavigation.current = true; setShowInitialTest(false); setShowLanding(true); }} className="btn-secondary">Volver</button>
-          </div>
-        </nav>
-        <Suspense fallback={<LazyFallback />}>
-          <InitialTestFlow
-            onComplete={handleInitialTestComplete}
-            onBack={() => { isUserNavigation.current = true; setShowInitialTest(false); setShowLanding(true); }}
-          />
-        </Suspense>
-      </div>
-    );
-  }
-
+// Protected route wrapper
+function ProtectedRoute({ isAuthenticated, children }: { isAuthenticated: boolean; children: React.ReactNode }) {
   if (!isAuthenticated) {
-    // Manejar reset de contraseña desde URL
-    if (resetPasswordToken) {
-      return <Suspense fallback={<LazyFallback />}><ResetPassword 
-        token={resetPasswordToken} 
-        onSuccess={() => {
-          setResetPasswordToken(null);
-          window.history.replaceState(null, '', '/login');
-          handleShowLogin();
-        }}
-        onBack={() => {
-          setResetPasswordToken(null);
-          window.history.replaceState(null, '', '/login');
-          handleShowLogin();
-        }}
-      /></Suspense>;
-    }
-
-    if (showForgotPassword) {
-      return <Suspense fallback={<LazyFallback />}><ForgotPassword 
-        onBack={() => {
-          setShowForgotPassword(false);
-          handleShowLogin();
-        }}
-        onSuccess={() => {
-          setShowForgotPassword(false);
-          handleShowLogin();
-        }}
-      /></Suspense>;
-    }
-
-    if (showRegister) {
-      return <Register 
-        onRegister={handleRegister} 
-        onSwitchToLogin={handleShowLogin}
-        sessionId={initialTestSessionId}
-        psychologistReferralCode={psychologistReferralFromUrl || undefined}
-      />;
-    }
-    if (showCompanyLogin) {
-      return <Login
-        variant="company"
-        onLogin={handleLogin}
-        onSwitchToRegister={handleShowRegister}
-        onForgotPassword={() => {
-          setShowCompanyLogin(false);
-          setShowForgotPassword(true);
-        }}
-        oauthError={oauthError}
-        onClearOauthError={() => setOauthError(null)}
-        onSwitchToUserLogin={handleShowLogin}
-      />;
-    }
-    if (showLogin) {
-      return <Login 
-        onLogin={handleLogin} 
-        onSwitchToRegister={handleShowRegister}
-        onForgotPassword={() => {
-          setShowLogin(false);
-          setShowForgotPassword(true);
-        }}
-        oauthError={oauthError}
-        onClearOauthError={() => setOauthError(null)}
-        onSwitchToCompanyLogin={() => {
-          isUserNavigation.current = true;
-          setShowLogin(false);
-          setShowCompanyLogin(true);
-        }}
-      />;
-    }
-    // Si no hay ninguna vista específica, mostrar la landing (por defecto)
-    return <Landing 
-      onGetStarted={handleGetStarted} 
-      onLogin={handleShowLogin} 
-      onShowAbout={handleShowAbout} 
-      onShowSoyProfesional={handleShowSoyProfesional}
-    />;
+    return <Navigate to="/login" replace />;
   }
+  return <>{children}</>;
+}
 
-  // Usuario autenticado
-  const handleBackToList = () => {
-    lastProcessedTestIdRef.current = null;
-    setSelectedTestId(null);
-    // Limpiar el hash cuando se sale del test
-    window.history.replaceState(null, '', window.location.pathname);
-  };
+// Dashboard component that renders based on role
+function Dashboard({ role, logout, onStartTest }: {
+  role: 'USER' | 'ADMIN' | 'PSYCHOLOGIST' | 'EMPRESA' | null;
+  logout: () => void;
+  onStartTest: (testId: number) => void;
+}) {
+  const navigate = useNavigate();
+  const [adminTab, setAdminTab] = useState<'tests' | 'users' | 'sections' | 'admin-tests' | 'admin-users' | 'patients' | 'psychologists' | 'statistics'>('users');
 
-  if (isAuthenticated && selectedTestId) {
-    return (
-      <div>
-        <nav>
-          <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 
-              onClick={goToLanding}
-              style={{ cursor: 'pointer', userSelect: 'none', transition: 'opacity 0.2s' }}
-              onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
-            >
-              Gantly
-            </h3>
-            <button onClick={handleBackToList} className="btn-secondary">Volver</button>
-          </div>
-        </nav>
-        <Suspense fallback={<LazyFallback />}>
-          <TestFlow
-            testId={selectedTestId}
-            onBack={handleBackToList}
-            onComplete={handleBackToList}
-          />
-        </Suspense>
-      </div>
-    );
-  }
-
-
-  // Modo mantenimiento
-  if (maintenanceMode) {
-    return <Maintenance />;
-  }
-
-  // Navegación principal autenticado según rol
   return (
     <div>
       <nav>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 
-            onClick={goToLanding}
+          <h3
+            onClick={() => navigate('/')}
             style={{ cursor: 'pointer', userSelect: 'none', transition: 'opacity 0.2s' }}
             onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
             onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
@@ -823,55 +177,38 @@ function App() {
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             {role === 'ADMIN' && (
               <>
-                <button className={`btn-secondary ${adminTab==='users'?'active':''}`} onClick={() => setAdminTab('users')}>Roles</button>
-                <button className={`btn-secondary ${adminTab==='admin-tests'?'active':''}`} onClick={() => setAdminTab('admin-tests')}>Tests</button>
-                <button className={`btn-secondary ${adminTab==='patients'?'active':''}`} onClick={() => setAdminTab('patients')}>Pacientes</button>
-                <button className={`btn-secondary ${adminTab==='psychologists'?'active':''}`} onClick={() => setAdminTab('psychologists')}>Psicólogos</button>
-                <button className={`btn-secondary ${adminTab==='sections'?'active':''}`} onClick={() => setAdminTab('sections')}>Secciones</button>
-                <button className={`btn-secondary ${adminTab==='statistics'?'active':''}`} onClick={() => setAdminTab('statistics')}>Estadísticas</button>
+                <button className={`btn-secondary ${adminTab === 'users' ? 'active' : ''}`} onClick={() => setAdminTab('users')}>Roles</button>
+                <button className={`btn-secondary ${adminTab === 'admin-tests' ? 'active' : ''}`} onClick={() => setAdminTab('admin-tests')}>Tests</button>
+                <button className={`btn-secondary ${adminTab === 'patients' ? 'active' : ''}`} onClick={() => setAdminTab('patients')}>Pacientes</button>
+                <button className={`btn-secondary ${adminTab === 'psychologists' ? 'active' : ''}`} onClick={() => setAdminTab('psychologists')}>Psicólogos</button>
+                <button className={`btn-secondary ${adminTab === 'sections' ? 'active' : ''}`} onClick={() => setAdminTab('sections')}>Secciones</button>
+                <button className={`btn-secondary ${adminTab === 'statistics' ? 'active' : ''}`} onClick={() => setAdminTab('statistics')}>Estadísticas</button>
               </>
             )}
             {(role === 'USER' || role === 'PSYCHOLOGIST') && <NotificationBell />}
-            <button onClick={handleLogout} className="btn-secondary">Cerrar sesión</button>
+            <button onClick={() => { logout(); navigate('/'); }} className="btn-secondary">Cerrar sesión</button>
           </div>
         </div>
       </nav>
 
       <Suspense fallback={<LazyFallback />}>
-        {/* ADMIN: sólo panel admin */}
         {role === 'ADMIN' && (
           <div>
             {adminTab === 'users' ? <AdminUsersPanel /> :
-             adminTab === 'admin-tests' ? <AdminPanel /> :
-             adminTab === 'patients' ? <UsersManager filterRole="USER" /> :
-             adminTab === 'psychologists' ? <UsersManager filterRole="PSYCHOLOGIST" /> :
-             adminTab === 'sections' ? <AdminSectionsManager /> :
-             adminTab === 'statistics' ? <AdminStatistics /> :
-             <AdminPanel />}
+              adminTab === 'admin-tests' ? <AdminPanel /> :
+                adminTab === 'patients' ? <UsersManager filterRole="USER" /> :
+                  adminTab === 'psychologists' ? <UsersManager filterRole="PSYCHOLOGIST" /> :
+                    adminTab === 'sections' ? <AdminSectionsManager /> :
+                      adminTab === 'statistics' ? <AdminStatistics /> :
+                        <AdminPanel />}
           </div>
         )}
-
-        {/* USER: Mi perfil */}
-        {role === 'USER' && (
-          <UserDashboard onStartTest={(testId) => {
-            lastProcessedTestIdRef.current = testId;
-            setSelectedTestId(testId);
-          }} />
-        )}
-
-        {/* PSYCHOLOGIST: Mi perfil */}
-        {role === 'PSYCHOLOGIST' && (
-          <PsychDashboard />
-        )}
-
-        {/* EMPRESA: Panel de psicólogos */}
-        {role === 'EMPRESA' && (
-          <CompanyDashboard />
-        )}
+        {role === 'USER' && <UserDashboard onStartTest={onStartTest} />}
+        {role === 'PSYCHOLOGIST' && <PsychDashboard />}
+        {role === 'EMPRESA' && <CompanyDashboard />}
       </Suspense>
 
-      {/* Si no tenemos el rol aún pero estamos autenticados (ej. tras OAuth) */}
-      {isAuthenticated && !role && (
+      {!role && (
         <div className="container" style={{ maxWidth: '1200px', marginTop: 24, padding: '40px', textAlign: 'center' }}>
           <div style={{ fontSize: '18px', marginBottom: '16px' }}>Cargando tu cuenta...</div>
           <div style={{ fontSize: '14px', color: '#6b7280' }}>
@@ -879,16 +216,272 @@ function App() {
           </div>
         </div>
       )}
-      
-      {/* Global loading indicator */}
+
       <GlobalLoader />
-      {/* Toast Container para notificaciones */}
       <ToastContainer />
-      {/* Cookie consent banner */}
-      <CookieBanner onPrivacyClick={() => { setShowPrivacyPolicy(true); }} />
-      {/* Crisis button for patients only */}
+      <CookieBanner onPrivacyClick={() => navigate('/privacidad')} />
       {role === 'USER' && <CrisisButton />}
     </div>
+  );
+}
+
+// Test flow page
+function TestPage({ onBack }: { onBack: () => void }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const testIdStr = location.pathname.split('/test/')[1];
+  const testId = testIdStr ? parseInt(testIdStr) : null;
+
+  if (!testId || isNaN(testId)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  const handleBack = () => {
+    onBack();
+    navigate('/dashboard');
+  };
+
+  return (
+    <div>
+      <nav>
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3
+            onClick={() => navigate('/')}
+            style={{ cursor: 'pointer', userSelect: 'none', transition: 'opacity 0.2s' }}
+            onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+          >
+            Gantly
+          </h3>
+          <button onClick={handleBack} className="btn-secondary">Volver</button>
+        </div>
+      </nav>
+      <Suspense fallback={<LazyFallback />}>
+        <TestFlow testId={testId} onBack={handleBack} onComplete={handleBack} />
+      </Suspense>
+    </div>
+  );
+}
+
+function App() {
+  const { isAuthenticated, role, maintenanceMode, login, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [initialTestSessionId, setInitialTestSessionId] = useState<string | null>(null);
+  const [oauthError, setOauthError] = useState<string | null>(null);
+
+  // Pick up OAuth error from navigation state
+  useEffect(() => {
+    const state = location.state as any;
+    if (state?.oauthError) {
+      setOauthError(state.oauthError);
+      // Clear the state
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state]);
+
+  if (maintenanceMode) {
+    return <Maintenance />;
+  }
+
+  const handleLogin = () => {
+    login();
+    setInitialTestSessionId(null);
+    navigate('/dashboard');
+  };
+
+  const handleStartTest = (testId: number) => {
+    navigate(`/dashboard/test/${testId}`);
+  };
+
+  return (
+    <>
+      <OAuthHandler onLogin={login} />
+      <Routes>
+        {/* Public legal pages */}
+        <Route path="/privacidad" element={
+          <Suspense fallback={<LazyFallback />}>
+            <PrivacyPolicy onBack={() => navigate('/')} />
+            <CookieBanner onPrivacyClick={() => {}} />
+          </Suspense>
+        } />
+        <Route path="/terminos" element={
+          <Suspense fallback={<LazyFallback />}>
+            <TermsOfService onBack={() => navigate('/')} />
+            <CookieBanner />
+          </Suspense>
+        } />
+
+        {/* Public pages */}
+        <Route path="/about" element={
+          <Suspense fallback={<LazyFallback />}>
+            <About onBack={() => navigate('/')} onLogin={() => navigate('/login')} onGetStarted={() => navigate('/initial-test')} />
+          </Suspense>
+        } />
+        <Route path="/soy-profesional" element={
+          <Suspense fallback={<LazyFallback />}>
+            <SoyProfesional
+              onBack={() => navigate('/')}
+              onLogin={() => navigate('/login')}
+              onGetStarted={() => navigate('/register-psicologo')}
+              onRegisterCompany={() => navigate('/register-empresa')}
+            />
+          </Suspense>
+        } />
+        <Route path="/register-psicologo" element={
+          <Suspense fallback={<LazyFallback />}>
+            <RegisterPsychologist
+              onBack={() => navigate('/soy-profesional')}
+              onLogin={() => navigate('/login')}
+              onSuccess={handleLogin}
+            />
+          </Suspense>
+        } />
+        <Route path="/register-empresa" element={
+          <Suspense fallback={<LazyFallback />}>
+            <RegisterCompany
+              onBack={() => navigate('/soy-profesional')}
+              onLogin={() => navigate('/login')}
+              onSuccess={handleLogin}
+            />
+          </Suspense>
+        } />
+
+        <Route path="/pricing" element={
+          <Suspense fallback={<LazyFallback />}>
+            <PricingPage onBack={() => navigate('/')} />
+          </Suspense>
+        } />
+
+        {/* Initial test */}
+        <Route path="/initial-test" element={
+          <div>
+            <nav>
+              <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 onClick={() => navigate('/')} style={{ cursor: 'pointer', userSelect: 'none', transition: 'opacity 0.2s' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}>
+                  Gantly
+                </h3>
+                <button onClick={() => navigate('/')} className="btn-secondary">Volver</button>
+              </div>
+            </nav>
+            <Suspense fallback={<LazyFallback />}>
+              <InitialTestFlow
+                onComplete={(sessionId: string) => {
+                  setInitialTestSessionId(sessionId);
+                  navigate('/register');
+                }}
+                onBack={() => navigate('/')}
+              />
+            </Suspense>
+          </div>
+        } />
+
+        {/* Auth pages */}
+        <Route path="/forgot-password" element={
+          <Suspense fallback={<LazyFallback />}>
+            <ForgotPassword onBack={() => navigate('/login')} onSuccess={() => navigate('/login')} />
+          </Suspense>
+        } />
+        <Route path="/reset-password" element={
+          <ResetPasswordRoute />
+        } />
+        <Route path="/register" element={
+          isAuthenticated ? <Navigate to="/dashboard" replace /> :
+            <RegisterRoute initialTestSessionId={initialTestSessionId} onRegister={handleLogin} />
+        } />
+        <Route path="/login-empresa" element={
+          isAuthenticated ? <Navigate to="/dashboard" replace /> :
+            <Login
+              variant="company"
+              onLogin={handleLogin}
+              onSwitchToRegister={() => navigate('/register')}
+              onForgotPassword={() => navigate('/forgot-password')}
+              oauthError={oauthError}
+              onClearOauthError={() => setOauthError(null)}
+              onSwitchToUserLogin={() => navigate('/login')}
+            />
+        } />
+        <Route path="/login" element={
+          isAuthenticated ? <Navigate to="/dashboard" replace /> :
+            <Login
+              onLogin={handleLogin}
+              onSwitchToRegister={() => navigate('/register')}
+              onForgotPassword={() => navigate('/forgot-password')}
+              oauthError={oauthError}
+              onClearOauthError={() => setOauthError(null)}
+              onSwitchToCompanyLogin={() => navigate('/login-empresa')}
+            />
+        } />
+
+        {/* Authenticated routes */}
+        <Route path="/dashboard/test/:testId" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <TestPage onBack={() => {}} />
+          </ProtectedRoute>
+        } />
+        <Route path="/dashboard" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <Dashboard role={role} logout={logout} onStartTest={handleStartTest} />
+          </ProtectedRoute>
+        } />
+
+        {/* Landing / catch-all */}
+        <Route path="/" element={
+          isAuthenticated ? <Navigate to="/dashboard" replace /> :
+            <Landing
+              onGetStarted={() => navigate('/initial-test')}
+              onLogin={() => navigate('/login')}
+              onShowAbout={() => navigate('/about')}
+              onShowSoyProfesional={() => navigate('/soy-profesional')}
+            />
+        } />
+
+        {/* Catch-all: detect referral slugs or redirect to landing */}
+        <Route path="*" element={<ReferralRedirect />} />
+      </Routes>
+    </>
+  );
+}
+
+// Sub-route components
+function ResetPasswordRoute() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token');
+  const hash = window.location.hash.substring(1);
+  const hashParams = new URLSearchParams(hash);
+  const tokenFromHash = hashParams.get('token');
+  const resetToken = token || tokenFromHash;
+
+  if (!resetToken) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return (
+    <Suspense fallback={<LazyFallback />}>
+      <ResetPassword
+        token={resetToken}
+        onSuccess={() => navigate('/login')}
+        onBack={() => navigate('/login')}
+      />
+    </Suspense>
+  );
+}
+
+function RegisterRoute({ initialTestSessionId, onRegister }: { initialTestSessionId: string | null; onRegister: () => void }) {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const referral = searchParams.get('referral');
+
+  return (
+    <Register
+      onRegister={onRegister}
+      onSwitchToLogin={() => navigate('/login')}
+      sessionId={initialTestSessionId}
+      psychologistReferralCode={referral || undefined}
+    />
   );
 }
 

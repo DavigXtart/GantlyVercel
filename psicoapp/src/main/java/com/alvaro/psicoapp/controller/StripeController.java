@@ -56,6 +56,54 @@ public class StripeController {
         }
     }
 
+    @PostMapping("/appointment-checkout")
+    public ResponseEntity<Map<String, String>> createAppointmentCheckout(
+            @RequestBody Map<String, Object> request,
+            Principal principal) {
+        if (principal == null) return ResponseEntity.status(401).build();
+
+        Number appointmentIdNum = (Number) request.get("appointmentId");
+        if (appointmentIdNum == null) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "appointmentId es requerido");
+            return ResponseEntity.badRequest().body(error);
+        }
+
+        try {
+            Map<String, String> session = stripeService.createAppointmentCheckoutSession(
+                    appointmentIdNum.longValue(), principal.getName());
+            return ResponseEntity.ok(session);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.internalServerError().body(error);
+        }
+    }
+
+    @PostMapping("/verify-appointment-payment")
+    public ResponseEntity<Map<String, String>> verifyAppointmentPayment(
+            @RequestBody Map<String, Object> request,
+            Principal principal) {
+        if (principal == null) return ResponseEntity.status(401).build();
+
+        Number appointmentIdNum = (Number) request.get("appointmentId");
+        if (appointmentIdNum == null) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "appointmentId es requerido");
+            return ResponseEntity.badRequest().body(error);
+        }
+
+        try {
+            Map<String, String> result = stripeService.verifyAppointmentPayment(
+                    appointmentIdNum.longValue(), principal.getName());
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.internalServerError().body(error);
+        }
+    }
+
     @PostMapping("/billing-portal")
     public ResponseEntity<Map<String, String>> createBillingPortal(Principal principal) {
         if (principal == null) return ResponseEntity.status(401).build();

@@ -176,6 +176,12 @@ public class CalendarController {
         return ResponseEntity.ok(calendarService.getPsychologistPastAppointments(currentUser(principal)));
     }
 
+    @GetMapping("/psychologist/billing-appointments")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<CalendarDtos.PsychologistPastAppointmentDto>> getBillingAppointments(Principal principal) {
+        return ResponseEntity.ok(calendarService.getBillingAppointments(currentUser(principal)));
+    }
+
     @PutMapping("/appointments/{appointmentId}/notes")
     @Transactional
     @Operation(summary = "Actualizar notas de cita", description = "Permite al psicólogo añadir notas a una cita pasada")

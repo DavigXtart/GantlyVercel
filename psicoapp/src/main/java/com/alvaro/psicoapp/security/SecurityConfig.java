@@ -61,6 +61,8 @@ public class SecurityConfig {
                 headers.frameOptions(frame -> frame.deny());
                 headers.referrerPolicy(referrer -> referrer.policy(
                     org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN));
+                headers.permissionsPolicy(pp -> pp.policy(
+                    "camera=(self), microphone=(self), geolocation=(), payment=(self)"));
                 if (isProd) {
                     headers.httpStrictTransportSecurity(hsts -> hsts
                         .includeSubDomains(true)
@@ -90,7 +92,6 @@ public class SecurityConfig {
 				.requestMatchers("/api/jitsi/**").authenticated()
 				.requestMatchers("/api/stripe/webhook").permitAll()
 				.requestMatchers("/api/stripe/**").authenticated()
-				.requestMatchers("/api/group-sessions/**").authenticated()
 				.requestMatchers("/ws/**", "/topic/**", "/app/**").permitAll()
 				.requestMatchers("/actuator/health").permitAll()
 				.requestMatchers("/actuator/**").authenticated()
@@ -117,10 +118,11 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         List<String> origins = Arrays.asList(allowedOrigins.split(","));
-        origins.forEach(origin -> config.addAllowedOriginPattern(origin.trim()));
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
+        origins.forEach(origin -> config.addAllowedOrigin(origin.trim()));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }

@@ -13,6 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.alvaro.psicoapp.domain.AppointmentRequestEntity;
+import com.alvaro.psicoapp.repository.AppointmentRequestRepository;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -30,16 +33,28 @@ public class CompanyService {
     private final UserRepository userRepository;
     private final UserPsychologistRepository userPsychologistRepository;
     private final AppointmentRepository appointmentRepository;
+    private final AppointmentRequestRepository appointmentRequestRepository;
     private final CalendarService calendarService;
+    private final NotificationService notificationService;
+    private final EmailService emailService;
+
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(CompanyService.class);
 
     public CompanyService(CompanyRepository companyRepository, UserRepository userRepository,
                           UserPsychologistRepository userPsychologistRepository,
-                          AppointmentRepository appointmentRepository, CalendarService calendarService) {
+                          AppointmentRepository appointmentRepository,
+                          AppointmentRequestRepository appointmentRequestRepository,
+                          CalendarService calendarService,
+                          NotificationService notificationService,
+                          EmailService emailService) {
         this.companyRepository = companyRepository;
         this.userRepository = userRepository;
         this.userPsychologistRepository = userPsychologistRepository;
         this.appointmentRepository = appointmentRepository;
+        this.appointmentRequestRepository = appointmentRequestRepository;
         this.calendarService = calendarService;
+        this.notificationService = notificationService;
+        this.emailService = emailService;
     }
 
     @Transactional(readOnly = true)
@@ -174,6 +189,75 @@ public class CompanyService {
                 patientEmail
         );
     }
+
+    @Transactional(readOnly = true)
+    public List<CompanySlotDto> getPsychologistAvailability(String companyEmail, Long psychologistId, Instant from, Instant to) {
+        var company = companyRepository.findByEmail(companyEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa no encontrada"));
+        UserEntity psych = userRepository.findById(psychologistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Psicólogo no encontrado"));
+        if (!company.getId().equals(psych.getCompanyId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Este psicólogo no pertenece a tu empresa");
+        }
+
+        Instant now = Instant.now();
+        return appointmentRepository.findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(psychologistId, from, to)
+                .stream()
+                .filter(a -> "FREE".equals(a.getStatus()) && a.getStartTime().isAfter(now))
+                .map(a -> new CompanySlotDto(a.getId(), a.getStartTime().toString(), a.getEndTime().toString(), a.getPrice()))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void bookForPatient(String companyEmail, Long psychologistId, Long appointmentId, Long patientId) {
+        var company = companyRepository.findByEmail(companyEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa no encontrada"));
+        UserEntity psych = userRepository.findById(psychologistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Psicólogo no encontrado"));
+        if (!company.getId().equals(psych.getCompanyId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Este psicólogo no pertenece a tu empresa");
+        }
+
+        UserEntity patient = userRepository.findById(patientId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Paciente no encontrado"));
+        var rel = userPsychologistRepository.findByUserId(patientId);
+        if (rel.isEmpty() || !rel.get().getPsychologist().getId().equals(psychologistId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este paciente no pertenece a este psicólogo");
+        }
+
+        AppointmentEntity appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cita no encontrada"));
+        if (!appointment.getPsychologist().getId().equals(psychologistId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Esta cita no pertenece a este psicólogo");
+        }
+        if (!"FREE".equals(appointment.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Esta cita ya no está disponible");
+        }
+
+        Instant now = Instant.now();
+        appointment.setStatus("CONFIRMED");
+        appointment.setUser(patient);
+        appointment.setConfirmedAt(now);
+        appointment.setConfirmedByUser(patient);
+        appointment.setPaymentDeadline(now.plusSeconds(48 * 60 * 60));
+        appointment.setPaymentStatus("PENDING");
+        appointmentRepository.save(appointment);
+
+        try {
+            emailService.sendAppointmentConfirmationEmail(
+                    patient.getEmail(), patient.getName(), psych.getName(),
+                    appointment.getStartTime(), appointment.getPaymentDeadline(), appointment.getPrice());
+        } catch (Exception e) {
+            logger.error("Error enviando email de confirmación", e);
+        }
+
+        notificationService.createNotification(patient.getId(), "APPOINTMENT",
+            "Cita agendada por tu empresa", company.getName() + " ha agendado una cita con " + psych.getName() + " para ti.");
+        notificationService.createNotification(psych.getId(), "APPOINTMENT",
+            "Nueva cita agendada", company.getName() + " ha agendado una cita de " + patient.getName() + " contigo.");
+    }
+
+    public record CompanySlotDto(Long id, String startTime, String endTime, BigDecimal price) {}
 
     public record CompanyPsychologistSummaryDto(Long id, String name, String email, String referralCode,
                                                 Double averageRating, long totalRatings,

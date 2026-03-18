@@ -23,6 +23,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private static final int MAX_REQUESTS_PER_MINUTE = 60;
     private static final int MAX_REQUESTS_PER_MINUTE_AUTH = 30;
+    private static final int MAX_REQUESTS_PER_MINUTE_SENSITIVE = 5;
     private static final int MAX_REQUESTS_PER_MINUTE_GLOBAL = 300;
     private static final long TIME_WINDOW_MS = 60_000;
 
@@ -42,8 +43,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
         String endpoint = request.getRequestURI();
         String key = ipAddress + ":" + endpoint;
 
+        boolean isSensitiveEndpoint = endpoint.contains("/verify-code") || endpoint.contains("/reset-password")
+                || endpoint.contains("/login") || endpoint.contains("/register");
         boolean isAuthEndpoint = endpoint.startsWith("/api/auth/");
-        int maxRequests = isAuthEndpoint ? MAX_REQUESTS_PER_MINUTE_AUTH : MAX_REQUESTS_PER_MINUTE;
+        int maxRequests = isSensitiveEndpoint ? MAX_REQUESTS_PER_MINUTE_SENSITIVE
+                : isAuthEndpoint ? MAX_REQUESTS_PER_MINUTE_AUTH : MAX_REQUESTS_PER_MINUTE;
 
         // Global per-IP rate limit (across all endpoints)
         RequestCounter globalCounter = globalIpCounters.computeIfAbsent(ipAddress, k -> new RequestCounter());
@@ -82,16 +86,23 @@ public class RateLimitFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    private static final java.util.Set<String> TRUSTED_PROXIES = java.util.Set.of(
+        "127.0.0.1", "::1", "0:0:0:0:0:0:0:1"
+    );
+
     private String getClientIpAddress(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
-            return xForwardedFor.split(",")[0].trim();
+        String remoteAddr = request.getRemoteAddr();
+        if (TRUSTED_PROXIES.contains(remoteAddr)) {
+            String xForwardedFor = request.getHeader("X-Forwarded-For");
+            if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+                return xForwardedFor.split(",")[0].trim();
+            }
+            String xRealIp = request.getHeader("X-Real-IP");
+            if (xRealIp != null && !xRealIp.isEmpty()) {
+                return xRealIp;
+            }
         }
-        String xRealIp = request.getHeader("X-Real-IP");
-        if (xRealIp != null && !xRealIp.isEmpty()) {
-            return xRealIp;
-        }
-        return request.getRemoteAddr();
+        return remoteAddr;
     }
 
     private void cleanupOldCounters() {

@@ -36,12 +36,25 @@ const formatDate = (dateString?: string | null) => {
   }
 };
 
+interface AvailableSlot {
+  id: number;
+  startTime: string;
+  endTime: string;
+  price: number | null;
+}
+
 export default function CompanyDashboard() {
   const [companyMe, setCompanyMe] = useState<{ name: string; email: string; referralCode: string } | null>(null);
   const [psychologists, setPsychologists] = useState<PsychologistSummary[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [detail, setDetail] = useState<PsychologistDetail | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showBooking, setShowBooking] = useState(false);
+  const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([]);
+  const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null);
+  const [selectedPatientId, setSelectedPatientId] = useState<number | null>(null);
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [bookingMsg, setBookingMsg] = useState<string | null>(null);
 
   useEffect(() => {
     loadCompanyMe();
@@ -89,6 +102,38 @@ export default function CompanyDashboard() {
     }
   };
 
+  const openBooking = async () => {
+    if (!selectedId) return;
+    setShowBooking(true);
+    setSelectedSlotId(null);
+    setSelectedPatientId(null);
+    setBookingMsg(null);
+    try {
+      const now = new Date().toISOString();
+      const to = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
+      const slots = await companyService.getPsychologistAvailability(selectedId, now, to);
+      setAvailableSlots(slots);
+    } catch {
+      setAvailableSlots([]);
+    }
+  };
+
+  const handleBook = async () => {
+    if (!selectedId || !selectedSlotId || !selectedPatientId) return;
+    setBookingLoading(true);
+    setBookingMsg(null);
+    try {
+      await companyService.bookForPatient(selectedId, selectedSlotId, selectedPatientId);
+      setBookingMsg('Cita agendada exitosamente');
+      setShowBooking(false);
+      loadDetail(selectedId);
+    } catch (err: any) {
+      setBookingMsg(err?.response?.data?.error || err?.response?.data?.message || 'Error al agendar la cita');
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
   if (loading && psychologists.length === 0) {
     return (
       <div className="container" style={{ maxWidth: '1200px', padding: '40px' }}>
@@ -112,13 +157,22 @@ export default function CompanyDashboard() {
                 </p>
               )}
             </div>
-            <button
-              className="btn-secondary"
-              onClick={() => setSelectedId(null)}
-              style={{ width: 'auto', padding: '12px 24px' }}
-            >
-              ← Volver
-            </button>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                className="btn-primary"
+                onClick={openBooking}
+                style={{ width: 'auto', padding: '12px 24px' }}
+              >
+                Agendar cita
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={() => { setSelectedId(null); setShowBooking(false); }}
+                style={{ width: 'auto', padding: '12px 24px' }}
+              >
+                ← Volver
+              </button>
+            </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px', marginBottom: '32px' }}>
@@ -144,6 +198,82 @@ export default function CompanyDashboard() {
               <div style={{ fontSize: '24px', fontWeight: 700, color: '#5a9270' }}>{ps.dischargedPatients.length}</div>
             </div>
           </div>
+
+          {bookingMsg && (
+            <div style={{
+              marginBottom: '16px', padding: '12px 16px', borderRadius: '8px',
+              background: bookingMsg.includes('exitosamente') ? '#ecfdf5' : '#fef2f2',
+              color: bookingMsg.includes('exitosamente') ? '#065f46' : '#991b1b',
+              border: `1px solid ${bookingMsg.includes('exitosamente') ? '#a7f3d0' : '#fecaca'}`
+            }}>
+              {bookingMsg}
+            </div>
+          )}
+
+          {showBooking && (
+            <div className="card" style={{ marginBottom: '24px', border: '2px solid #5a9270' }}>
+              <h3 style={{ marginTop: 0 }}>Agendar cita para paciente</h3>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, marginBottom: '8px' }}>Paciente</label>
+                <select
+                  value={selectedPatientId || ''}
+                  onChange={(e) => setSelectedPatientId(e.target.value ? Number(e.target.value) : null)}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px' }}
+                >
+                  <option value="">Selecciona un paciente...</option>
+                  {ps.activePatients.map(p => (
+                    <option key={p.id} value={p.id}>{p.name} — {p.email}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, marginBottom: '8px' }}>Horario disponible</label>
+                {availableSlots.length === 0 ? (
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>No hay horarios disponibles en los próximos 60 días.</p>
+                ) : (
+                  <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+                    {availableSlots.map(slot => (
+                      <button
+                        key={slot.id}
+                        onClick={() => setSelectedSlotId(slot.id)}
+                        style={{
+                          width: '100%', textAlign: 'left', padding: '12px 16px',
+                          borderBottom: '1px solid #e5e7eb', background: selectedSlotId === slot.id ? '#ecfdf5' : 'white',
+                          border: 'none', borderLeft: selectedSlotId === slot.id ? '3px solid #5a9270' : '3px solid transparent',
+                          cursor: 'pointer', fontSize: '14px'
+                        }}
+                      >
+                        <div style={{ fontWeight: 500 }}>{formatDate(slot.startTime)}</div>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>
+                          hasta {formatDate(slot.endTime)} — {slot.price != null ? `${Number(slot.price).toFixed(2)} €` : '—'}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  className="btn-primary"
+                  onClick={handleBook}
+                  disabled={!selectedSlotId || !selectedPatientId || bookingLoading}
+                  style={{ width: 'auto', padding: '10px 24px', opacity: (!selectedSlotId || !selectedPatientId) ? 0.5 : 1 }}
+                >
+                  {bookingLoading ? 'Agendando...' : 'Confirmar cita'}
+                </button>
+                <button
+                  className="btn-secondary"
+                  onClick={() => setShowBooking(false)}
+                  style={{ width: 'auto', padding: '10px 24px' }}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
 
           {ps.createdAt && (
             <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: 'var(--bg-primary)', borderRadius: '12px' }}>

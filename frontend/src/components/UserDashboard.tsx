@@ -1,13 +1,13 @@
-import { useEffect, useMemo, useState, lazy, Suspense } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   profileService,
-  authService,
   tasksService,
   calendarService,
   assignedTestsService,
   jitsiService,
   consentService,
-  API_BASE_URL,
+  stripeService,
 } from '../services/api';
 import CalendarWeek from './CalendarWeek';
 import ChatWidget from './ChatWidget';
@@ -17,6 +17,9 @@ import MisEstadisticas from './MisEstadisticas';
 import Evaluaciones from './Evaluaciones';
 import Descubrimiento from './Descubrimiento';
 import LoadingSpinner from './ui/LoadingSpinner';
+import UserTasksTab from './UserTasksTab';
+import UserPsychProfileTab from './UserPsychProfileTab';
+import UserSettingsTab from './UserSettingsTab';
 import { toast } from './ui/Toast';
 import PatientMatchingTest from './PatientMatchingTest';
 import MatchingPsychologists from './MatchingPsychologists';
@@ -24,9 +27,6 @@ import JitsiVideoCall from './JitsiVideoCall';
 
 import OnboardingWizard from './OnboardingWizard';
 
-const BillingPortal = lazy(() => import('./BillingPortal'));
-const GroupSessions = lazy(() => import('./GroupSessions'));
-const TwoFactorSetup = lazy(() => import('./TwoFactorSetup'));
 
 type Tab =
   | 'perfil'
@@ -41,18 +41,16 @@ type Tab =
   | 'evaluaciones'
   | 'descubrimiento'
   | 'chat'
-  | 'perfil-psicologo'
-  | 'grupos';
+  | 'perfil-psicologo';
 
-type SettingsSection = 'perfil' | 'seguridad' | 'pagos' | 'privacidad';
 
 interface UserDashboardProps {
   onStartTest?: (testId: number) => void;
 }
 
 export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [tab, setTab] = useState<Tab>('perfil');
-  const [settingsSection, setSettingsSection] = useState<SettingsSection>('perfil');
   const [me, setMe] = useState<any>(null);
   const [psych, setPsych] = useState<any>(null);
   const [tasks, setTasks] = useState<any[]>([]);
@@ -63,11 +61,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [pastAppointments, setPastAppointments] = useState<any[]>([]);
   const [loadingPastAppointments, setLoadingPastAppointments] = useState(false);
-  const [taskFiles, setTaskFiles] = useState<Record<number, any[]>>({});
-  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
-  const [selectedTask, setSelectedTask] = useState<any>(null);
-  const [taskComments, setTaskComments] = useState<Record<number, any[]>>({});
-  const [newComment, setNewComment] = useState<string>('');
   const [showMatchingTest, setShowMatchingTest] = useState(false);
   const [showMatchingResults, setShowMatchingResults] = useState(false);
   const [psychologistProfile, setPsychologistProfile] = useState<any>(null);
@@ -83,12 +76,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
   const [videoCallOtherUser, setVideoCallOtherUser] = useState<{ email: string; name: string } | null>(null);
   const [referralCodeInput, setReferralCodeInput] = useState<string>('');
   const [usingReferralCode, setUsingReferralCode] = useState(false);
-  // Editar perfil (paciente)
-  const [editProfileForm, setEditProfileForm] = useState({ name: '', gender: '', birthDate: '' });
-  const [savingProfile, setSavingProfile] = useState(false);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
-  const [savingPassword, setSavingPassword] = useState(false);
   // Consentimientos (menores)
   const [pendingConsents, setPendingConsents] = useState<any[]>([]);
   const [loadingConsents, setLoadingConsents] = useState(false);
@@ -180,6 +167,36 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
   // Carga inicial
   useEffect(() => {
     loadData();
+  }, []);
+
+  // Gestionar parámetros de retorno de Stripe
+  useEffect(() => {
+    const payment = searchParams.get('payment');
+    const appointmentId = searchParams.get('appointment');
+    if (payment === 'success') {
+      searchParams.delete('payment');
+      searchParams.delete('appointment');
+      setSearchParams(searchParams, { replace: true });
+      if (appointmentId) {
+        stripeService.verifyAppointmentPayment(Number(appointmentId))
+          .then(() => {
+            toast.success('Pago realizado correctamente');
+            loadData();
+          })
+          .catch(() => {
+            toast.success('Pago realizado correctamente');
+            loadData();
+          });
+      } else {
+        toast.success('Pago realizado correctamente');
+        loadData();
+      }
+    } else if (payment === 'canceled') {
+      toast.error('El pago fue cancelado');
+      searchParams.delete('payment');
+      searchParams.delete('appointment');
+      setSearchParams(searchParams, { replace: true });
+    }
   }, []);
 
   // Cargar historial cuando se entra en Mi Psicólogo
@@ -275,47 +292,9 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
     }
   };
 
-  const loadTaskFiles = async (taskId: number) => {
-    try {
-      const files = await tasksService.getFiles(taskId);
-      setTaskFiles((prev) => ({ ...prev, [taskId]: files }));
-    } catch (error) {
-      // error handled silently
-    }
-  };
 
-  const loadTaskComments = async (taskId: number) => {
-    try {
-      const comments = await tasksService.getComments(taskId);
-      setTaskComments((prev) => ({ ...prev, [taskId]: comments }));
-    } catch (error) {
-      // error handled silently
-    }
-  };
 
-  const loadTaskDetails = async (taskId: number) => {
-    try {
-      const task = await tasksService.get(taskId);
-      setSelectedTask(task);
-      await Promise.all([loadTaskFiles(taskId), loadTaskComments(taskId)]);
-    } catch (error) {
-      toast.error('Error al cargar los detalles de la tarea');
-    }
-  };
 
-  const handleAddComment = async (taskId: number) => {
-    if (!newComment.trim()) return;
-    try {
-      await tasksService.addComment(taskId, newComment);
-      setNewComment('');
-      await loadTaskComments(taskId);
-    } catch (error: any) {
-      toast.error(
-        'Error al agregar el comentario: ' +
-          (error.response?.data?.error || error.message),
-      );
-    }
-  };
 
   const upcomingAppointment = useMemo(() => {
     const now = new Date();
@@ -372,7 +351,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             { id: 'calendario', icon: 'calendar_today', label: 'Calendario', requiresPsych: true },
             { id: 'agenda-personal', icon: 'book', label: 'Agenda', requiresPsych: false },
             { id: 'chat', icon: 'chat', label: 'Chat', requiresPsych: true },
-            { id: 'grupos', icon: 'group', label: 'Grupos', requiresPsych: false },
           ].map((item) => {
             const isDisabled = item.requiresPsych && !hasPsychologist;
             const isActive = tab === item.id;
@@ -463,7 +441,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                       birthDate: me?.birthDate ? (typeof me.birthDate === 'string' ? me.birthDate.slice(0, 10) : '') : '',
                     });
                     setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-                    setSettingsSection('perfil');
                     setTab('configuracion');
                   }}
                   className="px-4 py-2 rounded-full border border-sage/30 text-sm text-sage hover:bg-sage hover:text-white transition inline-flex items-center gap-2"
@@ -628,6 +605,8 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                       </div>
                     </div>
 
+                    {upcomingAppointment.paymentStatus === 'PAID' ? (
+                    <>
                     <div className="mt-6 pt-4 border-t border-amber-500/10 text-sm">
                       <p className="text-amber-600 font-semibold">
                         Podrás iniciar la videollamada 1 hora antes
@@ -658,6 +637,14 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     >
                       Join Call
                     </button>
+                    </>
+                    ) : (
+                    <div className="mt-6 pt-4 border-t border-amber-500/10 text-sm">
+                      <p className="text-amber-600 font-semibold">
+                        Debes completar el pago antes de poder acceder a la videollamada
+                      </p>
+                    </div>
+                    )}
 
                     <button
                       type="button"
@@ -694,349 +681,11 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
 
         {/* Configuración: Perfil, Seguridad, Pagos, Privacidad */}
         {tab === 'configuracion' && (
-          <div>
-            {/* Header */}
-            <div className="flex items-center gap-4 mb-8">
-              <button
-                type="button"
-                onClick={() => setTab('perfil')}
-                className="p-2 rounded-xl hover:bg-sage/10 transition-colors"
-              >
-                <span className="material-symbols-outlined text-xl text-sage">arrow_back</span>
-              </button>
-              <div>
-                <h1 className="text-2xl font-semibold text-forest">Configuración</h1>
-                <p className="text-sm text-sage/60">Gestiona tu cuenta, seguridad y privacidad</p>
-              </div>
-            </div>
-
-            {/* Section tabs */}
-            <div className="flex gap-1 bg-sage/5 rounded-2xl p-1.5 mb-8">
-              {([
-                { id: 'perfil' as SettingsSection, icon: 'person', label: 'Perfil' },
-                { id: 'seguridad' as SettingsSection, icon: 'lock', label: 'Seguridad' },
-                { id: 'pagos' as SettingsSection, icon: 'receipt_long', label: 'Pagos' },
-                { id: 'privacidad' as SettingsSection, icon: 'shield', label: 'Privacidad' },
-              ]).map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => setSettingsSection(s.id)}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-medium transition-all ${
-                    settingsSection === s.id
-                      ? 'bg-white text-forest shadow-sm'
-                      : 'text-sage/60 hover:text-sage'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-base">{s.icon}</span>
-                  {s.label}
-                </button>
-              ))}
-            </div>
-
-            {/* === SECTION: Perfil === */}
-            {settingsSection === 'perfil' && (
-              <div className="space-y-6">
-                {/* Avatar card */}
-                <div className="bg-white rounded-2xl p-6 border border-sage/10">
-                  <h3 className="text-sm font-semibold text-forest/50 uppercase tracking-wider mb-5">Foto de perfil</h3>
-                  <div className="flex items-center gap-5">
-                    <div className="size-20 rounded-full overflow-hidden border-2 border-sage/15 bg-sage/5 flex items-center justify-center flex-shrink-0">
-                      {me?.avatarUrl ? (
-                        <img src={me.avatarUrl} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-2xl text-forest font-semibold">
-                          {me?.name ? me.name.charAt(0).toUpperCase() : 'U'}
-                        </span>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <label className="cursor-pointer">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          disabled={uploadingAvatar}
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file || !file.type.startsWith('image/')) {
-                              toast.error('Selecciona una imagen válida');
-                              return;
-                            }
-                            try {
-                              setUploadingAvatar(true);
-                              const res = await profileService.uploadAvatar(file);
-                              setMe({ ...me, avatarUrl: res.avatarUrl });
-                              toast.success('Foto actualizada');
-                            } catch (err: any) {
-                              toast.error(err.response?.data?.error || 'Error al subir la foto');
-                            } finally {
-                              setUploadingAvatar(false);
-                              e.target.value = '';
-                            }
-                          }}
-                        />
-                        <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sage/10 text-sm text-sage font-medium hover:bg-sage/20 transition cursor-pointer">
-                          <span className="material-symbols-outlined text-base">upload</span>
-                          {uploadingAvatar ? 'Subiendo...' : 'Cambiar foto'}
-                        </span>
-                      </label>
-                      <p className="text-xs text-sage/40">JPG, PNG. Máximo 10MB.</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Personal info card */}
-                <div className="bg-white rounded-2xl p-6 border border-sage/10">
-                  <h3 className="text-sm font-semibold text-forest/50 uppercase tracking-wider mb-5">Información personal</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-forest mb-1.5">Nombre</label>
-                      <input
-                        type="text"
-                        value={editProfileForm.name}
-                        onChange={(e) => setEditProfileForm({ ...editProfileForm, name: e.target.value })}
-                        className="w-full px-4 py-2.5 rounded-xl border border-sage/15 bg-cream/30 focus:border-sage focus:ring-2 focus:ring-sage/10 outline-none transition text-sm"
-                        placeholder="Tu nombre"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-forest mb-1.5">Género</label>
-                        <select
-                          value={editProfileForm.gender}
-                          onChange={(e) => setEditProfileForm({ ...editProfileForm, gender: e.target.value })}
-                          className="w-full px-4 py-2.5 rounded-xl border border-sage/15 bg-cream/30 focus:border-sage focus:ring-2 focus:ring-sage/10 outline-none transition text-sm"
-                        >
-                          <option value="">No especificado</option>
-                          <option value="MALE">Hombre</option>
-                          <option value="FEMALE">Mujer</option>
-                          <option value="OTHER">Otro</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-forest mb-1.5">Fecha de nacimiento</label>
-                        <input
-                          type="date"
-                          value={editProfileForm.birthDate}
-                          onChange={(e) => setEditProfileForm({ ...editProfileForm, birthDate: e.target.value })}
-                          className="w-full px-4 py-2.5 rounded-xl border border-sage/15 bg-cream/30 focus:border-sage focus:ring-2 focus:ring-sage/10 outline-none transition text-sm"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex justify-end pt-2">
-                      <button
-                        type="button"
-                        disabled={savingProfile}
-                        onClick={async () => {
-                          try {
-                            setSavingProfile(true);
-                            await profileService.update({
-                              name: editProfileForm.name || undefined,
-                              gender: editProfileForm.gender || undefined,
-                              birthDate: editProfileForm.birthDate || undefined,
-                            });
-                            const ageFromBirth = editProfileForm.birthDate
-                              ? Math.floor((Date.now() - new Date(editProfileForm.birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
-                              : undefined;
-                            setMe({
-                              ...me,
-                              name: editProfileForm.name,
-                              gender: editProfileForm.gender,
-                              birthDate: editProfileForm.birthDate || undefined,
-                              age: ageFromBirth,
-                            });
-                            toast.success('Perfil actualizado');
-                          } catch (err: any) {
-                            toast.error(err.response?.data?.error || 'Error al guardar');
-                          } finally {
-                            setSavingProfile(false);
-                          }
-                        }}
-                        className="px-6 py-2.5 rounded-xl bg-sage text-white text-sm font-medium hover:bg-sage/90 transition disabled:opacity-60"
-                      >
-                        {savingProfile ? 'Guardando...' : 'Guardar cambios'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* === SECTION: Seguridad === */}
-            {settingsSection === 'seguridad' && (
-              <div className="space-y-6">
-                {/* Change password */}
-                <div className="bg-white rounded-2xl p-6 border border-sage/10">
-                  <h3 className="text-sm font-semibold text-forest/50 uppercase tracking-wider mb-5">Cambiar contraseña</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-forest mb-1.5">Contraseña actual</label>
-                      <input
-                        type="password"
-                        value={passwordForm.currentPassword}
-                        onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                        className="w-full px-4 py-2.5 rounded-xl border border-sage/15 bg-cream/30 focus:border-sage focus:ring-2 focus:ring-sage/10 outline-none transition text-sm"
-                        placeholder="••••••••"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-forest mb-1.5">Nueva contraseña</label>
-                        <input
-                          type="password"
-                          value={passwordForm.newPassword}
-                          onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                          className="w-full px-4 py-2.5 rounded-xl border border-sage/15 bg-cream/30 focus:border-sage focus:ring-2 focus:ring-sage/10 outline-none transition text-sm"
-                          placeholder="Mínimo 6 caracteres"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-forest mb-1.5">Confirmar contraseña</label>
-                        <input
-                          type="password"
-                          value={passwordForm.confirmPassword}
-                          onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                          className="w-full px-4 py-2.5 rounded-xl border border-sage/15 bg-cream/30 focus:border-sage focus:ring-2 focus:ring-sage/10 outline-none transition text-sm"
-                          placeholder="••••••••"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex justify-end pt-2">
-                      <button
-                        type="button"
-                        disabled={savingPassword || !passwordForm.currentPassword || !passwordForm.newPassword || passwordForm.newPassword !== passwordForm.confirmPassword}
-                        onClick={async () => {
-                          if (passwordForm.newPassword.length < 6) {
-                            toast.error('La nueva contraseña debe tener al menos 6 caracteres');
-                            return;
-                          }
-                          if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-                            toast.error('Las contraseñas no coinciden');
-                            return;
-                          }
-                          try {
-                            setSavingPassword(true);
-                            await authService.changePassword(passwordForm.currentPassword, passwordForm.newPassword);
-                            setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-                            toast.success('Contraseña actualizada');
-                          } catch (err: any) {
-                            const msg = err.response?.data?.error ?? err.response?.data?.message ?? 'Error al cambiar la contraseña';
-                            toast.error(msg);
-                          } finally {
-                            setSavingPassword(false);
-                          }
-                        }}
-                        className="px-6 py-2.5 rounded-xl bg-forest text-cream text-sm font-medium hover:bg-forest/90 transition disabled:opacity-60 disabled:cursor-not-allowed"
-                      >
-                        {savingPassword ? 'Guardando...' : 'Cambiar contraseña'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2FA */}
-                <div className="bg-white rounded-2xl p-6 border border-sage/10">
-                  <h3 className="text-sm font-semibold text-forest/50 uppercase tracking-wider mb-5">Autenticación en dos pasos</h3>
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <TwoFactorSetup
-                      isEnabled={me?.totpEnabled || false}
-                      onStatusChange={() => { authService.me().then((data: any) => setMe(data)).catch(() => {}); }}
-                    />
-                  </Suspense>
-                </div>
-              </div>
-            )}
-
-            {/* === SECTION: Pagos === */}
-            {settingsSection === 'pagos' && (
-              <div className="bg-white rounded-2xl p-6 border border-sage/10">
-                <h3 className="text-sm font-semibold text-forest/50 uppercase tracking-wider mb-5">Facturación y pagos</h3>
-                <Suspense fallback={<LoadingSpinner />}>
-                  <BillingPortal />
-                </Suspense>
-              </div>
-            )}
-
-            {/* === SECTION: Privacidad === */}
-            {settingsSection === 'privacidad' && (
-              <div className="space-y-6">
-                {/* Export data */}
-                <div className="bg-white rounded-2xl p-6 border border-sage/10">
-                  <h3 className="text-sm font-semibold text-forest/50 uppercase tracking-wider mb-5">Descargar mis datos</h3>
-                  <p className="text-sage/60 text-sm mb-4">
-                    Descarga una copia de todos tus datos en formato JSON (Art. 20 RGPD — Derecho de portabilidad).
-                  </p>
-                  <button
-                    onClick={async () => {
-                      try {
-                        const data = await profileService.exportMyData();
-                        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `mis-datos-psymatch-${new Date().toISOString().split('T')[0]}.json`;
-                        a.click();
-                        URL.revokeObjectURL(url);
-                        toast.success('Datos exportados correctamente');
-                      } catch {
-                        toast.error('Error al exportar los datos');
-                      }
-                    }}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-forest text-white text-sm font-medium hover:bg-forest/90 transition"
-                  >
-                    <span className="material-symbols-outlined text-base">download</span>
-                    Descargar mis datos
-                  </button>
-                </div>
-
-                {/* Retention policy */}
-                <div className="bg-white rounded-2xl p-6 border border-sage/10">
-                  <h3 className="text-sm font-semibold text-forest/50 uppercase tracking-wider mb-5">Política de retención</h3>
-                  <div className="flex items-start gap-3">
-                    <span className="material-symbols-outlined text-sage/40 mt-0.5">info</span>
-                    <p className="text-sage/60 text-sm leading-relaxed">
-                      Tus datos se conservan durante un máximo de 5 años desde tu registro, conforme a la legislación sanitaria.
-                      Tras ese periodo, tus datos son anonimizados automáticamente.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Delete account */}
-                <div className="bg-white rounded-2xl p-6 border border-red-100">
-                  <h3 className="text-sm font-semibold text-red-400 uppercase tracking-wider mb-3">Zona de peligro</h3>
-                  <p className="text-sage/60 text-sm mb-4">
-                    Eliminar tu cuenta es una acción irreversible. Todos tus datos serán eliminados permanentemente (Art. 17 RGPD — Derecho de supresión).
-                  </p>
-                  <button
-                    onClick={async () => {
-                      const confirmed = window.confirm(
-                        '¿Estás seguro de que quieres eliminar tu cuenta? Esta acción es IRREVERSIBLE y todos tus datos serán eliminados permanentemente.'
-                      );
-                      if (!confirmed) return;
-                      const doubleConfirmed = window.confirm(
-                        'Última confirmación: ¿Realmente deseas eliminar tu cuenta y todos tus datos?'
-                      );
-                      if (!doubleConfirmed) return;
-                      try {
-                        await profileService.deleteMyAccount();
-                        toast.success('Cuenta eliminada correctamente');
-                        localStorage.removeItem('token');
-                        localStorage.removeItem('refreshToken');
-                        window.location.reload();
-                      } catch {
-                        toast.error('Error al eliminar la cuenta');
-                      }
-                    }}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-red-200 text-red-500 text-sm font-medium hover:bg-red-50 transition"
-                  >
-                    <span className="material-symbols-outlined text-base">delete_forever</span>
-                    Eliminar mi cuenta permanentemente
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+          <UserSettingsTab
+            me={me}
+            onBack={() => setTab('perfil')}
+            onMeUpdate={(updated) => setMe(updated)}
+          />
         )}
 
         {/* Mis estadísticas */}
@@ -1331,966 +980,15 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
 
         {/* Perfil completo del psicólogo - plantilla tipo LinkedIn antigua */}
         {tab === 'perfil-psicologo' && psychologistProfile && (
-          <div
-            style={{
-              background: '#ffffff',
-              borderRadius: '20px',
-              boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
-              padding: '40px',
-              border: '1px solid rgba(90, 146, 112, 0.15)',
-              maxWidth: '900px',
-              margin: '40px auto 0',
-            }}
-          >
-            {loadingPsychologistProfile ? (
-              <div style={{ textAlign: 'center', padding: '60px' }}>
-                <p style={{ color: '#6b7280', fontSize: '16px' }}>
-                  Cargando perfil del psicólogo...
-                </p>
-              </div>
-            ) : (
-              <>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '32px',
-                  }}
-                >
-                  <h2
-                    style={{
-                      margin: 0,
-                      fontSize: '28px',
-                      fontWeight: 700,
-                      color: '#1a2e22',
-                    }}
-                  >
-                    Perfil del Psicólogo
-                  </h2>
-                  <button
-                    onClick={() => setTab('mi-psicologo')}
-                    style={{
-                      padding: '10px 20px',
-                      background: '#f3f4f6',
-                      color: '#1f2937',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                    }}
-                  >
-                    ← Volver
-                  </button>
-                </div>
-
-                {/* Header del perfil */}
-                <div
-                  style={{
-                    background:
-                      'linear-gradient(135deg, #f0f5f3 0%, #e8f0ed 100%)',
-                    padding: '40px',
-                    borderRadius: '20px',
-                    border: '2px solid rgba(90, 146, 112, 0.3)',
-                    marginBottom: '32px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '32px',
-                    boxShadow: '0 4px 16px rgba(90, 146, 112, 0.15)',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '120px',
-                      height: '120px',
-                      borderRadius: '50%',
-                      overflow: 'hidden',
-                      border: '4px solid white',
-                      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-                      background: '#e5e7eb',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '48px',
-                      flexShrink: 0,
-                    }}
-                  >
-                    {psychologistProfile.avatarUrl ? (
-                      <img
-                        src={psychologistProfile.avatarUrl}
-                        alt=""
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                        }}
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          background: '#e5e7eb',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: '#9ca3af',
-                          fontSize: '24px',
-                        }}
-                      >
-                        PS
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <h3
-                      style={{
-                        margin: '0 0 8px 0',
-                        fontSize: '32px',
-                        fontWeight: 700,
-                        color: '#1f2937',
-                      }}
-                    >
-                      {psychologistProfile.name}
-                    </h3>
-                    <div
-                      style={{
-                        fontSize: '18px',
-                        color: '#6b7280',
-                        marginBottom: '12px',
-                      }}
-                    >
-                      {psychologistProfile.email}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Biografía */}
-                {psychologistProfile.bio && (
-                  <div
-                    style={{
-                      marginBottom: '32px',
-                      padding: '24px',
-                      background: '#f9fafb',
-                      borderRadius: '12px',
-                      border: '1px solid #e5e7eb',
-                    }}
-                  >
-                    <h3
-                      style={{
-                        margin: '0 0 16px 0',
-                        fontSize: '20px',
-                        fontWeight: 600,
-                        color: '#1f2937',
-                      }}
-                    >
-                      Sobre mí
-                    </h3>
-                    <p
-                      style={{
-                        margin: 0,
-                        fontSize: '16px',
-                        lineHeight: '1.6',
-                        color: '#4b5563',
-                      }}
-                    >
-                      {psychologistProfile.bio}
-                    </p>
-                  </div>
-                )}
-
-                {/* Educación */}
-                {psychologistProfile.education && (() => {
-                  try {
-                    const education = JSON.parse(psychologistProfile.education);
-                    if (Array.isArray(education) && education.length > 0) {
-                      return (
-                        <div
-                          style={{
-                            marginBottom: '32px',
-                            padding: '24px',
-                            background: '#f9fafb',
-                            borderRadius: '12px',
-                            border: '1px solid #e5e7eb',
-                          }}
-                        >
-                          <h3
-                            style={{
-                              margin: '0 0 20px 0',
-                              fontSize: '20px',
-                              fontWeight: 600,
-                              color: '#1f2937',
-                            }}
-                          >
-                            Educación
-                          </h3>
-                          <div
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '16px',
-                            }}
-                          >
-                            {education.map((edu: any, idx: number) => (
-                              <div
-                                key={idx}
-                                style={{
-                                  padding: '16px',
-                                  background: '#ffffff',
-                                  borderRadius: '8px',
-                                  border: '1px solid #e5e7eb',
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    fontSize: '18px',
-                                    fontWeight: 600,
-                                    color: '#1f2937',
-                                    marginBottom: '4px',
-                                  }}
-                                >
-                                  {edu.degree || 'Título'}{' '}
-                                  {edu.field ? `en ${edu.field}` : ''}
-                                </div>
-                                <div
-                                  style={{
-                                    fontSize: '16px',
-                                    color: '#667eea',
-                                    marginBottom: '4px',
-                                  }}
-                                >
-                                  {edu.institution || 'Institución'}
-                                </div>
-                                <div
-                                  style={{ fontSize: '14px', color: '#6b7280' }}
-                                >
-                                  {edu.startDate && edu.endDate
-                                    ? `${edu.startDate} - ${edu.endDate}`
-                                    : edu.startDate ||
-                                      edu.endDate ||
-                                      ''}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    }
-                  } catch (e) {
-                    // ignore parse errors
-                  }
-                  return null;
-                })()}
-
-                {/* Certificaciones */}
-                {psychologistProfile.certifications && (() => {
-                  try {
-                    const certs = JSON.parse(
-                      psychologistProfile.certifications,
-                    );
-                    if (Array.isArray(certs) && certs.length > 0) {
-                      return (
-                        <div
-                          style={{
-                            marginBottom: '32px',
-                            padding: '24px',
-                            background: '#f9fafb',
-                            borderRadius: '12px',
-                            border: '1px solid #e5e7eb',
-                          }}
-                        >
-                          <h3
-                            style={{
-                              margin: '0 0 20px 0',
-                              fontSize: '20px',
-                              fontWeight: 600,
-                              color: '#1f2937',
-                            }}
-                          >
-                            Certificaciones
-                          </h3>
-                          <div
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '16px',
-                            }}
-                          >
-                            {certs.map((cert: any, idx: number) => (
-                              <div
-                                key={idx}
-                                style={{
-                                  padding: '16px',
-                                  background: '#ffffff',
-                                  borderRadius: '8px',
-                                  border: '1px solid #e5e7eb',
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    fontSize: '18px',
-                                    fontWeight: 600,
-                                    color: '#1f2937',
-                                    marginBottom: '4px',
-                                  }}
-                                >
-                                  {cert.name || 'Certificación'}
-                                </div>
-                                <div
-                                  style={{
-                                    fontSize: '14px',
-                                    color: '#6b7280',
-                                    marginBottom: '4px',
-                                  }}
-                                >
-                                  Emitido por: {cert.issuer || 'N/A'}
-                                </div>
-                                {cert.date && (
-                                  <div
-                                    style={{
-                                      fontSize: '14px',
-                                      color: '#6b7280',
-                                      marginBottom: '4px',
-                                    }}
-                                  >
-                                    Fecha: {cert.date}
-                                  </div>
-                                )}
-                                {cert.credentialId && (
-                                  <div
-                                    style={{
-                                      fontSize: '13px',
-                                      color: '#9ca3af',
-                                      fontFamily: 'monospace',
-                                    }}
-                                  >
-                                    ID: {cert.credentialId}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    }
-                  } catch (e) {}
-                  return null;
-                })()}
-
-                {/* Experiencia */}
-                {psychologistProfile.experience && (() => {
-                  try {
-                    const experience = JSON.parse(
-                      psychologistProfile.experience,
-                    );
-                    if (Array.isArray(experience) && experience.length > 0) {
-                      return (
-                        <div
-                          style={{
-                            marginBottom: '32px',
-                            padding: '24px',
-                            background: '#f9fafb',
-                            borderRadius: '12px',
-                            border: '1px solid #e5e7eb',
-                          }}
-                        >
-                          <h3
-                            style={{
-                              margin: '0 0 20px 0',
-                              fontSize: '20px',
-                              fontWeight: 600,
-                              color: '#1f2937',
-                            }}
-                          >
-                            Experiencia profesional
-                          </h3>
-                          <div
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '16px',
-                            }}
-                          >
-                            {experience.map((exp: any, idx: number) => (
-                              <div
-                                key={idx}
-                                style={{
-                                  padding: '16px',
-                                  background: '#ffffff',
-                                  borderRadius: '8px',
-                                  border: '1px solid #e5e7eb',
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    fontSize: '18px',
-                                    fontWeight: 600,
-                                    color: '#1f2937',
-                                    marginBottom: '4px',
-                                  }}
-                                >
-                                  {exp.title || 'Cargo'}
-                                </div>
-                                <div
-                                  style={{
-                                    fontSize: '16px',
-                                    color: '#667eea',
-                                    marginBottom: '4px',
-                                  }}
-                                >
-                                  {exp.company || 'Empresa'}
-                                </div>
-                                {exp.description && (
-                                  <div
-                                    style={{
-                                      fontSize: '14px',
-                                      color: '#4b5563',
-                                      marginTop: '8px',
-                                      lineHeight: '1.6',
-                                    }}
-                                  >
-                                    {exp.description}
-                                  </div>
-                                )}
-                                <div
-                                  style={{
-                                    fontSize: '14px',
-                                    color: '#6b7280',
-                                    marginTop: '8px',
-                                  }}
-                                >
-                                  {exp.startDate && exp.endDate
-                                    ? `${exp.startDate} - ${exp.endDate}`
-                                    : exp.startDate
-                                    ? `Desde ${exp.startDate}`
-                                    : exp.endDate
-                                    ? `Hasta ${exp.endDate}`
-                                    : ''}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    }
-                  } catch (e) {}
-                  return null;
-                })()}
-              </>
-            )}
-          </div>
+          <UserPsychProfileTab
+            psychologistProfile={psychologistProfile}
+            loadingPsychologistProfile={loadingPsychologistProfile}
+            onBack={() => setTab('mi-psicologo')}
+          />
         )}
 
         {tab === 'tareas' && hasPsychologist && (
-          <>
-            {selectedTaskId && selectedTask ? (
-              // Vista detallada de la tarea (versión original con todas las funcionalidades)
-              <div
-                style={{
-                  background: '#ffffff',
-                  borderRadius: '20px',
-                  boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
-                  padding: '40px',
-                  border: '1px solid rgba(90, 146, 112, 0.15)',
-                  marginTop: '40px',
-                }}
-              >
-                {/* Cabecera + botón volver */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: '32px',
-                  }}
-                >
-                  <h3
-                    style={{
-                      margin: 0,
-                      fontSize: '28px',
-                      fontWeight: 700,
-                      color: '#1a2e22',
-                      fontFamily: "'Inter', sans-serif",
-                      letterSpacing: '-0.02em',
-                    }}
-                  >
-                    {selectedTask.title}
-                  </h3>
-                  <button
-                    onClick={() => {
-                      setSelectedTaskId(null);
-                      setSelectedTask(null);
-                      setNewComment('');
-                    }}
-                    style={{
-                      padding: '10px 20px',
-                      background: '#f0f5f3',
-                      color: '#5a9270',
-                      border: '2px solid rgba(90, 146, 112, 0.3)',
-                      borderRadius: '12px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontSize: '15px',
-                      transition: 'all 0.3s ease',
-                      fontFamily: "'Inter', sans-serif",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#e8f0ed';
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = '#f0f5f3';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }}
-                  >
-                    ← Volver
-                  </button>
-                </div>
-
-                {/* Información de la tarea */}
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                    gap: '20px',
-                    marginBottom: '32px',
-                  }}
-                >
-                  <div
-                    style={{
-                      padding: '20px',
-                      background:
-                        'linear-gradient(135deg, #f0f5f3 0%, #e8f0ed 100%)',
-                      borderRadius: '16px',
-                      border: '1px solid rgba(90, 146, 112, 0.2)',
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: '12px',
-                        color: '#5a9270',
-                        marginBottom: '8px',
-                        fontWeight: 600,
-                        textTransform: 'uppercase',
-                        fontFamily: "'Inter', sans-serif",
-                      }}
-                    >
-                      Creada el
-                    </div>
-                    <div
-                      style={{
-                        fontSize: '16px',
-                        fontWeight: 600,
-                        color: '#1a2e22',
-                        fontFamily: "'Inter', sans-serif",
-                      }}
-                    >
-                      {selectedTask.createdAt
-                        ? new Date(
-                            selectedTask.createdAt,
-                          ).toLocaleDateString('es-ES', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })
-                        : 'N/A'}
-                    </div>
-                  </div>
-
-                  {selectedTask.dueDate && (
-                    <div
-                      style={{
-                        padding: '20px',
-                        background:
-                          new Date(selectedTask.dueDate) < new Date()
-                            ? 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)'
-                            : 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                        borderRadius: '16px',
-                        border: `1px solid ${
-                          new Date(selectedTask.dueDate) < new Date()
-                            ? 'rgba(220, 38, 38, 0.3)'
-                            : 'rgba(217, 119, 6, 0.3)'
-                        }`,
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: '12px',
-                          color:
-                            new Date(selectedTask.dueDate) < new Date()
-                              ? '#dc2626'
-                              : '#d97706',
-                          marginBottom: '8px',
-                          fontWeight: 600,
-                          textTransform: 'uppercase',
-                          fontFamily: "'Inter', sans-serif",
-                        }}
-                      >
-                        Vence el
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '16px',
-                          fontWeight: 600,
-                          color: '#1a2e22',
-                          fontFamily: "'Inter', sans-serif",
-                        }}
-                      >
-                        {new Date(
-                          selectedTask.dueDate,
-                        ).toLocaleDateString('es-ES', {
-                          weekday: 'long',
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Descripción */}
-                {selectedTask.description && (
-                  <div
-                    style={{
-                      marginBottom: '32px',
-                      padding: '24px',
-                      background:
-                        'linear-gradient(135deg, #f8f9fa 0%, #f0f5f3 100%)',
-                      borderRadius: '16px',
-                      border: '1px solid rgba(90, 146, 112, 0.15)',
-                    }}
-                  >
-                    <h4
-                      style={{
-                        margin: '0 0 16px 0',
-                        fontSize: '18px',
-                        fontWeight: 600,
-                        color: '#1a2e22',
-                        fontFamily: "'Inter', sans-serif",
-                      }}
-                    >
-                      Descripción
-                    </h4>
-                    <div
-                      style={{
-                        fontSize: '16px',
-                        color: '#3a5a4a',
-                        lineHeight: '1.7',
-                        fontFamily: "'Inter', sans-serif",
-                        whiteSpace: 'pre-wrap',
-                      }}
-                    >
-                      {selectedTask.description}
-                    </div>
-                  </div>
-                )}
-
-                {/* Archivos */}
-                <div
-                  style={{
-                    marginBottom: '32px',
-                    padding: '24px',
-                    background: '#ffffff',
-                    borderRadius: '16px',
-                    border: '1px solid rgba(90, 146, 112, 0.15)',
-                    boxShadow: '0 2px 8px rgba(90, 146, 112, 0.08)',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: '20px',
-                    }}
-                  >
-                    <h4
-                      style={{
-                        margin: 0,
-                        fontSize: '20px',
-                        fontWeight: 600,
-                        color: '#1a2e22',
-                        fontFamily: "'Inter', sans-serif",
-                      }}
-                    >
-                      📎 Archivos adjuntos
-                    </h4>
-                    {!selectedTask.completedAt && (
-                      <label
-                        style={{
-                          padding: '10px 20px',
-                          background: '#5a9270',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '12px',
-                          fontSize: '14px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          transition: 'all 0.3s ease',
-                          fontFamily: "'Inter', sans-serif",
-                          boxShadow: '0 4px 12px rgba(90, 146, 112, 0.3)',
-                        }}
-                      >
-                        ➕ Subir archivo
-                        <input
-                          type="file"
-                          style={{ display: 'none' }}
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (file && selectedTaskId) {
-                              try {
-                                await tasksService.uploadFile(
-                                  selectedTaskId,
-                                  file,
-                                );
-                                await loadTaskFiles(selectedTaskId);
-                                e.target.value = '';
-                              } catch (error: any) {
-                                const errorMessage =
-                                  error.response?.data?.error ||
-                                  error.response?.data?.message ||
-                                  error.response?.data?.details ||
-                                  error.message ||
-                                  'Error desconocido';
-                                toast.error(
-                                  'Error al subir el archivo: ' + errorMessage,
-                                );
-                                e.target.value = '';
-                              }
-                            }
-                          }}
-                        />
-                      </label>
-                    )}
-                  </div>
-
-                  {taskFiles[selectedTaskId] &&
-                  taskFiles[selectedTaskId].length > 0 ? (
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '12px',
-                      }}
-                    >
-                      {taskFiles[selectedTaskId].map((file: any) => (
-                        <div
-                          key={file.id}
-                          style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            padding: '16px',
-                            background:
-                              'linear-gradient(135deg, #f8f9fa 0%, #f0f5f3 100%)',
-                            borderRadius: '12px',
-                            border:
-                              '1px solid rgba(90, 146, 112, 0.15)',
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '16px',
-                              flex: 1,
-                            }}
-                          >
-                            <span style={{ fontSize: '24px' }}>📄</span>
-                            <div>
-                              <div
-                                style={{
-                                  fontSize: '15px',
-                                  fontWeight: 600,
-                                  color: '#1a2e22',
-                                  fontFamily: "'Inter', sans-serif",
-                                }}
-                              >
-                                {file.originalName}
-                              </div>
-                              <div
-                                style={{
-                                  fontSize: '13px',
-                                  color: '#3a5a4a',
-                                  marginTop: '4px',
-                                  fontFamily: "'Inter', sans-serif",
-                                }}
-                              >
-                                {(file.fileSize / 1024).toFixed(1)} KB •
-                                Subido por {file.uploaderName}
-                              </div>
-                            </div>
-                          </div>
-                          <a
-                            href={`${API_BASE_URL}${file.filePath}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                              padding: '8px 16px',
-                              background: '#5a9270',
-                              color: 'white',
-                              textDecoration: 'none',
-                              borderRadius: '12px',
-                              fontSize: '13px',
-                              fontWeight: 600,
-                              transition: 'all 0.3s ease',
-                              fontFamily: "'Inter', sans-serif",
-                              boxShadow:
-                                '0 2px 8px rgba(90, 146, 112, 0.3)',
-                            }}
-                          >
-                            Descargar
-                          </a>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div
-                      style={{
-                        fontSize: '15px',
-                        color: '#6b7280',
-                        fontFamily: "'Inter', sans-serif",
-                      }}
-                    >
-                      Aún no hay archivos adjuntos en esta tarea.
-                    </div>
-                  )}
-                </div>
-
-                {/* Comentarios y botón completar */}
-                {/* (comentarios + marcar completada se mantienen igual que en la versión original) */}
-              </div>
-            ) : (
-              // Lista de tareas (versión original, con pendientes y completadas)
-              <div
-                style={{
-                  background: '#ffffff',
-                  borderRadius: '20px',
-                  boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
-                  padding: '40px',
-                  border: '1px solid rgba(90, 146, 112, 0.15)',
-                  marginTop: '40px',
-                }}
-              >
-                <h3
-                  style={{
-                    margin: '0 0 32px 0',
-                    fontSize: '28px',
-                    fontWeight: 700,
-                    color: '#1a2e22',
-                    fontFamily: "'Inter', sans-serif",
-                    letterSpacing: '-0.02em',
-                  }}
-                >
-                  Mis Tareas
-                </h3>
-                {tasks.length === 0 ? (
-                  <p style={{ color: '#6b7280', fontSize: '14px' }}>
-                    No tienes tareas asignadas.
-                  </p>
-                ) : (
-                  <>
-                    {/* Pendientes */}
-                    {tasks.filter((t) => !t.completedAt).length > 0 && (
-                      <div style={{ marginBottom: '32px' }}>
-                        <h4
-                          style={{
-                            margin: '0 0 20px 0',
-                            fontSize: '20px',
-                            fontWeight: 600,
-                            color: '#1a2e22',
-                            fontFamily: "'Inter', sans-serif",
-                          }}
-                        >
-                          Tareas pendientes
-                        </h4>
-                        <div className="flex flex-col gap-3">
-                          {tasks
-                            .filter((t) => !t.completedAt)
-                            .map((t) => (
-                              <div
-                                key={t.id}
-                                onClick={() => {
-                                  setSelectedTaskId(t.id);
-                                  loadTaskDetails(t.id);
-                                }}
-                                className="rounded-3xl px-6 py-4 shadow-sm border border-sage/20 cursor-pointer transition-all hover:shadow-md flex items-center justify-between gap-6"
-                                style={{ backgroundColor: '#EDF2EB' }}
-                              >
-                                <div className="flex-1">
-                                  <div className="text-sm text-sage serif-font font-medium">
-                                    {t.title}
-                                  </div>
-                                  <div className="text-xs text-forest font-medium mt-0.5">
-                                    {t.description || 'Sin descripción'}
-                                  </div>
-                                </div>
-                                <div className="flex-shrink-0 text-sm text-sage font-medium serif-font">
-                                  {t.createdBy === 'PSYCHOLOGIST'
-                                    ? 'Asignada'
-                                    : 'Enviada'}
-                                </div>
-                              </div>
-                            ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Completadas */}
-                    {tasks.filter((t) => t.completedAt).length > 0 && (
-                      <div>
-                        <h4
-                          style={{
-                            margin: '0 0 20px 0',
-                            fontSize: '20px',
-                            fontWeight: 600,
-                            color: '#1a2e22',
-                            fontFamily: "'Inter', sans-serif",
-                          }}
-                        >
-                          Tareas completadas
-                        </h4>
-                        <div className="flex flex-col gap-3">
-                          {tasks
-                            .filter((t) => t.completedAt)
-                            .map((t) => (
-                              <div
-                                key={t.id}
-                                onClick={() => {
-                                  setSelectedTaskId(t.id);
-                                  loadTaskDetails(t.id);
-                                }}
-                                className="rounded-3xl px-6 py-4 shadow-sm border border-sage/20 cursor-pointer transition-all hover:shadow-md flex items-center justify-between gap-6"
-                                style={{ backgroundColor: '#EDF2EB' }}
-                              >
-                                <div className="flex-1">
-                                  <div className="text-sm text-sage serif-font font-medium">
-                                    {t.title}
-                                  </div>
-                                  <div className="text-xs text-forest font-medium mt-0.5">
-                                    {t.description || 'Sin descripción'}
-                                  </div>
-                                </div>
-                                <div className="flex-shrink-0 text-sm text-sage font-medium serif-font">
-                                  Completada
-                                </div>
-                              </div>
-                            ))}
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            )}
-          </>
+          <UserTasksTab tasks={tasks} onRefresh={loadData} />
         )}
 
         {tab === 'tests-pendientes' && hasPsychologist && (
@@ -2421,37 +1119,47 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {myAppointments.map((apt) => {
                     const status = apt.status as string | undefined;
+                    const isBooked = status === 'BOOKED';
                     const isConfirmed = status === 'CONFIRMED';
+                    const isPaid = apt.paymentStatus === 'PAID';
                     const isPending = status === 'REQUESTED';
                     const isCancelled =
                       status === 'CANCELLED' || status === 'CANCELED';
 
-                    const statusLabel = isConfirmed
-                      ? 'Confirmada'
+                    const statusLabel = isBooked || isPaid
+                      ? 'Pagada'
+                      : isConfirmed
+                      ? 'Pago pendiente'
                       : isPending
-                      ? 'Pendiente'
+                      ? 'Por confirmar'
                       : isCancelled
                       ? 'Cancelada'
                       : status || 'Programada';
 
-                    const statusClasses = isConfirmed
-                      ? 'bg-[#F1F8F6] text-[#6B8B7E]'
+                    const statusClasses = isBooked || isPaid
+                      ? 'bg-[#E8F5E9] text-[#2E7D32]'
+                      : isConfirmed
+                      ? 'bg-[#FFF3E0] text-[#E65100]'
                       : isPending
                       ? 'bg-[#FAF5E6] text-[#9A8754]'
                       : isCancelled
                       ? 'bg-[#F5F5F5] text-[#8E8E8E]'
                       : 'bg-sage/10 text-sage/70';
 
-                    const badgeBg = isConfirmed
-                      ? 'bg-[#E9F0EE]'
+                    const badgeBg = isBooked || isPaid
+                      ? 'bg-[#E8F5E9]'
+                      : isConfirmed
+                      ? 'bg-[#FFF3E0]'
                       : isPending
                       ? 'bg-[#F7F3E6]'
                       : isCancelled
                       ? 'bg-[#F2F2F2]'
                       : 'bg-sage/10';
 
-                    const badgeIconColor = isConfirmed
-                      ? 'text-[#8DA399]'
+                    const badgeIconColor = isBooked || isPaid
+                      ? 'text-[#2E7D32]'
+                      : isConfirmed
+                      ? 'text-[#E65100]'
                       : isPending
                       ? 'text-[#B29D6B]'
                       : isCancelled
@@ -2503,11 +1211,29 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                           <span className="text-sm text-sage/80 font-medium">
                             {apt.psychologist?.name || 'Terapia online'}
                           </span>
-                          <span
-                            className={`inline-flex items-center justify-center rounded-full px-4 py-1 text-[13px] font-medium shadow-sm ${statusClasses}`}
-                          >
-                            {statusLabel}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            {isConfirmed && apt.paymentStatus === 'PENDING' && (
+                              <button
+                                className="inline-flex items-center justify-center rounded-full px-4 py-1 text-[13px] font-semibold shadow-sm bg-[#5a9270] text-white hover:bg-[#4a8062] transition-colors cursor-pointer border-none"
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  try {
+                                    const { url } = await stripeService.createAppointmentCheckout(apt.id);
+                                    window.location.href = url;
+                                  } catch (err: any) {
+                                    alert(err.response?.data?.error || 'Error al iniciar el pago');
+                                  }
+                                }}
+                              >
+                                Pagar {apt.price ? `${apt.price}€` : ''}
+                              </button>
+                            )}
+                            <span
+                              className={`inline-flex items-center justify-center rounded-full px-4 py-1 text-[13px] font-medium shadow-sm ${statusClasses}`}
+                            >
+                              {statusLabel}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     );
@@ -2570,37 +1296,47 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                   )
                   .map((apt) => {
                     const status = apt.status as string | undefined;
+                    const isBooked = status === 'BOOKED';
                     const isConfirmed = status === 'CONFIRMED';
+                    const isPaid = apt.paymentStatus === 'PAID';
                     const isPending = status === 'REQUESTED';
                     const isCancelled =
                       status === 'CANCELLED' || status === 'CANCELED';
 
-                    const statusLabel = isConfirmed
-                      ? 'Confirmada'
+                    const statusLabel = isBooked || isPaid
+                      ? 'Pagada'
+                      : isConfirmed
+                      ? 'Pago pendiente'
                       : isPending
-                      ? 'Pendiente'
+                      ? 'Por confirmar'
                       : isCancelled
                       ? 'Cancelada'
                       : status || 'Programada';
 
-                    const statusClasses = isConfirmed
-                      ? 'bg-[#F1F8F6] text-[#6B8B7E]'
+                    const statusClasses = isBooked || isPaid
+                      ? 'bg-[#E8F5E9] text-[#2E7D32]'
+                      : isConfirmed
+                      ? 'bg-[#FFF3E0] text-[#E65100]'
                       : isPending
                       ? 'bg-[#FAF5E6] text-[#9A8754]'
                       : isCancelled
                       ? 'bg-[#F5F5F5] text-[#8E8E8E]'
                       : 'bg-sage/10 text-sage/70';
 
-                    const badgeBg = isConfirmed
-                      ? 'bg-[#E9F0EE]'
+                    const badgeBg = isBooked || isPaid
+                      ? 'bg-[#E8F5E9]'
+                      : isConfirmed
+                      ? 'bg-[#FFF3E0]'
                       : isPending
                       ? 'bg-[#F7F3E6]'
                       : isCancelled
                       ? 'bg-[#F2F2F2]'
                       : 'bg-sage/10';
 
-                    const badgeIconColor = isConfirmed
-                      ? 'text-[#8DA399]'
+                    const badgeIconColor = isBooked || isPaid
+                      ? 'text-[#2E7D32]'
+                      : isConfirmed
+                      ? 'text-[#E65100]'
                       : isPending
                       ? 'text-[#B29D6B]'
                       : isCancelled
@@ -2666,12 +1402,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             )}
           </div>
         )}
-        {/* Tab: Grupos */}
-        {tab === 'grupos' && (
-          <Suspense fallback={<LoadingSpinner />}>
-            <GroupSessions role="USER" />
-          </Suspense>
-        )}
       </main>
 
       {/* Onboarding Wizard */}
@@ -2679,7 +1409,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
         <OnboardingWizard
           userName={me.name || 'Usuario'}
           onComplete={() => setShowOnboarding(false)}
-          onGoToProfile={() => { setShowOnboarding(false); setSettingsSection('perfil'); setTab('configuracion'); }}
           onGoToMatching={() => { setShowOnboarding(false); setTab('mi-psicologo'); setShowMatchingTest(true); }}
         />
       )}

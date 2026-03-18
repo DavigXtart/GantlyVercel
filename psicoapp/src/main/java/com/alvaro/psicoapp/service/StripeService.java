@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.alvaro.psicoapp.domain.AppointmentEntity;
+import com.alvaro.psicoapp.repository.AppointmentRepository;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
@@ -30,6 +32,14 @@ public class StripeService {
 
     @Value("${app.base.url:http://localhost:5173}")
     private String baseUrl;
+
+    private final AppointmentRepository appointmentRepository;
+    private final NotificationService notificationService;
+
+    public StripeService(AppointmentRepository appointmentRepository, NotificationService notificationService) {
+        this.appointmentRepository = appointmentRepository;
+        this.notificationService = notificationService;
+    }
 
     @PostConstruct
     public void init() {
@@ -54,16 +64,16 @@ public class StripeService {
             Map<String, Map<Boolean, String>> planPriceMap = new HashMap<>();
 
             Map<Boolean, String> basicPrices = new HashMap<>();
-            basicPrices.put(false, "price_basic_monthly");
-            basicPrices.put(true, "price_basic_yearly");
+            basicPrices.put(false, "price_1TCOOsBfHWMdW4wSXIRiG7lM");
+            basicPrices.put(true, "price_1TCOPQBfHWMdW4wSuVZyr0p5");
 
             Map<Boolean, String> premiumPrices = new HashMap<>();
-            premiumPrices.put(false, "price_premium_monthly");
-            premiumPrices.put(true, "price_premium_yearly");
+            premiumPrices.put(false, "price_1TCOPkBfHWMdW4wSnhyfEba6");
+            premiumPrices.put(true, "price_1TCOQ3BfHWMdW4wSI7G8R9ke");
 
             Map<Boolean, String> enterprisePrices = new HashMap<>();
-            enterprisePrices.put(false, "price_enterprise_monthly");
-            enterprisePrices.put(true, "price_enterprise_yearly");
+            enterprisePrices.put(false, "price_1TCOQIBfHWMdW4wSz1NAbGt1");
+            enterprisePrices.put(true, "price_1TCOQfBfHWMdW4wSH9zzro5X");
 
             planPriceMap.put("basic", basicPrices);
             planPriceMap.put("premium", premiumPrices);
@@ -110,6 +120,64 @@ public class StripeService {
         }
     }
 
+    public Map<String, String> createAppointmentCheckoutSession(Long appointmentId, String userEmail) {
+        if (!isStripeConfigured()) {
+            throw new RuntimeException("Stripe no está configurado");
+        }
+
+        AppointmentEntity appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Cita no encontrada"));
+
+        if (!"CONFIRMED".equals(appointment.getStatus()) && !"BOOKED".equals(appointment.getStatus())) {
+            throw new RuntimeException("La cita debe estar confirmada para poder pagarla");
+        }
+        if ("PAID".equals(appointment.getPaymentStatus())) {
+            throw new RuntimeException("Esta cita ya está pagada");
+        }
+
+        try {
+            long amountCents = appointment.getPrice().multiply(java.math.BigDecimal.valueOf(100)).longValue();
+
+            SessionCreateParams params = SessionCreateParams.builder()
+                    .setMode(SessionCreateParams.Mode.PAYMENT)
+                    .addLineItem(
+                            SessionCreateParams.LineItem.builder()
+                                    .setPriceData(
+                                            SessionCreateParams.LineItem.PriceData.builder()
+                                                    .setCurrency("eur")
+                                                    .setUnitAmount(amountCents)
+                                                    .setProductData(
+                                                            SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                                    .setName("Cita de psicología")
+                                                                    .setDescription("Sesión con " + appointment.getPsychologist().getName())
+                                                                    .build()
+                                                    )
+                                                    .build()
+                                    )
+                                    .setQuantity(1L)
+                                    .build()
+                    )
+                    .setCustomerEmail(userEmail)
+                    .setSuccessUrl(baseUrl + "/dashboard?payment=success&appointment=" + appointmentId)
+                    .setCancelUrl(baseUrl + "/dashboard?payment=canceled&appointment=" + appointmentId)
+                    .putMetadata("appointmentId", appointmentId.toString())
+                    .putMetadata("type", "appointment")
+                    .build();
+
+            Session session = Session.create(params);
+
+            appointment.setStripeSessionId(session.getId());
+            appointmentRepository.save(appointment);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("sessionId", session.getId());
+            response.put("url", session.getUrl());
+            return response;
+        } catch (Exception e) {
+            throw new RuntimeException("Error creando sesión de pago: " + e.getMessage(), e);
+        }
+    }
+
     public void handleWebhook(String payload, String sigHeader) {
 
         if (!isStripeConfigured()) {
@@ -126,8 +194,12 @@ public class StripeService {
             switch (event.getType()) {
                 case "checkout.session.completed":
                     Session session = (Session) event.getDataObjectDeserializer().getObject().orElse(null);
-                    if (session != null && "subscription".equals(session.getMode())) {
-                        handleSubscriptionCreated(session);
+                    if (session != null) {
+                        if ("subscription".equals(session.getMode())) {
+                            handleSubscriptionCreated(session);
+                        } else if ("payment".equals(session.getMode()) && "appointment".equals(session.getMetadata().get("type"))) {
+                            handleAppointmentPaymentCompleted(session);
+                        }
                     }
                     break;
                 case "customer.subscription.updated":
@@ -144,6 +216,87 @@ public class StripeService {
             throw new RuntimeException("Error verificando firma del webhook", e);
         } catch (Exception e) {
             throw new RuntimeException("Error procesando webhook", e);
+        }
+    }
+
+    public Map<String, String> verifyAppointmentPayment(Long appointmentId, String userEmail) {
+        if (!isStripeConfigured()) {
+            throw new RuntimeException("Stripe no está configurado");
+        }
+
+        AppointmentEntity appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Cita no encontrada"));
+
+        if (!appointment.getUser().getEmail().equals(userEmail)) {
+            throw new RuntimeException("No tienes permiso para verificar esta cita");
+        }
+
+        Map<String, String> result = new HashMap<>();
+
+        if ("PAID".equals(appointment.getPaymentStatus())) {
+            result.put("status", "PAID");
+            return result;
+        }
+
+        String sessionId = appointment.getStripeSessionId();
+        if (sessionId == null || sessionId.isEmpty()) {
+            result.put("status", "PENDING");
+            return result;
+        }
+
+        try {
+            Session session = Session.retrieve(sessionId);
+            if ("complete".equals(session.getStatus()) && "paid".equals(session.getPaymentStatus())) {
+                appointment.setPaymentStatus("PAID");
+                appointment.setStatus("BOOKED");
+                appointmentRepository.save(appointment);
+                logger.info("Pago verificado para cita {} via polling", appointmentId);
+
+                if (appointment.getUser() != null) {
+                    notificationService.createNotification(appointment.getUser().getId(), "PAYMENT",
+                            "Pago confirmado", "Tu pago para la cita con " + appointment.getPsychologist().getName() + " ha sido confirmado.");
+                }
+                if (appointment.getPsychologist() != null) {
+                    notificationService.createNotification(appointment.getPsychologist().getId(), "PAYMENT",
+                            "Pago recibido", "El pago de " + appointment.getUser().getName() + " para su cita ha sido confirmado.");
+                }
+
+                result.put("status", "PAID");
+            } else {
+                result.put("status", "PENDING");
+            }
+        } catch (Exception e) {
+            logger.error("Error verificando pago de cita {}: {}", appointmentId, e.getMessage());
+            result.put("status", "PENDING");
+        }
+
+        return result;
+    }
+
+    private void handleAppointmentPaymentCompleted(Session session) {
+        String appointmentIdStr = session.getMetadata().get("appointmentId");
+        if (appointmentIdStr == null) return;
+
+        try {
+            Long appointmentId = Long.parseLong(appointmentIdStr);
+            appointmentRepository.findById(appointmentId).ifPresent(appointment -> {
+                appointment.setPaymentStatus("PAID");
+                appointment.setStatus("BOOKED");
+                appointment.setStripeSessionId(session.getId());
+                appointmentRepository.save(appointment);
+                logger.info("Pago completado para cita {}", appointmentId);
+
+                if (appointment.getUser() != null) {
+                    notificationService.createNotification(appointment.getUser().getId(), "PAYMENT",
+                            "Pago confirmado", "Tu pago para la cita con " + appointment.getPsychologist().getName() + " ha sido confirmado.");
+                }
+                if (appointment.getPsychologist() != null) {
+                    notificationService.createNotification(appointment.getPsychologist().getId(), "PAYMENT",
+                            "Pago recibido", "El pago de " + appointment.getUser().getName() + " para su cita ha sido confirmado.");
+                }
+            });
+        } catch (NumberFormatException e) {
+            logger.error("appointmentId inválido en metadata: {}", appointmentIdStr);
         }
     }
 

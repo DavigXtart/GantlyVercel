@@ -139,6 +139,18 @@ public class AuthController {
                 : new AuthDtos.MessageStatusResponse("Token de verificación inválido o expirado", "error"));
     }
 
+    @PostMapping("/verify-code")
+    @Operation(summary = "Verificar email por código", description = "Verifica el email usando el código de 6 dígitos enviado por correo")
+    @ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Resultado de la verificación")
+	})
+    public ResponseEntity<AuthDtos.MessageStatusResponse> verifyEmailByCode(@Valid @RequestBody AuthDtos.VerifyCodeRequest req) {
+        boolean verified = authService.verifyEmailByCode(req.email, req.code);
+        return ResponseEntity.ok(verified
+                ? new AuthDtos.MessageStatusResponse("Email verificado exitosamente", "success")
+                : new AuthDtos.MessageStatusResponse("Código de verificación inválido o expirado", "error"));
+    }
+
     @PostMapping("/forgot-password")
     @Operation(summary = "Solicitar recuperación de contraseña", description = "Envía un email con enlace para restablecer la contraseña")
     @ApiResponses(value = {
@@ -217,6 +229,24 @@ public class AuthController {
             return ResponseEntity.badRequest().body(new AuthDtos.MessageStatusResponse(e.getMessage(), "error"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new AuthDtos.MessageStatusResponse("Error al reenviar el email de verificación: " + e.getMessage(), "error"));
+        }
+    }
+
+    @PostMapping("/resend-verification")
+    @Operation(summary = "Reenviar código de verificación por email (público)", description = "Reenvía el código de verificación sin necesidad de autenticación")
+    public ResponseEntity<AuthDtos.MessageStatusResponse> resendVerificationByEmail(@RequestBody java.util.Map<String, String> body) {
+        try {
+            String email = body.get("email");
+            if (email == null || email.isBlank()) {
+                return ResponseEntity.badRequest().body(new AuthDtos.MessageStatusResponse("Email requerido", "error"));
+            }
+            authService.resendVerificationEmail(email.trim());
+            return ResponseEntity.ok(new AuthDtos.MessageStatusResponse("Código de verificación reenviado", "success"));
+        } catch (IllegalArgumentException e) {
+            // Always return success to avoid email enumeration
+            return ResponseEntity.ok(new AuthDtos.MessageStatusResponse("Si el email existe, se reenviará el código", "success"));
+        } catch (Exception e) {
+            return ResponseEntity.ok(new AuthDtos.MessageStatusResponse("Si el email existe, se reenviará el código", "success"));
         }
     }
 

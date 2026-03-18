@@ -79,6 +79,10 @@ public class JitsiService {
                     .orElse(null);
 
             if (validAppointment != null) {
+                if (!"PAID".equals(validAppointment.getPaymentStatus())) {
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                            "Debes completar el pago de tu cita antes de iniciar la videollamada.");
+                }
                 String roomName = "gantly-" + validAppointment.getId();
 
                 logger.info("Videollamada iniciada: {} <-> {} (Sala: {})", currentUser.getEmail(), otherUser.getEmail(), roomName);

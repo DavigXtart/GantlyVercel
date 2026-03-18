@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { toast } from './ui/Toast';
 
-type Slot = { id: number; startTime: string; endTime: string; status: 'FREE'|'REQUESTED'|'CONFIRMED'|'BOOKED'|'CANCELLED'; user?: { name: string }; price?: number };
+type Slot = { id: number; startTime: string; endTime: string; status: 'FREE'|'REQUESTED'|'CONFIRMED'|'BOOKED'|'CANCELLED'; user?: { name: string }; price?: number; paymentStatus?: string };
 
 type SessionPrices = {
   individual?: number;
@@ -327,19 +327,25 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
     }
   };
 
-  const getStatusColor = (status: string, isMyAppointment: boolean = false) => {
-    // Si es una cita del usuario, usar color especial (amarillo/dorado)
+  const getStatusColor = (status: string, isMyAppointment: boolean = false, paymentStatus?: string) => {
+    // Si es una cita del usuario, distinguir pagada vs pendiente de pago
     if (isMyAppointment && (status === 'BOOKED' || status === 'CONFIRMED')) {
-      return { bg: '#fef3c7', border: '#f59e0b', text: '#92400e', hover: '#fde68a' };
+      if (paymentStatus === 'PAID') {
+        return { bg: '#dcfce7', border: '#22c55e', text: '#15803d', hover: '#bbf7d0' };
+      }
+      return { bg: '#fff7ed', border: '#f97316', text: '#9a3412', hover: '#ffedd5' };
     }
-    
+
     switch (status) {
       case 'FREE':
         return { bg: '#e0f2fe', border: '#0ea5e9', text: '#0369a1', hover: '#bae6fd' };
       case 'REQUESTED':
         return { bg: '#fef3c7', border: '#f59e0b', text: '#92400e', hover: '#fde68a' };
       case 'CONFIRMED':
-        return { bg: '#d1fae5', border: '#10b981', text: '#065f46', hover: '#a7f3d0' };
+        if (paymentStatus === 'PAID') {
+          return { bg: '#dcfce7', border: '#22c55e', text: '#15803d', hover: '#bbf7d0' };
+        }
+        return { bg: '#fff7ed', border: '#f97316', text: '#9a3412', hover: '#ffedd5' };
       case 'BOOKED':
         return { bg: '#dcfce7', border: '#22c55e', text: '#15803d', hover: '#bbf7d0' };
       case 'CANCELLED':
@@ -557,7 +563,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       {list.map(s => {
                         const isMyAppointment = myAppointmentsByDayHour[`${new Date(s.startTime).toDateString()}-${new Date(s.startTime).getHours()}`] && (s.status === 'BOOKED' || s.status === 'CONFIRMED' || s.status === 'REQUESTED');
-                        const colors = getStatusColor(s.status, isMyAppointment);
+                        const colors = getStatusColor(s.status, isMyAppointment, s.paymentStatus);
                         return (
                           <div
                             key={s.id}
@@ -612,7 +618,12 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                                 )}
                                 {s.status === 'CONFIRMED' && (
                                   <div style={{ fontSize: '11px', opacity: 0.8, fontWeight: 600 }}>
-                                    ✅ Confirmada
+                                    {s.paymentStatus === 'PAID' ? '✅ Pagada' : '⏳ Pago pendiente'}
+                                  </div>
+                                )}
+                                {s.status === 'BOOKED' && (
+                                  <div style={{ fontSize: '11px', opacity: 0.8, fontWeight: 600 }}>
+                                    ✅ Pagada
                                   </div>
                                 )}
                                 {isMyAppointment && (

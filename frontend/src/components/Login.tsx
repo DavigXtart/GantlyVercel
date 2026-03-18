@@ -39,6 +39,9 @@ export default function Login({
   const [requires2FA, setRequires2FA] = useState(false);
   const [tempToken, setTempToken] = useState<string | null>(null);
   const [totpCode, setTotpCode] = useState('');
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
     if (oauthError) {
@@ -93,10 +96,18 @@ export default function Login({
       const backendMessage: string | undefined = err.response?.data?.message;
       let friendlyMessage = backendMessage || 'Error al iniciar sesión';
 
+      // Email not verified — show verification code screen
+      if (backendMessage?.includes('EMAIL_NOT_VERIFIED')) {
+        setNeedsVerification(true);
+        authService.resendVerificationByEmail(email).catch(() => {});
+        toast.warning('Debes verificar tu email antes de iniciar sesión. Te hemos reenviado el código.');
+        setLoading(false);
+        return;
+      }
+
       // Mensaje claro para credenciales incorrectas
       if (status === 401 || status === 403) {
         friendlyMessage = 'Email o contraseña incorrectos';
-        // En el login de usuario, sugerir el acceso de empresa si corresponde
         if (!isCompanyMode) {
           friendlyMessage += '. Si eres una empresa, utiliza el acceso de empresas.';
         }
@@ -130,6 +141,79 @@ export default function Login({
       setLoading(false);
     }
   };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (verificationCode.length !== 6) return;
+    setVerifying(true);
+    setFormError(null);
+    try {
+      const res = await authService.verifyCode(email, verificationCode);
+      if (res.status === 'success') {
+        toast.success('Email verificado. Iniciando sesión...');
+        setNeedsVerification(false);
+        // Re-attempt login automatically
+        try {
+          const result = await authService.login(email, password);
+          if (result && typeof result === 'object' && result.requires2FA) {
+            setRequires2FA(true);
+            setTempToken(result.tempToken);
+          } else {
+            toast.success('Sesión iniciada correctamente');
+            onLogin();
+          }
+        } catch {
+          toast.success('Email verificado. Por favor inicia sesión.');
+        }
+      } else {
+        toast.error(res.message || 'Código inválido o expirado');
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Error al verificar el código');
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  if (needsVerification) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #e8ece9 0%, #d4e0d8 50%, #e0e8e3 100%)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '80px 24px', fontFamily: "'Inter', sans-serif" }}>
+        <div style={{ width: '100%', maxWidth: '420px', background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(90,146,112,0.2)', borderRadius: '24px', padding: '48px 40px', boxShadow: '0 8px 32px rgba(90,146,112,0.15)' }}>
+          <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: '28px', fontWeight: 700, color: '#5a9270', marginBottom: '8px', textAlign: 'center' }}>Verifica tu email</div>
+          <p style={{ color: '#3a5a4a', fontSize: '15px', textAlign: 'center', marginBottom: '8px' }}>Hemos enviado un código de 6 dígitos a:</p>
+          <p style={{ color: '#1a2e22', fontSize: '16px', fontWeight: 600, textAlign: 'center', marginBottom: '24px' }}>{email}</p>
+          <form onSubmit={handleVerifyCode}>
+            <div style={{ marginBottom: '20px' }}>
+              <input
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                value={verificationCode}
+                onChange={e => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="000000"
+                autoFocus
+                style={{ width: '100%', padding: '16px', fontSize: '24px', textAlign: 'center', letterSpacing: '8px', border: '2px solid rgba(90,146,112,0.3)', borderRadius: '12px', outline: 'none', fontFamily: "'Inter', sans-serif", fontWeight: 700, boxSizing: 'border-box' }}
+              />
+            </div>
+            {formError && <p style={{ color: '#dc2626', fontSize: '14px', marginBottom: '16px', textAlign: 'center' }}>{formError}</p>}
+            <button type="submit" disabled={verifying || verificationCode.length !== 6} style={{ width: '100%', padding: '14px', background: (verifying || verificationCode.length !== 6) ? '#cbd5d1' : '#5a9270', color: 'white', border: 'none', borderRadius: '12px', fontSize: '16px', fontWeight: 600, cursor: 'pointer', opacity: (verifying || verificationCode.length !== 6) ? 0.6 : 1 }}>
+              {verifying ? 'Verificando...' : 'Verificar'}
+            </button>
+          </form>
+          <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '14px', color: '#6b7280' }}>
+            ¿No recibiste el código?{' '}
+            <button onClick={() => { authService.resendVerificationByEmail(email).then(() => toast.success('Código reenviado')).catch(() => toast.error('Error al reenviar')); }} type="button" style={{ border: 'none', background: 'transparent', color: '#5a9270', fontWeight: 600, cursor: 'pointer', fontSize: '14px' }}>
+              Reenviar
+            </button>
+          </div>
+          <button onClick={() => { setNeedsVerification(false); setVerificationCode(''); setFormError(null); }} style={{ width: '100%', marginTop: '12px', padding: '12px', background: 'transparent', border: '1px solid rgba(90,146,112,0.3)', borderRadius: '12px', color: '#5a9270', fontSize: '14px', cursor: 'pointer' }}>
+            Volver al login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (requires2FA) {
     return (

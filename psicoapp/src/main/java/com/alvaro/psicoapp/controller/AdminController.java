@@ -309,6 +309,35 @@ public class AdminController {
         return ResponseEntity.ok(testImportService.importTest(req));
     }
 
+    @GetMapping("/psychologists/pending")
+    @Operation(summary = "Listar psicólogos pendientes de aprobación", description = "Obtiene la lista de psicólogos que aún no han sido aprobados")
+    @ApiResponse(responseCode = "200", description = "Lista de psicólogos pendientes obtenida exitosamente")
+    public List<AdminDtos.PendingPsychologistDto> getPendingPsychologists() {
+        return adminService.getPendingPsychologists();
+    }
+
+    @PostMapping("/psychologists/{profileId}/approve")
+    @Operation(summary = "Aprobar psicólogo", description = "Aprueba un psicólogo para que pueda recibir pacientes")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Psicólogo aprobado exitosamente"),
+        @ApiResponse(responseCode = "404", description = "Perfil no encontrado")
+    })
+    public ResponseEntity<Map<String, String>> approvePsychologist(@PathVariable Long profileId) {
+        adminService.approvePsychologist(profileId);
+        return ResponseEntity.ok(Map.of("message", "Psicólogo aprobado exitosamente"));
+    }
+
+    @PostMapping("/psychologists/{profileId}/reject")
+    @Operation(summary = "Rechazar psicólogo", description = "Rechaza un psicólogo con un motivo opcional")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Psicólogo rechazado"),
+        @ApiResponse(responseCode = "404", description = "Perfil no encontrado")
+    })
+    public ResponseEntity<Map<String, String>> rejectPsychologist(@PathVariable Long profileId, @RequestBody(required = false) AdminDtos.RejectPsychologistRequest req) {
+        adminService.rejectPsychologist(profileId, req != null ? req.reason : null);
+        return ResponseEntity.ok(Map.of("message", "Psicólogo rechazado"));
+    }
+
     @GetMapping("/statistics")
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     @Operation(summary = "Obtener estadísticas del sistema", description = "Obtiene estadísticas generales del sistema")

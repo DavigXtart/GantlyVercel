@@ -89,6 +89,16 @@ public class AuthDtos {
 
 	public record MessageStatusResponse(String message, String status) {}
 
+	public static class VerifyCodeRequest {
+		@NotBlank(message = "El email es requerido")
+		@Email(message = "Email inválido")
+		public String email;
+
+		@NotBlank(message = "El código es requerido")
+		@Size(min = 6, max = 6, message = "El código debe tener 6 dígitos")
+		public String code;
+	}
+
 	public static class CompanyRegisterRequest {
 		@NotBlank(message = "El nombre es requerido")
 		@Size(min = 2, max = 200)

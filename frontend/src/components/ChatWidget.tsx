@@ -372,7 +372,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
                 e.currentTarget.style.display = 'none';
                 const parent = e.currentTarget.parentElement;
                 if (parent) {
-                  parent.innerHTML = '👤';
+                  parent.textContent = '\u{1F464}';
                   parent.style.fontSize = '20px';
                   parent.style.display = 'flex';
                   parent.style.alignItems = 'center';
@@ -459,7 +459,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
                             e.currentTarget.style.display = 'none';
                             const parent = e.currentTarget.parentElement;
                             if (parent) {
-                              parent.innerHTML = '👤';
+                              parent.textContent = '\u{1F464}';
                               parent.style.fontSize = '14px';
                               parent.style.display = 'flex';
                               parent.style.alignItems = 'center';
@@ -525,7 +525,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
                             e.currentTarget.style.display = 'none';
                             const parent = e.currentTarget.parentElement;
                             if (parent) {
-                              parent.innerHTML = mode === 'USER' ? '👤' : '👨‍⚕️';
+                              parent.textContent = mode === 'USER' ? '\u{1F464}' : '\u{1F468}\u{200D}\u{2695}\u{FE0F}';
                               parent.style.background = 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)';
                               parent.style.display = 'flex';
                               parent.style.alignItems = 'center';

@@ -17,7 +17,6 @@ export default function AdminSectionsManager() {
   const [loading, setLoading] = useState(true);
   const [allTests, setAllTests] = useState<EvaluationTest[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<'EVALUATION' | 'DISCOVERY'>('EVALUATION');
-  const [_editingTopic, _setEditingTopic] = useState<string | null>(null);
   const [newTopicName, setNewTopicName] = useState('');
   const [showNewTopicForm, setShowNewTopicForm] = useState(false);
   const [draggedTest, setDraggedTest] = useState<EvaluationTest | null>(null);
