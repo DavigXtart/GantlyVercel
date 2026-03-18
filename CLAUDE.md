@@ -102,6 +102,30 @@ Located in `psicoapp/src/main/resources/db/`:
 - `V32__add_bipolar_labels_and_formulas.sql` - Adds min_label, max_label, formula, calculated columns + 16PF seed data
 - `V33__add_question_inverse_flag.sql` - Adds `inverse` boolean to questions for reverse-scored items
 
+## Psychologist Approval System
+Psychologists must be approved by an admin before appearing as active in the platform.
+
+### Flow
+1. **Registration**: User registers with role PSYCHOLOGIST → `AuthService.register()` creates `UserEntity` + `PsychologistProfileEntity` with `approved = false`
+2. **Admin review**: Admin goes to **Psicólogos tab** in admin panel → sees "Pendientes de aprobación" section below the approved psychologists grid
+3. **Click card** → full-page detail view with parsed profile (bio, education, experience, certifications, specializations, languages, interests, links) + Aprobar/Rechazar buttons
+4. **Approve** → sets `approved = true`, sends notification + email, psychologist moves to main grid
+5. **Reject** → keeps `approved = false`, sets `rejectionReason`, sends notification + email, stays in pending with reason visible
+
+### Key Implementation Details
+- **Backend DTO**: `PendingPsychologistDto` in `AdminDtos.java` includes profile fields (bio, languages, linkedinUrl, website, interests) + user fields (avatarUrl, gender, age)
+- **Backend query**: `psychologistProfileRepository.findByApprovedFalseOrderByUpdatedAtDesc()`
+- **Frontend filtering**: `UsersManager.tsx` filters `pendingUserIds` out of the main psychologist grid so unapproved psychologists don't appear in both places
+- **JSON parsing**: Profile fields (education, experience, certifications, specializations, languages, interests) are stored as JSON strings; frontend parses them with `parseJson()` fallback helper, showing raw text if JSON is invalid
+- **Rejection keeps in pending**: After rejecting, `loadPendingPsychologists()` is called (not removed from local state) so the psychologist stays in "Pendientes" with the rejection reason displayed
+
+### Files Involved
+- `AuthService.java` — Creates `PsychologistProfileEntity` on registration
+- `AdminService.java` — `getPendingPsychologists()`, `approvePsychologist()`, `rejectPsychologist()`
+- `AdminDtos.java` — `PendingPsychologistDto` record
+- `UsersManager.tsx` — Full UI: pending grid, detail page, approve/reject flow
+- `AdminPanel.tsx` — Pending psychologists removed from here (moved to UsersManager)
+
 ## Known Critical Issues (Production Blockers)
 1. **Secrets hardcoded** in application-prod.yml (Gmail password, Google OAuth fallbacks)
 2. **CORS wildcard** `*` with credentials=true in SecurityConfig

@@ -1,8 +1,37 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { adminService, calendarService, resultsService } from '../services/api';
 import BarChart from './BarChart';
 import FactorChart from './FactorChart';
 import InitialTestSummary from './InitialTestSummary';
+
+// --- Pending psychologist types & helpers ---
+interface PendingPsychologist {
+  profileId: number; userId: number; name: string; email: string;
+  licenseNumber: string | null; education: string | null; certifications: string | null;
+  experience: string | null; specializations: string | null; createdAt: string;
+  rejectionReason: string | null; bio: string | null; languages: string | null;
+  linkedinUrl: string | null; website: string | null; avatarUrl: string | null;
+  gender: string | null; age: number | null; interests: string | null;
+}
+
+function parseJson<T>(raw: string | null | undefined, fallback: T): T {
+  if (!raw) return fallback;
+  try { return JSON.parse(raw); } catch { return fallback; }
+}
+
+interface EducationItem { degree?: string; field?: string; institution?: string; startDate?: string; endDate?: string; }
+interface ExperienceItem { title?: string; company?: string; startDate?: string; endDate?: string; description?: string; }
+interface CertificationItem { name?: string; issuer?: string; date?: string; credentialId?: string; }
+interface LanguageItem { language?: string; level?: string; }
+
+function ProfileSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div style={{ marginBottom: '12px' }}>
+      <h4 style={{ margin: '0 0 6px', fontSize: '13px', fontWeight: 600, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{title}</h4>
+      {children}
+    </div>
+  );
+}
 
 interface User {
   id: number;
@@ -70,6 +99,10 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
   const [showRatingsModal, setShowRatingsModal] = useState(false);
   const [ratingsList, setRatingsList] = useState<Array<{ rating: number; comment: string; patientName: string; createdAt: string }>>([]);
   const [loadingRatings, setLoadingRatings] = useState(false);
+  const [pendingPsychologists, setPendingPsychologists] = useState<PendingPsychologist[]>([]);
+  const [selectedPendingId, setSelectedPendingId] = useState<number | null>(null);
+  const [rejectingId, setRejectingId] = useState<number | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
 
   const filteredUsers = users.filter(user => {
     if (!searchTerm.trim()) return true;
@@ -80,14 +113,46 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
     );
   });
 
+  const pendingUserIds = new Set(pendingPsychologists.map(p => p.userId));
   const regularUsers = filteredUsers.filter(user => user.role === 'USER');
-  const psychologists = filteredUsers.filter(user => user.role === 'PSYCHOLOGIST');
+  const psychologists = filteredUsers.filter(user => user.role === 'PSYCHOLOGIST' && !pendingUserIds.has(user.id));
   const displayedUsers = filterRole === 'USER' ? regularUsers : filterRole === 'PSYCHOLOGIST' ? psychologists : filteredUsers;
 
   useEffect(() => {
     loadUsers();
     loadTests();
+    if (filterRole === 'PSYCHOLOGIST') loadPendingPsychologists();
   }, []);
+
+  const loadPendingPsychologists = async () => {
+    try {
+      const data = await adminService.getPendingPsychologists();
+      setPendingPsychologists(data);
+    } catch { /* silently fail */ }
+  };
+
+  const handleApprovePsychologist = async (profileId: number) => {
+    try {
+      await adminService.approvePsychologist(profileId);
+      setPendingPsychologists(prev => prev.filter(p => p.profileId !== profileId));
+      setSelectedPendingId(null);
+      loadUsers();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Error al aprobar');
+    }
+  };
+
+  const handleRejectPsychologist = async (profileId: number) => {
+    try {
+      await adminService.rejectPsychologist(profileId, rejectReason);
+      setRejectingId(null);
+      setRejectReason('');
+      setSelectedPendingId(null);
+      loadPendingPsychologists();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Error al rechazar');
+    }
+  };
 
   useEffect(() => {
     if (selectedUserId) {
@@ -204,6 +269,197 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
       return dateString;
     }
   };
+
+  // Panel de psicólogo pendiente (full page)
+  if (filterRole === 'PSYCHOLOGIST' && selectedPendingId) {
+    const p = pendingPsychologists.find(pp => pp.profileId === selectedPendingId);
+    if (!p) { setSelectedPendingId(null); return null; }
+    const educationItems = parseJson<EducationItem[]>(p.education, []);
+    const experienceItems = parseJson<ExperienceItem[]>(p.experience, []);
+    const certItems = parseJson<CertificationItem[]>(p.certifications, []);
+    const specItems = parseJson<string[]>(p.specializations, []);
+    const langItems = parseJson<LanguageItem[]>(p.languages, []);
+    const interestItems = parseJson<string[]>(p.interests, []);
+    const hasEducation = educationItems.length > 0;
+    const hasExperience = experienceItems.length > 0;
+    const hasCerts = certItems.length > 0;
+    const hasSpecs = specItems.length > 0;
+    const hasLangs = langItems.length > 0;
+    const hasInterests = interestItems.length > 0;
+
+    return (
+      <div>
+        <div className="card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              {p.avatarUrl ? (
+                <img src={p.avatarUrl} alt={p.name} style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', border: '2px solid #fde68a' }} />
+              ) : (
+                <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#f59e0b', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', fontWeight: 700, flexShrink: 0 }}>
+                  {p.name.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div>
+                <h2 style={{ margin: 0 }}>{p.name}</h2>
+                <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>{p.email}</p>
+              </div>
+            </div>
+            <button className="btn-secondary" onClick={() => { setSelectedPendingId(null); setRejectingId(null); setRejectReason(''); }}
+              style={{ width: 'auto', padding: '12px 24px' }}>
+              ← Volver
+            </button>
+          </div>
+
+          {/* Info badges */}
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '24px' }}>
+            {p.licenseNumber && (
+              <span style={{ fontSize: '13px', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '8px', padding: '6px 14px', color: '#9a3412', fontWeight: 500 }}>
+                N. Colegiado: {p.licenseNumber}
+              </span>
+            )}
+            {p.gender && <span style={{ fontSize: '13px', background: '#f0f5f3', borderRadius: '8px', padding: '6px 14px', color: '#374151' }}>{p.gender}</span>}
+            {p.age != null && <span style={{ fontSize: '13px', background: '#f0f5f3', borderRadius: '8px', padding: '6px 14px', color: '#374151' }}>{p.age} anos</span>}
+            <span style={{ fontSize: '13px', background: '#fefce8', borderRadius: '8px', padding: '6px 14px', color: '#92400e' }}>
+              Pendiente de aprobacion
+            </span>
+          </div>
+
+          <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: 'var(--bg-primary)', borderRadius: '12px' }}>
+            <p><strong>Registrado:</strong> {formatDate(p.createdAt)}</p>
+          </div>
+
+          {/* Rejection reason */}
+          {p.rejectionReason && (
+            <div style={{ marginBottom: '24px', padding: '14px 18px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px' }}>
+              <p style={{ margin: 0, fontSize: '14px', color: '#dc2626' }}><strong>Motivo rechazo anterior:</strong> {p.rejectionReason}</p>
+            </div>
+          )}
+
+          {/* Profile sections */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '24px' }}>
+            <div>
+              {p.bio && (
+                <div className="card" style={{ marginBottom: '16px' }}>
+                  <h3>Sobre mi</h3>
+                  <p style={{ margin: '8px 0 0', fontSize: '14px', color: '#374151', lineHeight: 1.6 }}>{p.bio}</p>
+                </div>
+              )}
+
+              {(hasEducation || p.education) && (
+                <div className="card" style={{ marginBottom: '16px' }}>
+                  <h3>Formacion</h3>
+                  {hasEducation ? educationItems.map((ed, i) => (
+                    <div key={i} style={{ marginTop: '10px', fontSize: '14px', color: '#374151' }}>
+                      <div><strong>{ed.degree}</strong>{ed.field ? ` en ${ed.field}` : ''}{ed.institution ? ` — ${ed.institution}` : ''}</div>
+                      {(ed.startDate || ed.endDate) && <div style={{ fontSize: '13px', color: '#9ca3af' }}>{ed.startDate || '?'} - {ed.endDate || 'Actualidad'}</div>}
+                    </div>
+                  )) : <p style={{ margin: '8px 0 0', fontSize: '14px', color: '#374151' }}>{p.education}</p>}
+                </div>
+              )}
+
+              {(hasExperience || p.experience) && (
+                <div className="card" style={{ marginBottom: '16px' }}>
+                  <h3>Experiencia</h3>
+                  {hasExperience ? experienceItems.map((ex, i) => (
+                    <div key={i} style={{ marginTop: '10px', fontSize: '14px', color: '#374151' }}>
+                      <div><strong>{ex.title}</strong>{ex.company ? ` — ${ex.company}` : ''}</div>
+                      {(ex.startDate || ex.endDate) && <div style={{ fontSize: '13px', color: '#9ca3af' }}>{ex.startDate || '?'} - {ex.endDate || 'Actualidad'}</div>}
+                      {ex.description && <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px' }}>{ex.description}</div>}
+                    </div>
+                  )) : <p style={{ margin: '8px 0 0', fontSize: '14px', color: '#374151' }}>{p.experience}</p>}
+                </div>
+              )}
+            </div>
+
+            <div>
+              {(hasCerts || p.certifications) && (
+                <div className="card" style={{ marginBottom: '16px' }}>
+                  <h3>Certificaciones</h3>
+                  {hasCerts ? certItems.map((c, i) => (
+                    <div key={i} style={{ marginTop: '10px', fontSize: '14px', color: '#374151' }}>
+                      <div><strong>{c.name}</strong>{c.issuer ? ` — ${c.issuer}` : ''}{c.date ? ` (${c.date})` : ''}</div>
+                      {c.credentialId && <div style={{ fontSize: '13px', color: '#9ca3af' }}>ID: {c.credentialId}</div>}
+                    </div>
+                  )) : <p style={{ margin: '8px 0 0', fontSize: '14px', color: '#374151' }}>{p.certifications}</p>}
+                </div>
+              )}
+
+              {(hasSpecs || p.specializations) && (
+                <div className="card" style={{ marginBottom: '16px' }}>
+                  <h3>Especialidades</h3>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
+                    {hasSpecs ? specItems.map((s, i) => (
+                      <span key={i} style={{ padding: '4px 12px', borderRadius: '9999px', fontSize: '13px', background: '#ecfdf5', color: '#065f46', border: '1px solid #a7f3d0' }}>{s}</span>
+                    )) : <p style={{ margin: 0, fontSize: '14px', color: '#374151' }}>{p.specializations}</p>}
+                  </div>
+                </div>
+              )}
+
+              {(hasLangs || p.languages) && (
+                <div className="card" style={{ marginBottom: '16px' }}>
+                  <h3>Idiomas</h3>
+                  <div style={{ marginTop: '10px' }}>
+                    {hasLangs ? langItems.map((l, i) => (
+                      <span key={i} style={{ marginRight: '12px', fontSize: '14px', color: '#374151' }}>{l.language}{l.level ? ` (${l.level})` : ''}{i < langItems.length - 1 ? ',' : ''}</span>
+                    )) : <p style={{ margin: 0, fontSize: '14px', color: '#374151' }}>{p.languages}</p>}
+                  </div>
+                </div>
+              )}
+
+              {hasInterests && (
+                <div className="card" style={{ marginBottom: '16px' }}>
+                  <h3>Intereses</h3>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
+                    {interestItems.map((s, i) => (
+                      <span key={i} style={{ padding: '4px 12px', borderRadius: '9999px', fontSize: '13px', background: '#eff6ff', color: '#1e40af', border: '1px solid #bfdbfe' }}>{s}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {(p.linkedinUrl || p.website) && (
+                <div className="card" style={{ marginBottom: '16px' }}>
+                  <h3>Links</h3>
+                  <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginTop: '10px' }}>
+                    {p.linkedinUrl && <a href={p.linkedinUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '14px', color: '#2563eb' }}>LinkedIn</a>}
+                    {p.website && <a href={p.website} target="_blank" rel="noopener noreferrer" style={{ fontSize: '14px', color: '#2563eb' }}>Web</a>}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', padding: '20px', background: '#fefce8', borderRadius: '12px', border: '1px solid #fde68a' }}>
+            <button className="btn" onClick={() => handleApprovePsychologist(p.profileId)}
+              style={{ padding: '10px 28px', fontSize: '14px', background: '#059669', borderRadius: '8px' }}>
+              Aprobar
+            </button>
+            {rejectingId === p.profileId ? (
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <input type="text" placeholder="Motivo (opcional)" value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', minWidth: '200px' }} />
+                <button onClick={() => handleRejectPsychologist(p.profileId)}
+                  style={{ padding: '8px 18px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer' }}>
+                  Confirmar rechazo
+                </button>
+                <button onClick={() => { setRejectingId(null); setRejectReason(''); }}
+                  style={{ padding: '8px 18px', background: '#e5e7eb', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer' }}>
+                  Cancelar
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => setRejectingId(p.profileId)}
+                style={{ padding: '10px 28px', fontSize: '14px', background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: '8px', cursor: 'pointer' }}>
+                Rechazar
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Panel de psicólogo (admin)
   if (filterRole === 'PSYCHOLOGIST' && selectedUserId) {
@@ -725,6 +981,29 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
           </div>
         )}
       </div>
+
+      {/* Pending psychologists section */}
+      {filterRole === 'PSYCHOLOGIST' && pendingPsychologists.length > 0 && (
+        <div className="card" style={{ marginTop: '24px', borderLeft: '4px solid #f59e0b' }}>
+          <h2 style={{ margin: '0 0 16px' }}>Pendientes de aprobacion ({pendingPsychologists.length})</h2>
+          <div className="users-grid">
+            {pendingPsychologists.map(p => (
+              <div
+                key={p.profileId}
+                className="user-card-admin"
+                onClick={() => setSelectedPendingId(p.profileId)}
+                style={{ cursor: 'pointer', borderColor: '#fde68a', background: '#fefce8' }}
+              >
+                <h3>{p.name}</h3>
+                <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px' }}>{p.email}</p>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px' }}>
+                  Registrado: {formatDate(p.createdAt)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

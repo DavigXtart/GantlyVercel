@@ -16,10 +16,7 @@ interface Test {
   _source?: 'test' | 'evaluation';
 }
 
-interface AdminPanelProps {
-}
-
-export default function AdminPanel({}: AdminPanelProps = {}) {
+export default function AdminPanel() {
   const [tests, setTests] = useState<Test[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedTestId, setSelectedTestId] = useState<number | null>(null);
@@ -28,7 +25,6 @@ export default function AdminPanel({}: AdminPanelProps = {}) {
   const [editingTest, setEditingTest] = useState<Test | null>(null);
   const [testSearch, setTestSearch] = useState('');
   const [availableTopics, setAvailableTopics] = useState<string[]>([]);
-
   useEffect(() => {
     loadTests();
   }, []);

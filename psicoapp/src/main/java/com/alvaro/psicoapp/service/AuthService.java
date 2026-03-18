@@ -1,5 +1,6 @@
 package com.alvaro.psicoapp.service;
 
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -11,10 +12,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.alvaro.psicoapp.domain.PsychologistProfileEntity;
 import com.alvaro.psicoapp.domain.RoleConstants;
 import com.alvaro.psicoapp.domain.UserEntity;
 import com.alvaro.psicoapp.domain.UserPsychologistEntity;
 import com.alvaro.psicoapp.repository.CompanyRepository;
+import com.alvaro.psicoapp.repository.PsychologistProfileRepository;
 import com.alvaro.psicoapp.repository.TestRepository;
 import com.alvaro.psicoapp.repository.UserPsychologistRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
@@ -28,6 +31,7 @@ public class AuthService {
 	private final UserRepository userRepository;
 	private final CompanyRepository companyRepository;
 	private final UserPsychologistRepository userPsychologistRepository;
+	private final PsychologistProfileRepository psychologistProfileRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtService jwtService;
 	private final TemporarySessionService sessionService;
@@ -36,14 +40,18 @@ public class AuthService {
 	private final EmailService emailService;
 	private final TotpService totpService;
 	private static final String INITIAL_TEST_CODE = "INITIAL";
+	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
 	public AuthService(UserRepository userRepository, CompanyRepository companyRepository,
-			UserPsychologistRepository userPsychologistRepository, PasswordEncoder passwordEncoder,
+			UserPsychologistRepository userPsychologistRepository,
+			PsychologistProfileRepository psychologistProfileRepository,
+			PasswordEncoder passwordEncoder,
 			JwtService jwtService, TemporarySessionService sessionService, TestResultService testResultService,
 			TestRepository testRepository, EmailService emailService, TotpService totpService) {
 		this.userRepository = userRepository;
 		this.companyRepository = companyRepository;
 		this.userPsychologistRepository = userPsychologistRepository;
+		this.psychologistProfileRepository = psychologistProfileRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.jwtService = jwtService;
 		this.sessionService = sessionService;
@@ -51,13 +59,6 @@ public class AuthService {
 		this.testRepository = testRepository;
 		this.emailService = emailService;
 		this.totpService = totpService;
-	}
-
-	@Transactional
-	public String register(String name, String email, String password, String sessionId, String role,
-			String companyReferralCode, String psychologistReferralCode, LocalDate birthDate) {
-		var tokenPair = registerWithRefresh(name, email, password, sessionId, role, companyReferralCode, psychologistReferralCode, birthDate);
-		return tokenPair.accessToken;
 	}
 
 	@Transactional
@@ -116,10 +117,19 @@ public class AuthService {
 		}
 
 		String verificationToken = UUID.randomUUID().toString();
+		String verificationCode = String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
 		u.setVerificationToken(verificationToken);
+		u.setVerificationCode(verificationCode);
 		u.setVerificationTokenExpiresAt(Instant.now().plusSeconds(24 * 60 * 60));
 
 		userRepository.save(u);
+
+		if (RoleConstants.PSYCHOLOGIST.equals(u.getRole())) {
+			PsychologistProfileEntity profile = new PsychologistProfileEntity();
+			profile.setUser(u);
+			profile.setApproved(false);
+			psychologistProfileRepository.save(profile);
+		}
 
 		if (hasPsychologistReferral) {
 			userRepository.findByReferralCode(psychologistSlug).ifPresent(psych -> {
@@ -147,7 +157,7 @@ public class AuthService {
 
 		try {
 			boolean isPsychologist = RoleConstants.PSYCHOLOGIST.equals(u.getRole());
-			emailService.sendVerificationEmail(u.getEmail(), u.getName(), verificationToken, isPsychologist);
+			emailService.sendVerificationEmail(u.getEmail(), u.getName(), verificationToken, verificationCode, isPsychologist);
 		} catch (Exception e) {
 			logger.error("Error enviando correo de verificación", e);
 
@@ -182,9 +192,37 @@ public class AuthService {
 
 		user.setEmailVerified(true);
 		user.setVerificationToken(null);
+		user.setVerificationCode(null);
 		user.setVerificationTokenExpiresAt(null);
 		userRepository.save(user);
 
+		return true;
+	}
+
+	@Transactional
+	public boolean verifyEmailByCode(String email, String code) {
+		if (code == null || code.trim().isEmpty()) return false;
+		var userOpt = userRepository.findByEmail(InputSanitizer.sanitizeEmail(email));
+		if (userOpt.isEmpty()) return false;
+
+		UserEntity user = userOpt.get();
+		if (Boolean.TRUE.equals(user.getEmailVerified())) return true;
+		if (user.getVerificationCode() == null) return false;
+
+		if (user.getVerificationTokenExpiresAt() != null &&
+		    user.getVerificationTokenExpiresAt().isBefore(Instant.now())) {
+			return false;
+		}
+
+		if (!user.getVerificationCode().equals(code.trim())) {
+			return false;
+		}
+
+		user.setEmailVerified(true);
+		user.setVerificationToken(null);
+		user.setVerificationCode(null);
+		user.setVerificationTokenExpiresAt(null);
+		userRepository.save(user);
 		return true;
 	}
 
@@ -193,15 +231,6 @@ public class AuthService {
 			.map(u -> new com.alvaro.psicoapp.dto.AuthDtos.MeResponse(
 					u.getEmail(), u.getRole(), u.getName(), Boolean.TRUE.equals(u.getEmailVerified())))
 			.orElse(null);
-	}
-
-	public String login(String email, String password) {
-		String sanitizedEmail = InputSanitizer.sanitizeEmail(email);
-		UserEntity u = userRepository.findByEmail(sanitizedEmail).orElseThrow(() -> new IllegalArgumentException("Credenciales inválidas"));
-		if (u.getPasswordHash() == null) throw new IllegalArgumentException("Esta cuenta usa inicio de sesión con Google. Usa el botón \"Continuar con Google\".");
-		if (!passwordEncoder.matches(password, u.getPasswordHash())) throw new IllegalArgumentException("Credenciales inválidas");
-		var tokenPair = jwtService.generateTokenPair(u.getEmail());
-		return tokenPair.accessToken;
 	}
 
 	public com.alvaro.psicoapp.security.JwtService.TokenPair loginWithRefresh(String email, String password) {
@@ -233,6 +262,11 @@ public class AuthService {
 			u.setFailedLoginAttempts(0);
 			u.setAccountLockedUntil(null);
 			userRepository.save(u);
+		}
+
+		// Email verification check
+		if (!Boolean.TRUE.equals(u.getEmailVerified())) {
+			throw new IllegalArgumentException("EMAIL_NOT_VERIFIED");
 		}
 
 		// 2FA check
@@ -283,48 +317,6 @@ public class AuthService {
 			logger.warn("Error refrescando token: {}", e.getMessage());
 			throw new IllegalArgumentException("Refresh token inválido o expirado");
 		}
-	}
-
-	@Transactional
-	public String processOAuth2User(String provider, String providerId, String email, String name, String avatarUrl) {
-		String sanitizedEmail = InputSanitizer.sanitizeEmail(email);
-		String sanitizedName = InputSanitizer.sanitizeAndValidate(name != null ? name : "", 100);
-		if (sanitizedName.isEmpty()) sanitizedName = "Usuario";
-
-		var existingOAuth = userRepository.findByOauth2ProviderAndOauth2ProviderId(provider, providerId);
-		if (existingOAuth.isPresent()) {
-			UserEntity u = existingOAuth.get();
-			if (avatarUrl != null && !avatarUrl.isEmpty()) u.setAvatarUrl(avatarUrl);
-			if (sanitizedName != null && !sanitizedName.isEmpty()) u.setName(sanitizedName);
-			userRepository.save(u);
-			var tokenPair = jwtService.generateTokenPair(u.getEmail());
-			return tokenPair.accessToken;
-		}
-
-		var existingEmail = userRepository.findByEmail(sanitizedEmail);
-		if (existingEmail.isPresent()) {
-			UserEntity u = existingEmail.get();
-			u.setOauth2Provider(provider);
-			u.setOauth2ProviderId(providerId);
-			if (avatarUrl != null && !avatarUrl.isEmpty()) u.setAvatarUrl(avatarUrl);
-			u.setEmailVerified(true);
-			userRepository.save(u);
-			var tokenPair = jwtService.generateTokenPair(u.getEmail());
-			return tokenPair.accessToken;
-		}
-
-		UserEntity u = new UserEntity();
-		u.setName(sanitizedName);
-		u.setEmail(sanitizedEmail);
-		u.setPasswordHash(null);
-		u.setOauth2Provider(provider);
-		u.setOauth2ProviderId(providerId);
-		u.setAvatarUrl(avatarUrl);
-		u.setRole(RoleConstants.USER);
-		u.setEmailVerified(true);
-		userRepository.save(u);
-		var tokenPair = jwtService.generateTokenPair(u.getEmail());
-		return tokenPair.accessToken;
 	}
 
 	@Transactional
@@ -437,13 +429,15 @@ public class AuthService {
 		}
 
 		String verificationToken = UUID.randomUUID().toString();
+		String verificationCode = String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
 		user.setVerificationToken(verificationToken);
+		user.setVerificationCode(verificationCode);
 		user.setVerificationTokenExpiresAt(Instant.now().plusSeconds(24 * 60 * 60));
 		userRepository.save(user);
 
 		try {
 			boolean isPsychologist = RoleConstants.PSYCHOLOGIST.equals(user.getRole());
-			emailService.resendVerificationEmail(user.getEmail(), user.getName(), verificationToken, isPsychologist);
+			emailService.sendVerificationEmail(user.getEmail(), user.getName(), verificationToken, verificationCode, isPsychologist);
 		} catch (Exception e) {
 			logger.error("Error reenviando correo de verificación", e);
 			throw new RuntimeException("Error al reenviar el correo de verificación", e);

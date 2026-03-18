@@ -28,12 +28,17 @@ public class AdminService {
     private final UserPsychologistRepository userPsychologistRepository;
     private final EvaluationTestRepository evaluationTestRepository;
     private final AppointmentRepository appointmentRepository;
+    private final PsychologistProfileRepository psychologistProfileRepository;
+    private final NotificationService notificationService;
+    private final EmailService emailService;
 
     public AdminService(TestRepository testRepository, QuestionRepository questionRepository,
                         AnswerRepository answerRepository, UserRepository userRepository,
                         UserAnswerRepository userAnswerRepository, SubfactorRepository subfactorRepository,
                         FactorRepository factorRepository, UserPsychologistRepository userPsychologistRepository,
-                        EvaluationTestRepository evaluationTestRepository, AppointmentRepository appointmentRepository) {
+                        EvaluationTestRepository evaluationTestRepository, AppointmentRepository appointmentRepository,
+                        PsychologistProfileRepository psychologistProfileRepository,
+                        NotificationService notificationService, EmailService emailService) {
         this.testRepository = testRepository;
         this.questionRepository = questionRepository;
         this.answerRepository = answerRepository;
@@ -44,6 +49,9 @@ public class AdminService {
         this.userPsychologistRepository = userPsychologistRepository;
         this.evaluationTestRepository = evaluationTestRepository;
         this.appointmentRepository = appointmentRepository;
+        this.psychologistProfileRepository = psychologistProfileRepository;
+        this.notificationService = notificationService;
+        this.emailService = emailService;
     }
 
     @Transactional(readOnly = true)
@@ -541,6 +549,59 @@ public class AdminService {
         sf.setMinLabel(minLabel);
         sf.setMaxLabel(maxLabel);
         subfactorRepository.save(sf);
+    }
+
+    // --- Psychologist approval methods ---
+
+    @Transactional(readOnly = true)
+    public List<AdminDtos.PendingPsychologistDto> getPendingPsychologists() {
+        return psychologistProfileRepository.findByApprovedFalseOrderByUpdatedAtDesc().stream()
+                .map(p -> new AdminDtos.PendingPsychologistDto(
+                        p.getId(), p.getUser().getId(), p.getUser().getName(), p.getUser().getEmail(),
+                        p.getLicenseNumber(), p.getEducation(), p.getCertifications(),
+                        p.getExperience(), p.getSpecializations(),
+                        p.getUser().getCreatedAt(), p.getRejectionReason(),
+                        p.getBio(), p.getLanguages(), p.getLinkedinUrl(), p.getWebsite(),
+                        p.getUser().getAvatarUrl(), p.getUser().getGender(), p.getUser().getAge(),
+                        p.getInterests()))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void approvePsychologist(Long profileId) {
+        PsychologistProfileEntity profile = psychologistProfileRepository.findById(profileId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Perfil no encontrado"));
+        profile.setApproved(true);
+        profile.setApprovedAt(Instant.now());
+        profile.setRejectionReason(null);
+        psychologistProfileRepository.save(profile);
+
+        notificationService.createNotification(profile.getUser().getId(), "APPROVAL",
+                "Cuenta aprobada", "Tu cuenta de psicólogo ha sido aprobada. Ya puedes recibir pacientes.");
+
+        try {
+            emailService.sendPsychologistApprovalEmail(profile.getUser().getEmail(), profile.getUser().getName());
+        } catch (Exception e) {
+            logger.error("Error enviando email de aprobación al psicólogo", e);
+        }
+    }
+
+    @Transactional
+    public void rejectPsychologist(Long profileId, String reason) {
+        PsychologistProfileEntity profile = psychologistProfileRepository.findById(profileId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Perfil no encontrado"));
+        profile.setApproved(false);
+        profile.setRejectionReason(reason);
+        psychologistProfileRepository.save(profile);
+
+        notificationService.createNotification(profile.getUser().getId(), "APPROVAL",
+                "Cuenta rechazada", "Tu solicitud de cuenta de psicólogo necesita revisión: " + (reason != null ? reason : ""));
+
+        try {
+            emailService.sendPsychologistRejectionEmail(profile.getUser().getEmail(), profile.getUser().getName(), reason);
+        } catch (Exception e) {
+            logger.error("Error enviando email de rechazo al psicólogo", e);
+        }
     }
 
     private AdminDtos.AnswerInfoDto toAnswerInfo(UserAnswerEntity ua) {

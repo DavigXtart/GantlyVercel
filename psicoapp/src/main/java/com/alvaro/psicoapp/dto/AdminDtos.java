@@ -149,4 +149,16 @@ public class AdminDtos {
             java.util.List<PsychologistAdminAppointmentDto> scheduledAppointments,
             java.util.List<PsychologistAdminAppointmentDto> pastAppointments,
             java.math.BigDecimal totalBilled) {}
+
+    public record PendingPsychologistDto(
+            Long profileId, Long userId, String name, String email,
+            String licenseNumber, String education, String certifications,
+            String experience, String specializations,
+            Instant createdAt, String rejectionReason,
+            String bio, String languages, String linkedinUrl, String website,
+            String avatarUrl, String gender, Integer age, String interests) {}
+
+    public static class RejectPsychologistRequest {
+        public String reason;
+    }
 }
