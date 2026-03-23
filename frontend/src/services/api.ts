@@ -1011,4 +1011,132 @@ export const notificationService = {
   }
 };
 
+// Clinic types
+export interface ClinicAppointment {
+  id: number;
+  psychologistId: number;
+  psychologistName: string;
+  psychologistAvatarUrl?: string;
+  patientId?: number;
+  patientName?: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  service?: string;
+  price?: number;
+  paymentStatus?: string;
+  notes?: string;
+  clinicNotes?: string;
+}
+
+export interface ClinicPatientSummary {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string;
+  patientNumber?: number;
+  status: string;
+  assignedPsychologistName: string;
+  totalAppointments: number;
+}
+
+export interface ClinicPatientDetail {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string;
+  birthDate?: string;
+  gender?: string;
+  patientNumber?: number;
+  status: string;
+  notes?: string;
+  allergies?: string;
+  medication?: string;
+  medicalHistory?: string;
+  consentSigned: boolean;
+  patientType: string;
+  psychologistId?: number;
+  psychologistName?: string;
+  appointments: ClinicAppointment[];
+}
+
+export interface ClinicBillingItem {
+  appointmentId: number;
+  startTime: string;
+  endTime: string;
+  psychologistId: number;
+  psychologistName: string;
+  patientId?: number;
+  patientName?: string;
+  service?: string;
+  price?: number;
+  paymentStatus?: string;
+}
+
+export interface CreateAppointmentReq {
+  psychologistId: number;
+  patientId?: number;
+  patientName?: string;
+  startTime: string;
+  endTime: string;
+  service?: string;
+  price?: number;
+  notes?: string;
+  clinicNotes?: string;
+  paymentStatus?: string;
+}
+
+export interface UpdatePatientReq {
+  notes?: string;
+  allergies?: string;
+  medication?: string;
+  medicalHistory?: string;
+  consentSigned?: boolean;
+  patientType?: string;
+  status?: string;
+  phone?: string;
+}
+
+export const clinicService = {
+  getMe: async () => {
+    const { data } = await api.get('/clinic/me');
+    return data as { id: number; name: string; email: string; referralCode: string };
+  },
+  getPsychologists: async () => {
+    const { data } = await api.get('/clinic/psychologists');
+    return data as Array<{ id: number; name: string; email: string; avatarUrl?: string }>;
+  },
+  getAgenda: async (from: string, to: string) => {
+    const { data } = await api.get('/clinic/agenda', { params: { from, to } });
+    return data as ClinicAppointment[];
+  },
+  createAppointment: async (req: CreateAppointmentReq) => {
+    const { data } = await api.post('/clinic/appointments', req);
+    return data as ClinicAppointment;
+  },
+  updateAppointment: async (id: number, req: Partial<CreateAppointmentReq>) => {
+    const { data } = await api.put(`/clinic/appointments/${id}`, req);
+    return data as ClinicAppointment;
+  },
+  cancelAppointment: async (id: number) => {
+    await api.delete(`/clinic/appointments/${id}`);
+  },
+  getPatients: async (search?: string) => {
+    const { data } = await api.get('/clinic/patients', { params: search ? { search } : {} });
+    return data as ClinicPatientSummary[];
+  },
+  getPatient: async (id: number) => {
+    const { data } = await api.get(`/clinic/patients/${id}`);
+    return data as ClinicPatientDetail;
+  },
+  updatePatient: async (id: number, req: UpdatePatientReq) => {
+    const { data } = await api.put(`/clinic/patients/${id}`, req);
+    return data as ClinicPatientDetail;
+  },
+  getBilling: async (from?: string, to?: string, psychologistId?: number) => {
+    const { data } = await api.get('/clinic/billing', { params: { from, to, psychologistId } });
+    return data as ClinicBillingItem[];
+  },
+};
+
 export default api;

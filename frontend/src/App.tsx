@@ -26,7 +26,7 @@ const About = lazy(() => import('./components/About'));
 const SoyProfesional = lazy(() => import('./components/SoyProfesional'));
 const RegisterPsychologist = lazy(() => import('./components/RegisterPsychologist'));
 const RegisterCompany = lazy(() => import('./components/RegisterCompany'));
-const CompanyDashboard = lazy(() => import('./components/CompanyDashboard'));
+const ClinicDashboard = lazy(() => import('./components/ClinicDashboard'));
 const ForgotPassword = lazy(() => import('./components/ForgotPassword'));
 const ResetPassword = lazy(() => import('./components/ResetPassword'));
 const PrivacyPolicy = lazy(() => import('./components/legal/PrivacyPolicy'));
@@ -205,7 +205,7 @@ function Dashboard({ role, logout, onStartTest }: {
         )}
         {role === 'USER' && <UserDashboard onStartTest={onStartTest} />}
         {role === 'PSYCHOLOGIST' && <PsychDashboard />}
-        {role === 'EMPRESA' && <CompanyDashboard />}
+        {role === 'EMPRESA' && <ClinicDashboard />}
       </Suspense>
 
       {!role && (

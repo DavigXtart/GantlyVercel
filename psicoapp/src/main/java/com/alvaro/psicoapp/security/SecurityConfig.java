@@ -106,6 +106,11 @@ public class SecurityConfig {
                     boolean isCompany = authn != null && authn.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_EMPRESA"));
                     return new AuthorizationDecision(isCompany);
                 })
+                .requestMatchers("/api/clinic/**").access((authentication, context) -> {
+                    var authn = authentication.get();
+                    boolean isCompany = authn != null && authn.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_EMPRESA"));
+                    return new AuthorizationDecision(isCompany);
+                })
                 .requestMatchers("/error", "/favicon.ico").permitAll()
                 .anyRequest().authenticated()
             )

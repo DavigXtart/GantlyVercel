@@ -52,6 +52,12 @@ public class AppointmentEntity {
     @Column(name = "stripe_session_id", length = 255)
     private String stripeSessionId;
 
+    @Column(length = 100)
+    private String service;
+
+    @Column(name = "clinic_notes", length = 500)
+    private String clinicNotes;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public UserEntity getPsychologist() { return psychologist; }
@@ -80,4 +86,8 @@ public class AppointmentEntity {
     public void setConfirmedByUser(UserEntity confirmedByUser) { this.confirmedByUser = confirmedByUser; }
     public String getStripeSessionId() { return stripeSessionId; }
     public void setStripeSessionId(String stripeSessionId) { this.stripeSessionId = stripeSessionId; }
+    public String getService() { return service; }
+    public void setService(String service) { this.service = service; }
+    public String getClinicNotes() { return clinicNotes; }
+    public void setClinicNotes(String clinicNotes) { this.clinicNotes = clinicNotes; }
 }
