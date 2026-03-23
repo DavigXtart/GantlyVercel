@@ -126,11 +126,22 @@ Psychologists must be approved by an admin before appearing as active in the pla
 - **Salt storage**: `chat_conversations` table with per-conversation salt
 - **Backwards compatible**: Decryption tries PBKDF2 key first, falls back to legacy SHA-256 for old messages
 
-## Company Features
-Companies (role EMPRESA) can manage their contracted psychologists and patients:
-- `GET /company/psychologists/{id}/availability` — Browse available appointment slots
-- `POST /company/psychologists/{id}/book` — Book appointment for a patient
-- `CompanyDashboard.tsx`: Booking UI with slot selector and patient selector
+## Company / Clinic ERP (en desarrollo — ver ERP_CLINICA.md)
+El módulo de empresa está siendo reemplazado por un ERP completo para clínicas. Ver `ERP_CLINICA.md` para el plan detallado.
+
+### Lo que se mantiene
+- `CompanyEntity`, `CompanyRepository`, `CompanyAuthService` — base de autenticación
+- `RegisterCompany.tsx` — registro de empresa
+- Registro de psicólogos por código de referido (`UserEntity.companyId`)
+
+### Lo que se elimina (código obsoleto)
+- `CompanyController`, `CompanyService` — endpoints de booking/availability
+- `CompanyDashboard.tsx` — UI obsoleta
+
+### Lo que se construye (ERP nuevo)
+- `ClinicController` → `GET /clinic/...` (dashboard, psicólogos, pacientes, agenda, billing, invitaciones)
+- `ClinicInvitationEntity` + tabla `clinic_invitations` (invitar psicólogos por email con token 7 días)
+- `ClinicDashboard.tsx` con tabs: Overview, Psicólogos, Pacientes, Agenda, Facturación, Invitaciones
 
 ## Jitsi Video Calls
 - **Self-hosted**: docker-compose.yml includes full Jitsi stack (web, prosody, jicofo, jvb)
@@ -198,6 +209,7 @@ Located in `psicoapp/src/main/resources/db/`:
 - **EnhancedAddQuestions.tsx**: Removed (enhanced question UI)
 - **TestsList.tsx**: Removed (tests list component)
 - **App.css**: Removed (styles in Tailwind/global.css)
+- **CompanyController/CompanyService/CompanyDashboard.tsx**: Replaced by new Clinic ERP (see ERP_CLINICA.md)
 
 ## Known Critical Issues (Production Blockers)
 1. **Secrets hardcoded** in application-prod.yml (Gmail password, Google OAuth fallbacks)
