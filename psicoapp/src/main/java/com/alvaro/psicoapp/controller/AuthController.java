@@ -2,6 +2,7 @@ package com.alvaro.psicoapp.controller;
 
 import com.alvaro.psicoapp.dto.AuthDtos;
 import com.alvaro.psicoapp.service.AuthService;
+import com.alvaro.psicoapp.service.ClinicService;
 import com.alvaro.psicoapp.service.CompanyAuthService;
 import com.alvaro.psicoapp.service.TotpService;
 import com.alvaro.psicoapp.domain.UserEntity;
@@ -27,13 +28,15 @@ public class AuthController {
 	private final CompanyAuthService companyAuthService;
 	private final TotpService totpService;
 	private final UserRepository userRepository;
+	private final ClinicService clinicService;
 
 	public AuthController(AuthService authService, CompanyAuthService companyAuthService,
-			TotpService totpService, UserRepository userRepository) {
+			TotpService totpService, UserRepository userRepository, ClinicService clinicService) {
 		this.authService = authService;
 		this.companyAuthService = companyAuthService;
 		this.totpService = totpService;
 		this.userRepository = userRepository;
+		this.clinicService = clinicService;
 	}
 
 	@PostMapping("/register")
@@ -45,7 +48,7 @@ public class AuthController {
 	})
 	public ResponseEntity<AuthDtos.TokenResponse> register(@Valid @RequestBody AuthDtos.RegisterRequest req) {
 		var tokenPair = authService.registerWithRefresh(req.name, req.email, req.password, req.sessionId, req.role,
-				req.companyReferralCode, req.psychologistReferralCode, req.birthDate);
+				req.companyReferralCode, req.psychologistReferralCode, req.birthDate, req.inviteToken);
 		return ResponseEntity.ok(new AuthDtos.TokenResponse(tokenPair.accessToken, tokenPair.refreshToken, 900));
 	}
 
@@ -304,5 +307,10 @@ public class AuthController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(new AuthDtos.MessageStatusResponse(e.getMessage(), "error"));
         }
+    }
+
+    @GetMapping("/invite-info")
+    public ResponseEntity<?> getInviteInfo(@RequestParam String token) {
+        return ResponseEntity.ok(clinicService.getInviteInfo(token));
     }
 }

@@ -191,6 +191,19 @@ public class EmailService {
         }
     }
 
+
+    public void sendClinicInvitationEmail(String toEmail, String companyName, String inviteUrl) {
+        try {
+            Context ctx = new Context();
+            ctx.setVariable("companyName", companyName);
+            ctx.setVariable("inviteUrl", inviteUrl);
+            String html = templateEngine.process("email/clinic-invitation", ctx);
+            sendHtmlEmail(toEmail, "Invitacion para unirte a " + companyName + " - Gantly", html);
+        } catch (Exception e) {
+            logger.error("Error enviando correo de invitacion de clinica", e);
+        }
+    }
+
     private void sendHtmlEmail(String to, String subject, String htmlContent) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");

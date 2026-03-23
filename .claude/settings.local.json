@@ -51,7 +51,20 @@
       "Bash(docker exec -i psicoapp-mysql mysql -uroot -proot psicoapp -e \"UPDATE users SET email_verified = true, verification_token = NULL, verification_code = NULL WHERE email = ''unorandom@gmail.com''; SELECT id, name, email, email_verified, role FROM users WHERE email = ''unorandom@gmail.com'';\")",
       "Bash(\"/c/Program Files/MySQL/MySQL Server 8.4/bin/mysql\" --version)",
       "Bash(\"/c/Program Files/MySQL/MySQL Server 8.4/bin/mysql\" -uroot -p1234 gantly -e \"UPDATE users SET email_verified = 1, verification_token = NULL, verification_code = NULL WHERE email = ''unorandom@gmail.com''; SELECT id, name, email, email_verified, role FROM users WHERE email = ''unorandom@gmail.com'';\")",
-      "Bash(\"/c/Program Files/MySQL/MySQL Server 8.4/bin/mysql\":*)"
+      "Bash(\"/c/Program Files/MySQL/MySQL Server 8.4/bin/mysql\":*)",
+      "Bash(/c/Users/david/Desktop/alvaro/psicoapp/src/main/java/com/alvaro/psicoapp/domain/ClinicInvitationEntity.java:*)",
+      "Bash(/c/Users/david/Desktop/alvaro/psicoapp/src/main/java/com/alvaro/psicoapp/repository/ClinicInvitationRepository.java:*)",
+      "Bash(/c/Users/david/Desktop/alvaro/psicoapp/src/main/resources/db/V35__clinic_invitations.sql:*)",
+      "Bash(/tmp/patch_clinic_controller.py:*)",
+      "Bash(/tmp/patch_auth_dtos.py:*)",
+      "Bash(/tmp/patch_auth_service.py:*)",
+      "Bash(/tmp/patch_auth_service2.py:*)",
+      "Bash(/tmp/patch_auth_service3.py:*)",
+      "Bash(/tmp/patch_auth_service4.py:*)",
+      "Bash(/tmp/patch_auth_controller.py:*)",
+      "Bash(/tmp/patch_auth_controller2.py:*)",
+      "Bash(/c/Users/david/Desktop/alvaro/psicoapp/src/main/resources/templates/email/clinic-invitation.html:*)",
+      "Bash(/tmp/patch_auth_service_sig.py:*)"
     ]
   }
 }

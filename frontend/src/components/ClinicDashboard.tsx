@@ -4,10 +4,7 @@ import ClinicAgenda from './ClinicAgenda';
 import ClinicPatients from './ClinicPatients';
 import ClinicBilling from './ClinicBilling';
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-type NavTab = 'agenda' | 'pacientes' | 'facturacion' | 'configuracion';
+type NavTab = 'inicio' | 'agenda' | 'equipo' | 'pacientes' | 'facturacion' | 'configuracion';
 
 interface ClinicInfo {
   id: number;
@@ -24,118 +21,326 @@ interface Psychologist {
 }
 
 // ---------------------------------------------------------------------------
-// Spinner
+// KPI card — matches UserDashboard card style
 // ---------------------------------------------------------------------------
-function Spinner() {
-  return (
-    <div
-      style={{
-        width: 36,
-        height: 36,
-        border: '3px solid #e5e7eb',
-        borderTopColor: '#5a9270',
-        borderRadius: '50%',
-        animation: 'spin 0.8s linear infinite',
-        margin: '80px auto',
-      }}
-    />
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Nav item
-// ---------------------------------------------------------------------------
-function NavItem({
+function KpiCard({
   icon,
   label,
-  active,
+  value,
+  subtitle,
   onClick,
 }: {
   icon: string;
   label: string;
-  active: boolean;
+  value: string;
+  subtitle: string;
   onClick: () => void;
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      title={label}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 4,
-        width: '100%',
-        padding: '10px 0',
-        border: 'none',
-        background: active ? '#f0f5f3' : 'transparent',
-        borderRight: active ? '3px solid #5a9270' : '3px solid transparent',
-        cursor: 'pointer',
-        transition: 'background 0.15s',
-      }}
-      onMouseEnter={(e) => {
-        if (!active) e.currentTarget.style.background = '#f9fafb';
-      }}
-      onMouseLeave={(e) => {
-        if (!active) e.currentTarget.style.background = 'transparent';
-      }}
+      className="bg-white p-8 rounded-[3rem] border border-sage/10 soft-shadow hover:-translate-y-1 transition-transform duration-300 text-left w-full relative overflow-hidden group"
     >
-      <span style={{ fontSize: 20 }}>{icon}</span>
-      <span
-        style={{
-          fontSize: 10,
-          fontWeight: active ? 700 : 500,
-          color: active ? '#5a9270' : '#6b7280',
-          letterSpacing: '0.02em',
-        }}
-      >
-        {label}
-      </span>
+      <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform">
+        <span className="material-symbols-outlined text-6xl text-sage">{icon}</span>
+      </div>
+      <div className="size-12 bg-mint flex items-center justify-center rounded-2xl text-sage mb-6">
+        <span className="material-symbols-outlined">{icon}</span>
+      </div>
+      <h3 className="text-2xl font-normal mb-1">{label}</h3>
+      <p className="text-sm text-sage/60 font-light">{value} {subtitle}</p>
     </button>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Config placeholder
+// Home / overview tab
 // ---------------------------------------------------------------------------
-function ConfigPlaceholder() {
+function HomeTab({
+  clinicInfo,
+  psychologists,
+  copied,
+  onCopyReferral,
+  onNavigate,
+}: {
+  clinicInfo: ClinicInfo | null;
+  psychologists: Psychologist[];
+  copied: boolean;
+  onCopyReferral: () => void;
+  onNavigate: (tab: NavTab) => void;
+}) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%',
-        color: '#6b7280',
-        gap: 12,
-      }}
-    >
-      <div style={{ fontSize: 48 }}>⚙️</div>
-      <div style={{ fontSize: 18, fontWeight: 600, color: '#374151' }}>Configuración</div>
-      <div style={{ fontSize: 14 }}>Próximamente</div>
+    <div className="flex-1 overflow-y-auto px-8 lg:px-12 py-6">
+      {/* Hero banner — mirrors UserDashboard's header */}
+      <header className="bg-sage/10 rounded-[4rem] p-8 lg:p-10 mb-10 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-full pointer-events-none opacity-20">
+          <svg className="w-full h-full" viewBox="0 0 200 200">
+            <path
+              className="line-art"
+              d="M150 40 Q180 80 160 120 T100 160 T40 100 Q60 40 150 40"
+            />
+            <circle cx="100" cy="100" r="2" fill="#8da693" />
+          </svg>
+        </div>
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-6">
+          <div
+            className="size-20 rounded-full bg-sage/20 flex items-center justify-center flex-shrink-0"
+          >
+            <span className="material-symbols-outlined text-4xl text-forest">business</span>
+          </div>
+          <div>
+            <h1 className="text-4xl md:text-5xl font-normal mb-2">
+              <span className="italic text-sage">{clinicInfo?.name ?? 'Tu clínica'}</span>
+            </h1>
+            <p className="text-sage/70 font-light mb-4">{clinicInfo?.email}</p>
+            {clinicInfo?.referralCode && (
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="text-xs text-sage/60 uppercase tracking-widest">Código de empresa</span>
+                <span className="font-mono text-sm font-bold text-forest bg-white/80 px-3 py-1 rounded-xl">
+                  {clinicInfo.referralCode}
+                </span>
+                <button
+                  onClick={onCopyReferral}
+                  className="px-4 py-1.5 rounded-full border border-sage/30 text-sm text-sage hover:bg-sage hover:text-white transition inline-flex items-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-base">
+                    {copied ? 'check' : 'content_copy'}
+                  </span>
+                  {copied ? 'Copiado' : 'Copiar'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* KPI grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <KpiCard
+          icon="groups"
+          label="Psicólogos"
+          value={String(psychologists.length)}
+          subtitle="en la clínica"
+          onClick={() => onNavigate('agenda')}
+        />
+        <KpiCard
+          icon="calendar_month"
+          label="Agenda"
+          value="Ver citas"
+          subtitle="y horarios"
+          onClick={() => onNavigate('agenda')}
+        />
+        <KpiCard
+          icon="people"
+          label="Pacientes"
+          value="Ver listado"
+          subtitle="y expedientes"
+          onClick={() => onNavigate('pacientes')}
+        />
+        <KpiCard
+          icon="receipt_long"
+          label="Facturación"
+          value="Ver informe"
+          subtitle="mensual"
+          onClick={() => onNavigate('facturacion')}
+        />
+      </div>
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Main component
+// Equipo tab
+// ---------------------------------------------------------------------------
+function EquipoTab({ psychologists, onRefresh }: { psychologists: Psychologist[]; onRefresh: () => void }) {
+  const [email, setEmail] = useState('');
+  const [sending, setSending] = useState(false);
+  const [invitations, setInvitations] = useState<Array<{ id: number; email: string; status: string; createdAt: string; expiresAt: string }>>([]);
+  const [loadingInvites, setLoadingInvites] = useState(true);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  useEffect(() => { loadInvitations(); }, []);
+
+  const loadInvitations = async () => {
+    setLoadingInvites(true);
+    try {
+      const list = await clinicService.listInvitations();
+      setInvitations(list.filter(i => i.status === 'PENDING'));
+    } catch { /* ignore */ } finally { setLoadingInvites(false); }
+  };
+
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setSending(true); setError(''); setSuccess('');
+    try {
+      await clinicService.sendInvitation(email.trim());
+      setSuccess('Invitación enviada a ' + email.trim());
+      setEmail('');
+      loadInvitations();
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Error al enviar la invitación');
+    } finally { setSending(false); }
+  };
+
+  const handleCancel = async (id: number) => {
+    try {
+      await clinicService.cancelInvitation(id);
+      setInvitations(prev => prev.filter(i => i.id !== id));
+    } catch { /* ignore */ }
+  };
+
+  // onRefresh is available for external callers
+  void onRefresh;
+
+  return (
+    <div className="flex-1 overflow-y-auto px-8 lg:px-12 py-6">
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* Current psychologists */}
+        <div>
+          <h2 className="text-base font-medium text-forest mb-4 uppercase tracking-widest text-[10px] text-sage/40">
+            Psicólogos del equipo
+          </h2>
+          <div className="space-y-3">
+            {psychologists.length === 0 && (
+              <div className="bg-white rounded-[2rem] border border-sage/10 soft-shadow p-6 text-center text-sage/50 text-sm">
+                Aún no hay psicólogos en tu clínica
+              </div>
+            )}
+            {psychologists.map(p => (
+              <div key={p.id} className="bg-white rounded-[2rem] border border-sage/10 soft-shadow p-4 flex items-center gap-4">
+                <div className="size-10 rounded-full bg-mint flex items-center justify-center text-sage font-medium flex-shrink-0">
+                  {p.avatarUrl
+                    ? <img src={p.avatarUrl} className="size-10 rounded-full object-cover" alt={p.name} />
+                    : <span className="material-symbols-outlined">person</span>}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-forest">{p.name}</p>
+                  <p className="text-xs text-sage/60">{p.email}</p>
+                </div>
+                <div className="ml-auto">
+                  <span className="px-2 py-1 rounded-full bg-mint text-[10px] font-medium text-forest uppercase tracking-wider">
+                    Activo
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Invite section */}
+        <div>
+          <h2 className="text-[10px] uppercase tracking-widest font-bold text-sage/40 mb-4">
+            Invitar psicólogo
+          </h2>
+          <div className="bg-white rounded-[2.5rem] border border-sage/10 soft-shadow p-6 mb-4">
+            <form onSubmit={handleSend} className="flex gap-3">
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="correo@ejemplo.com"
+                className="flex-1 border border-sage/20 rounded-xl px-4 py-2 text-sm text-forest placeholder-sage/40 focus:outline-none focus:border-sage/60"
+                required
+              />
+              <button
+                type="submit"
+                disabled={sending}
+                className="px-4 py-2 bg-sage text-white rounded-xl text-sm font-medium hover:bg-forest transition disabled:opacity-50 inline-flex items-center gap-1"
+              >
+                <span className="material-symbols-outlined text-base">send</span>
+                {sending ? 'Enviando...' : 'Invitar'}
+              </button>
+            </form>
+            {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
+            {success && <p className="text-sage text-xs mt-2">{success}</p>}
+          </div>
+
+          {/* Pending invitations */}
+          <h3 className="text-[10px] uppercase tracking-widest font-bold text-sage/40 mb-3">
+            Invitaciones pendientes
+          </h3>
+          {loadingInvites ? (
+            <div className="text-center py-4"><div className="w-6 h-6 border-2 border-sage/20 border-t-sage rounded-full animate-spin mx-auto" /></div>
+          ) : invitations.length === 0 ? (
+            <div className="bg-white rounded-[2rem] border border-sage/10 soft-shadow p-4 text-center text-sage/50 text-sm">
+              No hay invitaciones pendientes
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {invitations.map(inv => (
+                <div key={inv.id} className="bg-white rounded-[2rem] border border-sage/10 soft-shadow px-4 py-3 flex items-center gap-3">
+                  <span className="material-symbols-outlined text-sage/40 text-base">mail</span>
+                  <span className="text-sm text-forest flex-1">{inv.email}</span>
+                  <span className="text-[10px] text-sage/50">
+                    Expira {new Date(inv.expiresAt).toLocaleDateString('es-ES')}
+                  </span>
+                  <button
+                    onClick={() => handleCancel(inv.id)}
+                    className="text-sage/40 hover:text-red-400 transition"
+                    title="Cancelar invitación"
+                  >
+                    <span className="material-symbols-outlined text-base">close</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Config tab
+// ---------------------------------------------------------------------------
+function ConfigTab({ clinicInfo }: { clinicInfo: ClinicInfo | null }) {
+  return (
+    <div className="flex-1 overflow-y-auto px-8 lg:px-12 py-6">
+      <div className="max-w-lg">
+        <h2 className="text-xl font-medium text-forest mb-6">Configuración</h2>
+        <div className="bg-white rounded-[2.5rem] border border-sage/10 soft-shadow p-8 space-y-6">
+          <div>
+            <span className="text-[10px] uppercase tracking-widest font-bold text-sage/40">
+              Nombre de la clínica
+            </span>
+            <p className="text-base font-medium text-forest mt-1">{clinicInfo?.name ?? '—'}</p>
+          </div>
+          <div>
+            <span className="text-[10px] uppercase tracking-widest font-bold text-sage/40">
+              Correo electrónico
+            </span>
+            <p className="text-base font-medium text-forest mt-1">{clinicInfo?.email ?? '—'}</p>
+          </div>
+          <div>
+            <span className="text-[10px] uppercase tracking-widest font-bold text-sage/40">
+              Código de empresa
+            </span>
+            <p className="text-base font-mono font-bold text-forest mt-1">
+              {clinicInfo?.referralCode ?? '—'}
+            </p>
+            <p className="text-xs text-sage/50 mt-1">
+              Comparte este código con tus psicólogos para que se unan a la clínica.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main dashboard
 // ---------------------------------------------------------------------------
 export default function ClinicDashboard() {
-  const [activeTab, setActiveTab] = useState<NavTab>('agenda');
+  const [activeTab, setActiveTab] = useState<NavTab>('inicio');
   const [clinicInfo, setClinicInfo] = useState<ClinicInfo | null>(null);
   const [psychologists, setPsychologists] = useState<Psychologist[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
-
-  // Inject keyframe
-  if (typeof document !== 'undefined' && !document.getElementById('clinic-dash-spin')) {
-    const style = document.createElement('style');
-    style.id = 'clinic-dash-spin';
-    style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
-    document.head.appendChild(style);
-  }
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -147,7 +352,7 @@ export default function ClinicDashboard() {
       setClinicInfo(me);
       setPsychologists(psychs);
     } catch {
-      // If backend not yet available, show empty state
+      // backend unavailable — show empty state
     } finally {
       setLoading(false);
     }
@@ -157,12 +362,6 @@ export default function ClinicDashboard() {
     loadData();
   }, [loadData]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    window.location.href = '/';
-  };
-
   const handleCopyReferral = () => {
     if (clinicInfo?.referralCode) {
       navigator.clipboard.writeText(clinicInfo.referralCode).catch(() => {});
@@ -171,216 +370,82 @@ export default function ClinicDashboard() {
     }
   };
 
-  const initials = (name: string) =>
-    name
-      .split(' ')
-      .slice(0, 2)
-      .map((w) => w[0]?.toUpperCase() ?? '')
-      .join('');
+  const navItems: { id: NavTab; icon: string; label: string }[] = [
+    { id: 'inicio',         icon: 'home',          label: 'Inicio' },
+    { id: 'agenda',         icon: 'calendar_month', label: 'Agenda' },
+    { id: 'equipo',         icon: 'group',          label: 'Equipo' },
+    { id: 'pacientes',      icon: 'people',         label: 'Pacientes' },
+    { id: 'facturacion',    icon: 'receipt_long',   label: 'Facturac.' },
+    { id: 'configuracion',  icon: 'settings',       label: 'Config' },
+  ];
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', fontFamily: "'Inter', sans-serif" }}>
-      {/* ---- Left sidebar ---- */}
-      <aside
-        style={{
-          width: 72,
-          minWidth: 72,
-          background: 'white',
-          borderRight: '1px solid #e5e7eb',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          paddingTop: 0,
-          zIndex: 10,
-        }}
-      >
-        {/* Logo */}
-        <div
-          style={{
-            width: '100%',
-            height: 60,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderBottom: '1px solid #e5e7eb',
-          }}
-        >
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: '50%',
-              background: '#5a9270',
-              color: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 800,
-              fontSize: 18,
-              letterSpacing: '-0.5px',
-            }}
-          >
-            G
-          </div>
-        </div>
-
-        {/* Nav items */}
-        <div style={{ flex: 1, width: '100%', paddingTop: 8 }}>
-          <NavItem icon="📅" label="Agenda" active={activeTab === 'agenda'} onClick={() => setActiveTab('agenda')} />
-          <NavItem icon="👥" label="Pacientes" active={activeTab === 'pacientes'} onClick={() => setActiveTab('pacientes')} />
-          <NavItem icon="💰" label="Facturación" active={activeTab === 'facturacion'} onClick={() => setActiveTab('facturacion')} />
-          <NavItem icon="⚙️" label="Config" active={activeTab === 'configuracion'} onClick={() => setActiveTab('configuracion')} />
-        </div>
-
-        {/* Bottom: user avatar */}
-        <div
-          style={{
-            width: '100%',
-            padding: '12px 0',
-            borderTop: '1px solid #e5e7eb',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 4,
-          }}
-        >
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: '50%',
-              background: '#e5e7eb',
-              color: '#374151',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 700,
-              fontSize: 13,
-            }}
-          >
-            {clinicInfo ? initials(clinicInfo.name) : '?'}
-          </div>
-          <span
-            style={{
-              fontSize: 9,
-              color: '#9ca3af',
-              textAlign: 'center',
-              maxWidth: 60,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              padding: '0 4px',
-            }}
-          >
-            {clinicInfo?.name ?? ''}
-          </span>
-        </div>
+    // height: calc(100vh - nav_height). The App.tsx nav is ~72px tall.
+    <div
+      className="flex bg-cream text-forest"
+      style={{ height: 'calc(100vh - 72px)', overflow: 'hidden' }}
+    >
+      {/* Sidebar — identical pattern to UserDashboard / PsychDashboard */}
+      <aside className="w-24 bg-cream flex flex-col items-center pt-2 pb-4 z-10 border-r border-sage/10">
+        <nav className="flex flex-col gap-4 w-full px-3 pt-2">
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setActiveTab(item.id)}
+              className={`sidebar-item ${activeTab === item.id ? 'active' : ''}`}
+            >
+              <span className="material-symbols-outlined font-light text-lg">
+                {item.icon}
+              </span>
+              <span className="text-[10px] font-medium uppercase tracking-tighter">
+                {item.label}
+              </span>
+            </button>
+          ))}
+        </nav>
       </aside>
 
-      {/* ---- Main area ---- */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {/* Top bar */}
-        <header
-          style={{
-            height: 60,
-            minHeight: 60,
-            background: 'white',
-            borderBottom: '1px solid #e5e7eb',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0 24px',
-            zIndex: 5,
-          }}
-        >
-          {/* Left: company name */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <span style={{ fontWeight: 700, fontSize: 16, color: '#111827' }}>
-              {clinicInfo?.name ?? 'Clínica'}
-            </span>
-            {clinicInfo?.referralCode && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 12, color: '#6b7280' }}>Código de empresa:</span>
-                <span
-                  style={{
-                    fontFamily: 'monospace',
-                    fontSize: 13,
-                    fontWeight: 700,
-                    color: '#5a9270',
-                    background: '#f0f5f3',
-                    padding: '2px 8px',
-                    borderRadius: 6,
-                    letterSpacing: '0.05em',
-                  }}
-                >
-                  {clinicInfo.referralCode}
-                </span>
-                <button
-                  onClick={handleCopyReferral}
-                  title="Copiar código"
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontSize: 14,
-                    color: copied ? '#5a9270' : '#9ca3af',
-                    padding: '2px 4px',
-                    transition: 'color 0.2s',
-                  }}
-                >
-                  {copied ? '✓' : '⎘'}
-                </button>
+      {/* Content */}
+      <div className="flex-1 overflow-hidden flex flex-col">
+        {loading ? (
+          <div className="flex items-center justify-center flex-1">
+            <div className="w-9 h-9 border-[3px] border-sage/20 border-t-sage rounded-full animate-spin" />
+          </div>
+        ) : (
+          <>
+            {activeTab === 'inicio' && (
+              <HomeTab
+                clinicInfo={clinicInfo}
+                psychologists={psychologists}
+                copied={copied}
+                onCopyReferral={handleCopyReferral}
+                onNavigate={setActiveTab}
+              />
+            )}
+            {activeTab === 'agenda' && (
+              <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                <ClinicAgenda psychologists={psychologists} />
               </div>
             )}
-          </div>
-
-          {/* Right: logout */}
-          <button
-            onClick={handleLogout}
-            style={{
-              background: 'none',
-              border: '1px solid #e5e7eb',
-              borderRadius: 8,
-              padding: '6px 14px',
-              fontSize: 13,
-              color: '#374151',
-              cursor: 'pointer',
-              fontWeight: 500,
-            }}
-          >
-            Cerrar sesión
-          </button>
-        </header>
-
-        {/* Content area */}
-        <main style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          {loading ? (
-            <Spinner />
-          ) : (
-            <>
-              {activeTab === 'agenda' && (
-                <div style={{ flex: 1, overflow: 'hidden' }}>
-                  <ClinicAgenda psychologists={psychologists} />
-                </div>
-              )}
-              {activeTab === 'pacientes' && (
-                <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                  <ClinicPatients />
-                </div>
-              )}
-              {activeTab === 'facturacion' && (
-                <div style={{ flex: 1, overflowY: 'auto' }}>
-                  <ClinicBilling psychologists={psychologists} />
-                </div>
-              )}
-              {activeTab === 'configuracion' && (
-                <div style={{ flex: 1 }}>
-                  <ConfigPlaceholder />
-                </div>
-              )}
-            </>
-          )}
-        </main>
+            {activeTab === 'equipo' && (
+              <EquipoTab psychologists={psychologists} onRefresh={loadData} />
+            )}
+            {activeTab === 'pacientes' && (
+              <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                <ClinicPatients />
+              </div>
+            )}
+            {activeTab === 'facturacion' && (
+              <div style={{ flex: 1, overflowY: 'auto' }}>
+                <ClinicBilling psychologists={psychologists} />
+              </div>
+            )}
+            {activeTab === 'configuracion' && (
+              <ConfigTab clinicInfo={clinicInfo} />
+            )}
+          </>
+        )}
       </div>
     </div>
   );

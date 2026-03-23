@@ -16,6 +16,8 @@ import com.alvaro.psicoapp.domain.PsychologistProfileEntity;
 import com.alvaro.psicoapp.domain.RoleConstants;
 import com.alvaro.psicoapp.domain.UserEntity;
 import com.alvaro.psicoapp.domain.UserPsychologistEntity;
+import com.alvaro.psicoapp.domain.ClinicInvitationEntity;
+import com.alvaro.psicoapp.repository.ClinicInvitationRepository;
 import com.alvaro.psicoapp.repository.CompanyRepository;
 import com.alvaro.psicoapp.repository.PsychologistProfileRepository;
 import com.alvaro.psicoapp.repository.TestRepository;
@@ -39,6 +41,7 @@ public class AuthService {
 	private final TestRepository testRepository;
 	private final EmailService emailService;
 	private final TotpService totpService;
+	private final ClinicInvitationRepository clinicInvitationRepository;
 	private static final String INITIAL_TEST_CODE = "INITIAL";
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -47,7 +50,8 @@ public class AuthService {
 			PsychologistProfileRepository psychologistProfileRepository,
 			PasswordEncoder passwordEncoder,
 			JwtService jwtService, TemporarySessionService sessionService, TestResultService testResultService,
-			TestRepository testRepository, EmailService emailService, TotpService totpService) {
+			TestRepository testRepository, EmailService emailService, TotpService totpService,
+			ClinicInvitationRepository clinicInvitationRepository) {
 		this.userRepository = userRepository;
 		this.companyRepository = companyRepository;
 		this.userPsychologistRepository = userPsychologistRepository;
@@ -59,11 +63,12 @@ public class AuthService {
 		this.testRepository = testRepository;
 		this.emailService = emailService;
 		this.totpService = totpService;
+		this.clinicInvitationRepository = clinicInvitationRepository;
 	}
 
 	@Transactional
 	public com.alvaro.psicoapp.security.JwtService.TokenPair registerWithRefresh(String name, String email, String password, String sessionId, String role,
-			String companyReferralCode, String psychologistReferralCode, LocalDate birthDate) {
+			String companyReferralCode, String psychologistReferralCode, LocalDate birthDate, String inviteToken) {
 		String sanitizedEmail = InputSanitizer.sanitizeEmail(email);
 		String sanitizedName = InputSanitizer.sanitizeAndValidate(name != null ? name : "", 100);
 		if (sanitizedName.isEmpty()) throw new IllegalArgumentException("El nombre es requerido");
@@ -111,6 +116,19 @@ public class AuthService {
 				var company = companyRepository.findByReferralCode(code)
 						.orElseThrow(() -> new IllegalArgumentException("Código de empresa no válido"));
 				u.setCompanyId(company.getId());
+			}
+			// Handle invite token - associate psychologist with invited company
+			if (inviteToken != null && !inviteToken.trim().isEmpty()) {
+				var inv = clinicInvitationRepository.findByToken(inviteToken.trim())
+						.orElseThrow(() -> new IllegalArgumentException("Token de invitacion no valido"));
+				if (!"PENDING".equals(inv.getStatus()) || inv.getExpiresAt().isBefore(Instant.now())) {
+					throw new IllegalArgumentException("La invitacion ha expirado");
+				}
+				// Override companyId from invitation
+				u.setCompanyId(inv.getCompanyId());
+				// Mark invitation as accepted after user is saved
+				inv.setStatus("ACCEPTED");
+				clinicInvitationRepository.save(inv);
 			}
 			String slug = ReferralCodeUtil.nameToSlug(sanitizedName);
 			u.setReferralCode(ensureUniqueReferralCode(slug));

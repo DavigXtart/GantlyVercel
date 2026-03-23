@@ -11,6 +11,10 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
+import com.alvaro.psicoapp.domain.ClinicInvitationEntity;
+import com.alvaro.psicoapp.repository.ClinicInvitationRepository;
+import org.springframework.beans.factory.annotation.Value;
+import java.util.UUID;
 
 @Service
 public class ClinicService {
@@ -20,17 +24,26 @@ public class ClinicService {
     private final AppointmentRepository appointmentRepository;
     private final UserPsychologistRepository userPsychologistRepository;
     private final ClinicPatientProfileRepository clinicPatientProfileRepository;
+    private final ClinicInvitationRepository clinicInvitationRepository;
+    private final EmailService emailService;
+
+    @Value("${app.base.url:http://localhost:5173}")
+    private String baseUrl;
 
     public ClinicService(CompanyRepository companyRepository,
                          UserRepository userRepository,
                          AppointmentRepository appointmentRepository,
                          UserPsychologistRepository userPsychologistRepository,
-                         ClinicPatientProfileRepository clinicPatientProfileRepository) {
+                         ClinicPatientProfileRepository clinicPatientProfileRepository,
+                         ClinicInvitationRepository clinicInvitationRepository,
+                         EmailService emailService) {
         this.companyRepository = companyRepository;
         this.userRepository = userRepository;
         this.appointmentRepository = appointmentRepository;
         this.userPsychologistRepository = userPsychologistRepository;
         this.clinicPatientProfileRepository = clinicPatientProfileRepository;
+        this.clinicInvitationRepository = clinicInvitationRepository;
+        this.emailService = emailService;
     }
 
     // --- DTOs ---
@@ -61,6 +74,8 @@ public class ClinicService {
                                             String paymentStatus) {}
     public record UpdatePatientRequest(String notes, String allergies, String medication, String medicalHistory,
                                         Boolean consentSigned, String patientType, String status, String phone) {}
+    public record InvitationDto(Long id, String email, String status, String createdAt, String expiresAt) {}
+    public record SendInvitationRequest(String email) {}
 
     private CompanyEntity getCompany(String email) {
         return companyRepository.findByEmail(email)
@@ -338,4 +353,69 @@ public class ClinicService {
         result.sort(Comparator.comparing(ClinicBillingDto::startTime).reversed());
         return result;
     }
+
+    @Transactional
+    public InvitationDto sendInvitation(String companyEmail, String targetEmail) {
+        var company = getCompany(companyEmail);
+        String normalizedEmail = targetEmail.trim().toLowerCase();
+
+        // Check if already a member
+        boolean alreadyMember = userRepository.findByCompanyId(company.getId()).stream()
+            .anyMatch(u -> normalizedEmail.equals(u.getEmail()) && RoleConstants.PSYCHOLOGIST.equals(u.getRole()));
+        if (alreadyMember) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Este psicologo ya es miembro de tu clinica");
+        }
+
+        // Cancel any existing pending invite for same email
+        clinicInvitationRepository.findByCompanyIdAndEmailAndStatus(company.getId(), normalizedEmail, "PENDING")
+            .ifPresent(existing -> { existing.setStatus("CANCELLED"); clinicInvitationRepository.save(existing); });
+
+        ClinicInvitationEntity inv = new ClinicInvitationEntity();
+        inv.setCompanyId(company.getId());
+        inv.setEmail(normalizedEmail);
+        inv.setToken(UUID.randomUUID().toString());
+        inv.setStatus("PENDING");
+        inv.setExpiresAt(Instant.now().plusSeconds(7L * 24 * 3600));
+        clinicInvitationRepository.save(inv);
+
+        String inviteUrl = baseUrl + "/register?inviteToken=" + inv.getToken() + "&role=PSYCHOLOGIST";
+        emailService.sendClinicInvitationEmail(normalizedEmail, company.getName(), inviteUrl);
+
+        return new InvitationDto(inv.getId(), inv.getEmail(), inv.getStatus(),
+            inv.getCreatedAt().toString(), inv.getExpiresAt().toString());
+    }
+
+    @Transactional(readOnly = true)
+    public List<InvitationDto> listInvitations(String companyEmail) {
+        var company = getCompany(companyEmail);
+        return clinicInvitationRepository.findByCompanyIdOrderByCreatedAtDesc(company.getId()).stream()
+            .map(inv -> new InvitationDto(inv.getId(), inv.getEmail(), inv.getStatus(),
+                inv.getCreatedAt().toString(), inv.getExpiresAt().toString()))
+            .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void cancelInvitation(String companyEmail, Long invitationId) {
+        var company = getCompany(companyEmail);
+        var inv = clinicInvitationRepository.findById(invitationId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invitacion no encontrada"));
+        if (!company.getId().equals(inv.getCompanyId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No autorizado");
+        }
+        inv.setStatus("CANCELLED");
+        clinicInvitationRepository.save(inv);
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.Map<String, String> getInviteInfo(String token) {
+        var inv = clinicInvitationRepository.findByToken(token)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invitacion no encontrada"));
+        if (!"PENDING".equals(inv.getStatus()) || inv.getExpiresAt().isBefore(Instant.now())) {
+            throw new ResponseStatusException(HttpStatus.GONE, "Invitacion expirada o invalida");
+        }
+        var company = companyRepository.findById(inv.getCompanyId())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa no encontrada"));
+        return java.util.Map.of("companyName", company.getName(), "email", inv.getEmail(), "companyId", String.valueOf(company.getId()));
+    }
+
 }

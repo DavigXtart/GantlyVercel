@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { authService } from '../services/api';
 import FormField from './ui/FormField';
 import { toast } from './ui/Toast';
@@ -9,9 +9,11 @@ interface RegisterProps {
   sessionId?: string | null;
   /** Slug del psicólogo (ej: juan-garcia) - si viene por enlace, el usuario se asigna como paciente suyo */
   psychologistReferralCode?: string;
+  /** Token de invitación de empresa */
+  inviteToken?: string;
 }
 
-export default function Register({ onRegister, onSwitchToLogin, sessionId, psychologistReferralCode }: RegisterProps) {
+export default function Register({ onRegister, onSwitchToLogin, sessionId, psychologistReferralCode, inviteToken }: RegisterProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,6 +23,26 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
   const [step, setStep] = useState<'form' | 'verify'>('form');
   const [verificationCode, setVerificationCode] = useState('');
   const [verifying, setVerifying] = useState(false);
+  const [inviteInfo, setInviteInfo] = useState<{ companyName: string; email: string } | null>(null);
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [inviteError, setInviteError] = useState('');
+
+  useEffect(() => {
+    if (!inviteToken) return;
+    setInviteLoading(true);
+    setInviteError('');
+    authService.getInviteInfo(inviteToken)
+      .then((info) => {
+        setInviteInfo({ companyName: info.companyName, email: info.email });
+        setEmail(info.email);
+      })
+      .catch(() => {
+        setInviteError('El enlace de invitación no es válido o ha expirado.');
+      })
+      .finally(() => {
+        setInviteLoading(false);
+      });
+  }, [inviteToken]);
 
   const validateName = (name: string): string | undefined => {
     if (!name.trim()) return 'El nombre es obligatorio';
@@ -45,7 +67,7 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
     const nameError = validateName(name);
     const emailError = validateEmail(email);
     const passwordError = validatePassword(password);
-    
+
     if (nameError || emailError || passwordError) {
       setErrors({ name: nameError, email: emailError, password: passwordError });
       return;
@@ -60,10 +82,11 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
         email,
         password,
         sessionId || undefined,
-        'USER',
+        inviteToken ? 'PSYCHOLOGIST' : 'USER',
         undefined,
         psychologistReferralCode || undefined,
-        birthDate.trim() || undefined
+        birthDate.trim() || undefined,
+        inviteToken || undefined
       );
       toast.success('Te hemos enviado un codigo de verificacion a tu email');
       setStep('verify');
@@ -144,20 +167,20 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
             boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
           }}
         >
-          <div style={{ 
+          <div style={{
             fontFamily: "'Nunito', sans-serif",
-            fontSize: '32px', 
-            fontWeight: 700, 
+            fontSize: '32px',
+            fontWeight: 700,
             color: '#5a9270',
             letterSpacing: '-0.02em',
             marginBottom: '8px',
           }}>
             Gantly
           </div>
-          <h1 style={{ 
-            margin: 0, 
-            fontSize: '36px', 
-            lineHeight: 1.3, 
+          <h1 style={{
+            margin: 0,
+            fontSize: '36px',
+            lineHeight: 1.3,
             color: '#1a2e22',
             fontFamily: "'Nunito', sans-serif",
             fontWeight: 700,
@@ -176,28 +199,28 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
               Serás asignado directamente a tu psicólogo tras registrarte.
             </div>
           )}
-          <p style={{ 
-            margin: 0, 
-            fontSize: '17px', 
-            lineHeight: 1.7, 
+          <p style={{
+            margin: 0,
+            fontSize: '17px',
+            lineHeight: 1.7,
             color: '#3a5a4a',
             marginBottom: '8px',
           }}>
             Crea tu cuenta para acceder a evaluaciones personalizadas, seguimiento emocional y acompañamiento profesional adaptado a tus necesidades.
           </p>
-          <div style={{ 
-            marginTop: '24px', 
-            display: 'flex', 
+          <div style={{
+            marginTop: '24px',
+            display: 'flex',
             flexDirection: 'column',
-            gap: '16px', 
-            fontSize: '16px', 
+            gap: '16px',
+            fontSize: '16px',
             color: '#3a5a4a',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ 
-                width: '24px', 
-                height: '24px', 
-                borderRadius: '50%', 
+              <div style={{
+                width: '24px',
+                height: '24px',
+                borderRadius: '50%',
                 background: '#d4e0d8',
                 display: 'flex',
                 alignItems: 'center',
@@ -207,10 +230,10 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
               <span>Evaluaciones basadas en ciencia</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ 
-                width: '24px', 
-                height: '24px', 
-                borderRadius: '50%', 
+              <div style={{
+                width: '24px',
+                height: '24px',
+                borderRadius: '50%',
                 background: '#d4e0d8',
                 display: 'flex',
                 alignItems: 'center',
@@ -220,10 +243,10 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
               <span>Sesiones con profesionales especializados</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ 
-                width: '24px', 
-                height: '24px', 
-                borderRadius: '50%', 
+              <div style={{
+                width: '24px',
+                height: '24px',
+                borderRadius: '50%',
                 background: '#d4e0d8',
                 display: 'flex',
                 alignItems: 'center',
@@ -233,9 +256,9 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
               <span>Planes personalizados para ti</span>
             </div>
           </div>
-          <div style={{ 
-            marginTop: 'auto', 
-            fontSize: '15px', 
+          <div style={{
+            marginTop: 'auto',
+            fontSize: '15px',
             color: '#3a5a4a',
             paddingTop: '24px',
             borderTop: '1px solid rgba(90, 146, 112, 0.15)',
@@ -279,6 +302,28 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
               <p style={{ margin: '0 0 32px', fontSize: '16px', color: '#3a5a4a' }}>
                 Completa tus datos para comenzar tu experiencia.
               </p>
+
+              {inviteLoading && (
+                <div className="flex items-center justify-center py-4 mb-4">
+                  <div className="w-5 h-5 border-2 border-sage/20 border-t-sage rounded-full animate-spin" />
+                </div>
+              )}
+
+              {inviteError && (
+                <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-4">
+                  <p className="text-sm text-red-600">{inviteError}</p>
+                </div>
+              )}
+
+              {inviteInfo && (
+                <div className="bg-sage/10 border border-sage/20 rounded-2xl p-4 mb-4 flex items-center gap-3">
+                  <span className="material-symbols-outlined text-sage">business</span>
+                  <div>
+                    <p className="text-sm font-medium text-forest">Invitación de {inviteInfo.companyName}</p>
+                    <p className="text-xs text-sage/70">Crea tu cuenta para unirte a la clínica</p>
+                  </div>
+                </div>
+              )}
 
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }} aria-label="Formulario de registro">
                 <FormField label="Nombre completo" name="name" type="text" value={name}
@@ -376,4 +421,3 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
     </div>
   );
 }
-

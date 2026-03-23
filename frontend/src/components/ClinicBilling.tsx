@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { clinicService, ClinicBillingItem } from '../services/api';
+import { clinicService } from '../services/api';
+import type { ClinicBillingItem } from '../services/api';
 
 interface Props {
   psychologists: Array<{ id: number; name: string }>;

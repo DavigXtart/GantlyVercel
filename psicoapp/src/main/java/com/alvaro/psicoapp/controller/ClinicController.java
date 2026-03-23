@@ -115,4 +115,28 @@ public class ClinicController {
         Instant toI = to != null ? Instant.parse(to) : Instant.now().plusSeconds(365L * 24 * 3600);
         return ResponseEntity.ok(clinicService.getBilling(email, fromI, toI, psychologistId));
     }
+
+    @PostMapping("/invitations")
+    public ResponseEntity<?> sendInvitation(Principal principal,
+                                             @RequestBody ClinicService.SendInvitationRequest req) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(clinicService.sendInvitation(email, req.email()));
+    }
+
+    @GetMapping("/invitations")
+    public ResponseEntity<?> listInvitations(Principal principal) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(clinicService.listInvitations(email));
+    }
+
+    @DeleteMapping("/invitations/{id}")
+    public ResponseEntity<?> cancelInvitation(Principal principal, @PathVariable Long id) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        clinicService.cancelInvitation(email, id);
+        return ResponseEntity.ok(Map.of("message", "Invitacion cancelada"));
+    }
+
 }

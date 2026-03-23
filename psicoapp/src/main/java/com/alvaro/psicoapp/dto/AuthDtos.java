@@ -28,6 +28,7 @@ public class AuthDtos {
 		public String psychologistReferralCode;
 
 		public LocalDate birthDate;
+		public String inviteToken;
 	}
 
 	public static class LoginRequest {

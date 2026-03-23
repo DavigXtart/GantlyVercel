@@ -1,10 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import {
-  clinicService,
-  ClinicPatientSummary,
-  ClinicPatientDetail,
-  UpdatePatientReq,
-} from '../services/api';
+import { clinicService } from '../services/api';
+import type { ClinicPatientSummary, ClinicPatientDetail, UpdatePatientReq } from '../services/api';
 
 interface Props {
   onBack?: () => void;

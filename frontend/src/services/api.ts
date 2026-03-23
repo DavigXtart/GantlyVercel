@@ -139,7 +139,8 @@ export const authService = {
     role?: string,
     companyReferralCode?: string,
     psychologistReferralCode?: string,
-    birthDate?: string
+    birthDate?: string,
+    inviteToken?: string
   ) => {
     const { data } = await api.post<{ token?: string; accessToken?: string; refreshToken?: string; expiresIn?: number }>('/auth/register', {
       name,
@@ -149,7 +150,8 @@ export const authService = {
       role,
       companyReferralCode,
       psychologistReferralCode,
-      birthDate: birthDate || undefined
+      birthDate: birthDate || undefined,
+      inviteToken: inviteToken || undefined
     });
     // Compatibilidad: usar accessToken si existe, sino token (legacy)
     const token = data.accessToken;
@@ -207,6 +209,10 @@ export const authService = {
   },
   getOAuth2LoginUrl: (provider: 'google' = 'google') => {
     return `${API_BASE_URL}/oauth2/authorization/${provider}`;
+  },
+  getInviteInfo: async (token: string) => {
+    const { data } = await api.get(`/auth/invite-info?token=${token}`);
+    return data as { companyName: string; email: string; companyId: string };
   },
 };
 
@@ -1136,6 +1142,17 @@ export const clinicService = {
   getBilling: async (from?: string, to?: string, psychologistId?: number) => {
     const { data } = await api.get('/clinic/billing', { params: { from, to, psychologistId } });
     return data as ClinicBillingItem[];
+  },
+  sendInvitation: async (email: string) => {
+    const { data } = await api.post('/clinic/invitations', { email });
+    return data as { id: number; email: string; status: string; createdAt: string; expiresAt: string };
+  },
+  listInvitations: async () => {
+    const { data } = await api.get('/clinic/invitations');
+    return data as Array<{ id: number; email: string; status: string; createdAt: string; expiresAt: string }>;
+  },
+  cancelInvitation: async (id: number) => {
+    await api.delete(`/clinic/invitations/${id}`);
   },
 };
 

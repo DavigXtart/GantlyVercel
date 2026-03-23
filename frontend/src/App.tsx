@@ -185,7 +185,7 @@ function Dashboard({ role, logout, onStartTest }: {
                 <button className={`btn-secondary ${adminTab === 'statistics' ? 'active' : ''}`} onClick={() => setAdminTab('statistics')}>Estadísticas</button>
               </>
             )}
-            {(role === 'USER' || role === 'PSYCHOLOGIST') && <NotificationBell />}
+            {(role === 'USER' || role === 'PSYCHOLOGIST' || role === 'EMPRESA') && <NotificationBell />}
             <button onClick={() => { logout(); navigate('/'); }} className="btn-secondary">Cerrar sesión</button>
           </div>
         </div>
@@ -474,6 +474,7 @@ function RegisterRoute({ initialTestSessionId, onRegister }: { initialTestSessio
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const referral = searchParams.get('referral');
+  const inviteToken = searchParams.get('inviteToken');
 
   return (
     <Register
@@ -481,6 +482,7 @@ function RegisterRoute({ initialTestSessionId, onRegister }: { initialTestSessio
       onSwitchToLogin={() => navigate('/login')}
       sessionId={initialTestSessionId}
       psychologistReferralCode={referral || undefined}
+      inviteToken={inviteToken || undefined}
     />
   );
 }
