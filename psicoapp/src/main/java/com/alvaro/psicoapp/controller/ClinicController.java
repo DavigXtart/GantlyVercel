@@ -1,12 +1,19 @@
 package com.alvaro.psicoapp.controller;
 
+import com.alvaro.psicoapp.domain.ClinicChatMessageEntity;
+import com.alvaro.psicoapp.repository.ClinicChatMessageRepository;
+import com.alvaro.psicoapp.repository.CompanyRepository;
 import com.alvaro.psicoapp.service.ClinicService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/clinic")
@@ -14,9 +21,15 @@ public class ClinicController {
 
     private static final String COMPANY_PREFIX = "company:";
     private final ClinicService clinicService;
+    private final ClinicChatMessageRepository chatRepo;
+    private final CompanyRepository companyRepository;
 
-    public ClinicController(ClinicService clinicService) {
+    public ClinicController(ClinicService clinicService,
+                             ClinicChatMessageRepository chatRepo,
+                             CompanyRepository companyRepository) {
         this.clinicService = clinicService;
+        this.chatRepo = chatRepo;
+        this.companyRepository = companyRepository;
     }
 
     private String getCompanyEmail(Principal principal) {
@@ -176,6 +189,60 @@ public class ClinicController {
         if (email == null) return unauthorized();
         clinicService.deleteDocument(email, docId);
         return ResponseEntity.ok(Map.of("message", "Documento eliminado"));
+    }
+
+    @PostMapping("/appointments/{id}/payment-link")
+    public ResponseEntity<?> createPaymentLink(Principal principal, @PathVariable Long id) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(clinicService.createPaymentLink(email, id));
+    }
+
+    @GetMapping("/psychologists/{id}/schedule")
+    public ResponseEntity<?> getPsychologistSchedule(Principal principal, @PathVariable Long id) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(clinicService.getPsychologistSchedule(email, id));
+    }
+
+    // ---- Clinic chat (Feature F) ----
+    public record ChatMessageDto(Long id, String sender, String content, String createdAt) {}
+    public record SendMessageRequest(String content) {}
+
+    private Long resolveCompanyId(String email) {
+        return companyRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa no encontrada"))
+                .getId();
+    }
+
+    @GetMapping("/chat/{patientId}")
+    public ResponseEntity<?> getChatMessages(Principal principal, @PathVariable Long patientId,
+                                              @RequestParam(required = false) String after) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        Long companyId = resolveCompanyId(email);
+        List<ClinicChatMessageEntity> messages = after != null
+                ? chatRepo.findByCompanyIdAndPatientIdAndCreatedAtAfterOrderByCreatedAtAsc(
+                        companyId, patientId, Instant.parse(after))
+                : chatRepo.findByCompanyIdAndPatientIdOrderByCreatedAtAsc(companyId, patientId);
+        return ResponseEntity.ok(messages.stream()
+                .map(m -> new ChatMessageDto(m.getId(), m.getSender(), m.getContent(), m.getCreatedAt().toString()))
+                .collect(Collectors.toList()));
+    }
+
+    @PostMapping("/chat/{patientId}")
+    public ResponseEntity<?> sendChatMessage(Principal principal, @PathVariable Long patientId,
+                                              @RequestBody SendMessageRequest req) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        Long companyId = resolveCompanyId(email);
+        ClinicChatMessageEntity msg = new ClinicChatMessageEntity();
+        msg.setCompanyId(companyId);
+        msg.setPatientId(patientId);
+        msg.setSender("CLINIC");
+        msg.setContent(req.content());
+        chatRepo.save(msg);
+        return ResponseEntity.ok(new ChatMessageDto(msg.getId(), msg.getSender(), msg.getContent(), msg.getCreatedAt().toString()));
     }
 
 }

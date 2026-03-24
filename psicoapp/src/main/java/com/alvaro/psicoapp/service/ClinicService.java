@@ -15,6 +15,7 @@ import com.alvaro.psicoapp.domain.ClinicInvitationEntity;
 import com.alvaro.psicoapp.repository.ClinicInvitationRepository;
 import org.springframework.beans.factory.annotation.Value;
 import java.util.UUID;
+import java.util.Map;
 
 @Service
 public class ClinicService {
@@ -27,6 +28,7 @@ public class ClinicService {
     private final ClinicInvitationRepository clinicInvitationRepository;
     private final ClinicPatientDocumentRepository clinicPatientDocumentRepository;
     private final EmailService emailService;
+    private final StripeService stripeService;
 
     @Value("${app.base.url:http://localhost:5173}")
     private String baseUrl;
@@ -38,7 +40,8 @@ public class ClinicService {
                          ClinicPatientProfileRepository clinicPatientProfileRepository,
                          ClinicInvitationRepository clinicInvitationRepository,
                          ClinicPatientDocumentRepository clinicPatientDocumentRepository,
-                         EmailService emailService) {
+                         EmailService emailService,
+                         StripeService stripeService) {
         this.companyRepository = companyRepository;
         this.userRepository = userRepository;
         this.appointmentRepository = appointmentRepository;
@@ -47,6 +50,7 @@ public class ClinicService {
         this.clinicInvitationRepository = clinicInvitationRepository;
         this.clinicPatientDocumentRepository = clinicPatientDocumentRepository;
         this.emailService = emailService;
+        this.stripeService = stripeService;
     }
 
     // --- DTOs ---
@@ -566,6 +570,44 @@ public class ClinicService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No autorizado");
         try { new java.io.File("uploads/" + doc.getFileName()).delete(); } catch (Exception ignored) {}
         clinicPatientDocumentRepository.delete(doc);
+    }
+
+    // -------------------------------------------------------------------------
+    // Payment link (Feature E)
+    // -------------------------------------------------------------------------
+    @Transactional
+    public Map<String, String> createPaymentLink(String email, Long appointmentId) {
+        var company = getCompany(email);
+        AppointmentEntity appt = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cita no encontrada"));
+        assertPsychBelongsToCompany(appt.getPsychologist(), company.getId());
+        if (appt.getPrice() == null || appt.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La cita no tiene precio definido");
+        }
+        String patientEmail = appt.getUser() != null ? appt.getUser().getEmail() : email;
+        try {
+            return stripeService.createAppointmentCheckoutSession(appointmentId, patientEmail);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Psychologist schedule (Feature G)
+    // -------------------------------------------------------------------------
+    @Transactional(readOnly = true)
+    public List<ClinicAppointmentDto> getPsychologistSchedule(String email, Long psychologistId) {
+        var company = getCompany(email);
+        UserEntity psych = userRepository.findById(psychologistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Psicólogo no encontrado"));
+        assertPsychBelongsToCompany(psych, company.getId());
+        Instant now = Instant.now();
+        return appointmentRepository
+                .findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(
+                        psychologistId, now, now.plusSeconds(30L * 24 * 3600))
+                .stream()
+                .map(a -> toAppointmentDto(a, psych))
+                .collect(Collectors.toList());
     }
 
 }

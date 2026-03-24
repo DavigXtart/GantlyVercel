@@ -1186,6 +1186,22 @@ export const clinicService = {
   deleteDocument: async (documentId: number) => {
     await api.delete(`/clinic/documents/${documentId}`);
   },
+  sendPaymentLink: async (appointmentId: number) => {
+    const { data } = await api.post(`/clinic/appointments/${appointmentId}/payment-link`);
+    return data as { sessionId: string; url: string };
+  },
+  getPsychologistSchedule: async (psychologistId: number) => {
+    const { data } = await api.get(`/clinic/psychologists/${psychologistId}/schedule`);
+    return data as ClinicAppointment[];
+  },
+  getChatMessages: async (patientId: number, after?: string) => {
+    const { data } = await api.get(`/clinic/chat/${patientId}`, { params: after ? { after } : {} });
+    return data as Array<{ id: number; sender: string; content: string; createdAt: string }>;
+  },
+  sendChatMessage: async (patientId: number, content: string) => {
+    const { data } = await api.post(`/clinic/chat/${patientId}`, { content });
+    return data as { id: number; sender: string; content: string; createdAt: string };
+  },
 };
 
 export default api;

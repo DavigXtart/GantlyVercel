@@ -308,7 +308,7 @@ function ListView({
 // ---------------------------------------------------------------------------
 // Patient detail view
 // ---------------------------------------------------------------------------
-type DetailTab = 'citas' | 'documentos' | 'datos';
+type DetailTab = 'citas' | 'documentos' | 'datos' | 'chat';
 
 type DocumentItem = { id: number; originalName: string; fileName: string; fileSize: number | null; uploadedAt: string };
 
@@ -349,6 +349,16 @@ function DetailView({
   const [uploadingDoc, setUploadingDoc] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Chat (Feature F)
+  type ChatMsg = { id: number; sender: string; content: string; createdAt: string };
+  const [chatMessages, setChatMessages] = useState<ChatMsg[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [sendingChat, setSendingChat] = useState(false);
+  const chatBottomRef = useRef<HTMLDivElement>(null);
+
+  // Payment link (Feature E)
+  const [paymentLinkLoading, setPaymentLinkLoading] = useState<number | null>(null);
+
   const loadDocuments = useCallback(async (patientId: number) => {
     setLoadingDocs(true);
     try {
@@ -371,8 +381,52 @@ function DetailView({
       setPatientType(patient.patientType ?? '');
       setPhone(patient.phone ?? '');
       loadDocuments(patient.id);
+      // Load initial chat messages
+      clinicService.getChatMessages(patient.id).then(setChatMessages).catch(() => {});
     }
   }, [patient, loadDocuments]);
+
+  // Poll chat every 5s when on chat tab
+  useEffect(() => {
+    if (tab !== 'chat' || !patient) return;
+    const interval = setInterval(async () => {
+      try {
+        const msgs = await clinicService.getChatMessages(patient.id);
+        setChatMessages(msgs);
+      } catch { /* ignore */ }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [tab, patient]);
+
+  // Scroll to bottom when chat messages change
+  useEffect(() => {
+    if (tab === 'chat') chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages, tab]);
+
+  const handleSendChat = async () => {
+    if (!chatInput.trim() || !patient || sendingChat) return;
+    const text = chatInput.trim();
+    setChatInput('');
+    setSendingChat(true);
+    try {
+      const msg = await clinicService.sendChatMessage(patient.id, text);
+      setChatMessages(prev => [...prev, msg]);
+    } catch { /* ignore */ } finally {
+      setSendingChat(false);
+    }
+  };
+
+  const handlePaymentLink = async (appointmentId: number) => {
+    setPaymentLinkLoading(appointmentId);
+    try {
+      const result = await clinicService.sendPaymentLink(appointmentId);
+      window.open(result.url, '_blank');
+    } catch (e: unknown) {
+      alert((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Error al generar el link de pago');
+    } finally {
+      setPaymentLinkLoading(null);
+    }
+  };
 
   const handleDocUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -549,6 +603,9 @@ function DetailView({
           <button style={tabStyle('documentos')} onClick={() => setTab('documentos')}>
             Documentos
           </button>
+          <button style={tabStyle('chat')} onClick={() => setTab('chat')}>
+            Chat
+          </button>
           <button style={tabStyle('datos')} onClick={() => setTab('datos')}>
             Datos del paciente
           </button>
@@ -592,20 +649,29 @@ function DetailView({
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           <PaymentBadge status={appt.paymentStatus} />
-                          <button
-                            disabled
-                            style={{
-                              padding: '5px 12px',
-                              borderRadius: 6,
-                              border: '1px solid #e5e7eb',
-                              background: '#f9fafb',
-                              fontSize: 12,
-                              color: '#9ca3af',
-                              cursor: 'not-allowed',
-                            }}
-                          >
-                            Modificar cita
-                          </button>
+                          {appt.paymentStatus === 'PENDING' && appt.price != null && Number(appt.price) > 0 && (
+                            <button
+                              onClick={() => handlePaymentLink(appt.id)}
+                              disabled={paymentLinkLoading === appt.id}
+                              title="Enviar link de pago al paciente"
+                              style={{
+                                padding: '5px 12px',
+                                borderRadius: 6,
+                                border: '1px solid #5a9270',
+                                background: paymentLinkLoading === appt.id ? '#f0f5f3' : 'white',
+                                fontSize: 12,
+                                color: '#5a9270',
+                                cursor: paymentLinkLoading === appt.id ? 'wait' : 'pointer',
+                                fontWeight: 500,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 4,
+                              }}
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>link</span>
+                              {paymentLinkLoading === appt.id ? 'Generando...' : 'Link de pago'}
+                            </button>
+                          )}
                         </div>
                       </div>
                       {/* Session note inline editor */}
@@ -777,6 +843,99 @@ function DetailView({
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* CHAT tab (Feature F) */}
+          {tab === 'chat' && (
+            <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 400 }}>
+              {/* Messages area */}
+              <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 16 }}>
+                {chatMessages.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: 48, color: '#6b7280', fontSize: 14 }}>
+                    Sin mensajes. Inicia la conversación con el paciente.
+                  </div>
+                ) : (
+                  chatMessages.map(msg => {
+                    const isClinic = msg.sender === 'CLINIC';
+                    return (
+                      <div
+                        key={msg.id}
+                        style={{
+                          display: 'flex',
+                          justifyContent: isClinic ? 'flex-end' : 'flex-start',
+                        }}
+                      >
+                        <div
+                          style={{
+                            maxWidth: '70%',
+                            padding: '8px 14px',
+                            borderRadius: isClinic ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                            background: isClinic ? '#5a9270' : '#f3f4f6',
+                            color: isClinic ? 'white' : '#111827',
+                            fontSize: 13,
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          <p style={{ margin: 0 }}>{msg.content}</p>
+                          <p style={{ margin: '4px 0 0', fontSize: 10, opacity: 0.7, textAlign: 'right' }}>
+                            {new Date(msg.createdAt).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+                <div ref={chatBottomRef} />
+              </div>
+              {/* Input area */}
+              <div
+                style={{
+                  borderTop: '1px solid #e5e7eb',
+                  paddingTop: 12,
+                  display: 'flex',
+                  gap: 8,
+                  alignItems: 'flex-end',
+                }}
+              >
+                <textarea
+                  value={chatInput}
+                  onChange={e => setChatInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendChat(); } }}
+                  placeholder="Escribe un mensaje..."
+                  rows={2}
+                  style={{
+                    flex: 1,
+                    border: '1px solid #e5e7eb',
+                    borderRadius: 10,
+                    padding: '8px 12px',
+                    fontSize: 13,
+                    resize: 'none',
+                    outline: 'none',
+                  }}
+                />
+                <button
+                  onClick={handleSendChat}
+                  disabled={!chatInput.trim() || sendingChat}
+                  style={{
+                    background: !chatInput.trim() || sendingChat ? '#9ca3af' : '#5a9270',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: 10,
+                    padding: '10px 16px',
+                    cursor: !chatInput.trim() || sendingChat ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    flexShrink: 0,
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>send</span>
+                  Enviar
+                </button>
+              </div>
             </div>
           )}
 

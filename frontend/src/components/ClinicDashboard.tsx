@@ -154,6 +154,8 @@ function HomeTab({
 // ---------------------------------------------------------------------------
 // Equipo tab
 // ---------------------------------------------------------------------------
+type PsychScheduleSlot = { id: number; startTime: string; endTime: string; status: string; patientName: string | null };
+
 function EquipoTab({ psychologists, onRefresh }: { psychologists: Psychologist[]; onRefresh: () => void }) {
   const [email, setEmail] = useState('');
   const [sending, setSending] = useState(false);
@@ -161,6 +163,21 @@ function EquipoTab({ psychologists, onRefresh }: { psychologists: Psychologist[]
   const [loadingInvites, setLoadingInvites] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Schedule panel
+  const [selectedPsychId, setSelectedPsychId] = useState<number | null>(null);
+  const [schedule, setSchedule] = useState<PsychScheduleSlot[]>([]);
+  const [loadingSchedule, setLoadingSchedule] = useState(false);
+
+  const handleSelectPsych = async (id: number) => {
+    if (selectedPsychId === id) { setSelectedPsychId(null); return; }
+    setSelectedPsychId(id);
+    setLoadingSchedule(true);
+    try {
+      const data = await clinicService.getPsychologistSchedule(id);
+      setSchedule(data as PsychScheduleSlot[]);
+    } catch { setSchedule([]); } finally { setLoadingSchedule(false); }
+  };
 
   useEffect(() => { loadInvitations(); }, []);
 
@@ -211,21 +228,71 @@ function EquipoTab({ psychologists, onRefresh }: { psychologists: Psychologist[]
               </div>
             )}
             {psychologists.map(p => (
-              <div key={p.id} className="bg-white rounded-[2rem] border border-sage/10 soft-shadow p-4 flex items-center gap-4">
-                <div className="size-10 rounded-full bg-mint flex items-center justify-center text-sage font-medium flex-shrink-0">
-                  {p.avatarUrl
-                    ? <img src={p.avatarUrl} className="size-10 rounded-full object-cover" alt={p.name} />
-                    : <span className="material-symbols-outlined">person</span>}
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-forest">{p.name}</p>
-                  <p className="text-xs text-sage/60">{p.email}</p>
-                </div>
-                <div className="ml-auto">
-                  <span className="px-2 py-1 rounded-full bg-mint text-[10px] font-medium text-forest uppercase tracking-wider">
-                    Activo
-                  </span>
-                </div>
+              <div key={p.id}>
+                <button
+                  onClick={() => handleSelectPsych(p.id)}
+                  className="w-full bg-white rounded-[2rem] border border-sage/10 soft-shadow p-4 flex items-center gap-4 hover:bg-mint/30 transition text-left"
+                  style={{ borderColor: selectedPsychId === p.id ? '#7b9f86' : undefined }}
+                >
+                  <div className="size-10 rounded-full bg-mint flex items-center justify-center text-sage font-medium flex-shrink-0">
+                    {p.avatarUrl
+                      ? <img src={p.avatarUrl} className="size-10 rounded-full object-cover" alt={p.name} />
+                      : <span className="material-symbols-outlined">person</span>}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-forest">{p.name}</p>
+                    <p className="text-xs text-sage/60">{p.email}</p>
+                  </div>
+                  <div className="ml-auto flex items-center gap-2">
+                    <span className="px-2 py-1 rounded-full bg-mint text-[10px] font-medium text-forest uppercase tracking-wider">
+                      Activo
+                    </span>
+                    <span className="material-symbols-outlined text-sage/40 text-base">
+                      {selectedPsychId === p.id ? 'expand_less' : 'expand_more'}
+                    </span>
+                  </div>
+                </button>
+                {/* Schedule panel */}
+                {selectedPsychId === p.id && (
+                  <div className="bg-white rounded-b-[2rem] border border-t-0 border-sage/10 soft-shadow px-4 pb-4">
+                    <p className="text-[10px] uppercase tracking-widest font-bold text-sage/40 py-3">
+                      Agenda próximos 30 días
+                    </p>
+                    {loadingSchedule ? (
+                      <div className="py-4 text-center"><div className="w-5 h-5 border-2 border-sage/20 border-t-sage rounded-full animate-spin mx-auto" /></div>
+                    ) : schedule.length === 0 ? (
+                      <p className="text-sm text-sage/50 text-center py-3">Sin citas programadas</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {schedule.map(slot => {
+                          const isFree = slot.status === 'FREE';
+                          const isConfirmed = slot.status === 'CONFIRMED' || slot.status === 'BOOKED';
+                          return (
+                            <div key={slot.id} className="flex items-center gap-3 text-sm px-2 py-1.5 rounded-xl" style={{ background: isFree ? '#f0f9f5' : isConfirmed ? '#f3f4f6' : '#fff7ed' }}>
+                              <span
+                                className="w-2 h-2 rounded-full flex-shrink-0"
+                                style={{ background: isFree ? '#22c55e' : isConfirmed ? '#6b7280' : '#f59e0b' }}
+                              />
+                              <span className="text-forest text-xs">
+                                {new Date(slot.startTime).toLocaleDateString('es-ES', { weekday: 'short', day: '2-digit', month: 'short' })}
+                                {' · '}
+                                {new Date(slot.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                                {' – '}
+                                {new Date(slot.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                              {slot.patientName && (
+                                <span className="ml-auto text-xs text-sage/60 truncate max-w-[120px]">{slot.patientName}</span>
+                              )}
+                              {isFree && (
+                                <span className="ml-auto text-[10px] text-green-600 font-medium">Libre</span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
