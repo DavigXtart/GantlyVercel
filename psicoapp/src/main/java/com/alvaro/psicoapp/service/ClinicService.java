@@ -25,6 +25,7 @@ public class ClinicService {
     private final UserPsychologistRepository userPsychologistRepository;
     private final ClinicPatientProfileRepository clinicPatientProfileRepository;
     private final ClinicInvitationRepository clinicInvitationRepository;
+    private final ClinicPatientDocumentRepository clinicPatientDocumentRepository;
     private final EmailService emailService;
 
     @Value("${app.base.url:http://localhost:5173}")
@@ -36,6 +37,7 @@ public class ClinicService {
                          UserPsychologistRepository userPsychologistRepository,
                          ClinicPatientProfileRepository clinicPatientProfileRepository,
                          ClinicInvitationRepository clinicInvitationRepository,
+                         ClinicPatientDocumentRepository clinicPatientDocumentRepository,
                          EmailService emailService) {
         this.companyRepository = companyRepository;
         this.userRepository = userRepository;
@@ -43,6 +45,7 @@ public class ClinicService {
         this.userPsychologistRepository = userPsychologistRepository;
         this.clinicPatientProfileRepository = clinicPatientProfileRepository;
         this.clinicInvitationRepository = clinicInvitationRepository;
+        this.clinicPatientDocumentRepository = clinicPatientDocumentRepository;
         this.emailService = emailService;
     }
 
@@ -416,6 +419,153 @@ public class ClinicService {
         var company = companyRepository.findById(inv.getCompanyId())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa no encontrada"));
         return java.util.Map.of("companyName", company.getName(), "email", inv.getEmail(), "companyId", String.valueOf(company.getId()));
+    }
+
+    // -------------------------------------------------------------------------
+    // Stats
+    // -------------------------------------------------------------------------
+    public record PsychStatDto(Long id, String name, long count, BigDecimal revenue) {}
+    public record MonthlyTrendDto(String month, long appointments, BigDecimal revenue) {}
+    public record StatsDto(int totalPsychologists, long totalPatients, long appointmentsThisMonth,
+                            BigDecimal revenueThisMonth, BigDecimal revenuePrevMonth, double occupancyRate,
+                            List<PsychStatDto> appointmentsByPsychologist, List<MonthlyTrendDto> monthlyTrend) {}
+
+    @Transactional(readOnly = true)
+    public StatsDto getStats(String email) {
+        var company = getCompany(email);
+        List<UserEntity> psychs = userRepository.findByCompanyId(company.getId()).stream()
+                .filter(u -> RoleConstants.PSYCHOLOGIST.equals(u.getRole())).collect(Collectors.toList());
+
+        Set<Long> patientIds = new java.util.HashSet<>();
+        for (UserEntity psych : psychs) {
+            userPsychologistRepository.findByPsychologist_Id(psych.getId())
+                    .forEach(rel -> patientIds.add(rel.getUser().getId()));
+        }
+
+        Instant now = Instant.now();
+        java.time.YearMonth thisYM = java.time.YearMonth.now();
+        Instant startThis = thisYM.atDay(1).atStartOfDay(java.time.ZoneOffset.UTC).toInstant();
+        Instant endThis   = thisYM.plusMonths(1).atDay(1).atStartOfDay(java.time.ZoneOffset.UTC).toInstant();
+        Instant startPrev = thisYM.minusMonths(1).atDay(1).atStartOfDay(java.time.ZoneOffset.UTC).toInstant();
+
+        long totalThisMonth = 0;
+        BigDecimal revThis = BigDecimal.ZERO, revPrev = BigDecimal.ZERO;
+        List<PsychStatDto> psychStats = new ArrayList<>();
+
+        for (UserEntity psych : psychs) {
+            List<AppointmentEntity> all = appointmentRepository
+                    .findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(
+                            psych.getId(), Instant.ofEpochMilli(0), now.plusSeconds(365L * 24 * 3600));
+            long cnt = all.stream().filter(a -> !isFreeOrCancelled(a))
+                    .filter(a -> inRange(a, startThis, endThis)).count();
+            BigDecimal rev = all.stream().filter(a -> !isFreeOrCancelled(a))
+                    .filter(a -> inRange(a, startThis, endThis)).filter(a -> a.getPrice() != null)
+                    .map(AppointmentEntity::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal rp = all.stream().filter(a -> !isFreeOrCancelled(a))
+                    .filter(a -> inRange(a, startPrev, startThis)).filter(a -> a.getPrice() != null)
+                    .map(AppointmentEntity::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
+            totalThisMonth += cnt;
+            revThis = revThis.add(rev);
+            revPrev = revPrev.add(rp);
+            psychStats.add(new PsychStatDto(psych.getId(), psych.getName(), cnt, rev));
+        }
+
+        List<MonthlyTrendDto> trend = new ArrayList<>();
+        for (int i = 5; i >= 0; i--) {
+            java.time.YearMonth ym = thisYM.minusMonths(i);
+            Instant s = ym.atDay(1).atStartOfDay(java.time.ZoneOffset.UTC).toInstant();
+            Instant e = ym.plusMonths(1).atDay(1).atStartOfDay(java.time.ZoneOffset.UTC).toInstant();
+            long c = 0; BigDecimal rv = BigDecimal.ZERO;
+            for (UserEntity psych : psychs) {
+                List<AppointmentEntity> ap = appointmentRepository
+                        .findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(psych.getId(), s, e);
+                c  += ap.stream().filter(a -> !isFreeOrCancelled(a)).count();
+                rv  = rv.add(ap.stream().filter(a -> !isFreeOrCancelled(a) && a.getPrice() != null)
+                        .map(AppointmentEntity::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add));
+            }
+            trend.add(new MonthlyTrendDto(ym.toString(), c, rv));
+        }
+
+        double occ = psychs.isEmpty() ? 0.0 : Math.min(1.0, totalThisMonth / (psychs.size() * 80.0));
+        return new StatsDto(psychs.size(), (long) patientIds.size(), totalThisMonth,
+                revThis, revPrev, occ, psychStats, trend);
+    }
+
+    private static boolean isFreeOrCancelled(AppointmentEntity a) {
+        return "FREE".equals(a.getStatus()) || "CANCELLED".equals(a.getStatus());
+    }
+    private static boolean inRange(AppointmentEntity a, Instant from, Instant to) {
+        return a.getStartTime() != null && !a.getStartTime().isBefore(from) && a.getStartTime().isBefore(to);
+    }
+
+    // -------------------------------------------------------------------------
+    // Session notes
+    // -------------------------------------------------------------------------
+    public record UpdateNotesRequest(String clinicNotes) {}
+
+    @Transactional
+    public ClinicAppointmentDto updateAppointmentNotes(String email, Long appointmentId, String clinicNotes) {
+        var company = getCompany(email);
+        AppointmentEntity appt = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cita no encontrada"));
+        assertPsychBelongsToCompany(appt.getPsychologist(), company.getId());
+        appt.setClinicNotes(clinicNotes);
+        appointmentRepository.save(appt);
+        return toAppointmentDto(appt, appt.getPsychologist());
+    }
+
+    // -------------------------------------------------------------------------
+    // Patient documents
+    // -------------------------------------------------------------------------
+    public record DocumentDto(Long id, String originalName, String fileName, Long fileSize, String uploadedAt) {}
+
+    @Transactional(readOnly = true)
+    public List<DocumentDto> listDocuments(String email, Long patientId) {
+        var company = getCompany(email);
+        return clinicPatientDocumentRepository
+                .findByCompanyIdAndPatientIdOrderByUploadedAtDesc(company.getId(), patientId).stream()
+                .map(d -> new DocumentDto(d.getId(), d.getOriginalName(), d.getFileName(),
+                        d.getFileSize(), d.getUploadedAt().toString()))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public DocumentDto uploadDocument(String email, Long patientId,
+                                       org.springframework.web.multipart.MultipartFile file) {
+        var company = getCompany(email);
+        userRepository.findById(patientId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Paciente no encontrado"));
+        try {
+            java.io.File dir = new java.io.File("uploads/clinic-docs");
+            if (!dir.exists()) dir.mkdirs();
+            String orig = file.getOriginalFilename();
+            String ext = (orig != null && orig.contains(".")) ? orig.substring(orig.lastIndexOf('.')) : "";
+            String stored = UUID.randomUUID() + ext;
+            file.transferTo(new java.io.File(dir, stored));
+            ClinicPatientDocumentEntity doc = new ClinicPatientDocumentEntity();
+            doc.setCompanyId(company.getId());
+            doc.setPatientId(patientId);
+            doc.setFileName("clinic-docs/" + stored);
+            doc.setOriginalName(orig != null ? orig : stored);
+            doc.setFileSize(file.getSize());
+            doc.setUploadedByEmail(email);
+            clinicPatientDocumentRepository.save(doc);
+            return new DocumentDto(doc.getId(), doc.getOriginalName(), doc.getFileName(),
+                    doc.getFileSize(), doc.getUploadedAt().toString());
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al subir el archivo");
+        }
+    }
+
+    @Transactional
+    public void deleteDocument(String email, Long documentId) {
+        var company = getCompany(email);
+        var doc = clinicPatientDocumentRepository.findById(documentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Documento no encontrado"));
+        if (!company.getId().equals(doc.getCompanyId()))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No autorizado");
+        try { new java.io.File("uploads/" + doc.getFileName()).delete(); } catch (Exception ignored) {}
+        clinicPatientDocumentRepository.delete(doc);
     }
 
 }

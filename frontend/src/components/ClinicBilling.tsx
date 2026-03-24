@@ -139,6 +139,108 @@ function SummaryCard({
 }
 
 // ---------------------------------------------------------------------------
+// PDF invoice generator
+// ---------------------------------------------------------------------------
+function generateInvoicePdf(item: {
+  appointmentId: number;
+  startTime: string;
+  psychologistName: string;
+  patientName?: string | null;
+  service?: string | null;
+  price?: number | null;
+  paymentStatus?: string | null;
+}, clinicName: string) {
+  import('jspdf').then(({ jsPDF }) => {
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const pageW = 210;
+    const margin = 20;
+
+    // Header
+    doc.setFillColor(248, 251, 247);
+    doc.rect(0, 0, pageW, 40, 'F');
+    doc.setTextColor(24, 56, 46);
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text('GANTLY', margin, 20);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(123, 159, 134);
+    doc.text('Plataforma de Salud Mental', margin, 27);
+
+    // Invoice number
+    const invoiceNum = `FAC-${new Date(item.startTime).getFullYear()}-${String(item.appointmentId).padStart(5, '0')}`;
+    doc.setTextColor(24, 56, 46);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('FACTURA', pageW - margin - 40, 18, { align: 'right' });
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(123, 159, 134);
+    doc.text(invoiceNum, pageW - margin, 25, { align: 'right' });
+
+    // Divider
+    doc.setDrawColor(224, 240, 230);
+    doc.line(margin, 44, pageW - margin, 44);
+
+    // Info section
+    doc.setTextColor(24, 56, 46);
+    let y = 54;
+    const addRow = (label: string, value: string) => {
+      doc.setFontSize(9);
+      doc.setTextColor(123, 159, 134);
+      doc.text(label.toUpperCase(), margin, y);
+      doc.setTextColor(24, 56, 46);
+      doc.setFont('helvetica', 'bold');
+      doc.text(value, margin, y + 5);
+      doc.setFont('helvetica', 'normal');
+      y += 14;
+    };
+
+    addRow('Clínica', clinicName);
+    addRow('Psicólogo', item.psychologistName);
+    addRow('Paciente', item.patientName || '—');
+    addRow('Servicio', item.service || 'Sesión de psicología');
+    addRow('Fecha', new Date(item.startTime).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }));
+
+    // Price table
+    y += 4;
+    doc.setFillColor(248, 251, 247);
+    doc.roundedRect(margin, y, pageW - margin * 2, 30, 4, 4, 'F');
+    doc.setFontSize(9);
+    doc.setTextColor(123, 159, 134);
+    doc.text('BASE IMPONIBLE', margin + 6, y + 10);
+    doc.text('IVA (21%)', pageW / 2, y + 10);
+    doc.text('TOTAL', pageW - margin - 6, y + 10, { align: 'right' });
+
+    const price = item.price ?? 0;
+    const base = price / 1.21;
+    const iva = price - base;
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(24, 56, 46);
+    doc.text(`€${base.toFixed(2)}`, margin + 6, y + 22);
+    doc.text(`€${iva.toFixed(2)}`, pageW / 2, y + 22);
+    doc.text(`€${price.toFixed(2)}`, pageW - margin - 6, y + 22, { align: 'right' });
+
+    // Payment status
+    y += 38;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(123, 159, 134);
+    doc.text(`Estado de pago: ${item.paymentStatus === 'PAID' ? 'PAGADO' : 'PENDIENTE'}`, margin, y);
+
+    // Footer
+    doc.setFontSize(8);
+    doc.setTextColor(180, 200, 185);
+    doc.text('Gantly · Plataforma de Salud Mental · gantly.com', pageW / 2, 285, { align: 'center' });
+
+    doc.save(`${invoiceNum}.pdf`);
+  }).catch(() => {
+    alert('Error al generar la factura. Asegúrate de tener conexión.');
+  });
+}
+
+// ---------------------------------------------------------------------------
 // CSV export
 // ---------------------------------------------------------------------------
 function exportCsv(items: ClinicBillingItem[]): void {
@@ -356,7 +458,7 @@ export default function ClinicBilling({ psychologists }: Props) {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: '110px 80px 1fr 1fr 1fr 80px 110px',
+              gridTemplateColumns: '110px 80px 1fr 1fr 1fr 80px 110px 44px',
               background: '#f9fafb',
               padding: '10px 16px',
               fontSize: 12,
@@ -373,6 +475,7 @@ export default function ClinicBilling({ psychologists }: Props) {
             <span>Servicio</span>
             <span style={{ textAlign: 'right' }}>Precio</span>
             <span style={{ textAlign: 'center' }}>Estado pago</span>
+            <span />
           </div>
 
           {/* Rows */}
@@ -381,7 +484,7 @@ export default function ClinicBilling({ psychologists }: Props) {
               key={item.appointmentId}
               style={{
                 display: 'grid',
-                gridTemplateColumns: '110px 80px 1fr 1fr 1fr 80px 110px',
+                gridTemplateColumns: '110px 80px 1fr 1fr 1fr 80px 110px 44px',
                 padding: '12px 16px',
                 borderTop: '1px solid #f3f4f6',
                 fontSize: 13,
@@ -396,6 +499,17 @@ export default function ClinicBilling({ psychologists }: Props) {
               <span style={{ textAlign: 'right', fontWeight: 600, color: '#111827' }}>{fmtEuro(item.price)}</span>
               <span style={{ textAlign: 'center' }}>
                 <PaymentBadge status={item.paymentStatus} />
+              </span>
+              <span style={{ textAlign: 'center' }}>
+                <button
+                  onClick={() => generateInvoicePdf(item, 'Mi Clínica')}
+                  title="Descargar factura"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 4, lineHeight: 1 }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = '#5a9270')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = '#9ca3af')}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>receipt</span>
+                </button>
               </span>
             </div>
           ))}

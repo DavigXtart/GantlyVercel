@@ -139,4 +139,43 @@ public class ClinicController {
         return ResponseEntity.ok(Map.of("message", "Invitacion cancelada"));
     }
 
+    @GetMapping("/stats")
+    public ResponseEntity<?> getStats(Principal principal) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(clinicService.getStats(email));
+    }
+
+    @PutMapping("/appointments/{id}/notes")
+    public ResponseEntity<?> updateAppointmentNotes(Principal principal,
+                                                     @PathVariable Long id,
+                                                     @RequestBody ClinicService.UpdateNotesRequest req) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(clinicService.updateAppointmentNotes(email, id, req.clinicNotes()));
+    }
+
+    @GetMapping("/patients/{id}/documents")
+    public ResponseEntity<?> listDocuments(Principal principal, @PathVariable Long id) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(clinicService.listDocuments(email, id));
+    }
+
+    @PostMapping("/patients/{id}/documents")
+    public ResponseEntity<?> uploadDocument(Principal principal, @PathVariable Long id,
+                                              @RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(clinicService.uploadDocument(email, id, file));
+    }
+
+    @DeleteMapping("/documents/{docId}")
+    public ResponseEntity<?> deleteDocument(Principal principal, @PathVariable Long docId) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        clinicService.deleteDocument(email, docId);
+        return ResponseEntity.ok(Map.of("message", "Documento eliminado"));
+    }
+
 }

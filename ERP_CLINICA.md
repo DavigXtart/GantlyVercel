@@ -169,31 +169,126 @@ CREATE TABLE clinic_invitations (
 
 ---
 
-## Fases de desarrollo
+## Estado actual de implementación (Mar 2026)
 
-### Fase 1 — Base (prioridad alta)
-- [ ] Eliminar CompanyController/CompanyService/CompanyDashboard actuales
-- [ ] Crear ClinicInvitationEntity + tabla + migraciones SQL
-- [ ] Endpoint invitar por email + template email invitación
-- [ ] Endpoint aceptar invitación (token público)
-- [ ] ClinicController: dashboard KPIs, listado psicólogos, ficha psicólogo
-- [ ] ClinicDashboard.tsx con tabs básicos: overview, psicólogos, invitaciones
+### Completado ✅
+- ClinicDashboard con tabs: Inicio, Agenda, Equipo, Pacientes, Facturación, Config
+- ClinicAgenda: calendario multi-psicólogo con creación/edición de citas
+- ClinicPatients: listado + ficha con perfil clínico (ClinicPatientProfileEntity)
+- ClinicBilling: tabla de facturación con filtros y export CSV
+- Sistema de invitaciones por email: ClinicInvitationEntity, email template, flujo registro
+- Estilo cohesionado con dashboard paciente (material-symbols, bg-cream, sidebar-item)
+- NotificationBell para rol EMPRESA
 
-### Fase 2 — Gestión completa
-- [ ] Ficha psicólogo con agenda read-only
-- [ ] Gestión pacientes (listado, reasignación, alta)
-- [ ] Desactivar / desvincular psicólogo
-- [ ] Agenda global multi-psicólogo
+### En desarrollo — Fase 3 (prioridad actual)
 
-### Fase 3 — Facturación y reporting
-- [ ] Módulo de facturación con filtros
-- [ ] Gráficos (BarChart existente + nuevos)
-- [ ] Exportar CSV / PDF
+#### Feature A: Estadísticas ERP
+**Backend** `GET /api/clinic/stats`:
+```json
+{
+  "totalPsychologists": 5,
+  "totalPatients": 48,
+  "appointmentsThisMonth": 120,
+  "revenueThisMonth": 3600.00,
+  "revenuePrevMonth": 3100.00,
+  "occupancyRate": 0.78,
+  "appointmentsByPsychologist": [{ "id": 1, "name": "Ana", "count": 30, "revenue": 900 }],
+  "monthlyTrend": [{ "month": "2026-01", "appointments": 95, "revenue": 2850 }]
+}
+```
+**Frontend**: Tab "Estadísticas" (icon: `bar_chart`) en ClinicDashboard con:
+- 4 KPI cards (psicólogos, pacientes, citas mes, facturación mes)
+- Comparativa mes actual vs anterior (% cambio)
+- BarChart por psicólogo (existente en frontend: `BarChart.tsx`)
+- Línea de tendencia mensual (últimos 6 meses)
 
-### Fase 4 — Configuración y pulido
-- [ ] Configuración de la clínica (logo, datos)
-- [ ] Notas internas sobre psicólogos
-- [ ] Documentos contractuales (subida PDF)
+#### Feature B: Notas de sesión (admin notes por cita)
+- Campo `clinicNotes` ya existe en AppointmentEntity
+- **Falta**: UI dedicada — modal/panel "Editar nota" al hacer clic en una cita desde ClinicPatients (detalle de citas del paciente)
+- **Nuevo endpoint**: `PUT /api/clinic/appointments/{id}/notes` body `{ clinicNotes: string }`
+
+#### Feature C: Documentos del paciente
+**Backend**:
+- Nueva entidad `ClinicPatientDocumentEntity` (id, companyId, patientId, fileName, originalName, uploadedAt, uploadedByEmail)
+- Endpoints:
+  - `POST /api/clinic/patients/{patientId}/documents` (multipart upload)
+  - `GET /api/clinic/patients/{patientId}/documents`
+  - `DELETE /api/clinic/documents/{documentId}`
+- Almacenamiento: directorio `/uploads/clinic-docs/` (igual que avatars)
+**Frontend**: Nueva pestaña "Documentos" en la ficha del paciente (ClinicPatients.tsx)
+
+#### Feature D: Factura PDF por cita
+**Frontend only** (sin nuevo backend):
+- Botón "Descargar factura" en ClinicBilling por cada fila
+- Genera PDF con jsPDF (ya instalado): logo Gantly, datos clínica, datos paciente, servicio, precio, IVA, nº factura (formato `FAC-{year}-{appointmentId}`)
+- Nº factura secuencial: `FAC-2026-{appointmentId}` (simple, no hace falta contador de BD)
+
+#### Feature E: Link de pago desde ERP
+**Backend**: `POST /api/clinic/appointments/{id}/send-payment-link`
+- Reutiliza lógica de StripeController.createAppointmentCheckoutSession
+- Devuelve `{ checkoutUrl }`
+**Frontend**: Botón "Enviar link de pago" en la vista de citas de un paciente (ClinicPatients detalle) para citas con `paymentStatus=PENDING`
+
+#### Feature F: Chat clínica ↔ paciente
+**Backend**: Reutilizar ChatController/ChatService añadiendo un nuevo tipo de conversación `CLINIC`
+- Nueva conversation: participante 1 = companyId (con prefijo `company:`), participante 2 = userId del paciente
+- Los mensajes se cifran igual (AES-256-GCM)
+- Endpoint: `POST /api/clinic/chat/conversations` (iniciar con paciente)
+- Endpoint: `GET /api/clinic/chat/conversations` (lista de conversaciones)
+**Frontend**: Widget de chat en ClinicDashboard (botón en ficha paciente "Iniciar chat")
+
+#### Feature G: Disponibilidad psicólogos desde ERP
+**Backend**: `GET /api/clinic/psychologists/{id}/availability-slots`
+- Devuelve los slots configurados por el psicólogo (CalendarService existente)
+**Frontend**: En la ficha del psicólogo (tab Equipo o nueva), mostrar su horario semanal como read-only
+
+---
+
+## API contract completo (referencia)
+
+| Método | Ruta | Auth | Descripción |
+|--------|------|------|-------------|
+| GET | /api/clinic/me | EMPRESA | Info de la clínica |
+| GET | /api/clinic/psychologists | EMPRESA | Lista psicólogos |
+| GET | /api/clinic/agenda | EMPRESA | Citas con filtro fecha |
+| POST | /api/clinic/appointments | EMPRESA | Crear cita |
+| PUT | /api/clinic/appointments/{id} | EMPRESA | Editar cita |
+| DELETE | /api/clinic/appointments/{id} | EMPRESA | Cancelar cita |
+| PUT | /api/clinic/appointments/{id}/notes | EMPRESA | Editar nota admin |
+| POST | /api/clinic/appointments/{id}/send-payment-link | EMPRESA | Enviar link Stripe |
+| GET | /api/clinic/patients | EMPRESA | Lista pacientes |
+| GET | /api/clinic/patients/{id} | EMPRESA | Ficha paciente |
+| PUT | /api/clinic/patients/{id} | EMPRESA | Actualizar perfil clínico |
+| POST | /api/clinic/patients/{id}/documents | EMPRESA | Subir documento |
+| GET | /api/clinic/patients/{id}/documents | EMPRESA | Listar documentos |
+| DELETE | /api/clinic/documents/{docId} | EMPRESA | Eliminar documento |
+| GET | /api/clinic/billing | EMPRESA | Facturación con filtros |
+| GET | /api/clinic/stats | EMPRESA | KPIs + tendencias |
+| POST | /api/clinic/invitations | EMPRESA | Invitar psicólogo |
+| GET | /api/clinic/invitations | EMPRESA | Listar invitaciones |
+| DELETE | /api/clinic/invitations/{id} | EMPRESA | Cancelar invitación |
+| GET | /api/auth/invite-info | Público | Info invitación por token |
+
+---
+
+## Fases pendientes
+
+### Fase 3 (en desarrollo)
+- [x] Facturación con filtros y export CSV
+- [ ] Feature A: Stats tab con KPIs y gráficos
+- [ ] Feature B: Notas de sesión UI
+- [ ] Feature C: Documentos del paciente
+- [ ] Feature D: Factura PDF
+- [ ] Feature E: Link de pago desde ERP
+- [ ] Feature F: Chat clínica-paciente
+- [ ] Feature G: Disponibilidad psicólogos read-only
+
+### Fase 4 (futuro)
+- [ ] Configuración clínica (logo, datos fiscales, dirección)
+- [ ] Desvincular / desactivar psicólogo
+- [ ] Página pública de la clínica con reserva online
+- [ ] Multi-administrador (varios usuarios EMPRESA por clínica)
+- [ ] SMS recordatorios de cita
 
 ---
 

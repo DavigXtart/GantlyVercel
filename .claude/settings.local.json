@@ -64,7 +64,8 @@
       "Bash(/tmp/patch_auth_controller.py:*)",
       "Bash(/tmp/patch_auth_controller2.py:*)",
       "Bash(/c/Users/david/Desktop/alvaro/psicoapp/src/main/resources/templates/email/clinic-invitation.html:*)",
-      "Bash(/tmp/patch_auth_service_sig.py:*)"
+      "Bash(/tmp/patch_auth_service_sig.py:*)",
+      "Bash(\"/c/Program Files \\(x86\\)/Apache/Maven/bin/mvn\" compile)"
     ]
   }
 }

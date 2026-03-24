@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { clinicService } from '../services/api';
 import type { ClinicPatientSummary, ClinicPatientDetail, UpdatePatientReq } from '../services/api';
 
@@ -310,6 +310,8 @@ function ListView({
 // ---------------------------------------------------------------------------
 type DetailTab = 'citas' | 'documentos' | 'datos';
 
+type DocumentItem = { id: number; originalName: string; fileName: string; fileSize: number | null; uploadedAt: string };
+
 function DetailView({
   patient,
   loading,
@@ -337,6 +339,27 @@ function DetailView({
   const [patientType, setPatientType] = useState('');
   const [phone, setPhone] = useState('');
 
+  // Session notes inline editing (Feature B)
+  const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
+  const [noteText, setNoteText] = useState('');
+
+  // Documents (Feature C)
+  const [documents, setDocuments] = useState<DocumentItem[]>([]);
+  const [loadingDocs, setLoadingDocs] = useState(false);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const loadDocuments = useCallback(async (patientId: number) => {
+    setLoadingDocs(true);
+    try {
+      setDocuments(await clinicService.listDocuments(patientId));
+    } catch {
+      setDocuments([]);
+    } finally {
+      setLoadingDocs(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (patient) {
       setNotes(patient.notes ?? '');
@@ -347,8 +370,29 @@ function DetailView({
       setPatientStatus(patient.status ?? '');
       setPatientType(patient.patientType ?? '');
       setPhone(patient.phone ?? '');
+      loadDocuments(patient.id);
     }
-  }, [patient]);
+  }, [patient, loadDocuments]);
+
+  const handleDocUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !patient) return;
+    setUploadingDoc(true);
+    try {
+      const doc = await clinicService.uploadDocument(patient.id, file);
+      setDocuments(prev => [doc, ...prev]);
+    } catch { /* ignore */ } finally {
+      setUploadingDoc(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleDocDelete = async (docId: number) => {
+    try {
+      await clinicService.deleteDocument(docId);
+      setDocuments(prev => prev.filter(d => d.id !== docId));
+    } catch { /* ignore */ }
+  };
 
   if (loading) return <Spinner />;
   if (error)
@@ -530,41 +574,118 @@ function DetailView({
                         border: '1px solid #e5e7eb',
                         borderRadius: 10,
                         padding: '14px 18px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
                         gap: 12,
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <ApptDot status={appt.status} />
-                        <div>
-                          <div style={{ fontWeight: 500, fontSize: 14, color: '#111827' }}>
-                            {fmtDateTime(appt.startTime)}
-                          </div>
-                          <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
-                            {appt.psychologistName}
-                            {appt.service ? ` · ${appt.service}` : ''}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <ApptDot status={appt.status} />
+                          <div>
+                            <div style={{ fontWeight: 500, fontSize: 14, color: '#111827' }}>
+                              {fmtDateTime(appt.startTime)}
+                            </div>
+                            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                              {appt.psychologistName}
+                              {appt.service ? ` · ${appt.service}` : ''}
+                            </div>
                           </div>
                         </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <PaymentBadge status={appt.paymentStatus} />
+                          <button
+                            disabled
+                            style={{
+                              padding: '5px 12px',
+                              borderRadius: 6,
+                              border: '1px solid #e5e7eb',
+                              background: '#f9fafb',
+                              fontSize: 12,
+                              color: '#9ca3af',
+                              cursor: 'not-allowed',
+                            }}
+                          >
+                            Modificar cita
+                          </button>
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <PaymentBadge status={appt.paymentStatus} />
-                        <button
-                          disabled
-                          style={{
-                            padding: '5px 12px',
-                            borderRadius: 6,
-                            border: '1px solid #e5e7eb',
-                            background: '#f9fafb',
-                            fontSize: 12,
-                            color: '#9ca3af',
-                            cursor: 'not-allowed',
-                          }}
-                        >
-                          Modificar cita
-                        </button>
-                      </div>
+                      {/* Session note inline editor */}
+                      {editingNoteId === appt.id ? (
+                        <div style={{ marginTop: 8 }}>
+                          <textarea
+                            value={noteText}
+                            onChange={e => setNoteText(e.target.value)}
+                            rows={2}
+                            placeholder="Nota administrativa..."
+                            style={{
+                              width: '100%',
+                              border: '1px solid #d1d5db',
+                              borderRadius: 8,
+                              padding: '6px 10px',
+                              fontSize: 12,
+                              color: '#111827',
+                              resize: 'none',
+                              outline: 'none',
+                              boxSizing: 'border-box',
+                            }}
+                          />
+                          <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                            <button
+                              onClick={async () => {
+                                await clinicService.updateAppointmentNotes(appt.id, noteText);
+                                setEditingNoteId(null);
+                              }}
+                              style={{
+                                fontSize: 12,
+                                background: '#5a9270',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: 6,
+                                padding: '4px 10px',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              Guardar
+                            </button>
+                            <button
+                              onClick={() => setEditingNoteId(null)}
+                              style={{
+                                fontSize: 12,
+                                background: 'none',
+                                border: 'none',
+                                color: '#6b7280',
+                                cursor: 'pointer',
+                                padding: '4px 6px',
+                              }}
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ marginTop: 4, display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+                          {appt.clinicNotes && (
+                            <span style={{ fontSize: 12, color: '#6b7280', flex: 1 }}>{appt.clinicNotes}</span>
+                          )}
+                          <button
+                            onClick={() => { setEditingNoteId(appt.id); setNoteText(appt.clinicNotes || ''); }}
+                            title="Editar nota"
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              color: '#d1d5db',
+                              padding: 2,
+                              marginLeft: 'auto',
+                              flexShrink: 0,
+                              lineHeight: 1,
+                            }}
+                            onMouseEnter={e => (e.currentTarget.style.color = '#5a9270')}
+                            onMouseLeave={e => (e.currentTarget.style.color = '#d1d5db')}
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>edit_note</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))
               )}
@@ -573,10 +694,89 @@ function DetailView({
 
           {/* DOCUMENTOS tab */}
           {tab === 'documentos' && (
-            <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>
-              <div style={{ fontSize: 40, marginBottom: 12 }}>📄</div>
-              <div style={{ fontSize: 16, fontWeight: 500, marginBottom: 6 }}>Sin documentos</div>
-              <div style={{ fontSize: 14 }}>No hay documentos para este paciente.</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {/* Upload button */}
+              <div>
+                <label
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    cursor: uploadingDoc ? 'not-allowed' : 'pointer',
+                    background: uploadingDoc ? '#9ca3af' : '#5a9270',
+                    color: 'white',
+                    borderRadius: 10,
+                    padding: '8px 16px',
+                    fontSize: 13,
+                    fontWeight: 600,
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>upload_file</span>
+                  {uploadingDoc ? 'Subiendo...' : 'Subir documento'}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    style={{ display: 'none' }}
+                    onChange={handleDocUpload}
+                    accept=".pdf,.doc,.docx,.jpg,.png"
+                    disabled={uploadingDoc}
+                  />
+                </label>
+              </div>
+
+              {loadingDocs ? (
+                <Spinner />
+              ) : documents.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: 48, color: '#6b7280', fontSize: 14 }}>
+                  Sin documentos para este paciente.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {documents.map(doc => (
+                    <div
+                      key={doc.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        padding: '10px 14px',
+                        background: '#f9fafb',
+                        borderRadius: 10,
+                        border: '1px solid #e5e7eb',
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#9ca3af' }}>description</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ margin: 0, fontSize: 13, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {doc.originalName}
+                        </p>
+                        <p style={{ margin: 0, fontSize: 11, color: '#9ca3af', marginTop: 2 }}>
+                          {new Date(doc.uploadedAt).toLocaleDateString('es-ES')}
+                        </p>
+                      </div>
+                      <a
+                        href={`/uploads/${doc.fileName}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: '#9ca3af', lineHeight: 1 }}
+                        onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.color = '#5a9270')}
+                        onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.color = '#9ca3af')}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: 18 }}>download</span>
+                      </a>
+                      <button
+                        onClick={() => handleDocDelete(doc.id)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', lineHeight: 1, padding: 2 }}
+                        onMouseEnter={e => (e.currentTarget.style.color = '#ef4444')}
+                        onMouseLeave={e => (e.currentTarget.style.color = '#d1d5db')}
+                        title="Eliminar documento"
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: 18 }}>delete</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

@@ -3,8 +3,9 @@ import { clinicService } from '../services/api';
 import ClinicAgenda from './ClinicAgenda';
 import ClinicPatients from './ClinicPatients';
 import ClinicBilling from './ClinicBilling';
+import ClinicStats from './ClinicStats';
 
-type NavTab = 'inicio' | 'agenda' | 'equipo' | 'pacientes' | 'facturacion' | 'configuracion';
+type NavTab = 'inicio' | 'estadisticas' | 'agenda' | 'equipo' | 'pacientes' | 'facturacion' | 'configuracion';
 
 interface ClinicInfo {
   id: number;
@@ -372,6 +373,7 @@ export default function ClinicDashboard() {
 
   const navItems: { id: NavTab; icon: string; label: string }[] = [
     { id: 'inicio',         icon: 'home',          label: 'Inicio' },
+    { id: 'estadisticas',   icon: 'bar_chart',     label: 'Stats' },
     { id: 'agenda',         icon: 'calendar_month', label: 'Agenda' },
     { id: 'equipo',         icon: 'group',          label: 'Equipo' },
     { id: 'pacientes',      icon: 'people',         label: 'Pacientes' },
@@ -422,6 +424,9 @@ export default function ClinicDashboard() {
                 onCopyReferral={handleCopyReferral}
                 onNavigate={setActiveTab}
               />
+            )}
+            {activeTab === 'estadisticas' && (
+              <div className="flex-1 overflow-hidden flex flex-col"><ClinicStats /></div>
             )}
             {activeTab === 'agenda' && (
               <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>

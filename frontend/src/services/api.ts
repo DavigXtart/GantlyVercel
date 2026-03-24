@@ -1154,6 +1154,38 @@ export const clinicService = {
   cancelInvitation: async (id: number) => {
     await api.delete(`/clinic/invitations/${id}`);
   },
+  getStats: async () => {
+    const { data } = await api.get('/clinic/stats');
+    return data as {
+      totalPsychologists: number;
+      totalPatients: number;
+      appointmentsThisMonth: number;
+      revenueThisMonth: number;
+      revenuePrevMonth: number;
+      occupancyRate: number;
+      appointmentsByPsychologist: Array<{ id: number; name: string; count: number; revenue: number }>;
+      monthlyTrend: Array<{ month: string; appointments: number; revenue: number }>;
+    };
+  },
+  updateAppointmentNotes: async (appointmentId: number, clinicNotes: string) => {
+    const { data } = await api.put(`/clinic/appointments/${appointmentId}/notes`, { clinicNotes });
+    return data;
+  },
+  uploadDocument: async (patientId: number, file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    const { data } = await api.post(`/clinic/patients/${patientId}/documents`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return data as { id: number; originalName: string; fileName: string; fileSize: number | null; uploadedAt: string };
+  },
+  listDocuments: async (patientId: number) => {
+    const { data } = await api.get(`/clinic/patients/${patientId}/documents`);
+    return data as Array<{ id: number; originalName: string; fileName: string; fileSize: number | null; uploadedAt: string }>;
+  },
+  deleteDocument: async (documentId: number) => {
+    await api.delete(`/clinic/documents/${documentId}`);
+  },
 };
 
 export default api;
