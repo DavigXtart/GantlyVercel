@@ -205,6 +205,39 @@ public class ClinicController {
         return ResponseEntity.ok(clinicService.getPsychologistSchedule(email, id));
     }
 
+    // ---- Clinic rooms (despachos) ----
+
+    @GetMapping("/rooms")
+    public ResponseEntity<?> getRooms(Principal principal) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(clinicService.getRooms(email));
+    }
+
+    @PostMapping("/rooms")
+    public ResponseEntity<?> createRoom(Principal principal,
+                                         @RequestBody ClinicService.CreateRoomRequest req) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(clinicService.createRoom(email, req));
+    }
+
+    @PutMapping("/rooms/{id}")
+    public ResponseEntity<?> updateRoom(Principal principal, @PathVariable Long id,
+                                         @RequestBody ClinicService.UpdateRoomRequest req) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(clinicService.updateRoom(email, id, req));
+    }
+
+    @DeleteMapping("/rooms/{id}")
+    public ResponseEntity<?> deleteRoom(Principal principal, @PathVariable Long id) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        clinicService.deleteRoom(email, id);
+        return ResponseEntity.ok(Map.of("message", "Despacho eliminado"));
+    }
+
     // ---- Clinic chat (Feature F) ----
     public record ChatMessageDto(Long id, String sender, String content, String createdAt) {}
     public record SendMessageRequest(String content) {}

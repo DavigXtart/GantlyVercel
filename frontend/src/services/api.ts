@@ -1018,6 +1018,14 @@ export const notificationService = {
 };
 
 // Clinic types
+export interface ClinicRoom {
+  id: number;
+  name: string;
+  color: string;
+  assignedPsychologistId?: number;
+  active: boolean;
+}
+
 export interface ClinicAppointment {
   id: number;
   psychologistId: number;
@@ -1033,6 +1041,10 @@ export interface ClinicAppointment {
   paymentStatus?: string;
   notes?: string;
   clinicNotes?: string;
+  modality?: string;
+  paymentMethod?: string;
+  roomId?: number;
+  roomName?: string;
 }
 
 export interface ClinicPatientSummary {
@@ -1077,6 +1089,8 @@ export interface ClinicBillingItem {
   service?: string;
   price?: number;
   paymentStatus?: string;
+  modality?: string;
+  paymentMethod?: string;
 }
 
 export interface CreateAppointmentReq {
@@ -1090,6 +1104,9 @@ export interface CreateAppointmentReq {
   notes?: string;
   clinicNotes?: string;
   paymentStatus?: string;
+  modality?: string;
+  paymentMethod?: string;
+  roomId?: number | null;
 }
 
 export interface UpdatePatientReq {
@@ -1201,6 +1218,22 @@ export const clinicService = {
   sendChatMessage: async (patientId: number, content: string) => {
     const { data } = await api.post(`/clinic/chat/${patientId}`, { content });
     return data as { id: number; sender: string; content: string; createdAt: string };
+  },
+  // Rooms (despachos)
+  getRooms: async () => {
+    const { data } = await api.get('/clinic/rooms');
+    return data as ClinicRoom[];
+  },
+  createRoom: async (req: { name: string; color: string; assignedPsychologistId?: number | null }) => {
+    const { data } = await api.post('/clinic/rooms', req);
+    return data as ClinicRoom;
+  },
+  updateRoom: async (id: number, req: { name?: string; color?: string; assignedPsychologistId?: number | null; active?: boolean }) => {
+    const { data } = await api.put(`/clinic/rooms/${id}`, req);
+    return data as ClinicRoom;
+  },
+  deleteRoom: async (id: number) => {
+    await api.delete(`/clinic/rooms/${id}`);
   },
 };
 

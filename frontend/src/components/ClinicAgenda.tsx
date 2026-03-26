@@ -25,6 +25,18 @@ interface Appointment {
   paymentStatus?: string;
   notes?: string;
   clinicNotes?: string;
+  modality?: string;
+  paymentMethod?: string;
+  roomId?: number;
+  roomName?: string;
+}
+
+interface Room {
+  id: number;
+  name: string;
+  color: string;
+  assignedPsychologistId?: number;
+  active: boolean;
 }
 
 interface PatientSummary {
@@ -301,6 +313,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
 
   // ── Data state ──
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -329,6 +342,9 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
   const [formPrice, setFormPrice] = useState('');
   const [formPaymentStatus, setFormPaymentStatus] = useState('PENDING');
   const [formNotes, setFormNotes] = useState('');
+  const [formModality, setFormModality] = useState<'ONLINE' | 'PRESENCIAL'>('ONLINE');
+  const [formRoomId, setFormRoomId] = useState<number | null>(null);
+  const [formPaymentMethod, setFormPaymentMethod] = useState<'STRIPE' | 'CASH'>('STRIPE');
 
   // ── Patient search ──
   const [patientSearch, setPatientSearch] = useState('');
@@ -378,6 +394,21 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
   useEffect(() => {
     loadAppointments();
   }, [loadAppointments]);
+
+  // Load rooms on mount
+  useEffect(() => {
+    axios.get<Room[]>(`${BASE}/clinic/rooms`, { headers: authHeaders() })
+      .then(res => setRooms(res.data || []))
+      .catch(() => setRooms([]));
+  }, []);
+
+  // Auto-fill room when psychologist changes (if assigned)
+  useEffect(() => {
+    if (formModality === 'PRESENCIAL' && formPsychId) {
+      const assigned = rooms.find(r => r.assignedPsychologistId === formPsychId && r.active);
+      if (assigned) setFormRoomId(assigned.id);
+    }
+  }, [formPsychId, formModality, rooms]);
 
   // ─── Patient search debounce ──────────────────────────────────────────────
 
@@ -440,6 +471,9 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
     setFormPrice('');
     setFormPaymentStatus('PENDING');
     setFormNotes('');
+    setFormModality('ONLINE');
+    setFormRoomId(null);
+    setFormPaymentMethod('STRIPE');
     setActiveTab('cita');
     setShowCancelConfirm(false);
     setPanelOpen(true);
@@ -461,6 +495,9 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
     setFormPrice(appt.price != null ? String(appt.price) : '');
     setFormPaymentStatus(appt.paymentStatus ?? 'PENDING');
     setFormNotes(appt.notes ?? '');
+    setFormModality((appt.modality as 'ONLINE' | 'PRESENCIAL') ?? 'ONLINE');
+    setFormRoomId(appt.roomId ?? null);
+    setFormPaymentMethod((appt.paymentMethod as 'STRIPE' | 'CASH') ?? 'STRIPE');
     setActiveTab('cita');
     setShowCancelConfirm(false);
     setPanelOpen(true);
@@ -492,6 +529,9 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
         price: formPrice !== '' ? Number(formPrice) : null,
         paymentStatus: formPaymentStatus,
         notes: formNotes || null,
+        modality: formModality,
+        paymentMethod: formModality === 'PRESENCIAL' ? formPaymentMethod : 'STRIPE',
+        roomId: formModality === 'PRESENCIAL' ? formRoomId : null,
       };
       if (formPatientId) body.patientId = formPatientId;
 
@@ -720,8 +760,15 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                 (e.currentTarget as HTMLElement).style.boxShadow = 'none';
               }}
             >
-              <div style={{ fontSize: 11, fontWeight: 700, color: colors.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {appt.patientName || 'Sin paciente'}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: colors.text, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {appt.patientName || 'Sin paciente'}
+                </div>
+                {appt.modality === 'PRESENCIAL' && (
+                  <div style={{ fontSize: 8, fontWeight: 700, color: colors.text, opacity: 0.7, background: 'rgba(0,0,0,0.08)', borderRadius: 3, padding: '1px 4px', flexShrink: 0, letterSpacing: '0.03em' }}>
+                    PRES
+                  </div>
+                )}
               </div>
               {heightPx >= 40 && (
                 <div style={{ fontSize: 10, color: colors.text, opacity: 0.8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -733,6 +780,11 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                   {new Date(appt.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                   {' – '}
                   {new Date(appt.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                </div>
+              )}
+              {heightPx >= 64 && appt.modality === 'PRESENCIAL' && appt.roomName && (
+                <div style={{ fontSize: 9, color: colors.text, opacity: 0.7, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {appt.roomName}
                 </div>
               )}
             </div>
@@ -1435,6 +1487,36 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                     Detalles de la cita
                   </legend>
 
+                  {/* Modalidad toggle */}
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, display: 'block', marginBottom: 6 }}>Modalidad</label>
+                    <div style={{ display: 'flex', gap: 0, borderRadius: 8, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+                      {(['ONLINE', 'PRESENCIAL'] as const).map(m => (
+                        <button
+                          key={m}
+                          type="button"
+                          onClick={() => {
+                            setFormModality(m);
+                            if (m === 'ONLINE') { setFormRoomId(null); setFormPaymentMethod('STRIPE'); }
+                          }}
+                          style={{
+                            flex: 1,
+                            padding: '8px 0',
+                            border: 'none',
+                            background: formModality === m ? '#5a9270' : '#fff',
+                            color: formModality === m ? '#fff' : '#374151',
+                            cursor: 'pointer',
+                            fontSize: 12,
+                            fontWeight: 600,
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          {m === 'ONLINE' ? 'Online' : 'Presencial'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                     {/* Date */}
                     <div>
@@ -1492,6 +1574,30 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                     </div>
                   </div>
 
+                  {/* Despacho — solo para PRESENCIAL */}
+                  {formModality === 'PRESENCIAL' && (
+                    <div style={{ marginTop: 10 }}>
+                      <label style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, display: 'block', marginBottom: 4 }}>Despacho</label>
+                      <select
+                        value={formRoomId ?? ''}
+                        onChange={(e) => setFormRoomId(e.target.value ? Number(e.target.value) : null)}
+                        style={{ width: '100%', padding: '7px 9px', borderRadius: 7, border: '1px solid #e5e7eb', fontSize: 13, color: '#374151', outline: 'none', boxSizing: 'border-box', background: '#fff' }}
+                      >
+                        <option value="">-- Sin despacho --</option>
+                        {rooms.filter(r => r.active).map(r => (
+                          <option key={r.id} value={r.id}>
+                            {r.name}
+                          </option>
+                        ))}
+                      </select>
+                      {rooms.length === 0 && (
+                        <p style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>
+                          No hay despachos configurados. Ve a Configuración para añadirlos.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   {/* Service */}
                   <div style={{ marginTop: 10 }}>
                     <label style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, display: 'block', marginBottom: 4 }}>Servicio</label>
@@ -1542,6 +1648,41 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                       </select>
                     </div>
                   </div>
+
+                  {/* Método de pago — solo para PRESENCIAL */}
+                  {formModality === 'PRESENCIAL' && (
+                    <div style={{ marginTop: 10 }}>
+                      <label style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, display: 'block', marginBottom: 6 }}>Método de cobro</label>
+                      <div style={{ display: 'flex', gap: 0, borderRadius: 8, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+                        {([
+                          { value: 'STRIPE', label: 'Pago online', desc: 'Link Stripe' },
+                          { value: 'CASH', label: 'Efectivo', desc: 'En consulta' },
+                        ] as const).map(pm => (
+                          <button
+                            key={pm.value}
+                            type="button"
+                            onClick={() => setFormPaymentMethod(pm.value)}
+                            style={{
+                              flex: 1,
+                              padding: '8px 6px',
+                              border: 'none',
+                              background: formPaymentMethod === pm.value ? '#5a9270' : '#fff',
+                              color: formPaymentMethod === pm.value ? '#fff' : '#374151',
+                              cursor: 'pointer',
+                              fontSize: 11,
+                              fontWeight: 600,
+                              textAlign: 'center',
+                              transition: 'all 0.15s',
+                              lineHeight: 1.3,
+                            }}
+                          >
+                            <div>{pm.label}</div>
+                            <div style={{ fontSize: 9, opacity: 0.8, fontWeight: 400 }}>{pm.desc}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </fieldset>
 
                 {/* ── Notas ── */}

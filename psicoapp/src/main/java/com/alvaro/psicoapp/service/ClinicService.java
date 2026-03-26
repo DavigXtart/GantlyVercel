@@ -2,6 +2,7 @@ package com.alvaro.psicoapp.service;
 
 import com.alvaro.psicoapp.domain.*;
 import com.alvaro.psicoapp.repository.*;
+import com.alvaro.psicoapp.domain.ClinicRoomEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,7 @@ public class ClinicService {
     private final ClinicPatientProfileRepository clinicPatientProfileRepository;
     private final ClinicInvitationRepository clinicInvitationRepository;
     private final ClinicPatientDocumentRepository clinicPatientDocumentRepository;
+    private final ClinicRoomRepository clinicRoomRepository;
     private final EmailService emailService;
     private final StripeService stripeService;
 
@@ -40,6 +42,7 @@ public class ClinicService {
                          ClinicPatientProfileRepository clinicPatientProfileRepository,
                          ClinicInvitationRepository clinicInvitationRepository,
                          ClinicPatientDocumentRepository clinicPatientDocumentRepository,
+                         ClinicRoomRepository clinicRoomRepository,
                          EmailService emailService,
                          StripeService stripeService) {
         this.companyRepository = companyRepository;
@@ -49,6 +52,7 @@ public class ClinicService {
         this.clinicPatientProfileRepository = clinicPatientProfileRepository;
         this.clinicInvitationRepository = clinicInvitationRepository;
         this.clinicPatientDocumentRepository = clinicPatientDocumentRepository;
+        this.clinicRoomRepository = clinicRoomRepository;
         this.emailService = emailService;
         this.stripeService = stripeService;
     }
@@ -59,7 +63,8 @@ public class ClinicService {
     public record ClinicAppointmentDto(Long id, Long psychologistId, String psychologistName,
                                         String psychologistAvatarUrl, Long patientId, String patientName,
                                         String startTime, String endTime, String status, String service,
-                                        BigDecimal price, String paymentStatus, String notes, String clinicNotes) {}
+                                        BigDecimal price, String paymentStatus, String notes, String clinicNotes,
+                                        String modality, String paymentMethod, Long roomId, String roomName) {}
     public record ClinicPatientSummaryDto(Long id, String name, String email, String phone,
                                            Integer patientNumber, String status,
                                            String assignedPsychologistName, long totalAppointments) {}
@@ -71,18 +76,25 @@ public class ClinicService {
                                           List<ClinicAppointmentDto> appointments) {}
     public record ClinicBillingDto(Long appointmentId, String startTime, String endTime, Long psychologistId,
                                     String psychologistName, Long patientId, String patientName,
-                                    String service, BigDecimal price, String paymentStatus) {}
+                                    String service, BigDecimal price, String paymentStatus,
+                                    String modality, String paymentMethod) {}
     public record CreateAppointmentRequest(Long psychologistId, Long patientId, String patientName,
                                             String startTime, String endTime, String service,
                                             BigDecimal price, String notes, String clinicNotes,
-                                            String paymentStatus) {}
+                                            String paymentStatus, String modality, String paymentMethod,
+                                            Long roomId) {}
     public record UpdateAppointmentRequest(Long patientId, String patientName, String startTime, String endTime,
                                             String service, BigDecimal price, String notes, String clinicNotes,
-                                            String paymentStatus) {}
+                                            String paymentStatus, String modality, String paymentMethod,
+                                            Long roomId) {}
     public record UpdatePatientRequest(String notes, String allergies, String medication, String medicalHistory,
                                         Boolean consentSigned, String patientType, String status, String phone) {}
     public record InvitationDto(Long id, String email, String status, String createdAt, String expiresAt) {}
     public record SendInvitationRequest(String email) {}
+    // Room DTOs
+    public record ClinicRoomDto(Long id, String name, String color, Long assignedPsychologistId, Boolean active) {}
+    public record CreateRoomRequest(String name, String color, Long assignedPsychologistId) {}
+    public record UpdateRoomRequest(String name, String color, Long assignedPsychologistId, Boolean active) {}
 
     private CompanyEntity getCompany(String email) {
         return companyRepository.findByEmail(email)
@@ -98,13 +110,21 @@ public class ClinicService {
     private ClinicAppointmentDto toAppointmentDto(AppointmentEntity a, UserEntity psych) {
         String patientName = a.getUser() != null ? a.getUser().getName() : null;
         Long patientId = a.getUser() != null ? a.getUser().getId() : null;
+        String roomName = null;
+        if (a.getRoomId() != null) {
+            roomName = clinicRoomRepository.findById(a.getRoomId())
+                    .map(ClinicRoomEntity::getName).orElse(null);
+        }
         return new ClinicAppointmentDto(
                 a.getId(), psych.getId(), psych.getName(), psych.getAvatarUrl(),
                 patientId, patientName,
                 a.getStartTime() != null ? a.getStartTime().toString() : null,
                 a.getEndTime() != null ? a.getEndTime().toString() : null,
                 a.getStatus(), a.getService(), a.getPrice(), a.getPaymentStatus(),
-                a.getNotes(), a.getClinicNotes());
+                a.getNotes(), a.getClinicNotes(),
+                a.getModality() != null ? a.getModality() : "ONLINE",
+                a.getPaymentMethod() != null ? a.getPaymentMethod() : "STRIPE",
+                a.getRoomId(), roomName);
     }
 
     @Transactional(readOnly = true)
@@ -164,6 +184,9 @@ public class ClinicService {
         appt.setNotes(req.notes());
         appt.setClinicNotes(req.clinicNotes());
         appt.setPaymentStatus(req.paymentStatus() != null ? req.paymentStatus() : "PENDING");
+        appt.setModality(req.modality() != null ? req.modality() : "ONLINE");
+        appt.setPaymentMethod(req.paymentMethod() != null ? req.paymentMethod() : "STRIPE");
+        appt.setRoomId(req.roomId());
         appt.setConfirmedAt(Instant.now());
         appointmentRepository.save(appt);
 
@@ -184,6 +207,9 @@ public class ClinicService {
         if (req.notes() != null) appt.setNotes(req.notes());
         if (req.clinicNotes() != null) appt.setClinicNotes(req.clinicNotes());
         if (req.paymentStatus() != null) appt.setPaymentStatus(req.paymentStatus());
+        if (req.modality() != null) appt.setModality(req.modality());
+        if (req.paymentMethod() != null) appt.setPaymentMethod(req.paymentMethod());
+        appt.setRoomId(req.roomId()); // null = quitar despacho
         if (req.patientId() != null) {
             UserEntity patient = userRepository.findById(req.patientId()).orElse(null);
             appt.setUser(patient);
@@ -354,7 +380,9 @@ public class ClinicService {
                 result.add(new ClinicBillingDto(
                         a.getId(), a.getStartTime().toString(), a.getEndTime().toString(),
                         psych.getId(), psych.getName(), pid, patientName,
-                        a.getService(), a.getPrice(), a.getPaymentStatus()));
+                        a.getService(), a.getPrice(), a.getPaymentStatus(),
+                        a.getModality() != null ? a.getModality() : "ONLINE",
+                        a.getPaymentMethod() != null ? a.getPaymentMethod() : "STRIPE"));
             }
         }
         result.sort(Comparator.comparing(ClinicBillingDto::startTime).reversed());
@@ -590,6 +618,61 @@ public class ClinicService {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // Clinic rooms (despachos)
+    // -------------------------------------------------------------------------
+    @Transactional(readOnly = true)
+    public List<ClinicRoomDto> getRooms(String email) {
+        var company = getCompany(email);
+        return clinicRoomRepository.findByCompanyIdOrderByNameAsc(company.getId()).stream()
+                .map(r -> new ClinicRoomDto(r.getId(), r.getName(), r.getColor(),
+                        r.getAssignedPsychologistId(), r.getActive()))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public ClinicRoomDto createRoom(String email, CreateRoomRequest req) {
+        var company = getCompany(email);
+        if (req.name() == null || req.name().isBlank())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El nombre del despacho es obligatorio");
+        ClinicRoomEntity room = new ClinicRoomEntity();
+        room.setCompanyId(company.getId());
+        room.setName(req.name().trim());
+        room.setColor(req.color() != null ? req.color() : "#5a9270");
+        room.setAssignedPsychologistId(req.assignedPsychologistId());
+        room.setActive(true);
+        clinicRoomRepository.save(room);
+        return new ClinicRoomDto(room.getId(), room.getName(), room.getColor(),
+                room.getAssignedPsychologistId(), room.getActive());
+    }
+
+    @Transactional
+    public ClinicRoomDto updateRoom(String email, Long roomId, UpdateRoomRequest req) {
+        var company = getCompany(email);
+        ClinicRoomEntity room = clinicRoomRepository.findById(roomId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Despacho no encontrado"));
+        if (!company.getId().equals(room.getCompanyId()))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No autorizado");
+        if (req.name() != null && !req.name().isBlank()) room.setName(req.name().trim());
+        if (req.color() != null) room.setColor(req.color());
+        if (req.assignedPsychologistId() != null) room.setAssignedPsychologistId(req.assignedPsychologistId());
+        else room.setAssignedPsychologistId(null); // allow clearing
+        if (req.active() != null) room.setActive(req.active());
+        clinicRoomRepository.save(room);
+        return new ClinicRoomDto(room.getId(), room.getName(), room.getColor(),
+                room.getAssignedPsychologistId(), room.getActive());
+    }
+
+    @Transactional
+    public void deleteRoom(String email, Long roomId) {
+        var company = getCompany(email);
+        ClinicRoomEntity room = clinicRoomRepository.findById(roomId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Despacho no encontrado"));
+        if (!company.getId().equals(room.getCompanyId()))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No autorizado");
+        clinicRoomRepository.delete(room);
     }
 
     // -------------------------------------------------------------------------

@@ -365,11 +365,74 @@ function EquipoTab({ psychologists, onRefresh }: { psychologists: Psychologist[]
 // ---------------------------------------------------------------------------
 // Config tab
 // ---------------------------------------------------------------------------
-function ConfigTab({ clinicInfo }: { clinicInfo: ClinicInfo | null }) {
+const ROOM_COLORS = [
+  '#5a9270', '#7c9dc5', '#c5847c', '#c5b87c',
+  '#9c7cc5', '#7cc5bc', '#c57ca0', '#6b8fad',
+];
+
+function ConfigTab({ clinicInfo, psychologists }: { clinicInfo: ClinicInfo | null; psychologists: Psychologist[] }) {
+  const [rooms, setRooms] = useState<Array<{ id: number; name: string; color: string; assignedPsychologistId?: number; active: boolean }>>([]);
+  const [loadingRooms, setLoadingRooms] = useState(false);
+  // addingForPsychId = psych.id for which we're showing the inline create form
+  const [addingForPsychId, setAddingForPsychId] = useState<number | null>(null);
+  const [newRoomName, setNewRoomName] = useState('');
+  const [newRoomColor, setNewRoomColor] = useState(ROOM_COLORS[0]);
+  const [savingRoom, setSavingRoom] = useState(false);
+
+  useEffect(() => {
+    setLoadingRooms(true);
+    clinicService.getRooms()
+      .then(data => setRooms(data))
+      .catch(() => setRooms([]))
+      .finally(() => setLoadingRooms(false));
+  }, []);
+
+  function startAdding(psychId: number, defaultName: string) {
+    setAddingForPsychId(psychId);
+    setNewRoomName(defaultName);
+    setNewRoomColor(ROOM_COLORS[psychologists.findIndex(p => p.id === psychId) % ROOM_COLORS.length]);
+  }
+
+  function cancelAdding() {
+    setAddingForPsychId(null);
+    setNewRoomName('');
+  }
+
+  async function handleSaveRoom(psychId: number) {
+    if (!newRoomName.trim()) return;
+    setSavingRoom(true);
+    try {
+      const room = await clinicService.createRoom({
+        name: newRoomName.trim(),
+        color: newRoomColor,
+        assignedPsychologistId: psychId,
+      });
+      setRooms(prev => [...prev, room]);
+      setAddingForPsychId(null);
+      setNewRoomName('');
+    } catch {
+      alert('Error al crear el despacho');
+    } finally {
+      setSavingRoom(false);
+    }
+  }
+
+  async function handleDeleteRoom(id: number) {
+    if (!confirm('¿Eliminar este despacho?')) return;
+    try {
+      await clinicService.deleteRoom(id);
+      setRooms(prev => prev.filter(r => r.id !== id));
+    } catch {
+      alert('Error al eliminar el despacho');
+    }
+  }
+
   return (
     <div className="flex-1 overflow-y-auto px-8 lg:px-12 py-6">
-      <div className="max-w-lg">
-        <h2 className="text-xl font-medium text-forest mb-6">Configuración</h2>
+      <div className="max-w-lg space-y-6">
+        <h2 className="text-xl font-medium text-forest">Configuración</h2>
+
+        {/* Clinic info */}
         <div className="bg-white rounded-[2.5rem] border border-sage/10 soft-shadow p-8 space-y-6">
           <div>
             <span className="text-[10px] uppercase tracking-widest font-bold text-sage/40">
@@ -394,6 +457,108 @@ function ConfigTab({ clinicInfo }: { clinicInfo: ClinicInfo | null }) {
               Comparte este código con tus psicólogos para que se unan a la clínica.
             </p>
           </div>
+        </div>
+
+        {/* Rooms — one per psychologist */}
+        <div className="bg-white rounded-[2.5rem] border border-sage/10 soft-shadow p-8">
+          <h3 className="text-base font-semibold text-forest mb-1 flex items-center gap-2">
+            <span className="material-symbols-outlined text-sage">meeting_room</span>
+            Despachos
+          </h3>
+          <p className="text-xs text-sage/60 mb-5">
+            Un despacho por psicólogo. Se usa para asignar sala en citas presenciales.
+          </p>
+
+          {loadingRooms ? (
+            <div className="text-sm text-sage/60 py-4 text-center">Cargando...</div>
+          ) : psychologists.length === 0 ? (
+            <p className="text-sm text-sage/50 italic">No hay psicólogos en la clínica todavía.</p>
+          ) : (
+            <ul className="space-y-3">
+              {psychologists.map((psych, idx) => {
+                const room = rooms.find(r => r.assignedPsychologistId === psych.id);
+                const isAdding = addingForPsychId === psych.id;
+
+                return (
+                  <li key={psych.id} className="rounded-2xl border border-sage/10 overflow-hidden">
+                    {/* Psychologist header row */}
+                    <div className="flex items-center gap-3 px-4 py-3 bg-cream/40">
+                      <div
+                        className="size-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                        style={{ background: room ? room.color : '#c7d4cc' }}
+                      >
+                        {psych.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
+                      </div>
+                      <span className="text-sm font-medium text-forest flex-1">{psych.name}</span>
+
+                      {room ? (
+                        /* Has room — show name + delete */
+                        <div className="flex items-center gap-2">
+                          <div style={{ width: 10, height: 10, borderRadius: '50%', background: room.color }} />
+                          <span className="text-xs text-sage/70">{room.name}</span>
+                          <button
+                            onClick={() => handleDeleteRoom(room.id)}
+                            className="text-sage/30 hover:text-red-400 transition-colors p-1 rounded-lg"
+                            title="Eliminar despacho"
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>
+                          </button>
+                        </div>
+                      ) : !isAdding ? (
+                        /* No room — add button */
+                        <button
+                          onClick={() => startAdding(psych.id, `Consulta ${idx + 1}`)}
+                          className="text-xs text-sage/60 hover:text-sage border border-dashed border-sage/30 hover:border-sage/60 px-3 py-1 rounded-xl transition-colors"
+                        >
+                          + Asignar despacho
+                        </button>
+                      ) : null}
+                    </div>
+
+                    {/* Inline create form */}
+                    {isAdding && (
+                      <div className="px-4 py-3 border-t border-sage/10 space-y-3 bg-white">
+                        <input
+                          type="text"
+                          placeholder="Nombre del despacho"
+                          value={newRoomName}
+                          onChange={e => setNewRoomName(e.target.value)}
+                          onKeyDown={e => { if (e.key === 'Enter') handleSaveRoom(psych.id); if (e.key === 'Escape') cancelAdding(); }}
+                          autoFocus
+                          className="w-full px-3 py-2 rounded-xl border border-sage/20 text-sm text-forest outline-none focus:border-sage/50"
+                        />
+                        <div className="flex gap-2">
+                          {ROOM_COLORS.map(c => (
+                            <button
+                              key={c}
+                              type="button"
+                              onClick={() => setNewRoomColor(c)}
+                              style={{ width: 20, height: 20, borderRadius: '50%', background: c, border: newRoomColor === c ? '2px solid #1f2937' : '2px solid transparent', flexShrink: 0 }}
+                            />
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleSaveRoom(psych.id)}
+                            disabled={savingRoom || !newRoomName.trim()}
+                            className="flex-1 py-1.5 rounded-xl bg-sage/20 hover:bg-sage/30 text-forest text-xs font-semibold transition-colors disabled:opacity-50"
+                          >
+                            {savingRoom ? 'Guardando...' : 'Guardar'}
+                          </button>
+                          <button
+                            onClick={cancelAdding}
+                            className="flex-1 py-1.5 rounded-xl border border-sage/20 text-sage/60 text-xs hover:bg-sage/5 transition-colors"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
       </div>
     </div>
@@ -497,7 +662,7 @@ export default function ClinicDashboard() {
             )}
             {activeTab === 'agenda' && (
               <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                <ClinicAgenda psychologists={psychologists} />
+                <ClinicAgenda psychologists={psychologists} onAppointmentChange={loadData} />
               </div>
             )}
             {activeTab === 'equipo' && (
@@ -514,7 +679,7 @@ export default function ClinicDashboard() {
               </div>
             )}
             {activeTab === 'configuracion' && (
-              <ConfigTab clinicInfo={clinicInfo} />
+              <ConfigTab clinicInfo={clinicInfo} psychologists={psychologists} />
             )}
           </>
         )}

@@ -34,6 +34,7 @@ El psicólogo sigue siendo un usuario normal de Gantly (`PSYCHOLOGIST`) pero vin
 | Feature E: Link de pago | Botón Stripe Checkout desde cita PENDING en ficha paciente |
 | Feature F: Chat clínica→paciente | Pestaña Chat en ficha paciente, polling 5s (V37 migration) |
 | Feature G: Agenda psicólogo | Expandible en EquipoTab, próximos 30 días con colores |
+| Feature H: Despachos + modalidad | Gestión de salas (1 despacho por psicólogo en ConfigTab), modalidad Online/Presencial, método de cobro Stripe/Efectivo |
 | Estilo Gantly | material-symbols, bg-cream/forest/sage, sidebar-item CSS |
 | NotificationBell | Para rol EMPRESA en App.tsx |
 
@@ -64,6 +65,10 @@ El psicólogo sigue siendo un usuario normal de Gantly (`PSYCHOLOGIST`) pero vin
 | GET | /api/clinic/chat/{patientId} | Historial de chat |
 | POST | /api/clinic/chat/{patientId} | Enviar mensaje (CLINIC) |
 | GET | /api/auth/invite-info | Info invitación por token (público) |
+| GET | /api/clinic/rooms | Listar despachos |
+| POST | /api/clinic/rooms | Crear despacho |
+| PUT | /api/clinic/rooms/{id} | Editar despacho |
+| DELETE | /api/clinic/rooms/{id} | Eliminar despacho |
 
 ### Migraciones SQL aplicadas
 
@@ -72,6 +77,11 @@ El psicólogo sigue siendo un usuario normal de Gantly (`PSYCHOLOGIST`) pero vin
 | V35 | `clinic_invitations` table |
 | V36 | `clinic_patient_documents` table |
 | V37 | `clinic_chat_messages` table |
+| V38 | `clinic_rooms` table + columnas `modality`, `payment_method`, `room_id` en `appointments` |
+
+### Bugs corregidos
+- **`onAppointmentChange` no pasada a ClinicAgenda**: La cita se guardaba en DB pero el frontend mostraba "Error al guardar la cita". Causa: ClinicDashboard llamaba `<ClinicAgenda>` sin el prop requerido, lanzando TypeError en el catch de handleSave. Fix: pasar `onAppointmentChange={loadData}`.
+- **Columnas NOT NULL sin DEFAULT en MySQL**: `modality` y `payment_method` añadidas por Hibernate sin DEFAULT, causando fallos en INSERT. Fix: `ALTER TABLE appointments ALTER COLUMN modality SET DEFAULT 'ONLINE'` y equivalente para `payment_method`.
 
 ---
 

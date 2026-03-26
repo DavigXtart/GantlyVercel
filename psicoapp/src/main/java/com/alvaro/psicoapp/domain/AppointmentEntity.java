@@ -58,6 +58,15 @@ public class AppointmentEntity {
     @Column(name = "clinic_notes", length = 500)
     private String clinicNotes;
 
+    @Column(length = 20, nullable = false)
+    private String modality = "ONLINE";
+
+    @Column(name = "payment_method", length = 20, nullable = false)
+    private String paymentMethod = "STRIPE";
+
+    @Column(name = "room_id")
+    private Long roomId;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public UserEntity getPsychologist() { return psychologist; }
@@ -90,4 +99,10 @@ public class AppointmentEntity {
     public void setService(String service) { this.service = service; }
     public String getClinicNotes() { return clinicNotes; }
     public void setClinicNotes(String clinicNotes) { this.clinicNotes = clinicNotes; }
+    public String getModality() { return modality; }
+    public void setModality(String modality) { this.modality = modality; }
+    public String getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+    public Long getRoomId() { return roomId; }
+    public void setRoomId(Long roomId) { this.roomId = roomId; }
 }
