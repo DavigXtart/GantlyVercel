@@ -65,7 +65,19 @@
       "Bash(/tmp/patch_auth_controller2.py:*)",
       "Bash(/c/Users/david/Desktop/alvaro/psicoapp/src/main/resources/templates/email/clinic-invitation.html:*)",
       "Bash(/tmp/patch_auth_service_sig.py:*)",
-      "Bash(\"/c/Program Files \\(x86\\)/Apache/Maven/bin/mvn\" compile)"
+      "Bash(\"/c/Program Files \\(x86\\)/Apache/Maven/bin/mvn\" compile)",
+      "Bash(unzip:*)",
+      "Bash(\"/c/Program Files/MySQL/MySQL Server 8.4/bin/mysql\" -u root -p1234 gantly -e \"SELECT id, name, email, referral_code FROM companies LIMIT 5;\")",
+      "Bash(\"/c/Program Files/MySQL/MySQL Server 8.4/bin/mysql\" -u root -p1234 gantly -e \"SELECT id, name, email, role, company_id FROM users WHERE email = ''prueba@gmail.com'';\")",
+      "Bash(\"/c/Program Files/MySQL/MySQL Server 8.4/bin/mysql\" -u root -p1234 gantly -e \"UPDATE users SET company_id = 1 WHERE email = ''prueba@gmail.com''; SELECT id, name, email, role, company_id FROM users WHERE email = ''prueba@gmail.com'';\")",
+      "Bash(\"/c/Program Files/MySQL/MySQL Server 8.4/bin/mysql\" -u root -p1234 gantly -e \"UPDATE users SET company_id = NULL WHERE email = ''prueba@gmail.com'';\")",
+      "Bash(\"/c/Program Files/MySQL/MySQL Server 8.4/bin/mysql\" -u root -p1234 gantly -e \"UPDATE users SET company_id = 1 WHERE email = ''prueba@gmail.com'';\")",
+      "Bash(\"/c/Program Files/MySQL/MySQL Server 8.4/bin/mysql\" -u root -p1234 gantly -e \"SHOW COLUMNS FROM appointments LIKE ''modality''; SHOW COLUMNS FROM appointments LIKE ''payment_method''; SHOW COLUMNS FROM appointments LIKE ''room_id'';\")",
+      "Bash(\"/c/Program Files/MySQL/MySQL Server 8.4/bin/mysql\" -u root -p1234 gantly -e \"SELECT id, modality, payment_method FROM appointments LIMIT 5; SELECT COUNT\\(*\\) as total FROM appointments WHERE modality = '''' OR modality IS NULL;\")",
+      "Bash(\"/c/Program Files/MySQL/MySQL Server 8.4/bin/mysql\" -u root -p1234 gantly -e \":*)",
+      "Bash(\"/c/Program Files/MySQL/MySQL Server 8.4/bin/mysql\" -u root -p1234 gantly -e \"SELECT id, psychologist_id, user_id, start_time, modality, payment_method, status FROM appointments WHERE created_at > ''2026-03-26 23:00:00'' ORDER BY id DESC LIMIT 5;\")",
+      "Bash(\"/c/Program Files/MySQL/MySQL Server 8.4/bin/mysql\" -u root -p1234 gantly -e \"SELECT id, psychologist_id, user_id, start_time, modality, payment_method, status FROM appointments ORDER BY id DESC LIMIT 5;\")",
+      "Bash(\"/c/Program Files/MySQL/MySQL Server 8.4/bin/mysql\" -u root -p1234 gantly -e \"SELECT a.id, a.modality, a.payment_method, a.room_id, u.id as user_id, u.name FROM appointments a LEFT JOIN users u ON u.id=a.user_id WHERE a.psychologist_id IN \\(8,44,50\\) AND a.start_time BETWEEN ''2026-03-26 00:00:00'' AND ''2026-03-26 23:59:59'' ORDER BY a.start_time;\")"
     ]
   }
 }
