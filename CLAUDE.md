@@ -4,6 +4,13 @@
 - **Respuestas cortas y concisas**. No gastar tiempo en explicaciones largas cuando no son necesarias.
 - Usar skills de superpowers y ui-ux-pro-max para todas las tareas relevantes.
 
+## Session Context Files
+- Los archivos en `docs/sessions/` contienen el contexto de cada sesion de trabajo.
+- **Leer estos archivos al inicio de cada sesion** para retomar el contexto sin perder lo avanzado.
+- Formato: `YYYY-MM-DD-<tema>.md`
+- Sesiones disponibles:
+  - `2026-05-04-audit-y-fixes.md` — Audit completo del codebase + 25 fixes implementados
+
 ## Project Overview
 Plataforma de salud mental que conecta pacientes con psicólogos.
 - **Backend**: Spring Boot 3.4.7 (Java 21) en `localhost:8080/api`

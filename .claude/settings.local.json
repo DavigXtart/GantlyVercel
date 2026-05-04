@@ -77,7 +77,24 @@
       "Bash(\"/c/Program Files/MySQL/MySQL Server 8.4/bin/mysql\" -u root -p1234 gantly -e \":*)",
       "Bash(\"/c/Program Files/MySQL/MySQL Server 8.4/bin/mysql\" -u root -p1234 gantly -e \"SELECT id, psychologist_id, user_id, start_time, modality, payment_method, status FROM appointments WHERE created_at > ''2026-03-26 23:00:00'' ORDER BY id DESC LIMIT 5;\")",
       "Bash(\"/c/Program Files/MySQL/MySQL Server 8.4/bin/mysql\" -u root -p1234 gantly -e \"SELECT id, psychologist_id, user_id, start_time, modality, payment_method, status FROM appointments ORDER BY id DESC LIMIT 5;\")",
-      "Bash(\"/c/Program Files/MySQL/MySQL Server 8.4/bin/mysql\" -u root -p1234 gantly -e \"SELECT a.id, a.modality, a.payment_method, a.room_id, u.id as user_id, u.name FROM appointments a LEFT JOIN users u ON u.id=a.user_id WHERE a.psychologist_id IN \\(8,44,50\\) AND a.start_time BETWEEN ''2026-03-26 00:00:00'' AND ''2026-03-26 23:59:59'' ORDER BY a.start_time;\")"
+      "Bash(\"/c/Program Files/MySQL/MySQL Server 8.4/bin/mysql\" -u root -p1234 gantly -e \"SELECT a.id, a.modality, a.payment_method, a.room_id, u.id as user_id, u.name FROM appointments a LEFT JOIN users u ON u.id=a.user_id WHERE a.psychologist_id IN \\(8,44,50\\) AND a.start_time BETWEEN ''2026-03-26 00:00:00'' AND ''2026-03-26 23:59:59'' ORDER BY a.start_time;\")",
+      "Bash(CLAUDECODE= claude skill add https://github.com/obra/superpowers.git)",
+      "Bash(CLAUDECODE= claude skill add https://github.com/nextlevelbuilder/ui-ux-pro-max-skill.git)",
+      "Bash(CLAUDECODE= claude skill list)",
+      "Bash(git clone:*)",
+      "Bash(npx uipro-cli init:*)",
+      "Bash(CLAUDECODE= claude plugin add https://github.com/obra/superpowers.git)",
+      "Bash(CLAUDECODE= claude plugin)",
+      "Bash(CLAUDECODE= claude plugin install superpowers)",
+      "Bash(claude mcp add:*)",
+      "Bash(claude mcp list:*)",
+      "WebFetch(domain:claude.ai)",
+      "Bash(\"C:/Users/david/Desktop/alvaro/docs/superpowers/specs/2026-05-04-landing-page-design.md\":*)",
+      "Bash(node:*)",
+      "Bash(git -C \"C:/Users/david/Desktop/alvaro\" status)",
+      "Bash(git -C \"C:/Users/david/Desktop/alvaro\" log --oneline -5)",
+      "Bash(git -C \"C:/Users/david/Desktop/alvaro\" add \"docs/superpowers/specs/2026-05-04-landing-page-design.md\")",
+      "Bash(git -C:*)"
     ]
   }
 }
