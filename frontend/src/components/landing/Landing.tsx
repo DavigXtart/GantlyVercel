@@ -18,7 +18,7 @@ interface LandingProps {
   onShowSoyProfesional: () => void;
 }
 
-export default function Landing({ onGetStarted, onLogin, onShowSoyProfesional }: LandingProps) {
+export default function Landing({ onGetStarted, onLogin, onShowAbout: _onShowAbout, onShowSoyProfesional }: LandingProps) {
   return (
     <div className="font-body">
       <Navbar onLogin={onLogin} onStart={onGetStarted} />
