@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Work+Sans:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -76,7 +78,7 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Work Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.5;
@@ -86,7 +88,7 @@ body {
 
 /* Tipografía global (landing -> resto de pantallas) */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Nunito', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Outfit', 'Nunito', 'Inter', sans-serif;
 }
 
 /* Forzar tipografía Gantly incluso sobre estilos inline */
@@ -106,33 +108,6 @@ h1, h2, h3, h4, h5, h6 {
 
 #root {
   min-height: 100vh;
-}
-
-/* Estilos landing nueva */
-:root {
-  --soft-sage: #8da693;
-  --warm-cream: #faf7f2;
-  --gentle-mint: #e8f3ee;
-  --deep-forest: #2d3b32;
-  --clay: #b89a8a;
-}
-
-.serif-font {
-  font-family: 'Instrument Serif', serif;
-}
-
-.soft-shadow {
-  box-shadow: 0 10px 40px -15px rgba(141, 166, 147, 0.15);
-}
-
-.organic-shape {
-  border-radius: 60% 40% 70% 30% / 40% 50% 60% 40%;
-}
-
-.line-art {
-  stroke: var(--soft-sage);
-  stroke-width: 1.2;
-  fill: none;
 }
 
 .container {
@@ -346,4 +321,13 @@ nav button {
   background: #e8f3ee;
   color: #18382e;
   border-right-color: #7b9f86;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

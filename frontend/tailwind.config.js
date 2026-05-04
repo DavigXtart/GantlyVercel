@@ -52,11 +52,19 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
         // Paleta Gantly
-        sage: "#7b9f86",    // verde salvia algo más oscuro
-        cream: "#f8fbf7",   // fondo cálido ligeramente verdoso
-        mint: "#e0f0e6",    // menta suave para fondos
-        forest: "#18382e",  // verde oscuro con buen contraste
-        clay: "#b89a8a",
+        'gantly-navy': '#0A1628',
+        'gantly-blue': '#2E93CC',
+        'gantly-cyan': '#22D3EE',
+        'gantly-gold': '#F0C930',
+        'gantly-cloud': '#F0F8FF',
+        'gantly-ice': '#ECFEFF',
+        'gantly-emerald': '#059669',
+        'gantly-text': '#0F172A',
+        'gantly-muted': '#475569',
+      },
+      fontFamily: {
+        heading: ['Outfit', 'sans-serif'],
+        body: ['Work Sans', 'sans-serif'],
       },
       borderRadius: {
         lg: "var(--radius)",
