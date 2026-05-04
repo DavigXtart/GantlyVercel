@@ -10,6 +10,7 @@
 - Formato: `YYYY-MM-DD-<tema>.md`
 - Sesiones disponibles:
   - `2026-05-04-audit-y-fixes.md` — Audit completo del codebase + 25 fixes implementados
+  - `2026-05-05-landing-page.md` — Rediseño completo de la landing page (12 secciones, i18n, animaciones)
 
 ## Project Overview
 Plataforma de salud mental que conecta pacientes con psicólogos.
@@ -20,7 +21,7 @@ Plataforma de salud mental que conecta pacientes con psicólogos.
 
 ## Tech Stack
 - **Backend**: Spring Boot 3.4.7, Spring Security, JWT (JJWT 0.11.5), WebSocket STOMP/SockJS, JPA/Hibernate
-- **Frontend**: React 18.3.1, TypeScript 5.6.3, Vite 5.4.10, Tailwind 3.4.18, React Router 7, Axios, Framer Motion, i18next, Stripe JS
+- **Frontend**: React 18.3.1, TypeScript 5.6.3, Vite 5.4.10, Tailwind 3.4.18, React Router 7, Axios, Framer Motion, i18next, Stripe JS, GSAP, Three.js/@react-three
 - **DB**: MySQL 8.0, 26+ entidades JPA, 22+ tablas
 - **Infra**: Docker (2-stage build), Nginx reverse proxy, Jitsi Meet self-hosted
 - **PDF Export**: html2canvas + jsPDF (frontend)
@@ -60,9 +61,15 @@ frontend/src/
 │   ├── Flows: TestFlow, InitialTestFlow, AgendaPersonal, PatientMatchingTest
 │   ├── Tests: TestManager, TestImporter, TestReport
 │   ├── Payments: PricingPage
-│   └── UI: ChatWidget, CalendarWeek, Landing, About, Toast, BarChart, FactorChart
-├── i18n/                      (ES/EN translations)
-└── assets/                    (images, lottie animations)
+│   ├── Landing (modular):
+│   │   ├── Landing.tsx (orchestrator), Navbar.tsx, HeroSection.tsx, Hero3DScene.tsx
+│   │   ├── WhatIsGantly.tsx, PatientFlow.tsx, SmartMatching.tsx, VideoChat.tsx
+│   │   ├── ForProfessionals.tsx, ForClinics.tsx, TestsPreview.tsx, TrustSecurity.tsx
+│   │   ├── FinalCTA.tsx, Footer.tsx
+│   │   └── shared/: ScrollReveal, SectionWrapper, GlowCard, TiltCard
+│   └── UI: ChatWidget, CalendarWeek, About, Toast, BarChart, FactorChart
+├── i18n/                      (ES/EN translations, config imported in main.tsx)
+└── assets/                    (SVG logos: logo-gantly.svg, logo-gantly-icon.svg, logo-gantly-double.svg)
 ```
 
 ## Database Schema (Main Tables)
