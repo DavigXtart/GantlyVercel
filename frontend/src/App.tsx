@@ -70,8 +70,18 @@ function useAuth() {
     checkRole();
   }, [checkRole]);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (token) {
+        await authService.logout(refreshToken || undefined);
+      }
+    } catch {
+      // Ignore errors — we clear local state regardless
+    }
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     setIsAuthenticated(false);
     setRole(null);
   }, []);

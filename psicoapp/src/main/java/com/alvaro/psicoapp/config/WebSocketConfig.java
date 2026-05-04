@@ -12,12 +12,15 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final WebSocketAuthInterceptor authInterceptor;
+    private final WebSocketRateLimitInterceptor rateLimitInterceptor;
 
     @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:4200}")
     private String allowedOrigins;
 
-    public WebSocketConfig(WebSocketAuthInterceptor authInterceptor) {
+    public WebSocketConfig(WebSocketAuthInterceptor authInterceptor,
+                           WebSocketRateLimitInterceptor rateLimitInterceptor) {
         this.authInterceptor = authInterceptor;
+        this.rateLimitInterceptor = rateLimitInterceptor;
     }
 
     @Override
@@ -35,6 +38,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(authInterceptor);
+        registration.interceptors(authInterceptor, rateLimitInterceptor);
     }
 }

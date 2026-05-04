@@ -74,6 +74,14 @@ public class TaskController {
         return ResponseEntity.ok(taskService.completeTask(currentUserService.getCurrentUser(principal), taskId));
     }
 
+    @PutMapping("/{taskId}/reopen")
+    @Transactional
+    @Operation(summary = "Reabrir tarea", description = "Reabre una tarea completada (solo el psicólogo asignado)")
+    @ApiResponse(responseCode = "200", description = "Tarea reabierta exitosamente")
+    public ResponseEntity<TaskDtos.ReopenTaskResponse> reopenTask(Principal principal, @PathVariable Long taskId) {
+        return ResponseEntity.ok(taskService.reopenTask(currentUserService.getCurrentUser(principal), taskId));
+    }
+
     @GetMapping("/{taskId}/comments")
     @Operation(summary = "Obtener comentarios de tarea", description = "Obtiene todos los comentarios de una tarea")
     @ApiResponse(responseCode = "200", description = "Comentarios obtenidos exitosamente")

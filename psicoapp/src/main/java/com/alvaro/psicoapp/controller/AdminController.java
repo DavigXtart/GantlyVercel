@@ -353,4 +353,23 @@ public class AdminController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
+
+    @DeleteMapping("/cleanup/orphaned-files")
+    @Operation(summary = "Limpiar archivos huérfanos", description = "Elimina archivos en uploads/tasks/ que no están referenciados en la base de datos")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Limpieza realizada exitosamente"),
+        @ApiResponse(responseCode = "500", description = "Error durante la limpieza")
+    })
+    public ResponseEntity<Map<String, Object>> cleanupOrphanedFiles() {
+        try {
+            int deletedCount = adminService.cleanupOrphanedTaskFiles();
+            return ResponseEntity.ok(Map.of(
+                "message", "Limpieza completada",
+                "deletedFiles", deletedCount
+            ));
+        } catch (Exception e) {
+            logger.error("Error durante la limpieza de archivos huérfanos", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
 }

@@ -17,7 +17,8 @@ public final class UserProfileDtos {
             String gender,
             Integer age,
             LocalDate birthDate,
-            Instant createdAt
+            Instant createdAt,
+            Long companyId
     ) {}
 
     public record MyPsychologistResponse(String status, PsychologistSummary psychologist) {}

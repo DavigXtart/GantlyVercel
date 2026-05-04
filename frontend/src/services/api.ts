@@ -214,6 +214,13 @@ export const authService = {
     const { data } = await api.get(`/auth/invite-info?token=${token}`);
     return data as { companyName: string; email: string; companyId: string };
   },
+  logout: async (refreshToken?: string) => {
+    try {
+      await api.post('/auth/logout', refreshToken ? { refreshToken } : {});
+    } catch {
+      // Ignore errors — logout is best-effort
+    }
+  },
 };
 
 export const companyAuthService = {
@@ -560,7 +567,7 @@ export const adminService = {
 export const profileService = {
   me: async () => {
     const { data } = await api.get('/profile');
-    const user = data as { id: number; name: string; email: string; role: string; avatarUrl?: string | null; darkMode?: boolean; gender?: string; age?: number; birthDate?: string; createdAt?: string };
+    const user = data as { id: number; name: string; email: string; role: string; avatarUrl?: string | null; darkMode?: boolean; gender?: string; age?: number; birthDate?: string; createdAt?: string; companyId?: number | null };
     return { ...user, avatarUrl: resolveAssetUrl(user.avatarUrl) };
   },
   update: async (updates: { name?: string; darkMode?: boolean; gender?: string | null; age?: number | null; birthDate?: string | null }) => {
@@ -646,6 +653,10 @@ export const tasksService = {
   },
   complete: async (taskId: number) => {
     const { data } = await api.post(`/tasks/${taskId}/complete`);
+    return data as any;
+  },
+  reopen: async (taskId: number) => {
+    const { data } = await api.put(`/tasks/${taskId}/reopen`);
     return data as any;
   }
 };
@@ -1120,6 +1131,17 @@ export interface UpdatePatientReq {
   phone?: string;
 }
 
+export const patientClinicChatService = {
+  getMessages: async (after?: string) => {
+    const { data } = await api.get('/patient/clinic-chat', { params: after ? { after } : {} });
+    return data as Array<{ id: number; sender: string; content: string; createdAt: string }>;
+  },
+  sendMessage: async (content: string) => {
+    const { data } = await api.post('/patient/clinic-chat', { content });
+    return data as { id: number; sender: string; content: string; createdAt: string };
+  },
+};
+
 export const clinicService = {
   getMe: async () => {
     const { data } = await api.get('/clinic/me');
@@ -1234,6 +1256,29 @@ export const clinicService = {
   },
   deleteRoom: async (id: number) => {
     await api.delete(`/clinic/rooms/${id}`);
+  },
+};
+
+// File download helper — downloads files through authenticated API endpoints
+export const fileService = {
+  downloadTaskFile: async (filePath: string) => {
+    const filename = filePath.split('/').pop();
+    const { data } = await api.get(`/files/tasks/${filename}`, { responseType: 'blob' });
+    const url = window.URL.createObjectURL(data);
+    window.open(url, '_blank');
+    // Clean up after a delay
+    setTimeout(() => window.URL.revokeObjectURL(url), 60000);
+  },
+  getTaskFileUrl: (filePath: string) => {
+    const filename = filePath.split('/').pop();
+    return `${API_URL}/files/tasks/${filename}`;
+  },
+  downloadClinicDoc: async (fileName: string) => {
+    const storedFilename = fileName.startsWith('clinic-docs/') ? fileName.substring('clinic-docs/'.length) : fileName;
+    const { data } = await api.get(`/files/clinic-docs/${storedFilename}`, { responseType: 'blob' });
+    const url = window.URL.createObjectURL(data);
+    window.open(url, '_blank');
+    setTimeout(() => window.URL.revokeObjectURL(url), 60000);
   },
 };
 

@@ -92,10 +92,9 @@ public class MatchingService {
             boolean passesFilters = passesAbsoluteFilters(patientAnswers, psychologistAnswers, patient);
 
             if (!passesFilters) {
-                affinityScore = Math.max(0.15, affinityScore * 0.3);
+                // Psychologist fails absolute filters — exclude entirely
+                continue;
             }
-
-            affinityScore = Math.max(0.15, affinityScore);
 
             MatchingResult result = new MatchingResult();
             result.setPsychologist(psychologist);
@@ -103,25 +102,6 @@ public class MatchingService {
             result.setMatchPercentage((int) Math.round(affinityScore * 100));
 
             results.add(result);
-        }
-
-        if (results.isEmpty() && !allPsychologists.isEmpty()) {
-
-            for (UserEntity psychologist : allPsychologists) {
-                List<UserAnswerEntity> psychologistAnswers = userAnswerRepository.findByUser(psychologist).stream()
-                    .filter(ua -> ua.getQuestion().getTest().getCode().equals(PSYCHOLOGIST_MATCHING_TEST_CODE))
-                    .collect(Collectors.toList());
-
-                if (!psychologistAnswers.isEmpty()) {
-
-                    MatchingResult result = new MatchingResult();
-                    result.setPsychologist(psychologist);
-                    result.setAffinityScore(0.15);
-                    result.setMatchPercentage(15);
-                    results.add(result);
-                    break;
-                }
-            }
         }
 
         results.sort((a, b) -> Double.compare(b.getAffinityScore(), a.getAffinityScore()));
@@ -646,12 +626,10 @@ public class MatchingService {
         }
 
         if (maxPossibleScore > 0) {
-            double normalizedScore = Math.min(1.0, totalScore / maxPossibleScore);
-
-            return Math.max(0.15, normalizedScore);
+            return Math.min(1.0, totalScore / maxPossibleScore);
         }
 
-        return 0.15;
+        return 0.0;
     }
 
     public static class MatchingResult {

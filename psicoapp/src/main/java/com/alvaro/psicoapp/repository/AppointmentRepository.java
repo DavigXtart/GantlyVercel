@@ -1,13 +1,16 @@
 package com.alvaro.psicoapp.repository;
 
 import com.alvaro.psicoapp.domain.AppointmentEntity;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AppointmentRepository extends JpaRepository<AppointmentEntity, Long> {
@@ -61,4 +64,8 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
     );
 
     List<AppointmentEntity> findByStartTimeBetweenAndStatus(Instant from, Instant to, String status);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT a FROM AppointmentEntity a WHERE a.id = :id")
+    Optional<AppointmentEntity> findByIdForUpdate(@Param("id") Long id);
 }

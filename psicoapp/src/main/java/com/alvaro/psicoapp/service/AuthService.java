@@ -41,6 +41,7 @@ public class AuthService {
 	private final TestRepository testRepository;
 	private final EmailService emailService;
 	private final TotpService totpService;
+	private final TotpEncryptionService totpEncryptionService;
 	private final ClinicInvitationRepository clinicInvitationRepository;
 	private static final String INITIAL_TEST_CODE = "INITIAL";
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
@@ -51,6 +52,7 @@ public class AuthService {
 			PasswordEncoder passwordEncoder,
 			JwtService jwtService, TemporarySessionService sessionService, TestResultService testResultService,
 			TestRepository testRepository, EmailService emailService, TotpService totpService,
+			TotpEncryptionService totpEncryptionService,
 			ClinicInvitationRepository clinicInvitationRepository) {
 		this.userRepository = userRepository;
 		this.companyRepository = companyRepository;
@@ -63,6 +65,7 @@ public class AuthService {
 		this.testRepository = testRepository;
 		this.emailService = emailService;
 		this.totpService = totpService;
+		this.totpEncryptionService = totpEncryptionService;
 		this.clinicInvitationRepository = clinicInvitationRepository;
 	}
 
@@ -305,7 +308,8 @@ public class AuthService {
 			if (!Boolean.TRUE.equals(u.getTotpEnabled()) || u.getTotpSecret() == null) {
 				throw new IllegalArgumentException("2FA no está habilitado para esta cuenta");
 			}
-			if (!totpService.verifyCode(u.getTotpSecret(), totpCode)) {
+			String decryptedSecret = totpEncryptionService.decrypt(u.getTotpSecret());
+			if (!totpService.verifyCode(decryptedSecret, totpCode)) {
 				throw new IllegalArgumentException("Código 2FA inválido");
 			}
 			return jwtService.generateTokenPair(u.getEmail());
@@ -398,8 +402,8 @@ public class AuthService {
 
 	@Transactional
 	public boolean resetPassword(String token, String newPassword) {
-		if (newPassword == null || newPassword.length() < 6) {
-			throw new IllegalArgumentException("La contraseña debe tener al menos 6 caracteres");
+		if (newPassword == null || newPassword.length() < 8) {
+			throw new IllegalArgumentException("La contraseña debe tener al menos 8 caracteres");
 		}
 		var userOpt = userRepository.findByPasswordResetToken(token);
 		if (userOpt.isEmpty()) {
@@ -423,8 +427,8 @@ public class AuthService {
 
 	@Transactional
 	public void changePassword(String email, String currentPassword, String newPassword) {
-		if (newPassword == null || newPassword.length() < 6) {
-			throw new IllegalArgumentException("La nueva contraseña debe tener al menos 6 caracteres");
+		if (newPassword == null || newPassword.length() < 8) {
+			throw new IllegalArgumentException("La nueva contraseña debe tener al menos 8 caracteres");
 		}
 		UserEntity user = userRepository.findByEmail(email)
 			.orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));

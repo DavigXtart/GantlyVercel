@@ -66,7 +66,8 @@ public class UserProfileService {
                 user.getGender(),
                 user.getAge(),
                 user.getBirthDate(),
-                user.getCreatedAt()
+                user.getCreatedAt(),
+                user.getCompanyId()
         );
     }
 

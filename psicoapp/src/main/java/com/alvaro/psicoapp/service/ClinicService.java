@@ -183,9 +183,15 @@ public class ClinicService {
         appt.setPrice(req.price());
         appt.setNotes(req.notes());
         appt.setClinicNotes(req.clinicNotes());
-        appt.setPaymentStatus(req.paymentStatus() != null ? req.paymentStatus() : "PENDING");
+        String paymentMethod = req.paymentMethod() != null ? req.paymentMethod() : "STRIPE";
+        appt.setPaymentMethod(paymentMethod);
         appt.setModality(req.modality() != null ? req.modality() : "ONLINE");
-        appt.setPaymentMethod(req.paymentMethod() != null ? req.paymentMethod() : "STRIPE");
+        // CASH appointments are pre-paid by definition — auto-set to PAID so Jitsi won't block
+        if ("CASH".equalsIgnoreCase(paymentMethod)) {
+            appt.setPaymentStatus("PAID");
+        } else {
+            appt.setPaymentStatus(req.paymentStatus() != null ? req.paymentStatus() : "PENDING");
+        }
         appt.setRoomId(req.roomId());
         appt.setConfirmedAt(Instant.now());
         appointmentRepository.save(appt);
@@ -206,9 +212,17 @@ public class ClinicService {
         if (req.price() != null) appt.setPrice(req.price());
         if (req.notes() != null) appt.setNotes(req.notes());
         if (req.clinicNotes() != null) appt.setClinicNotes(req.clinicNotes());
-        if (req.paymentStatus() != null) appt.setPaymentStatus(req.paymentStatus());
         if (req.modality() != null) appt.setModality(req.modality());
-        if (req.paymentMethod() != null) appt.setPaymentMethod(req.paymentMethod());
+        if (req.paymentMethod() != null) {
+            appt.setPaymentMethod(req.paymentMethod());
+            // CASH appointments are pre-paid by definition — auto-set to PAID so Jitsi won't block
+            if ("CASH".equalsIgnoreCase(req.paymentMethod())) {
+                appt.setPaymentStatus("PAID");
+            }
+        }
+        if (req.paymentStatus() != null && !"CASH".equalsIgnoreCase(appt.getPaymentMethod())) {
+            appt.setPaymentStatus(req.paymentStatus());
+        }
         appt.setRoomId(req.roomId()); // null = quitar despacho
         if (req.patientId() != null) {
             UserEntity patient = userRepository.findById(req.patientId()).orElse(null);
@@ -561,12 +575,38 @@ public class ClinicService {
                 .collect(Collectors.toList());
     }
 
+    private static final Set<String> ALLOWED_FILE_EXTENSIONS = Set.of(
+            "pdf", "doc", "docx", "jpg", "jpeg", "png"
+    );
+    private static final long MAX_FILE_SIZE = 10L * 1024 * 1024; // 10MB
+
+    private void validateUploadedFile(org.springframework.web.multipart.MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El archivo esta vacio");
+        }
+        if (file.getSize() > MAX_FILE_SIZE) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "El archivo excede el tamano maximo permitido (10MB)");
+        }
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename != null && originalFilename.contains(".")) {
+            String ext = originalFilename.substring(originalFilename.lastIndexOf('.') + 1).toLowerCase();
+            if (!ALLOWED_FILE_EXTENSIONS.contains(ext)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Tipo de archivo no permitido. Extensiones validas: " + String.join(", ", ALLOWED_FILE_EXTENSIONS));
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El archivo debe tener una extension valida");
+        }
+    }
+
     @Transactional
     public DocumentDto uploadDocument(String email, Long patientId,
                                        org.springframework.web.multipart.MultipartFile file) {
         var company = getCompany(email);
         userRepository.findById(patientId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Paciente no encontrado"));
+        validateUploadedFile(file);
         try {
             java.io.File dir = new java.io.File("uploads/clinic-docs");
             if (!dir.exists()) dir.mkdirs();

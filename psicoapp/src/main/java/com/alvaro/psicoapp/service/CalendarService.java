@@ -22,7 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -42,6 +42,7 @@ public class CalendarService {
     private final UserPsychologistRepository userPsychologistRepository;
     private final EmailService emailService;
     private final NotificationService notificationService;
+    private final AuditService auditService;
 
     public CalendarService(AppointmentRepository appointmentRepository,
                            AppointmentRequestRepository appointmentRequestRepository,
@@ -49,7 +50,8 @@ public class CalendarService {
                            UserRepository userRepository,
                            UserPsychologistRepository userPsychologistRepository,
                            EmailService emailService,
-                           NotificationService notificationService) {
+                           NotificationService notificationService,
+                           AuditService auditService) {
         this.appointmentRepository = appointmentRepository;
         this.appointmentRequestRepository = appointmentRequestRepository;
         this.appointmentRatingRepository = appointmentRatingRepository;
@@ -57,6 +59,7 @@ public class CalendarService {
         this.userPsychologistRepository = userPsychologistRepository;
         this.emailService = emailService;
         this.notificationService = notificationService;
+        this.auditService = auditService;
     }
 
     @Transactional
@@ -72,7 +75,9 @@ public class CalendarService {
         a.setEndTime(req.end);
         a.setStatus(AppointmentStatus.FREE);
         a.setPrice(req.price);
-        return appointmentRepository.save(a);
+        var saved = appointmentRepository.save(a);
+        auditService.logCalendarAction("APPOINTMENT_CREATED", saved.getId(), psychologist.getId(), null);
+        return saved;
     }
 
     @Transactional
@@ -95,6 +100,7 @@ public class CalendarService {
                         "Horario eliminado", "El horario que solicitaste con " + psychologist.getName() + " ya no está disponible.");
                 });
         appointmentRepository.delete(appointment);
+        auditService.logCalendarAction("APPOINTMENT_CANCELLED", appointmentId, psychologist.getId(), null);
     }
 
     @Transactional
@@ -129,7 +135,9 @@ public class CalendarService {
             appointment.setEndTime(req.endTime);
         }
 
-        return appointmentRepository.save(appointment);
+        var saved = appointmentRepository.save(appointment);
+        auditService.logCalendarAction("APPOINTMENT_UPDATED", appointmentId, psychologist.getId(), null);
+        return saved;
     }
 
     public List<AppointmentEntity> getMySlots(UserEntity psychologist, Instant from, Instant to) {
@@ -178,7 +186,7 @@ public class CalendarService {
 
     @Transactional
     public void bookAppointment(UserEntity user, Long appointmentId) {
-        var appt = appointmentRepository.findById(appointmentId)
+        var appt = appointmentRepository.findByIdForUpdate(appointmentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cita no encontrada"));
 
         if (!"FREE".equals(appt.getStatus()) && !"REQUESTED".equals(appt.getStatus())) {
@@ -202,6 +210,8 @@ public class CalendarService {
 
         notificationService.createNotification(appt.getPsychologist().getId(), "APPOINTMENT",
             "Nueva solicitud de cita", user.getName() + " ha solicitado una cita contigo.");
+
+        auditService.logCalendarAction("APPOINTMENT_BOOKED", appointmentId, appt.getPsychologist().getId(), user.getId());
     }
 
     @Transactional(readOnly = true)
@@ -256,6 +266,8 @@ public class CalendarService {
 
         notificationService.createNotification(request.getUser().getId(), "APPOINTMENT",
             "Cita confirmada", "Tu cita con " + psychologist.getName() + " ha sido confirmada.");
+
+        auditService.logCalendarAction("APPOINTMENT_CONFIRMED", appointment.getId(), psychologist.getId(), request.getUser().getId());
     }
 
     @Transactional
@@ -277,6 +289,8 @@ public class CalendarService {
                 });
         appointment.setStatus("CANCELLED");
         appointmentRepository.save(appointment);
+        auditService.logCalendarAction("APPOINTMENT_CANCELLED", appointmentId, psychologist.getId(),
+                appointment.getUser() != null ? appointment.getUser().getId() : null);
 
         if (appointment.getUser() != null) {
             notificationService.createNotification(appointment.getUser().getId(), "APPOINTMENT",
@@ -320,6 +334,7 @@ public class CalendarService {
         appointment.setPaymentStatus("PENDING");
 
         var saved = appointmentRepository.save(appointment);
+        auditService.logCalendarAction("APPOINTMENT_CREATED", saved.getId(), psychologist.getId(), user.getId());
 
         try {
             emailService.sendAppointmentConfirmationEmail(
@@ -501,8 +516,8 @@ public class CalendarService {
     }
 
     private boolean isTodayOrFuture(Instant instant, Instant now) {
-        return instant.isAfter(now) || instant.atZone(ZoneId.systemDefault()).toLocalDate()
-                .equals(now.atZone(ZoneId.systemDefault()).toLocalDate());
+        return instant.isAfter(now) || instant.atZone(ZoneOffset.UTC).toLocalDate()
+                .equals(now.atZone(ZoneOffset.UTC).toLocalDate());
     }
 
     private boolean isVisibleToUser(AppointmentEntity s, UserEntity user) {

@@ -4,4 +4,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 public interface ClinicPatientDocumentRepository extends JpaRepository<ClinicPatientDocumentEntity, Long> {
     List<ClinicPatientDocumentEntity> findByCompanyIdAndPatientIdOrderByUploadedAtDesc(Long companyId, Long patientId);
+    boolean existsByCompanyIdAndFileName(Long companyId, String fileName);
 }

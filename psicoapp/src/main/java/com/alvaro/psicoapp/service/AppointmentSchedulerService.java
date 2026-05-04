@@ -24,19 +24,21 @@ public class AppointmentSchedulerService {
         this.emailService = emailService;
     }
 
-    @Scheduled(cron = "0 0 * * * ?")
+    @Scheduled(fixedRate = 900000)
     @Transactional
     public void expireUnpaidAppointments() {
         logger.info("Iniciando verificación de pagos expirados...");
 
         Instant now = Instant.now();
 
-        List<AppointmentEntity> expiredAppointments = appointmentRepository
-            .findByStatusAndPaymentStatusAndPaymentDeadlineBefore(
-                "CONFIRMED",
-                "PENDING",
-                now
-            );
+        // Check both CONFIRMED and BOOKED appointments with expired payment deadlines
+        List<AppointmentEntity> expiredConfirmed = appointmentRepository
+            .findByStatusAndPaymentStatusAndPaymentDeadlineBefore("CONFIRMED", "PENDING", now);
+        List<AppointmentEntity> expiredBooked = appointmentRepository
+            .findByStatusAndPaymentStatusAndPaymentDeadlineBefore("BOOKED", "PENDING", now);
+
+        List<AppointmentEntity> expiredAppointments = new java.util.ArrayList<>(expiredConfirmed);
+        expiredAppointments.addAll(expiredBooked);
 
         if (expiredAppointments.isEmpty()) {
             logger.info("No se encontraron citas con pagos expirados");
@@ -48,15 +50,15 @@ public class AppointmentSchedulerService {
         int expiredCount = 0;
         for (AppointmentEntity appointment : expiredAppointments) {
             try {
-
-                appointment.setPaymentStatus("EXPIRED");
-                appointment.setStatus("CANCELLED");
+                appointment.setStatus("FREE");
+                appointment.setPaymentStatus(null);
+                appointment.setUser(null);
+                appointment.setStripeSessionId(null);
                 appointmentRepository.save(appointment);
                 expiredCount++;
 
-                logger.info("Cita ID {} marcada como expirada y cancelada. Paciente: {}, Psicólogo: {}",
+                logger.info("Cita ID {} liberada por pago expirado. Psicólogo: {}",
                     appointment.getId(),
-                    appointment.getUser() != null ? appointment.getUser().getEmail() : "N/A",
                     appointment.getPsychologist() != null ? appointment.getPsychologist().getEmail() : "N/A"
                 );
             } catch (Exception e) {
@@ -64,7 +66,7 @@ public class AppointmentSchedulerService {
             }
         }
 
-        logger.info("Proceso completado. {} citas marcadas como expiradas", expiredCount);
+        logger.info("Proceso completado. {} citas liberadas por pago expirado", expiredCount);
     }
 
     @Scheduled(cron = "0 0 * * * ?")

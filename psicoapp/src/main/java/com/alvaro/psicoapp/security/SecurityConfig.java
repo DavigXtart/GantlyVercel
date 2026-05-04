@@ -81,7 +81,9 @@ public class SecurityConfig {
 				.requestMatchers("/api/flow/**").authenticated()
 				.requestMatchers("/api/profile/**").authenticated()
 				.requestMatchers("/api/tasks/**").authenticated()
-				.requestMatchers("/uploads/**").permitAll()
+				.requestMatchers("/uploads/avatars/**").permitAll()
+				.requestMatchers("/uploads/**").authenticated()
+				.requestMatchers("/api/files/**").authenticated()
 				.requestMatchers("/api/assigned-tests/**").authenticated()
 				.requestMatchers("/api/calendar/**").authenticated()
 				.requestMatchers("/api/psych/**").authenticated()
@@ -111,6 +113,7 @@ public class SecurityConfig {
                     boolean isCompany = authn != null && authn.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_EMPRESA"));
                     return new AuthorizationDecision(isCompany);
                 })
+                .requestMatchers("/api/patient/**").authenticated()
                 .requestMatchers("/error", "/favicon.ico").permitAll()
                 .anyRequest().authenticated()
             )

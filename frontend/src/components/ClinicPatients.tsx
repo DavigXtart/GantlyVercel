@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { clinicService } from '../services/api';
+import { clinicService, fileService } from '../services/api';
 import type { ClinicPatientSummary, ClinicPatientDetail, UpdatePatientReq } from '../services/api';
 
 interface Props {
@@ -820,16 +820,14 @@ function DetailView({
                           {new Date(doc.uploadedAt).toLocaleDateString('es-ES')}
                         </p>
                       </div>
-                      <a
-                        href={`/uploads/${doc.fileName}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ color: '#9ca3af', lineHeight: 1 }}
-                        onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.color = '#5a9270')}
-                        onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.color = '#9ca3af')}
+                      <button
+                        onClick={() => fileService.downloadClinicDoc(doc.fileName)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', lineHeight: 1, padding: 2 }}
+                        onMouseEnter={e => (e.currentTarget.style.color = '#5a9270')}
+                        onMouseLeave={e => (e.currentTarget.style.color = '#9ca3af')}
                       >
                         <span className="material-symbols-outlined" style={{ fontSize: 18 }}>download</span>
-                      </a>
+                      </button>
                       <button
                         onClick={() => handleDocDelete(doc.id)}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', lineHeight: 1, padding: 2 }}

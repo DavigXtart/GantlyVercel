@@ -8,6 +8,7 @@ import {
   jitsiService,
   consentService,
   stripeService,
+  patientClinicChatService,
 } from '../services/api';
 import CalendarWeek from './CalendarWeek';
 import ChatWidget from './ChatWidget';
@@ -41,7 +42,8 @@ type Tab =
   | 'evaluaciones'
   | 'descubrimiento'
   | 'chat'
-  | 'perfil-psicologo';
+  | 'perfil-psicologo'
+  | 'mensajes-clinica';
 
 
 interface UserDashboardProps {
@@ -82,8 +84,61 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
   const [signerNameForConsent, setSignerNameForConsent] = useState('');
   const [signingConsentId, setSigningConsentId] = useState<number | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('onboarding-completed'));
+  // Clinic chat state
+  const [clinicChatMessages, setClinicChatMessages] = useState<Array<{ id: number; sender: string; content: string; createdAt: string }>>([]);
+  const [clinicChatInput, setClinicChatInput] = useState('');
+  const [clinicChatSending, setClinicChatSending] = useState(false);
+  const [clinicChatLoading, setClinicChatLoading] = useState(false);
 
   const hasPsychologist = psych?.status === 'ASSIGNED';
+  const hasClinic = !!me?.companyId;
+
+  // Load clinic chat messages
+  const loadClinicChat = async () => {
+    if (!hasClinic) return;
+    try {
+      const msgs = await patientClinicChatService.getMessages();
+      setClinicChatMessages(msgs);
+    } catch {
+      // silently ignore
+    }
+  };
+
+  // Poll clinic chat every 5 seconds
+  useEffect(() => {
+    if (tab !== 'mensajes-clinica' || !hasClinic) return;
+    setClinicChatLoading(true);
+    loadClinicChat().finally(() => setClinicChatLoading(false));
+    const interval = setInterval(() => {
+      if (clinicChatMessages.length > 0) {
+        const lastTime = clinicChatMessages[clinicChatMessages.length - 1].createdAt;
+        patientClinicChatService.getMessages(lastTime)
+          .then((newMsgs) => {
+            if (newMsgs.length > 0) {
+              setClinicChatMessages((prev) => [...prev, ...newMsgs]);
+            }
+          })
+          .catch(() => {});
+      } else {
+        loadClinicChat();
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [tab, hasClinic]);
+
+  const handleSendClinicChat = async () => {
+    if (!clinicChatInput.trim() || clinicChatSending) return;
+    setClinicChatSending(true);
+    try {
+      const msg = await patientClinicChatService.sendMessage(clinicChatInput.trim());
+      setClinicChatMessages((prev) => [...prev, msg]);
+      setClinicChatInput('');
+    } catch {
+      toast.error('Error al enviar el mensaje');
+    } finally {
+      setClinicChatSending(false);
+    }
+  };
 
   const isMinor = useMemo(() => {
     if (!me) return false;
@@ -351,6 +406,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             { id: 'calendario', icon: 'calendar_today', label: 'Calendario', requiresPsych: true },
             { id: 'agenda-personal', icon: 'book', label: 'Agenda', requiresPsych: false },
             { id: 'chat', icon: 'chat', label: 'Chat', requiresPsych: true },
+            ...(me?.companyId ? [{ id: 'mensajes-clinica', icon: 'business_messages', label: 'Clínica', requiresPsych: false }] : []),
           ].map((item) => {
             const isDisabled = item.requiresPsych && !hasPsychologist;
             const isActive = tab === item.id;
@@ -435,12 +491,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                 <button
                   type="button"
                   onClick={() => {
-                    setEditProfileForm({
-                      name: me?.name ?? '',
-                      gender: me?.gender ?? '',
-                      birthDate: me?.birthDate ? (typeof me.birthDate === 'string' ? me.birthDate.slice(0, 10) : '') : '',
-                    });
-                    setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
                     setTab('configuracion');
                   }}
                   className="px-4 py-2 rounded-full border border-sage/30 text-sm text-sage hover:bg-sage hover:text-white transition inline-flex items-center gap-2"
@@ -1399,6 +1449,83 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     );
                   })}
               </div>
+            )}
+          </div>
+        )}
+
+        {/* Mensajes Clinica */}
+        {tab === 'mensajes-clinica' && hasClinic && (
+          <div className="mt-10 bg-white rounded-3xl p-8 border border-sage/10 soft-shadow">
+            <h2 className="text-2xl font-normal mb-6 flex items-center gap-2">
+              <span className="material-symbols-outlined text-xl text-sage">business_messages</span>
+              Mensajes de tu clinica
+            </h2>
+
+            {clinicChatLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="w-6 h-6 border-2 border-sage/20 border-t-sage rounded-full animate-spin" />
+              </div>
+            ) : (
+              <>
+                {/* Messages list */}
+                <div className="space-y-3 max-h-[500px] overflow-y-auto mb-6 pr-2">
+                  {clinicChatMessages.length === 0 ? (
+                    <p className="text-sage/60 text-sm text-center py-8">
+                      No hay mensajes todavia. Escribe el primer mensaje a tu clinica.
+                    </p>
+                  ) : (
+                    clinicChatMessages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`flex ${msg.sender === 'PATIENT' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-[75%] rounded-2xl px-4 py-3 ${
+                            msg.sender === 'PATIENT'
+                              ? 'bg-sage text-white rounded-br-md'
+                              : 'bg-sage/10 text-forest rounded-bl-md'
+                          }`}
+                        >
+                          <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                          <p className={`text-[10px] mt-1 ${msg.sender === 'PATIENT' ? 'text-white/60' : 'text-sage/50'}`}>
+                            {new Date(msg.createdAt).toLocaleString('es-ES', {
+                              day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Input */}
+                <div className="flex gap-3">
+                  <textarea
+                    value={clinicChatInput}
+                    onChange={(e) => setClinicChatInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendClinicChat();
+                      }
+                    }}
+                    placeholder="Escribe un mensaje..."
+                    rows={2}
+                    className="flex-1 px-4 py-3 rounded-xl border border-sage/20 text-forest placeholder-sage/50 focus:outline-none focus:ring-2 focus:ring-sage/30 resize-none"
+                  />
+                  <button
+                    onClick={handleSendClinicChat}
+                    disabled={!clinicChatInput.trim() || clinicChatSending}
+                    className="px-5 py-3 bg-sage text-white rounded-xl font-medium hover:bg-forest transition disabled:opacity-50 disabled:cursor-not-allowed self-end"
+                  >
+                    {clinicChatSending ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <span className="material-symbols-outlined text-lg">send</span>
+                    )}
+                  </button>
+                </div>
+              </>
             )}
           </div>
         )}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { tasksService, API_BASE_URL } from '../services/api';
+import { tasksService, fileService } from '../services/api';
 import { toast } from './ui/Toast';
 
 interface UserTasksTabProps {
@@ -402,15 +402,14 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
                         </div>
                       </div>
                     </div>
-                    <a
-                      href={`${API_BASE_URL}${file.filePath}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => fileService.downloadTaskFile(file.filePath)}
                       style={{
                         padding: '8px 16px',
                         background: '#5a9270',
                         color: 'white',
-                        textDecoration: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
                         borderRadius: '12px',
                         fontSize: '13px',
                         fontWeight: 600,
@@ -421,7 +420,7 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
                       }}
                     >
                       Descargar
-                    </a>
+                    </button>
                   </div>
                 ))}
               </div>

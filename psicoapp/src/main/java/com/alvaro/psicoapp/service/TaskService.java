@@ -27,6 +27,31 @@ import java.util.stream.Collectors;
 @Service
 public class TaskService {
     private static final Logger logger = LoggerFactory.getLogger(TaskService.class);
+    private static final Set<String> ALLOWED_FILE_EXTENSIONS = Set.of(
+            "pdf", "doc", "docx", "jpg", "jpeg", "png"
+    );
+    private static final long MAX_FILE_SIZE = 10L * 1024 * 1024; // 10MB
+
+    private void validateUploadedFile(MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El archivo esta vacio");
+        }
+        if (file.getSize() > MAX_FILE_SIZE) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "El archivo excede el tamano maximo permitido (10MB)");
+        }
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename != null && originalFilename.contains(".")) {
+            String ext = originalFilename.substring(originalFilename.lastIndexOf('.') + 1).toLowerCase();
+            if (!ALLOWED_FILE_EXTENSIONS.contains(ext)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Tipo de archivo no permitido. Extensiones validas: " + String.join(", ", ALLOWED_FILE_EXTENSIONS));
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El archivo debe tener una extension valida");
+        }
+    }
+
     private final TaskRepository taskRepository;
     private final TaskFileRepository taskFileRepository;
     private final TaskCommentRepository taskCommentRepository;
@@ -99,9 +124,7 @@ public class TaskService {
     public TaskDtos.UploadFileResponse uploadTaskFile(UserEntity actor, Long taskId, MultipartFile file) {
         TaskEntity task = taskRepository.findById(taskId).orElseThrow();
         requireTaskAccess(actor, task);
-        if (file.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El archivo está vacío");
-        }
+        validateUploadedFile(file);
         File uploadsDir = new File("uploads");
         if (!uploadsDir.exists() && !uploadsDir.mkdirs()) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo crear el directorio uploads");
@@ -175,6 +198,24 @@ public class TaskService {
         task.setCompletedAt(Instant.now());
         taskRepository.save(task);
         return new TaskDtos.CompleteTaskResponse("Tarea marcada como completada", task.getCompletedAt().toString());
+    }
+
+    @Transactional
+    public TaskDtos.ReopenTaskResponse reopenTask(UserEntity user, Long taskId) {
+        TaskEntity task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarea no encontrada"));
+        if (!RoleConstants.PSYCHOLOGIST.equals(user.getRole())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo el psicólogo puede reabrir tareas");
+        }
+        if (!task.getPsychologist().getId().equals(user.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes acceso a esta tarea");
+        }
+        if (task.getCompletedAt() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La tarea no está completada");
+        }
+        task.setCompletedAt(null);
+        taskRepository.save(task);
+        return new TaskDtos.ReopenTaskResponse("Tarea reabierta exitosamente");
     }
 
     @Transactional(readOnly = true)

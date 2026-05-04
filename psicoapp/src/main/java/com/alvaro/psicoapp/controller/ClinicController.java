@@ -4,6 +4,7 @@ import com.alvaro.psicoapp.domain.ClinicChatMessageEntity;
 import com.alvaro.psicoapp.repository.ClinicChatMessageRepository;
 import com.alvaro.psicoapp.repository.CompanyRepository;
 import com.alvaro.psicoapp.service.ClinicService;
+import com.alvaro.psicoapp.service.NotificationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,13 +24,16 @@ public class ClinicController {
     private final ClinicService clinicService;
     private final ClinicChatMessageRepository chatRepo;
     private final CompanyRepository companyRepository;
+    private final NotificationService notificationService;
 
     public ClinicController(ClinicService clinicService,
                              ClinicChatMessageRepository chatRepo,
-                             CompanyRepository companyRepository) {
+                             CompanyRepository companyRepository,
+                             NotificationService notificationService) {
         this.clinicService = clinicService;
         this.chatRepo = chatRepo;
         this.companyRepository = companyRepository;
+        this.notificationService = notificationService;
     }
 
     private String getCompanyEmail(Principal principal) {
@@ -275,6 +279,15 @@ public class ClinicController {
         msg.setSender("CLINIC");
         msg.setContent(req.content());
         chatRepo.save(msg);
+
+        // Create notification for the patient
+        notificationService.createNotification(
+                patientId,
+                "CLINIC_CHAT",
+                "Mensaje de tu clinica",
+                "Tu clinica te ha enviado un mensaje"
+        );
+
         return ResponseEntity.ok(new ChatMessageDto(msg.getId(), msg.getSender(), msg.getContent(), msg.getCreatedAt().toString()));
     }
 

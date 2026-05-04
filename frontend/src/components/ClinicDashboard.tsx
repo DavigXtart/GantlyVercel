@@ -675,7 +675,7 @@ export default function ClinicDashboard() {
             )}
             {activeTab === 'facturacion' && (
               <div style={{ flex: 1, overflowY: 'auto' }}>
-                <ClinicBilling psychologists={psychologists} />
+                <ClinicBilling psychologists={psychologists} clinicName={clinicInfo?.name} />
               </div>
             )}
             {activeTab === 'configuracion' && (

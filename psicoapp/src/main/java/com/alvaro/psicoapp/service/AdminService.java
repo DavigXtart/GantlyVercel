@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.File;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,6 +30,7 @@ public class AdminService {
     private final EvaluationTestRepository evaluationTestRepository;
     private final AppointmentRepository appointmentRepository;
     private final PsychologistProfileRepository psychologistProfileRepository;
+    private final TaskFileRepository taskFileRepository;
     private final NotificationService notificationService;
     private final EmailService emailService;
 
@@ -38,6 +40,7 @@ public class AdminService {
                         FactorRepository factorRepository, UserPsychologistRepository userPsychologistRepository,
                         EvaluationTestRepository evaluationTestRepository, AppointmentRepository appointmentRepository,
                         PsychologistProfileRepository psychologistProfileRepository,
+                        TaskFileRepository taskFileRepository,
                         NotificationService notificationService, EmailService emailService) {
         this.testRepository = testRepository;
         this.questionRepository = questionRepository;
@@ -48,6 +51,7 @@ public class AdminService {
         this.factorRepository = factorRepository;
         this.userPsychologistRepository = userPsychologistRepository;
         this.evaluationTestRepository = evaluationTestRepository;
+        this.taskFileRepository = taskFileRepository;
         this.appointmentRepository = appointmentRepository;
         this.psychologistProfileRepository = psychologistProfileRepository;
         this.notificationService = notificationService;
@@ -613,5 +617,43 @@ public class AdminService {
                 ua.getQuestion().getType(), answerId, answerText, answerValue,
                 ua.getNumericValue(), ua.getTextValue(), ua.getCreatedAt()
         );
+    }
+
+    public int cleanupOrphanedTaskFiles() {
+        File uploadsDir = new File("uploads/tasks");
+        if (!uploadsDir.exists() || !uploadsDir.isDirectory()) {
+            return 0;
+        }
+
+        // Get all known filenames from DB
+        List<TaskFileEntity> allDbFiles = taskFileRepository.findAll();
+        Set<String> knownFilenames = allDbFiles.stream()
+                .map(f -> {
+                    String path = f.getFilePath();
+                    // filePath is stored as "/uploads/tasks/filename.ext"
+                    int lastSlash = path.lastIndexOf('/');
+                    return lastSlash >= 0 ? path.substring(lastSlash + 1) : path;
+                })
+                .collect(Collectors.toSet());
+
+        // List all files on disk
+        File[] diskFiles = uploadsDir.listFiles();
+        if (diskFiles == null) {
+            return 0;
+        }
+
+        int deletedCount = 0;
+        for (File diskFile : diskFiles) {
+            if (diskFile.isFile() && !knownFilenames.contains(diskFile.getName())) {
+                if (diskFile.delete()) {
+                    deletedCount++;
+                    logger.info("Deleted orphaned task file: {}", diskFile.getName());
+                } else {
+                    logger.warn("Failed to delete orphaned task file: {}", diskFile.getName());
+                }
+            }
+        }
+
+        return deletedCount;
     }
 }

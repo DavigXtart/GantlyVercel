@@ -34,4 +34,9 @@ public class AuditService {
         auditLogger.info("RGPD_DELETION|deleterId={}|deleterRole={}|targetPatientId={}|dataType={}|timestamp={}",
                 deleterId, deleterRole, targetPatientId, dataType, Instant.now());
     }
+
+    public void logCalendarAction(String action, Long appointmentId, Long psychologistId, Long userId) {
+        auditLogger.info("CALENDAR_AUDIT|action={}|appointmentId={}|psychologistId={}|userId={}|timestamp={}",
+                action, appointmentId, psychologistId, userId, Instant.now());
+    }
 }

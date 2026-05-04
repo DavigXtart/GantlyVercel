@@ -4,6 +4,7 @@ import type { ClinicBillingItem } from '../services/api';
 
 interface Props {
   psychologists: Array<{ id: number; name: string }>;
+  clinicName?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -268,7 +269,7 @@ function exportCsv(items: ClinicBillingItem[]): void {
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
-export default function ClinicBilling({ psychologists }: Props) {
+export default function ClinicBilling({ psychologists, clinicName }: Props) {
   const [from, setFrom] = useState(daysAgo(30));
   const [to, setTo] = useState(daysFromNow(365));
   const [psychologistId, setPsychologistId] = useState<number | undefined>(undefined);
@@ -502,7 +503,7 @@ export default function ClinicBilling({ psychologists }: Props) {
               </span>
               <span style={{ textAlign: 'center' }}>
                 <button
-                  onClick={() => generateInvoicePdf(item, 'Mi Clínica')}
+                  onClick={() => generateInvoicePdf(item, clinicName || 'Mi Clinica')}
                   title="Descargar factura"
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 4, lineHeight: 1 }}
                   onMouseEnter={(e) => (e.currentTarget.style.color = '#5a9270')}

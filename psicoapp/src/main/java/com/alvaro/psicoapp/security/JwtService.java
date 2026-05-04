@@ -119,6 +119,24 @@ public class JwtService {
 		}
 	}
 
+	/**
+	 * Extracts the expiration date from a JWT token (access or refresh).
+	 * Returns null if the token is invalid or expired.
+	 */
+	public Date getExpiration(String token) {
+		try {
+			Jws<Claims> jws = Jwts.parserBuilder()
+				.setSigningKey(key)
+				.build()
+				.parseClaimsJws(token);
+			return jws.getBody().getExpiration();
+		} catch (ExpiredJwtException e) {
+			return e.getClaims().getExpiration();
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
 	public static class TokenPair {
 		public final String accessToken;
 		public final String refreshToken;

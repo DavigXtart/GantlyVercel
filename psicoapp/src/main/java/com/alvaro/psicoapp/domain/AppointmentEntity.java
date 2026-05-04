@@ -2,6 +2,8 @@ package com.alvaro.psicoapp.domain;
 
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "appointments")
@@ -67,6 +69,9 @@ public class AppointmentEntity {
     @Column(name = "room_id")
     private Long roomId;
 
+    @OneToMany(mappedBy = "appointment", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<AppointmentRequestEntity> requests = new ArrayList<>();
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public UserEntity getPsychologist() { return psychologist; }
@@ -105,4 +110,6 @@ public class AppointmentEntity {
     public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
     public Long getRoomId() { return roomId; }
     public void setRoomId(Long roomId) { this.roomId = roomId; }
+    public List<AppointmentRequestEntity> getRequests() { return requests; }
+    public void setRequests(List<AppointmentRequestEntity> requests) { this.requests = requests; }
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { tasksService, API_BASE_URL } from '../services/api';
+import { tasksService, fileService } from '../services/api';
 import EmptyState from './ui/EmptyState';
 import { toast } from './ui/Toast';
 
@@ -372,15 +372,14 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                         </div>
                       </div>
                     </div>
-                    <a
-                      href={`${API_BASE_URL}${file.filePath}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => fileService.downloadTaskFile(file.filePath)}
                       style={{
                         padding: '8px 16px',
                         background: '#5a9270',
                         color: 'white',
-                        textDecoration: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
                         borderRadius: '12px',
                         fontSize: '13px',
                         fontWeight: 600,
@@ -400,7 +399,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                       }}
                     >
                       Descargar
-                    </a>
+                    </button>
                   </div>
                 ))}
               </div>
@@ -806,6 +805,55 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                       }}>
                         {t.description || 'Sin descripción'}
                       </div>
+                      {t.completedAt && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{
+                            padding: '4px 10px',
+                            background: '#E8F5E9',
+                            color: '#2E7D32',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            fontFamily: "'Inter', sans-serif"
+                          }}>
+                            Completada
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              (async () => {
+                                try {
+                                  await tasksService.reopen(t.id);
+                                  toast.success('Tarea reabierta exitosamente');
+                                  await onRefresh();
+                                } catch (error: any) {
+                                  toast.error(error.response?.data?.error || error.response?.data?.message || 'Error al reabrir la tarea');
+                                }
+                              })();
+                            }}
+                            style={{
+                              padding: '4px 12px',
+                              background: '#FFF3E0',
+                              color: '#E65100',
+                              border: '1px solid rgba(230, 81, 0, 0.3)',
+                              borderRadius: '6px',
+                              fontSize: '12px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              fontFamily: "'Inter', sans-serif",
+                              transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#FFE0B2';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = '#FFF3E0';
+                            }}
+                          >
+                            Reabrir
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

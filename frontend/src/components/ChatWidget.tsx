@@ -26,6 +26,9 @@ type Message = {
   userId?: number;
 };
 
+const INITIAL_RECONNECT_DELAY = 3000;
+const MAX_RECONNECT_DELAY = 30000;
+
 export default function ChatWidget({ mode, otherId }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -33,11 +36,13 @@ export default function ChatWidget({ mode, otherId }: Props) {
   const [userId, setUserId] = useState<number | null>(null);
   const [connected, setConnected] = useState(false);
   const [sending, setSending] = useState(false);
+  const [reconnecting, setReconnecting] = useState(false);
   const [otherUser, setOtherUser] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const clientRef = useRef<Client | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
+  const reconnectDelayRef = useRef(INITIAL_RECONNECT_DELAY);
 
   useEffect(() => {
     // Limpiar conexión anterior solo si cambian los IDs
@@ -134,12 +139,15 @@ export default function ChatWidget({ mode, otherId }: Props) {
       return;
     }
 
+    // Reset reconnect delay for new connection attempt
+    reconnectDelayRef.current = INITIAL_RECONNECT_DELAY;
+
     const client = new Client({
       webSocketFactory: () => {
         const socket = new SockJS(`${WS_BASE_URL}/ws`);
         return socket;
       },
-      reconnectDelay: 3000,
+      reconnectDelay: reconnectDelayRef.current,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
       connectHeaders: {
@@ -147,9 +155,17 @@ export default function ChatWidget({ mode, otherId }: Props) {
       },
       debug: () => {},
     });
-    
+
+    // Override beforeConnect to apply exponential backoff
+    client.beforeConnect = () => {
+      client.reconnectDelay = reconnectDelayRef.current;
+    };
+
     client.onConnect = () => {
       setConnected(true);
+      setReconnecting(false);
+      // Reset delay on successful connection
+      reconnectDelayRef.current = INITIAL_RECONNECT_DELAY;
       const topic = `/topic/chat/${psychologistId}/${uId}`;
 
       client.subscribe(topic, (msg: IMessage) => {
@@ -198,19 +214,28 @@ export default function ChatWidget({ mode, otherId }: Props) {
         }
       });
     };
-    
+
     client.onDisconnect = () => {
       setConnected(false);
-    };
-    
-    client.onStompError = () => {
-      setConnected(false);
+      setReconnecting(true);
+      // Exponential backoff: double the delay, cap at MAX_RECONNECT_DELAY
+      reconnectDelayRef.current = Math.min(reconnectDelayRef.current * 2, MAX_RECONNECT_DELAY);
     };
 
-    client.onWebSocketError = () => {};
+    client.onStompError = () => {
+      setConnected(false);
+      setReconnecting(true);
+      reconnectDelayRef.current = Math.min(reconnectDelayRef.current * 2, MAX_RECONNECT_DELAY);
+    };
+
+    client.onWebSocketError = () => {
+      setReconnecting(true);
+      reconnectDelayRef.current = Math.min(reconnectDelayRef.current * 2, MAX_RECONNECT_DELAY);
+    };
 
     client.onWebSocketClose = () => {
       setConnected(false);
+      setReconnecting(true);
     };
 
     client.activate();
@@ -394,7 +419,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
               background: connected ? '#34c759' : '#ff9500',
               display: 'inline-block'
             }}></div>
-            {connected ? 'En línea' : 'Conectando...'}
+            {connected ? 'En línea' : reconnecting ? 'Reconectando...' : 'Conectando...'}
           </div>
         </div>
       </div>

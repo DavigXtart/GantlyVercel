@@ -37,6 +37,8 @@ public final class TaskDtos {
 
     public record CompleteTaskResponse(String message, String completedAt) {}
 
+    public record ReopenTaskResponse(String message) {}
+
     public record TaskCommentDto(
             Long id,
             String content,

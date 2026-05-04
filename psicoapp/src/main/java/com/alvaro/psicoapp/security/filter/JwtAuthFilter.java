@@ -12,6 +12,7 @@ import com.alvaro.psicoapp.domain.RoleConstants;
 import com.alvaro.psicoapp.repository.CompanyRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
 import com.alvaro.psicoapp.security.JwtService;
+import com.alvaro.psicoapp.service.TokenBlacklistService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -26,11 +27,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final CompanyRepository companyRepository;
+    private final TokenBlacklistService tokenBlacklistService;
 
-    public JwtAuthFilter(JwtService jwtService, UserRepository userRepository, CompanyRepository companyRepository) {
+    public JwtAuthFilter(JwtService jwtService, UserRepository userRepository, CompanyRepository companyRepository,
+                         TokenBlacklistService tokenBlacklistService) {
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.companyRepository = companyRepository;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
 	@Override
@@ -41,6 +45,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 		if (header != null && header.startsWith("Bearer ")) {
 			String token = header.substring(7);
             try {
+                // Check if token has been blacklisted (logged out)
+                if (tokenBlacklistService.isBlacklisted(token)) {
+                    logger.debug("Token blacklisted (logged out)");
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
                 String subject = jwtService.parseSubject(token);
 
                 if (subject == null || subject.trim().isEmpty()) {

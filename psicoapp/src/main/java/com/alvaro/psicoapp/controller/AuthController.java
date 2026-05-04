@@ -4,6 +4,8 @@ import com.alvaro.psicoapp.dto.AuthDtos;
 import com.alvaro.psicoapp.service.AuthService;
 import com.alvaro.psicoapp.service.ClinicService;
 import com.alvaro.psicoapp.service.CompanyAuthService;
+import com.alvaro.psicoapp.service.TokenBlacklistService;
+import com.alvaro.psicoapp.service.TotpEncryptionService;
 import com.alvaro.psicoapp.service.TotpService;
 import com.alvaro.psicoapp.domain.UserEntity;
 import com.alvaro.psicoapp.repository.UserRepository;
@@ -26,15 +28,21 @@ public class AuthController {
 
 	private final AuthService authService;
 	private final CompanyAuthService companyAuthService;
+	private final TokenBlacklistService tokenBlacklistService;
 	private final TotpService totpService;
+	private final TotpEncryptionService totpEncryptionService;
 	private final UserRepository userRepository;
 	private final ClinicService clinicService;
 
 	public AuthController(AuthService authService, CompanyAuthService companyAuthService,
-			TotpService totpService, UserRepository userRepository, ClinicService clinicService) {
+			TokenBlacklistService tokenBlacklistService,
+			TotpService totpService, TotpEncryptionService totpEncryptionService,
+			UserRepository userRepository, ClinicService clinicService) {
 		this.authService = authService;
 		this.companyAuthService = companyAuthService;
+		this.tokenBlacklistService = tokenBlacklistService;
 		this.totpService = totpService;
+		this.totpEncryptionService = totpEncryptionService;
 		this.userRepository = userRepository;
 		this.clinicService = clinicService;
 	}
@@ -80,6 +88,29 @@ public class AuthController {
 	public ResponseEntity<AuthDtos.TokenResponse> refreshToken(@Valid @RequestBody AuthDtos.RefreshTokenRequest req) {
 		String newAccessToken = authService.refreshAccessToken(req.refreshToken);
 		return ResponseEntity.ok(new AuthDtos.TokenResponse(newAccessToken, req.refreshToken, 900));
+	}
+
+	@PostMapping("/logout")
+	@Operation(summary = "Cerrar sesión", description = "Invalida el access token y opcionalmente el refresh token")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Sesión cerrada exitosamente")
+	})
+	public ResponseEntity<AuthDtos.MessageStatusResponse> logout(
+			@RequestHeader(value = "Authorization", required = false) String authHeader,
+			@RequestBody(required = false) java.util.Map<String, String> body) {
+		// Blacklist the access token
+		if (authHeader != null && authHeader.startsWith("Bearer ")) {
+			String accessToken = authHeader.substring(7);
+			tokenBlacklistService.blacklist(accessToken);
+		}
+		// Blacklist the refresh token if provided
+		if (body != null && body.containsKey("refreshToken")) {
+			String refreshToken = body.get("refreshToken");
+			if (refreshToken != null && !refreshToken.isEmpty()) {
+				tokenBlacklistService.blacklist(refreshToken);
+			}
+		}
+		return ResponseEntity.ok(new AuthDtos.MessageStatusResponse("Sesión cerrada exitosamente", "success"));
 	}
 
 	@PostMapping("/company/register")
@@ -260,7 +291,8 @@ public class AuthController {
         if (user == null) return ResponseEntity.status(401).build();
         String secret = totpService.generateSecret();
         String qrCode = totpService.getQrCodeDataUri(secret, user.getEmail());
-        user.setTotpSecret(secret);
+        // Encrypt the secret before storing
+        user.setTotpSecret(totpEncryptionService.encrypt(secret));
         userRepository.save(user);
         return ResponseEntity.ok(java.util.Map.of("secret", secret, "qrCode", qrCode));
     }
@@ -274,7 +306,9 @@ public class AuthController {
         if (user.getTotpSecret() == null) {
             return ResponseEntity.badRequest().body(new AuthDtos.MessageStatusResponse("Primero debes configurar 2FA", "error"));
         }
-        if (!totpService.verifyCode(user.getTotpSecret(), code)) {
+        // Decrypt the stored secret before verification
+        String decryptedSecret = totpEncryptionService.decrypt(user.getTotpSecret());
+        if (!totpService.verifyCode(decryptedSecret, code)) {
             return ResponseEntity.badRequest().body(new AuthDtos.MessageStatusResponse("Código inválido", "error"));
         }
         user.setTotpEnabled(true);

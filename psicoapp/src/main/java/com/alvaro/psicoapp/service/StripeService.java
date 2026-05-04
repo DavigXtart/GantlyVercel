@@ -9,13 +9,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.alvaro.psicoapp.domain.AppointmentEntity;
+import com.alvaro.psicoapp.domain.UserSubscriptionEntity;
 import com.alvaro.psicoapp.repository.AppointmentRepository;
+import com.alvaro.psicoapp.repository.UserRepository;
+import com.alvaro.psicoapp.repository.UserSubscriptionRepository;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
+import com.stripe.model.PaymentIntent;
 import com.stripe.model.Subscription;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
+import com.stripe.net.RequestOptions;
 import com.stripe.param.checkout.SessionCreateParams;
 
 import jakarta.annotation.PostConstruct;
@@ -35,10 +40,15 @@ public class StripeService {
 
     private final AppointmentRepository appointmentRepository;
     private final NotificationService notificationService;
+    private final UserRepository userRepository;
+    private final UserSubscriptionRepository userSubscriptionRepository;
 
-    public StripeService(AppointmentRepository appointmentRepository, NotificationService notificationService) {
+    public StripeService(AppointmentRepository appointmentRepository, NotificationService notificationService,
+                         UserRepository userRepository, UserSubscriptionRepository userSubscriptionRepository) {
         this.appointmentRepository = appointmentRepository;
         this.notificationService = notificationService;
+        this.userRepository = userRepository;
+        this.userSubscriptionRepository = userSubscriptionRepository;
     }
 
     @PostConstruct
@@ -164,7 +174,25 @@ public class StripeService {
                     .putMetadata("type", "appointment")
                     .build();
 
-            Session session = Session.create(params);
+            // Idempotency key to prevent duplicate session creation
+            RequestOptions requestOptions = RequestOptions.builder()
+                    .setIdempotencyKey("apt-" + appointmentId)
+                    .build();
+
+            Session session = Session.create(params, requestOptions);
+
+            // Amount validation: verify the session amount matches the appointment price
+            Long sessionAmount = session.getAmountTotal();
+            if (sessionAmount != null && sessionAmount != amountCents) {
+                // Cancel the mismatched session
+                try {
+                    session.expire();
+                } catch (Exception cancelEx) {
+                    logger.error("Error cancelando sesión con monto incorrecto: {}", cancelEx.getMessage());
+                }
+                throw new RuntimeException("El monto de la sesión de pago (" + sessionAmount +
+                        ") no coincide con el precio de la cita (" + amountCents + ")");
+            }
 
             appointment.setStripeSessionId(session.getId());
             appointmentRepository.save(appointment);
@@ -207,6 +235,12 @@ public class StripeService {
                     Subscription subscription = (Subscription) event.getDataObjectDeserializer().getObject().orElse(null);
                     if (subscription != null) {
                         handleSubscriptionUpdate(subscription, event.getType());
+                    }
+                    break;
+                case "payment_intent.payment_failed":
+                    PaymentIntent paymentIntent = (PaymentIntent) event.getDataObjectDeserializer().getObject().orElse(null);
+                    if (paymentIntent != null) {
+                        handlePaymentFailed(paymentIntent);
                     }
                     break;
                 default:
@@ -280,6 +314,12 @@ public class StripeService {
         try {
             Long appointmentId = Long.parseLong(appointmentIdStr);
             appointmentRepository.findById(appointmentId).ifPresent(appointment -> {
+                // Deduplication: skip if already processed
+                if ("PAID".equals(appointment.getPaymentStatus())) {
+                    logger.info("Webhook duplicado ignorado para cita {} (ya pagada)", appointmentId);
+                    return;
+                }
+
                 appointment.setPaymentStatus("PAID");
                 appointment.setStatus("BOOKED");
                 appointment.setStripeSessionId(session.getId());
@@ -301,21 +341,108 @@ public class StripeService {
     }
 
     private void handleSubscriptionCreated(Session session) {
-
         String customerEmail = session.getCustomerEmail();
         String planId = session.getMetadata().get("planId");
         boolean isYearly = Boolean.parseBoolean(session.getMetadata().get("isYearly"));
+        String subscriptionId = session.getSubscription();
 
         logger.info("Suscripción creada para: {}, Plan: {}, Anual: {}", customerEmail, planId, isYearly);
 
+        if (subscriptionId != null && customerEmail != null) {
+            userRepository.findByEmail(customerEmail).ifPresent(user -> {
+                try {
+                    // Retrieve subscription details from Stripe
+                    Subscription sub = Subscription.retrieve(subscriptionId);
+
+                    UserSubscriptionEntity entity = userSubscriptionRepository
+                            .findByStripeSubscriptionId(subscriptionId)
+                            .orElse(new UserSubscriptionEntity());
+
+                    entity.setUserId(user.getId());
+                    entity.setStripeSubscriptionId(subscriptionId);
+                    entity.setStatus("ACTIVE");
+                    entity.setUpdatedAt(java.time.Instant.now());
+
+                    if (sub.getItems() != null && !sub.getItems().getData().isEmpty()) {
+                        entity.setStripePriceId(sub.getItems().getData().get(0).getPrice().getId());
+                    }
+                    if (sub.getCurrentPeriodEnd() != null) {
+                        entity.setCurrentPeriodEnd(java.time.Instant.ofEpochSecond(sub.getCurrentPeriodEnd()));
+                    }
+
+                    userSubscriptionRepository.save(entity);
+                    logger.info("Suscripción {} persistida para usuario {}", subscriptionId, user.getEmail());
+                } catch (Exception e) {
+                    logger.error("Error persistiendo suscripción {}: {}", subscriptionId, e.getMessage());
+                }
+            });
+        }
     }
 
     private void handleSubscriptionUpdate(Subscription subscription, String eventType) {
-        String customerId = subscription.getCustomer();
-        String status = subscription.getStatus();
+        String subscriptionId = subscription.getId();
+        String stripeStatus = subscription.getStatus();
 
-        logger.info("Suscripción actualizada: {}, Estado: {}, Evento: {}", customerId, status, eventType);
+        logger.info("Suscripción actualizada: {}, Estado: {}, Evento: {}", subscriptionId, stripeStatus, eventType);
 
+        userSubscriptionRepository.findByStripeSubscriptionId(subscriptionId).ifPresent(entity -> {
+            // Map Stripe status to our status
+            String mappedStatus;
+            switch (stripeStatus) {
+                case "active":
+                    mappedStatus = "ACTIVE";
+                    break;
+                case "canceled":
+                    mappedStatus = "CANCELLED";
+                    break;
+                case "past_due":
+                    mappedStatus = "PAST_DUE";
+                    break;
+                default:
+                    mappedStatus = stripeStatus.toUpperCase();
+                    break;
+            }
+
+            entity.setStatus(mappedStatus);
+            entity.setUpdatedAt(java.time.Instant.now());
+
+            if (subscription.getCurrentPeriodEnd() != null) {
+                entity.setCurrentPeriodEnd(java.time.Instant.ofEpochSecond(subscription.getCurrentPeriodEnd()));
+            }
+            if (subscription.getItems() != null && !subscription.getItems().getData().isEmpty()) {
+                entity.setStripePriceId(subscription.getItems().getData().get(0).getPrice().getId());
+            }
+
+            userSubscriptionRepository.save(entity);
+            logger.info("Suscripción {} actualizada a estado {}", subscriptionId, mappedStatus);
+        });
+    }
+
+    private void handlePaymentFailed(PaymentIntent paymentIntent) {
+        Map<String, String> metadata = paymentIntent.getMetadata();
+        if (metadata == null) return;
+
+        String appointmentIdStr = metadata.get("appointmentId");
+        if (appointmentIdStr == null) return;
+
+        try {
+            Long appointmentId = Long.parseLong(appointmentIdStr);
+            appointmentRepository.findById(appointmentId).ifPresent(appointment -> {
+                logger.warn("Pago fallido para cita {}", appointmentId);
+
+                if (appointment.getUser() != null) {
+                    notificationService.createNotification(
+                            appointment.getUser().getId(),
+                            "PAYMENT",
+                            "Pago fallido",
+                            "Tu pago para la cita con " + appointment.getPsychologist().getName() +
+                                    " no se ha podido procesar. Por favor, inténtalo de nuevo."
+                    );
+                }
+            });
+        } catch (NumberFormatException e) {
+            logger.error("appointmentId inválido en metadata de payment_intent.payment_failed: {}", appointmentIdStr);
+        }
     }
 
     public Map<String, String> createBillingPortalSession(String customerEmail) {
