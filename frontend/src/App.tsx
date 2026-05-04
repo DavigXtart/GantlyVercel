@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, useNavigate, useSearchParams, useLocation } fr
 import * as Sentry from '@sentry/react';
 import Login from './components/Login';
 import Register from './components/Register';
-import Landing from './components/Landing';
+import Landing from './components/landing/Landing';
 import { authService } from './services/api';
 import { ToastContainer, toast } from './components/ui/Toast';
 import GlobalLoader from './components/ui/GlobalLoader';
