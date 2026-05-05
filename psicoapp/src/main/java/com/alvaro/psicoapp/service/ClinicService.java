@@ -3,6 +3,7 @@ package com.alvaro.psicoapp.service;
 import com.alvaro.psicoapp.domain.*;
 import com.alvaro.psicoapp.repository.*;
 import com.alvaro.psicoapp.domain.ClinicRoomEntity;
+import com.alvaro.psicoapp.domain.ClinicServiceEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import com.alvaro.psicoapp.domain.ClinicInvitationEntity;
 import com.alvaro.psicoapp.repository.ClinicInvitationRepository;
+import com.alvaro.psicoapp.repository.ClinicServiceRepository;
 import org.springframework.beans.factory.annotation.Value;
 import java.util.UUID;
 import java.util.Map;
@@ -29,6 +31,7 @@ public class ClinicService {
     private final ClinicInvitationRepository clinicInvitationRepository;
     private final ClinicPatientDocumentRepository clinicPatientDocumentRepository;
     private final ClinicRoomRepository clinicRoomRepository;
+    private final ClinicServiceRepository clinicServiceRepository;
     private final EmailService emailService;
     private final StripeService stripeService;
 
@@ -43,6 +46,7 @@ public class ClinicService {
                          ClinicInvitationRepository clinicInvitationRepository,
                          ClinicPatientDocumentRepository clinicPatientDocumentRepository,
                          ClinicRoomRepository clinicRoomRepository,
+                         ClinicServiceRepository clinicServiceRepository,
                          EmailService emailService,
                          StripeService stripeService) {
         this.companyRepository = companyRepository;
@@ -53,12 +57,20 @@ public class ClinicService {
         this.clinicInvitationRepository = clinicInvitationRepository;
         this.clinicPatientDocumentRepository = clinicPatientDocumentRepository;
         this.clinicRoomRepository = clinicRoomRepository;
+        this.clinicServiceRepository = clinicServiceRepository;
         this.emailService = emailService;
         this.stripeService = stripeService;
     }
 
     // --- DTOs ---
-    public record ClinicMeDto(Long id, String name, String email, String referralCode) {}
+    public record ClinicMeDto(Long id, String name, String email, String referralCode,
+                              String address, String phone, String website, String logoUrl,
+                              String weeklySchedule) {}
+    public record UpdateClinicInfoRequest(String name, String address, String phone, String website,
+                                           String logoUrl, String weeklySchedule) {}
+    public record ClinicServiceDto(Long id, String name, BigDecimal defaultPrice, Integer durationMinutes, Boolean active) {}
+    public record CreateClinicServiceRequest(String name, BigDecimal defaultPrice, Integer durationMinutes) {}
+    public record UpdateClinicServiceRequest(String name, BigDecimal defaultPrice, Integer durationMinutes, Boolean active) {}
     public record ClinicPsychologistDto(Long id, String name, String email, String avatarUrl) {}
     public record ClinicAppointmentDto(Long id, Long psychologistId, String psychologistName,
                                         String psychologistAvatarUrl, Long patientId, String patientName,
@@ -130,7 +142,70 @@ public class ClinicService {
     @Transactional(readOnly = true)
     public ClinicMeDto getMe(String email) {
         var company = getCompany(email);
-        return new ClinicMeDto(company.getId(), company.getName(), company.getEmail(), company.getReferralCode());
+        return new ClinicMeDto(company.getId(), company.getName(), company.getEmail(), company.getReferralCode(),
+                company.getAddress(), company.getPhone(), company.getWebsite(), company.getLogoUrl(),
+                company.getWeeklySchedule());
+    }
+
+    @Transactional
+    public ClinicMeDto updateClinicInfo(String email, UpdateClinicInfoRequest req) {
+        var company = getCompany(email);
+        if (req.name() != null && !req.name().isBlank()) company.setName(req.name().trim());
+        if (req.address() != null) company.setAddress(req.address().trim());
+        if (req.phone() != null) company.setPhone(req.phone().trim());
+        if (req.website() != null) company.setWebsite(req.website().trim());
+        if (req.logoUrl() != null) company.setLogoUrl(req.logoUrl().trim());
+        if (req.weeklySchedule() != null) company.setWeeklySchedule(req.weeklySchedule());
+        companyRepository.save(company);
+        return getMe(email);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ClinicServiceDto> getServices(String email) {
+        var company = getCompany(email);
+        return clinicServiceRepository.findByCompanyIdOrderByNameAsc(company.getId()).stream()
+                .map(s -> new ClinicServiceDto(s.getId(), s.getName(), s.getDefaultPrice(), s.getDurationMinutes(), s.getActive()))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public ClinicServiceDto createService(String email, CreateClinicServiceRequest req) {
+        var company = getCompany(email);
+        if (req.name() == null || req.name().isBlank())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El nombre del servicio es obligatorio");
+        ClinicServiceEntity svc = new ClinicServiceEntity();
+        svc.setCompanyId(company.getId());
+        svc.setName(req.name().trim());
+        svc.setDefaultPrice(req.defaultPrice());
+        svc.setDurationMinutes(req.durationMinutes());
+        svc.setActive(true);
+        clinicServiceRepository.save(svc);
+        return new ClinicServiceDto(svc.getId(), svc.getName(), svc.getDefaultPrice(), svc.getDurationMinutes(), svc.getActive());
+    }
+
+    @Transactional
+    public ClinicServiceDto updateService(String email, Long serviceId, UpdateClinicServiceRequest req) {
+        var company = getCompany(email);
+        ClinicServiceEntity svc = clinicServiceRepository.findById(serviceId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Servicio no encontrado"));
+        if (!company.getId().equals(svc.getCompanyId()))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No autorizado");
+        if (req.name() != null && !req.name().isBlank()) svc.setName(req.name().trim());
+        if (req.defaultPrice() != null) svc.setDefaultPrice(req.defaultPrice());
+        if (req.durationMinutes() != null) svc.setDurationMinutes(req.durationMinutes());
+        if (req.active() != null) svc.setActive(req.active());
+        clinicServiceRepository.save(svc);
+        return new ClinicServiceDto(svc.getId(), svc.getName(), svc.getDefaultPrice(), svc.getDurationMinutes(), svc.getActive());
+    }
+
+    @Transactional
+    public void deleteService(String email, Long serviceId) {
+        var company = getCompany(email);
+        ClinicServiceEntity svc = clinicServiceRepository.findById(serviceId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Servicio no encontrado"));
+        if (!company.getId().equals(svc.getCompanyId()))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No autorizado");
+        clinicServiceRepository.delete(svc);
     }
 
     @Transactional(readOnly = true)

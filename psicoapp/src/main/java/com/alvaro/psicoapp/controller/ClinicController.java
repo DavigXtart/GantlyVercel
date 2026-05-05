@@ -56,6 +56,45 @@ public class ClinicController {
         return ResponseEntity.ok(clinicService.getMe(email));
     }
 
+    @PutMapping("/me")
+    public ResponseEntity<?> updateClinicInfo(Principal principal,
+                                               @RequestBody ClinicService.UpdateClinicInfoRequest req) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(clinicService.updateClinicInfo(email, req));
+    }
+
+    @GetMapping("/services")
+    public ResponseEntity<?> getServices(Principal principal) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(clinicService.getServices(email));
+    }
+
+    @PostMapping("/services")
+    public ResponseEntity<?> createService(Principal principal,
+                                            @RequestBody ClinicService.CreateClinicServiceRequest req) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(clinicService.createService(email, req));
+    }
+
+    @PutMapping("/services/{id}")
+    public ResponseEntity<?> updateService(Principal principal, @PathVariable Long id,
+                                            @RequestBody ClinicService.UpdateClinicServiceRequest req) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(clinicService.updateService(email, id, req));
+    }
+
+    @DeleteMapping("/services/{id}")
+    public ResponseEntity<?> deleteService(Principal principal, @PathVariable Long id) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        clinicService.deleteService(email, id);
+        return ResponseEntity.ok(Map.of("message", "Servicio eliminado"));
+    }
+
     @GetMapping("/psychologists")
     public ResponseEntity<?> getPsychologists(Principal principal) {
         String email = getCompanyEmail(principal);

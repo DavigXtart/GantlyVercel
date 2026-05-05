@@ -44,75 +44,102 @@ export default function ClinicStats() {
     return (MONTH_NAMES[parts[1]] || parts[1]) + ' ' + parts[0]?.slice(2);
   };
 
+  const kpis = [
+    { icon: 'euro', label: 'Facturación', value: '\u20AC' + stats.revenueThisMonth.toFixed(0), sub: revenueChange ? revenueChange + ' vs mes anterior' : 'este mes', featured: true },
+    { icon: 'groups', label: 'Psicólogos', value: stats.totalPsychologists, sub: 'en la clínica', featured: false },
+    { icon: 'people', label: 'Pacientes', value: stats.totalPatients, sub: 'activos', featured: false },
+    { icon: 'calendar_month', label: 'Citas este mes', value: stats.appointmentsThisMonth, sub: 'confirmadas', featured: false },
+  ];
+
   return (
     <div className="flex-1 overflow-y-auto px-8 lg:px-12 py-6">
       {/* KPI row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {[
-          { icon: 'groups', label: 'Psicólogos', value: stats.totalPsychologists, sub: 'en la clínica' },
-          { icon: 'people', label: 'Pacientes', value: stats.totalPatients, sub: 'activos' },
-          { icon: 'calendar_month', label: 'Citas este mes', value: stats.appointmentsThisMonth, sub: 'confirmadas' },
-          { icon: 'euro', label: 'Facturación', value: '€' + stats.revenueThisMonth.toFixed(0), sub: revenueChange ? revenueChange + ' vs mes anterior' : 'este mes' },
-        ].map(kpi => (
-          <div key={kpi.label} className="bg-white rounded-xl border border-slate-200 shadow-soft p-6">
-            <div className="size-10 bg-gantly-blue-50 flex items-center justify-center rounded-xl text-gantly-blue mb-3">
-              <span className="material-symbols-outlined text-base">{kpi.icon}</span>
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        {kpis.map(kpi => (
+          <div
+            key={kpi.label}
+            className={`rounded-2xl shadow-sm overflow-hidden ${
+              kpi.featured
+                ? 'lg:col-span-2 bg-gradient-to-br from-gantly-navy via-gantly-blue to-gantly-cyan text-white'
+                : 'bg-white'
+            }`}
+          >
+            {!kpi.featured && (
+              <div className="h-1 bg-gradient-to-r from-gantly-blue to-gantly-cyan rounded-t-xl" />
+            )}
+            <div className="p-6">
+              <div className={`size-10 flex items-center justify-center rounded-xl mb-3 ${
+                kpi.featured
+                  ? 'bg-white/10'
+                  : 'bg-gradient-to-br from-gantly-blue/10 to-gantly-cyan/10'
+              }`}>
+                <span className={`material-symbols-outlined text-base ${kpi.featured ? 'text-white' : 'text-gantly-blue'}`}>{kpi.icon}</span>
+              </div>
+              <div className={`text-3xl font-heading font-bold mb-0.5 ${kpi.featured ? '' : 'text-slate-900'}`}>{kpi.value}</div>
+              <div className={`text-xs font-heading font-bold uppercase tracking-widest ${kpi.featured ? 'text-white/70' : 'text-slate-400'}`}>{kpi.label}</div>
+              <div className={`text-xs mt-0.5 ${kpi.featured ? 'text-white/60' : 'text-slate-500'}`}>{kpi.sub}</div>
             </div>
-            <div className="text-2xl font-semibold text-slate-900 mb-0.5">{kpi.value}</div>
-            <div className="text-[10px] uppercase tracking-widest text-slate-400">{kpi.label}</div>
-            <div className="text-xs text-slate-500 mt-0.5">{kpi.sub}</div>
           </div>
         ))}
       </div>
 
       {/* Occupancy */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-soft p-6 mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Tasa de ocupación este mes</span>
-          <span className="text-sm font-semibold text-slate-900">{(stats.occupancyRate * 100).toFixed(0)}%</span>
-        </div>
-        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-          <div className="h-full bg-gantly-blue rounded-full transition-all" style={{ width: `${(stats.occupancyRate * 100).toFixed(0)}%` }} />
+      <div className="rounded-2xl shadow-sm bg-white overflow-hidden mb-6">
+        <div className="h-1 bg-gradient-to-r from-gantly-blue to-gantly-cyan" />
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-heading font-bold uppercase tracking-widest text-slate-400">Tasa de ocupación este mes</span>
+            <span className="text-sm font-heading font-bold text-slate-900">{(stats.occupancyRate * 100).toFixed(0)}%</span>
+          </div>
+          <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-gantly-blue to-gantly-cyan rounded-full transition-all" style={{ width: `${(stats.occupancyRate * 100).toFixed(0)}%` }} />
+          </div>
         </div>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Bar chart by psychologist */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-soft p-6">
-          <div className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-4">Citas por psicólogo (este mes)</div>
-          {stats.appointmentsByPsychologist.length === 0 ? (
-            <div className="text-center text-slate-400 text-sm py-4">Sin datos</div>
-          ) : (
-            <div className="space-y-3">
-              {stats.appointmentsByPsychologist.map(p => (
-                <div key={p.id}>
-                  <div className="flex justify-between text-xs text-slate-900 mb-1">
-                    <span className="truncate max-w-[160px]">{p.name}</span>
-                    <span className="text-slate-500">{p.count} citas · €{p.revenue.toFixed(0)}</span>
+        <div className="rounded-2xl shadow-sm bg-white overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-gantly-blue to-gantly-cyan" />
+          <div className="p-6">
+            <div className="text-xs font-heading font-bold uppercase tracking-widest text-slate-400 mb-4">Citas por psicólogo (este mes)</div>
+            {stats.appointmentsByPsychologist.length === 0 ? (
+              <div className="text-center text-slate-400 text-sm py-4">Sin datos</div>
+            ) : (
+              <div className="space-y-3">
+                {stats.appointmentsByPsychologist.map(p => (
+                  <div key={p.id}>
+                    <div className="flex justify-between text-xs text-slate-900 mb-1">
+                      <span className="truncate max-w-[160px] font-heading">{p.name}</span>
+                      <span className="text-slate-500">{p.count} citas · \u20AC{p.revenue.toFixed(0)}</span>
+                    </div>
+                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-gantly-blue to-gantly-cyan rounded-full" style={{ width: `${(p.count / maxCount) * 100}%` }} />
+                    </div>
                   </div>
-                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-gantly-blue rounded-full" style={{ width: `${(p.count / maxCount) * 100}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Monthly trend chart */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-soft p-6">
-          <div className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-4">Tendencia mensual (6 meses)</div>
-          <div className="flex items-end gap-2 h-32">
-            {stats.monthlyTrend.map(m => (
-              <div key={m.month} className="flex-1 flex flex-col items-center gap-1">
-                <div
-                  className="w-full bg-gantly-blue/70 rounded-t-md transition-all"
-                  style={{ height: `${Math.max(4, (m.appointments / maxTrend) * 112)}px` }}
-                  title={`${m.appointments} citas`}
-                />
-                <span className="text-[9px] text-slate-400 truncate w-full text-center">{monthLabel(m.month)}</span>
-              </div>
-            ))}
+        <div className="rounded-2xl shadow-sm bg-white overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-gantly-blue to-gantly-cyan" />
+          <div className="p-6">
+            <div className="text-xs font-heading font-bold uppercase tracking-widest text-slate-400 mb-4">Tendencia mensual (6 meses)</div>
+            <div className="flex items-end gap-2 h-32">
+              {stats.monthlyTrend.map(m => (
+                <div key={m.month} className="flex-1 flex flex-col items-center gap-1">
+                  <div
+                    className="w-full bg-gradient-to-r from-gantly-blue/70 to-gantly-cyan/70 rounded-t-lg transition-all"
+                    style={{ height: `${Math.max(4, (m.appointments / maxTrend) * 112)}px` }}
+                    title={`${m.appointments} citas`}
+                  />
+                  <span className="font-heading text-xs text-slate-400 truncate w-full text-center">{monthLabel(m.month)}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

@@ -25,6 +25,21 @@ public class CompanyEntity {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
+    @Column(length = 500)
+    private String address;
+
+    @Column(length = 30)
+    private String phone;
+
+    @Column(length = 300)
+    private String website;
+
+    @Column(name = "logo_url", length = 500)
+    private String logoUrl;
+
+    @Column(name = "weekly_schedule", columnDefinition = "TEXT")
+    private String weeklySchedule;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
@@ -37,4 +52,14 @@ public class CompanyEntity {
     public void setReferralCode(String referralCode) { this.referralCode = referralCode; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+    public String getWebsite() { return website; }
+    public void setWebsite(String website) { this.website = website; }
+    public String getLogoUrl() { return logoUrl; }
+    public void setLogoUrl(String logoUrl) { this.logoUrl = logoUrl; }
+    public String getWeeklySchedule() { return weeklySchedule; }
+    public void setWeeklySchedule(String weeklySchedule) { this.weeklySchedule = weeklySchedule; }
 }

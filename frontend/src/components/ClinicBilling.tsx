@@ -49,60 +49,36 @@ function fmtEuro(amount?: number): string {
   return amount.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
 }
 
-function Spinner() {
-  return (
-    <div className="flex justify-center py-16">
-      <div className="w-9 h-9 border-[3px] border-slate-200 border-t-gantly-blue rounded-full animate-spin" />
-    </div>
-  );
-}
-
 // ---------------------------------------------------------------------------
 // Payment status badge
 // ---------------------------------------------------------------------------
 function PaymentBadge({ status }: { status?: string }) {
-  if (!status) return <span className="text-slate-400 text-[13px]">—</span>;
+  if (!status) return <span className="text-slate-400 text-xs">—</span>;
   const lc = status.toLowerCase();
-  let classes = 'px-2.5 py-0.5 rounded-xl text-xs font-semibold whitespace-nowrap ';
+  let cls = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold ';
   let label = status;
+  let dot = '';
   if (lc === 'paid' || lc === 'pagada' || lc === 'pagado') {
-    classes += 'bg-gantly-emerald-50 text-gantly-emerald-700';
+    cls += 'bg-emerald-50 text-emerald-700';
     label = 'Pagada';
+    dot = 'bg-emerald-500';
   } else if (lc === 'pending' || lc === 'pendiente') {
-    classes += 'bg-gantly-gold-50 text-gantly-gold-700';
+    cls += 'bg-amber-50 text-amber-700';
     label = 'Pendiente';
+    dot = 'bg-amber-500';
   } else if (lc === 'fractional' || lc === 'fraccionada') {
-    classes += 'bg-orange-50 text-orange-700';
+    cls += 'bg-orange-50 text-orange-700';
     label = 'Fraccionada';
+    dot = 'bg-orange-500';
   } else if (lc === 'cancelled' || lc === 'cancelada' || lc === 'cancelado') {
-    classes += 'bg-red-50 text-red-700';
+    cls += 'bg-red-50 text-red-600';
     label = 'Cancelada';
+    dot = 'bg-red-400';
   } else {
-    classes += 'bg-slate-100 text-slate-600';
+    cls += 'bg-slate-50 text-slate-600';
+    dot = 'bg-slate-400';
   }
-  return <span className={classes}>{label}</span>;
-}
-
-// ---------------------------------------------------------------------------
-// Summary card
-// ---------------------------------------------------------------------------
-function SummaryCard({
-  label,
-  value,
-  accent,
-}: {
-  label: string;
-  value: string;
-  accent?: string;
-}) {
-  return (
-    <div className="bg-white border border-slate-200 rounded-xl px-6 py-4 flex-1 min-w-[160px]">
-      <div className="text-xs font-semibold text-slate-500 uppercase mb-1.5">
-        {label}
-      </div>
-      <div className="text-[22px] font-bold" style={{ color: accent ?? '#0f172a' }}>{value}</div>
-    </div>
-  );
+  return <span className={cls}><span className={`w-1.5 h-1.5 rounded-full ${dot}`} />{label}</span>;
 }
 
 // ---------------------------------------------------------------------------
@@ -122,7 +98,6 @@ function generateInvoicePdf(item: {
     const pageW = 210;
     const margin = 20;
 
-    // Header
     doc.setFillColor(241, 245, 249);
     doc.rect(0, 0, pageW, 40, 'F');
     doc.setTextColor(15, 23, 42);
@@ -134,7 +109,6 @@ function generateInvoicePdf(item: {
     doc.setTextColor(46, 147, 204);
     doc.text('Plataforma de Salud Mental', margin, 27);
 
-    // Invoice number
     const invoiceNum = `FAC-${new Date(item.startTime).getFullYear()}-${String(item.appointmentId).padStart(5, '0')}`;
     doc.setTextColor(15, 23, 42);
     doc.setFontSize(14);
@@ -145,11 +119,9 @@ function generateInvoicePdf(item: {
     doc.setTextColor(46, 147, 204);
     doc.text(invoiceNum, pageW - margin, 25, { align: 'right' });
 
-    // Divider
     doc.setDrawColor(226, 232, 240);
     doc.line(margin, 44, pageW - margin, 44);
 
-    // Info section
     doc.setTextColor(15, 23, 42);
     let y = 54;
     const addRow = (label: string, value: string) => {
@@ -163,13 +135,12 @@ function generateInvoicePdf(item: {
       y += 14;
     };
 
-    addRow('Clínica', clinicName);
-    addRow('Psicólogo', item.psychologistName);
+    addRow('Clinica', clinicName);
+    addRow('Psicologo', item.psychologistName);
     addRow('Paciente', item.patientName || '—');
-    addRow('Servicio', item.service || 'Sesión de psicología');
+    addRow('Servicio', item.service || 'Sesion de psicologia');
     addRow('Fecha', new Date(item.startTime).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }));
 
-    // Price table
     y += 4;
     doc.setFillColor(241, 245, 249);
     doc.roundedRect(margin, y, pageW - margin * 2, 30, 4, 4, 'F');
@@ -185,25 +156,23 @@ function generateInvoicePdf(item: {
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(15, 23, 42);
-    doc.text(`€${base.toFixed(2)}`, margin + 6, y + 22);
-    doc.text(`€${iva.toFixed(2)}`, pageW / 2, y + 22);
-    doc.text(`€${price.toFixed(2)}`, pageW - margin - 6, y + 22, { align: 'right' });
+    doc.text(`\u20AC${base.toFixed(2)}`, margin + 6, y + 22);
+    doc.text(`\u20AC${iva.toFixed(2)}`, pageW / 2, y + 22);
+    doc.text(`\u20AC${price.toFixed(2)}`, pageW - margin - 6, y + 22, { align: 'right' });
 
-    // Payment status
     y += 38;
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(46, 147, 204);
     doc.text(`Estado de pago: ${item.paymentStatus === 'PAID' ? 'PAGADO' : 'PENDIENTE'}`, margin, y);
 
-    // Footer
     doc.setFontSize(8);
     doc.setTextColor(148, 163, 184);
     doc.text('Gantly · Plataforma de Salud Mental · gantly.com', pageW / 2, 285, { align: 'center' });
 
     doc.save(`${invoiceNum}.pdf`);
   }).catch(() => {
-    alert('Error al generar la factura. Asegúrate de tener conexión.');
+    alert('Error al generar la factura.');
   });
 }
 
@@ -211,7 +180,7 @@ function generateInvoicePdf(item: {
 // CSV export
 // ---------------------------------------------------------------------------
 function exportCsv(items: ClinicBillingItem[]): void {
-  const headers = ['Fecha', 'Hora inicio', 'Hora fin', 'Psicólogo', 'Paciente', 'Servicio', 'Precio', 'Estado pago'];
+  const headers = ['Fecha', 'Hora inicio', 'Hora fin', 'Psicologo', 'Paciente', 'Servicio', 'Precio', 'Estado pago'];
   const rows = items.map((item) => [
     fmtDate(item.startTime),
     fmtTime(item.startTime),
@@ -251,7 +220,7 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
       const data = await clinicService.getBilling(from || undefined, to || undefined, psychologistId);
       setItems(data);
     } catch {
-      setError('No se pudo cargar la facturación.');
+      setError('No se pudo cargar la facturacion.');
     } finally {
       setLoading(false);
     }
@@ -261,154 +230,159 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
     load();
   }, [load]);
 
-  // Summary calculations
   const totalPaid = items
-    .filter((i) => {
-      const lc = (i.paymentStatus ?? '').toLowerCase();
-      return lc === 'paid' || lc === 'pagada' || lc === 'pagado';
-    })
+    .filter((i) => { const lc = (i.paymentStatus ?? '').toLowerCase(); return lc === 'paid' || lc === 'pagada' || lc === 'pagado'; })
     .reduce((sum, i) => sum + (i.price ?? 0), 0);
-
   const totalPending = items
-    .filter((i) => {
-      const lc = (i.paymentStatus ?? '').toLowerCase();
-      return lc === 'pending' || lc === 'pendiente';
-    })
+    .filter((i) => { const lc = (i.paymentStatus ?? '').toLowerCase(); return lc === 'pending' || lc === 'pendiente'; })
+    .reduce((sum, i) => sum + (i.price ?? 0), 0);
+  const totalCancelled = items
+    .filter((i) => { const lc = (i.paymentStatus ?? '').toLowerCase(); return lc === 'cancelled' || lc === 'cancelada' || lc === 'cancelado'; })
     .reduce((sum, i) => sum + (i.price ?? 0), 0);
 
-  const totalCancelled = items
-    .filter((i) => {
-      const lc = (i.paymentStatus ?? '').toLowerCase();
-      return lc === 'cancelled' || lc === 'cancelada' || lc === 'cancelado';
-    })
-    .reduce((sum, i) => sum + (i.price ?? 0), 0);
+  const inputCls = "h-9 px-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 outline-none focus:border-gantly-blue transition-colors";
 
   return (
-    <div className="p-6 flex flex-col gap-5">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-lg font-bold text-slate-900">Facturación</h2>
-        <button
-          onClick={() => exportCsv(items)}
-          disabled={items.length === 0}
-          className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-[13px] font-semibold transition-colors ${
-            items.length === 0
-              ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-              : 'bg-gantly-blue text-white hover:bg-gantly-blue-600 cursor-pointer'
-          }`}
-        >
-          <span className="material-symbols-outlined text-base">download</span>
-          Exportar CSV
-        </button>
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 px-5 flex flex-wrap gap-4 items-end">
-        <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
-          Desde
-          <input
-            type="date"
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
-            className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] text-slate-900 outline-none focus:border-gantly-blue-300 bg-white"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
-          Hasta
-          <input
-            type="date"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-            className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] text-slate-900 outline-none focus:border-gantly-blue-300 bg-white"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
-          Psicólogo
-          <select
-            value={psychologistId ?? ''}
-            onChange={(e) => setPsychologistId(e.target.value ? Number(e.target.value) : undefined)}
-            className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] text-slate-900 outline-none focus:border-gantly-blue-300 bg-white cursor-pointer"
-          >
-            <option value="">Todos los psicólogos</option>
-            {psychologists.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button
-          onClick={load}
-          className="self-end px-4 py-2 bg-gantly-blue text-white rounded-lg text-[13px] font-semibold hover:bg-gantly-blue-600 transition-colors cursor-pointer"
-        >
-          Aplicar filtros
-        </button>
-      </div>
-
-      {/* Summary cards */}
-      <div className="flex gap-4 flex-wrap">
-        <SummaryCard label="Total facturado" value={fmtEuro(totalPaid)} accent="#059669" />
-        <SummaryCard label="Total pendiente" value={fmtEuro(totalPending)} accent="#ca8a04" />
-        <SummaryCard label="Total cancelado" value={fmtEuro(totalCancelled)} accent="#dc2626" />
-        <SummaryCard label="N.º citas" value={String(items.length)} />
-      </div>
-
-      {/* Error */}
-      {error && (
-        <div className="bg-red-50 text-red-700 px-4 py-2.5 rounded-lg text-sm">
-          {error}
-        </div>
-      )}
-
-      {/* Table */}
-      {loading ? (
-        <Spinner />
-      ) : items.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-xl p-12 text-center text-slate-500">
-          No hay registros para el rango de fechas seleccionado.
-        </div>
-      ) : (
-        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-          {/* Table header */}
-          <div className="grid grid-cols-[110px_80px_1fr_1fr_1fr_80px_110px_44px] bg-slate-50 px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            <span>Fecha</span>
-            <span>Hora</span>
-            <span>Psicólogo</span>
-            <span>Paciente</span>
-            <span>Servicio</span>
-            <span className="text-right">Precio</span>
-            <span className="text-center">Estado pago</span>
-            <span />
-          </div>
-
-          {/* Rows */}
-          {items.map((item) => (
-            <div
-              key={item.appointmentId}
-              className="grid grid-cols-[110px_80px_1fr_1fr_1fr_80px_110px_44px] px-4 py-3 border-t border-slate-100 text-[13px] items-center"
-            >
-              <span className="text-slate-700">{fmtDate(item.startTime)}</span>
-              <span className="text-slate-500">{fmtTime(item.startTime)}</span>
-              <span className="text-slate-900 font-medium">{item.psychologistName}</span>
-              <span className="text-slate-700">{item.patientName ?? '—'}</span>
-              <span className="text-slate-500">{item.service ?? '—'}</span>
-              <span className="text-right font-semibold text-slate-900">{fmtEuro(item.price)}</span>
-              <span className="text-center">
-                <PaymentBadge status={item.paymentStatus} />
-              </span>
-              <span className="text-center">
-                <button
-                  onClick={() => generateInvoicePdf(item, clinicName || 'Mi Clinica')}
-                  title="Descargar factura"
-                  className="text-slate-400 hover:text-gantly-blue transition-colors p-1"
-                >
-                  <span className="material-symbols-outlined text-lg">receipt</span>
-                </button>
-              </span>
+    <div className="space-y-6">
+      {/* KPI row */}
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+        {/* Hero: total paid */}
+        <div className="col-span-2 xl:col-span-1 bg-gradient-to-br from-gantly-navy via-gantly-blue to-gantly-cyan rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
+          <div className="p-5">
+            <div className="size-9 rounded-xl bg-white/10 flex items-center justify-center mb-3">
+              <span className="material-symbols-outlined text-white text-lg">payments</span>
             </div>
-          ))}
+            <div className="text-2xl font-heading font-bold text-white">{fmtEuro(totalPaid)}</div>
+            <div className="text-[11px] font-heading font-bold uppercase tracking-widest text-white/60 mt-1">Cobrado</div>
+          </div>
         </div>
-      )}
+        {/* Pending */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-amber-300 to-amber-400" />
+          <div className="p-5">
+            <div className="size-9 rounded-xl bg-amber-50 flex items-center justify-center mb-3">
+              <span className="material-symbols-outlined text-amber-500 text-lg">schedule</span>
+            </div>
+            <div className="text-2xl font-heading font-bold text-slate-900">{fmtEuro(totalPending)}</div>
+            <div className="text-[11px] font-heading font-bold uppercase tracking-widest text-slate-400 mt-1">Pendiente</div>
+          </div>
+        </div>
+        {/* Cancelled */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-red-300 to-red-400" />
+          <div className="p-5">
+            <div className="size-9 rounded-xl bg-red-50 flex items-center justify-center mb-3">
+              <span className="material-symbols-outlined text-red-400 text-lg">block</span>
+            </div>
+            <div className="text-2xl font-heading font-bold text-slate-900">{fmtEuro(totalCancelled)}</div>
+            <div className="text-[11px] font-heading font-bold uppercase tracking-widest text-slate-400 mt-1">Cancelado</div>
+          </div>
+        </div>
+        {/* Count */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-gantly-blue to-gantly-cyan" />
+          <div className="p-5">
+            <div className="size-9 rounded-xl bg-gradient-to-br from-gantly-blue/10 to-gantly-cyan/10 flex items-center justify-center mb-3">
+              <span className="material-symbols-outlined text-gantly-blue text-lg">receipt_long</span>
+            </div>
+            <div className="text-2xl font-heading font-bold text-slate-900">{items.length}</div>
+            <div className="text-[11px] font-heading font-bold uppercase tracking-widest text-slate-400 mt-1">Citas</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters + table in one card */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        {/* Filter bar */}
+        <div className="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <span className="material-symbols-outlined text-slate-400 text-lg">filter_list</span>
+            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className={inputCls} />
+            <span className="text-slate-300 text-sm">—</span>
+            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className={inputCls} />
+            <select
+              value={psychologistId ?? ''}
+              onChange={(e) => setPsychologistId(e.target.value ? Number(e.target.value) : undefined)}
+              className={`${inputCls} cursor-pointer min-w-[160px]`}
+            >
+              <option value="">Todos los psicologos</option>
+              {psychologists.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+            <button onClick={load} className="h-9 px-4 bg-gantly-blue text-white rounded-lg text-sm font-semibold hover:bg-gantly-blue/90 transition-colors cursor-pointer border-none">
+              Filtrar
+            </button>
+          </div>
+          <button
+            onClick={() => exportCsv(items)}
+            disabled={items.length === 0}
+            className="flex items-center gap-1.5 h-9 px-4 text-sm font-semibold rounded-lg transition-colors cursor-pointer border-none disabled:opacity-40 disabled:cursor-not-allowed bg-slate-100 text-slate-600 hover:bg-slate-200"
+          >
+            <span className="material-symbols-outlined text-sm">download</span>
+            CSV
+          </button>
+        </div>
+
+        {/* Error */}
+        {error && (
+          <div className="mx-5 mt-4 bg-red-50 text-red-700 px-4 py-2.5 rounded-lg text-sm">{error}</div>
+        )}
+
+        {/* Table */}
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <div className="w-7 h-7 border-2 border-slate-200 border-t-gantly-blue rounded-full animate-spin" />
+          </div>
+        ) : items.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="size-14 rounded-2xl bg-slate-50 flex items-center justify-center mb-3">
+              <span className="material-symbols-outlined text-slate-300 text-3xl">receipt_long</span>
+            </div>
+            <p className="text-sm text-slate-500">No hay registros para este periodo</p>
+            <p className="text-xs text-slate-400 mt-1">Ajusta los filtros o el rango de fechas</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-slate-50/60">
+                  <th className="text-left px-5 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Fecha</th>
+                  <th className="text-left px-3 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Hora</th>
+                  <th className="text-left px-3 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Psicologo</th>
+                  <th className="text-left px-3 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Paciente</th>
+                  <th className="text-left px-3 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Servicio</th>
+                  <th className="text-right px-3 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Importe</th>
+                  <th className="text-center px-3 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Estado</th>
+                  <th className="w-10 px-3 py-3" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {items.map((item) => (
+                  <tr key={item.appointmentId} className="hover:bg-slate-50/50 transition-colors duration-150">
+                    <td className="px-5 py-3 text-sm text-slate-700 whitespace-nowrap">{fmtDate(item.startTime)}</td>
+                    <td className="px-3 py-3 text-sm text-slate-500 whitespace-nowrap">{fmtTime(item.startTime)}</td>
+                    <td className="px-3 py-3 text-sm font-medium text-slate-900 whitespace-nowrap">{item.psychologistName}</td>
+                    <td className="px-3 py-3 text-sm text-slate-700">{item.patientName ?? '—'}</td>
+                    <td className="px-3 py-3 text-sm text-slate-500">{item.service ?? '—'}</td>
+                    <td className="px-3 py-3 text-sm font-semibold text-slate-900 text-right whitespace-nowrap">{fmtEuro(item.price)}</td>
+                    <td className="px-3 py-3 text-center"><PaymentBadge status={item.paymentStatus} /></td>
+                    <td className="px-3 py-3">
+                      <button
+                        onClick={() => generateInvoicePdf(item, clinicName || 'Mi Clinica')}
+                        title="Descargar factura"
+                        className="text-slate-300 hover:text-gantly-blue hover:bg-gantly-blue/5 rounded-lg p-1.5 transition-colors cursor-pointer bg-transparent border-none"
+                      >
+                        <span className="material-symbols-outlined text-base">receipt</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

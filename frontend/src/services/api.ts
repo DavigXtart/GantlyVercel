@@ -1145,7 +1145,26 @@ export const patientClinicChatService = {
 export const clinicService = {
   getMe: async () => {
     const { data } = await api.get('/clinic/me');
-    return data as { id: number; name: string; email: string; referralCode: string };
+    return data as { id: number; name: string; email: string; referralCode: string; address?: string; phone?: string; website?: string; logoUrl?: string; weeklySchedule?: string };
+  },
+  updateClinicInfo: async (req: { name?: string; address?: string; phone?: string; website?: string; logoUrl?: string; weeklySchedule?: string }) => {
+    const { data } = await api.put('/clinic/me', req);
+    return data as { id: number; name: string; email: string; referralCode: string; address?: string; phone?: string; website?: string; logoUrl?: string; weeklySchedule?: string };
+  },
+  getServices: async () => {
+    const { data } = await api.get('/clinic/services');
+    return data as Array<{ id: number; name: string; defaultPrice: number | null; durationMinutes: number | null; active: boolean }>;
+  },
+  createService: async (req: { name: string; defaultPrice?: number; durationMinutes?: number }) => {
+    const { data } = await api.post('/clinic/services', req);
+    return data as { id: number; name: string; defaultPrice: number | null; durationMinutes: number | null; active: boolean };
+  },
+  updateService: async (id: number, req: { name?: string; defaultPrice?: number; durationMinutes?: number; active?: boolean }) => {
+    const { data } = await api.put(`/clinic/services/${id}`, req);
+    return data as { id: number; name: string; defaultPrice: number | null; durationMinutes: number | null; active: boolean };
+  },
+  deleteService: async (id: number) => {
+    await api.delete(`/clinic/services/${id}`);
   },
   getPsychologists: async () => {
     const { data } = await api.get('/clinic/psychologists');

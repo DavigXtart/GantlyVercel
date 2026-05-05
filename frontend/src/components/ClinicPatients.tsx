@@ -110,13 +110,13 @@ function ExpandableSection({ label, value }: { label: string; value?: string }) 
     <div className="border-b border-slate-100">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full bg-transparent border-none text-left py-2.5 cursor-pointer flex justify-between items-center text-[13px] text-slate-700 font-medium"
+        className="w-full bg-transparent border-none text-left py-2.5 cursor-pointer flex justify-between items-center text-[13px] text-slate-700 font-medium hover:bg-slate-50/50 rounded-lg px-2 transition-colors duration-200"
       >
         {label}
         <span className="text-[11px] text-slate-400">{open ? '\u25B2' : '\u25BC'}</span>
       </button>
       {open && (
-        <div className="pb-2.5 text-[13px] text-slate-500 leading-relaxed">
+        <div className="pb-2.5 px-2 text-[13px] text-slate-500 leading-relaxed">
           {value || <span className="italic">Sin información</span>}
         </div>
       )}
@@ -151,7 +151,7 @@ function ListView({
           placeholder="Buscar paciente por nombre o email..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm outline-none focus:border-gantly-blue-300 bg-white"
+          className="w-full px-3.5 h-12 border-2 border-slate-200 rounded-xl text-sm outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200 bg-white"
         />
       </div>
 
@@ -164,13 +164,14 @@ function ListView({
       {loading ? (
         <Spinner />
       ) : patients.length === 0 ? (
-        <div className="text-center p-12 text-slate-500">
-          No hay pacientes{search ? ' que coincidan con la búsqueda' : ' registrados aún'}.
+        <div className="text-center p-12 text-slate-400 flex flex-col items-center gap-3">
+          <span className="material-symbols-outlined text-4xl text-slate-300">person_search</span>
+          <span className="text-sm">No hay pacientes{search ? ' que coincidan con la búsqueda' : ' registrados aún'}.</span>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           {/* Table header */}
-          <div className="grid grid-cols-[60px_1fr_1fr_120px_1fr_100px_100px] bg-slate-50 px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+          <div className="grid grid-cols-[60px_1fr_1fr_120px_1fr_100px_100px] bg-slate-50/80 px-4 py-3 text-xs font-heading font-bold text-slate-400 uppercase tracking-widest">
             <span>N.º</span>
             <span>Nombre</span>
             <span>Email</span>
@@ -185,12 +186,12 @@ function ListView({
             <div
               key={p.id}
               onClick={() => onSelect(p.id)}
-              className="grid grid-cols-[60px_1fr_1fr_120px_1fr_100px_100px] px-4 py-3 border-t border-slate-100 cursor-pointer text-sm items-center hover:bg-slate-50 transition-colors"
+              className="grid grid-cols-[60px_1fr_1fr_120px_1fr_100px_100px] px-4 py-3 border-t border-slate-100 cursor-pointer text-sm items-center hover:bg-gantly-blue/[0.02] hover:border-l-4 hover:border-l-gantly-blue transition-all duration-200"
             >
               <span className="text-slate-500 text-xs">
                 {p.patientNumber != null ? `#${p.patientNumber}` : '—'}
               </span>
-              <span className="font-medium text-slate-900">{p.name}</span>
+              <span className="font-heading font-semibold text-gantly-text">{p.name}</span>
               <span className="text-slate-500 text-[13px]">{p.email}</span>
               <span className="text-slate-500 text-[13px]">{p.phone || '—'}</span>
               <span className="text-slate-700 text-[13px]">{p.assignedPsychologistName || '—'}</span>
@@ -370,31 +371,31 @@ function DetailView({
   };
 
   const tabBtnClass = (t: DetailTab) =>
-    `px-5 py-2 border-none bg-transparent cursor-pointer text-sm transition-all ${
+    `px-5 py-2.5 border-none bg-transparent cursor-pointer text-sm transition-all duration-200 font-heading ${
       tab === t
-        ? 'font-semibold text-gantly-blue border-b-2 border-gantly-blue'
-        : 'font-normal text-slate-500 border-b-2 border-transparent'
+        ? 'font-bold text-gantly-blue border-b-2 border-gantly-blue'
+        : 'font-normal text-slate-400 hover:text-slate-600 border-b-2 border-transparent'
     }`;
 
   return (
     <div className="flex h-full min-h-0">
       {/* ---- Sidebar ---- */}
-      <aside className="w-[300px] min-w-[300px] border-r border-slate-200 p-5 overflow-y-auto bg-white flex flex-col gap-4">
+      <aside className="w-[300px] min-w-[300px] border-r border-slate-100 shadow-sm p-5 overflow-y-auto bg-white flex flex-col gap-4">
         {/* Back button */}
         <button
           onClick={onBack}
-          className="bg-transparent border-none cursor-pointer text-gantly-blue font-semibold text-sm text-left p-0 flex items-center gap-1"
+          className="bg-transparent border-none cursor-pointer text-gantly-blue hover:text-gantly-blue/80 font-heading font-semibold text-sm text-left p-0 flex items-center gap-1 transition-colors duration-200"
         >
           &larr; Pacientes
         </button>
 
         {/* Avatar */}
         <div className="flex flex-col items-center gap-2">
-          <div className="w-[72px] h-[72px] rounded-full bg-gantly-blue text-white flex items-center justify-center text-[26px] font-bold tracking-wider">
+          <div className="w-[72px] h-[72px] rounded-full bg-gradient-to-br from-gantly-blue to-gantly-cyan text-white flex items-center justify-center text-[26px] font-bold tracking-wider">
             {initials(patient.name)}
           </div>
           <div className="text-center">
-            <div className="font-bold text-lg text-slate-900">{patient.name}</div>
+            <div className="font-heading font-bold text-lg text-gantly-text">{patient.name}</div>
             {patient.patientNumber != null && (
               <div className="text-xs text-slate-500 mt-0.5">N.º {patient.patientNumber}</div>
             )}
@@ -417,7 +418,7 @@ function DetailView({
 
         {/* Notes (sidebar quick notes) */}
         <div>
-          <div className="text-xs font-semibold text-slate-500 uppercase mb-1.5">
+          <div className="text-xs font-heading font-semibold text-slate-500 uppercase mb-1.5">
             Notas
           </div>
           <textarea
@@ -425,13 +426,13 @@ function DetailView({
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Añadir notas sobre este paciente..."
             rows={4}
-            className="w-full border border-slate-200 rounded-lg px-2.5 py-2 text-[13px] resize-y outline-none focus:border-gantly-blue-300"
+            className="w-full border-2 border-slate-200 rounded-xl px-2.5 py-2 text-[13px] resize-y outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
           />
         </div>
 
         {/* Medical info expandable */}
         <div>
-          <div className="text-xs font-semibold text-slate-500 uppercase mb-1">
+          <div className="text-xs font-heading font-semibold text-slate-500 uppercase mb-1">
             Otra información médica
           </div>
           <ExpandableSection label="Alergias" value={patient.allergies} />
@@ -443,7 +444,7 @@ function DetailView({
       {/* ---- Main content ---- */}
       <div className="flex-1 flex flex-col min-h-0">
         {/* Tab bar */}
-        <div className="border-b border-slate-200 flex pl-6">
+        <div className="border-b-2 border-slate-100 flex pl-6">
           <button className={tabBtnClass('citas')} onClick={() => setTab('citas')}>
             Citas ({patient.appointments?.length ?? 0})
           </button>
@@ -464,8 +465,9 @@ function DetailView({
           {tab === 'citas' && (
             <div className="flex flex-col gap-2.5">
               {(!patient.appointments || patient.appointments.length === 0) ? (
-                <div className="text-slate-500 text-center p-10">
-                  No hay citas para este paciente.
+                <div className="text-slate-400 text-center p-10 flex flex-col items-center gap-3">
+                  <span className="material-symbols-outlined text-4xl text-slate-300">event_busy</span>
+                  <span className="text-sm">No hay citas para este paciente.</span>
                 </div>
               ) : (
                 [...patient.appointments]
@@ -473,7 +475,7 @@ function DetailView({
                   .map((appt) => (
                     <div
                       key={appt.id}
-                      className="bg-white border border-slate-200 rounded-xl px-4 py-3.5"
+                      className="bg-white rounded-2xl border-2 border-slate-100 hover:border-gantly-blue/20 hover:shadow-sm transition-all duration-200 px-4 py-3.5"
                     >
                       <div className="flex justify-between items-center gap-3">
                         <div className="flex items-center gap-3">
@@ -495,8 +497,8 @@ function DetailView({
                               onClick={() => handlePaymentLink(appt.id)}
                               disabled={paymentLinkLoading === appt.id}
                               title="Enviar link de pago al paciente"
-                              className={`px-3 py-1.5 rounded-md border border-gantly-blue text-xs text-gantly-blue font-medium flex items-center gap-1 transition-colors ${
-                                paymentLinkLoading === appt.id ? 'bg-gantly-blue-50 cursor-wait' : 'bg-white hover:bg-gantly-blue-50 cursor-pointer'
+                              className={`px-3 py-1.5 rounded-xl border-2 border-gantly-blue text-xs text-gantly-blue font-medium flex items-center gap-1 transition-all duration-200 ${
+                                paymentLinkLoading === appt.id ? 'bg-gantly-blue-50 cursor-wait' : 'bg-white hover:bg-gantly-blue hover:text-white cursor-pointer'
                               }`}
                             >
                               <span className="material-symbols-outlined text-sm">link</span>
@@ -513,7 +515,7 @@ function DetailView({
                             onChange={e => setNoteText(e.target.value)}
                             rows={2}
                             placeholder="Nota administrativa..."
-                            className="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 resize-none outline-none focus:border-gantly-blue-300"
+                            className="w-full border-2 border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-900 resize-none outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
                           />
                           <div className="flex gap-2 mt-1">
                             <button
@@ -559,8 +561,8 @@ function DetailView({
               {/* Upload button */}
               <div>
                 <label
-                  className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-[13px] font-semibold text-white ${
-                    uploadingDoc ? 'bg-slate-400 cursor-not-allowed' : 'bg-gantly-blue cursor-pointer hover:bg-gantly-blue-600'
+                  className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-[13px] font-heading font-semibold text-white shadow-md transition-all duration-300 ${
+                    uploadingDoc ? 'bg-slate-400 cursor-not-allowed' : 'bg-gradient-to-r from-gantly-blue to-gantly-cyan cursor-pointer hover:shadow-lg hover:shadow-gantly-blue/25'
                   }`}
                 >
                   <span className="material-symbols-outlined text-base">upload_file</span>
@@ -579,15 +581,16 @@ function DetailView({
               {loadingDocs ? (
                 <Spinner />
               ) : documents.length === 0 ? (
-                <div className="text-center p-12 text-slate-500 text-sm">
-                  Sin documentos para este paciente.
+                <div className="text-center p-12 text-slate-400 text-sm flex flex-col items-center gap-3">
+                  <span className="material-symbols-outlined text-4xl text-slate-300">folder_open</span>
+                  <span>Sin documentos para este paciente.</span>
                 </div>
               ) : (
                 <div className="flex flex-col gap-2">
                   {documents.map(doc => (
                     <div
                       key={doc.id}
-                      className="flex items-center gap-3 px-3.5 py-2.5 bg-slate-50 rounded-xl border border-slate-200"
+                      className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl border-2 border-slate-100 hover:border-gantly-blue/20 hover:shadow-sm transition-all duration-200 bg-white"
                     >
                       <span className="material-symbols-outlined text-xl text-slate-400">description</span>
                       <div className="flex-1 min-w-0">
@@ -624,8 +627,9 @@ function DetailView({
               {/* Messages area */}
               <div className="flex-1 overflow-y-auto flex flex-col gap-2 pb-4">
                 {chatMessages.length === 0 ? (
-                  <div className="text-center p-12 text-slate-500 text-sm">
-                    Sin mensajes. Inicia la conversación con el paciente.
+                  <div className="text-center p-12 text-slate-400 text-sm flex flex-col items-center gap-3">
+                    <span className="material-symbols-outlined text-4xl text-slate-300">chat_bubble_outline</span>
+                    <span>Sin mensajes. Inicia la conversación con el paciente.</span>
                   </div>
                 ) : (
                   chatMessages.map(msg => {
@@ -638,8 +642,8 @@ function DetailView({
                         <div
                           className={`max-w-[70%] px-3.5 py-2 text-[13px] leading-relaxed ${
                             isClinic
-                              ? 'bg-gantly-blue text-white rounded-2xl rounded-br-sm'
-                              : 'bg-slate-100 text-slate-900 rounded-2xl rounded-bl-sm'
+                              ? 'bg-gradient-to-r from-gantly-blue to-gantly-blue/90 text-white rounded-2xl rounded-br-sm'
+                              : 'bg-slate-100 text-gantly-text rounded-2xl rounded-bl-sm'
                           }`}
                         >
                           <p className="m-0">{msg.content}</p>
@@ -661,15 +665,15 @@ function DetailView({
                   onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendChat(); } }}
                   placeholder="Escribe un mensaje..."
                   rows={2}
-                  className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-[13px] resize-none outline-none focus:border-gantly-blue-300"
+                  className="flex-1 border-2 border-slate-200 rounded-xl px-3 py-2 text-[13px] resize-none outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
                 />
                 <button
                   onClick={handleSendChat}
                   disabled={!chatInput.trim() || sendingChat}
-                  className={`flex items-center gap-1 rounded-xl px-4 py-2.5 text-[13px] font-semibold text-white flex-shrink-0 ${
+                  className={`flex items-center gap-1 rounded-xl px-4 py-2.5 text-[13px] font-semibold text-white flex-shrink-0 transition-all duration-200 ${
                     !chatInput.trim() || sendingChat
                       ? 'bg-slate-400 cursor-not-allowed'
-                      : 'bg-gantly-blue cursor-pointer hover:bg-gantly-blue-600'
+                      : 'bg-gradient-to-r from-gantly-blue to-gantly-cyan cursor-pointer hover:shadow-md hover:shadow-gantly-blue/25'
                   }`}
                 >
                   <span className="material-symbols-outlined text-base">send</span>
@@ -684,13 +688,13 @@ function DetailView({
             <div className="max-w-[560px] flex flex-col gap-6">
               {/* Datos generales */}
               <section>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3.5">
+                <h3 className="text-sm font-heading font-bold text-gantly-text mb-3.5">
                   Datos generales
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
                   <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
                     Nombre
-                    <input value={patient.name} readOnly className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] bg-slate-50 text-slate-500 outline-none" />
+                    <input value={patient.name} readOnly className="px-2.5 h-12 border-2 border-slate-200 rounded-xl text-[13px] bg-slate-50 text-slate-500 outline-none" />
                   </label>
                   <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
                     Teléfono
@@ -698,23 +702,23 @@ function DetailView({
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="Sin teléfono"
-                      className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] bg-white text-slate-900 outline-none focus:border-gantly-blue-300"
+                      className="px-2.5 h-12 border-2 border-slate-200 rounded-xl text-[13px] bg-white text-slate-900 outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
                     />
                   </label>
                   <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
                     Fecha de nacimiento
-                    <input value={fmtDate(patient.birthDate)} readOnly className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] bg-slate-50 text-slate-500 outline-none" />
+                    <input value={fmtDate(patient.birthDate)} readOnly className="px-2.5 h-12 border-2 border-slate-200 rounded-xl text-[13px] bg-slate-50 text-slate-500 outline-none" />
                   </label>
                   <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
                     Género
-                    <input value={patient.gender ?? '—'} readOnly className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] bg-slate-50 text-slate-500 outline-none" />
+                    <input value={patient.gender ?? '—'} readOnly className="px-2.5 h-12 border-2 border-slate-200 rounded-xl text-[13px] bg-slate-50 text-slate-500 outline-none" />
                   </label>
                   <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
                     Tipo
                     <select
                       value={patientType}
                       onChange={(e) => setPatientType(e.target.value)}
-                      className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] bg-white text-slate-900 outline-none focus:border-gantly-blue-300 cursor-pointer"
+                      className="px-2.5 h-12 border-2 border-slate-200 rounded-xl text-[13px] bg-white text-slate-900 outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 cursor-pointer transition-all duration-200"
                     >
                       <option value="PRIVATE">Privado</option>
                       <option value="INSURANCE">De aseguradora</option>
@@ -725,7 +729,7 @@ function DetailView({
 
               {/* Datos administrativos */}
               <section>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3.5">
+                <h3 className="text-sm font-heading font-bold text-gantly-text mb-3.5">
                   Datos administrativos
                 </h3>
                 <div className="flex flex-col gap-3">
@@ -734,7 +738,7 @@ function DetailView({
                       type="checkbox"
                       checked={consentSigned}
                       onChange={(e) => setConsentSigned(e.target.checked)}
-                      className="w-4 h-4 accent-gantly-blue"
+                      className="w-5 h-5 accent-gantly-blue"
                     />
                     Consentimiento RGPD firmado
                   </label>
@@ -743,7 +747,7 @@ function DetailView({
                     <select
                       value={patientStatus}
                       onChange={(e) => setPatientStatus(e.target.value)}
-                      className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] bg-white text-slate-900 outline-none focus:border-gantly-blue-300 cursor-pointer"
+                      className="px-2.5 h-12 border-2 border-slate-200 rounded-xl text-[13px] bg-white text-slate-900 outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 cursor-pointer transition-all duration-200"
                     >
                       <option value="ACTIVE">Activo</option>
                       <option value="DISCHARGED">Alta</option>
@@ -755,19 +759,19 @@ function DetailView({
 
               {/* Psicólogo asignado */}
               <section>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3.5">
+                <h3 className="text-sm font-heading font-bold text-gantly-text mb-3.5">
                   Psicólogo asignado
                 </h3>
                 <input
                   value={patient.psychologistName ?? '—'}
                   readOnly
-                  className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] bg-slate-50 text-slate-500 outline-none w-full"
+                  className="px-2.5 h-12 border-2 border-slate-200 rounded-xl text-[13px] bg-slate-50 text-slate-500 outline-none w-full"
                 />
               </section>
 
               {/* Historial médico */}
               <section>
-                <h3 className="text-sm font-semibold text-slate-700 mb-3.5">
+                <h3 className="text-sm font-heading font-bold text-gantly-text mb-3.5">
                   Información médica
                 </h3>
                 <div className="flex flex-col gap-3">
@@ -777,7 +781,7 @@ function DetailView({
                       value={allergies}
                       onChange={(e) => setAllergies(e.target.value)}
                       rows={2}
-                      className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] resize-y outline-none focus:border-gantly-blue-300"
+                      className="px-2.5 py-2 border-2 border-slate-200 rounded-xl text-[13px] resize-y outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
                     />
                   </label>
                   <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
@@ -786,7 +790,7 @@ function DetailView({
                       value={medication}
                       onChange={(e) => setMedication(e.target.value)}
                       rows={2}
-                      className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] resize-y outline-none focus:border-gantly-blue-300"
+                      className="px-2.5 py-2 border-2 border-slate-200 rounded-xl text-[13px] resize-y outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
                     />
                   </label>
                   <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
@@ -795,7 +799,7 @@ function DetailView({
                       value={medicalHistory}
                       onChange={(e) => setMedicalHistory(e.target.value)}
                       rows={3}
-                      className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] resize-y outline-none focus:border-gantly-blue-300"
+                      className="px-2.5 py-2 border-2 border-slate-200 rounded-xl text-[13px] resize-y outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
                     />
                   </label>
                 </div>
@@ -806,8 +810,8 @@ function DetailView({
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className={`rounded-lg px-6 py-2.5 font-semibold text-sm text-white ${
-                    saving ? 'bg-slate-400 cursor-not-allowed' : 'bg-gantly-blue cursor-pointer hover:bg-gantly-blue-600'
+                  className={`rounded-xl px-6 h-12 font-heading font-bold text-sm text-white transition-all duration-300 ${
+                    saving ? 'bg-slate-400 cursor-not-allowed' : 'bg-gradient-to-r from-gantly-blue to-gantly-cyan cursor-pointer shadow-md hover:shadow-lg hover:shadow-gantly-blue/25'
                   }`}
                 >
                   {saving ? 'Guardando...' : 'Guardar cambios'}
@@ -900,9 +904,9 @@ export default function ClinicPatients({ onBack: _onBack }: Props) {
     <div className="h-full flex flex-col bg-slate-50">
       {/* Header */}
       <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center gap-3">
-        <h2 className="m-0 text-lg font-bold text-slate-900">Pacientes</h2>
+        <h2 className="m-0 font-heading font-bold text-gantly-text text-xl">Pacientes</h2>
         {view === 'list' && (
-          <span className="text-[13px] text-slate-500 ml-1">{patients.length} registrados</span>
+          <span className="text-sm text-slate-400 font-body ml-1">{patients.length} registrados</span>
         )}
       </div>
 
