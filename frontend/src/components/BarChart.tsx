@@ -16,7 +16,7 @@ interface BarChartProps {
 }
 
 const DEFAULT_COLORS = [
-  '#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#06b6d4', '#a855f7', '#84cc16', '#e11d48', '#f43f5e', '#14b8a6'
+  '#2E93CC', '#22D3EE', '#059669', '#F0C930', '#0891B2', '#2577A4', '#10B981', '#EAB308', '#1C5B7C', '#34D399'
 ];
 
 export default function BarChart({

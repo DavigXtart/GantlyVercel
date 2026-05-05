@@ -42,17 +42,9 @@ function fmtDateTime(iso?: string): string {
 
 function Spinner() {
   return (
-    <div
-      style={{
-        width: 36,
-        height: 36,
-        border: '3px solid #e5e7eb',
-        borderTopColor: '#5a9270',
-        borderRadius: '50%',
-        animation: 'spin 0.8s linear infinite',
-        margin: '40px auto',
-      }}
-    />
+    <div className="flex justify-center py-10">
+      <div className="w-9 h-9 border-[3px] border-slate-200 border-t-gantly-blue rounded-full animate-spin" />
+    </div>
   );
 }
 
@@ -61,32 +53,18 @@ function Spinner() {
 // ---------------------------------------------------------------------------
 function StatusBadge({ status }: { status: string }) {
   const lc = status?.toLowerCase() ?? '';
-  let bg = '#6b7280';
-  let color = 'white';
+  let classes = 'px-2.5 py-0.5 rounded-xl text-xs font-semibold ';
   let label = status;
   if (lc === 'active' || lc === 'activo') {
-    bg = '#dcfce7';
-    color = '#166534';
+    classes += 'bg-gantly-emerald-50 text-gantly-emerald-700';
     label = 'Activo';
   } else if (lc === 'discharged' || lc === 'alta') {
-    bg = '#f3f4f6';
-    color = '#6b7280';
+    classes += 'bg-slate-100 text-slate-500';
     label = 'Alta';
+  } else {
+    classes += 'bg-slate-100 text-slate-500';
   }
-  return (
-    <span
-      style={{
-        background: bg,
-        color,
-        padding: '2px 10px',
-        borderRadius: 12,
-        fontSize: 12,
-        fontWeight: 600,
-      }}
-    >
-      {label}
-    </span>
-  );
+  return <span className={classes}>{label}</span>;
 }
 
 // ---------------------------------------------------------------------------
@@ -95,36 +73,21 @@ function StatusBadge({ status }: { status: string }) {
 function PaymentBadge({ status }: { status?: string }) {
   if (!status) return null;
   const lc = status.toLowerCase();
-  let bg = '#fef3c7';
-  let color = '#92400e';
+  let classes = 'px-2.5 py-0.5 rounded-xl text-xs font-semibold ';
   let label = status;
   if (lc === 'paid' || lc === 'pagada' || lc === 'pagado') {
-    bg = '#dcfce7';
-    color = '#166534';
+    classes += 'bg-gantly-emerald-50 text-gantly-emerald-700';
     label = 'Pagada';
   } else if (lc === 'pending' || lc === 'pendiente') {
-    bg = '#fef3c7';
-    color = '#92400e';
+    classes += 'bg-gantly-gold-50 text-gantly-gold-700';
     label = 'Pendiente';
   } else if (lc === 'cancelled' || lc === 'cancelado' || lc === 'cancelada') {
-    bg = '#fee2e2';
-    color = '#991b1b';
+    classes += 'bg-red-50 text-red-700';
     label = 'Cancelada';
+  } else {
+    classes += 'bg-slate-100 text-slate-600';
   }
-  return (
-    <span
-      style={{
-        background: bg,
-        color,
-        padding: '2px 10px',
-        borderRadius: 12,
-        fontSize: 12,
-        fontWeight: 600,
-      }}
-    >
-      {label}
-    </span>
-  );
+  return <span className={classes}>{label}</span>;
 }
 
 // ---------------------------------------------------------------------------
@@ -132,21 +95,10 @@ function PaymentBadge({ status }: { status?: string }) {
 // ---------------------------------------------------------------------------
 function ApptDot({ status }: { status: string }) {
   const lc = status?.toLowerCase() ?? '';
-  let color = '#9ca3af';
-  if (lc === 'confirmed' || lc === 'booked' || lc === 'realizada') color = '#22c55e';
-  else if (lc === 'cancelled' || lc === 'cancelada') color = '#ef4444';
-  return (
-    <span
-      style={{
-        display: 'inline-block',
-        width: 10,
-        height: 10,
-        borderRadius: '50%',
-        background: color,
-        flexShrink: 0,
-      }}
-    />
-  );
+  let colorClass = 'bg-slate-400';
+  if (lc === 'confirmed' || lc === 'booked' || lc === 'realizada') colorClass = 'bg-gantly-emerald';
+  else if (lc === 'cancelled' || lc === 'cancelada') colorClass = 'bg-red-500';
+  return <span className={`inline-block w-2.5 h-2.5 rounded-full flex-shrink-0 ${colorClass}`} />;
 }
 
 // ---------------------------------------------------------------------------
@@ -155,30 +107,17 @@ function ApptDot({ status }: { status: string }) {
 function ExpandableSection({ label, value }: { label: string; value?: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <div style={{ borderBottom: '1px solid #f3f4f6' }}>
+    <div className="border-b border-slate-100">
       <button
         onClick={() => setOpen(!open)}
-        style={{
-          width: '100%',
-          background: 'none',
-          border: 'none',
-          textAlign: 'left',
-          padding: '10px 0',
-          cursor: 'pointer',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          fontSize: 13,
-          color: '#374151',
-          fontWeight: 500,
-        }}
+        className="w-full bg-transparent border-none text-left py-2.5 cursor-pointer flex justify-between items-center text-[13px] text-slate-700 font-medium"
       >
         {label}
-        <span style={{ fontSize: 11, color: '#9ca3af' }}>{open ? '▲' : '▼'}</span>
+        <span className="text-[11px] text-slate-400">{open ? '\u25B2' : '\u25BC'}</span>
       </button>
       {open && (
-        <div style={{ paddingBottom: 10, fontSize: 13, color: '#6b7280', lineHeight: 1.5 }}>
-          {value || <span style={{ fontStyle: 'italic' }}>Sin información</span>}
+        <div className="pb-2.5 text-[13px] text-slate-500 leading-relaxed">
+          {value || <span className="italic">Sin información</span>}
         </div>
       )}
     </div>
@@ -204,37 +143,20 @@ function ListView({
   onSelect: (id: number) => void;
 }) {
   return (
-    <div style={{ padding: 24 }}>
+    <div className="p-6">
       {/* Search */}
-      <div style={{ marginBottom: 20 }}>
+      <div className="mb-5">
         <input
           type="text"
           placeholder="Buscar paciente por nombre o email..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '10px 14px',
-            borderRadius: 8,
-            border: '1px solid #e5e7eb',
-            fontSize: 14,
-            outline: 'none',
-            boxSizing: 'border-box',
-          }}
+          className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm outline-none focus:border-gantly-blue-300 bg-white"
         />
       </div>
 
       {error && (
-        <div
-          style={{
-            background: '#fee2e2',
-            color: '#991b1b',
-            padding: '10px 16px',
-            borderRadius: 8,
-            marginBottom: 16,
-            fontSize: 14,
-          }}
-        >
+        <div className="bg-red-50 text-red-700 px-4 py-2.5 rounded-lg mb-4 text-sm">
           {error}
         </div>
       )}
@@ -242,31 +164,19 @@ function ListView({
       {loading ? (
         <Spinner />
       ) : patients.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 48, color: '#6b7280' }}>
+        <div className="text-center p-12 text-slate-500">
           No hay pacientes{search ? ' que coincidan con la búsqueda' : ' registrados aún'}.
         </div>
       ) : (
-        <div style={{ background: 'white', borderRadius: 12, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
           {/* Table header */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '60px 1fr 1fr 120px 1fr 100px 100px',
-              background: '#f9fafb',
-              padding: '10px 16px',
-              fontSize: 12,
-              fontWeight: 600,
-              color: '#6b7280',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-            }}
-          >
+          <div className="grid grid-cols-[60px_1fr_1fr_120px_1fr_100px_100px] bg-slate-50 px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">
             <span>N.º</span>
             <span>Nombre</span>
             <span>Email</span>
             <span>Teléfono</span>
             <span>Psicólogo</span>
-            <span style={{ textAlign: 'center' }}>Citas</span>
+            <span className="text-center">Citas</span>
             <span>Estado</span>
           </div>
 
@@ -275,27 +185,16 @@ function ListView({
             <div
               key={p.id}
               onClick={() => onSelect(p.id)}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '60px 1fr 1fr 120px 1fr 100px 100px',
-                padding: '12px 16px',
-                borderTop: '1px solid #f3f4f6',
-                cursor: 'pointer',
-                fontSize: 14,
-                alignItems: 'center',
-                transition: 'background 0.15s',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = '#f0f5f3')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
+              className="grid grid-cols-[60px_1fr_1fr_120px_1fr_100px_100px] px-4 py-3 border-t border-slate-100 cursor-pointer text-sm items-center hover:bg-slate-50 transition-colors"
             >
-              <span style={{ color: '#6b7280', fontSize: 12 }}>
+              <span className="text-slate-500 text-xs">
                 {p.patientNumber != null ? `#${p.patientNumber}` : '—'}
               </span>
-              <span style={{ fontWeight: 500, color: '#111827' }}>{p.name}</span>
-              <span style={{ color: '#6b7280', fontSize: 13 }}>{p.email}</span>
-              <span style={{ color: '#6b7280', fontSize: 13 }}>{p.phone || '—'}</span>
-              <span style={{ color: '#374151', fontSize: 13 }}>{p.assignedPsychologistName || '—'}</span>
-              <span style={{ textAlign: 'center', color: '#374151', fontSize: 13 }}>{p.totalAppointments}</span>
+              <span className="font-medium text-slate-900">{p.name}</span>
+              <span className="text-slate-500 text-[13px]">{p.email}</span>
+              <span className="text-slate-500 text-[13px]">{p.phone || '—'}</span>
+              <span className="text-slate-700 text-[13px]">{p.assignedPsychologistName || '—'}</span>
+              <span className="text-center text-slate-700 text-[13px]">{p.totalAppointments}</span>
               <StatusBadge status={p.status} />
             </div>
           ))}
@@ -451,7 +350,7 @@ function DetailView({
   if (loading) return <Spinner />;
   if (error)
     return (
-      <div style={{ padding: 24, color: '#991b1b', background: '#fee2e2', borderRadius: 8, margin: 24 }}>
+      <div className="p-6 bg-red-50 text-red-700 rounded-lg m-6">
         {error}
       </div>
     );
@@ -470,90 +369,47 @@ function DetailView({
     });
   };
 
-  const tabStyle = (t: DetailTab): React.CSSProperties => ({
-    padding: '8px 20px',
-    border: 'none',
-    background: 'none',
-    cursor: 'pointer',
-    fontSize: 14,
-    fontWeight: tab === t ? 600 : 400,
-    color: tab === t ? '#5a9270' : '#6b7280',
-    borderBottom: tab === t ? '2px solid #5a9270' : '2px solid transparent',
-    transition: 'all 0.15s',
-  });
+  const tabBtnClass = (t: DetailTab) =>
+    `px-5 py-2 border-none bg-transparent cursor-pointer text-sm transition-all ${
+      tab === t
+        ? 'font-semibold text-gantly-blue border-b-2 border-gantly-blue'
+        : 'font-normal text-slate-500 border-b-2 border-transparent'
+    }`;
 
   return (
-    <div style={{ display: 'flex', height: '100%', minHeight: 0 }}>
+    <div className="flex h-full min-h-0">
       {/* ---- Sidebar ---- */}
-      <aside
-        style={{
-          width: 300,
-          minWidth: 300,
-          borderRight: '1px solid #e5e7eb',
-          padding: 20,
-          overflowY: 'auto',
-          background: 'white',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-        }}
-      >
+      <aside className="w-[300px] min-w-[300px] border-r border-slate-200 p-5 overflow-y-auto bg-white flex flex-col gap-4">
         {/* Back button */}
         <button
           onClick={onBack}
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: '#5a9270',
-            fontWeight: 600,
-            fontSize: 14,
-            textAlign: 'left',
-            padding: 0,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 4,
-          }}
+          className="bg-transparent border-none cursor-pointer text-gantly-blue font-semibold text-sm text-left p-0 flex items-center gap-1"
         >
-          ← Pacientes
+          &larr; Pacientes
         </button>
 
         {/* Avatar */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-          <div
-            style={{
-              width: 72,
-              height: 72,
-              borderRadius: '50%',
-              background: '#5a9270',
-              color: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 26,
-              fontWeight: 700,
-              letterSpacing: 1,
-            }}
-          >
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-[72px] h-[72px] rounded-full bg-gantly-blue text-white flex items-center justify-center text-[26px] font-bold tracking-wider">
             {initials(patient.name)}
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontWeight: 700, fontSize: 18, color: '#111827' }}>{patient.name}</div>
+          <div className="text-center">
+            <div className="font-bold text-lg text-slate-900">{patient.name}</div>
             {patient.patientNumber != null && (
-              <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>N.º {patient.patientNumber}</div>
+              <div className="text-xs text-slate-500 mt-0.5">N.º {patient.patientNumber}</div>
             )}
           </div>
         </div>
 
         {/* Contact */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#374151' }}>
-            <span>✉️</span>
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center gap-2 text-[13px] text-slate-700">
+            <span className="material-symbols-outlined text-base text-slate-400">mail</span>
             <span>{patient.email}</span>
           </div>
           {patient.phone && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#374151' }}>
-              <span>📞</span>
+            <div className="flex items-center gap-2 text-[13px] text-slate-700">
+              <span className="material-symbols-outlined text-base text-slate-400">phone</span>
               <span>{patient.phone}</span>
             </div>
           )}
@@ -561,7 +417,7 @@ function DetailView({
 
         {/* Notes (sidebar quick notes) */}
         <div>
-          <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', marginBottom: 6 }}>
+          <div className="text-xs font-semibold text-slate-500 uppercase mb-1.5">
             Notas
           </div>
           <textarea
@@ -569,22 +425,13 @@ function DetailView({
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Añadir notas sobre este paciente..."
             rows={4}
-            style={{
-              width: '100%',
-              border: '1px solid #e5e7eb',
-              borderRadius: 8,
-              padding: '8px 10px',
-              fontSize: 13,
-              resize: 'vertical',
-              outline: 'none',
-              boxSizing: 'border-box',
-            }}
+            className="w-full border border-slate-200 rounded-lg px-2.5 py-2 text-[13px] resize-y outline-none focus:border-gantly-blue-300"
           />
         </div>
 
         {/* Medical info expandable */}
         <div>
-          <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', marginBottom: 4 }}>
+          <div className="text-xs font-semibold text-slate-500 uppercase mb-1">
             Otra información médica
           </div>
           <ExpandableSection label="Alergias" value={patient.allergies} />
@@ -594,30 +441,30 @@ function DetailView({
       </aside>
 
       {/* ---- Main content ---- */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+      <div className="flex-1 flex flex-col min-h-0">
         {/* Tab bar */}
-        <div style={{ borderBottom: '1px solid #e5e7eb', display: 'flex', paddingLeft: 24 }}>
-          <button style={tabStyle('citas')} onClick={() => setTab('citas')}>
+        <div className="border-b border-slate-200 flex pl-6">
+          <button className={tabBtnClass('citas')} onClick={() => setTab('citas')}>
             Citas ({patient.appointments?.length ?? 0})
           </button>
-          <button style={tabStyle('documentos')} onClick={() => setTab('documentos')}>
+          <button className={tabBtnClass('documentos')} onClick={() => setTab('documentos')}>
             Documentos
           </button>
-          <button style={tabStyle('chat')} onClick={() => setTab('chat')}>
+          <button className={tabBtnClass('chat')} onClick={() => setTab('chat')}>
             Chat
           </button>
-          <button style={tabStyle('datos')} onClick={() => setTab('datos')}>
+          <button className={tabBtnClass('datos')} onClick={() => setTab('datos')}>
             Datos del paciente
           </button>
         </div>
 
         {/* Tab content */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
+        <div className="flex-1 overflow-y-auto p-6">
           {/* CITAS tab */}
           {tab === 'citas' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="flex flex-col gap-2.5">
               {(!patient.appointments || patient.appointments.length === 0) ? (
-                <div style={{ color: '#6b7280', textAlign: 'center', padding: 40 }}>
+                <div className="text-slate-500 text-center p-10">
                   No hay citas para este paciente.
                 </div>
               ) : (
@@ -626,49 +473,33 @@ function DetailView({
                   .map((appt) => (
                     <div
                       key={appt.id}
-                      style={{
-                        background: 'white',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: 10,
-                        padding: '14px 18px',
-                        gap: 12,
-                      }}
+                      className="bg-white border border-slate-200 rounded-xl px-4 py-3.5"
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div className="flex justify-between items-center gap-3">
+                        <div className="flex items-center gap-3">
                           <ApptDot status={appt.status} />
                           <div>
-                            <div style={{ fontWeight: 500, fontSize: 14, color: '#111827' }}>
+                            <div className="font-medium text-sm text-slate-900">
                               {fmtDateTime(appt.startTime)}
                             </div>
-                            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                            <div className="text-xs text-slate-500 mt-0.5">
                               {appt.psychologistName}
                               {appt.service ? ` · ${appt.service}` : ''}
                             </div>
                           </div>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div className="flex items-center gap-2.5">
                           <PaymentBadge status={appt.paymentStatus} />
                           {appt.paymentStatus === 'PENDING' && appt.price != null && Number(appt.price) > 0 && (
                             <button
                               onClick={() => handlePaymentLink(appt.id)}
                               disabled={paymentLinkLoading === appt.id}
                               title="Enviar link de pago al paciente"
-                              style={{
-                                padding: '5px 12px',
-                                borderRadius: 6,
-                                border: '1px solid #5a9270',
-                                background: paymentLinkLoading === appt.id ? '#f0f5f3' : 'white',
-                                fontSize: 12,
-                                color: '#5a9270',
-                                cursor: paymentLinkLoading === appt.id ? 'wait' : 'pointer',
-                                fontWeight: 500,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 4,
-                              }}
+                              className={`px-3 py-1.5 rounded-md border border-gantly-blue text-xs text-gantly-blue font-medium flex items-center gap-1 transition-colors ${
+                                paymentLinkLoading === appt.id ? 'bg-gantly-blue-50 cursor-wait' : 'bg-white hover:bg-gantly-blue-50 cursor-pointer'
+                              }`}
                             >
-                              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>link</span>
+                              <span className="material-symbols-outlined text-sm">link</span>
                               {paymentLinkLoading === appt.id ? 'Generando...' : 'Link de pago'}
                             </button>
                           )}
@@ -676,79 +507,43 @@ function DetailView({
                       </div>
                       {/* Session note inline editor */}
                       {editingNoteId === appt.id ? (
-                        <div style={{ marginTop: 8 }}>
+                        <div className="mt-2">
                           <textarea
                             value={noteText}
                             onChange={e => setNoteText(e.target.value)}
                             rows={2}
                             placeholder="Nota administrativa..."
-                            style={{
-                              width: '100%',
-                              border: '1px solid #d1d5db',
-                              borderRadius: 8,
-                              padding: '6px 10px',
-                              fontSize: 12,
-                              color: '#111827',
-                              resize: 'none',
-                              outline: 'none',
-                              boxSizing: 'border-box',
-                            }}
+                            className="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 resize-none outline-none focus:border-gantly-blue-300"
                           />
-                          <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                          <div className="flex gap-2 mt-1">
                             <button
                               onClick={async () => {
                                 await clinicService.updateAppointmentNotes(appt.id, noteText);
                                 setEditingNoteId(null);
                               }}
-                              style={{
-                                fontSize: 12,
-                                background: '#5a9270',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: 6,
-                                padding: '4px 10px',
-                                cursor: 'pointer',
-                              }}
+                              className="text-xs bg-gantly-blue text-white border-none rounded-md px-2.5 py-1 cursor-pointer"
                             >
                               Guardar
                             </button>
                             <button
                               onClick={() => setEditingNoteId(null)}
-                              style={{
-                                fontSize: 12,
-                                background: 'none',
-                                border: 'none',
-                                color: '#6b7280',
-                                cursor: 'pointer',
-                                padding: '4px 6px',
-                              }}
+                              className="text-xs bg-transparent border-none text-slate-500 cursor-pointer px-1.5 py-1"
                             >
                               Cancelar
                             </button>
                           </div>
                         </div>
                       ) : (
-                        <div style={{ marginTop: 4, display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+                        <div className="mt-1 flex items-start gap-1">
                           {appt.clinicNotes && (
-                            <span style={{ fontSize: 12, color: '#6b7280', flex: 1 }}>{appt.clinicNotes}</span>
+                            <span className="text-xs text-slate-500 flex-1">{appt.clinicNotes}</span>
                           )}
                           <button
                             onClick={() => { setEditingNoteId(appt.id); setNoteText(appt.clinicNotes || ''); }}
                             title="Editar nota"
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              cursor: 'pointer',
-                              color: '#d1d5db',
-                              padding: 2,
-                              marginLeft: 'auto',
-                              flexShrink: 0,
-                              lineHeight: 1,
-                            }}
-                            onMouseEnter={e => (e.currentTarget.style.color = '#5a9270')}
-                            onMouseLeave={e => (e.currentTarget.style.color = '#d1d5db')}
+                            className="bg-transparent border-none cursor-pointer text-slate-300 hover:text-gantly-blue p-0.5 ml-auto flex-shrink-0 leading-none transition-colors"
                           >
-                            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>edit_note</span>
+                            <span className="material-symbols-outlined text-base">edit_note</span>
                           </button>
                         </div>
                       )}
@@ -760,29 +555,20 @@ function DetailView({
 
           {/* DOCUMENTOS tab */}
           {tab === 'documentos' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div className="flex flex-col gap-3">
               {/* Upload button */}
               <div>
                 <label
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    cursor: uploadingDoc ? 'not-allowed' : 'pointer',
-                    background: uploadingDoc ? '#9ca3af' : '#5a9270',
-                    color: 'white',
-                    borderRadius: 10,
-                    padding: '8px 16px',
-                    fontSize: 13,
-                    fontWeight: 600,
-                  }}
+                  className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-[13px] font-semibold text-white ${
+                    uploadingDoc ? 'bg-slate-400 cursor-not-allowed' : 'bg-gantly-blue cursor-pointer hover:bg-gantly-blue-600'
+                  }`}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>upload_file</span>
+                  <span className="material-symbols-outlined text-base">upload_file</span>
                   {uploadingDoc ? 'Subiendo...' : 'Subir documento'}
                   <input
                     ref={fileInputRef}
                     type="file"
-                    style={{ display: 'none' }}
+                    className="hidden"
                     onChange={handleDocUpload}
                     accept=".pdf,.doc,.docx,.jpg,.png"
                     disabled={uploadingDoc}
@@ -793,49 +579,37 @@ function DetailView({
               {loadingDocs ? (
                 <Spinner />
               ) : documents.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: 48, color: '#6b7280', fontSize: 14 }}>
+                <div className="text-center p-12 text-slate-500 text-sm">
                   Sin documentos para este paciente.
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div className="flex flex-col gap-2">
                   {documents.map(doc => (
                     <div
                       key={doc.id}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 12,
-                        padding: '10px 14px',
-                        background: '#f9fafb',
-                        borderRadius: 10,
-                        border: '1px solid #e5e7eb',
-                      }}
+                      className="flex items-center gap-3 px-3.5 py-2.5 bg-slate-50 rounded-xl border border-slate-200"
                     >
-                      <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#9ca3af' }}>description</span>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ margin: 0, fontSize: 13, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span className="material-symbols-outlined text-xl text-slate-400">description</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="m-0 text-[13px] text-slate-900 truncate">
                           {doc.originalName}
                         </p>
-                        <p style={{ margin: 0, fontSize: 11, color: '#9ca3af', marginTop: 2 }}>
+                        <p className="m-0 text-[11px] text-slate-400 mt-0.5">
                           {new Date(doc.uploadedAt).toLocaleDateString('es-ES')}
                         </p>
                       </div>
                       <button
                         onClick={() => fileService.downloadClinicDoc(doc.fileName)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', lineHeight: 1, padding: 2 }}
-                        onMouseEnter={e => (e.currentTarget.style.color = '#5a9270')}
-                        onMouseLeave={e => (e.currentTarget.style.color = '#9ca3af')}
+                        className="bg-transparent border-none cursor-pointer text-slate-400 hover:text-gantly-blue leading-none p-0.5 transition-colors"
                       >
-                        <span className="material-symbols-outlined" style={{ fontSize: 18 }}>download</span>
+                        <span className="material-symbols-outlined text-lg">download</span>
                       </button>
                       <button
                         onClick={() => handleDocDelete(doc.id)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', lineHeight: 1, padding: 2 }}
-                        onMouseEnter={e => (e.currentTarget.style.color = '#ef4444')}
-                        onMouseLeave={e => (e.currentTarget.style.color = '#d1d5db')}
+                        className="bg-transparent border-none cursor-pointer text-slate-300 hover:text-red-500 leading-none p-0.5 transition-colors"
                         title="Eliminar documento"
                       >
-                        <span className="material-symbols-outlined" style={{ fontSize: 18 }}>delete</span>
+                        <span className="material-symbols-outlined text-lg">delete</span>
                       </button>
                     </div>
                   ))}
@@ -846,11 +620,11 @@ function DetailView({
 
           {/* CHAT tab (Feature F) */}
           {tab === 'chat' && (
-            <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 400 }}>
+            <div className="flex flex-col h-full min-h-[400px]">
               {/* Messages area */}
-              <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 16 }}>
+              <div className="flex-1 overflow-y-auto flex flex-col gap-2 pb-4">
                 {chatMessages.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: 48, color: '#6b7280', fontSize: 14 }}>
+                  <div className="text-center p-12 text-slate-500 text-sm">
                     Sin mensajes. Inicia la conversación con el paciente.
                   </div>
                 ) : (
@@ -859,24 +633,17 @@ function DetailView({
                     return (
                       <div
                         key={msg.id}
-                        style={{
-                          display: 'flex',
-                          justifyContent: isClinic ? 'flex-end' : 'flex-start',
-                        }}
+                        className={`flex ${isClinic ? 'justify-end' : 'justify-start'}`}
                       >
                         <div
-                          style={{
-                            maxWidth: '70%',
-                            padding: '8px 14px',
-                            borderRadius: isClinic ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                            background: isClinic ? '#5a9270' : '#f3f4f6',
-                            color: isClinic ? 'white' : '#111827',
-                            fontSize: 13,
-                            lineHeight: 1.5,
-                          }}
+                          className={`max-w-[70%] px-3.5 py-2 text-[13px] leading-relaxed ${
+                            isClinic
+                              ? 'bg-gantly-blue text-white rounded-2xl rounded-br-sm'
+                              : 'bg-slate-100 text-slate-900 rounded-2xl rounded-bl-sm'
+                          }`}
                         >
-                          <p style={{ margin: 0 }}>{msg.content}</p>
-                          <p style={{ margin: '4px 0 0', fontSize: 10, opacity: 0.7, textAlign: 'right' }}>
+                          <p className="m-0">{msg.content}</p>
+                          <p className={`m-0 mt-1 text-[10px] text-right ${isClinic ? 'opacity-70' : 'text-slate-400'}`}>
                             {new Date(msg.createdAt).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                           </p>
                         </div>
@@ -887,50 +654,25 @@ function DetailView({
                 <div ref={chatBottomRef} />
               </div>
               {/* Input area */}
-              <div
-                style={{
-                  borderTop: '1px solid #e5e7eb',
-                  paddingTop: 12,
-                  display: 'flex',
-                  gap: 8,
-                  alignItems: 'flex-end',
-                }}
-              >
+              <div className="border-t border-slate-200 pt-3 flex gap-2 items-end">
                 <textarea
                   value={chatInput}
                   onChange={e => setChatInput(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendChat(); } }}
                   placeholder="Escribe un mensaje..."
                   rows={2}
-                  style={{
-                    flex: 1,
-                    border: '1px solid #e5e7eb',
-                    borderRadius: 10,
-                    padding: '8px 12px',
-                    fontSize: 13,
-                    resize: 'none',
-                    outline: 'none',
-                  }}
+                  className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-[13px] resize-none outline-none focus:border-gantly-blue-300"
                 />
                 <button
                   onClick={handleSendChat}
                   disabled={!chatInput.trim() || sendingChat}
-                  style={{
-                    background: !chatInput.trim() || sendingChat ? '#9ca3af' : '#5a9270',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: 10,
-                    padding: '10px 16px',
-                    cursor: !chatInput.trim() || sendingChat ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    flexShrink: 0,
-                  }}
+                  className={`flex items-center gap-1 rounded-xl px-4 py-2.5 text-[13px] font-semibold text-white flex-shrink-0 ${
+                    !chatInput.trim() || sendingChat
+                      ? 'bg-slate-400 cursor-not-allowed'
+                      : 'bg-gantly-blue cursor-pointer hover:bg-gantly-blue-600'
+                  }`}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>send</span>
+                  <span className="material-symbols-outlined text-base">send</span>
                   Enviar
                 </button>
               </div>
@@ -939,40 +681,40 @@ function DetailView({
 
           {/* DATOS DEL PACIENTE tab */}
           {tab === 'datos' && (
-            <div style={{ maxWidth: 560, display: 'flex', flexDirection: 'column', gap: 24 }}>
+            <div className="max-w-[560px] flex flex-col gap-6">
               {/* Datos generales */}
               <section>
-                <h3 style={{ fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 14 }}>
+                <h3 className="text-sm font-semibold text-slate-700 mb-3.5">
                   Datos generales
                 </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <label style={labelStyle}>
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
                     Nombre
-                    <input value={patient.name} readOnly style={inputStyle(true)} />
+                    <input value={patient.name} readOnly className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] bg-slate-50 text-slate-500 outline-none" />
                   </label>
-                  <label style={labelStyle}>
+                  <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
                     Teléfono
                     <input
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="Sin teléfono"
-                      style={inputStyle(false)}
+                      className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] bg-white text-slate-900 outline-none focus:border-gantly-blue-300"
                     />
                   </label>
-                  <label style={labelStyle}>
+                  <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
                     Fecha de nacimiento
-                    <input value={fmtDate(patient.birthDate)} readOnly style={inputStyle(true)} />
+                    <input value={fmtDate(patient.birthDate)} readOnly className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] bg-slate-50 text-slate-500 outline-none" />
                   </label>
-                  <label style={labelStyle}>
+                  <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
                     Género
-                    <input value={patient.gender ?? '—'} readOnly style={inputStyle(true)} />
+                    <input value={patient.gender ?? '—'} readOnly className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] bg-slate-50 text-slate-500 outline-none" />
                   </label>
-                  <label style={labelStyle}>
+                  <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
                     Tipo
                     <select
                       value={patientType}
                       onChange={(e) => setPatientType(e.target.value)}
-                      style={{ ...inputStyle(false), cursor: 'pointer' }}
+                      className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] bg-white text-slate-900 outline-none focus:border-gantly-blue-300 cursor-pointer"
                     >
                       <option value="PRIVATE">Privado</option>
                       <option value="INSURANCE">De aseguradora</option>
@@ -983,25 +725,25 @@ function DetailView({
 
               {/* Datos administrativos */}
               <section>
-                <h3 style={{ fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 14 }}>
+                <h3 className="text-sm font-semibold text-slate-700 mb-3.5">
                   Datos administrativos
                 </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#374151', cursor: 'pointer' }}>
+                <div className="flex flex-col gap-3">
+                  <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={consentSigned}
                       onChange={(e) => setConsentSigned(e.target.checked)}
-                      style={{ accentColor: '#5a9270', width: 16, height: 16 }}
+                      className="w-4 h-4 accent-gantly-blue"
                     />
                     Consentimiento RGPD firmado
                   </label>
-                  <label style={labelStyle}>
+                  <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
                     Estado del paciente
                     <select
                       value={patientStatus}
                       onChange={(e) => setPatientStatus(e.target.value)}
-                      style={{ ...inputStyle(false), cursor: 'pointer' }}
+                      className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] bg-white text-slate-900 outline-none focus:border-gantly-blue-300 cursor-pointer"
                     >
                       <option value="ACTIVE">Activo</option>
                       <option value="DISCHARGED">Alta</option>
@@ -1013,47 +755,47 @@ function DetailView({
 
               {/* Psicólogo asignado */}
               <section>
-                <h3 style={{ fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 14 }}>
+                <h3 className="text-sm font-semibold text-slate-700 mb-3.5">
                   Psicólogo asignado
                 </h3>
                 <input
                   value={patient.psychologistName ?? '—'}
                   readOnly
-                  style={inputStyle(true)}
+                  className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] bg-slate-50 text-slate-500 outline-none w-full"
                 />
               </section>
 
               {/* Historial médico */}
               <section>
-                <h3 style={{ fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 14 }}>
+                <h3 className="text-sm font-semibold text-slate-700 mb-3.5">
                   Información médica
                 </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <label style={labelStyle}>
+                <div className="flex flex-col gap-3">
+                  <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
                     Alergias
                     <textarea
                       value={allergies}
                       onChange={(e) => setAllergies(e.target.value)}
                       rows={2}
-                      style={textareaStyle}
+                      className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] resize-y outline-none focus:border-gantly-blue-300"
                     />
                   </label>
-                  <label style={labelStyle}>
+                  <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
                     Medicación actual
                     <textarea
                       value={medication}
                       onChange={(e) => setMedication(e.target.value)}
                       rows={2}
-                      style={textareaStyle}
+                      className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] resize-y outline-none focus:border-gantly-blue-300"
                     />
                   </label>
-                  <label style={labelStyle}>
+                  <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
                     Antecedentes médicos
                     <textarea
                       value={medicalHistory}
                       onChange={(e) => setMedicalHistory(e.target.value)}
                       rows={3}
-                      style={textareaStyle}
+                      className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] resize-y outline-none focus:border-gantly-blue-300"
                     />
                   </label>
                 </div>
@@ -1064,16 +806,9 @@ function DetailView({
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  style={{
-                    background: saving ? '#9ca3af' : '#5a9270',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: 8,
-                    padding: '10px 24px',
-                    fontWeight: 600,
-                    fontSize: 14,
-                    cursor: saving ? 'not-allowed' : 'pointer',
-                  }}
+                  className={`rounded-lg px-6 py-2.5 font-semibold text-sm text-white ${
+                    saving ? 'bg-slate-400 cursor-not-allowed' : 'bg-gantly-blue cursor-pointer hover:bg-gantly-blue-600'
+                  }`}
                 >
                   {saving ? 'Guardando...' : 'Guardar cambios'}
                 </button>
@@ -1085,36 +820,6 @@ function DetailView({
     </div>
   );
 }
-
-const labelStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 4,
-  fontSize: 13,
-  fontWeight: 500,
-  color: '#374151',
-};
-
-function inputStyle(readOnly: boolean): React.CSSProperties {
-  return {
-    padding: '8px 10px',
-    borderRadius: 8,
-    border: '1px solid #e5e7eb',
-    fontSize: 13,
-    background: readOnly ? '#f9fafb' : 'white',
-    color: readOnly ? '#6b7280' : '#111827',
-    outline: 'none',
-  };
-}
-
-const textareaStyle: React.CSSProperties = {
-  padding: '8px 10px',
-  borderRadius: 8,
-  border: '1px solid #e5e7eb',
-  fontSize: 13,
-  resize: 'vertical',
-  outline: 'none',
-};
 
 // ---------------------------------------------------------------------------
 // Main component
@@ -1191,37 +896,20 @@ export default function ClinicPatients({ onBack: _onBack }: Props) {
     }
   };
 
-  // Inject keyframe animation for spinner
-  if (typeof document !== 'undefined' && !document.getElementById('clinic-spin-style')) {
-    const style = document.createElement('style');
-    style.id = 'clinic-spin-style';
-    style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
-    document.head.appendChild(style);
-  }
-
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#f9fafb' }}>
+    <div className="h-full flex flex-col bg-slate-50">
       {/* Header */}
-      <div
-        style={{
-          background: 'white',
-          borderBottom: '1px solid #e5e7eb',
-          padding: '16px 24px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-        }}
-      >
-        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#111827' }}>Pacientes</h2>
+      <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center gap-3">
+        <h2 className="m-0 text-lg font-bold text-slate-900">Pacientes</h2>
         {view === 'list' && (
-          <span style={{ fontSize: 13, color: '#6b7280', marginLeft: 4 }}>{patients.length} registrados</span>
+          <span className="text-[13px] text-slate-500 ml-1">{patients.length} registrados</span>
         )}
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <div className="flex-1 overflow-hidden flex flex-col">
         {view === 'list' ? (
-          <div style={{ flex: 1, overflowY: 'auto' }}>
+          <div className="flex-1 overflow-y-auto">
             <ListView
               patients={patients}
               loading={loadingList}
@@ -1232,7 +920,7 @@ export default function ClinicPatients({ onBack: _onBack }: Props) {
             />
           </div>
         ) : (
-          <div style={{ flex: 1, overflow: 'hidden', display: 'flex' }}>
+          <div className="flex-1 overflow-hidden flex">
             <DetailView
               patient={selectedPatient}
               loading={loadingDetail}

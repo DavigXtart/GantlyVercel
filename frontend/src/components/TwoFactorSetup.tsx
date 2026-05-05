@@ -85,130 +85,28 @@ export default function TwoFactorSetup({ isEnabled, onStatusChange }: Props) {
     }
   };
 
-  // ---- Styles ----
-  const containerStyle: React.CSSProperties = {
-    fontFamily: "'Inter', sans-serif",
-    background: 'rgba(255,255,255,0.95)',
-    border: '1px solid rgba(90,146,112,0.2)',
-    borderRadius: '16px',
-    padding: '32px',
-    boxShadow: '0 4px 16px rgba(90,146,112,0.08)',
-  };
-
-  const headingStyle: React.CSSProperties = {
-    fontSize: '20px',
-    fontWeight: 700,
-    color: '#2d4a3a',
-    marginBottom: '8px',
-    fontFamily: "'Inter', sans-serif",
-  };
-
-  const descriptionStyle: React.CSSProperties = {
-    fontSize: '14px',
-    color: '#5a7a6a',
-    lineHeight: '1.6',
-    marginBottom: '24px',
-  };
-
-  const primaryButtonStyle: React.CSSProperties = {
-    padding: '12px 24px',
-    background: '#5a9270',
-    color: 'white',
-    border: 'none',
-    borderRadius: '12px',
-    fontSize: '15px',
-    fontWeight: 600,
-    cursor: 'pointer',
-    fontFamily: "'Inter', sans-serif",
-    transition: 'opacity 0.2s',
-  };
-
-  const secondaryButtonStyle: React.CSSProperties = {
-    padding: '10px 20px',
-    background: 'transparent',
-    color: '#5a9270',
-    border: '1px solid rgba(90,146,112,0.3)',
-    borderRadius: '12px',
-    fontSize: '14px',
-    fontWeight: 500,
-    cursor: 'pointer',
-    fontFamily: "'Inter', sans-serif",
-    transition: 'opacity 0.2s',
-  };
-
-  const dangerButtonStyle: React.CSSProperties = {
-    padding: '12px 24px',
-    background: '#dc2626',
-    color: 'white',
-    border: 'none',
-    borderRadius: '12px',
-    fontSize: '15px',
-    fontWeight: 600,
-    cursor: 'pointer',
-    fontFamily: "'Inter', sans-serif",
-    transition: 'opacity 0.2s',
-  };
-
-  const inputStyle: React.CSSProperties = {
-    width: '100%',
-    padding: '12px 16px',
-    border: '1px solid rgba(90,146,112,0.3)',
-    borderRadius: '12px',
-    fontSize: '14px',
-    outline: 'none',
-    fontFamily: "'Inter', sans-serif",
-    boxSizing: 'border-box',
-  };
-
-  const codeInputStyle: React.CSSProperties = {
-    ...inputStyle,
-    fontSize: '24px',
-    textAlign: 'center' as const,
-    letterSpacing: '0.3em',
-    maxWidth: '220px',
-  };
-
-  const errorStyle: React.CSSProperties = {
-    color: '#dc2626',
-    fontSize: '14px',
-    marginTop: '12px',
-  };
-
-  const badgeStyle: React.CSSProperties = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '6px',
-    background: '#d1fae5',
-    color: '#065f46',
-    fontSize: '13px',
-    fontWeight: 600,
-    padding: '6px 14px',
-    borderRadius: '20px',
-    marginBottom: '16px',
-  };
-
   // ================================================================
   // 2FA IS ENABLED
   // ================================================================
   if (isEnabled) {
     return (
-      <div style={containerStyle}>
-        <div style={headingStyle}>Autenticacion en dos pasos</div>
-        <div style={badgeStyle}>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+      <div className="bg-white/95 border border-gantly-blue/15 rounded-2xl p-8 shadow-card font-body">
+        <div className="text-xl font-bold text-gantly-navy mb-2">Autenticacion en dos pasos</div>
+        <div className="inline-flex items-center gap-1.5 bg-gantly-emerald-100 text-gantly-emerald-800 text-[13px] font-semibold px-3.5 py-1.5 rounded-full mb-4">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0">
             <circle cx="7" cy="7" r="7" fill="#10b981" />
             <path d="M4 7l2 2 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           2FA activado
         </div>
-        <p style={descriptionStyle}>
+        <p className="text-sm text-gantly-muted leading-relaxed mb-6">
           Tu cuenta esta protegida con autenticacion en dos pasos. Cada vez que inicies sesion,
           necesitaras un codigo de tu aplicacion de autenticacion.
         </p>
 
         {!showDisable ? (
           <button
-            style={{ ...dangerButtonStyle, opacity: loading ? 0.6 : 1 }}
+            className="px-6 py-3 bg-red-600 text-white border-none rounded-xl text-[15px] font-semibold cursor-pointer transition-opacity disabled:opacity-60"
             disabled={loading}
             onClick={() => { setShowDisable(true); setError(null); }}
           >
@@ -216,34 +114,34 @@ export default function TwoFactorSetup({ isEnabled, onStatusChange }: Props) {
           </button>
         ) : (
           <form onSubmit={handleDisable}>
-            <p style={{ fontSize: '14px', color: '#5a7a6a', marginBottom: '12px' }}>
+            <p className="text-sm text-gantly-muted mb-3">
               Introduce tu contrasena para confirmar la desactivacion:
             </p>
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            <div className="flex gap-3 items-start flex-wrap">
               <input
                 type="password"
                 value={disablePassword}
                 onChange={e => setDisablePassword(e.target.value)}
                 placeholder="Tu contrasena"
-                style={{ ...inputStyle, flex: '1', minWidth: '200px' }}
+                className="flex-1 min-w-[200px] px-4 py-3 border border-gantly-blue/20 rounded-xl text-sm outline-none font-body focus:border-gantly-blue focus:ring-1 focus:ring-gantly-blue/20"
                 autoFocus
               />
               <button
                 type="submit"
                 disabled={loading || !disablePassword.trim()}
-                style={{ ...dangerButtonStyle, opacity: loading || !disablePassword.trim() ? 0.6 : 1 }}
+                className="px-6 py-3 bg-red-600 text-white border-none rounded-xl text-[15px] font-semibold cursor-pointer transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {loading ? 'Desactivando...' : 'Confirmar'}
               </button>
               <button
                 type="button"
-                style={secondaryButtonStyle}
+                className="px-5 py-2.5 bg-transparent text-gantly-blue border border-gantly-blue/30 rounded-xl text-sm font-medium cursor-pointer transition-opacity hover:bg-gantly-blue/5"
                 onClick={() => { setShowDisable(false); setDisablePassword(''); setError(null); }}
               >
                 Cancelar
               </button>
             </div>
-            {error && <p style={errorStyle}>{error}</p>}
+            {error && <p className="text-red-600 text-sm mt-3">{error}</p>}
           </form>
         )}
       </div>
@@ -254,9 +152,9 @@ export default function TwoFactorSetup({ isEnabled, onStatusChange }: Props) {
   // 2FA IS NOT ENABLED
   // ================================================================
   return (
-    <div style={containerStyle}>
-      <div style={headingStyle}>Activar autenticacion en dos pasos</div>
-      <p style={descriptionStyle}>
+    <div className="bg-white/95 border border-gantly-blue/15 rounded-2xl p-8 shadow-card font-body">
+      <div className="text-xl font-bold text-gantly-navy mb-2">Activar autenticacion en dos pasos</div>
+      <p className="text-sm text-gantly-muted leading-relaxed mb-6">
         Anade una capa extra de seguridad a tu cuenta. Al activar la autenticacion en dos pasos (2FA),
         necesitaras un codigo temporal de tu aplicacion de autenticacion (como Google Authenticator,
         Authy o similar) cada vez que inicies sesion.
@@ -265,7 +163,7 @@ export default function TwoFactorSetup({ isEnabled, onStatusChange }: Props) {
       {/* Step 1: Show setup button */}
       {!setupData && (
         <button
-          style={{ ...primaryButtonStyle, opacity: loading ? 0.6 : 1 }}
+          className="px-6 py-3 bg-gantly-blue text-white border-none rounded-xl text-[15px] font-semibold cursor-pointer transition-opacity disabled:opacity-60"
           disabled={loading}
           onClick={handleSetup}
         >
@@ -275,60 +173,30 @@ export default function TwoFactorSetup({ isEnabled, onStatusChange }: Props) {
 
       {/* Step 2: Show QR / secret + verification */}
       {setupData && (
-        <div style={{ marginTop: '8px' }}>
+        <div className="mt-2">
           {/* Instructions */}
-          <div style={{
-            background: 'rgba(90,146,112,0.06)',
-            border: '1px solid rgba(90,146,112,0.15)',
-            borderRadius: '12px',
-            padding: '20px',
-            marginBottom: '24px',
-          }}>
-            <p style={{ fontSize: '15px', fontWeight: 600, color: '#2d4a3a', marginBottom: '12px' }}>
+          <div className="bg-gantly-blue/[0.04] border border-gantly-blue/10 rounded-xl p-5 mb-6">
+            <p className="text-[15px] font-semibold text-gantly-navy mb-3">
               Paso 1: Configura tu aplicacion de autenticacion
             </p>
-            <p style={{ fontSize: '14px', color: '#5a7a6a', lineHeight: '1.6', marginBottom: '16px' }}>
+            <p className="text-sm text-gantly-muted leading-relaxed mb-4">
               Abre tu aplicacion de autenticacion (Google Authenticator, Authy, etc.) y anade una nueva
               cuenta usando la clave secreta que aparece a continuacion.
             </p>
 
             {/* Secret key display */}
-            <div style={{
-              background: 'white',
-              border: '1px solid rgba(90,146,112,0.2)',
-              borderRadius: '10px',
-              padding: '16px',
-              marginBottom: '12px',
-            }}>
-              <p style={{ fontSize: '12px', color: '#5a7a6a', marginBottom: '8px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <div className="bg-white border border-gantly-blue/15 rounded-[10px] p-4 mb-3">
+              <p className="text-xs text-gantly-muted mb-2 font-medium uppercase tracking-wider">
                 Clave secreta (introducir manualmente)
               </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                <code style={{
-                  fontSize: '16px',
-                  fontWeight: 600,
-                  color: '#2d4a3a',
-                  letterSpacing: '0.1em',
-                  wordBreak: 'break-all',
-                  fontFamily: "'Courier New', Courier, monospace",
-                  flex: '1',
-                  minWidth: '150px',
-                  userSelect: 'all',
-                }}>
+              <div className="flex items-center gap-3 flex-wrap">
+                <code className="text-base font-semibold text-gantly-navy tracking-wider break-all font-mono flex-1 min-w-[150px] select-all">
                   {setupData.secret}
                 </code>
                 <button
                   type="button"
                   onClick={() => copySecret(setupData.secret)}
-                  style={{
-                    ...secondaryButtonStyle,
-                    padding: '8px 16px',
-                    fontSize: '13px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    flexShrink: 0,
-                  }}
+                  className="px-4 py-2 bg-transparent text-gantly-blue border border-gantly-blue/30 rounded-xl text-[13px] font-medium cursor-pointer flex items-center gap-1.5 shrink-0 hover:bg-gantly-blue/5 transition-colors"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
@@ -340,43 +208,27 @@ export default function TwoFactorSetup({ isEnabled, onStatusChange }: Props) {
             </div>
 
             {/* otpauth URI for advanced users */}
-            <details style={{ marginTop: '8px' }}>
-              <summary style={{ fontSize: '13px', color: '#5a9270', cursor: 'pointer', fontWeight: 500 }}>
+            <details className="mt-2">
+              <summary className="text-[13px] text-gantly-blue cursor-pointer font-medium">
                 Mostrar URI para escaneo manual
               </summary>
-              <div style={{
-                marginTop: '8px',
-                background: '#f5f5f5',
-                borderRadius: '8px',
-                padding: '12px',
-                wordBreak: 'break-all',
-                fontSize: '12px',
-                color: '#555',
-                fontFamily: "'Courier New', Courier, monospace",
-                lineHeight: '1.5',
-                userSelect: 'all',
-              }}>
+              <div className="mt-2 bg-gray-100 rounded-lg p-3 break-all text-xs text-gray-600 font-mono leading-relaxed select-all">
                 {setupData.qrCodeUri}
               </div>
             </details>
           </div>
 
           {/* Step 2: Verify */}
-          <div style={{
-            background: 'rgba(90,146,112,0.06)',
-            border: '1px solid rgba(90,146,112,0.15)',
-            borderRadius: '12px',
-            padding: '20px',
-          }}>
-            <p style={{ fontSize: '15px', fontWeight: 600, color: '#2d4a3a', marginBottom: '12px' }}>
+          <div className="bg-gantly-blue/[0.04] border border-gantly-blue/10 rounded-xl p-5">
+            <p className="text-[15px] font-semibold text-gantly-navy mb-3">
               Paso 2: Verifica el codigo
             </p>
-            <p style={{ fontSize: '14px', color: '#5a7a6a', lineHeight: '1.6', marginBottom: '16px' }}>
+            <p className="text-sm text-gantly-muted leading-relaxed mb-4">
               Introduce el codigo de 6 digitos que aparece en tu aplicacion de autenticacion para
               completar la configuracion.
             </p>
 
-            <form onSubmit={handleVerify} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            <form onSubmit={handleVerify} className="flex gap-3 items-start flex-wrap">
               <input
                 type="text"
                 inputMode="numeric"
@@ -385,25 +237,25 @@ export default function TwoFactorSetup({ isEnabled, onStatusChange }: Props) {
                 value={verifyCode}
                 onChange={e => setVerifyCode(e.target.value.replace(/\D/g, ''))}
                 placeholder="000000"
-                style={codeInputStyle}
+                className="w-full max-w-[220px] px-4 py-3 border border-gantly-blue/20 rounded-xl text-2xl text-center tracking-[0.3em] outline-none font-body focus:border-gantly-blue focus:ring-1 focus:ring-gantly-blue/20"
                 autoFocus
               />
               <button
                 type="submit"
                 disabled={loading || verifyCode.length !== 6}
-                style={{ ...primaryButtonStyle, opacity: loading || verifyCode.length !== 6 ? 0.6 : 1 }}
+                className="px-6 py-3 bg-gantly-blue text-white border-none rounded-xl text-[15px] font-semibold cursor-pointer transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {loading ? 'Verificando...' : 'Verificar y activar'}
               </button>
             </form>
 
-            {error && <p style={errorStyle}>{error}</p>}
+            {error && <p className="text-red-600 text-sm mt-3">{error}</p>}
           </div>
 
           {/* Cancel setup */}
           <button
             type="button"
-            style={{ ...secondaryButtonStyle, marginTop: '16px' }}
+            className="mt-4 px-5 py-2.5 bg-transparent text-gantly-blue border border-gantly-blue/30 rounded-xl text-sm font-medium cursor-pointer hover:bg-gantly-blue/5 transition-colors"
             onClick={() => { setSetupData(null); setVerifyCode(''); setError(null); }}
           >
             Cancelar configuracion
@@ -412,7 +264,7 @@ export default function TwoFactorSetup({ isEnabled, onStatusChange }: Props) {
       )}
 
       {/* Error when setup hasn't started yet */}
-      {!setupData && error && <p style={errorStyle}>{error}</p>}
+      {!setupData && error && <p className="text-red-600 text-sm mt-3">{error}</p>}
     </div>
   );
 }

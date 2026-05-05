@@ -11,23 +11,23 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const [formData, setFormData] = useState({
     // Paso 1: Información personal
     name: '',
     email: '',
     phone: '',
     companyReferralCode: '',
-    
+
     // Paso 2: Credenciales profesionales
     license: '',
     experience: '',
     specialization: '',
-    
+
     // Paso 3: Credenciales de acceso
     password: '',
     confirmPassword: '',
-    
+
     // Paso 4: Términos y condiciones
     acceptTerms: false,
     acceptPrivacy: false,
@@ -38,7 +38,7 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
-    
+
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
@@ -136,157 +136,69 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
   ];
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #f5f7f6 0%, #e8ece9 50%, #d4e0d8 100%)',
-      padding: '100px 24px 80px',
-      fontFamily: "'Inter', sans-serif",
-    }}>
+    <div className="min-h-screen bg-gradient-to-br from-gantly-navy-700 via-gantly-blue-600 to-gantly-cyan-500 px-6 pt-[100px] pb-20">
       {/* Navigation */}
-      <nav style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(90, 146, 112, 0.15)',
-        padding: '20px 40px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}>
+      <nav className="fixed top-0 left-0 right-0 z-[1000] bg-white/95 backdrop-blur-md border-b border-gantly-blue-100 py-5 px-10 flex justify-between items-center">
         <div
           onClick={onBack}
-          style={{
-            fontFamily: "'Nunito', sans-serif",
-            fontSize: '28px',
-            fontWeight: 700,
-            color: '#5a9270',
-            cursor: 'pointer',
-            transition: 'opacity 0.3s',
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+          className="font-heading text-[28px] font-bold text-gantly-blue-500 cursor-pointer transition-opacity hover:opacity-70"
         >
           Gantly
         </div>
         <button
           onClick={onLogin}
-          style={{
-            padding: '10px 24px',
-            fontSize: '15px',
-            fontWeight: 600,
-            background: 'transparent',
-            color: '#5a9270',
-            border: '2px solid #5a9270',
-            borderRadius: '24px',
-            cursor: 'pointer',
-            transition: 'all 0.3s',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = '#5a9270';
-            e.currentTarget.style.color = 'white';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.color = '#5a9270';
-          }}
+          className="py-2.5 px-6 text-[15px] font-semibold bg-transparent text-gantly-blue-600 border-2 border-gantly-blue-500 rounded-full cursor-pointer transition-all hover:bg-gantly-blue-500 hover:text-white"
         >
           Iniciar sesión
         </button>
       </nav>
 
-      <div style={{
-        maxWidth: '800px',
-        margin: '0 auto',
-      }}>
+      <div className="max-w-[800px] mx-auto">
         {/* Progress Bar */}
-        <div style={{
-          marginBottom: '48px',
-        }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '24px',
-          }}>
+        <div className="mb-12">
+          <div className="flex justify-between items-center mb-6">
             {steps.map((step, idx) => (
-              <div key={step.number} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{
-                  width: '50px',
-                  height: '50px',
-                  borderRadius: '50%',
-                  background: currentStep >= step.number ? '#5a9270' : '#d4e0d8',
-                  color: currentStep >= step.number ? 'white' : '#3a5a4a',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '20px',
-                  fontWeight: 600,
-                  marginBottom: '8px',
-                  transition: 'all 0.3s',
-                  position: 'relative',
-                  zIndex: 2,
-                }}>
+              <div key={step.number} className="flex-1 flex flex-col items-center">
+                <div
+                  className={`w-[50px] h-[50px] rounded-full flex items-center justify-center text-xl font-semibold mb-2 transition-all relative z-[2] ${
+                    currentStep >= step.number
+                      ? 'bg-gantly-blue-500 text-white'
+                      : 'bg-gantly-blue-100 text-gantly-muted'
+                  }`}
+                >
                   {currentStep > step.number ? '✓' : step.number}
                 </div>
-                <span style={{
-                  fontSize: '12px',
-                  color: currentStep >= step.number ? '#5a9270' : '#9ca3af',
-                  fontWeight: currentStep >= step.number ? 600 : 400,
-                  textAlign: 'center',
-                }}>
+                <span
+                  className={`text-xs text-center ${
+                    currentStep >= step.number
+                      ? 'text-gantly-blue-500 font-semibold'
+                      : 'text-gray-400 font-normal'
+                  }`}
+                >
                   {step.title}
                 </span>
                 {idx < steps.length - 1 && (
-                  <div style={{
-                    position: 'absolute',
-                    top: '25px',
-                    left: 'calc(50% + 25px)',
-                    right: 'calc(-50% + 25px)',
-                    height: '2px',
-                    background: currentStep > step.number ? '#5a9270' : '#d4e0d8',
-                    zIndex: 1,
-                  }} />
+                  <div
+                    className={`absolute top-[25px] left-[calc(50%+25px)] right-[calc(-50%+25px)] h-0.5 z-[1] ${
+                      currentStep > step.number ? 'bg-gantly-blue-500' : 'bg-gantly-blue-100'
+                    }`}
+                  />
                 )}
               </div>
             ))}
           </div>
-          <div style={{
-            height: '4px',
-            background: '#d4e0d8',
-            borderRadius: '2px',
-            overflow: 'hidden',
-          }}>
-            <div style={{
-              height: '100%',
-              width: `${(currentStep / totalSteps) * 100}%`,
-              background: 'linear-gradient(90deg, #5a9270, #4a8062)',
-              transition: 'width 0.3s ease',
-            }} />
+          <div className="h-1 bg-gantly-blue-100 rounded-sm overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-gantly-blue-500 to-gantly-blue-600 transition-[width] duration-300 ease-in-out"
+              style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+            />
           </div>
         </div>
 
         {/* Form Card */}
-        <div style={{
-          background: 'white',
-          borderRadius: '24px',
-          padding: '48px',
-          boxShadow: '0 10px 40px rgba(90, 146, 112, 0.15)',
-          border: '1px solid rgba(90, 146, 112, 0.1)',
-        }}>
+        <div className="bg-white rounded-2xl p-12 shadow-card border border-gantly-blue-100">
           {error && (
-            <div style={{
-              padding: '16px',
-              background: '#fee2e2',
-              border: '1px solid #fca5a5',
-              borderRadius: '12px',
-              color: '#991b1b',
-              marginBottom: '24px',
-              fontSize: '14px',
-            }}>
+            <div className="p-4 bg-red-50 border border-red-300 rounded-xl text-red-800 mb-6 text-sm">
               {error}
             </div>
           )}
@@ -294,33 +206,17 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
           <form onSubmit={currentStep === totalSteps ? handleSubmit : (e) => { e.preventDefault(); handleNext(); }}>
             {/* Paso 1: Información personal */}
             {currentStep === 1 && (
-              <div style={{ animation: 'fadeIn 0.3s' }}>
-                <h2 style={{
-                  fontSize: '32px',
-                  fontWeight: 700,
-                  color: '#1a2e22',
-                  marginBottom: '8px',
-                  fontFamily: "'Nunito', sans-serif",
-                }}>
+              <div className="animate-[fadeIn_0.3s]">
+                <h2 className="text-[32px] font-bold text-gantly-text mb-2 font-heading">
                   Información personal
                 </h2>
-                <p style={{
-                  fontSize: '16px',
-                  color: '#3a5a4a',
-                  marginBottom: '32px',
-                }}>
+                <p className="text-base text-gantly-muted mb-8">
                   Comienza con tus datos básicos
                 </p>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <div className="flex flex-col gap-6">
                   <div>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      color: '#1a2e22',
-                      marginBottom: '8px',
-                    }}>
+                    <label className="block text-sm font-semibold text-gantly-text mb-2">
                       Nombre completo *
                     </label>
                     <input
@@ -330,33 +226,12 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
                       onChange={handleChange}
                       placeholder="Ej: María García López"
                       required
-                      style={{
-                        width: '100%',
-                        padding: '14px 18px',
-                        borderRadius: '12px',
-                        border: '1px solid #d4e0d8',
-                        fontSize: '16px',
-                        transition: 'all 0.3s',
-                      }}
-                      onFocus={(e) => {
-                        e.currentTarget.style.borderColor = '#5a9270';
-                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(90, 146, 112, 0.1)';
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.borderColor = '#d4e0d8';
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
+                      className="w-full py-3.5 px-[18px] rounded-xl border border-gantly-blue-200 text-base transition-all outline-none focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/20"
                     />
                   </div>
 
                   <div>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      color: '#1a2e22',
-                      marginBottom: '8px',
-                    }}>
+                    <label className="block text-sm font-semibold text-gantly-text mb-2">
                       Email *
                     </label>
                     <input
@@ -366,33 +241,12 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
                       onChange={handleChange}
                       placeholder="tu@email.com"
                       required
-                      style={{
-                        width: '100%',
-                        padding: '14px 18px',
-                        borderRadius: '12px',
-                        border: '1px solid #d4e0d8',
-                        fontSize: '16px',
-                        transition: 'all 0.3s',
-                      }}
-                      onFocus={(e) => {
-                        e.currentTarget.style.borderColor = '#5a9270';
-                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(90, 146, 112, 0.1)';
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.borderColor = '#d4e0d8';
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
+                      className="w-full py-3.5 px-[18px] rounded-xl border border-gantly-blue-200 text-base transition-all outline-none focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/20"
                     />
                   </div>
 
                   <div>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      color: '#1a2e22',
-                      marginBottom: '8px',
-                    }}>
+                    <label className="block text-sm font-semibold text-gantly-text mb-2">
                       Teléfono *
                     </label>
                     <input
@@ -402,33 +256,12 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
                       onChange={handleChange}
                       placeholder="+34 600 000 000"
                       required
-                      style={{
-                        width: '100%',
-                        padding: '14px 18px',
-                        borderRadius: '12px',
-                        border: '1px solid #d4e0d8',
-                        fontSize: '16px',
-                        transition: 'all 0.3s',
-                      }}
-                      onFocus={(e) => {
-                        e.currentTarget.style.borderColor = '#5a9270';
-                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(90, 146, 112, 0.1)';
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.borderColor = '#d4e0d8';
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
+                      className="w-full py-3.5 px-[18px] rounded-xl border border-gantly-blue-200 text-base transition-all outline-none focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/20"
                     />
                   </div>
 
                   <div>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      color: '#1a2e22',
-                      marginBottom: '8px',
-                    }}>
+                    <label className="block text-sm font-semibold text-gantly-text mb-2">
                       Código de empresa (opcional)
                     </label>
                     <input
@@ -437,24 +270,9 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
                       value={formData.companyReferralCode}
                       onChange={handleChange}
                       placeholder="Ej: EMP-XXXXXXXX (solicítalo a tu empresa)"
-                      style={{
-                        width: '100%',
-                        padding: '14px 18px',
-                        borderRadius: '12px',
-                        border: '1px solid #d4e0d8',
-                        fontSize: '16px',
-                        transition: 'all 0.3s',
-                      }}
-                      onFocus={(e) => {
-                        e.currentTarget.style.borderColor = '#5a9270';
-                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(90, 146, 112, 0.1)';
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.borderColor = '#d4e0d8';
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
+                      className="w-full py-3.5 px-[18px] rounded-xl border border-gantly-blue-200 text-base transition-all outline-none focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/20"
                     />
-                    <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '6px' }}>
+                    <p className="text-[13px] text-gray-500 mt-1.5">
                       Si trabajas con una empresa o clínica que usa Gantly, introduce aquí el código que te hayan dado. Si no, puedes dejarlo vacío.
                     </p>
                   </div>
@@ -464,33 +282,17 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
 
             {/* Paso 2: Credenciales profesionales */}
             {currentStep === 2 && (
-              <div style={{ animation: 'fadeIn 0.3s' }}>
-                <h2 style={{
-                  fontSize: '32px',
-                  fontWeight: 700,
-                  color: '#1a2e22',
-                  marginBottom: '8px',
-                  fontFamily: "'Nunito', sans-serif",
-                }}>
+              <div className="animate-[fadeIn_0.3s]">
+                <h2 className="text-[32px] font-bold text-gantly-text mb-2 font-heading">
                   Credenciales profesionales
                 </h2>
-                <p style={{
-                  fontSize: '16px',
-                  color: '#3a5a4a',
-                  marginBottom: '32px',
-                }}>
+                <p className="text-base text-gantly-muted mb-8">
                   Verificaremos tus credenciales para ejercer como psicólogo
                 </p>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <div className="flex flex-col gap-6">
                   <div>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      color: '#1a2e22',
-                      marginBottom: '8px',
-                    }}>
+                    <label className="block text-sm font-semibold text-gantly-text mb-2">
                       Número de colegiado *
                     </label>
                     <input
@@ -500,33 +302,12 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
                       onChange={handleChange}
                       placeholder="Ej: M-12345"
                       required
-                      style={{
-                        width: '100%',
-                        padding: '14px 18px',
-                        borderRadius: '12px',
-                        border: '1px solid #d4e0d8',
-                        fontSize: '16px',
-                        transition: 'all 0.3s',
-                      }}
-                      onFocus={(e) => {
-                        e.currentTarget.style.borderColor = '#5a9270';
-                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(90, 146, 112, 0.1)';
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.borderColor = '#d4e0d8';
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
+                      className="w-full py-3.5 px-[18px] rounded-xl border border-gantly-blue-200 text-base transition-all outline-none focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/20"
                     />
                   </div>
 
                   <div>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      color: '#1a2e22',
-                      marginBottom: '8px',
-                    }}>
+                    <label className="block text-sm font-semibold text-gantly-text mb-2">
                       Años de experiencia *
                     </label>
                     <select
@@ -534,24 +315,7 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
                       value={formData.experience}
                       onChange={handleChange}
                       required
-                      style={{
-                        width: '100%',
-                        padding: '14px 18px',
-                        borderRadius: '12px',
-                        border: '1px solid #d4e0d8',
-                        fontSize: '16px',
-                        background: 'white',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s',
-                      }}
-                      onFocus={(e) => {
-                        e.currentTarget.style.borderColor = '#5a9270';
-                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(90, 146, 112, 0.1)';
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.borderColor = '#d4e0d8';
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
+                      className="w-full py-3.5 px-[18px] rounded-xl border border-gantly-blue-200 text-base bg-white cursor-pointer transition-all outline-none focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/20"
                     >
                       <option value="">Selecciona una opción</option>
                       <option value="0-2">0-2 años</option>
@@ -562,13 +326,7 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
                   </div>
 
                   <div>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      color: '#1a2e22',
-                      marginBottom: '8px',
-                    }}>
+                    <label className="block text-sm font-semibold text-gantly-text mb-2">
                       Especialización *
                     </label>
                     <input
@@ -578,22 +336,7 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
                       onChange={handleChange}
                       placeholder="Ej: Psicología clínica, Terapia cognitivo-conductual..."
                       required
-                      style={{
-                        width: '100%',
-                        padding: '14px 18px',
-                        borderRadius: '12px',
-                        border: '1px solid #d4e0d8',
-                        fontSize: '16px',
-                        transition: 'all 0.3s',
-                      }}
-                      onFocus={(e) => {
-                        e.currentTarget.style.borderColor = '#5a9270';
-                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(90, 146, 112, 0.1)';
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.borderColor = '#d4e0d8';
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
+                      className="w-full py-3.5 px-[18px] rounded-xl border border-gantly-blue-200 text-base transition-all outline-none focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/20"
                     />
                   </div>
                 </div>
@@ -602,33 +345,17 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
 
             {/* Paso 3: Contraseña */}
             {currentStep === 3 && (
-              <div style={{ animation: 'fadeIn 0.3s' }}>
-                <h2 style={{
-                  fontSize: '32px',
-                  fontWeight: 700,
-                  color: '#1a2e22',
-                  marginBottom: '8px',
-                  fontFamily: "'Nunito', sans-serif",
-                }}>
+              <div className="animate-[fadeIn_0.3s]">
+                <h2 className="text-[32px] font-bold text-gantly-text mb-2 font-heading">
                   Crea tu contraseña
                 </h2>
-                <p style={{
-                  fontSize: '16px',
-                  color: '#3a5a4a',
-                  marginBottom: '32px',
-                }}>
+                <p className="text-base text-gantly-muted mb-8">
                   Elige una contraseña segura para tu cuenta
                 </p>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <div className="flex flex-col gap-6">
                   <div>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      color: '#1a2e22',
-                      marginBottom: '8px',
-                    }}>
+                    <label className="block text-sm font-semibold text-gantly-text mb-2">
                       Contraseña *
                     </label>
                     <input
@@ -638,40 +365,15 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
                       onChange={handleChange}
                       placeholder="Mínimo 8 caracteres"
                       required
-                      style={{
-                        width: '100%',
-                        padding: '14px 18px',
-                        borderRadius: '12px',
-                        border: '1px solid #d4e0d8',
-                        fontSize: '16px',
-                        transition: 'all 0.3s',
-                      }}
-                      onFocus={(e) => {
-                        e.currentTarget.style.borderColor = '#5a9270';
-                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(90, 146, 112, 0.1)';
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.borderColor = '#d4e0d8';
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
+                      className="w-full py-3.5 px-[18px] rounded-xl border border-gantly-blue-200 text-base transition-all outline-none focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/20"
                     />
-                    <p style={{
-                      fontSize: '12px',
-                      color: '#6b7280',
-                      marginTop: '6px',
-                    }}>
+                    <p className="text-xs text-gray-500 mt-1.5">
                       Debe tener al menos 8 caracteres
                     </p>
                   </div>
 
                   <div>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      color: '#1a2e22',
-                      marginBottom: '8px',
-                    }}>
+                    <label className="block text-sm font-semibold text-gantly-text mb-2">
                       Confirmar contraseña *
                     </label>
                     <input
@@ -681,22 +383,7 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
                       onChange={handleChange}
                       placeholder="Repite tu contraseña"
                       required
-                      style={{
-                        width: '100%',
-                        padding: '14px 18px',
-                        borderRadius: '12px',
-                        border: '1px solid #d4e0d8',
-                        fontSize: '16px',
-                        transition: 'all 0.3s',
-                      }}
-                      onFocus={(e) => {
-                        e.currentTarget.style.borderColor = '#5a9270';
-                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(90, 146, 112, 0.1)';
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.borderColor = '#d4e0d8';
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
+                      className="w-full py-3.5 px-[18px] rounded-xl border border-gantly-blue-200 text-base transition-all outline-none focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/20"
                     />
                   </div>
                 </div>
@@ -705,40 +392,19 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
 
             {/* Paso 4: Confirmación */}
             {currentStep === 4 && (
-              <div style={{ animation: 'fadeIn 0.3s' }}>
-                <h2 style={{
-                  fontSize: '32px',
-                  fontWeight: 700,
-                  color: '#1a2e22',
-                  marginBottom: '8px',
-                  fontFamily: "'Nunito', sans-serif",
-                }}>
+              <div className="animate-[fadeIn_0.3s]">
+                <h2 className="text-[32px] font-bold text-gantly-text mb-2 font-heading">
                   Último paso
                 </h2>
-                <p style={{
-                  fontSize: '16px',
-                  color: '#3a5a4a',
-                  marginBottom: '32px',
-                }}>
+                <p className="text-base text-gantly-muted mb-8">
                   Revisa y acepta los términos para completar tu registro
                 </p>
 
-                <div style={{
-                  background: '#f9fafb',
-                  borderRadius: '12px',
-                  padding: '24px',
-                  marginBottom: '24px',
-                  border: '1px solid #e5e7eb',
-                }}>
-                  <h3 style={{
-                    fontSize: '18px',
-                    fontWeight: 600,
-                    color: '#1a2e22',
-                    marginBottom: '16px',
-                  }}>
+                <div className="bg-gray-50 rounded-xl p-6 mb-6 border border-gray-200">
+                  <h3 className="text-lg font-semibold text-gantly-text mb-4">
                     Resumen de tu información
                   </h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px', color: '#3a5a4a' }}>
+                  <div className="flex flex-col gap-3 text-sm text-gantly-muted">
                     <div><strong>Nombre:</strong> {formData.name}</div>
                     <div><strong>Email:</strong> {formData.email}</div>
                     <div><strong>Teléfono:</strong> {formData.phone}</div>
@@ -748,50 +414,30 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <label style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '12px',
-                    cursor: 'pointer',
-                  }}>
+                <div className="flex flex-col gap-4">
+                  <label className="flex items-start gap-3 cursor-pointer">
                     <input
                       type="checkbox"
                       name="acceptTerms"
                       checked={formData.acceptTerms}
                       onChange={handleChange}
-                      style={{
-                        marginTop: '4px',
-                        width: '20px',
-                        height: '20px',
-                        cursor: 'pointer',
-                      }}
+                      className="mt-1 w-5 h-5 cursor-pointer accent-gantly-blue-500"
                     />
-                    <span style={{ fontSize: '14px', color: '#3a5a4a', lineHeight: 1.6 }}>
-                      Acepto los <a href="#" style={{ color: '#5a9270', textDecoration: 'underline' }}>términos y condiciones</a> de Gantly *
+                    <span className="text-sm text-gantly-muted leading-relaxed">
+                      Acepto los <a href="#" className="text-gantly-blue-600 underline">términos y condiciones</a> de Gantly *
                     </span>
                   </label>
 
-                  <label style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '12px',
-                    cursor: 'pointer',
-                  }}>
+                  <label className="flex items-start gap-3 cursor-pointer">
                     <input
                       type="checkbox"
                       name="acceptPrivacy"
                       checked={formData.acceptPrivacy}
                       onChange={handleChange}
-                      style={{
-                        marginTop: '4px',
-                        width: '20px',
-                        height: '20px',
-                        cursor: 'pointer',
-                      }}
+                      className="mt-1 w-5 h-5 cursor-pointer accent-gantly-blue-500"
                     />
-                    <span style={{ fontSize: '14px', color: '#3a5a4a', lineHeight: 1.6 }}>
-                      Acepto la <a href="#" style={{ color: '#5a9270', textDecoration: 'underline' }}>política de privacidad</a> y el tratamiento de mis datos *
+                    <span className="text-sm text-gantly-muted leading-relaxed">
+                      Acepto la <a href="#" className="text-gantly-blue-600 underline">política de privacidad</a> y el tratamiento de mis datos *
                     </span>
                   </label>
                 </div>
@@ -799,65 +445,21 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
             )}
 
             {/* Navigation Buttons */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              marginTop: '40px',
-              gap: '16px',
-            }}>
+            <div className="flex justify-between mt-10 gap-4">
               {currentStep > 1 && (
                 <button
                   type="button"
                   onClick={handlePrevious}
-                  style={{
-                    padding: '14px 32px',
-                    fontSize: '16px',
-                    fontWeight: 600,
-                    background: 'white',
-                    color: '#5a9270',
-                    border: '2px solid #5a9270',
-                    borderRadius: '12px',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#f9fafb';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'white';
-                  }}
+                  className="py-3.5 px-8 text-base font-semibold bg-white text-gantly-blue-600 border-2 border-gantly-blue-500 rounded-xl cursor-pointer transition-all hover:bg-gantly-blue-50"
                 >
                   Anterior
                 </button>
               )}
-              <div style={{ flex: 1 }} />
+              <div className="flex-1" />
               <button
                 type="submit"
                 disabled={loading}
-                style={{
-                  padding: '14px 32px',
-                  fontSize: '16px',
-                  fontWeight: 600,
-                  background: loading ? '#cbd5d1' : '#5a9270',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '12px',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.3s',
-                  boxShadow: loading ? 'none' : '0 4px 12px rgba(90, 146, 112, 0.3)',
-                }}
-                onMouseEnter={(e) => {
-                  if (!loading) {
-                    e.currentTarget.style.background = '#4a8062';
-                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!loading) {
-                    e.currentTarget.style.background = '#5a9270';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
-                  }
-                }}
+                className="py-3.5 px-8 text-base font-semibold bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white border-none rounded-xl cursor-pointer transition-all shadow-md hover:shadow-lg disabled:bg-gray-300 disabled:cursor-not-allowed disabled:shadow-none"
               >
                 {loading ? 'Registrando...' : currentStep === totalSteps ? 'Completar registro' : 'Siguiente'}
               </button>
@@ -881,4 +483,3 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
     </div>
   );
 }
-

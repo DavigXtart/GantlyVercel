@@ -15,7 +15,7 @@ interface SoyProfesionalProps {
 
 export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegisterCompany }: SoyProfesionalProps) {
   return (
-    <div className="gantly-font" style={{ overflowX: 'hidden', background: '#f5f7f6', minHeight: '100vh' }}>
+    <div className="overflow-x-hidden bg-gantly-cloud min-h-screen font-body">
       <style>{`
         .fade-in {
           opacity: 0;
@@ -29,179 +29,54 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
       `}</style>
 
       {/* Navigation bar */}
-      <nav style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(90, 146, 112, 0.15)',
-        padding: '20px 40px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}>
+      <nav className="fixed top-0 left-0 right-0 z-[1000] bg-white/95 backdrop-blur-md border-b border-gantly-blue/10 px-6 md:px-10 py-5 flex justify-between items-center">
         <div
           onClick={onBack}
-          style={{
-            fontFamily: "'Nunito', sans-serif",
-            fontSize: '28px',
-            fontWeight: 700,
-            color: '#5a9270',
-            letterSpacing: '-0.02em',
-            cursor: 'pointer',
-            transition: 'opacity 0.3s',
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+          className="font-heading text-[28px] font-bold text-gantly-blue tracking-tight cursor-pointer hover:opacity-70 transition-opacity"
         >
           Gantly
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+        <div className="flex items-center gap-6">
           <button
             onClick={onBack}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#3a5a4a',
-              fontSize: '15px',
-              fontWeight: 500,
-              cursor: 'pointer',
-              transition: 'color 0.3s',
-              fontFamily: "'Inter', sans-serif",
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#5a9270'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = '#3a5a4a'; }}
+            className="bg-transparent border-none text-gantly-muted text-[15px] font-medium cursor-pointer hover:text-gantly-blue transition-colors"
           >
             Volver
           </button>
           <button
             onClick={onLogin}
-            style={{
-              padding: '10px 24px',
-              fontSize: '15px',
-              fontWeight: 600,
-              background: '#5a9270',
-              color: 'white',
-              border: 'none',
-              borderRadius: '24px',
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(90, 146, 112, 0.3)',
-              transition: 'all 0.3s',
-              fontFamily: "'Inter', sans-serif",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#4a8062';
-              e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#5a9270';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
-            }}
+            className="px-6 py-2.5 text-[15px] font-semibold bg-gantly-blue text-white border-none rounded-full cursor-pointer shadow-glow-blue hover:bg-gantly-blue-600 hover:shadow-elevated transition-all"
           >
-            Iniciar sesión
+            Iniciar sesion
           </button>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: '120px 24px 80px',
-          maxWidth: '1200px',
-          margin: '0 auto',
-        }}
-      >
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '64px',
-          alignItems: 'center',
-          width: '100%',
-          marginBottom: '80px',
-        }}>
+      <section className="min-h-screen flex flex-col justify-center items-center px-6 pt-[120px] pb-20 max-w-[1200px] mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center w-full mb-20">
           {/* Left Side - Text */}
           <div>
-            <div style={{
-              fontSize: '13px',
-              fontWeight: 600,
-              color: '#5a9270',
-              textTransform: 'uppercase',
-              letterSpacing: '0.12em',
-              marginBottom: '16px',
-            }}>
+            <div className="text-[13px] font-semibold text-gantly-blue uppercase tracking-[0.12em] mb-4">
               Para profesionales
             </div>
-            <h1 style={{
-              fontSize: 'clamp(40px, 6vw, 64px)',
-              fontWeight: 400,
-              color: '#18382e',
-              lineHeight: 0.9,
-              marginBottom: '24px',
-            }}>
-              ¿Quieres ser psicólogo online con Gantly?
+            <h1 className="text-[clamp(40px,6vw,64px)] font-heading font-light text-gantly-navy leading-[0.9] mb-6">
+              Quieres ser psicologo online con Gantly?
             </h1>
-            <p style={{
-              fontSize: '18px',
-              lineHeight: 1.7,
-              color: 'rgba(24, 56, 46, 0.8)',
-              marginBottom: '32px',
-            }}>
-              Enriquece tu práctica sanitaria dedicándote a lo más importante, nosotros nos encargamos del resto. Con Gantly podrás ofrecer terapia online de forma fácil, segura y confidencial.
+            <p className="text-lg leading-relaxed text-gantly-muted mb-8">
+              Enriquece tu practica sanitaria dedicandote a lo mas importante, nosotros nos encargamos del resto. Con Gantly podras ofrecer terapia online de forma facil, segura y confidencial.
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-start' }}>
+            <div className="flex flex-col gap-3 items-start">
               <button
                 onClick={onGetStarted}
-                style={{
-                  padding: '16px 32px',
-                  fontSize: '16px',
-                  fontWeight: 600,
-                  background: '#5a9270',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '28px',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 16px rgba(90, 146, 112, 0.3)',
-                  transition: 'all 0.3s',
-                  fontFamily: "'Inter', sans-serif",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#4a8062';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(90, 146, 112, 0.4)';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#5a9270';
-                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(90, 146, 112, 0.3)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }}
+                className="px-8 py-4 text-base font-semibold bg-gantly-blue text-white border-none rounded-[28px] cursor-pointer shadow-glow-blue hover:bg-gantly-blue-600 hover:shadow-elevated hover:-translate-y-0.5 transition-all"
               >
-                Registrarme como psicólogo
+                Registrarme como psicologo
               </button>
               {onRegisterCompany && (
                 <button
                   onClick={onRegisterCompany}
-                  style={{
-                    padding: '12px 24px',
-                    fontSize: '15px',
-                    fontWeight: 600,
-                    background: 'transparent',
-                    color: '#5a9270',
-                    border: '2px solid #5a9270',
-                    borderRadius: '24px',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s',
-                    fontFamily: "'Inter', sans-serif",
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(90, 146, 112, 0.1)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                  className="px-6 py-3 text-[15px] font-semibold bg-transparent text-gantly-blue border-2 border-gantly-blue rounded-full cursor-pointer hover:bg-gantly-blue/10 transition-all"
                 >
                   Soy empresa
                 </button>
@@ -210,35 +85,16 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
           </div>
 
           {/* Right Side - Images Grid */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '24px',
-          }}>
+          <div className="grid grid-cols-2 gap-6">
             {[gemini1, gemini2, gemini6, gemini5, gemini3, gemini4].map((imgSrc, idx) => (
               <div
                 key={idx}
-                style={{
-                  aspectRatio: '1',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, rgba(250, 232, 214, 0.6), rgba(212, 224, 216, 0.6))',
-                  border: '2px solid rgba(90, 146, 112, 0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden',
-                  position: 'relative',
-                }}
+                className="aspect-square rounded-full bg-gradient-to-br from-gantly-cloud to-gantly-blue-100 border-2 border-gantly-blue/15 flex items-center justify-center overflow-hidden relative"
               >
-                <img 
-                  src={imgSrc} 
+                <img
+                  src={imgSrc}
                   alt={`Imagen ${idx + 1}`}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    borderRadius: '50%',
-                  }}
+                  className="w-full h-full object-cover rounded-full"
                 />
               </div>
             ))}
@@ -246,220 +102,80 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
         </div>
 
         {/* Statistics Section */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: '48px',
-          width: '100%',
-          padding: '48px 0',
-          borderTop: '1px solid rgba(90, 146, 112, 0.15)',
-          borderBottom: '1px solid rgba(90, 146, 112, 0.15)',
-        }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{
-              fontSize: '48px',
-              fontWeight: 700,
-              color: '#5a9270',
-              marginBottom: '8px',
-              fontFamily: "'Nunito', sans-serif",
-            }}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 w-full py-12 border-t border-b border-gantly-blue/10">
+          <div className="text-center">
+            <div className="text-5xl font-bold text-gantly-blue mb-2 font-heading">
               100%
             </div>
-            <p style={{
-              fontSize: '15px',
-              color: '#3a5a4a',
-              lineHeight: 1.6,
-              fontFamily: "'Inter', sans-serif",
-            }}>
-              psicólogos están titulados, colegiados y habilitados para ejercer
+            <p className="text-[15px] text-gantly-muted leading-relaxed">
+              psicologos estan titulados, colegiados y habilitados para ejercer
             </p>
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{
-              fontSize: '48px',
-              fontWeight: 700,
-              color: '#5a9270',
-              marginBottom: '8px',
-              fontFamily: "'Nunito', sans-serif",
-            }}>
+          <div className="text-center">
+            <div className="text-5xl font-bold text-gantly-blue mb-2 font-heading">
               +300 mil
             </div>
-            <p style={{
-              fontSize: '15px',
-              color: '#3a5a4a',
-              lineHeight: 1.6,
-              fontFamily: "'Inter', sans-serif",
-            }}>
-              sesiones realizadas a través de Gantly de forma segura
+            <p className="text-[15px] text-gantly-muted leading-relaxed">
+              sesiones realizadas a traves de Gantly de forma segura
             </p>
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{
-              fontSize: '48px',
-              fontWeight: 700,
-              color: '#5a9270',
-              marginBottom: '8px',
-              fontFamily: "'Nunito', sans-serif",
-            }}>
+          <div className="text-center">
+            <div className="text-5xl font-bold text-gantly-blue mb-2 font-heading">
               +92%
             </div>
-            <p style={{
-              fontSize: '15px',
-              color: '#3a5a4a',
-              lineHeight: 1.6,
-              fontFamily: "'Inter', sans-serif",
-            }}>
-              de los psicólogos recomiendan Gantly a otros compañeros
+            <p className="text-[15px] text-gantly-muted leading-relaxed">
+              de los psicologos recomiendan Gantly a otros companeros
             </p>
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{
-              fontSize: '48px',
-              fontWeight: 700,
-              color: '#5a9270',
-              marginBottom: '8px',
-              fontFamily: "'Nunito', sans-serif",
-            }}>
+          <div className="text-center">
+            <div className="text-5xl font-bold text-gantly-blue mb-2 font-heading">
               +8
             </div>
-            <p style={{
-              fontSize: '15px',
-              color: '#3a5a4a',
-              lineHeight: 1.6,
-              fontFamily: "'Inter', sans-serif",
-            }}>
-              años de experiencia encriptado y confidencial, asegurando el mayor nivel de seguridad
+            <p className="text-[15px] text-gantly-muted leading-relaxed">
+              anos de experiencia encriptado y confidencial, asegurando el mayor nivel de seguridad
             </p>
           </div>
         </div>
       </section>
 
       {/* How it works Section */}
-      <section
-        style={{
-          padding: '80px 24px',
-          background: 'rgba(250, 232, 214, 0.3)',
-        }}
-      >
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '64px',
-          alignItems: 'center',
-        }}>
+      <section className="py-20 px-6 bg-gantly-blue-50/50">
+        <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
           {/* Left Side - Requirements */}
           <div>
-            <div style={{
-              fontSize: '14px',
-              fontWeight: 600,
-              color: '#5a9270',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              marginBottom: '16px',
-              fontFamily: "'Inter', sans-serif",
-            }}>
-              Cómo funciona
+            <div className="text-sm font-semibold text-gantly-blue uppercase tracking-[0.1em] mb-4">
+              Como funciona
             </div>
-            <h2 style={{
-              fontSize: 'clamp(32px, 4vw, 48px)',
-              fontWeight: 700,
-              color: '#1a2e22',
-              lineHeight: 1.3,
-              marginBottom: '24px',
-              fontFamily: "'Nunito', sans-serif",
-            }}>
-              Me interesa, ¿qué necesito?
+            <h2 className="text-[clamp(32px,4vw,48px)] font-heading font-bold text-gantly-navy leading-tight mb-6">
+              Me interesa, que necesito?
             </h2>
-            <p style={{
-              fontSize: '18px',
-              lineHeight: 1.7,
-              color: '#3a5a4a',
-              marginBottom: '32px',
-              fontFamily: "'Inter', sans-serif",
-            }}>
-              Verificaremos que tienes los requisitos esenciales para ejercer legalmente como Psicólogo Sanitario. Además necesitarás un ordenador y smartphone con buena conexión a internet.
+            <p className="text-lg leading-relaxed text-gantly-muted mb-8">
+              Verificaremos que tienes los requisitos esenciales para ejercer legalmente como Psicologo Sanitario. Ademas necesitaras un ordenador y smartphone con buena conexion a internet.
             </p>
             <button
               onClick={onGetStarted}
-              style={{
-                padding: '16px 32px',
-                fontSize: '16px',
-                fontWeight: 600,
-                background: '#5a9270',
-                color: 'white',
-                border: 'none',
-                borderRadius: '28px',
-                cursor: 'pointer',
-                boxShadow: '0 4px 16px rgba(90, 146, 112, 0.3)',
-                transition: 'all 0.3s',
-                fontFamily: "'Inter', sans-serif",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#4a8062';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(90, 146, 112, 0.4)';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#5a9270';
-                e.currentTarget.style.boxShadow = '0 4px 16px rgba(90, 146, 112, 0.3)';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
+              className="px-8 py-4 text-base font-semibold bg-gantly-blue text-white border-none rounded-[28px] cursor-pointer shadow-glow-blue hover:bg-gantly-blue-600 hover:shadow-elevated hover:-translate-y-0.5 transition-all"
             >
               Comenzar registro
             </button>
           </div>
 
           {/* Right Side - Steps */}
-          <div style={{ position: 'relative', padding: '40px 0' }}>
-            <div style={{
-              position: 'absolute',
-              left: '40px',
-              top: '0',
-              bottom: '0',
-              width: '3px',
-              background: '#d4e0d8',
-              borderRadius: '2px',
-            }} />
+          <div className="relative py-10">
+            <div className="absolute left-10 top-0 bottom-0 w-[3px] bg-gantly-blue/20 rounded-full" />
             {[
               { number: 1, text: 'Rellena tus datos' },
-              { number: 2, text: 'Completa la verificación' },
-              { number: 3, text: 'Haz crecer tu práctica profesional' },
+              { number: 2, text: 'Completa la verificacion' },
+              { number: 3, text: 'Haz crecer tu practica profesional' },
             ].map((step, idx) => (
               <div
                 key={step.number}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  marginBottom: idx < 2 ? '48px' : '0',
-                  position: 'relative',
-                }}
+                className={`flex items-center relative ${idx < 2 ? 'mb-12' : ''}`}
               >
-                <div style={{
-                  width: '80px',
-                  height: '80px',
-                  borderRadius: '50%',
-                  background: 'rgba(250, 232, 214, 0.85)',
-                  border: '3px solid #5a9270',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '32px',
-                  fontWeight: 700,
-                  color: '#5a9270',
-                  fontFamily: "'Nunito', sans-serif",
-                  zIndex: 2,
-                  marginRight: '24px',
-                }}>
+                <div className="w-20 h-20 rounded-full bg-gantly-cloud border-[3px] border-gantly-blue flex items-center justify-center text-[32px] font-bold text-gantly-blue font-heading z-[2] mr-6 shrink-0">
                   {step.number}
                 </div>
-                <div style={{
-                  fontSize: '20px',
-                  fontWeight: 600,
-                  color: '#1a2e22',
-                  fontFamily: "'Inter', sans-serif",
-                }}>
+                <div className="text-xl font-semibold text-gantly-navy">
                   {step.text}
                 </div>
               </div>
@@ -469,98 +185,36 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
       </section>
 
       {/* Advantages Section */}
-      <section
-        style={{
-          padding: '80px 24px',
-          background: '#f5f7f6',
-        }}
-      >
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-        }}>
-          <div style={{
-            textAlign: 'center',
-            marginBottom: '64px',
-          }}>
-            <div style={{
-              fontSize: '14px',
-              fontWeight: 600,
-              color: '#5a9270',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              marginBottom: '16px',
-              fontFamily: "'Inter', sans-serif",
-            }}>
+      <section className="py-20 px-6 bg-gantly-cloud">
+        <div className="max-w-[1200px] mx-auto">
+          <div className="text-center mb-16">
+            <div className="text-sm font-semibold text-gantly-blue uppercase tracking-[0.1em] mb-4">
               Ventajas
             </div>
-            <h2 style={{
-              fontSize: 'clamp(32px, 4vw, 48px)',
-              fontWeight: 700,
-              color: '#1a2e22',
-              lineHeight: 1.3,
-              fontFamily: "'Nunito', sans-serif",
-            }}>
+            <h2 className="text-[clamp(32px,4vw,48px)] font-heading font-bold text-gantly-navy leading-tight">
               Descubre todas las ventajas de Gantly
             </h2>
           </div>
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '64px',
-            alignItems: 'center',
-          }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
             {/* Left Side - Advantages List */}
-            <div style={{
-              display: 'grid',
-              gap: '32px',
-            }}>
+            <div className="grid gap-5">
               {[
                 'Aumenta tu cartera de pacientes',
                 'Sesiones cuando quieras, desde donde quieras',
-                'Resúmenes automatizados de las sesiones',
+                'Resumenes automatizados de las sesiones',
                 'Proceso automatizado de pago',
                 'Asistente de IA personalizado',
-                'Comprometidos con las buenas prácticas de Telepsicología del COP de Madrid',
+                'Comprometidos con las buenas practicas de Telepsicologia del COP de Madrid',
               ].map((title, idx) => (
                 <div
                   key={idx}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '20px',
-                    padding: '24px',
-                    background: 'rgba(250, 232, 214, 0.5)',
-                    borderRadius: '16px',
-                    border: '1px solid rgba(90, 146, 112, 0.2)',
-                  }}
+                  className="flex items-start gap-5 p-6 bg-white rounded-2xl border border-gantly-blue/15 shadow-soft"
                 >
-                  <div style={{
-                    width: '24px',
-                    height: '24px',
-                    borderRadius: '50%',
-                    background: '#5a9270',
-                    flexShrink: 0,
-                    marginTop: '2px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                    <div style={{
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '50%',
-                      background: '#ffffff',
-                    }} />
+                  <div className="w-6 h-6 rounded-full bg-gantly-blue shrink-0 mt-0.5 flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-white" />
                   </div>
-                  <div style={{
-                    fontSize: '18px',
-                    fontWeight: 500,
-                    color: '#1a2e22',
-                    lineHeight: 1.6,
-                    fontFamily: "'Inter', sans-serif",
-                  }}>
+                  <div className="text-lg font-medium text-gantly-navy leading-relaxed">
                     {title}
                   </div>
                 </div>
@@ -568,25 +222,11 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
             </div>
 
             {/* Right Side - Image */}
-            <div style={{
-              background: 'rgba(250, 232, 214, 0.6)',
-              borderRadius: '24px',
-              aspectRatio: '4/5',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: '2px solid rgba(90, 146, 112, 0.2)',
-              overflow: 'hidden',
-            }}>
+            <div className="bg-gantly-blue-50 rounded-3xl aspect-[4/5] flex items-center justify-center border-2 border-gantly-blue/15 overflow-hidden">
               <img
                 src={imagenProfesional}
                 alt="Imagen profesional"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
-                }}
+                className="w-full h-full object-cover block"
               />
             </div>
           </div>
@@ -595,55 +235,16 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
 
 
       {/* Footer - Adherence Statement */}
-      <section style={{
-        padding: '48px 24px',
-        background: 'rgba(212, 224, 216, 0.5)',
-        borderTop: '1px solid rgba(90, 146, 112, 0.15)',
-      }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '16px',
-          padding: '24px 32px',
-          background: 'rgba(250, 232, 214, 0.6)',
-          borderRadius: '16px',
-          border: '1px solid rgba(90, 146, 112, 0.2)',
-        }}>
-          <div style={{
-            width: '48px',
-            height: '48px',
-            borderRadius: '12px',
-            background: '#5a9270',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}>
-            <div style={{
-              width: '20px',
-              height: '20px',
-              border: '3px solid #ffffff',
-              borderTop: 'none',
-              borderRight: 'none',
-              transform: 'rotate(-45deg)',
-              marginTop: '-4px',
-            }} />
+      <section className="py-12 px-6 bg-gantly-blue-50/70 border-t border-gantly-blue/10">
+        <div className="max-w-[1200px] mx-auto flex items-center justify-center gap-4 px-8 py-6 bg-white rounded-2xl border border-gantly-blue/15 shadow-soft">
+          <div className="w-12 h-12 rounded-xl bg-gantly-blue flex items-center justify-center shrink-0">
+            <div className="w-5 h-5 border-[3px] border-white border-t-0 border-r-0 -rotate-45 -mt-1" />
           </div>
-          <p style={{
-            margin: 0,
-            fontSize: '16px',
-            color: '#1a2e22',
-            lineHeight: 1.6,
-            fontFamily: "'Inter', sans-serif",
-          }}>
-            Gantly se adhiere al Código de Conducta de Buenas Prácticas en Telepsicología del Colegio Oficial de Psicólogos de Madrid.
+          <p className="m-0 text-base text-gantly-navy leading-relaxed">
+            Gantly se adhiere al Codigo de Conducta de Buenas Practicas en Telepsicologia del Colegio Oficial de Psicologos de Madrid.
           </p>
         </div>
       </section>
     </div>
   );
 }
-

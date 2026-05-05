@@ -265,7 +265,7 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
-        fontFamily: "'Inter', sans-serif",
+
       }}>
         {/* Background PNG */}
         <img 
@@ -310,15 +310,15 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
         
         <div style={{
           background: 'rgba(250, 232, 214, 0.85)',
-          border: '1px solid rgba(90, 146, 112, 0.2)',
+          border: '1px solid rgba(46, 147, 204, 0.2)',
           borderRadius: '24px',
           padding: '48px 40px',
           textAlign: 'center',
-          boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
+          boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)',
           position: 'relative',
           zIndex: 2,
         }}>
-          <p style={{ fontSize: '18px', color: '#3a5a4a', fontWeight: 500, margin: 0 }}>
+          <p style={{ fontSize: '18px', color: '#475569', fontWeight: 500, margin: 0 }}>
             Cargando test...
           </p>
         </div>
@@ -334,7 +334,7 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
-        fontFamily: "'Inter', sans-serif",
+
       }}>
         {/* Background PNG */}
         <img 
@@ -379,27 +379,27 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
         
         <div style={{
           background: 'rgba(250, 232, 214, 0.85)',
-          border: '1px solid rgba(90, 146, 112, 0.2)',
+          border: '1px solid rgba(46, 147, 204, 0.2)',
           borderRadius: '24px',
           padding: '48px 40px',
           maxWidth: '480px',
           textAlign: 'center',
-          boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
+          boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)',
           position: 'relative',
           zIndex: 2,
         }}>
           <h2 style={{
             margin: '0 0 12px',
             fontSize: '26px',
-            color: '#1a2e22',
-            fontFamily: "'Nunito', sans-serif",
+            color: '#0F172A',
+
             fontWeight: 700,
           }}>
             Test no disponible
           </h2>
           <p style={{
             margin: '0 0 24px',
-            color: '#3a5a4a',
+            color: '#475569',
             fontSize: '16px',
           }}>
             Este test no tiene preguntas aún.
@@ -410,22 +410,22 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
               padding: '12px 24px',
               borderRadius: '24px',
               border: 'none',
-              background: '#5a9270',
+              background: '#2E93CC',
               color: '#ffffff',
               fontSize: '15px',
               fontWeight: 600,
               cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(90, 146, 112, 0.3)',
+              boxShadow: '0 4px 12px rgba(46, 147, 204, 0.3)',
               transition: 'all 0.3s',
-              fontFamily: "'Inter', sans-serif",
+      
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#4a8062';
-              e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
+              e.currentTarget.style.background = '#2577A4';
+              e.currentTarget.style.boxShadow = '0 6px 16px rgba(46, 147, 204, 0.4)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#5a9270';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
+              e.currentTarget.style.background = '#2E93CC';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(46, 147, 204, 0.3)';
             }}
           >
             Volver
@@ -450,7 +450,7 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        fontFamily: "'Inter', sans-serif",
+
         overflow: 'hidden',
       }}
     >
@@ -523,21 +523,21 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
         <div
           style={{
             background: 'rgba(250, 232, 214, 0.85)',
-            border: '1px solid rgba(90, 146, 112, 0.2)',
+            border: '1px solid rgba(46, 147, 204, 0.2)',
             borderRadius: '24px',
             padding: '24px 32px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
+            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             <div style={{
-              fontFamily: "'Nunito', sans-serif",
+  
               fontSize: '28px',
               fontWeight: 700,
-              color: '#5a9270',
+              color: '#2E93CC',
               letterSpacing: '-0.02em',
             }}>
               Gantly
@@ -547,8 +547,8 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                 margin: 0, 
                 fontSize: '24px', 
                 fontWeight: 700, 
-                color: '#1a2e22',
-                fontFamily: "'Nunito', sans-serif",
+                color: '#0F172A',
+    
               }}>
                 {test.title || test.code || `Test #${test.id}`}
               </h2>
@@ -556,7 +556,7 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                 <p style={{ 
                   margin: '4px 0 0', 
                   fontSize: '15px', 
-                  color: '#3a5a4a',
+                  color: '#475569',
                 }}>
                   {test.description}
                 </p>
@@ -568,24 +568,24 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
             style={{
               padding: '10px 24px',
               borderRadius: '24px',
-              border: '1px solid rgba(90, 146, 112, 0.3)',
+              border: '1px solid rgba(46, 147, 204, 0.3)',
               background: 'rgba(250, 232, 214, 0.85)',
-              color: '#3a5a4a',
+              color: '#475569',
               fontSize: '15px',
               fontWeight: 500,
               cursor: 'pointer',
               transition: 'all 0.3s',
-              fontFamily: "'Inter', sans-serif",
+      
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = 'rgba(250, 232, 214, 1)';
-              e.currentTarget.style.borderColor = '#5a9270';
-              e.currentTarget.style.color = '#5a9270';
+              e.currentTarget.style.borderColor = '#2E93CC';
+              e.currentTarget.style.color = '#2E93CC';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'rgba(250, 232, 214, 0.85)';
-              e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
-              e.currentTarget.style.color = '#3a5a4a';
+              e.currentTarget.style.borderColor = 'rgba(46, 147, 204, 0.3)';
+              e.currentTarget.style.color = '#475569';
             }}
           >
             Salir
@@ -596,10 +596,10 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
         <div
           style={{
             background: 'rgba(250, 232, 214, 0.85)',
-            border: '1px solid rgba(90, 146, 112, 0.2)',
+            border: '1px solid rgba(46, 147, 204, 0.2)',
             borderRadius: '24px',
             padding: '32px 40px',
-            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)'
+            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)'
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
@@ -608,18 +608,18 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                 style={{
                   padding: '8px 16px',
                   borderRadius: '20px',
-                  background: '#d4e0d8',
-                  color: '#3a5a4a',
+                  background: '#EBF6FC',
+                  color: '#475569',
                   fontSize: '14px',
                   fontWeight: 600,
-                  fontFamily: "'Inter', sans-serif",
+          
                   display: 'inline-block',
                   marginBottom: '12px',
                 }}
               >
                 Pregunta {currentQuestionIndex + 1} de {test.questions.length}
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', color: '#3a5a4a', fontSize: '14px', fontFamily: "'Inter', sans-serif" }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', color: '#475569', fontSize: '14px' }}>
                 <span>{Math.round(progress)}% completado</span>
                 <span>{test.questions.length - (currentQuestionIndex + 1)} restantes</span>
               </div>
@@ -631,14 +631,14 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
               height: '10px',
               borderRadius: '999px',
               overflow: 'hidden',
-              background: '#e0e8e3'
+              background: '#EBF6FC'
             }}
           >
             <div
               style={{
                 width: `${progress}%`,
                 height: '100%',
-                background: '#5a9270',
+                background: '#2E93CC',
                 transition: 'width 0.45s ease',
                 borderRadius: '999px',
               }}
@@ -650,10 +650,10 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
         <div
           style={{
             background: 'rgba(250, 232, 214, 0.9)',
-            border: '1px solid rgba(90, 146, 112, 0.2)',
+            border: '1px solid rgba(46, 147, 204, 0.2)',
             borderRadius: '24px',
             padding: '48px 40px',
-            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
+            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)',
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '32px', alignItems: 'flex-start', gap: '24px', flexWrap: 'wrap' }}>
@@ -662,17 +662,17 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                 margin: '0 0 8px', 
                 fontSize: 'clamp(24px, 3vw, 32px)', 
                 fontWeight: 600, 
-                color: '#1a2e22',
-                fontFamily: "'Nunito', sans-serif",
+                color: '#0F172A',
+    
                 lineHeight: 1.4,
               }}>
                 {currentQuestion.text}
               </h2>
               <p style={{ 
                 margin: 0, 
-                color: '#3a5a4a', 
+                color: '#475569', 
                 fontSize: '14px',
-                fontFamily: "'Inter', sans-serif",
+        
               }}>
                 Tu respuesta es confidencial
               </p>
@@ -684,27 +684,27 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                 style={{
                   padding: '10px 18px',
                   borderRadius: '20px',
-                  border: '1px solid rgba(90, 146, 112, 0.3)',
+                  border: '1px solid rgba(46, 147, 204, 0.3)',
                   background: currentQuestionIndex === 0 ? '#f8f9fa' : 'rgba(250, 232, 214, 0.85)',
-                  color: currentQuestionIndex === 0 ? '#cbd5d1' : '#3a5a4a',
+                  color: currentQuestionIndex === 0 ? '#cbd5d1' : '#475569',
                   fontSize: '14px',
                   fontWeight: 500,
                   cursor: currentQuestionIndex === 0 ? 'not-allowed' : 'pointer',
                   transition: 'all 0.3s',
-                  fontFamily: "'Inter', sans-serif",
+          
                 }}
                 onMouseEnter={(e) => {
                   if (currentQuestionIndex !== 0) {
                     e.currentTarget.style.background = 'rgba(250, 232, 214, 1)';
-                    e.currentTarget.style.borderColor = '#5a9270';
-                    e.currentTarget.style.color = '#5a9270';
+                    e.currentTarget.style.borderColor = '#2E93CC';
+                    e.currentTarget.style.color = '#2E93CC';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (currentQuestionIndex !== 0) {
                     e.currentTarget.style.background = 'rgba(250, 232, 214, 0.85)';
-                    e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
-                    e.currentTarget.style.color = '#3a5a4a';
+                    e.currentTarget.style.borderColor = 'rgba(46, 147, 204, 0.3)';
+                    e.currentTarget.style.color = '#475569';
                   }
                 }}
               >
@@ -717,23 +717,23 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                   padding: '10px 18px',
                   borderRadius: '20px',
                   border: 'none',
-                  background: currentQuestionIndex === test.questions.length - 1 ? '#cbd5d1' : '#5a9270',
+                  background: currentQuestionIndex === test.questions.length - 1 ? '#cbd5d1' : '#2E93CC',
                   color: '#ffffff',
                   fontSize: '14px',
                   fontWeight: 500,
                   cursor: currentQuestionIndex === test.questions.length - 1 ? 'not-allowed' : 'pointer',
                   transition: 'all 0.3s',
-                  fontFamily: "'Inter', sans-serif",
+          
                 }}
                 onMouseEnter={(e) => {
                   if (currentQuestionIndex !== test.questions.length - 1) {
-                    e.currentTarget.style.background = '#4a8062';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
+                    e.currentTarget.style.background = '#2577A4';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(46, 147, 204, 0.3)';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (currentQuestionIndex !== test.questions.length - 1) {
-                    e.currentTarget.style.background = '#5a9270';
+                    e.currentTarget.style.background = '#2E93CC';
                     e.currentTarget.style.boxShadow = 'none';
                   }
                 }}
@@ -755,29 +755,29 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                     style={{
                       padding: '18px 24px',
                       borderRadius: '16px',
-                      border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.3)'}`,
-                      background: isSelected ? '#d4e0d8' : '#f8f9fa',
-                      color: '#1a2e22',
+                      border: `2px solid ${isSelected ? '#2E93CC' : 'rgba(46, 147, 204, 0.3)'}`,
+                      background: isSelected ? '#EBF6FC' : '#f8f9fa',
+                      color: '#0F172A',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       cursor: 'pointer',
                       transition: 'all 0.3s ease',
-                      fontFamily: "'Inter', sans-serif",
+              
                       fontSize: '16px',
                       textAlign: 'left',
-                      boxShadow: isSelected ? '0 4px 12px rgba(90, 146, 112, 0.2)' : 'none',
+                      boxShadow: isSelected ? '0 4px 12px rgba(46, 147, 204, 0.2)' : 'none',
                     }}
                     onMouseEnter={(e) => {
                       if (!isSelected) {
-                        e.currentTarget.style.borderColor = '#5a9270';
+                        e.currentTarget.style.borderColor = '#2E93CC';
                         e.currentTarget.style.background = 'rgba(250, 232, 214, 0.6)';
-                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.15)';
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(46, 147, 204, 0.15)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isSelected) {
-                        e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
+                        e.currentTarget.style.borderColor = 'rgba(46, 147, 204, 0.3)';
                         e.currentTarget.style.background = '#f8f9fa';
                         e.currentTarget.style.boxShadow = 'none';
                       }
@@ -789,11 +789,11 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                         width: '24px',
                         height: '24px',
                         borderRadius: '50%',
-                        border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.4)'}`,
+                        border: `2px solid ${isSelected ? '#2E93CC' : 'rgba(46, 147, 204, 0.4)'}`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        background: isSelected ? '#5a9270' : 'transparent',
+                        background: isSelected ? '#2E93CC' : 'transparent',
                         color: isSelected ? '#ffffff' : 'transparent',
                         transition: 'all 0.3s ease',
                         flexShrink: 0,
@@ -819,29 +819,29 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                     style={{
                       padding: '18px 24px',
                       borderRadius: '16px',
-                      border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.3)'}`,
-                      background: isSelected ? '#d4e0d8' : '#f8f9fa',
-                      color: '#1a2e22',
+                      border: `2px solid ${isSelected ? '#2E93CC' : 'rgba(46, 147, 204, 0.3)'}`,
+                      background: isSelected ? '#EBF6FC' : '#f8f9fa',
+                      color: '#0F172A',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       cursor: 'pointer',
                       transition: 'all 0.3s ease',
-                      fontFamily: "'Inter', sans-serif",
+              
                       fontSize: '16px',
                       textAlign: 'left',
-                      boxShadow: isSelected ? '0 4px 12px rgba(90, 146, 112, 0.2)' : 'none',
+                      boxShadow: isSelected ? '0 4px 12px rgba(46, 147, 204, 0.2)' : 'none',
                     }}
                     onMouseEnter={(e) => {
                       if (!isSelected) {
-                        e.currentTarget.style.borderColor = '#5a9270';
+                        e.currentTarget.style.borderColor = '#2E93CC';
                         e.currentTarget.style.background = 'rgba(250, 232, 214, 0.6)';
-                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.15)';
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(46, 147, 204, 0.15)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isSelected) {
-                        e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
+                        e.currentTarget.style.borderColor = 'rgba(46, 147, 204, 0.3)';
                         e.currentTarget.style.background = '#f8f9fa';
                         e.currentTarget.style.boxShadow = 'none';
                       }
@@ -853,11 +853,11 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                         width: '24px',
                         height: '24px',
                         borderRadius: '6px',
-                        border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.4)'}`,
+                        border: `2px solid ${isSelected ? '#2E93CC' : 'rgba(46, 147, 204, 0.4)'}`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        background: isSelected ? '#5a9270' : 'transparent',
+                        background: isSelected ? '#2E93CC' : 'transparent',
                         color: isSelected ? '#ffffff' : 'transparent',
                         transition: 'all 0.3s ease',
                         flexShrink: 0,
@@ -884,26 +884,26 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                       style={{
                         padding: '16px 0',
                         borderRadius: '16px',
-                        border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.3)'}`,
-                        background: isSelected ? '#d4e0d8' : '#f8f9fa',
-                        color: isSelected ? '#1a2e22' : '#3a5a4a',
+                        border: `2px solid ${isSelected ? '#2E93CC' : 'rgba(46, 147, 204, 0.3)'}`,
+                        background: isSelected ? '#EBF6FC' : '#f8f9fa',
+                        color: isSelected ? '#0F172A' : '#475569',
                         fontSize: '18px',
                         fontWeight: 600,
                         cursor: 'pointer',
                         transition: 'all 0.3s ease',
-                        fontFamily: "'Inter', sans-serif",
-                        boxShadow: isSelected ? '0 4px 12px rgba(90, 146, 112, 0.2)' : 'none',
+                
+                        boxShadow: isSelected ? '0 4px 12px rgba(46, 147, 204, 0.2)' : 'none',
                       }}
                       onMouseEnter={(e) => {
                         if (!isSelected) {
-                          e.currentTarget.style.borderColor = '#5a9270';
+                          e.currentTarget.style.borderColor = '#2E93CC';
                           e.currentTarget.style.background = 'rgba(250, 232, 214, 0.6)';
-                          e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.15)';
+                          e.currentTarget.style.boxShadow = '0 2px 8px rgba(46, 147, 204, 0.15)';
                         }
                       }}
                       onMouseLeave={(e) => {
                         if (!isSelected) {
-                          e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
+                          e.currentTarget.style.borderColor = 'rgba(46, 147, 204, 0.3)';
                           e.currentTarget.style.background = '#f8f9fa';
                           e.currentTarget.style.boxShadow = 'none';
                         }
@@ -921,16 +921,16 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                   justifyContent: 'space-between',
                   padding: '16px 24px',
                   borderRadius: '16px',
-                  border: '1px solid rgba(90, 146, 112, 0.2)',
+                  border: '1px solid rgba(46, 147, 204, 0.2)',
                   background: 'rgba(250, 232, 214, 0.7)',
-                  color: '#3a5a4a',
+                  color: '#475569',
                   fontSize: '16px',
-                  fontFamily: "'Inter', sans-serif",
+          
                   fontWeight: 500,
                 }}
               >
                 <span>Puntaje actual</span>
-                <strong style={{ fontSize: '20px', color: '#5a9270', fontWeight: 700 }}>
+                <strong style={{ fontSize: '20px', color: '#2E93CC', fontWeight: 700 }}>
                   {currentAnswer?.numericValue !== undefined ? currentAnswer.numericValue : '—'}
                 </strong>
               </div>
@@ -939,11 +939,11 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
 
           {currentQuestion.type !== 'SINGLE' && currentQuestion.type !== 'MULTI' && currentQuestion.type !== 'SCALE' && (
             <p style={{ 
-              color: '#3a5a4a', 
+              color: '#475569', 
               fontStyle: 'italic', 
               textAlign: 'center', 
               padding: '40px',
-              fontFamily: "'Inter', sans-serif",
+      
             }}>
               Tipo de pregunta no soportado: {currentQuestion.type}
             </p>
@@ -958,17 +958,17 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
             alignItems: 'center',
             gap: '18px',
             background: 'rgba(250, 232, 214, 0.85)',
-            border: '1px solid rgba(90, 146, 112, 0.2)',
+            border: '1px solid rgba(46, 147, 204, 0.2)',
             borderRadius: '24px',
             padding: '24px 32px',
-            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
+            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)',
             flexWrap: 'wrap',
           }}
         >
           <div style={{ 
-            color: '#3a5a4a', 
+            color: '#475569', 
             fontSize: '15px',
-            fontFamily: "'Inter', sans-serif",
+    
           }}>
             {isLastQuestion ? 'Listo para enviar' : 'Responde con sinceridad'}
           </div>
@@ -978,24 +978,24 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
               style={{
                 padding: '12px 24px',
                 borderRadius: '24px',
-                border: '1px solid rgba(90, 146, 112, 0.3)',
+                border: '1px solid rgba(46, 147, 204, 0.3)',
                 background: 'rgba(250, 232, 214, 0.85)',
-                color: '#3a5a4a',
+                color: '#475569',
                 fontSize: '15px',
                 fontWeight: 500,
                 cursor: 'pointer',
                 transition: 'all 0.3s',
-                fontFamily: "'Inter', sans-serif",
+        
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = 'rgba(250, 232, 214, 1)';
-                e.currentTarget.style.borderColor = '#5a9270';
-                e.currentTarget.style.color = '#5a9270';
+                e.currentTarget.style.borderColor = '#2E93CC';
+                e.currentTarget.style.color = '#2E93CC';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'rgba(250, 232, 214, 0.85)';
-                e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
-                e.currentTarget.style.color = '#3a5a4a';
+                e.currentTarget.style.borderColor = 'rgba(46, 147, 204, 0.3)';
+                e.currentTarget.style.color = '#475569';
               }}
             >
               Guardar y salir
@@ -1008,25 +1008,25 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                   padding: '14px 32px',
                   borderRadius: '24px',
                   border: 'none',
-                  background: submitting ? '#cbd5d1' : '#5a9270',
+                  background: submitting ? '#cbd5d1' : '#2E93CC',
                   color: '#ffffff',
                   fontSize: '16px',
                   fontWeight: 600,
                   cursor: submitting ? 'not-allowed' : 'pointer',
-                  boxShadow: submitting ? 'none' : '0 4px 12px rgba(90, 146, 112, 0.3)',
+                  boxShadow: submitting ? 'none' : '0 4px 12px rgba(46, 147, 204, 0.3)',
                   transition: 'all 0.3s',
-                  fontFamily: "'Inter', sans-serif",
+          
                 }}
                 onMouseEnter={(e) => {
                   if (!submitting) {
-                    e.currentTarget.style.background = '#4a8062';
-                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
+                    e.currentTarget.style.background = '#2577A4';
+                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(46, 147, 204, 0.4)';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!submitting) {
-                    e.currentTarget.style.background = '#5a9270';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
+                    e.currentTarget.style.background = '#2E93CC';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(46, 147, 204, 0.3)';
                   }
                 }}
               >
@@ -1040,23 +1040,23 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                   padding: '14px 32px',
                   borderRadius: '24px',
                   border: 'none',
-                  background: currentQuestionIndex === test.questions.length - 1 ? '#cbd5d1' : '#5a9270',
+                  background: currentQuestionIndex === test.questions.length - 1 ? '#cbd5d1' : '#2E93CC',
                   color: '#ffffff',
                   fontSize: '16px',
                   fontWeight: 600,
                   cursor: currentQuestionIndex === test.questions.length - 1 ? 'not-allowed' : 'pointer',
                   transition: 'all 0.3s',
-                  fontFamily: "'Inter', sans-serif",
+          
                 }}
                 onMouseEnter={(e) => {
                   if (currentQuestionIndex !== test.questions.length - 1) {
-                    e.currentTarget.style.background = '#4a8062';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
+                    e.currentTarget.style.background = '#2577A4';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(46, 147, 204, 0.3)';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (currentQuestionIndex !== test.questions.length - 1) {
-                    e.currentTarget.style.background = '#5a9270';
+                    e.currentTarget.style.background = '#2E93CC';
                     e.currentTarget.style.boxShadow = 'none';
                   }
                 }}

@@ -1,58 +1,36 @@
-import React from 'react';
+import { cn } from '@/lib/utils';
 
 interface LoadingSpinnerProps {
   size?: 'small' | 'medium' | 'large';
   color?: string;
   text?: string;
+  className?: string;
 }
 
-export default function LoadingSpinner({ 
-  size = 'medium', 
-  color = '#667eea',
-  text 
+export default function LoadingSpinner({
+  size = 'medium',
+  color,
+  text,
+  className
 }: LoadingSpinnerProps) {
-  const sizeMap = {
-    small: '20px',
-    medium: '40px',
-    large: '60px'
+  const sizeClasses = {
+    small: 'w-5 h-5 border-2',
+    medium: 'w-10 h-10 border-3',
+    large: 'w-[60px] h-[60px] border-4',
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '12px',
-      padding: '20px'
-    }}>
+    <div className={cn('flex flex-col items-center justify-center gap-3 p-5', className)}>
       <div
-        style={{
-          width: sizeMap[size],
-          height: sizeMap[size],
-          border: `3px solid ${color}20`,
-          borderTop: `3px solid ${color}`,
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite'
-        }}
+        className={cn(
+          'rounded-full animate-spin border-gantly-blue-100 border-t-gantly-blue-500',
+          sizeClasses[size]
+        )}
+        style={color ? { borderTopColor: color, borderColor: `${color}20` } : undefined}
       />
       {text && (
-        <p style={{
-          margin: 0,
-          color: '#6b7280',
-          fontSize: '14px',
-          fontFamily: "'Inter', sans-serif"
-        }}>
-          {text}
-        </p>
+        <p className="m-0 text-sm text-gantly-muted">{text}</p>
       )}
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }
-

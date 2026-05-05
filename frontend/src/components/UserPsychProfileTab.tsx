@@ -12,240 +12,88 @@ const UserPsychProfileTab: React.FC<UserPsychProfileTabProps> = ({
   onBack,
 }) => {
   return (
-    <div
-      style={{
-        background: '#ffffff',
-        borderRadius: '20px',
-        boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
-        padding: '40px',
-        border: '1px solid rgba(90, 146, 112, 0.15)',
-        maxWidth: '900px',
-        margin: '40px auto 0',
-      }}
-    >
+    <div className="bg-white rounded-2xl shadow-card p-10 border border-slate-100 max-w-[900px] mx-auto mt-10">
       {loadingPsychologistProfile ? (
-        <div style={{ textAlign: 'center', padding: '60px' }}>
-          <p style={{ color: '#6b7280', fontSize: '16px' }}>
-            Cargando perfil del psicólogo...
+        <div className="text-center py-16">
+          <p className="text-gray-500 text-base">
+            Cargando perfil del psicologo...
           </p>
         </div>
       ) : (
         <>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '32px',
-            }}
-          >
-            <h2
-              style={{
-                margin: 0,
-                fontSize: '28px',
-                fontWeight: 700,
-                color: '#1a2e22',
-              }}
-            >
-              Perfil del Psicólogo
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-2xl font-bold text-gantly-text">
+              Perfil del Psicologo
             </h2>
             <button
               onClick={onBack}
-              style={{
-                padding: '10px 20px',
-                background: '#f3f4f6',
-                color: '#1f2937',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontSize: '14px',
-              }}
+              className="px-5 py-2.5 bg-slate-100 text-gantly-text border border-slate-200 rounded-xl font-semibold cursor-pointer text-sm hover:bg-slate-200 transition-colors"
             >
               ← Volver
             </button>
           </div>
 
           {/* Header del perfil */}
-          <div
-            style={{
-              background:
-                'linear-gradient(135deg, #f0f5f3 0%, #e8f0ed 100%)',
-              padding: '40px',
-              borderRadius: '20px',
-              border: '2px solid rgba(90, 146, 112, 0.3)',
-              marginBottom: '32px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '32px',
-              boxShadow: '0 4px 16px rgba(90, 146, 112, 0.15)',
-            }}
-          >
-            <div
-              style={{
-                width: '120px',
-                height: '120px',
-                borderRadius: '50%',
-                overflow: 'hidden',
-                border: '4px solid white',
-                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-                background: '#e5e7eb',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '48px',
-                flexShrink: 0,
-              }}
-            >
+          <div className="bg-gradient-to-br from-gantly-cloud-100 to-gantly-blue-50 p-10 rounded-2xl border-2 border-gantly-blue-200 mb-8 flex flex-col md:flex-row items-center gap-8 shadow-glow-blue">
+            <div className="w-[120px] h-[120px] rounded-full overflow-hidden border-4 border-white shadow-card bg-slate-200 flex items-center justify-center text-5xl flex-shrink-0">
               {psychologistProfile.avatarUrl ? (
                 <img
                   src={psychologistProfile.avatarUrl}
                   alt=""
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                  }}
+                  className="w-full h-full object-cover"
                 />
               ) : (
-                <div
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    background: '#e5e7eb',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#9ca3af',
-                    fontSize: '24px',
-                  }}
-                >
+                <div className="w-full h-full bg-slate-200 flex items-center justify-center text-slate-400 text-2xl">
                   PS
                 </div>
               )}
             </div>
-            <div style={{ flex: 1 }}>
-              <h3
-                style={{
-                  margin: '0 0 8px 0',
-                  fontSize: '32px',
-                  fontWeight: 700,
-                  color: '#1f2937',
-                }}
-              >
+            <div className="flex-1 text-center md:text-left">
+              <h3 className="text-3xl font-bold text-gantly-text mb-2">
                 {psychologistProfile.name}
               </h3>
-              <div
-                style={{
-                  fontSize: '18px',
-                  color: '#6b7280',
-                  marginBottom: '12px',
-                }}
-              >
+              <div className="text-lg text-gray-500 mb-3">
                 {psychologistProfile.email}
               </div>
             </div>
           </div>
 
-          {/* Biografía */}
+          {/* Biografia */}
           {psychologistProfile.bio && (
-            <div
-              style={{
-                marginBottom: '32px',
-                padding: '24px',
-                background: '#f9fafb',
-                borderRadius: '12px',
-                border: '1px solid #e5e7eb',
-              }}
-            >
-              <h3
-                style={{
-                  margin: '0 0 16px 0',
-                  fontSize: '20px',
-                  fontWeight: 600,
-                  color: '#1f2937',
-                }}
-              >
-                Sobre mí
+            <div className="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
+              <h3 className="text-xl font-semibold text-gantly-text mb-4">
+                Sobre mi
               </h3>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: '16px',
-                  lineHeight: '1.6',
-                  color: '#4b5563',
-                }}
-              >
+              <p className="text-base leading-relaxed text-gantly-muted">
                 {psychologistProfile.bio}
               </p>
             </div>
           )}
 
-          {/* Educación */}
+          {/* Educacion */}
           {psychologistProfile.education && (() => {
             try {
               const education = JSON.parse(psychologistProfile.education);
               if (Array.isArray(education) && education.length > 0) {
                 return (
-                  <div
-                    style={{
-                      marginBottom: '32px',
-                      padding: '24px',
-                      background: '#f9fafb',
-                      borderRadius: '12px',
-                      border: '1px solid #e5e7eb',
-                    }}
-                  >
-                    <h3
-                      style={{
-                        margin: '0 0 20px 0',
-                        fontSize: '20px',
-                        fontWeight: 600,
-                        color: '#1f2937',
-                      }}
-                    >
-                      Educación
+                  <div className="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
+                    <h3 className="text-xl font-semibold text-gantly-text mb-5">
+                      Educacion
                     </h3>
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '16px',
-                      }}
-                    >
+                    <div className="flex flex-col gap-4">
                       {education.map((edu: any, idx: number) => (
                         <div
                           key={idx}
-                          style={{
-                            padding: '16px',
-                            background: '#ffffff',
-                            borderRadius: '8px',
-                            border: '1px solid #e5e7eb',
-                          }}
+                          className="p-4 bg-white rounded-xl border border-slate-200"
                         >
-                          <div
-                            style={{
-                              fontSize: '18px',
-                              fontWeight: 600,
-                              color: '#1f2937',
-                              marginBottom: '4px',
-                            }}
-                          >
-                            {edu.degree || 'Título'}{' '}
+                          <div className="text-lg font-semibold text-gantly-text mb-1">
+                            {edu.degree || 'Titulo'}{' '}
                             {edu.field ? `en ${edu.field}` : ''}
                           </div>
-                          <div
-                            style={{
-                              fontSize: '16px',
-                              color: '#667eea',
-                              marginBottom: '4px',
-                            }}
-                          >
-                            {edu.institution || 'Institución'}
+                          <div className="text-base text-gantly-blue-500 mb-1">
+                            {edu.institution || 'Institucion'}
                           </div>
-                          <div
-                            style={{ fontSize: '14px', color: '#6b7280' }}
-                          >
+                          <div className="text-sm text-gray-500">
                             {edu.startDate && edu.endDate
                               ? `${edu.startDate} - ${edu.endDate}`
                               : edu.startDate ||
@@ -272,80 +120,29 @@ const UserPsychProfileTab: React.FC<UserPsychProfileTabProps> = ({
               );
               if (Array.isArray(certs) && certs.length > 0) {
                 return (
-                  <div
-                    style={{
-                      marginBottom: '32px',
-                      padding: '24px',
-                      background: '#f9fafb',
-                      borderRadius: '12px',
-                      border: '1px solid #e5e7eb',
-                    }}
-                  >
-                    <h3
-                      style={{
-                        margin: '0 0 20px 0',
-                        fontSize: '20px',
-                        fontWeight: 600,
-                        color: '#1f2937',
-                      }}
-                    >
+                  <div className="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
+                    <h3 className="text-xl font-semibold text-gantly-text mb-5">
                       Certificaciones
                     </h3>
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '16px',
-                      }}
-                    >
+                    <div className="flex flex-col gap-4">
                       {certs.map((cert: any, idx: number) => (
                         <div
                           key={idx}
-                          style={{
-                            padding: '16px',
-                            background: '#ffffff',
-                            borderRadius: '8px',
-                            border: '1px solid #e5e7eb',
-                          }}
+                          className="p-4 bg-white rounded-xl border border-slate-200"
                         >
-                          <div
-                            style={{
-                              fontSize: '18px',
-                              fontWeight: 600,
-                              color: '#1f2937',
-                              marginBottom: '4px',
-                            }}
-                          >
-                            {cert.name || 'Certificación'}
+                          <div className="text-lg font-semibold text-gantly-text mb-1">
+                            {cert.name || 'Certificacion'}
                           </div>
-                          <div
-                            style={{
-                              fontSize: '14px',
-                              color: '#6b7280',
-                              marginBottom: '4px',
-                            }}
-                          >
+                          <div className="text-sm text-gray-500 mb-1">
                             Emitido por: {cert.issuer || 'N/A'}
                           </div>
                           {cert.date && (
-                            <div
-                              style={{
-                                fontSize: '14px',
-                                color: '#6b7280',
-                                marginBottom: '4px',
-                              }}
-                            >
+                            <div className="text-sm text-gray-500 mb-1">
                               Fecha: {cert.date}
                             </div>
                           )}
                           {cert.credentialId && (
-                            <div
-                              style={{
-                                fontSize: '13px',
-                                color: '#9ca3af',
-                                fontFamily: 'monospace',
-                              }}
-                            >
+                            <div className="text-xs text-slate-400 font-mono">
                               ID: {cert.credentialId}
                             </div>
                           )}
@@ -367,80 +164,28 @@ const UserPsychProfileTab: React.FC<UserPsychProfileTabProps> = ({
               );
               if (Array.isArray(experience) && experience.length > 0) {
                 return (
-                  <div
-                    style={{
-                      marginBottom: '32px',
-                      padding: '24px',
-                      background: '#f9fafb',
-                      borderRadius: '12px',
-                      border: '1px solid #e5e7eb',
-                    }}
-                  >
-                    <h3
-                      style={{
-                        margin: '0 0 20px 0',
-                        fontSize: '20px',
-                        fontWeight: 600,
-                        color: '#1f2937',
-                      }}
-                    >
+                  <div className="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
+                    <h3 className="text-xl font-semibold text-gantly-text mb-5">
                       Experiencia profesional
                     </h3>
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '16px',
-                      }}
-                    >
+                    <div className="flex flex-col gap-4">
                       {experience.map((exp: any, idx: number) => (
                         <div
                           key={idx}
-                          style={{
-                            padding: '16px',
-                            background: '#ffffff',
-                            borderRadius: '8px',
-                            border: '1px solid #e5e7eb',
-                          }}
+                          className="p-4 bg-white rounded-xl border border-slate-200"
                         >
-                          <div
-                            style={{
-                              fontSize: '18px',
-                              fontWeight: 600,
-                              color: '#1f2937',
-                              marginBottom: '4px',
-                            }}
-                          >
+                          <div className="text-lg font-semibold text-gantly-text mb-1">
                             {exp.title || 'Cargo'}
                           </div>
-                          <div
-                            style={{
-                              fontSize: '16px',
-                              color: '#667eea',
-                              marginBottom: '4px',
-                            }}
-                          >
+                          <div className="text-base text-gantly-blue-500 mb-1">
                             {exp.company || 'Empresa'}
                           </div>
                           {exp.description && (
-                            <div
-                              style={{
-                                fontSize: '14px',
-                                color: '#4b5563',
-                                marginTop: '8px',
-                                lineHeight: '1.6',
-                              }}
-                            >
+                            <div className="text-sm text-gantly-muted mt-2 leading-relaxed">
                               {exp.description}
                             </div>
                           )}
-                          <div
-                            style={{
-                              fontSize: '14px',
-                              color: '#6b7280',
-                              marginTop: '8px',
-                            }}
-                          >
+                          <div className="text-sm text-gray-500 mt-2">
                             {exp.startDate && exp.endDate
                               ? `${exp.startDate} - ${exp.endDate}`
                               : exp.startDate

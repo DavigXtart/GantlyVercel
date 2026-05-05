@@ -1,60 +1,36 @@
 import React from 'react';
+import { cn } from '@/lib/utils';
 
 interface EmptyStateProps {
   icon?: string;
   title: string;
   description?: string;
   action?: React.ReactNode;
+  className?: string;
 }
 
-export default function EmptyState({ 
-  icon = '📭', 
-  title, 
-  description, 
-  action 
+export default function EmptyState({
+  icon = '📭',
+  title,
+  description,
+  action,
+  className
 }: EmptyStateProps) {
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '48px 24px',
-      textAlign: 'center',
-      color: '#6b7280'
-    }}>
-      <div style={{
-        fontSize: '64px',
-        marginBottom: '16px'
-      }}>
-        {icon}
-      </div>
-      <h3 style={{
-        margin: '0 0 8px 0',
-        fontSize: '20px',
-        fontWeight: 600,
-        color: '#1f2937',
-        fontFamily: "'Inter', sans-serif"
-      }}>
+    <div className={cn(
+      'flex flex-col items-center justify-center py-12 px-6 text-center',
+      className
+    )}>
+      <div className="text-6xl mb-4">{icon}</div>
+      <h3 className="text-xl font-heading font-semibold text-gantly-text mb-2">
         {title}
       </h3>
       {description && (
-        <p style={{
-          margin: '0 0 24px 0',
-          fontSize: '14px',
-          color: '#6b7280',
-          maxWidth: '400px',
-          fontFamily: "'Inter', sans-serif"
-        }}>
+        <p className="text-sm text-gantly-muted max-w-[400px] mb-6">
           {description}
         </p>
       )}
-      {action && (
-        <div>
-          {action}
-        </div>
-      )}
+      {action && <div>{action}</div>}
     </div>
   );
 }
-

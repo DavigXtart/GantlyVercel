@@ -370,7 +370,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
         borderRadius: '20px',
         boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
         padding: '40px',
-        border: '1px solid rgba(90, 146, 112, 0.15)',
+        border: '1px solid rgba(46, 147, 204, 0.15)',
         maxWidth: viewMode === 'month' ? '1200px' : '900px',
         margin: '0 auto',
         animation: 'fadeIn 0.5s ease-in'
@@ -398,9 +398,8 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
           <h2 style={{ 
             fontSize: '28px', 
             fontWeight: 700, 
-            color: '#1a2e22', 
-            margin: 0,
-            fontFamily: "'Inter', sans-serif"
+            color: '#0F172A',
+            margin: 0
           }}>
             Mi Agenda {viewMode === 'week' ? 'Semanal' : 'Mensual'}
           </h2>
@@ -418,8 +417,8 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                 onClick={() => setViewMode('week')}
                 style={{
                   padding: '8px 16px',
-                  background: viewMode === 'week' ? 'linear-gradient(135deg, #5a9270 0%, #5b8fa8 100%)' : 'transparent',
-                  color: viewMode === 'week' ? '#fff' : '#3a5a4a',
+                  background: viewMode === 'week' ? 'linear-gradient(135deg, #2E93CC 0%, #22D3EE 100%)' : 'transparent',
+                  color: viewMode === 'week' ? '#fff' : '#475569',
                   border: 'none',
                   borderRadius: '8px',
                   cursor: 'pointer',
@@ -434,8 +433,8 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                 onClick={() => setViewMode('month')}
                 style={{
                   padding: '8px 16px',
-                  background: viewMode === 'month' ? 'linear-gradient(135deg, #5a9270 0%, #5b8fa8 100%)' : 'transparent',
-                  color: viewMode === 'month' ? '#fff' : '#3a5a4a',
+                  background: viewMode === 'month' ? 'linear-gradient(135deg, #2E93CC 0%, #22D3EE 100%)' : 'transparent',
+                  color: viewMode === 'month' ? '#fff' : '#475569',
                   border: 'none',
                   borderRadius: '8px',
                   cursor: 'pointer',
@@ -454,7 +453,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
               style={{
                 padding: '8px 16px',
                 background: '#e5e7eb',
-                color: '#3a5a4a',
+                color: '#475569',
                 border: 'none',
                 borderRadius: '12px',
                 cursor: 'pointer',
@@ -491,7 +490,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
               }}
               style={{
                 padding: '10px 20px',
-                background: 'linear-gradient(135deg, #5a9270 0%, #5b8fa8 100%)',
+                background: 'linear-gradient(135deg, #2E93CC 0%, #22D3EE 100%)',
                 color: '#fff',
                 border: 'none',
                 borderRadius: '12px',
@@ -499,15 +498,15 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                 fontWeight: 600,
                 fontSize: '14px',
                 transition: 'all 0.3s ease',
-                boxShadow: '0 4px 12px rgba(90, 146, 112, 0.3)'
+                boxShadow: '0 4px 12px rgba(46, 147, 204, 0.3)'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(46, 147, 204, 0.4)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(46, 147, 204, 0.3)';
               }}
             >
               + Nueva Entrada
@@ -524,15 +523,15 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
           padding: '16px',
           background: 'linear-gradient(135deg, #f0f5f3 0%, #e8f0ed 100%)',
           borderRadius: '16px',
-          border: '1px solid rgba(90, 146, 112, 0.2)'
+          border: '1px solid rgba(46, 147, 204, 0.2)'
         }}>
           <button
             onClick={() => viewMode === 'week' ? navigateWeek('prev') : navigateMonth('prev')}
             style={{
               padding: '10px 16px',
               background: '#fff',
-              color: '#5a9270',
-              border: '2px solid #5a9270',
+              color: '#2E93CC',
+              border: '2px solid #2E93CC',
               borderRadius: '12px',
               cursor: 'pointer',
               fontWeight: 600,
@@ -543,13 +542,13 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
               gap: '8px'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#5a9270';
+              e.currentTarget.style.background = '#2E93CC';
               e.currentTarget.style.color = '#fff';
               e.currentTarget.style.transform = 'scale(1.05)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = '#fff';
-              e.currentTarget.style.color = '#5a9270';
+              e.currentTarget.style.color = '#2E93CC';
               e.currentTarget.style.transform = 'scale(1)';
             }}
           >
@@ -559,7 +558,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
           <div style={{
             fontSize: '20px',
             fontWeight: 700,
-            color: '#1a2e22',
+            color: '#0F172A',
             textAlign: 'center',
             flex: 1
           }}>
@@ -589,8 +588,8 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
             style={{
               padding: '10px 16px',
               background: '#fff',
-              color: '#5a9270',
-              border: '2px solid #5a9270',
+              color: '#2E93CC',
+              border: '2px solid #2E93CC',
               borderRadius: '12px',
               cursor: 'pointer',
               fontWeight: 600,
@@ -601,13 +600,13 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
               gap: '8px'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#5a9270';
+              e.currentTarget.style.background = '#2E93CC';
               e.currentTarget.style.color = '#fff';
               e.currentTarget.style.transform = 'scale(1.05)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = '#fff';
-              e.currentTarget.style.color = '#5a9270';
+              e.currentTarget.style.color = '#2E93CC';
               e.currentTarget.style.transform = 'scale(1)';
             }}
           >
@@ -622,7 +621,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
               style={{
                 padding: '8px 16px',
                 background: '#f8f9fa',
-                color: '#3a5a4a',
+                color: '#475569',
                 border: '1px solid #e5e7eb',
                 borderRadius: '8px',
                 cursor: 'pointer',
@@ -642,9 +641,8 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
               <h3 style={{ 
                 fontSize: '24px', 
                 fontWeight: 700, 
-                color: '#1a2e22', 
-                marginBottom: '24px',
-                fontFamily: "'Inter', sans-serif"
+                color: '#0F172A',
+                marginBottom: '24px'
               }}>
                 {new Date(selectedEntry.entryDate).toLocaleDateString('es-ES', { 
                   weekday: 'long', 
@@ -655,20 +653,20 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
               </h3>
               
               <div style={{ marginBottom: '24px' }}>
-                <div style={{ fontSize: '18px', fontWeight: 600, color: '#3a5a4a', marginBottom: '12px' }}>
+                <div style={{ fontSize: '18px', fontWeight: 600, color: '#475569', marginBottom: '12px' }}>
                   Estado de Ánimo
                 </div>
                 <div style={{ fontSize: '48px', marginBottom: '8px' }}>
                   {getMoodEmoji(selectedEntry.moodRating)}
                 </div>
-                <div style={{ fontSize: '16px', color: '#1a2e22' }}>
+                <div style={{ fontSize: '16px', color: '#0F172A' }}>
                   {moods.find(m => m.value === selectedEntry.moodRating)?.label || 'N/A'}
                 </div>
               </div>
 
               {selectedEntry.emotions && (
                 <div style={{ marginBottom: '24px' }}>
-                  <div style={{ fontSize: '18px', fontWeight: 600, color: '#3a5a4a', marginBottom: '12px' }}>
+                  <div style={{ fontSize: '18px', fontWeight: 600, color: '#475569', marginBottom: '12px' }}>
                     Emociones
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -693,7 +691,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
 
               {selectedEntry.activities && (
                 <div style={{ marginBottom: '24px' }}>
-                  <div style={{ fontSize: '18px', fontWeight: 600, color: '#3a5a4a', marginBottom: '12px' }}>
+                  <div style={{ fontSize: '18px', fontWeight: 600, color: '#475569', marginBottom: '12px' }}>
                     Actividades
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -718,7 +716,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
 
               {selectedEntry.companions && (
                 <div style={{ marginBottom: '24px' }}>
-                  <div style={{ fontSize: '18px', fontWeight: 600, color: '#3a5a4a', marginBottom: '12px' }}>
+                  <div style={{ fontSize: '18px', fontWeight: 600, color: '#475569', marginBottom: '12px' }}>
                     Con quién
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -727,7 +725,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                         key={idx}
                         style={{
                           padding: '8px 16px',
-                          background: '#5a9270',
+                          background: '#2E93CC',
                           color: '#fff',
                           borderRadius: '20px',
                           fontSize: '14px',
@@ -743,10 +741,10 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
 
               {selectedEntry.location && (
                 <div style={{ marginBottom: '24px' }}>
-                  <div style={{ fontSize: '18px', fontWeight: 600, color: '#3a5a4a', marginBottom: '12px' }}>
+                  <div style={{ fontSize: '18px', fontWeight: 600, color: '#475569', marginBottom: '12px' }}>
                     Ubicación
                   </div>
-                  <div style={{ fontSize: '16px', color: '#1a2e22' }}>
+                  <div style={{ fontSize: '16px', color: '#0F172A' }}>
                     {selectedEntry.location}
                   </div>
                 </div>
@@ -754,12 +752,12 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
 
               {selectedEntry.notes && (
                 <div>
-                  <div style={{ fontSize: '18px', fontWeight: 600, color: '#3a5a4a', marginBottom: '12px' }}>
+                  <div style={{ fontSize: '18px', fontWeight: 600, color: '#475569', marginBottom: '12px' }}>
                     Notas
                   </div>
                   <div style={{ 
                     fontSize: '16px', 
-                    color: '#1a2e22', 
+                    color: '#0F172A', 
                     lineHeight: '1.6',
                     padding: '16px',
                     background: '#fff',
@@ -798,43 +796,43 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                       style={{
                         padding: '20px',
                         background: entry 
-                          ? 'linear-gradient(135deg, #5a9270 0%, #5b8fa8 100%)' 
+                          ? 'linear-gradient(135deg, #2E93CC 0%, #22D3EE 100%)' 
                           : isToday 
                             ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)'
                             : isValidDate
                               ? '#e8f5e9'
                               : '#f8f9fa',
                         borderRadius: '16px',
-                        border: isToday ? '3px solid #f59e0b' : entry ? '2px solid rgba(255,255,255,0.3)' : isValidDate ? '2px dashed #5a9270' : '1px solid #e5e7eb',
+                        border: isToday ? '3px solid #f59e0b' : entry ? '2px solid rgba(255,255,255,0.3)' : isValidDate ? '2px dashed #2E93CC' : '1px solid #e5e7eb',
                         cursor: isClickable ? 'pointer' : 'default',
                         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                         textAlign: 'center',
-                        color: entry ? '#fff' : isToday ? '#92400e' : '#3a5a4a',
+                        color: entry ? '#fff' : isToday ? '#92400e' : '#475569',
                         minHeight: '120px',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        boxShadow: entry ? '0 4px 12px rgba(90, 146, 112, 0.2)' : isToday ? '0 4px 12px rgba(245, 158, 11, 0.2)' : 'none',
+                        boxShadow: entry ? '0 4px 12px rgba(46, 147, 204, 0.2)' : isToday ? '0 4px 12px rgba(245, 158, 11, 0.2)' : 'none',
                         position: 'relative',
                         overflow: 'hidden'
                       }}
                       onMouseEnter={(e) => {
                         if (entry) {
                           e.currentTarget.style.transform = 'translateY(-6px) scale(1.02)';
-                          e.currentTarget.style.boxShadow = '0 12px 24px rgba(90, 146, 112, 0.4)';
+                          e.currentTarget.style.boxShadow = '0 12px 24px rgba(46, 147, 204, 0.4)';
                         } else if (isToday) {
                           e.currentTarget.style.transform = 'translateY(-4px)';
                           e.currentTarget.style.boxShadow = '0 8px 16px rgba(245, 158, 11, 0.3)';
                         } else if (isValidDate) {
                           e.currentTarget.style.transform = 'translateY(-4px)';
-                          e.currentTarget.style.boxShadow = '0 8px 16px rgba(90, 146, 112, 0.3)';
+                          e.currentTarget.style.boxShadow = '0 8px 16px rgba(46, 147, 204, 0.3)';
                           e.currentTarget.style.background = '#c8e6c9';
                         }
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                        e.currentTarget.style.boxShadow = entry ? '0 4px 12px rgba(90, 146, 112, 0.2)' : isToday ? '0 4px 12px rgba(245, 158, 11, 0.2)' : isValidDate ? '0 4px 12px rgba(90, 146, 112, 0.1)' : 'none';
+                        e.currentTarget.style.boxShadow = entry ? '0 4px 12px rgba(46, 147, 204, 0.2)' : isToday ? '0 4px 12px rgba(245, 158, 11, 0.2)' : isValidDate ? '0 4px 12px rgba(46, 147, 204, 0.1)' : 'none';
                         if (isValidDate && !entry && !isToday) {
                           e.currentTarget.style.background = '#e8f5e9';
                         }
@@ -895,7 +893,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                     padding: '12px',
                     textAlign: 'center',
                     fontWeight: 700,
-                    color: '#5a9270',
+                    color: '#2E93CC',
                     fontSize: '14px',
                     background: '#f0f5f3',
                     borderRadius: '8px'
@@ -925,18 +923,18 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                       style={{
                         padding: '12px 8px',
                         background: entry 
-                          ? 'linear-gradient(135deg, #5a9270 0%, #5b8fa8 100%)' 
+                          ? 'linear-gradient(135deg, #2E93CC 0%, #22D3EE 100%)' 
                           : isToday 
                             ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)'
                             : isValidDate && isCurrentMonth
                               ? '#e8f5e9'
                               : isCurrentMonth ? '#f8f9fa' : '#f0f0f0',
                         borderRadius: '12px',
-                        border: isToday ? '2px solid #f59e0b' : entry ? '2px solid rgba(255,255,255,0.3)' : isValidDate && isCurrentMonth ? '2px dashed #5a9270' : '1px solid #e5e7eb',
+                        border: isToday ? '2px solid #f59e0b' : entry ? '2px solid rgba(255,255,255,0.3)' : isValidDate && isCurrentMonth ? '2px dashed #2E93CC' : '1px solid #e5e7eb',
                         cursor: isClickable ? 'pointer' : 'default',
                         transition: 'all 0.3s ease',
                         textAlign: 'center',
-                        color: entry ? '#fff' : isToday ? '#92400e' : isCurrentMonth ? '#3a5a4a' : '#9ca3af',
+                        color: entry ? '#fff' : isToday ? '#92400e' : isCurrentMonth ? '#475569' : '#9ca3af',
                         minHeight: '80px',
                         display: 'flex',
                         flexDirection: 'column',
@@ -992,7 +990,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
       borderRadius: '20px',
       boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
       padding: '40px',
-      border: '1px solid rgba(90, 146, 112, 0.15)',
+      border: '1px solid rgba(46, 147, 204, 0.15)',
       maxWidth: '800px',
       margin: '0 auto'
     }}>
@@ -1005,7 +1003,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
               display: 'block',
               fontSize: '16px',
               fontWeight: 600,
-              color: '#3a5a4a',
+              color: '#475569',
               marginBottom: '12px',
               textAlign: 'center'
             }}>
@@ -1026,9 +1024,9 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                 style={{
                   padding: '12px 16px',
                   borderRadius: '12px',
-                  border: '2px solid #5a9270',
+                  border: '2px solid #2E93CC',
                   fontSize: '16px',
-                  color: '#3a5a4a',
+                  color: '#475569',
                   fontWeight: 600,
                   background: '#fff',
                   cursor: 'pointer',
@@ -1049,10 +1047,9 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
           <h2 style={{ 
             fontSize: '28px', 
             fontWeight: 700, 
-            color: '#1a2e22', 
+            color: '#0F172A',
             marginBottom: '40px',
-            textAlign: 'center',
-            fontFamily: "'Inter', sans-serif"
+            textAlign: 'center'
           }}>
             ¿Cómo te sientes esta tarde?
           </h2>
@@ -1104,7 +1101,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                 <span>{mood.emoji}</span>
                 <span style={{ 
                   fontSize: '14px', 
-                  color: entryData.moodRating === mood.value ? '#fff' : '#3a5a4a',
+                  color: entryData.moodRating === mood.value ? '#fff' : '#475569',
                   fontWeight: 600
                 }}>
                   {mood.label}
@@ -1121,10 +1118,9 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
           <h2 style={{ 
             fontSize: '24px', 
             fontWeight: 700, 
-            color: '#1a2e22', 
+            color: '#0F172A',
             marginBottom: '24px',
-            textAlign: 'center',
-            fontFamily: "'Inter', sans-serif"
+            textAlign: 'center'
           }}>
             ¿Qué emociones estás experimentando?
           </h2>
@@ -1144,7 +1140,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                   background: entryData.emotions.includes(emotion) 
                     ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
                     : '#f8f9fa',
-                  color: entryData.emotions.includes(emotion) ? '#fff' : '#3a5a4a',
+                  color: entryData.emotions.includes(emotion) ? '#fff' : '#475569',
                   border: entryData.emotions.includes(emotion) 
                     ? '2px solid #667eea'
                     : '2px solid #e5e7eb',
@@ -1165,7 +1161,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
               style={{
                 padding: '12px 24px',
                 background: '#e5e7eb',
-                color: '#3a5a4a',
+                color: '#475569',
                 border: 'none',
                 borderRadius: '12px',
                 cursor: 'pointer',
@@ -1198,10 +1194,9 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
           <h2 style={{ 
             fontSize: '24px', 
             fontWeight: 700, 
-            color: '#1a2e22', 
+            color: '#0F172A',
             marginBottom: '24px',
-            textAlign: 'center',
-            fontFamily: "'Inter', sans-serif"
+            textAlign: 'center'
           }}>
             ¿Qué estás haciendo?
           </h2>
@@ -1222,7 +1217,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                   background: entryData.activities.includes(activity) 
                     ? 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)'
                     : '#f8f9fa',
-                  color: entryData.activities.includes(activity) ? '#fff' : '#3a5a4a',
+                  color: entryData.activities.includes(activity) ? '#fff' : '#475569',
                   border: entryData.activities.includes(activity) 
                     ? '2px solid #f59e0b'
                     : '2px solid #e5e7eb',
@@ -1241,9 +1236,8 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
           <h3 style={{ 
             fontSize: '20px', 
             fontWeight: 600, 
-            color: '#1a2e22', 
-            marginBottom: '16px',
-            fontFamily: "'Inter', sans-serif"
+            color: '#0F172A',
+            marginBottom: '16px'
           }}>
             ¿Con quién estás?
           </h3>
@@ -1264,7 +1258,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                   background: entryData.companions.includes(companion) 
                     ? 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)'
                     : '#f8f9fa',
-                  color: entryData.companions.includes(companion) ? '#fff' : '#3a5a4a',
+                  color: entryData.companions.includes(companion) ? '#fff' : '#475569',
                   border: entryData.companions.includes(companion) 
                     ? '2px solid #f59e0b'
                     : '2px solid #e5e7eb',
@@ -1283,9 +1277,8 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
           <h3 style={{ 
             fontSize: '20px', 
             fontWeight: 600, 
-            color: '#1a2e22', 
-            marginBottom: '16px',
-            fontFamily: "'Inter', sans-serif"
+            color: '#0F172A',
+            marginBottom: '16px'
           }}>
             ¿Dónde estás?
           </h3>
@@ -1305,7 +1298,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                   background: entryData.location === location 
                     ? 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)'
                     : '#f8f9fa',
-                  color: entryData.location === location ? '#fff' : '#3a5a4a',
+                  color: entryData.location === location ? '#fff' : '#475569',
                   border: entryData.location === location 
                     ? '2px solid #f59e0b'
                     : '2px solid #e5e7eb',
@@ -1327,7 +1320,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
               style={{
                 padding: '12px 24px',
                 background: '#e5e7eb',
-                color: '#3a5a4a',
+                color: '#475569',
                 border: 'none',
                 borderRadius: '12px',
                 cursor: 'pointer',
@@ -1360,10 +1353,9 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
           <h2 style={{ 
             fontSize: '24px', 
             fontWeight: 700, 
-            color: '#1a2e22', 
+            color: '#0F172A',
             marginBottom: '24px',
-            textAlign: 'center',
-            fontFamily: "'Inter', sans-serif"
+            textAlign: 'center'
           }}>
             ¿Qué está haciendo que tu tarde sea {entryData.moodRating <= 2 ? 'difícil' : entryData.moodRating >= 4 ? 'genial' : 'así'}?
           </h2>
@@ -1378,7 +1370,6 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
               borderRadius: '12px',
               border: '2px solid #e5e7eb',
               fontSize: '16px',
-              fontFamily: "'Inter', sans-serif",
               resize: 'vertical',
               marginBottom: '24px'
             }}
@@ -1389,7 +1380,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
               style={{
                 padding: '12px 24px',
                 background: '#e5e7eb',
-                color: '#3a5a4a',
+                color: '#475569',
                 border: 'none',
                 borderRadius: '12px',
                 cursor: 'pointer',

@@ -154,7 +154,7 @@ function JitsiVideoCallComponent({
           APP_NAME: 'Gantly',
           NATIVE_APP_NAME: 'Gantly',
           PROVIDER_NAME: 'Gantly',
-          DEFAULT_BACKGROUND: '#5a9270',
+          DEFAULT_BACKGROUND: '#0A1628',
         },
         userInfo: {
           displayName: userName,
@@ -675,7 +675,7 @@ function JitsiVideoCallComponent({
       }}>
       {/* Header con información y botón de cerrar */}
       <div style={{
-        background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
+        background: 'linear-gradient(135deg, #2E93CC 0%, #22D3EE 100%)',
         padding: '16px 24px',
         display: 'flex',
         justifyContent: 'space-between',
@@ -786,7 +786,7 @@ function JitsiVideoCallComponent({
               <button
                 onClick={() => window.location.reload()}
                 style={{
-                  background: '#5a9270',
+                  background: '#2E93CC',
                   border: 'none',
                   color: 'white',
                   padding: '10px 20px',
@@ -853,7 +853,7 @@ export default function JitsiVideoCall(props: JitsiVideoCallProps) {
               }
             }}
             style={{
-              background: '#5a9270',
+              background: '#2E93CC',
               border: 'none',
               color: 'white',
               padding: '12px 24px',

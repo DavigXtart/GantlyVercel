@@ -63,57 +63,32 @@ export default function PsychPatientsTab({
   const dischargedPatients = useMemo(() => filteredPatients.filter(p => !isPatientMinor(p) && p.status === 'DISCHARGED'), [filteredPatients]);
 
   return (
-    <div className="mt-10 bg-white rounded-3xl p-8 border border-sage/10 soft-shadow">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-        <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+    <div className="mt-10 bg-white rounded-2xl p-8 border border-slate-100 shadow-card">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+        <h3 className="m-0 text-2xl font-bold text-gantly-blue-600">
           Mis Pacientes
         </h3>
         <button
           onClick={onRefresh}
-          style={{
-            padding: '8px 16px',
-            background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            fontSize: '14px',
-            transition: 'all 0.2s'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+          className="px-4 py-2 bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white border-none rounded-xl font-semibold cursor-pointer text-sm transition-all hover:scale-105"
         >
           Refrescar
         </button>
       </div>
 
       {/* Buscador y filtros */}
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap', alignItems: 'center' }}>
+      <div className="flex gap-3 mb-6 flex-wrap items-center">
         <input
           type="text"
           placeholder="Buscar por nombre o email..."
           value={patientSearchTerm}
           onChange={(e) => setPatientSearchTerm(e.target.value)}
-          style={{
-            padding: '10px 14px',
-            borderRadius: '10px',
-            border: '1px solid #e5e7eb',
-            fontSize: '15px',
-            minWidth: '220px',
-            flex: 1
-          }}
+          className="p-2.5 px-3.5 rounded-xl border border-slate-200 text-[15px] min-w-[220px] flex-1"
         />
         <select
           value={patientFilterGender}
           onChange={(e) => setPatientFilterGender(e.target.value)}
-          style={{
-            padding: '10px 14px',
-            borderRadius: '10px',
-            border: '1px solid #e5e7eb',
-            fontSize: '15px',
-            minWidth: '150px'
-          }}
+          className="p-2.5 px-3.5 rounded-xl border border-slate-200 text-[15px] min-w-[150px]"
         >
           <option value="">Todos los generos</option>
           <option value="MALE">Hombre</option>
@@ -123,13 +98,7 @@ export default function PsychPatientsTab({
         <select
           value={patientFilterLastVisit}
           onChange={(e) => setPatientFilterLastVisit(e.target.value)}
-          style={{
-            padding: '10px 14px',
-            borderRadius: '10px',
-            border: '1px solid #e5e7eb',
-            fontSize: '15px',
-            minWidth: '180px'
-          }}
+          className="p-2.5 px-3.5 rounded-xl border border-slate-200 text-[15px] min-w-[180px]"
         >
           <option value="">Todas las visitas</option>
           <option value="week">Ultima semana</option>
@@ -152,65 +121,34 @@ export default function PsychPatientsTab({
         <>
           {/* Pacientes Activos */}
           {activePatients.length > 0 && (
-            <div style={{ marginBottom: '32px' }}>
-              <h4 style={{ fontSize: '20px', fontWeight: 600, color: '#1f2937', marginBottom: '16px' }}>
+            <div className="mb-8">
+              <h4 className="text-xl font-semibold text-slate-800 mb-4">
                 Pacientes Activos ({activePatients.length})
               </h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                 {activePatients.map(p => (
                   <div
                     key={p.id}
                     onClick={() => onViewPatient(p.id)}
-                    style={{
-                      padding: '24px',
-                      background: '#f9fafb',
-                      border: '2px solid #e5e7eb',
-                      borderRadius: '12px',
-                      transition: 'all 0.2s',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      minHeight: '260px'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = '#5a9270';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.15)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = '#e5e7eb';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }}
+                    className="p-6 bg-slate-50 border-2 border-slate-200 rounded-xl transition-all cursor-pointer flex flex-col min-h-[260px] hover:border-gantly-blue-400 hover:shadow-card"
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px', flex: 1, minHeight: 0 }}>
-                      <div style={{
-                        width: '60px',
-                        height: '60px',
-                        flexShrink: 0,
-                        borderRadius: '50%',
-                        overflow: 'hidden',
-                        background: '#e5e7eb',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '24px',
-                        border: '3px solid white',
-                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
-                      }}>
+                    <div className="flex items-center gap-4 mb-4 flex-1 min-h-0">
+                      <div className="w-[60px] h-[60px] flex-shrink-0 rounded-full overflow-hidden bg-slate-200 flex items-center justify-center text-2xl border-[3px] border-white shadow-sm">
                         {p.avatarUrl ? (
-                          <img src={p.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <img src={p.avatarUrl} alt="" className="w-full h-full object-cover" />
                         ) : (
                           '👤'
                         )}
                       </div>
-                      <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-                        <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.name}>
+                      <div className="flex-1 min-w-0 overflow-hidden">
+                        <div className="text-lg font-semibold text-slate-800 mb-1 overflow-hidden text-ellipsis whitespace-nowrap" title={p.name}>
                           {p.name}
                         </div>
-                        <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.email}>
+                        <div className="text-sm text-slate-500 mb-1 overflow-hidden text-ellipsis whitespace-nowrap" title={p.email}>
                           {p.email}
                         </div>
                         {p.lastVisit && (
-                          <div style={{ fontSize: '12px', color: '#059669', fontWeight: 500, marginTop: '4px' }}>
+                          <div className="text-xs text-emerald-600 font-medium mt-1">
                             Ultima visita: {new Date(p.lastVisit).toLocaleDateString('es-ES', {
                               day: 'numeric',
                               month: 'short',
@@ -219,58 +157,28 @@ export default function PsychPatientsTab({
                           </div>
                         )}
                         {!p.lastVisit && (
-                          <div style={{ fontSize: '12px', color: '#9ca3af', fontStyle: 'italic', marginTop: '4px' }}>
+                          <div className="text-xs text-slate-400 italic mt-1">
                             Sin visitas registradas
                           </div>
                         )}
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '8px', flexDirection: 'column', flexShrink: 0 }}>
+                    <div className="flex gap-2 flex-col flex-shrink-0">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onOpenChat(p.id);
                         }}
-                        style={{
-                          width: '100%',
-                          padding: '10px',
-                          background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '8px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          fontSize: '14px',
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
-                        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                        className="w-full py-2.5 bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white border-none rounded-lg font-semibold cursor-pointer text-sm transition-all hover:scale-[1.02]"
                       >
-                        💬 Abrir Chat
+                        Abrir Chat
                       </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onUpdateStatus(p.id, 'DISCHARGED');
                         }}
-                        style={{
-                          width: '100%',
-                          padding: '8px',
-                          background: '#f3f4f6',
-                          color: '#6b7280',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '8px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          fontSize: '13px',
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = '#e5e7eb';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = '#f3f4f6';
-                        }}
+                        className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-500 border border-slate-300 rounded-lg font-semibold cursor-pointer text-[13px] transition-all"
                       >
                         Dar de Alta
                       </button>
@@ -282,16 +190,16 @@ export default function PsychPatientsTab({
           )}
 
           {/* Menores de edad */}
-          <div style={{ marginBottom: '32px' }}>
-            <h4 style={{ fontSize: '20px', fontWeight: 600, color: '#1f2937', marginBottom: '16px' }}>
+          <div className="mb-8">
+            <h4 className="text-xl font-semibold text-slate-800 mb-4">
               Menores de edad ({minorPatients.length})
             </h4>
             {minorPatients.length === 0 ? (
-              <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '16px' }}>
+              <p className="text-sm text-slate-500 mb-4">
                 Los pacientes con fecha de nacimiento o edad menor de 18 anos apareceran aqui. Pueden requerir consentimiento firmado antes de acceder a todo el contenido.
               </p>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                 {minorPatients.map((p: any) => {
                   const consentSigned = p.consentStatus === 'SIGNED';
                   const canOpenFullProfile = consentSigned;
@@ -305,80 +213,42 @@ export default function PsychPatientsTab({
                         }
                         onViewPatient(p.id);
                       }}
-                      style={{
-                        padding: '24px',
-                        background: consentSigned ? '#f9fafb' : 'linear-gradient(135deg, #fff7ed 0%, #fffbeb 100%)',
-                        border: consentSigned ? '2px solid #e5e7eb' : '2px solid rgba(245, 158, 11, 0.35)',
-                        borderRadius: '12px',
-                        transition: 'all 0.2s',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        minHeight: '280px'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = consentSigned ? '#5a9270' : 'rgba(245, 158, 11, 0.55)';
-                        e.currentTarget.style.boxShadow = consentSigned ? '0 4px 12px rgba(102, 126, 234, 0.15)' : '0 6px 18px rgba(245, 158, 11, 0.18)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = consentSigned ? '#e5e7eb' : 'rgba(245, 158, 11, 0.35)';
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
+                      className={`p-6 rounded-xl transition-all cursor-pointer flex flex-col min-h-[280px] border-2 ${
+                        consentSigned
+                          ? 'bg-slate-50 border-slate-200 hover:border-gantly-blue-400 hover:shadow-card'
+                          : 'bg-gradient-to-br from-orange-50 to-amber-50 border-amber-300/50 hover:border-amber-400 hover:shadow-md'
+                      }`}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px', flex: 1, minHeight: 0 }}>
-                        <div style={{
-                          width: '60px',
-                          height: '60px',
-                          flexShrink: 0,
-                          borderRadius: '50%',
-                          overflow: 'hidden',
-                          background: '#e5e7eb',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '24px',
-                          border: '3px solid white',
-                          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
-                        }}>
+                      <div className="flex items-center gap-4 mb-4 flex-1 min-h-0">
+                        <div className="w-[60px] h-[60px] flex-shrink-0 rounded-full overflow-hidden bg-slate-200 flex items-center justify-center text-2xl border-[3px] border-white shadow-sm">
                           {p.avatarUrl ? (
-                            <img src={p.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src={p.avatarUrl} alt="" className="w-full h-full object-cover" />
                           ) : (
                             '👤'
                           )}
                         </div>
-                        <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-                          <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.name}>
+                        <div className="flex-1 min-w-0 overflow-hidden">
+                          <div className="text-lg font-semibold text-slate-800 mb-1 overflow-hidden text-ellipsis whitespace-nowrap" title={p.name}>
                             {p.name}
                           </div>
-                          <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.email}>
+                          <div className="text-sm text-slate-500 mb-1.5 overflow-hidden text-ellipsis whitespace-nowrap" title={p.email}>
                             {p.email}
                           </div>
-                          <div style={{ fontSize: '12px', fontWeight: 700, color: consentSigned ? '#059669' : '#b45309' }}>
-                            {consentSigned ? '✅ Consentimiento firmado' : '⚠️ Consentimiento pendiente'}
+                          <div className={`text-xs font-bold ${consentSigned ? 'text-emerald-600' : 'text-amber-700'}`}>
+                            {consentSigned ? 'Consentimiento firmado' : 'Consentimiento pendiente'}
                           </div>
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', gap: '8px', flexDirection: 'column', flexShrink: 0 }}>
+                      <div className="flex gap-2 flex-col flex-shrink-0">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             onOpenChat(p.id);
                           }}
-                          style={{
-                            width: '100%',
-                            padding: '10px',
-                            background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '8px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            fontSize: '14px',
-                            transition: 'all 0.2s'
-                          }}
+                          className="w-full py-2.5 bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white border-none rounded-lg font-semibold cursor-pointer text-sm transition-all"
                         >
-                          💬 Abrir Chat
+                          Abrir Chat
                         </button>
 
                         {!consentSigned ? (
@@ -395,20 +265,9 @@ export default function PsychPatientsTab({
                                 toast.error('No se pudieron cargar los tipos de documento');
                               }
                             }}
-                            style={{
-                              width: '100%',
-                              padding: '10px',
-                              background: '#fff7ed',
-                              color: '#b45309',
-                              border: '1px solid rgba(245, 158, 11, 0.35)',
-                              borderRadius: '8px',
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              fontSize: '13px',
-                              transition: 'all 0.2s'
-                            }}
+                            className="w-full py-2.5 bg-orange-50 text-amber-700 border border-amber-300/50 rounded-lg font-bold cursor-pointer text-[13px] transition-all hover:bg-orange-100"
                           >
-                            📎 Adjuntar consentimiento
+                            Adjuntar consentimiento
                           </button>
                         ) : (
                           <button
@@ -416,17 +275,7 @@ export default function PsychPatientsTab({
                               e.stopPropagation();
                               onUpdateStatus(p.id, 'DISCHARGED');
                             }}
-                            style={{
-                              width: '100%',
-                              padding: '8px',
-                              background: '#f3f4f6',
-                              color: '#6b7280',
-                              border: '1px solid #d1d5db',
-                              borderRadius: '8px',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                              fontSize: '13px'
-                            }}
+                            className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-500 border border-slate-300 rounded-lg font-semibold cursor-pointer text-[13px]"
                           >
                             Dar de Alta
                           </button>
@@ -442,67 +291,33 @@ export default function PsychPatientsTab({
           {/* Pacientes Dados de Alta */}
           {dischargedPatients.length > 0 && (
             <div>
-              <h4 style={{ fontSize: '20px', fontWeight: 600, color: '#1f2937', marginBottom: '16px' }}>
+              <h4 className="text-xl font-semibold text-slate-800 mb-4">
                 Pacientes Dados de Alta ({dischargedPatients.length})
               </h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                 {dischargedPatients.map(p => (
                   <div
                     key={p.id}
                     onClick={() => onViewPatient(p.id)}
-                    style={{
-                      padding: '24px',
-                      background: '#f9fafb',
-                      border: '2px solid #d1d5db',
-                      borderRadius: '12px',
-                      opacity: 0.7,
-                      transition: 'all 0.2s',
-                      cursor: 'pointer',
-                      minHeight: '260px',
-                      display: 'flex',
-                      flexDirection: 'column'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = '#5a9270';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.15)';
-                      e.currentTarget.style.opacity = '0.9';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = '#d1d5db';
-                      e.currentTarget.style.boxShadow = 'none';
-                      e.currentTarget.style.opacity = '0.7';
-                    }}
+                    className="p-6 bg-slate-50 border-2 border-slate-300 rounded-xl opacity-70 transition-all cursor-pointer min-h-[260px] flex flex-col hover:border-gantly-blue-400 hover:shadow-card hover:opacity-90"
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px', flex: 1, minHeight: 0 }}>
-                      <div style={{
-                        width: '60px',
-                        height: '60px',
-                        flexShrink: 0,
-                        borderRadius: '50%',
-                        overflow: 'hidden',
-                        background: '#e5e7eb',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '24px',
-                        border: '3px solid white',
-                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
-                      }}>
+                    <div className="flex items-center gap-4 mb-4 flex-1 min-h-0">
+                      <div className="w-[60px] h-[60px] flex-shrink-0 rounded-full overflow-hidden bg-slate-200 flex items-center justify-center text-2xl border-[3px] border-white shadow-sm">
                         {p.avatarUrl ? (
-                          <img src={p.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <img src={p.avatarUrl} alt="" className="w-full h-full object-cover" />
                         ) : (
                           '👤'
                         )}
                       </div>
-                      <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-                        <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.name}>
+                      <div className="flex-1 min-w-0 overflow-hidden">
+                        <div className="text-lg font-semibold text-slate-800 mb-1 overflow-hidden text-ellipsis whitespace-nowrap" title={p.name}>
                           {p.name}
                         </div>
-                        <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.email}>
+                        <div className="text-sm text-slate-500 mb-1 overflow-hidden text-ellipsis whitespace-nowrap" title={p.email}>
                           {p.email}
                         </div>
                         {p.lastVisit && (
-                          <div style={{ fontSize: '12px', color: '#059669', fontWeight: 500, marginTop: '4px' }}>
+                          <div className="text-xs text-emerald-600 font-medium mt-1">
                             Ultima visita: {new Date(p.lastVisit).toLocaleDateString('es-ES', {
                               day: 'numeric',
                               month: 'short',
@@ -511,58 +326,28 @@ export default function PsychPatientsTab({
                           </div>
                         )}
                         {!p.lastVisit && (
-                          <div style={{ fontSize: '12px', color: '#9ca3af', fontStyle: 'italic', marginTop: '4px' }}>
+                          <div className="text-xs text-slate-400 italic mt-1">
                             Sin visitas registradas
                           </div>
                         )}
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '8px', flexDirection: 'column', flexShrink: 0 }}>
+                    <div className="flex gap-2 flex-col flex-shrink-0">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onOpenChat(p.id);
                         }}
-                        style={{
-                          width: '100%',
-                          padding: '10px',
-                          background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '8px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          fontSize: '14px',
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
-                        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                        className="w-full py-2.5 bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white border-none rounded-lg font-semibold cursor-pointer text-sm transition-all hover:scale-[1.02]"
                       >
-                        💬 Abrir Chat
+                        Abrir Chat
                       </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onUpdateStatus(p.id, 'ACTIVE');
                         }}
-                        style={{
-                          width: '100%',
-                          padding: '8px',
-                          background: '#dbeafe',
-                          color: '#1e40af',
-                          border: '1px solid #93c5fd',
-                          borderRadius: '8px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          fontSize: '13px',
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = '#bfdbfe';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = '#dbeafe';
-                        }}
+                        className="w-full py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 border border-blue-300 rounded-lg font-semibold cursor-pointer text-[13px] transition-all"
                       >
                         Reactivar
                       </button>
@@ -579,41 +364,23 @@ export default function PsychPatientsTab({
       {showConsentModal && (
         <div
           onClick={() => !sendingConsent && setShowConsentModal(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.35)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '24px',
-            zIndex: 9999,
-          }}
+          className="fixed inset-0 bg-black/35 flex items-center justify-center p-6 z-[9999]"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{
-              width: '100%',
-              maxWidth: '560px',
-              background: 'white',
-              borderRadius: '16px',
-              border: '1px solid rgba(90, 146, 112, 0.2)',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
-              padding: '22px',
-              fontFamily: "'Inter', sans-serif",
-            }}
+            className="w-full max-w-[560px] bg-white rounded-2xl border border-slate-200 shadow-elevated p-6"
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+            <div className="flex justify-between items-center gap-3">
               <div>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: '#1a2e22' }}>Adjuntar consentimiento</div>
-                <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px' }}>
+                <div className="text-lg font-extrabold text-gantly-text">Adjuntar consentimiento</div>
+                <div className="text-[13px] text-slate-500 mt-1">
                   Selecciona el tipo de documento y el lugar. El contenido se rellenara automaticamente (psicologo, fecha, hora, etc.).
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => !sendingConsent && setShowConsentModal(false)}
-                style={{ border: 'none', background: 'transparent', cursor: sendingConsent ? 'not-allowed' : 'pointer', color: '#6b7280', fontSize: '18px' }}
+                className="border-none bg-transparent cursor-pointer text-slate-500 text-lg disabled:cursor-not-allowed"
                 aria-label="Cerrar"
                 disabled={sendingConsent}
               >
@@ -621,15 +388,15 @@ export default function PsychPatientsTab({
               </button>
             </div>
 
-            <div style={{ marginTop: '18px', display: 'grid', gap: '12px' }}>
+            <div className="mt-5 grid gap-3">
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#1f2937', marginBottom: '6px' }}>
+                <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
                   Tipo de documento
                 </label>
                 <select
                   value={consentForm.documentTypeId || 0}
                   onChange={(e) => setConsentForm({ ...consentForm, documentTypeId: parseInt(e.target.value, 10) })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #e5e7eb', fontSize: '14px' }}
+                  className="w-full p-2.5 px-3 rounded-xl border border-slate-200 text-sm"
                 >
                   {(consentDocTypes || []).length === 0 && <option value={0}>No hay tipos disponibles</option>}
                   {(consentDocTypes || []).map((t: any) => (
@@ -641,7 +408,7 @@ export default function PsychPatientsTab({
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#1f2937', marginBottom: '6px' }}>
+                <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
                   Lugar (opcional)
                 </label>
                 <input
@@ -649,25 +416,17 @@ export default function PsychPatientsTab({
                   value={consentForm.place}
                   onChange={(e) => setConsentForm({ ...consentForm, place: e.target.value })}
                   placeholder="Ej: Madrid"
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #e5e7eb', fontSize: '14px' }}
+                  className="w-full p-2.5 px-3 rounded-xl border border-slate-200 text-sm"
                 />
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '18px' }}>
+            <div className="flex gap-2.5 justify-end mt-5">
               <button
                 type="button"
                 onClick={() => !sendingConsent && setShowConsentModal(false)}
                 disabled={sendingConsent}
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: '10px',
-                  border: '1px solid #e5e7eb',
-                  background: '#f3f4f6',
-                  color: '#374151',
-                  fontWeight: 700,
-                  cursor: sendingConsent ? 'not-allowed' : 'pointer',
-                }}
+                className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-100 text-slate-700 font-bold cursor-pointer disabled:cursor-not-allowed"
               >
                 Cancelar
               </button>
@@ -687,15 +446,7 @@ export default function PsychPatientsTab({
                     setSendingConsent(false);
                   }
                 }}
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: '10px',
-                  border: 'none',
-                  background: sendingConsent ? '#cbd5d1' : 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
-                  color: 'white',
-                  fontWeight: 800,
-                  cursor: sendingConsent ? 'not-allowed' : 'pointer',
-                }}
+                className="px-3.5 py-2.5 rounded-xl border-none bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white font-extrabold cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed"
               >
                 {sendingConsent ? 'Enviando...' : 'Enviar'}
               </button>

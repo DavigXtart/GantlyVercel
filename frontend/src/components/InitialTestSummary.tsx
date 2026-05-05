@@ -44,7 +44,7 @@ const cardStyle: React.CSSProperties = {
 const sectionTitleStyle: React.CSSProperties = {
   fontSize: '15px',
   fontWeight: 700,
-  color: '#1a2e22',
+  color: '#0F172A',
   marginBottom: '8px',
   textTransform: 'uppercase' as const,
   letterSpacing: '0.05em',
@@ -142,9 +142,9 @@ const InitialTestSummary: React.FC<InitialTestSummaryProps> = ({ test }) => {
           <div style={sectionTitleStyle}>Personalidad y estilo</div>
           {personality.map(tag => (
             <div key={tag.label} style={{ marginBottom: '12px' }}>
-              <div style={{ fontSize: '14px', fontWeight: 600, color: '#1a2e22' }}>{tag.label}</div>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F172A' }}>{tag.label}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ fontSize: '20px', fontWeight: 700, color: '#5a9270' }}>
+                <div style={{ fontSize: '20px', fontWeight: 700, color: '#2E93CC' }}>
                   {tag.value ?? '—'}
                 </div>
                 <div style={{ fontSize: '13px', color: '#55675c' }}>

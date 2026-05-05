@@ -89,7 +89,7 @@ export default function AdminUsersPanel() {
   const onSelectChange = async (userId: number, value: string) => {
     const psychologistId = value ? Number(value) : undefined;
     setAssign({ ...assign, [userId]: psychologistId });
-    
+
     // Si se deselecciona (value vacío) y había un psicólogo asignado, desvincular
     if (!value && users.find(u => u.id === userId)?.psychologistId) {
       await onUnassign(userId);
@@ -104,78 +104,77 @@ export default function AdminUsersPanel() {
   });
 
   return (
-    <div className="container" style={{ maxWidth: '1200px' }}>
-      <h3>Gestión de usuarios</h3>
-      <div style={{ marginBottom: 16 }}>
+    <div className="max-w-[1200px] mx-auto">
+      <h3 className="text-xl font-heading font-bold text-slate-800 mb-4">Gestión de usuarios</h3>
+      <div className="mb-4">
         <input
           type="text"
           placeholder="Buscar por nombre o correo..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          style={{
-            width: '100%',
-            maxWidth: '400px',
-            padding: '10px 16px',
-            fontSize: '15px',
-            border: '1px solid var(--border)',
-            borderRadius: '8px',
-            outline: 'none',
-            transition: 'border-color 0.2s'
-          }}
-          onFocus={(e) => e.target.style.borderColor = 'var(--accent)'}
-          onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
+          className="w-full max-w-[400px] px-4 py-2.5 text-[15px] border border-slate-200 rounded-lg outline-none transition-colors focus:border-gantly-blue-500 focus:ring-1 focus:ring-gantly-blue-200"
         />
       </div>
-      {loading && <div>Cargando...</div>}
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr>
-            <th style={{ textAlign: 'left', padding: 8 }}>Nombre</th>
-            <th style={{ textAlign: 'left', padding: 8 }}>Email</th>
-            <th style={{ textAlign: 'left', padding: 8 }}>Rol</th>
-            <th style={{ textAlign: 'left', padding: 8 }}>Asignar psicólogo</th>
-            <th style={{ padding: 8 }}></th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredUsers.length === 0 ? (
-            <tr>
-              <td colSpan={5} style={{ padding: 16, textAlign: 'center', color: '#666' }}>
-                {searchQuery ? 'No se encontraron usuarios que coincidan con la búsqueda' : 'No hay usuarios'}
-              </td>
+      {loading && <div className="text-slate-500 py-4">Cargando...</div>}
+      <div className="bg-white rounded-xl shadow-soft border border-slate-200 overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="border-b border-slate-200 bg-slate-50">
+              <th className="text-left p-3 text-sm font-semibold text-slate-600">Nombre</th>
+              <th className="text-left p-3 text-sm font-semibold text-slate-600">Email</th>
+              <th className="text-left p-3 text-sm font-semibold text-slate-600">Rol</th>
+              <th className="text-left p-3 text-sm font-semibold text-slate-600">Asignar psicólogo</th>
+              <th className="p-3"></th>
             </tr>
-          ) : (
-            filteredUsers.map(u => (
-            <tr key={u.id} style={{ borderTop: '1px solid #eee' }}>
-              <td style={{ padding: 8 }}>{u.name}</td>
-              <td style={{ padding: 8 }}>{u.email}</td>
-              <td style={{ padding: 8 }}>
-                <select value={u.role} onChange={(e) => onRoleChange(u.id, e.target.value as any)}>
-                  <option value="USER">USER</option>
-                  <option value="PSYCHOLOGIST">PSYCHOLOGIST</option>
-                  <option value="ADMIN">ADMIN</option>
-                </select>
-              </td>
-              <td style={{ padding: 8 }}>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <select value={assign[u.id] ?? ''} onChange={(e) => onSelectChange(u.id, e.target.value)}>
-                    <option value="">-- Selecciona --</option>
-                    {psychs.map(p => (
-                      <option key={p.id} value={p.id}>{p.name} ({p.email})</option>
-                    ))}
+          </thead>
+          <tbody>
+            {filteredUsers.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="p-4 text-center text-slate-500">
+                  {searchQuery ? 'No se encontraron usuarios que coincidan con la búsqueda' : 'No hay usuarios'}
+                </td>
+              </tr>
+            ) : (
+              filteredUsers.map(u => (
+              <tr key={u.id} className="border-t border-slate-100 hover:bg-slate-50 transition-colors">
+                <td className="p-3 text-sm text-slate-700">{u.name}</td>
+                <td className="p-3 text-sm text-slate-500">{u.email}</td>
+                <td className="p-3">
+                  <select
+                    value={u.role}
+                    onChange={(e) => onRoleChange(u.id, e.target.value as any)}
+                    className="px-2 py-1.5 text-sm border border-slate-200 rounded-lg focus:border-gantly-blue-500 outline-none"
+                  >
+                    <option value="USER">USER</option>
+                    <option value="PSYCHOLOGIST">PSYCHOLOGIST</option>
+                    <option value="ADMIN">ADMIN</option>
                   </select>
-                  <button className="btn-secondary" onClick={() => onAssign(u.id)}>Asignar</button>
-                  {u.psychologistName && (
-                    <span style={{ color: '#666', fontSize: '0.9em' }}>Asignado: {u.psychologistName}</span>
-                  )}
-                </div>
-              </td>
-              <td style={{ padding: 8 }}></td>
-            </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+                </td>
+                <td className="p-3">
+                  <div className="flex gap-2 items-center">
+                    <select
+                      value={assign[u.id] ?? ''}
+                      onChange={(e) => onSelectChange(u.id, e.target.value)}
+                      className="px-2 py-1.5 text-sm border border-slate-200 rounded-lg focus:border-gantly-blue-500 outline-none"
+                    >
+                      <option value="">-- Selecciona --</option>
+                      {psychs.map(p => (
+                        <option key={p.id} value={p.id}>{p.name} ({p.email})</option>
+                      ))}
+                    </select>
+                    <button className="btn-secondary text-xs px-3 py-1.5" onClick={() => onAssign(u.id)}>Asignar</button>
+                    {u.psychologistName && (
+                      <span className="text-slate-500 text-xs">Asignado: {u.psychologistName}</span>
+                    )}
+                  </div>
+                </td>
+                <td className="p-3"></td>
+              </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

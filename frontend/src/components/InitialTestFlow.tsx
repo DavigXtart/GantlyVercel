@@ -460,7 +460,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           alignItems: 'center',
           justifyContent: 'center',
           position: 'relative',
-          fontFamily: "'Inter', sans-serif",
+
         }}
       >
         {/* Background PNG */}
@@ -507,16 +507,16 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
         <div
           style={{
             background: 'rgba(250, 232, 214, 0.85)',
-            border: '1px solid rgba(90, 146, 112, 0.2)',
+            border: '1px solid rgba(46, 147, 204, 0.2)',
             borderRadius: '24px',
             padding: '48px 40px',
             textAlign: 'center',
-            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
+            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)',
             position: 'relative',
             zIndex: 2,
           }}
         >
-          <p style={{ fontSize: '18px', color: '#3a5a4a', fontWeight: 500, margin: 0 }}>
+          <p style={{ fontSize: '18px', color: '#475569', fontWeight: 500, margin: 0 }}>
             Cargando evaluación inicial...
           </p>
         </div>
@@ -533,7 +533,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           alignItems: 'center',
           justifyContent: 'center',
           position: 'relative',
-          fontFamily: "'Inter', sans-serif",
+
         }}
       >
         {/* Background PNG */}
@@ -580,12 +580,12 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
         <div
           style={{
             background: 'rgba(250, 232, 214, 0.85)',
-            border: '1px solid rgba(90, 146, 112, 0.2)',
+            border: '1px solid rgba(46, 147, 204, 0.2)',
             borderRadius: '24px',
             padding: '48px 40px',
             maxWidth: '480px',
             textAlign: 'center',
-            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
+            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)',
             position: 'relative',
             zIndex: 2,
           }}
@@ -593,15 +593,15 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           <h2 style={{ 
             margin: '0 0 12px', 
             fontSize: '26px',
-            color: '#1a2e22',
-            fontFamily: "'Nunito', sans-serif",
+            color: '#0F172A',
+
             fontWeight: 700,
           }}>
             Test no disponible
           </h2>
           <p style={{ 
             margin: '0 0 24px', 
-            color: '#3a5a4a',
+            color: '#475569',
             fontSize: '16px',
           }}>
             El test inicial aún no está configurado.
@@ -612,22 +612,22 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
               padding: '12px 24px',
               borderRadius: '24px',
               border: 'none',
-              background: '#5a9270',
+              background: '#2E93CC',
               color: '#ffffff',
               fontSize: '15px',
               fontWeight: 600,
               cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(90, 146, 112, 0.3)',
+              boxShadow: '0 4px 12px rgba(46, 147, 204, 0.3)',
               transition: 'all 0.3s',
-              fontFamily: "'Inter', sans-serif",
+    
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#4a8062';
-              e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
+              e.currentTarget.style.background = '#2577A4';
+              e.currentTarget.style.boxShadow = '0 6px 16px rgba(46, 147, 204, 0.4)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#5a9270';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
+              e.currentTarget.style.background = '#2E93CC';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(46, 147, 204, 0.3)';
             }}
           >
             Volver
@@ -658,29 +658,29 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
               style={{
                 padding: '18px 24px',
                 borderRadius: '16px',
-                border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.3)'}`,
-                background: isSelected ? '#d4e0d8' : '#f8f9fa',
-                color: '#1a2e22',
+                border: `2px solid ${isSelected ? '#2E93CC' : 'rgba(46, 147, 204, 0.3)'}`,
+                background: isSelected ? '#EBF6FC' : '#f8f9fa',
+                color: '#0F172A',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
-                fontFamily: "'Inter', sans-serif",
+      
                 fontSize: '16px',
                 textAlign: 'left',
-                boxShadow: isSelected ? '0 4px 12px rgba(90, 146, 112, 0.2)' : 'none',
+                boxShadow: isSelected ? '0 4px 12px rgba(46, 147, 204, 0.2)' : 'none',
               }}
               onMouseEnter={(e) => {
                 if (!isSelected) {
-                  e.currentTarget.style.borderColor = '#5a9270';
+                  e.currentTarget.style.borderColor = '#2E93CC';
                   e.currentTarget.style.background = 'rgba(250, 232, 214, 0.6)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.15)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(46, 147, 204, 0.15)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isSelected) {
-                  e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
+                  e.currentTarget.style.borderColor = 'rgba(46, 147, 204, 0.3)';
                   e.currentTarget.style.background = '#f8f9fa';
                   e.currentTarget.style.boxShadow = 'none';
                 }
@@ -692,11 +692,11 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
                   width: '24px',
                   height: '24px',
                   borderRadius: '50%',
-                  border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.4)'}`,
+                  border: `2px solid ${isSelected ? '#2E93CC' : 'rgba(46, 147, 204, 0.4)'}`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  background: isSelected ? '#5a9270' : 'transparent',
+                  background: isSelected ? '#2E93CC' : 'transparent',
                   color: isSelected ? '#ffffff' : 'transparent',
                   transition: 'all 0.3s ease',
                   flexShrink: 0,
@@ -716,9 +716,9 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
                   width: '100%',
                   padding: '12px 16px',
                   borderRadius: '12px',
-                  border: '1px solid rgba(90, 146, 112, 0.4)',
+                  border: '1px solid rgba(46, 147, 204, 0.4)',
                   fontSize: '15px',
-                  fontFamily: "'Inter', sans-serif",
+        
                 }}
               />
             )}
@@ -742,18 +742,18 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
                 style={{
                   padding: '18px 24px',
                   borderRadius: '16px',
-                  border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.3)'}`,
-                  background: isSelected ? '#d4e0d8' : '#f8f9fa',
-                  color: '#1a2e22',
+                  border: `2px solid ${isSelected ? '#2E93CC' : 'rgba(46, 147, 204, 0.3)'}`,
+                  background: isSelected ? '#EBF6FC' : '#f8f9fa',
+                  color: '#0F172A',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
-                  fontFamily: "'Inter', sans-serif",
+        
                   fontSize: '16px',
                   textAlign: 'left',
-                  boxShadow: isSelected ? '0 4px 12px rgba(90, 146, 112, 0.2)' : 'none',
+                  boxShadow: isSelected ? '0 4px 12px rgba(46, 147, 204, 0.2)' : 'none',
                 }}
               >
                 <span style={{ fontSize: '16px', fontWeight: 500, flex: 1 }}>{answer.text}</span>
@@ -762,11 +762,11 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
                     width: '24px',
                     height: '24px',
                     borderRadius: '6px',
-                    border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.4)'}`,
+                    border: `2px solid ${isSelected ? '#2E93CC' : 'rgba(46, 147, 204, 0.4)'}`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    background: isSelected ? '#5a9270' : 'transparent',
+                    background: isSelected ? '#2E93CC' : 'transparent',
                     color: isSelected ? '#ffffff' : 'transparent',
                     transition: 'all 0.3s ease',
                     flexShrink: 0,
@@ -786,9 +786,9 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
                     width: '100%',
                     padding: '12px 16px',
                     borderRadius: '12px',
-                    border: '1px solid rgba(90, 146, 112, 0.4)',
+                    border: '1px solid rgba(46, 147, 204, 0.4)',
                     fontSize: '15px',
-                    fontFamily: "'Inter', sans-serif",
+          
                   }}
                 />
               )}
@@ -811,9 +811,9 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
               style={{
                 padding: '16px 0',
                 borderRadius: '12px',
-                border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.3)'}`,
-                background: isSelected ? '#5a9270' : '#f8f9fa',
-                color: isSelected ? '#ffffff' : '#1a2e22',
+                border: `2px solid ${isSelected ? '#2E93CC' : 'rgba(46, 147, 204, 0.3)'}`,
+                background: isSelected ? '#2E93CC' : '#f8f9fa',
+                color: isSelected ? '#ffffff' : '#0F172A',
                 fontWeight: 600,
                 fontSize: '16px',
                 cursor: 'pointer',
@@ -825,7 +825,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           );
         })}
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#5a9270' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#2E93CC' }}>
         <span>Muy en desacuerdo</span>
         <span>Muy de acuerdo</span>
       </div>
@@ -845,9 +845,9 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           width: '100%',
           padding: '16px',
           borderRadius: '12px',
-          border: '1px solid rgba(90, 146, 112, 0.4)',
+          border: '1px solid rgba(46, 147, 204, 0.4)',
           fontSize: '18px',
-          fontFamily: "'Inter', sans-serif",
+
         }}
       />
     </div>
@@ -864,9 +864,9 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           width: '100%',
           padding: '16px',
           borderRadius: '16px',
-          border: '1px solid rgba(90, 146, 112, 0.4)',
+          border: '1px solid rgba(46, 147, 204, 0.4)',
           fontSize: '16px',
-          fontFamily: "'Inter', sans-serif",
+
           resize: 'vertical',
         }}
       />
@@ -890,7 +890,6 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        fontFamily: "'Inter', sans-serif",
         overflow: 'hidden',
       }}
     >
@@ -962,10 +961,9 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
         }}
       >
         <div style={{
-          fontFamily: "'Nunito', sans-serif",
           fontSize: '28px',
           fontWeight: 700,
-          color: '#5a9270',
+          color: '#2E93CC',
           letterSpacing: '-0.02em',
         }}>
           Gantly
@@ -975,24 +973,24 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           style={{
             padding: '10px 24px',
             borderRadius: '24px',
-            border: '1px solid rgba(90, 146, 112, 0.3)',
+            border: '1px solid rgba(46, 147, 204, 0.3)',
             background: 'rgba(250, 232, 214, 0.85)',
-            color: '#3a5a4a',
+            color: '#475569',
             fontSize: '15px',
             fontWeight: 500,
             cursor: 'pointer',
             transition: 'all 0.3s',
-            fontFamily: "'Inter', sans-serif",
+  
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = 'rgba(250, 232, 214, 1)';
-            e.currentTarget.style.borderColor = '#5a9270';
-            e.currentTarget.style.color = '#5a9270';
+            e.currentTarget.style.borderColor = '#2E93CC';
+            e.currentTarget.style.color = '#2E93CC';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = 'rgba(250, 232, 214, 0.85)';
-            e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
-            e.currentTarget.style.color = '#3a5a4a';
+            e.currentTarget.style.borderColor = 'rgba(46, 147, 204, 0.3)';
+            e.currentTarget.style.color = '#475569';
           }}
         >
           Guardar y salir
@@ -1013,10 +1011,10 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
         <div
           style={{
             background: 'rgba(250, 232, 214, 0.85)',
-            border: '1px solid rgba(90, 146, 112, 0.2)',
+            border: '1px solid rgba(46, 147, 204, 0.2)',
             borderRadius: '24px',
             padding: '32px 40px',
-            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)'
+            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)'
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
@@ -1024,15 +1022,15 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
               <h2 style={{ 
                 margin: 0, 
                 fontSize: '28px', 
-                color: '#1a2e22',
-                fontFamily: "'Nunito', sans-serif",
+                color: '#0F172A',
+    
                 fontWeight: 700,
               }}>
                 {test.title}
               </h2>
               <p style={{ 
                 margin: '8px 0 0', 
-                color: '#3a5a4a', 
+                color: '#475569', 
                 fontSize: '16px', 
                 maxWidth: '560px',
                 lineHeight: 1.6,
@@ -1044,11 +1042,11 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
               style={{
                 padding: '8px 16px',
                 borderRadius: '20px',
-                background: '#d4e0d8',
-                color: '#3a5a4a',
+                background: '#EBF6FC',
+                color: '#475569',
                 fontSize: '14px',
                 fontWeight: 600,
-                fontFamily: "'Inter', sans-serif",
+      
               }}
             >
               Pregunta {currentQuestionIndex + 1} de {test.questions.length}
@@ -1060,14 +1058,14 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
               height: '10px',
               borderRadius: '999px',
               overflow: 'hidden',
-              background: '#e0e8e3'
+              background: '#EBF6FC'
             }}
           >
             <div
               style={{
                 width: `${progress}%`,
                 height: '100%',
-                background: '#5a9270',
+                background: '#2E93CC',
                 transition: 'width 0.45s ease',
                 borderRadius: '999px',
               }}
@@ -1079,19 +1077,19 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
         <div
           style={{
             background: 'rgba(250, 232, 214, 0.9)',
-            border: '1px solid rgba(90, 146, 112, 0.2)',
+            border: '1px solid rgba(46, 147, 204, 0.2)',
             borderRadius: '24px',
             padding: '48px 40px',
-            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
+            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)',
           }}
         >
           {questionMeta && (
             <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '14px', fontWeight: 700, color: '#5a9270', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: '#2E93CC', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
                 {questionMeta.block}
               </div>
               {questionMeta.helper && (
-                <p style={{ marginTop: '4px', fontSize: '14px', color: '#3a5a4a' }}>
+                <p style={{ marginTop: '4px', fontSize: '14px', color: '#475569' }}>
                   {questionMeta.helper}
                 </p>
               )}
@@ -1101,9 +1099,9 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
             style={{
               margin: '0 0 32px',
               fontSize: 'clamp(24px, 3vw, 32px)',
-              color: '#1a2e22',
+              color: '#0F172A',
               lineHeight: 1.4,
-              fontFamily: "'Nunito', sans-serif",
+  
               fontWeight: 600,
             }}
           >
@@ -1118,10 +1116,10 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
             display: 'flex',
             justifyContent: 'space-between',
             background: 'rgba(250, 232, 214, 0.85)',
-            border: '1px solid rgba(90, 146, 112, 0.2)',
+            border: '1px solid rgba(46, 147, 204, 0.2)',
             borderRadius: '24px',
             padding: '24px 32px',
-            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)'
+            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)'
           }}
         >
           <button
@@ -1133,7 +1131,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
               borderRadius: '24px',
               border: 'none',
               background: 'rgba(255,255,255,0.7)',
-              color: '#3a5a4a',
+              color: '#475569',
               fontWeight: 600,
               cursor: currentQuestionIndex === 0 ? 'not-allowed' : 'pointer',
               opacity: currentQuestionIndex === 0 ? 0.5 : 1,
@@ -1150,14 +1148,14 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
                 padding: '14px 32px',
                 borderRadius: '24px',
                 border: 'none',
-                background: !allAnswered || submitting ? '#cbd5d1' : '#5a9270',
+                background: !allAnswered || submitting ? '#94a3b8' : '#2E93CC',
                 color: '#ffffff',
                 fontSize: '16px',
                 fontWeight: 600,
                 cursor: !allAnswered || submitting ? 'not-allowed' : 'pointer',
-                boxShadow: !allAnswered || submitting ? 'none' : '0 4px 12px rgba(90, 146, 112, 0.3)',
+                boxShadow: !allAnswered || submitting ? 'none' : '0 4px 12px rgba(46, 147, 204, 0.3)',
                 transition: 'all 0.3s',
-                fontFamily: "'Inter', sans-serif",
+      
               }}
             >
               {submitting ? 'Enviando...' : 'Enviar evaluación'}
@@ -1170,14 +1168,14 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
                 padding: '14px 32px',
                 borderRadius: '24px',
                 border: 'none',
-                background: isCurrentAnswered ? '#5a9270' : '#cbd5d1',
+                background: isCurrentAnswered ? '#2E93CC' : '#94a3b8',
                 color: '#ffffff',
                 fontSize: '16px',
                 fontWeight: 600,
                 cursor: isCurrentAnswered ? 'pointer' : 'not-allowed',
-                boxShadow: isCurrentAnswered ? '0 4px 12px rgba(90, 146, 112, 0.3)' : 'none',
+                boxShadow: isCurrentAnswered ? '0 4px 12px rgba(46, 147, 204, 0.3)' : 'none',
                 transition: 'all 0.3s',
-                fontFamily: "'Inter', sans-serif",
+      
               }}
             >
               Siguiente →

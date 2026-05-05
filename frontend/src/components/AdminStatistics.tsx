@@ -25,7 +25,7 @@ export default function AdminStatistics() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+      <div className="flex justify-center items-center min-h-[400px]">
         <LoadingSpinner />
       </div>
     );
@@ -33,78 +33,44 @@ export default function AdminStatistics() {
 
   if (!stats) {
     return (
-      <div style={{ textAlign: 'center', padding: '40px' }}>
-        <p style={{ color: '#6b7280', fontSize: '16px' }}>No se pudieron cargar las estadísticas</p>
+      <div className="text-center py-10">
+        <p className="text-slate-500 text-base">No se pudieron cargar las estadísticas</p>
       </div>
     );
   }
 
   const StatCard = ({ title, value, color }: { title: string; value: number; color: string }) => (
-    <div style={{
-      background: '#ffffff',
-      borderRadius: '16px',
-      padding: '32px',
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-      border: '1px solid rgba(90, 146, 112, 0.2)',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '12px'
-    }}>
-      <div style={{
-        fontSize: '36px',
-        fontWeight: 700,
-        color: color,
-        fontFamily: "'Inter', sans-serif"
-      }}>
+    <div className="bg-white rounded-xl p-8 shadow-soft border border-slate-200 flex flex-col gap-3">
+      <div className="text-4xl font-bold font-heading" style={{ color }}>
         {value.toLocaleString()}
       </div>
-      <div style={{
-        fontSize: '16px',
-        color: '#6b7280',
-        fontWeight: 500,
-        fontFamily: "'Inter', sans-serif"
-      }}>
+      <div className="text-base text-slate-500 font-medium font-body">
         {title}
       </div>
     </div>
   );
 
   return (
-    <div style={{ padding: '24px' }}>
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-        gap: '24px',
-        marginBottom: '32px'
-      }}>
-        <StatCard title="Total de Usuarios" value={stats.totalUsers} color="#5a9270" />
-        <StatCard title="Usuarios" value={stats.users} color="#5a9270" />
-        <StatCard title="Psicólogos" value={stats.psychologists} color="#5a9270" />
-        <StatCard title="Administradores" value={stats.admins} color="#5a9270" />
+    <div className="p-6">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-6 mb-8">
+        <StatCard title="Total de Usuarios" value={stats.totalUsers} color="#2E93CC" />
+        <StatCard title="Usuarios" value={stats.users} color="#2E93CC" />
+        <StatCard title="Psicólogos" value={stats.psychologists} color="#059669" />
+        <StatCard title="Administradores" value={stats.admins} color="#0A1628" />
       </div>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-        gap: '24px',
-        marginBottom: '32px'
-      }}>
-        <StatCard title="Tests Totales" value={stats.totalTests} color="#5a9270" />
-        <StatCard title="Tests de Evaluación" value={stats.evaluationTests} color="#5a9270" />
-        <StatCard title="Citas Totales" value={stats.totalAppointments} color="#5a9270" />
-        <StatCard title="Citas Reservadas" value={stats.bookedAppointments} color="#5a9270" />
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-6 mb-8">
+        <StatCard title="Tests Totales" value={stats.totalTests} color="#2E93CC" />
+        <StatCard title="Tests de Evaluación" value={stats.evaluationTests} color="#2E93CC" />
+        <StatCard title="Citas Totales" value={stats.totalAppointments} color="#059669" />
+        <StatCard title="Citas Reservadas" value={stats.bookedAppointments} color="#059669" />
       </div>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-        gap: '24px'
-      }}>
-        <StatCard title="Respuestas de Usuarios" value={stats.totalUserAnswers} color="#5a9270" />
-        <StatCard title="Relaciones Asignadas" value={stats.assignedRelations} color="#5a9270" />
-        <StatCard title="Usuarios Verificados" value={stats.verifiedUsers} color="#5a9270" />
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-6">
+        <StatCard title="Respuestas de Usuarios" value={stats.totalUserAnswers} color="#2E93CC" />
+        <StatCard title="Relaciones Asignadas" value={stats.assignedRelations} color="#059669" />
+        <StatCard title="Usuarios Verificados" value={stats.verifiedUsers} color="#059669" />
       </div>
     </div>
   );
 }
-

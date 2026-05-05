@@ -1,4 +1,4 @@
-import React from 'react';
+import { cn } from '@/lib/utils';
 
 interface SkeletonLoaderProps {
   width?: string | number;
@@ -15,36 +15,20 @@ export default function SkeletonLoader({
   count = 1,
   className
 }: SkeletonLoaderProps) {
-  const skeletonStyle: React.CSSProperties = {
-    width: typeof width === 'number' ? `${width}px` : width,
-    height: typeof height === 'number' ? `${height}px` : height,
-    borderRadius,
-    background: 'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)',
-    backgroundSize: '200% 100%',
-    animation: 'loading 1.5s ease-in-out infinite',
-    marginBottom: count > 1 ? '8px' : '0'
-  };
-
   return (
     <>
       {Array.from({ length: count }).map((_, index) => (
         <div
           key={index}
-          className={className}
-          style={skeletonStyle}
+          className={cn('animate-pulse bg-slate-200 rounded-lg', className)}
+          style={{
+            width: typeof width === 'number' ? `${width}px` : width,
+            height: typeof height === 'number' ? `${height}px` : height,
+            borderRadius,
+            marginBottom: count > 1 ? '8px' : '0'
+          }}
         />
       ))}
-      <style>{`
-        @keyframes loading {
-          0% {
-            background-position: 200% 0;
-          }
-          100% {
-            background-position: -200% 0;
-          }
-        }
-      `}</style>
     </>
   );
 }
-

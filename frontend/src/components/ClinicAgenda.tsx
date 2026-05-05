@@ -8,7 +8,7 @@ function authHeaders() {
   return { Authorization: `Bearer ${token}` };
 }
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// --- Types ---
 
 interface Appointment {
   id: number;
@@ -55,14 +55,13 @@ interface Props {
   onAppointmentChange: () => void;
 }
 
-// ─── Constants ───────────────────────────────────────────────────────────────
+// --- Constants ---
 
 const HOUR_START = 8;
 const HOUR_END = 21;
 const TOTAL_MINUTES = (HOUR_END - HOUR_START) * 60;
 const PX_PER_MINUTE = 1;
-const GRID_HEIGHT = TOTAL_MINUTES * PX_PER_MINUTE; // 780px
-const SLOT_HEIGHT = 30; // 30min = 30px
+const GRID_HEIGHT = TOTAL_MINUTES * PX_PER_MINUTE;
 const COL_WIDTH = 200;
 const TIME_COL_WIDTH = 56;
 
@@ -84,7 +83,7 @@ function generateTimeOptions() {
 }
 const TIME_OPTIONS = generateTimeOptions();
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// --- Helpers ---
 
 function formatDateLocal(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -96,7 +95,6 @@ function parseLocalDate(s: string): Date {
 }
 
 function toISOLocal(dateStr: string, timeStr: string): string {
-  // Returns ISO string using local timezone
   const [y, m, d] = dateStr.split('-').map(Number);
   const [hh, mm] = timeStr.split(':').map(Number);
   const dt = new Date(y, m - 1, d, hh, mm, 0, 0);
@@ -125,11 +123,11 @@ function appointmentColor(status: string): { bg: string; border: string; text: s
   switch (status) {
     case 'CONFIRMED':
     case 'BOOKED':
-      return { bg: '#d1e8dc', border: '#5a9270', text: '#2d6049' };
+      return { bg: '#d1fae5', border: '#059669', text: '#065f46' };
     case 'CANCELLED':
       return { bg: '#fee2e2', border: '#ef4444', text: '#b91c1c' };
     default:
-      return { bg: '#f3f4f6', border: '#9ca3af', text: '#4b5563' };
+      return { bg: '#ebf6fc', border: '#2E93CC', text: '#1c5b7c' };
   }
 }
 
@@ -148,7 +146,7 @@ function isSameDay(a: Date, b: Date): boolean {
 
 function startOfWeek(d: Date): Date {
   const date = new Date(d);
-  const dow = (date.getDay() + 6) % 7; // Monday = 0
+  const dow = (date.getDay() + 6) % 7;
   date.setDate(date.getDate() - dow);
   date.setHours(0, 0, 0, 0);
   return date;
@@ -160,7 +158,7 @@ function addDays(d: Date, n: number): Date {
   return x;
 }
 
-// ─── Mini Calendar ───────────────────────────────────────────────────────────
+// --- Mini Calendar ---
 
 interface MiniCalendarProps {
   selectedDate: Date;
@@ -181,7 +179,7 @@ function MiniCalendar({ selectedDate, onSelectDate }: MiniCalendarProps) {
 
   const year = viewMonth.getFullYear();
   const month = viewMonth.getMonth();
-  const firstDow = (new Date(year, month, 1).getDay() + 6) % 7; // 0=Mon
+  const firstDow = (new Date(year, month, 1).getDay() + 6) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   const cells: (number | null)[] = [];
@@ -192,39 +190,35 @@ function MiniCalendar({ selectedDate, onSelectDate }: MiniCalendarProps) {
   const monthLabel = viewMonth.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
 
   return (
-    <div style={{ padding: '12px' }}>
+    <div className="p-3">
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+      <div className="flex items-center justify-between mb-2">
         <button
           onClick={prevMonth}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', color: '#6b7280', fontSize: 14, borderRadius: 4 }}
-          onMouseEnter={(e) => ((e.target as HTMLElement).style.background = '#f3f4f6')}
-          onMouseLeave={(e) => ((e.target as HTMLElement).style.background = 'none')}
+          className="bg-transparent border-none cursor-pointer px-1.5 py-0.5 text-slate-500 text-sm rounded hover:bg-slate-100"
         >
-          ‹
+          &lsaquo;
         </button>
-        <span style={{ fontSize: 12, fontWeight: 600, color: '#374151', textTransform: 'capitalize' }}>{monthLabel}</span>
+        <span className="text-xs font-semibold text-slate-700 capitalize">{monthLabel}</span>
         <button
           onClick={nextMonth}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', color: '#6b7280', fontSize: 14, borderRadius: 4 }}
-          onMouseEnter={(e) => ((e.target as HTMLElement).style.background = '#f3f4f6')}
-          onMouseLeave={(e) => ((e.target as HTMLElement).style.background = 'none')}
+          className="bg-transparent border-none cursor-pointer px-1.5 py-0.5 text-slate-500 text-sm rounded hover:bg-slate-100"
         >
-          ›
+          &rsaquo;
         </button>
       </div>
 
       {/* Day labels */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1, marginBottom: 2 }}>
+      <div className="grid grid-cols-7 gap-px mb-0.5">
         {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((d) => (
-          <div key={d} style={{ textAlign: 'center', fontSize: 10, color: '#9ca3af', fontWeight: 600, padding: '2px 0' }}>
+          <div key={d} className="text-center text-[10px] text-slate-400 font-semibold py-0.5">
             {d}
           </div>
         ))}
       </div>
 
       {/* Days */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1 }}>
+      <div className="grid grid-cols-7 gap-px">
         {cells.map((day, idx) => {
           if (!day) return <div key={`empty-${idx}`} />;
           const thisDate = new Date(year, month, day);
@@ -237,28 +231,13 @@ function MiniCalendar({ selectedDate, onSelectDate }: MiniCalendarProps) {
                 onSelectDate(thisDate);
                 setViewMonth(new Date(year, month, 1));
               }}
-              style={{
-                background: isSelected ? '#5a9270' : 'none',
-                border: isToday && !isSelected ? '1px solid #5a9270' : '1px solid transparent',
-                borderRadius: '50%',
-                width: 26,
-                height: 26,
-                cursor: 'pointer',
-                fontSize: 11,
-                color: isSelected ? '#fff' : isToday ? '#5a9270' : '#374151',
-                fontWeight: isToday || isSelected ? 700 : 400,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '1px auto',
-                transition: 'background 0.15s',
-              }}
-              onMouseEnter={(e) => {
-                if (!isSelected) (e.target as HTMLElement).style.background = '#f0f5f3';
-              }}
-              onMouseLeave={(e) => {
-                if (!isSelected) (e.target as HTMLElement).style.background = 'none';
-              }}
+              className={`w-[26px] h-[26px] mx-auto rounded-full flex items-center justify-center text-[11px] cursor-pointer border transition-colors ${
+                isSelected
+                  ? 'bg-gantly-blue border-gantly-blue text-white font-bold'
+                  : isToday
+                    ? 'bg-transparent border-gantly-blue text-gantly-blue font-bold'
+                    : 'bg-transparent border-transparent text-slate-700 font-normal hover:bg-slate-100'
+              }`}
             >
               {day}
             </button>
@@ -269,7 +248,7 @@ function MiniCalendar({ selectedDate, onSelectDate }: MiniCalendarProps) {
   );
 }
 
-// ─── Avatar ──────────────────────────────────────────────────────────────────
+// --- Avatar ---
 
 function Avatar({ name, avatarUrl, size = 32 }: { name: string; avatarUrl?: string; size?: number }) {
   const [imgErr, setImgErr] = useState(false);
@@ -279,51 +258,41 @@ function Avatar({ name, avatarUrl, size = 32 }: { name: string; avatarUrl?: stri
         src={avatarUrl}
         alt={name}
         onError={() => setImgErr(true)}
-        style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+        style={{ width: size, height: size }}
+        className="rounded-full object-cover flex-shrink-0"
       />
     );
   }
   return (
     <div
-      style={{
-        width: size,
-        height: size,
-        borderRadius: '50%',
-        background: '#5a9270',
-        color: '#fff',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: size * 0.35,
-        fontWeight: 700,
-        flexShrink: 0,
-      }}
+      style={{ width: size, height: size, fontSize: size * 0.35 }}
+      className="rounded-full bg-gantly-blue text-white flex items-center justify-center font-bold flex-shrink-0"
     >
       {getInitials(name)}
     </div>
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+// --- Main Component ---
 
 export default function ClinicAgenda({ psychologists, onAppointmentChange }: Props) {
-  // ── Date / view state ──
+  // -- Date / view state --
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'day' | 'week'>('day');
 
-  // ── Data state ──
+  // -- Data state --
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ── Sidebar state ──
+  // -- Sidebar state --
   const [visiblePsychIds, setVisiblePsychIds] = useState<Set<number>>(
     () => new Set(psychologists.map((p) => p.id))
   );
   const [trabajanHoy, setTrabajanHoy] = useState(false);
 
-  // ── Panel state ──
+  // -- Panel state --
   const [panelOpen, setPanelOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [activeTab, setActiveTab] = useState<'cita' | 'bloqueo'>('cita');
@@ -331,7 +300,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
   const [cancelling, setCancelling] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
-  // ── Form state ──
+  // -- Form state --
   const [formPatientId, setFormPatientId] = useState<number | null>(null);
   const [formPatientName, setFormPatientName] = useState('');
   const [formDate, setFormDate] = useState('');
@@ -346,7 +315,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
   const [formRoomId, setFormRoomId] = useState<number | null>(null);
   const [formPaymentMethod, setFormPaymentMethod] = useState<'STRIPE' | 'CASH'>('STRIPE');
 
-  // ── Patient search ──
+  // -- Patient search --
   const [patientSearch, setPatientSearch] = useState('');
   const [patientResults, setPatientResults] = useState<PatientSummary[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -355,13 +324,13 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
   const patientInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // ── Search bar ──
+  // -- Search bar --
   const [patientFilter, setPatientFilter] = useState('');
 
-  // ── Refs ──
+  // -- Refs --
   const gridRef = useRef<HTMLDivElement>(null);
 
-  // ─── Load appointments ────────────────────────────────────────────────────
+  // --- Load appointments ---
 
   const loadAppointments = useCallback(async () => {
     setLoading(true);
@@ -410,7 +379,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
     }
   }, [formPsychId, formModality, rooms]);
 
-  // ─── Patient search debounce ──────────────────────────────────────────────
+  // --- Patient search debounce ---
 
   useEffect(() => {
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
@@ -455,7 +424,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  // ─── Panel helpers ────────────────────────────────────────────────────────
+  // --- Panel helpers ---
 
   function openCreatePanel(psychId: number, date: Date, timeStr: string) {
     setEditingAppointment(null);
@@ -509,7 +478,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
     setShowCancelConfirm(false);
   }
 
-  // ─── CRUD ─────────────────────────────────────────────────────────────────
+  // --- CRUD ---
 
   async function handleSave() {
     if (!formDate || !formTime || !formPsychId) return;
@@ -574,11 +543,10 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
     }
   }
 
-  // ─── Derived data ─────────────────────────────────────────────────────────
+  // --- Derived data ---
 
   const visiblePsychs = psychologists.filter((p) => visiblePsychIds.has(p.id));
 
-  // Appointments visible in grid
   const filteredAppointments = appointments.filter((a) => {
     if (!visiblePsychIds.has(a.psychologistId)) return false;
     if (patientFilter.trim()) {
@@ -588,19 +556,16 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
     return true;
   });
 
-  // For week view: determine which days to show (Mon–Sun of currentDate week)
   const weekDays: Date[] = [];
   if (viewMode === 'week') {
     const ws = startOfWeek(currentDate);
     for (let i = 0; i < 7; i++) weekDays.push(addDays(ws, i));
   }
 
-  // Current time indicator position
   const now = new Date();
   const nowMinutes = now.getHours() * 60 + now.getMinutes() - HOUR_START * 60;
   const showNowLine = nowMinutes >= 0 && nowMinutes <= TOTAL_MINUTES;
 
-  // Trabajan hoy filter: show psychologists who have at least one appointment today
   const psychsWorkingToday = new Set(
     appointments
       .filter((a) => {
@@ -614,7 +579,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
     ? visiblePsychs.filter((p) => psychsWorkingToday.has(p.id))
     : visiblePsychs;
 
-  // ─── Grid slot click handler ──────────────────────────────────────────────
+  // --- Grid slot click handler ---
 
   function handleSlotClick(psychId: number, day: Date, minutes: number) {
     const snapped = Math.floor(minutes / 30) * 30;
@@ -624,12 +589,11 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
     openCreatePanel(psychId, day, timeStr);
   }
 
-  // ─── Render ───────────────────────────────────────────────────────────────
+  // --- Render ---
 
   const hours: number[] = [];
   for (let h = HOUR_START; h <= HOUR_END; h++) hours.push(h);
 
-  // For a given day+psych combo, get appointments
   function getAppsForColumn(psychId: number, day: Date) {
     return filteredAppointments.filter((a) => {
       if (a.psychologistId !== psychId) return false;
@@ -638,7 +602,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
     });
   }
 
-  // ─── Grid column render ───────────────────────────────────────────────────
+  // --- Grid column render ---
 
   function renderColumn(psychId: number, day: Date, colAppts: Appointment[]) {
     return (
@@ -649,12 +613,11 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
           minWidth: COL_WIDTH,
           position: 'relative',
           height: GRID_HEIGHT,
-          borderRight: '1px solid #e5e7eb',
           flexShrink: 0,
           cursor: 'crosshair',
         }}
+        className="border-r border-slate-200"
         onClick={(e) => {
-          // Only trigger if clicking on the column bg (not an appointment)
           if ((e.target as HTMLElement).closest('[data-appt]')) return;
           const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
           const offsetY = e.clientY - rect.top + (e.currentTarget as HTMLElement).scrollTop;
@@ -666,58 +629,26 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
         {hours.map((h) => (
           <div
             key={h}
-            style={{
-              position: 'absolute',
-              top: (h - HOUR_START) * 60 * PX_PER_MINUTE,
-              left: 0,
-              right: 0,
-              height: 1,
-              background: '#f3f4f6',
-              pointerEvents: 'none',
-            }}
+            className="absolute left-0 right-0 h-px bg-slate-100 pointer-events-none"
+            style={{ top: (h - HOUR_START) * 60 * PX_PER_MINUTE }}
           />
         ))}
         {/* Half-hour lines */}
         {hours.slice(0, -1).map((h) => (
           <div
             key={`${h}-half`}
-            style={{
-              position: 'absolute',
-              top: (h - HOUR_START) * 60 * PX_PER_MINUTE + 30,
-              left: 0,
-              right: 0,
-              height: 1,
-              background: '#f9fafb',
-              pointerEvents: 'none',
-            }}
+            className="absolute left-0 right-0 h-px bg-slate-50 pointer-events-none"
+            style={{ top: (h - HOUR_START) * 60 * PX_PER_MINUTE + 30 }}
           />
         ))}
 
         {/* Current time line */}
         {showNowLine && isSameDay(day, now) && (
           <div
-            style={{
-              position: 'absolute',
-              top: nowMinutes * PX_PER_MINUTE,
-              left: 0,
-              right: 0,
-              height: 2,
-              background: '#ef4444',
-              zIndex: 5,
-              pointerEvents: 'none',
-            }}
+            className="absolute left-0 right-0 h-0.5 bg-red-500 z-[5] pointer-events-none"
+            style={{ top: nowMinutes * PX_PER_MINUTE }}
           >
-            <div
-              style={{
-                position: 'absolute',
-                left: -4,
-                top: -4,
-                width: 10,
-                height: 10,
-                borderRadius: '50%',
-                background: '#ef4444',
-              }}
-            />
+            <div className="absolute -left-1 -top-1 w-2.5 h-2.5 rounded-full bg-red-500" />
           </div>
         )}
 
@@ -737,53 +668,42 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                 e.stopPropagation();
                 openEditPanel(appt);
               }}
+              className="absolute cursor-pointer z-[2] rounded-md overflow-hidden transition-shadow hover:shadow-elevated"
               style={{
-                position: 'absolute',
                 top: topPx,
                 left: 4,
                 right: 4,
                 height: heightPx,
                 background: colors.bg,
                 border: `1px solid ${colors.border}`,
-                borderRadius: 6,
                 padding: '3px 5px',
-                overflow: 'hidden',
-                cursor: 'pointer',
-                zIndex: 2,
                 boxSizing: 'border-box',
-                transition: 'box-shadow 0.15s',
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = 'none';
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: colors.text, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <div className="flex items-center gap-0.5">
+                <div className="text-[11px] font-bold flex-1 whitespace-nowrap overflow-hidden text-ellipsis" style={{ color: colors.text }}>
                   {appt.patientName || 'Sin paciente'}
                 </div>
                 {appt.modality === 'PRESENCIAL' && (
-                  <div style={{ fontSize: 8, fontWeight: 700, color: colors.text, opacity: 0.7, background: 'rgba(0,0,0,0.08)', borderRadius: 3, padding: '1px 4px', flexShrink: 0, letterSpacing: '0.03em' }}>
+                  <div className="text-[8px] font-bold opacity-70 bg-black/[.08] rounded px-1 py-px flex-shrink-0 tracking-wide" style={{ color: colors.text }}>
                     PRES
                   </div>
                 )}
               </div>
               {heightPx >= 40 && (
-                <div style={{ fontSize: 10, color: colors.text, opacity: 0.8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div className="text-[10px] opacity-80 whitespace-nowrap overflow-hidden text-ellipsis" style={{ color: colors.text }}>
                   {appt.service || ''}
                 </div>
               )}
               {heightPx >= 52 && (
-                <div style={{ fontSize: 10, color: colors.text, opacity: 0.7 }}>
+                <div className="text-[10px] opacity-70" style={{ color: colors.text }}>
                   {new Date(appt.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                   {' – '}
                   {new Date(appt.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                 </div>
               )}
               {heightPx >= 64 && appt.modality === 'PRESENCIAL' && appt.roomName && (
-                <div style={{ fontSize: 9, color: colors.text, opacity: 0.7, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div className="text-[9px] opacity-70 whitespace-nowrap overflow-hidden text-ellipsis" style={{ color: colors.text }}>
                   {appt.roomName}
                 </div>
               )}
@@ -794,83 +714,39 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
     );
   }
 
-  // ─── Layout ───────────────────────────────────────────────────────────────
+  // --- Layout ---
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        height: '100vh',
-        background: '#f9fafb',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-        overflow: 'hidden',
-      }}
-    >
-      {/* ── Left sidebar ── */}
-      <div
-        style={{
-          width: 260,
-          minWidth: 260,
-          background: '#fff',
-          borderRight: '1px solid #e5e7eb',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          flexShrink: 0,
-        }}
-      >
+    <div className="flex h-screen bg-slate-50 overflow-hidden">
+      {/* -- Left sidebar -- */}
+      <div className="w-[260px] min-w-[260px] bg-white border-r border-slate-200 flex flex-col overflow-hidden flex-shrink-0">
         {/* Mini calendar */}
-        <div style={{ borderBottom: '1px solid #e5e7eb' }}>
+        <div className="border-b border-slate-200">
           <MiniCalendar selectedDate={currentDate} onSelectDate={(d) => setCurrentDate(d)} />
         </div>
 
         {/* Sidebar scroll area */}
-        <div style={{ overflowY: 'auto', flex: 1, padding: '12px' }}>
+        <div className="overflow-y-auto flex-1 p-3">
           {/* Trabajan hoy toggle */}
           <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              marginBottom: 16,
-              padding: '8px 10px',
-              background: '#f0f5f3',
-              borderRadius: 8,
-              cursor: 'pointer',
-            }}
+            className="flex items-center gap-2 mb-4 px-2.5 py-2 bg-slate-50 rounded-lg cursor-pointer"
             onClick={() => setTrabajanHoy(!trabajanHoy)}
           >
             <div
-              style={{
-                width: 34,
-                height: 18,
-                borderRadius: 9,
-                background: trabajanHoy ? '#5a9270' : '#d1d5db',
-                position: 'relative',
-                transition: 'background 0.2s',
-                flexShrink: 0,
-              }}
+              className="w-[34px] h-[18px] rounded-full relative transition-colors flex-shrink-0"
+              style={{ background: trabajanHoy ? '#2E93CC' : '#d1d5db' }}
             >
               <div
-                style={{
-                  position: 'absolute',
-                  top: 2,
-                  left: trabajanHoy ? 18 : 2,
-                  width: 14,
-                  height: 14,
-                  borderRadius: '50%',
-                  background: '#fff',
-                  transition: 'left 0.2s',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                }}
+                className="absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-[left]"
+                style={{ left: trabajanHoy ? 18 : 2 }}
               />
             </div>
-            <span style={{ fontSize: 12, color: '#374151', fontWeight: 500 }}>Trabajan hoy</span>
+            <span className="text-xs text-slate-700 font-medium">Trabajan hoy</span>
           </div>
 
           {/* Agendas */}
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
               Agendas
             </div>
             {psychologists.map((p) => {
@@ -886,32 +762,13 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                       return next;
                     });
                   }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    padding: '6px 4px',
-                    borderRadius: 6,
-                    cursor: 'pointer',
-                    marginBottom: 2,
-                  }}
-                  onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = '#f9fafb')}
-                  onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
+                  className="flex items-center gap-2 px-1 py-1.5 rounded-md cursor-pointer mb-0.5 hover:bg-slate-50"
                 >
                   {/* Custom checkbox */}
                   <div
-                    style={{
-                      width: 16,
-                      height: 16,
-                      borderRadius: 4,
-                      border: `2px solid ${checked ? '#5a9270' : '#d1d5db'}`,
-                      background: checked ? '#5a9270' : '#fff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      transition: 'all 0.15s',
-                    }}
+                    className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all border-2 ${
+                      checked ? 'border-gantly-blue bg-gantly-blue' : 'border-slate-300 bg-white'
+                    }`}
                   >
                     {checked && (
                       <svg width="10" height="7" viewBox="0 0 10 7" fill="none">
@@ -920,7 +777,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                     )}
                   </div>
                   <Avatar name={p.name} avatarUrl={p.avatarUrl} size={24} />
-                  <span style={{ fontSize: 12, color: '#374151', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span className="text-xs text-slate-700 font-medium overflow-hidden text-ellipsis whitespace-nowrap">
                     {p.name}
                   </span>
                 </div>
@@ -930,70 +787,42 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
         </div>
       </div>
 
-      {/* ── Center ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+      {/* -- Center -- */}
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Top bar */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '10px 16px',
-            background: '#fff',
-            borderBottom: '1px solid #e5e7eb',
-            flexShrink: 0,
-          }}
-        >
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-white border-b border-slate-200 flex-shrink-0">
           {/* Hoy */}
           <button
             onClick={() => setCurrentDate(new Date())}
-            style={{
-              padding: '6px 14px',
-              borderRadius: 8,
-              border: '1px solid #e5e7eb',
-              background: '#fff',
-              cursor: 'pointer',
-              fontSize: 13,
-              fontWeight: 600,
-              color: '#374151',
-              transition: 'all 0.15s',
-            }}
-            onMouseEnter={(e) => {
-              (e.target as HTMLElement).style.background = '#f0f5f3';
-              (e.target as HTMLElement).style.borderColor = '#5a9270';
-            }}
-            onMouseLeave={(e) => {
-              (e.target as HTMLElement).style.background = '#fff';
-              (e.target as HTMLElement).style.borderColor = '#e5e7eb';
-            }}
+            className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white cursor-pointer text-[13px] font-semibold text-slate-700 hover:bg-slate-50 hover:border-gantly-blue transition-colors"
           >
             Hoy
           </button>
 
           {/* Prev/Next arrows */}
-          <div style={{ display: 'flex', gap: 2 }}>
+          <div className="flex gap-0.5">
             <button
               onClick={() => {
                 if (viewMode === 'day') setCurrentDate((d) => addDays(d, -1));
                 else setCurrentDate((d) => addDays(d, -7));
               }}
-              style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontSize: 14, color: '#374151' }}
+              className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white cursor-pointer text-sm text-slate-700"
             >
-              ‹
+              &lsaquo;
             </button>
             <button
               onClick={() => {
                 if (viewMode === 'day') setCurrentDate((d) => addDays(d, 1));
                 else setCurrentDate((d) => addDays(d, 7));
               }}
-              style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontSize: 14, color: '#374151' }}
+              className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white cursor-pointer text-sm text-slate-700"
             >
-              ›
+              &rsaquo;
             </button>
           </div>
 
           {/* Date display */}
-          <span style={{ fontSize: 15, fontWeight: 600, color: '#1f2937', flex: 1, textTransform: 'capitalize' }}>
+          <span className="text-[15px] font-semibold text-slate-800 flex-1 capitalize">
             {viewMode === 'day'
               ? formatDisplayDate(currentDate)
               : (() => {
@@ -1003,22 +832,17 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                 })()}
           </span>
 
-          {/* Día / Semana toggle */}
-          <div style={{ display: 'flex', borderRadius: 8, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+          {/* Dia / Semana toggle */}
+          <div className="flex rounded-lg border border-slate-200 overflow-hidden">
             {(['day', 'week'] as const).map((mode) => (
               <button
                 key={mode}
                 onClick={() => setViewMode(mode)}
-                style={{
-                  padding: '6px 14px',
-                  border: 'none',
-                  background: viewMode === mode ? '#5a9270' : '#fff',
-                  color: viewMode === mode ? '#fff' : '#374151',
-                  cursor: 'pointer',
-                  fontSize: 13,
-                  fontWeight: 500,
-                  transition: 'all 0.15s',
-                }}
+                className={`px-3.5 py-1.5 border-none cursor-pointer text-[13px] font-medium transition-colors ${
+                  viewMode === mode
+                    ? 'bg-gantly-blue text-white'
+                    : 'bg-white text-slate-700'
+                }`}
               >
                 {mode === 'day' ? 'Día' : 'Semana'}
               </button>
@@ -1026,31 +850,23 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
           </div>
 
           {/* Search bar */}
-          <div style={{ position: 'relative' }}>
+          <div className="relative">
             <input
               type="text"
               placeholder="Buscar paciente..."
               value={patientFilter}
               onChange={(e) => setPatientFilter(e.target.value)}
-              style={{
-                padding: '6px 10px 6px 32px',
-                borderRadius: 8,
-                border: '1px solid #e5e7eb',
-                fontSize: 13,
-                color: '#374151',
-                outline: 'none',
-                width: 180,
-              }}
+              className="py-1.5 pl-8 pr-2.5 rounded-lg border border-slate-200 text-[13px] text-slate-700 outline-none w-[180px] focus:border-gantly-blue-300"
             />
             <svg
-              style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}
+              className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400"
               width="15"
               height="15"
               viewBox="0 0 20 20"
               fill="none"
             >
-              <circle cx="9" cy="9" r="6" stroke="#9ca3af" strokeWidth="2" />
-              <path d="M14 14l3 3" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" />
+              <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="2" />
+              <path d="M14 14l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </div>
 
@@ -1058,59 +874,45 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
           <button
             onClick={loadAppointments}
             disabled={loading}
-            style={{
-              padding: '6px 10px',
-              borderRadius: 8,
-              border: '1px solid #e5e7eb',
-              background: '#fff',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              color: '#6b7280',
-              fontSize: 16,
-              opacity: loading ? 0.5 : 1,
-            }}
+            className={`px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-500 text-base ${
+              loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-50'
+            }`}
             title="Recargar"
           >
-            ↻
+            &#8635;
           </button>
         </div>
 
         {/* Error banner */}
         {error && (
-          <div style={{ padding: '8px 16px', background: '#fee2e2', color: '#b91c1c', fontSize: 13, borderBottom: '1px solid #fca5a5' }}>
+          <div className="px-4 py-2 bg-red-50 text-red-700 text-[13px] border-b border-red-200">
             {error}
           </div>
         )}
 
         {/* Loading overlay */}
         {loading && (
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.6)', pointerEvents: 'none' }}>
-            <div style={{ width: 32, height: 32, border: '3px solid #e5e7eb', borderTop: '3px solid #5a9270', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 pointer-events-none">
+            <div className="w-8 h-8 border-[3px] border-slate-200 border-t-gantly-blue rounded-full animate-spin" />
           </div>
         )}
 
-        {/* ── Grid ── */}
-        <div style={{ flex: 1, overflow: 'auto', position: 'relative' }} ref={gridRef}>
+        {/* -- Grid -- */}
+        <div className="flex-1 overflow-auto relative" ref={gridRef}>
           {viewMode === 'day' ? (
-            /* ── Day view ── */
+            /* -- Day view -- */
             <div style={{ display: 'flex', minWidth: TIME_COL_WIDTH + displayedPsychs.length * COL_WIDTH, minHeight: GRID_HEIGHT + 48 }}>
               {/* Time axis */}
-              <div style={{ width: TIME_COL_WIDTH, minWidth: TIME_COL_WIDTH, position: 'sticky', left: 0, zIndex: 4, background: '#fff', borderRight: '1px solid #e5e7eb' }}>
+              <div className="sticky left-0 z-[4] bg-white border-r border-slate-200" style={{ width: TIME_COL_WIDTH, minWidth: TIME_COL_WIDTH }}>
                 {/* Header spacer */}
-                <div style={{ height: 48, borderBottom: '1px solid #e5e7eb' }} />
+                <div className="h-12 border-b border-slate-200" />
                 {/* Hours */}
-                <div style={{ position: 'relative', height: GRID_HEIGHT }}>
+                <div className="relative" style={{ height: GRID_HEIGHT }}>
                   {hours.map((h) => (
                     <div
                       key={h}
-                      style={{
-                        position: 'absolute',
-                        top: (h - HOUR_START) * 60 * PX_PER_MINUTE - 8,
-                        right: 8,
-                        fontSize: 11,
-                        color: '#9ca3af',
-                        fontWeight: 500,
-                        userSelect: 'none',
-                      }}
+                      className="absolute right-2 text-[11px] text-slate-400 font-medium select-none"
+                      style={{ top: (h - HOUR_START) * 60 * PX_PER_MINUTE - 8 }}
                     >
                       {String(h).padStart(2, '0')}:00
                     </div>
@@ -1119,51 +921,33 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
               </div>
 
               {/* Columns wrapper */}
-              <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+              <div className="flex flex-col flex-1">
                 {/* Column headers */}
-                <div
-                  style={{
-                    display: 'flex',
-                    position: 'sticky',
-                    top: 0,
-                    zIndex: 3,
-                    background: '#fff',
-                    borderBottom: '1px solid #e5e7eb',
-                    height: 48,
-                  }}
-                >
+                <div className="flex sticky top-0 z-[3] bg-white border-b border-slate-200 h-12">
                   {displayedPsychs.map((p) => (
                     <div
                       key={p.id}
-                      style={{
-                        width: COL_WIDTH,
-                        minWidth: COL_WIDTH,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        padding: '0 12px',
-                        borderRight: '1px solid #e5e7eb',
-                        flexShrink: 0,
-                      }}
+                      className="flex items-center gap-2 px-3 border-r border-slate-200 flex-shrink-0"
+                      style={{ width: COL_WIDTH, minWidth: COL_WIDTH }}
                     >
                       <Avatar name={p.name} avatarUrl={p.avatarUrl} size={28} />
-                      <span style={{ fontSize: 12, fontWeight: 600, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span className="text-xs font-semibold text-slate-700 overflow-hidden text-ellipsis whitespace-nowrap">
                         {p.name}
                       </span>
                     </div>
                   ))}
                   {displayedPsychs.length === 0 && (
-                    <div style={{ padding: '0 16px', fontSize: 13, color: '#9ca3af', display: 'flex', alignItems: 'center' }}>
+                    <div className="px-4 text-[13px] text-slate-400 flex items-center">
                       No hay psicólogos visibles
                     </div>
                   )}
                 </div>
 
                 {/* Columns */}
-                <div style={{ display: 'flex', flex: 1 }}>
+                <div className="flex flex-1">
                   {displayedPsychs.map((p) => renderColumn(p.id, currentDate, getAppsForColumn(p.id, currentDate)))}
                   {displayedPsychs.length === 0 && (
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: 14 }}>
+                    <div className="flex-1 flex items-center justify-center text-slate-400 text-sm">
                       Selecciona al menos una agenda del panel lateral
                     </div>
                   )}
@@ -1171,14 +955,14 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
               </div>
             </div>
           ) : (
-            /* ── Week view ── */
-            <div style={{ display: 'flex', minWidth: TIME_COL_WIDTH + weekDays.length * (displayedPsychs.length > 0 ? Math.max(COL_WIDTH, 120) : 120), minHeight: GRID_HEIGHT + 80 }}>
+            /* -- Week view -- */
+            <div style={{ display: 'flex', minWidth: TIME_COL_WIDTH + weekDays.length * Math.max(COL_WIDTH, 120), minHeight: GRID_HEIGHT + 80 }}>
               {/* Time axis */}
-              <div style={{ width: TIME_COL_WIDTH, minWidth: TIME_COL_WIDTH, position: 'sticky', left: 0, zIndex: 4, background: '#fff', borderRight: '1px solid #e5e7eb' }}>
-                <div style={{ height: 80, borderBottom: '1px solid #e5e7eb' }} />
-                <div style={{ position: 'relative', height: GRID_HEIGHT }}>
+              <div className="sticky left-0 z-[4] bg-white border-r border-slate-200" style={{ width: TIME_COL_WIDTH, minWidth: TIME_COL_WIDTH }}>
+                <div className="h-20 border-b border-slate-200" />
+                <div className="relative" style={{ height: GRID_HEIGHT }}>
                   {hours.map((h) => (
-                    <div key={h} style={{ position: 'absolute', top: (h - HOUR_START) * 60 * PX_PER_MINUTE - 8, right: 8, fontSize: 11, color: '#9ca3af', fontWeight: 500, userSelect: 'none' }}>
+                    <div key={h} className="absolute right-2 text-[11px] text-slate-400 font-medium select-none" style={{ top: (h - HOUR_START) * 60 * PX_PER_MINUTE - 8 }}>
                       {String(h).padStart(2, '0')}:00
                     </div>
                   ))}
@@ -1186,57 +970,39 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
               </div>
 
               {/* Day columns */}
-              <div style={{ display: 'flex', flex: 1 }}>
+              <div className="flex flex-1">
                 {weekDays.map((day) => {
                   const isToday = isSameDay(day, new Date());
                   const dayLabel = day.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric' });
-                  // In week view: one column per day (merge all psychologists)
                   const dayAppts = filteredAppointments.filter((a) => isSameDay(new Date(a.startTime), day));
                   const dayWidth = Math.max(120, 160);
                   return (
-                    <div key={formatDateLocal(day)} style={{ width: dayWidth, minWidth: dayWidth, flexShrink: 0, display: 'flex', flexDirection: 'column', borderRight: '1px solid #e5e7eb' }}>
+                    <div key={formatDateLocal(day)} className="flex flex-col border-r border-slate-200 flex-shrink-0" style={{ width: dayWidth, minWidth: dayWidth }}>
                       {/* Day header */}
                       <div
-                        style={{
-                          height: 80,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderBottom: '1px solid #e5e7eb',
-                          position: 'sticky',
-                          top: 0,
-                          background: '#fff',
-                          zIndex: 3,
-                          cursor: 'pointer',
-                        }}
+                        className="h-20 flex flex-col items-center justify-center border-b border-slate-200 sticky top-0 bg-white z-[3] cursor-pointer"
                         onClick={() => {
                           setCurrentDate(day);
                           setViewMode('day');
                         }}
                       >
-                        <span style={{ fontSize: 11, color: '#6b7280', textTransform: 'capitalize', fontWeight: 500 }}>
+                        <span className="text-[11px] text-slate-500 capitalize font-medium">
                           {dayLabel.split(' ')[0]}
                         </span>
                         <div
-                          style={{
-                            width: 34,
-                            height: 34,
-                            borderRadius: '50%',
-                            background: isToday ? '#5a9270' : 'transparent',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
+                          className={`w-[34px] h-[34px] rounded-full flex items-center justify-center ${
+                            isToday ? 'bg-gantly-blue' : 'bg-transparent'
+                          }`}
                         >
-                          <span style={{ fontSize: 18, fontWeight: 700, color: isToday ? '#fff' : '#1f2937' }}>
+                          <span className={`text-lg font-bold ${isToday ? 'text-white' : 'text-slate-800'}`}>
                             {day.getDate()}
                           </span>
                         </div>
                       </div>
                       {/* Day body */}
                       <div
-                        style={{ position: 'relative', height: GRID_HEIGHT, cursor: 'crosshair' }}
+                        className="relative cursor-crosshair"
+                        style={{ height: GRID_HEIGHT }}
                         onClick={(e) => {
                           if ((e.target as HTMLElement).closest('[data-appt]')) return;
                           const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -1247,11 +1013,11 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                         }}
                       >
                         {hours.map((h) => (
-                          <div key={h} style={{ position: 'absolute', top: (h - HOUR_START) * 60, left: 0, right: 0, height: 1, background: '#f3f4f6', pointerEvents: 'none' }} />
+                          <div key={h} className="absolute left-0 right-0 h-px bg-slate-100 pointer-events-none" style={{ top: (h - HOUR_START) * 60 }} />
                         ))}
                         {showNowLine && isToday && (
-                          <div style={{ position: 'absolute', top: nowMinutes, left: 0, right: 0, height: 2, background: '#ef4444', zIndex: 5, pointerEvents: 'none' }}>
-                            <div style={{ position: 'absolute', left: -4, top: -4, width: 10, height: 10, borderRadius: '50%', background: '#ef4444' }} />
+                          <div className="absolute left-0 right-0 h-0.5 bg-red-500 z-[5] pointer-events-none" style={{ top: nowMinutes }}>
+                            <div className="absolute -left-1 -top-1 w-2.5 h-2.5 rounded-full bg-red-500" />
                           </div>
                         )}
                         {dayAppts.map((appt) => {
@@ -1263,23 +1029,19 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                               key={appt.id}
                               data-appt="1"
                               onClick={(e) => { e.stopPropagation(); openEditPanel(appt); }}
+                              className="absolute rounded-[5px] overflow-hidden cursor-pointer z-[2]"
                               style={{
-                                position: 'absolute',
                                 top: Math.max(0, topMin),
                                 left: 3,
                                 right: 3,
                                 height: Math.max(25, durMin),
                                 background: colors.bg,
                                 border: `1px solid ${colors.border}`,
-                                borderRadius: 5,
                                 padding: '2px 4px',
-                                overflow: 'hidden',
-                                cursor: 'pointer',
-                                zIndex: 2,
                                 boxSizing: 'border-box',
                               }}
                             >
-                              <div style={{ fontSize: 10, fontWeight: 700, color: colors.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              <div className="text-[10px] font-bold whitespace-nowrap overflow-hidden text-ellipsis" style={{ color: colors.text }}>
                                 {appt.patientName || 'Sin paciente'}
                               </div>
                             </div>
@@ -1295,87 +1057,58 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
         </div>
       </div>
 
-      {/* ── Right slide-in panel ── */}
+      {/* -- Right slide-in panel -- */}
       <div
-        style={{
-          width: panelOpen ? 380 : 0,
-          minWidth: 0,
-          background: '#fff',
-          borderLeft: '1px solid #e5e7eb',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          transition: 'width 0.25s ease',
-          flexShrink: 0,
-          position: 'relative',
-        }}
+        className="bg-white border-l border-slate-200 flex flex-col overflow-hidden transition-[width] duration-[250ms] ease-in-out flex-shrink-0 relative"
+        style={{ width: panelOpen ? 380 : 0, minWidth: 0 }}
       >
         {panelOpen && (
-          <div style={{ width: 380, display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
+          <div className="w-[380px] flex flex-col h-full overflow-y-auto">
             {/* Panel header */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '14px 16px',
-                borderBottom: '1px solid #e5e7eb',
-                flexShrink: 0,
-              }}
-            >
-              <span style={{ fontSize: 15, fontWeight: 700, color: '#1f2937' }}>
+            <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-200 flex-shrink-0">
+              <span className="text-[15px] font-bold text-slate-800">
                 {editingAppointment ? 'Editar cita' : 'Nueva cita'}
               </span>
               <button
                 onClick={closePanel}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', fontSize: 20, lineHeight: 1, padding: 4, borderRadius: 4 }}
-                onMouseEnter={(e) => ((e.target as HTMLElement).style.color = '#374151')}
-                onMouseLeave={(e) => ((e.target as HTMLElement).style.color = '#6b7280')}
+                className="bg-transparent border-none cursor-pointer text-slate-500 hover:text-slate-800 text-xl leading-none p-1 rounded"
               >
-                ×
+                &times;
               </button>
             </div>
 
             {/* Tabs */}
-            <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb', flexShrink: 0 }}>
-              {(['cita', 'bloqueo'] as const).map((tab) => (
+            <div className="flex border-b border-slate-200 flex-shrink-0">
+              {(['cita', 'bloqueo'] as const).map((t) => (
                 <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  style={{
-                    flex: 1,
-                    padding: '10px 0',
-                    border: 'none',
-                    background: 'none',
-                    cursor: 'pointer',
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: activeTab === tab ? '#5a9270' : '#6b7280',
-                    borderBottom: activeTab === tab ? '2px solid #5a9270' : '2px solid transparent',
-                    transition: 'all 0.15s',
-                    textTransform: 'capitalize',
-                  }}
+                  key={t}
+                  onClick={() => setActiveTab(t)}
+                  className={`flex-1 py-2.5 border-none bg-transparent cursor-pointer text-[13px] font-semibold capitalize transition-all ${
+                    activeTab === t
+                      ? 'text-gantly-blue border-b-2 border-gantly-blue'
+                      : 'text-slate-500 border-b-2 border-transparent'
+                  }`}
                 >
-                  {tab === 'cita' ? 'Cita' : 'Bloqueo'}
+                  {t === 'cita' ? 'Cita' : 'Bloqueo'}
                 </button>
               ))}
             </div>
 
             {activeTab === 'bloqueo' ? (
-              <div style={{ padding: 24, color: '#9ca3af', fontSize: 13, textAlign: 'center', paddingTop: 48 }}>
+              <div className="p-6 text-slate-400 text-[13px] text-center pt-12">
                 La funcionalidad de bloqueo de horario estará disponible próximamente.
               </div>
             ) : (
-              <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div className="p-4 flex flex-col gap-4">
 
-                {/* ── Paciente ── */}
-                <fieldset style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: '12px 14px' }}>
-                  <legend style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', padding: '0 4px' }}>
+                {/* -- Paciente -- */}
+                <fieldset className="border border-slate-200 rounded-xl p-3">
+                  <legend className="text-[11px] font-bold text-slate-500 uppercase tracking-wider px-1">
                     Paciente
                   </legend>
 
-                  <div style={{ position: 'relative' }}>
-                    <div style={{ position: 'relative' }}>
+                  <div className="relative">
+                    <div className="relative">
                       <input
                         ref={patientInputRef}
                         type="text"
@@ -1389,23 +1122,14 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                           }
                         }}
                         onFocus={() => { if (patientResults.length > 0) setShowPatientDropdown(true); }}
-                        style={{
-                          width: '100%',
-                          padding: '8px 10px 8px 32px',
-                          borderRadius: 8,
-                          border: '1px solid #e5e7eb',
-                          fontSize: 13,
-                          color: '#374151',
-                          outline: 'none',
-                          boxSizing: 'border-box',
-                        }}
+                        className="w-full py-2 pl-8 pr-2.5 rounded-lg border border-slate-200 text-[13px] text-slate-700 outline-none focus:border-gantly-blue-300"
                       />
-                      <svg style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)' }} width="14" height="14" viewBox="0 0 20 20" fill="none">
+                      <svg className="absolute left-2.5 top-1/2 -translate-y-1/2" width="14" height="14" viewBox="0 0 20 20" fill="none">
                         <circle cx="9" cy="9" r="6" stroke="#9ca3af" strokeWidth="2" />
                         <path d="M14 14l3 3" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" />
                       </svg>
                       {searchLoading && (
-                        <div style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, border: '2px solid #e5e7eb', borderTop: '2px solid #5a9270', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                        <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-slate-200 border-t-gantly-blue rounded-full animate-spin" />
                       )}
                     </div>
 
@@ -1413,20 +1137,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                     {showPatientDropdown && patientResults.length > 0 && (
                       <div
                         ref={dropdownRef}
-                        style={{
-                          position: 'absolute',
-                          top: '100%',
-                          left: 0,
-                          right: 0,
-                          background: '#fff',
-                          border: '1px solid #e5e7eb',
-                          borderRadius: 8,
-                          boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
-                          zIndex: 100,
-                          maxHeight: 220,
-                          overflowY: 'auto',
-                          marginTop: 4,
-                        }}
+                        className="absolute top-full left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-elevated z-[100] max-h-[220px] overflow-y-auto mt-1"
                       >
                         {patientResults.map((pt) => (
                           <div
@@ -1437,18 +1148,11 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                               setPatientSearch(pt.name);
                               setShowPatientDropdown(false);
                             }}
-                            style={{
-                              padding: '10px 12px',
-                              cursor: 'pointer',
-                              borderBottom: '1px solid #f3f4f6',
-                              transition: 'background 0.1s',
-                            }}
-                            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = '#f0f5f3')}
-                            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = '#fff')}
+                            className="px-3 py-2.5 cursor-pointer border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors"
                           >
-                            <div style={{ fontSize: 13, fontWeight: 600, color: '#1f2937' }}>{pt.name}</div>
-                            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
-                              {pt.patientNumber != null ? `Nº ${pt.patientNumber} · ` : ''}
+                            <div className="text-[13px] font-semibold text-slate-800">{pt.name}</div>
+                            <div className="text-[11px] text-slate-500 mt-0.5">
+                              {pt.patientNumber != null ? `N.º ${pt.patientNumber} · ` : ''}
                               {pt.phone || pt.email}
                             </div>
                           </div>
@@ -1456,7 +1160,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                       </div>
                     )}
                     {showPatientDropdown && patientResults.length === 0 && !searchLoading && patientSearch.trim().length > 0 && (
-                      <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: '12px', fontSize: 13, color: '#9ca3af', marginTop: 4, zIndex: 100 }}>
+                      <div className="absolute top-full left-0 right-0 bg-white border border-slate-200 rounded-lg p-3 text-[13px] text-slate-400 mt-1 z-[100]">
                         No se encontraron pacientes
                       </div>
                     )}
@@ -1464,33 +1168,33 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
 
                   {/* Selected patient */}
                   {formPatientId ? (
-                    <div style={{ marginTop: 10, padding: '8px 10px', background: '#f0f5f3', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div className="mt-2.5 px-2.5 py-2 bg-gantly-blue-50 rounded-lg flex items-center justify-between">
                       <div>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: '#1f2937' }}>{formPatientName}</div>
-                        <div style={{ fontSize: 11, color: '#6b7280' }}>Paciente seleccionado</div>
+                        <div className="text-[13px] font-semibold text-slate-800">{formPatientName}</div>
+                        <div className="text-[11px] text-slate-500">Paciente seleccionado</div>
                       </div>
                       <button
                         onClick={() => { setFormPatientId(null); setFormPatientName(''); setPatientSearch(''); }}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: 16, padding: 2 }}
+                        className="bg-transparent border-none cursor-pointer text-slate-400 text-base p-0.5"
                       >
-                        ×
+                        &times;
                       </button>
                     </div>
                   ) : (
-                    <div style={{ marginTop: 8, fontSize: 12, color: '#9ca3af', fontStyle: 'italic' }}>Sin paciente asociado</div>
+                    <div className="mt-2 text-xs text-slate-400 italic">Sin paciente asociado</div>
                   )}
                 </fieldset>
 
-                {/* ── Detalles ── */}
-                <fieldset style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: '12px 14px' }}>
-                  <legend style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', padding: '0 4px' }}>
+                {/* -- Detalles -- */}
+                <fieldset className="border border-slate-200 rounded-xl p-3">
+                  <legend className="text-[11px] font-bold text-slate-500 uppercase tracking-wider px-1">
                     Detalles de la cita
                   </legend>
 
                   {/* Modalidad toggle */}
-                  <div style={{ marginBottom: 12 }}>
-                    <label style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, display: 'block', marginBottom: 6 }}>Modalidad</label>
-                    <div style={{ display: 'flex', gap: 0, borderRadius: 8, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+                  <div className="mb-3">
+                    <label className="text-[11px] text-slate-500 font-semibold block mb-1.5">Modalidad</label>
+                    <div className="flex rounded-lg border border-slate-200 overflow-hidden">
                       {(['ONLINE', 'PRESENCIAL'] as const).map(m => (
                         <button
                           key={m}
@@ -1499,17 +1203,11 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                             setFormModality(m);
                             if (m === 'ONLINE') { setFormRoomId(null); setFormPaymentMethod('STRIPE'); }
                           }}
-                          style={{
-                            flex: 1,
-                            padding: '8px 0',
-                            border: 'none',
-                            background: formModality === m ? '#5a9270' : '#fff',
-                            color: formModality === m ? '#fff' : '#374151',
-                            cursor: 'pointer',
-                            fontSize: 12,
-                            fontWeight: 600,
-                            transition: 'all 0.15s',
-                          }}
+                          className={`flex-1 py-2 border-none cursor-pointer text-xs font-semibold transition-colors ${
+                            formModality === m
+                              ? 'bg-gantly-blue text-white'
+                              : 'bg-white text-slate-700'
+                          }`}
                         >
                           {m === 'ONLINE' ? 'Online' : 'Presencial'}
                         </button>
@@ -1517,25 +1215,25 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div className="grid grid-cols-2 gap-2.5">
                     {/* Date */}
                     <div>
-                      <label style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, display: 'block', marginBottom: 4 }}>Fecha</label>
+                      <label className="text-[11px] text-slate-500 font-semibold block mb-1">Fecha</label>
                       <input
                         type="date"
                         value={formDate}
                         onChange={(e) => setFormDate(e.target.value)}
-                        style={{ width: '100%', padding: '7px 9px', borderRadius: 7, border: '1px solid #e5e7eb', fontSize: 13, color: '#374151', outline: 'none', boxSizing: 'border-box' }}
+                        className="w-full px-2 py-[7px] rounded-[7px] border border-slate-200 text-[13px] text-slate-700 outline-none focus:border-gantly-blue-300"
                       />
                     </div>
 
                     {/* Time */}
                     <div>
-                      <label style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, display: 'block', marginBottom: 4 }}>Hora</label>
+                      <label className="text-[11px] text-slate-500 font-semibold block mb-1">Hora</label>
                       <select
                         value={formTime}
                         onChange={(e) => setFormTime(e.target.value)}
-                        style={{ width: '100%', padding: '7px 9px', borderRadius: 7, border: '1px solid #e5e7eb', fontSize: 13, color: '#374151', outline: 'none', boxSizing: 'border-box', background: '#fff' }}
+                        className="w-full px-2 py-[7px] rounded-[7px] border border-slate-200 text-[13px] text-slate-700 outline-none bg-white focus:border-gantly-blue-300"
                       >
                         <option value="">-- Hora --</option>
                         {TIME_OPTIONS.map((t) => (
@@ -1546,11 +1244,11 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
 
                     {/* Duration */}
                     <div>
-                      <label style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, display: 'block', marginBottom: 4 }}>Duración</label>
+                      <label className="text-[11px] text-slate-500 font-semibold block mb-1">Duración</label>
                       <select
                         value={formDuration}
                         onChange={(e) => setFormDuration(Number(e.target.value))}
-                        style={{ width: '100%', padding: '7px 9px', borderRadius: 7, border: '1px solid #e5e7eb', fontSize: 13, color: '#374151', outline: 'none', boxSizing: 'border-box', background: '#fff' }}
+                        className="w-full px-2 py-[7px] rounded-[7px] border border-slate-200 text-[13px] text-slate-700 outline-none bg-white focus:border-gantly-blue-300"
                       >
                         {DURATIONS.map((d) => (
                           <option key={d} value={d}>{d} min</option>
@@ -1560,11 +1258,11 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
 
                     {/* Psychologist */}
                     <div>
-                      <label style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, display: 'block', marginBottom: 4 }}>Psicólogo</label>
+                      <label className="text-[11px] text-slate-500 font-semibold block mb-1">Psicólogo</label>
                       <select
                         value={formPsychId ?? ''}
                         onChange={(e) => setFormPsychId(e.target.value ? Number(e.target.value) : null)}
-                        style={{ width: '100%', padding: '7px 9px', borderRadius: 7, border: '1px solid #e5e7eb', fontSize: 13, color: '#374151', outline: 'none', boxSizing: 'border-box', background: '#fff' }}
+                        className="w-full px-2 py-[7px] rounded-[7px] border border-slate-200 text-[13px] text-slate-700 outline-none bg-white focus:border-gantly-blue-300"
                       >
                         <option value="">-- Seleccionar --</option>
                         {psychologists.map((p) => (
@@ -1576,12 +1274,12 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
 
                   {/* Despacho — solo para PRESENCIAL */}
                   {formModality === 'PRESENCIAL' && (
-                    <div style={{ marginTop: 10 }}>
-                      <label style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, display: 'block', marginBottom: 4 }}>Despacho</label>
+                    <div className="mt-2.5">
+                      <label className="text-[11px] text-slate-500 font-semibold block mb-1">Despacho</label>
                       <select
                         value={formRoomId ?? ''}
                         onChange={(e) => setFormRoomId(e.target.value ? Number(e.target.value) : null)}
-                        style={{ width: '100%', padding: '7px 9px', borderRadius: 7, border: '1px solid #e5e7eb', fontSize: 13, color: '#374151', outline: 'none', boxSizing: 'border-box', background: '#fff' }}
+                        className="w-full px-2 py-[7px] rounded-[7px] border border-slate-200 text-[13px] text-slate-700 outline-none bg-white focus:border-gantly-blue-300"
                       >
                         <option value="">-- Sin despacho --</option>
                         {rooms.filter(r => r.active).map(r => (
@@ -1591,7 +1289,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                         ))}
                       </select>
                       {rooms.length === 0 && (
-                        <p style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>
+                        <p className="text-[11px] text-slate-400 mt-1">
                           No hay despachos configurados. Ve a Configuración para añadirlos.
                         </p>
                       )}
@@ -1599,12 +1297,12 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                   )}
 
                   {/* Service */}
-                  <div style={{ marginTop: 10 }}>
-                    <label style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, display: 'block', marginBottom: 4 }}>Servicio</label>
+                  <div className="mt-2.5">
+                    <label className="text-[11px] text-slate-500 font-semibold block mb-1">Servicio</label>
                     <select
                       value={formService}
                       onChange={(e) => setFormService(e.target.value)}
-                      style={{ width: '100%', padding: '7px 9px', borderRadius: 7, border: '1px solid #e5e7eb', fontSize: 13, color: '#374151', outline: 'none', boxSizing: 'border-box', background: '#fff' }}
+                      className="w-full px-2 py-[7px] rounded-[7px] border border-slate-200 text-[13px] text-slate-700 outline-none bg-white focus:border-gantly-blue-300"
                     >
                       {SERVICES.map((s) => (
                         <option key={s} value={s}>{s}</option>
@@ -1613,16 +1311,16 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                   </div>
                 </fieldset>
 
-                {/* ── Precio ── */}
-                <fieldset style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: '12px 14px' }}>
-                  <legend style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', padding: '0 4px' }}>
+                {/* -- Precio -- */}
+                <fieldset className="border border-slate-200 rounded-xl p-3">
+                  <legend className="text-[11px] font-bold text-slate-500 uppercase tracking-wider px-1">
                     Precio
                   </legend>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                    <div style={{ position: 'relative' }}>
-                      <label style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, display: 'block', marginBottom: 4 }}>Importe</label>
-                      <div style={{ position: 'relative' }}>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div className="relative">
+                      <label className="text-[11px] text-slate-500 font-semibold block mb-1">Importe</label>
+                      <div className="relative">
                         <input
                           type="number"
                           min="0"
@@ -1630,17 +1328,17 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                           placeholder="0.00"
                           value={formPrice}
                           onChange={(e) => setFormPrice(e.target.value)}
-                          style={{ width: '100%', padding: '7px 9px 7px 22px', borderRadius: 7, border: '1px solid #e5e7eb', fontSize: 13, color: '#374151', outline: 'none', boxSizing: 'border-box' }}
+                          className="w-full py-[7px] pl-5 pr-2 rounded-[7px] border border-slate-200 text-[13px] text-slate-700 outline-none focus:border-gantly-blue-300"
                         />
-                        <span style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: 13, fontWeight: 600 }}>€</span>
+                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-[13px] font-semibold">&euro;</span>
                       </div>
                     </div>
                     <div>
-                      <label style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, display: 'block', marginBottom: 4 }}>Estado pago</label>
+                      <label className="text-[11px] text-slate-500 font-semibold block mb-1">Estado pago</label>
                       <select
                         value={formPaymentStatus}
                         onChange={(e) => setFormPaymentStatus(e.target.value)}
-                        style={{ width: '100%', padding: '7px 9px', borderRadius: 7, border: '1px solid #e5e7eb', fontSize: 13, color: '#374151', outline: 'none', boxSizing: 'border-box', background: '#fff' }}
+                        className="w-full px-2 py-[7px] rounded-[7px] border border-slate-200 text-[13px] text-slate-700 outline-none bg-white focus:border-gantly-blue-300"
                       >
                         {PAYMENT_STATUSES.map((ps) => (
                           <option key={ps.value} value={ps.value}>{ps.label}</option>
@@ -1651,9 +1349,9 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
 
                   {/* Método de pago — solo para PRESENCIAL */}
                   {formModality === 'PRESENCIAL' && (
-                    <div style={{ marginTop: 10 }}>
-                      <label style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, display: 'block', marginBottom: 6 }}>Método de cobro</label>
-                      <div style={{ display: 'flex', gap: 0, borderRadius: 8, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+                    <div className="mt-2.5">
+                      <label className="text-[11px] text-slate-500 font-semibold block mb-1.5">Método de cobro</label>
+                      <div className="flex rounded-lg border border-slate-200 overflow-hidden">
                         {([
                           { value: 'STRIPE', label: 'Pago online', desc: 'Link Stripe' },
                           { value: 'CASH', label: 'Efectivo', desc: 'En consulta' },
@@ -1662,22 +1360,14 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                             key={pm.value}
                             type="button"
                             onClick={() => setFormPaymentMethod(pm.value)}
-                            style={{
-                              flex: 1,
-                              padding: '8px 6px',
-                              border: 'none',
-                              background: formPaymentMethod === pm.value ? '#5a9270' : '#fff',
-                              color: formPaymentMethod === pm.value ? '#fff' : '#374151',
-                              cursor: 'pointer',
-                              fontSize: 11,
-                              fontWeight: 600,
-                              textAlign: 'center',
-                              transition: 'all 0.15s',
-                              lineHeight: 1.3,
-                            }}
+                            className={`flex-1 py-2 px-1.5 border-none cursor-pointer text-[11px] font-semibold text-center transition-colors leading-tight ${
+                              formPaymentMethod === pm.value
+                                ? 'bg-gantly-blue text-white'
+                                : 'bg-white text-slate-700'
+                            }`}
                           >
                             <div>{pm.label}</div>
-                            <div style={{ fontSize: 9, opacity: 0.8, fontWeight: 400 }}>{pm.desc}</div>
+                            <div className="text-[9px] opacity-80 font-normal">{pm.desc}</div>
                           </button>
                         ))}
                       </div>
@@ -1685,9 +1375,9 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                   )}
                 </fieldset>
 
-                {/* ── Notas ── */}
-                <fieldset style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: '12px 14px' }}>
-                  <legend style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', padding: '0 4px' }}>
+                {/* -- Notas -- */}
+                <fieldset className="border border-slate-200 rounded-xl p-3">
+                  <legend className="text-[11px] font-bold text-slate-500 uppercase tracking-wider px-1">
                     Notas internas
                   </legend>
                   <textarea
@@ -1695,41 +1385,23 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                     onChange={(e) => setFormNotes(e.target.value)}
                     placeholder="Observaciones, instrucciones, notas clínicas..."
                     rows={3}
-                    style={{ width: '100%', padding: '7px 9px', borderRadius: 7, border: '1px solid #e5e7eb', fontSize: 13, color: '#374151', outline: 'none', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit', lineHeight: 1.5 }}
+                    className="w-full px-2 py-[7px] rounded-[7px] border border-slate-200 text-[13px] text-slate-700 outline-none resize-y leading-relaxed focus:border-gantly-blue-300"
                   />
                 </fieldset>
 
-                {/* ── Actions ── */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 8 }}>
+                {/* -- Actions -- */}
+                <div className="flex flex-col gap-2 pb-2">
                   <button
                     onClick={handleSave}
                     disabled={saving || !formDate || !formTime || !formPsychId}
-                    style={{
-                      padding: '11px',
-                      borderRadius: 9,
-                      border: 'none',
-                      background: saving || !formDate || !formTime || !formPsychId ? '#9ca3af' : '#5a9270',
-                      color: '#fff',
-                      fontSize: 14,
-                      fontWeight: 700,
-                      cursor: saving || !formDate || !formTime || !formPsychId ? 'not-allowed' : 'pointer',
-                      transition: 'background 0.15s',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8,
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!saving && formDate && formTime && formPsychId)
-                        (e.currentTarget as HTMLElement).style.background = '#4a7d60';
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!saving && formDate && formTime && formPsychId)
-                        (e.currentTarget as HTMLElement).style.background = '#5a9270';
-                    }}
+                    className={`py-2.5 rounded-lg border-none text-sm font-bold flex items-center justify-center gap-2 transition-colors ${
+                      saving || !formDate || !formTime || !formPsychId
+                        ? 'bg-slate-400 text-white cursor-not-allowed'
+                        : 'bg-gantly-blue text-white cursor-pointer hover:bg-gantly-blue-600'
+                    }`}
                   >
                     {saving && (
-                      <div style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.4)', borderTop: '2px solid #fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                      <div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
                     )}
                     {editingAppointment ? 'Guardar cambios' : 'Crear cita'}
                   </button>
@@ -1737,64 +1409,36 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                   {editingAppointment && !showCancelConfirm && (
                     <button
                       onClick={() => setShowCancelConfirm(true)}
-                      style={{
-                        padding: '10px',
-                        borderRadius: 9,
-                        border: '1px solid #fca5a5',
-                        background: '#fff',
-                        color: '#ef4444',
-                        fontSize: 13,
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        transition: 'all 0.15s',
-                      }}
-                      onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLElement).style.background = '#fee2e2';
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLElement).style.background = '#fff';
-                      }}
+                      className="py-2.5 rounded-lg border border-red-300 bg-white text-red-500 text-[13px] font-semibold cursor-pointer hover:bg-red-50 transition-colors"
                     >
                       Cancelar cita
                     </button>
                   )}
 
                   {editingAppointment && showCancelConfirm && (
-                    <div style={{ padding: '12px', background: '#fff3f3', border: '1px solid #fca5a5', borderRadius: 9 }}>
-                      <div style={{ fontSize: 13, color: '#b91c1c', fontWeight: 600, marginBottom: 8 }}>
+                    <div className="p-3 bg-red-50 border border-red-300 rounded-lg">
+                      <div className="text-[13px] text-red-700 font-semibold mb-2">
                         ¿Confirmar cancelación?
                       </div>
-                      <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 10 }}>
+                      <div className="text-xs text-slate-500 mb-2.5">
                         Esta acción no se puede deshacer. La cita quedará marcada como cancelada.
                       </div>
-                      <div style={{ display: 'flex', gap: 8 }}>
+                      <div className="flex gap-2">
                         <button
                           onClick={handleCancel}
                           disabled={cancelling}
-                          style={{
-                            flex: 1,
-                            padding: '8px',
-                            borderRadius: 7,
-                            border: 'none',
-                            background: '#ef4444',
-                            color: '#fff',
-                            fontSize: 13,
-                            fontWeight: 700,
-                            cursor: cancelling ? 'not-allowed' : 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 6,
-                          }}
+                          className={`flex-1 py-2 rounded-[7px] border-none text-[13px] font-bold flex items-center justify-center gap-1.5 ${
+                            cancelling ? 'bg-red-300 cursor-not-allowed' : 'bg-red-500 cursor-pointer'
+                          } text-white`}
                         >
                           {cancelling && (
-                            <div style={{ width: 12, height: 12, border: '2px solid rgba(255,255,255,0.4)', borderTop: '2px solid #fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                            <div className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
                           )}
                           Sí, cancelar
                         </button>
                         <button
                           onClick={() => setShowCancelConfirm(false)}
-                          style={{ flex: 1, padding: '8px', borderRadius: 7, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                          className="flex-1 py-2 rounded-[7px] border border-slate-200 bg-white text-slate-700 text-[13px] font-semibold cursor-pointer"
                         >
                           Volver
                         </button>
@@ -1804,18 +1448,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
 
                   <button
                     onClick={closePanel}
-                    style={{
-                      padding: '9px',
-                      borderRadius: 9,
-                      border: '1px solid #e5e7eb',
-                      background: '#fff',
-                      color: '#6b7280',
-                      fontSize: 13,
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                    }}
-                    onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = '#f9fafb')}
-                    onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = '#fff')}
+                    className="py-2 rounded-lg border border-slate-200 bg-white text-slate-500 text-[13px] font-medium cursor-pointer hover:bg-slate-50 transition-colors"
                   >
                     Cerrar
                   </button>
@@ -1825,14 +1458,6 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
           </div>
         )}
       </div>
-
-      {/* Spinner keyframes injected once */}
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }

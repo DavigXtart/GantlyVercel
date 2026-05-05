@@ -74,17 +74,14 @@ export default function PsychBillingTab({ appointments, loading, onRefresh }: Pr
 
   const paymentBadge = (status: string | null) => {
     const s = status || 'PENDING';
-    const styles: Record<string, { bg: string; color: string; label: string }> = {
-      PAID: { bg: 'rgba(34,197,94,0.12)', color: '#16a34a', label: 'Pagado' },
-      PENDING: { bg: 'rgba(234,179,8,0.12)', color: '#ca8a04', label: 'Pendiente' },
-      EXPIRED: { bg: 'rgba(156,163,175,0.12)', color: '#6b7280', label: 'Expirado' },
+    const styles: Record<string, { classes: string; label: string }> = {
+      PAID: { classes: 'bg-emerald-500/10 text-emerald-600', label: 'Pagado' },
+      PENDING: { classes: 'bg-yellow-500/10 text-yellow-600', label: 'Pendiente' },
+      EXPIRED: { classes: 'bg-slate-400/10 text-slate-500', label: 'Expirado' },
     };
     const st = styles[s] || styles.PENDING;
     return (
-      <span style={{
-        padding: '4px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: 600,
-        background: st.bg, color: st.color,
-      }}>
+      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${st.classes}`}>
         {st.label}
       </span>
     );
@@ -93,43 +90,43 @@ export default function PsychBillingTab({ appointments, loading, onRefresh }: Pr
   return (
     <div className="mt-10 w-full">
       {/* Summary cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-        <div className="bg-white rounded-3xl p-6 border border-sage/10 soft-shadow">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <span className="material-symbols-outlined" style={{ color: '#16a34a', fontSize: '22px' }}>payments</span>
-            <span style={{ fontSize: '14px', color: '#6b7280' }}>Cobrado</span>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-card">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="material-symbols-outlined text-emerald-600 text-[22px]">payments</span>
+            <span className="text-sm text-slate-500">Cobrado</span>
           </div>
-          <p style={{ fontSize: '28px', fontWeight: 600, color: '#16a34a', margin: 0 }}>
+          <p className="text-[28px] font-semibold text-emerald-600 m-0">
             {totals.paid.toFixed(2)} &euro;
           </p>
         </div>
-        <div className="bg-white rounded-3xl p-6 border border-sage/10 soft-shadow">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <span className="material-symbols-outlined" style={{ color: '#ca8a04', fontSize: '22px' }}>schedule</span>
-            <span style={{ fontSize: '14px', color: '#6b7280' }}>Pendiente</span>
+        <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-card">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="material-symbols-outlined text-yellow-600 text-[22px]">schedule</span>
+            <span className="text-sm text-slate-500">Pendiente</span>
           </div>
-          <p style={{ fontSize: '28px', fontWeight: 600, color: '#ca8a04', margin: 0 }}>
+          <p className="text-[28px] font-semibold text-yellow-600 m-0">
             {totals.pending.toFixed(2)} &euro;
           </p>
         </div>
-        <div className="bg-white rounded-3xl p-6 border border-sage/10 soft-shadow">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <span className="material-symbols-outlined" style={{ color: '#6b7280', fontSize: '22px' }}>timer_off</span>
-            <span style={{ fontSize: '14px', color: '#6b7280' }}>Expirado</span>
+        <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-card">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="material-symbols-outlined text-slate-500 text-[22px]">timer_off</span>
+            <span className="text-sm text-slate-500">Expirado</span>
           </div>
-          <p style={{ fontSize: '28px', fontWeight: 600, color: '#6b7280', margin: 0 }}>
+          <p className="text-[28px] font-semibold text-slate-500 m-0">
             {totals.expired.toFixed(2)} &euro;
           </p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-3xl p-6 border border-sage/10 soft-shadow mb-6">
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
+      <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-card mb-6">
+        <div className="flex flex-wrap gap-3 items-center">
           <select
             value={filterMonth}
             onChange={e => setFilterMonth(e.target.value)}
-            style={{ padding: '8px 12px', borderRadius: '12px', border: '1px solid rgba(90,146,112,0.2)', fontSize: '14px', fontFamily: "'Inter', sans-serif" }}
+            className="px-3 py-2 rounded-xl border border-slate-200 text-sm"
           >
             <option value="">Todos los meses</option>
             {availableMonths.map(m => (
@@ -140,7 +137,7 @@ export default function PsychBillingTab({ appointments, loading, onRefresh }: Pr
           <select
             value={filterPaymentStatus}
             onChange={e => setFilterPaymentStatus(e.target.value)}
-            style={{ padding: '8px 12px', borderRadius: '12px', border: '1px solid rgba(90,146,112,0.2)', fontSize: '14px', fontFamily: "'Inter', sans-serif" }}
+            className="px-3 py-2 rounded-xl border border-slate-200 text-sm"
           >
             <option value="">Todos los estados</option>
             <option value="PAID">Pagado</option>
@@ -151,56 +148,47 @@ export default function PsychBillingTab({ appointments, loading, onRefresh }: Pr
           <button
             onClick={onRefresh}
             disabled={loading}
-            style={{
-              padding: '8px 16px', borderRadius: '12px', border: '1px solid rgba(90,146,112,0.2)',
-              background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
-              fontSize: '14px', color: '#5a9270', fontFamily: "'Inter', sans-serif",
-              opacity: loading ? 0.6 : 1,
-            }}
+            className="px-4 py-2 rounded-xl border border-slate-200 bg-transparent cursor-pointer flex items-center gap-1.5 text-sm text-gantly-blue-500 disabled:opacity-60"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>refresh</span>
+            <span className="material-symbols-outlined text-[18px]">refresh</span>
             Refrescar
           </button>
 
-          <span style={{ fontSize: '13px', color: '#9ca3af', marginLeft: 'auto' }}>
+          <span className="text-[13px] text-slate-400 ml-auto">
             {filtered.length} cita{filtered.length !== 1 ? 's' : ''}
           </span>
         </div>
       </div>
 
       {/* Appointment list */}
-      <div className="bg-white rounded-3xl p-8 border border-sage/10 soft-shadow">
-        <h3 className="text-2xl font-normal text-forest mb-6">Detalle de citas</h3>
+      <div className="bg-white rounded-2xl p-8 border border-slate-100 shadow-card">
+        <h3 className="text-2xl font-semibold text-gantly-text mb-6">Detalle de citas</h3>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '40px' }}>
-            <div className="animate-spin" style={{ width: '32px', height: '32px', border: '3px solid rgba(90,146,112,0.2)', borderTopColor: '#5a9270', borderRadius: '50%', margin: '0 auto' }} />
+          <div className="text-center py-10">
+            <div className="animate-spin w-8 h-8 border-3 border-gantly-blue-100 border-t-gantly-blue-500 rounded-full mx-auto" />
           </div>
         ) : filtered.length === 0 ? (
-          <p style={{ textAlign: 'center', color: '#9ca3af', padding: '40px 0' }}>
+          <p className="text-center text-slate-400 py-10">
             No hay citas para los filtros seleccionados.
           </p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div className="flex flex-col gap-3">
             {filtered.map(a => (
               <div
                 key={a.id}
-                style={{
-                  display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center',
-                  padding: '16px 20px', borderRadius: '16px', border: '1px solid rgba(90,146,112,0.1)',
-                  background: 'rgba(90,146,112,0.02)',
-                }}
+                className="flex flex-wrap justify-between items-center px-5 py-4 rounded-2xl border border-slate-100 hover:bg-gantly-cloud/50 transition-colors"
               >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: '180px' }}>
-                  <span style={{ fontWeight: 500, fontSize: '15px', color: '#1f2937' }}>
+                <div className="flex flex-col gap-0.5 min-w-[180px]">
+                  <span className="font-medium text-[15px] text-slate-800">
                     {a.user?.name || 'Paciente'}
                   </span>
-                  <span style={{ fontSize: '13px', color: '#6b7280' }}>
+                  <span className="text-[13px] text-slate-500">
                     {formatDate(a.startTime)} &middot; {formatTime(a.startTime)} - {formatTime(a.endTime)}
                   </span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <span style={{ fontWeight: 600, fontSize: '16px', color: '#1f2937' }}>
+                <div className="flex items-center gap-4">
+                  <span className="font-semibold text-base text-slate-800">
                     {a.price != null ? `${Number(a.price).toFixed(2)} \u20AC` : '--'}
                   </span>
                   {paymentBadge(a.paymentStatus)}

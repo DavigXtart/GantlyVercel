@@ -5,17 +5,17 @@ import { toast } from './ui/Toast';
 
 const plans: PricingPlan[] = [
   {
-    name: 'Básico',
+    name: 'Basico',
     price: '29',
     yearlyPrice: '23',
     period: 'mes',
     features: [
-      'Chat con tu psicólogo',
+      'Chat con tu psicologo',
       '2 videollamadas al mes',
-      'Tareas terapéuticas',
-      'Tests de evaluación',
+      'Tareas terapeuticas',
+      'Tests de evaluacion',
     ],
-    description: 'Ideal para empezar tu proceso terapéutico.',
+    description: 'Ideal para empezar tu proceso terapeutico.',
     buttonText: 'Empezar ahora',
     isPopular: false,
     planId: 'basic',
@@ -27,13 +27,13 @@ const plans: PricingPlan[] = [
     yearlyPrice: '39',
     period: 'mes',
     features: [
-      'Todo lo del plan Básico',
+      'Todo lo del plan Basico',
       '4 videollamadas al mes',
       'Sesiones de grupo',
       'Informes de progreso',
       'Soporte prioritario',
     ],
-    description: 'El plan más completo para tu bienestar.',
+    description: 'El plan mas completo para tu bienestar.',
     buttonText: 'Elegir Premium',
     isPopular: true,
     planId: 'premium',
@@ -46,10 +46,10 @@ const plans: PricingPlan[] = [
     period: 'mes',
     features: [
       'Todo lo del plan Premium',
-      'Panel de administración',
-      'Gestión de empleados',
-      'Métricas de bienestar',
-      'Facturación centralizada',
+      'Panel de administracion',
+      'Gestion de empleados',
+      'Metricas de bienestar',
+      'Facturacion centralizada',
     ],
     description: 'Cuida la salud mental de tu equipo.',
     buttonText: 'Contactar',
@@ -67,7 +67,7 @@ export default function PricingPage({ onBack }: { onBack?: () => void }) {
     const success = searchParams.get('success');
     const canceled = searchParams.get('canceled');
     if (success === 'true') {
-      toast.success('Suscripción activada correctamente');
+      toast.success('Suscripcion activada correctamente');
       searchParams.delete('success');
       searchParams.delete('session_id');
       setSearchParams(searchParams, { replace: true });
@@ -79,24 +79,24 @@ export default function PricingPage({ onBack }: { onBack?: () => void }) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-cream">
-      <nav className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px' }}>
+    <div className="min-h-screen bg-gantly-cloud">
+      <nav className="max-w-7xl mx-auto flex justify-between items-center px-6 py-4">
         <h3
           onClick={() => navigate('/')}
-          style={{ cursor: 'pointer', userSelect: 'none', margin: 0 }}
+          className="cursor-pointer select-none m-0 text-2xl font-heading font-bold text-gantly-blue tracking-tight"
         >
           Gantly
         </h3>
         <button
           onClick={() => onBack ? onBack() : navigate(-1)}
-          className="btn-secondary"
+          className="px-5 py-2 rounded-full border border-gantly-blue/30 text-gantly-blue font-medium font-body text-sm hover:bg-gantly-blue/5 transition-colors"
         >
           Volver
         </button>
       </nav>
       <Pricing
         plans={plans}
-        title="Planes de suscripción"
+        title="Planes de suscripcion"
         description="Elige el plan que mejor se ajuste a tus necesidades.&#10;Todos los planes incluyen acceso completo a la plataforma."
       />
     </div>

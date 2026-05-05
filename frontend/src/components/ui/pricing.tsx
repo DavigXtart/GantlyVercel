@@ -34,7 +34,7 @@ export interface PricingProps {
 export function Pricing({
   plans,
   title = "Planes de prueba",
-  description = "Elige el plan que mejor se ajuste a tus necesidades\nTodos los planes incluyen características de prueba para evaluar el servicio.",
+  description = "Elige el plan que mejor se ajuste a tus necesidades\nTodos los planes incluyen caracteristicas de prueba para evaluar el servicio.",
 }: PricingProps) {
   const [isMonthly, setIsMonthly] = useState(true);
   const [loading, setLoading] = useState<string | null>(null);
@@ -75,10 +75,10 @@ export function Pricing({
           y: y / window.innerHeight,
         },
         colors: [
-          "hsl(var(--primary))",
-          "hsl(var(--accent))",
-          "hsl(var(--secondary))",
-          "hsl(var(--muted))",
+          "#2E93CC",
+          "#22D3EE",
+          "#F0C930",
+          "#059669",
         ],
         ticks: 200,
         gravity: 1.2,
@@ -90,12 +90,12 @@ export function Pricing({
   };
 
   return (
-    <div className="py-20 px-4" style={{ maxWidth: '1400px', margin: '0 auto' }}>
+    <div className="py-20 px-4 max-w-[1400px] mx-auto">
       <div className="text-center space-y-4 mb-16 px-4">
-        <h2 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+        <h2 className="text-4xl font-heading font-bold tracking-tight sm:text-5xl lg:text-6xl text-gantly-navy">
           {title}
         </h2>
-        <p className="text-muted-foreground text-lg lg:text-xl whitespace-pre-line max-w-3xl mx-auto">
+        <p className="text-gantly-muted text-lg lg:text-xl whitespace-pre-line max-w-3xl mx-auto font-body">
           {description}
         </p>
       </div>
@@ -111,8 +111,8 @@ export function Pricing({
             />
           </Label>
         </label>
-        <span className="ml-2 font-semibold">
-          Facturación anual <span className="text-primary">(Ahorra 20%)</span>
+        <span className="ml-2 font-semibold font-body text-gantly-text">
+          Facturacion anual <span className="text-gantly-blue">(Ahorra 20%)</span>
         </span>
       </div>
 
@@ -143,26 +143,26 @@ export function Pricing({
               opacity: { duration: 0.7 },
             }}
             className={cn(
-              `rounded-2xl border-[2px] p-8 lg:p-10 bg-background text-center flex flex-col justify-center relative transition-all duration-300`,
-              plan.isPopular ? "border-primary border-2 shadow-xl" : "border-border shadow-lg",
+              `rounded-2xl p-8 lg:p-10 bg-white text-center flex flex-col justify-center relative transition-all duration-300 shadow-card`,
+              plan.isPopular ? "border-2 border-gantly-gold shadow-elevated ring-1 ring-gantly-gold/20" : "border border-gray-200",
               "min-h-[580px] lg:min-h-[650px]",
               index === 0 || index === 2 ? "z-0 lg:mt-12" : "z-10",
             )}
           >
             {plan.isPopular && (
-              <div className="absolute top-0 right-0 bg-primary py-0.5 px-2 rounded-bl-xl rounded-tr-xl flex items-center">
-                <Star className="text-primary-foreground h-4 w-4 fill-current" />
-                <span className="text-primary-foreground ml-1 font-sans font-semibold">
+              <div className="absolute top-0 right-0 bg-gantly-gold py-1 px-3 rounded-bl-xl rounded-tr-xl flex items-center">
+                <Star className="text-white h-4 w-4 fill-current" />
+                <span className="text-white ml-1 font-body font-semibold text-sm">
                   Popular
                 </span>
               </div>
             )}
             <div className="flex-1 flex flex-col">
-              <p className="text-base font-semibold text-muted-foreground">
+              <p className="text-base font-semibold text-gantly-muted font-body">
                 {plan.name}
               </p>
               <div className="mt-6 flex items-center justify-center gap-x-2">
-                <span className="text-5xl font-bold tracking-tight text-foreground">
+                <span className="text-5xl font-bold tracking-tight text-gantly-navy font-heading">
                   <NumberFlow
                     value={
                       isMonthly ? Number(plan.price) : Number(plan.yearlyPrice)
@@ -182,26 +182,26 @@ export function Pricing({
                   />
                 </span>
                 {plan.period !== "Next 3 months" && (
-                  <span className="text-sm font-semibold leading-6 tracking-wide text-muted-foreground">
+                  <span className="text-sm font-semibold leading-6 tracking-wide text-gantly-muted font-body">
                     / {plan.period}
                   </span>
                 )}
               </div>
 
-              <p className="text-xs leading-5 text-muted-foreground">
+              <p className="text-xs leading-5 text-gantly-muted font-body mt-1">
                 {isMonthly ? "facturado mensualmente" : "facturado anualmente"}
               </p>
 
               <ul className="mt-5 gap-2 flex flex-col">
                 {plan.features.map((feature, idx) => (
                   <li key={idx} className="flex items-start gap-2">
-                    <Check className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
-                    <span className="text-left">{feature}</span>
+                    <Check className="h-4 w-4 text-gantly-blue mt-1 flex-shrink-0" />
+                    <span className="text-left text-gantly-text font-body">{feature}</span>
                   </li>
                 ))}
               </ul>
 
-              <hr className="w-full my-4" />
+              <hr className="w-full my-4 border-gray-200" />
 
               {plan.useStripe && plan.planId ? (
                 <button
@@ -211,11 +211,11 @@ export function Pricing({
                     buttonVariants({
                       variant: "outline",
                     }),
-                    "group relative w-full gap-2 overflow-hidden text-lg font-semibold tracking-tighter",
-                    "transform-gpu ring-offset-current transition-all duration-300 ease-out hover:ring-2 hover:ring-primary hover:ring-offset-1 hover:bg-primary hover:text-primary-foreground",
+                    "group relative w-full gap-2 overflow-hidden text-lg font-semibold tracking-tighter font-body",
+                    "transform-gpu ring-offset-current transition-all duration-300 ease-out hover:ring-2 hover:ring-gantly-blue hover:ring-offset-1 hover:bg-gantly-blue hover:text-white",
                     plan.isPopular
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-background text-foreground",
+                      ? "bg-gantly-blue text-white border-gantly-blue"
+                      : "bg-white text-gantly-navy border-gray-300",
                     loading === plan.planId && "opacity-50 cursor-not-allowed"
                   )}
                 >
@@ -228,11 +228,11 @@ export function Pricing({
                     buttonVariants({
                       variant: "outline",
                     }),
-                    "group relative w-full gap-2 overflow-hidden text-lg font-semibold tracking-tighter",
-                    "transform-gpu ring-offset-current transition-all duration-300 ease-out hover:ring-2 hover:ring-primary hover:ring-offset-1 hover:bg-primary hover:text-primary-foreground",
+                    "group relative w-full gap-2 overflow-hidden text-lg font-semibold tracking-tighter font-body",
+                    "transform-gpu ring-offset-current transition-all duration-300 ease-out hover:ring-2 hover:ring-gantly-blue hover:ring-offset-1 hover:bg-gantly-blue hover:text-white",
                     plan.isPopular
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-background text-foreground"
+                      ? "bg-gantly-blue text-white border-gantly-blue"
+                      : "bg-white text-gantly-navy border-gray-300"
                   )}
                 >
                   {plan.buttonText}
@@ -244,17 +244,17 @@ export function Pricing({
                     buttonVariants({
                       variant: "outline",
                     }),
-                    "group relative w-full gap-2 overflow-hidden text-lg font-semibold tracking-tighter",
-                    "transform-gpu ring-offset-current transition-all duration-300 ease-out hover:ring-2 hover:ring-primary hover:ring-offset-1 hover:bg-primary hover:text-primary-foreground",
+                    "group relative w-full gap-2 overflow-hidden text-lg font-semibold tracking-tighter font-body",
+                    "transform-gpu ring-offset-current transition-all duration-300 ease-out hover:ring-2 hover:ring-gantly-blue hover:ring-offset-1 hover:bg-gantly-blue hover:text-white",
                     plan.isPopular
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-background text-foreground"
+                      ? "bg-gantly-blue text-white border-gantly-blue"
+                      : "bg-white text-gantly-navy border-gray-300"
                   )}
                 >
                   {plan.buttonText}
                 </a>
               )}
-              <p className="mt-6 text-xs leading-5 text-muted-foreground">
+              <p className="mt-6 text-xs leading-5 text-gantly-muted font-body">
                 {plan.description}
               </p>
             </div>

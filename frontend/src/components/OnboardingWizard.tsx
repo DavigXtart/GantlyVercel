@@ -11,24 +11,24 @@ const steps = [
   {
     icon: 'waving_hand',
     title: 'Bienvenido a Gantly',
-    description: 'Gantly es tu espacio seguro para cuidar tu salud mental. Aquí encontrarás herramientas, profesionales y apoyo personalizado.',
+    description: 'Gantly es tu espacio seguro para cuidar tu salud mental. Aqui encontraras herramientas, profesionales y apoyo personalizado.',
   },
   {
     icon: 'person',
     title: 'Completa tu perfil',
-    description: 'Añade tu foto, fecha de nacimiento y otros datos para personalizar tu experiencia. Un perfil completo ayuda a tu psicólogo a conocerte mejor.',
+    description: 'Anade tu foto, fecha de nacimiento y otros datos para personalizar tu experiencia. Un perfil completo ayuda a tu psicologo a conocerte mejor.',
     action: 'profile',
   },
   {
     icon: 'psychology',
     title: 'Realiza el test de matching',
-    description: 'Responde un breve cuestionario para que podamos conectarte con el profesional más adecuado para ti. Solo lleva unos minutos.',
+    description: 'Responde un breve cuestionario para que podamos conectarte con el profesional mas adecuado para ti. Solo lleva unos minutos.',
     action: 'matching',
   },
   {
     icon: 'explore',
     title: 'Explora tu panel',
-    description: 'Desde tu panel podrás gestionar citas, completar tareas, llevar un diario de bienestar, chatear con tu psicólogo y mucho más.',
+    description: 'Desde tu panel podras gestionar citas, completar tareas, llevar un diario de bienestar, chatear con tu psicologo y mucho mas.',
   },
 ];
 
@@ -62,14 +62,14 @@ export default function OnboardingWizard({ userName, onComplete, onGoToProfile, 
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-6">
-      <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden">
+      <div className="bg-white rounded-3xl max-w-lg w-full shadow-elevated overflow-hidden">
         {/* Progress dots */}
         <div className="flex justify-center gap-2 pt-6 pb-2">
           {steps.map((_, i) => (
             <div
               key={i}
               className={`h-1.5 rounded-full transition-all duration-300 ${
-                i === step ? 'w-8 bg-forest' : i < step ? 'w-4 bg-sage/40' : 'w-4 bg-sage/20'
+                i === step ? 'w-8 bg-gantly-blue' : i < step ? 'w-4 bg-gantly-blue/40' : 'w-4 bg-gantly-blue/20'
               }`}
             />
           ))}
@@ -77,19 +77,19 @@ export default function OnboardingWizard({ userName, onComplete, onGoToProfile, 
 
         {/* Content */}
         <div className="px-10 py-8 text-center">
-          <span className="material-symbols-outlined text-[56px] text-sage/50 mb-4 block">
+          <span className="material-symbols-outlined text-[56px] text-gantly-blue/50 mb-4 block">
             {current.icon}
           </span>
           {step === 0 ? (
-            <h2 className="text-2xl font-light text-forest mb-2">
+            <h2 className="text-2xl font-heading font-light text-gantly-navy mb-2">
               {current.title}, <span className="font-medium">{userName}</span>
             </h2>
           ) : (
-            <h2 className="text-2xl font-light text-forest mb-2">
+            <h2 className="text-2xl font-heading font-light text-gantly-navy mb-2">
               {current.title}
             </h2>
           )}
-          <p className="text-sage/70 text-[15px] leading-relaxed mb-8">
+          <p className="text-gantly-muted text-[15px] leading-relaxed mb-8 font-body">
             {current.description}
           </p>
 
@@ -97,22 +97,22 @@ export default function OnboardingWizard({ userName, onComplete, onGoToProfile, 
             {current.action && (
               <button
                 onClick={handleAction}
-                className="w-full px-6 py-3 bg-sage/10 text-forest rounded-xl text-sm font-medium hover:bg-sage/20 transition-colors"
+                className="w-full px-6 py-3 bg-gantly-blue/10 text-gantly-navy rounded-xl text-sm font-medium font-body hover:bg-gantly-blue/20 transition-colors"
               >
                 {current.action === 'profile' ? 'Ir a mi perfil' : 'Realizar test de matching'}
               </button>
             )}
             <button
               onClick={handleNext}
-              className="w-full px-6 py-3 bg-forest text-white rounded-xl text-sm font-medium hover:bg-forest/90 transition-colors"
+              className="w-full px-6 py-3 bg-gantly-blue text-white rounded-xl text-sm font-medium font-body hover:bg-gantly-blue-600 transition-colors"
             >
               {isLast ? 'Empezar' : 'Siguiente'}
             </button>
             <button
               onClick={handleSkip}
-              className="text-sage/50 text-sm hover:text-sage transition-colors"
+              className="text-gantly-muted/70 text-sm font-body hover:text-gantly-muted transition-colors"
             >
-              Saltar introducción
+              Saltar introduccion
             </button>
           </div>
         </div>

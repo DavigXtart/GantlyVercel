@@ -9,34 +9,10 @@ export default function CrisisButton() {
       <button
         onClick={() => setModalOpen(true)}
         aria-label="Ayuda de crisis"
+        className="fixed bottom-6 right-6 z-[9999] w-14 h-14 rounded-full border-none bg-red-600 text-white text-base font-extrabold tracking-wider cursor-pointer flex items-center justify-center hover:scale-110 transition-transform"
         style={{
-          position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          zIndex: 9999,
-          width: '56px',
-          height: '56px',
-          borderRadius: '50%',
-          border: 'none',
-          background: '#dc2626',
-          color: '#ffffff',
-          fontSize: '16px',
-          fontWeight: 800,
-          fontFamily: "'Inter', sans-serif",
-          letterSpacing: '0.5px',
-          cursor: 'pointer',
           boxShadow: '0 4px 16px rgba(220, 38, 38, 0.45)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
           animation: 'sosPulse 2s ease-in-out infinite',
-          transition: 'transform 0.2s ease',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.1)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)';
         }}
       >
         SOS
@@ -46,94 +22,33 @@ export default function CrisisButton() {
       {modalOpen && (
         <div
           onClick={() => setModalOpen(false)}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 10000,
-            background: 'rgba(0, 0, 0, 0.4)',
-            backdropFilter: 'blur(4px)',
-            WebkitBackdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px',
-            animation: 'crisisOverlayFadeIn 0.2s ease-out',
-          }}
+          className="fixed inset-0 z-[10000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-5"
+          style={{ animation: 'crisisOverlayFadeIn 0.2s ease-out' }}
         >
           {/* Modal Content */}
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{
-              background: '#ffffff',
-              borderRadius: '24px',
-              maxWidth: '440px',
-              width: '100%',
-              padding: '32px',
-              position: 'relative',
-              boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
-              border: '1px solid rgba(141, 166, 147, 0.15)',
-              animation: 'crisisModalSlideIn 0.3s ease-out',
-              fontFamily: "'Inter', sans-serif",
-            }}
+            className="bg-white rounded-3xl max-w-[440px] w-full p-8 relative shadow-elevated border border-gantly-blue/10 font-body"
+            style={{ animation: 'crisisModalSlideIn 0.3s ease-out' }}
           >
             {/* Close Button */}
             <button
               onClick={() => setModalOpen(false)}
               aria-label="Cerrar"
-              style={{
-                position: 'absolute',
-                top: '16px',
-                right: '16px',
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                border: '1px solid rgba(141, 166, 147, 0.2)',
-                background: '#f8faf8',
-                color: '#5a7a64',
-                fontSize: '18px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                lineHeight: 1,
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#eef3ef';
-                e.currentTarget.style.borderColor = 'rgba(141, 166, 147, 0.35)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#f8faf8';
-                e.currentTarget.style.borderColor = 'rgba(141, 166, 147, 0.2)';
-              }}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full border border-gantly-blue/15 bg-gantly-cloud text-gantly-muted text-lg cursor-pointer flex items-center justify-center leading-none hover:bg-gantly-blue-50 hover:border-gantly-blue/30 transition-all"
             >
-              ×
+              x
             </button>
 
             {/* Header */}
-            <div style={{
-              textAlign: 'center',
-              marginBottom: '24px',
-            }}>
-              <div style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '50%',
-                background: 'rgba(90, 146, 112, 0.1)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 12px',
-              }}>
+            <div className="text-center mb-6">
+              <div className="w-12 h-12 rounded-full bg-gantly-blue/10 flex items-center justify-center mx-auto mb-3">
                 <svg
                   width="24"
                   height="24"
                   viewBox="0 0 24 24"
                   fill="none"
-                  stroke="#5a9270"
+                  stroke="#2E93CC"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -141,65 +56,22 @@ export default function CrisisButton() {
                   <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
                 </svg>
               </div>
-              <h2 style={{
-                margin: 0,
-                fontSize: '20px',
-                fontWeight: 700,
-                color: '#2d3b31',
-              }}>
+              <h2 className="m-0 text-xl font-bold text-gantly-navy">
                 Recursos de ayuda en crisis
               </h2>
-              <p style={{
-                margin: '8px 0 0',
-                fontSize: '14px',
-                color: '#6b7f6e',
-                lineHeight: '1.5',
-              }}>
-                No estás solo/a. Hay personas dispuestas a ayudarte ahora mismo.
+              <p className="mt-2 text-sm text-gantly-muted leading-relaxed">
+                No estas solo/a. Hay personas dispuestas a ayudarte ahora mismo.
               </p>
             </div>
 
             {/* Contact Links */}
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px',
-              marginBottom: '20px',
-            }}>
+            <div className="flex flex-col gap-2.5 mb-5">
               {/* Telefono de la Esperanza */}
               <a
                 href="tel:024"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '14px',
-                  padding: '14px 16px',
-                  borderRadius: '16px',
-                  background: 'rgba(90, 146, 112, 0.06)',
-                  border: '1px solid rgba(90, 146, 112, 0.12)',
-                  textDecoration: 'none',
-                  color: '#2d3b31',
-                  transition: 'all 0.2s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(90, 146, 112, 0.12)';
-                  e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.25)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(90, 146, 112, 0.06)';
-                  e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.12)';
-                }}
+                className="flex items-center gap-3.5 px-4 py-3.5 rounded-2xl bg-gantly-blue/[0.04] border border-gantly-blue/10 no-underline text-gantly-navy hover:bg-gantly-blue/10 hover:border-gantly-blue/20 transition-all"
               >
-                <div style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '12px',
-                  background: '#5a9270',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}>
+                <div className="w-10 h-10 rounded-xl bg-gantly-blue flex items-center justify-center shrink-0">
                   <svg
                     width="20"
                     height="20"
@@ -214,10 +86,10 @@ export default function CrisisButton() {
                   </svg>
                 </div>
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: '15px', color: '#2d3b31' }}>
-                    Teléfono de la Esperanza
+                  <div className="font-semibold text-[15px] text-gantly-navy">
+                    Telefono de la Esperanza
                   </div>
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#5a9270' }}>
+                  <div className="text-xl font-bold text-gantly-blue">
                     024
                   </div>
                 </div>
@@ -226,37 +98,9 @@ export default function CrisisButton() {
               {/* Emergencias 112 */}
               <a
                 href="tel:112"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '14px',
-                  padding: '14px 16px',
-                  borderRadius: '16px',
-                  background: 'rgba(90, 146, 112, 0.06)',
-                  border: '1px solid rgba(90, 146, 112, 0.12)',
-                  textDecoration: 'none',
-                  color: '#2d3b31',
-                  transition: 'all 0.2s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(90, 146, 112, 0.12)';
-                  e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.25)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(90, 146, 112, 0.06)';
-                  e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.12)';
-                }}
+                className="flex items-center gap-3.5 px-4 py-3.5 rounded-2xl bg-gantly-blue/[0.04] border border-gantly-blue/10 no-underline text-gantly-navy hover:bg-gantly-blue/10 hover:border-gantly-blue/20 transition-all"
               >
-                <div style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '12px',
-                  background: '#d97706',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}>
+                <div className="w-10 h-10 rounded-xl bg-amber-600 flex items-center justify-center shrink-0">
                   <svg
                     width="20"
                     height="20"
@@ -273,10 +117,10 @@ export default function CrisisButton() {
                   </svg>
                 </div>
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: '15px', color: '#2d3b31' }}>
+                  <div className="font-semibold text-[15px] text-gantly-navy">
                     Emergencias
                   </div>
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#d97706' }}>
+                  <div className="text-xl font-bold text-amber-600">
                     112
                   </div>
                 </div>
@@ -287,37 +131,9 @@ export default function CrisisButton() {
                 href="https://www.telefonodelaesperanza.org"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '14px',
-                  padding: '14px 16px',
-                  borderRadius: '16px',
-                  background: 'rgba(90, 146, 112, 0.06)',
-                  border: '1px solid rgba(90, 146, 112, 0.12)',
-                  textDecoration: 'none',
-                  color: '#2d3b31',
-                  transition: 'all 0.2s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(90, 146, 112, 0.12)';
-                  e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.25)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(90, 146, 112, 0.06)';
-                  e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.12)';
-                }}
+                className="flex items-center gap-3.5 px-4 py-3.5 rounded-2xl bg-gantly-blue/[0.04] border border-gantly-blue/10 no-underline text-gantly-navy hover:bg-gantly-blue/10 hover:border-gantly-blue/20 transition-all"
               >
-                <div style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '12px',
-                  background: '#5a9270',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}>
+                <div className="w-10 h-10 rounded-xl bg-gantly-blue flex items-center justify-center shrink-0">
                   <svg
                     width="20"
                     height="20"
@@ -332,10 +148,10 @@ export default function CrisisButton() {
                   </svg>
                 </div>
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: '15px', color: '#2d3b31' }}>
+                  <div className="font-semibold text-[15px] text-gantly-navy">
                     Chat de crisis
                   </div>
-                  <div style={{ fontSize: '13px', color: '#5a9270' }}>
+                  <div className="text-[13px] text-gantly-blue">
                     telefonodelaesperanza.org
                   </div>
                 </div>
@@ -343,35 +159,17 @@ export default function CrisisButton() {
             </div>
 
             {/* Safety Warning */}
-            <div style={{
-              background: 'rgba(217, 119, 6, 0.08)',
-              border: '1px solid rgba(217, 119, 6, 0.2)',
-              borderRadius: '12px',
-              padding: '14px 16px',
-              marginBottom: '16px',
-            }}>
-              <p style={{
-                margin: 0,
-                fontSize: '14px',
-                fontWeight: 600,
-                color: '#92400e',
-                lineHeight: '1.5',
-              }}>
-                Si estás en peligro inmediato, llama al 112.
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3.5 mb-4">
+              <p className="m-0 text-sm font-semibold text-amber-800 leading-relaxed">
+                Si estas en peligro inmediato, llama al 112.
               </p>
             </div>
 
             {/* Disclaimer */}
-            <p style={{
-              margin: 0,
-              fontSize: '12px',
-              color: '#8da693',
-              lineHeight: '1.6',
-              textAlign: 'center',
-            }}>
+            <p className="m-0 text-xs text-gantly-muted leading-relaxed text-center">
               Gantly no es un servicio de emergencias. En caso de crisis, contacta con los
-              servicios profesionales indicados. Esta información se proporciona como recurso
-              orientativo y no sustituye la atención profesional inmediata.
+              servicios profesionales indicados. Esta informacion se proporciona como recurso
+              orientativo y no sustituye la atencion profesional inmediata.
             </p>
           </div>
         </div>

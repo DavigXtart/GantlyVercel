@@ -23,7 +23,7 @@ export default function ForgotPassword({ onBack, onSuccess: _onSuccess }: Forgot
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const emailError = validateEmail(email);
-    
+
     if (emailError) {
       setErrors({ email: emailError });
       return;
@@ -46,48 +46,18 @@ export default function ForgotPassword({ onBack, onSuccess: _onSuccess }: Forgot
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #e8ece9 0%, #d4e0d8 50%, #e0e8e3 100%)',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: '80px 24px',
-        fontFamily: "'Inter', sans-serif",
-      }}
-    >
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '500px',
-          background: 'rgba(255, 255, 255, 0.95)',
-          border: '1px solid rgba(90, 146, 112, 0.2)',
-          borderRadius: '24px',
-          padding: '48px 40px',
-          boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
-        }}
-      >
+    <div className="min-h-screen bg-gradient-to-br from-gantly-navy-700 via-gantly-blue-600 to-gantly-cyan-500 flex justify-center items-center px-6 py-20">
+      <div className="w-full max-w-[500px] bg-white shadow-card border border-gantly-blue-100 rounded-2xl p-12">
         {!sent ? (
           <>
-            <h2 style={{ 
-              margin: '0 0 8px', 
-              fontSize: '28px', 
-              color: '#1a2e22',
-              fontFamily: "'Nunito', sans-serif",
-              fontWeight: 700,
-            }}>
+            <h2 className="m-0 mb-2 text-[28px] text-gantly-text font-heading font-bold">
               Recuperar contraseña
             </h2>
-            <p style={{ 
-              margin: '0 0 32px', 
-              fontSize: '16px', 
-              color: '#3a5a4a',
-            }}>
+            <p className="m-0 mb-8 text-base text-gantly-muted">
               Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.
             </p>
 
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
               <FormField
                 label="Email"
                 name="email"
@@ -108,20 +78,7 @@ export default function ForgotPassword({ onBack, onSuccess: _onSuccess }: Forgot
               <button
                 type="submit"
                 disabled={loading}
-                style={{
-                  marginTop: '8px',
-                  padding: '14px 24px',
-                  borderRadius: '24px',
-                  border: 'none',
-                  background: loading ? '#cbd5d1' : '#5a9270',
-                  color: '#ffffff',
-                  fontSize: '16px',
-                  fontWeight: 600,
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  boxShadow: loading ? 'none' : '0 4px 12px rgba(90, 146, 112, 0.3)',
-                  transition: 'all 0.3s',
-                  fontFamily: "'Inter', sans-serif",
-                }}
+                className="mt-2 py-3.5 px-6 rounded-full border-none bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white text-base font-semibold cursor-pointer shadow-md hover:shadow-lg transition-all disabled:bg-gray-300 disabled:cursor-not-allowed disabled:shadow-none"
               >
                 {loading ? 'Enviando...' : 'Enviar enlace de recuperación'}
               </button>
@@ -129,24 +86,7 @@ export default function ForgotPassword({ onBack, onSuccess: _onSuccess }: Forgot
               <button
                 type="button"
                 onClick={onBack}
-                style={{
-                  padding: '12px 24px',
-                  borderRadius: '24px',
-                  border: '1px solid #5a9270',
-                  background: 'transparent',
-                  color: '#5a9270',
-                  fontSize: '15px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.3s',
-                  fontFamily: "'Inter', sans-serif",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#f0f5f3';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                }}
+                className="py-3 px-6 rounded-full border border-gantly-blue-200 bg-transparent text-gantly-blue-600 text-[15px] font-semibold cursor-pointer transition-all hover:bg-gantly-blue-50"
               >
                 ← Volver
               </button>
@@ -154,47 +94,18 @@ export default function ForgotPassword({ onBack, onSuccess: _onSuccess }: Forgot
           </>
         ) : (
           <>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '64px', marginBottom: '24px' }}>✉️</div>
-              <h2 style={{ 
-                margin: '0 0 16px', 
-                fontSize: '28px', 
-                color: '#1a2e22',
-                fontFamily: "'Nunito', sans-serif",
-                fontWeight: 700,
-              }}>
+            <div className="text-center">
+              <div className="text-6xl mb-6">✉️</div>
+              <h2 className="m-0 mb-4 text-[28px] text-gantly-text font-heading font-bold">
                 Email enviado
               </h2>
-              <p style={{ 
-                margin: '0 0 32px', 
-                fontSize: '16px', 
-                color: '#3a5a4a',
-                lineHeight: '1.6',
-              }}>
+              <p className="m-0 mb-8 text-base text-gantly-muted leading-relaxed">
                 Si el email <strong>{email}</strong> existe en nuestra base de datos, recibirás un enlace para restablecer tu contraseña.
               </p>
               <button
                 type="button"
                 onClick={onBack}
-                style={{
-                  padding: '14px 24px',
-                  borderRadius: '24px',
-                  border: 'none',
-                  background: '#5a9270',
-                  color: '#ffffff',
-                  fontSize: '16px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(90, 146, 112, 0.3)',
-                  transition: 'all 0.3s',
-                  fontFamily: "'Inter', sans-serif",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#4a8062';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#5a9270';
-                }}
+                className="py-3.5 px-6 rounded-full border-none bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white text-base font-semibold cursor-pointer shadow-md hover:shadow-lg transition-all"
               >
                 Volver al inicio de sesión
               </button>
@@ -205,4 +116,3 @@ export default function ForgotPassword({ onBack, onSuccess: _onSuccess }: Forgot
     </div>
   );
 }
-

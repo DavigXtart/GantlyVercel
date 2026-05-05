@@ -39,18 +39,18 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
         <button
           type="button"
           onClick={onBack}
-          className="p-2 rounded-xl hover:bg-sage/10 transition-colors"
+          className="p-2 rounded-xl hover:bg-gantly-blue-50 transition-colors"
         >
-          <span className="material-symbols-outlined text-xl text-sage">arrow_back</span>
+          <span className="material-symbols-outlined text-xl text-gantly-muted">arrow_back</span>
         </button>
         <div>
-          <h1 className="text-2xl font-semibold text-forest">{`Configuraci\u00f3n`}</h1>
-          <p className="text-sm text-sage/60">Gestiona tu cuenta, seguridad y privacidad</p>
+          <h1 className="text-2xl font-semibold text-gantly-text">{`Configuraci\u00f3n`}</h1>
+          <p className="text-sm text-gantly-muted/60">Gestiona tu cuenta, seguridad y privacidad</p>
         </div>
       </div>
 
       {/* Section tabs */}
-      <div className="flex gap-1 bg-sage/5 rounded-2xl p-1.5 mb-8">
+      <div className="flex gap-1 bg-gantly-blue-50/50 rounded-2xl p-1.5 mb-8">
         {([
           { id: 'perfil' as SettingsSection, icon: 'person', label: 'Perfil' },
           { id: 'seguridad' as SettingsSection, icon: 'lock', label: 'Seguridad' },
@@ -63,8 +63,8 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
             onClick={() => setSettingsSection(s.id)}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-medium transition-all ${
               settingsSection === s.id
-                ? 'bg-white text-forest shadow-sm'
-                : 'text-sage/60 hover:text-sage'
+                ? 'bg-white text-gantly-text shadow-sm'
+                : 'text-gantly-muted/60 hover:text-gantly-muted'
             }`}
           >
             <span className="material-symbols-outlined text-base">{s.icon}</span>
@@ -77,14 +77,14 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
       {settingsSection === 'perfil' && (
         <div className="space-y-6">
           {/* Avatar card */}
-          <div className="bg-white rounded-2xl p-6 border border-sage/10">
-            <h3 className="text-sm font-semibold text-forest/50 uppercase tracking-wider mb-5">Foto de perfil</h3>
+          <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-card">
+            <h3 className="text-sm font-semibold text-gantly-muted/50 uppercase tracking-wider mb-5">Foto de perfil</h3>
             <div className="flex items-center gap-5">
-              <div className="size-20 rounded-full overflow-hidden border-2 border-sage/15 bg-sage/5 flex items-center justify-center flex-shrink-0">
+              <div className="size-20 rounded-full overflow-hidden border-2 border-gantly-blue-100 bg-gantly-blue-50 flex items-center justify-center flex-shrink-0">
                 {me?.avatarUrl ? (
                   <img src={me.avatarUrl} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-2xl text-forest font-semibold">
+                  <span className="text-2xl text-gantly-text font-semibold">
                     {me?.name ? me.name.charAt(0).toUpperCase() : 'U'}
                   </span>
                 )}
@@ -115,37 +115,37 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
                       }
                     }}
                   />
-                  <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sage/10 text-sm text-sage font-medium hover:bg-sage/20 transition cursor-pointer">
+                  <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gantly-blue-50 text-sm text-gantly-blue-600 font-medium hover:bg-gantly-blue-100 transition cursor-pointer">
                     <span className="material-symbols-outlined text-base">upload</span>
                     {uploadingAvatar ? 'Subiendo...' : 'Cambiar foto'}
                   </span>
                 </label>
-                <p className="text-xs text-sage/40">{`JPG, PNG. M\u00e1ximo 10MB.`}</p>
+                <p className="text-xs text-gantly-muted/40">{`JPG, PNG. M\u00e1ximo 10MB.`}</p>
               </div>
             </div>
           </div>
 
           {/* Personal info card */}
-          <div className="bg-white rounded-2xl p-6 border border-sage/10">
-            <h3 className="text-sm font-semibold text-forest/50 uppercase tracking-wider mb-5">{`Informaci\u00f3n personal`}</h3>
+          <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-card">
+            <h3 className="text-sm font-semibold text-gantly-muted/50 uppercase tracking-wider mb-5">{`Informaci\u00f3n personal`}</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-forest mb-1.5">Nombre</label>
+                <label className="block text-sm font-medium text-gantly-text mb-1.5">Nombre</label>
                 <input
                   type="text"
                   value={editProfileForm.name}
                   onChange={(e) => setEditProfileForm({ ...editProfileForm, name: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-sage/15 bg-cream/30 focus:border-sage focus:ring-2 focus:ring-sage/10 outline-none transition text-sm"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gantly-blue-100 bg-gantly-cloud-100/30 focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-100 outline-none transition text-sm"
                   placeholder="Tu nombre"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-forest mb-1.5">{`G\u00e9nero`}</label>
+                  <label className="block text-sm font-medium text-gantly-text mb-1.5">{`G\u00e9nero`}</label>
                   <select
                     value={editProfileForm.gender}
                     onChange={(e) => setEditProfileForm({ ...editProfileForm, gender: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-sage/15 bg-cream/30 focus:border-sage focus:ring-2 focus:ring-sage/10 outline-none transition text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gantly-blue-100 bg-gantly-cloud-100/30 focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-100 outline-none transition text-sm"
                   >
                     <option value="">No especificado</option>
                     <option value="MALE">Hombre</option>
@@ -154,12 +154,12 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-forest mb-1.5">Fecha de nacimiento</label>
+                  <label className="block text-sm font-medium text-gantly-text mb-1.5">Fecha de nacimiento</label>
                   <input
                     type="date"
                     value={editProfileForm.birthDate}
                     onChange={(e) => setEditProfileForm({ ...editProfileForm, birthDate: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-sage/15 bg-cream/30 focus:border-sage focus:ring-2 focus:ring-sage/10 outline-none transition text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gantly-blue-100 bg-gantly-cloud-100/30 focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-100 outline-none transition text-sm"
                   />
                 </div>
               </div>
@@ -192,7 +192,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
                       setSavingProfile(false);
                     }
                   }}
-                  className="px-6 py-2.5 rounded-xl bg-sage text-white text-sm font-medium hover:bg-sage/90 transition disabled:opacity-60"
+                  className="px-6 py-2.5 rounded-xl bg-gantly-blue-500 text-white text-sm font-medium hover:bg-gantly-blue-600 transition disabled:opacity-60"
                 >
                   {savingProfile ? 'Guardando...' : 'Guardar cambios'}
                 </button>
@@ -206,37 +206,37 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
       {settingsSection === 'seguridad' && (
         <div className="space-y-6">
           {/* Change password */}
-          <div className="bg-white rounded-2xl p-6 border border-sage/10">
-            <h3 className="text-sm font-semibold text-forest/50 uppercase tracking-wider mb-5">{`Cambiar contrase\u00f1a`}</h3>
+          <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-card">
+            <h3 className="text-sm font-semibold text-gantly-muted/50 uppercase tracking-wider mb-5">{`Cambiar contrase\u00f1a`}</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-forest mb-1.5">{`Contrase\u00f1a actual`}</label>
+                <label className="block text-sm font-medium text-gantly-text mb-1.5">{`Contrase\u00f1a actual`}</label>
                 <input
                   type="password"
                   value={passwordForm.currentPassword}
                   onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-sage/15 bg-cream/30 focus:border-sage focus:ring-2 focus:ring-sage/10 outline-none transition text-sm"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gantly-blue-100 bg-gantly-cloud-100/30 focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-100 outline-none transition text-sm"
                   placeholder={'\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022'}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-forest mb-1.5">{`Nueva contrase\u00f1a`}</label>
+                  <label className="block text-sm font-medium text-gantly-text mb-1.5">{`Nueva contrase\u00f1a`}</label>
                   <input
                     type="password"
                     value={passwordForm.newPassword}
                     onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-sage/15 bg-cream/30 focus:border-sage focus:ring-2 focus:ring-sage/10 outline-none transition text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gantly-blue-100 bg-gantly-cloud-100/30 focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-100 outline-none transition text-sm"
                     placeholder={`M\u00ednimo 6 caracteres`}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-forest mb-1.5">{`Confirmar contrase\u00f1a`}</label>
+                  <label className="block text-sm font-medium text-gantly-text mb-1.5">{`Confirmar contrase\u00f1a`}</label>
                   <input
                     type="password"
                     value={passwordForm.confirmPassword}
                     onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-sage/15 bg-cream/30 focus:border-sage focus:ring-2 focus:ring-sage/10 outline-none transition text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gantly-blue-100 bg-gantly-cloud-100/30 focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-100 outline-none transition text-sm"
                     placeholder={'\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022'}
                   />
                 </div>
@@ -266,7 +266,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
                       setSavingPassword(false);
                     }
                   }}
-                  className="px-6 py-2.5 rounded-xl bg-forest text-cream text-sm font-medium hover:bg-forest/90 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="px-6 py-2.5 rounded-xl bg-gantly-blue-500 text-white text-sm font-medium hover:bg-gantly-blue-600 transition disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {savingPassword ? 'Guardando...' : `Cambiar contrase\u00f1a`}
                 </button>
@@ -275,8 +275,8 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
           </div>
 
           {/* 2FA */}
-          <div className="bg-white rounded-2xl p-6 border border-sage/10">
-            <h3 className="text-sm font-semibold text-forest/50 uppercase tracking-wider mb-5">{`Autenticaci\u00f3n en dos pasos`}</h3>
+          <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-card">
+            <h3 className="text-sm font-semibold text-gantly-muted/50 uppercase tracking-wider mb-5">{`Autenticaci\u00f3n en dos pasos`}</h3>
             <Suspense fallback={<LoadingSpinner />}>
               <TwoFactorSetup
                 isEnabled={me?.totpEnabled || false}
@@ -289,8 +289,8 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
 
       {/* === SECTION: Pagos === */}
       {settingsSection === 'pagos' && (
-        <div className="bg-white rounded-2xl p-6 border border-sage/10">
-          <h3 className="text-sm font-semibold text-forest/50 uppercase tracking-wider mb-5">{`Facturaci\u00f3n y pagos`}</h3>
+        <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-card">
+          <h3 className="text-sm font-semibold text-gantly-muted/50 uppercase tracking-wider mb-5">{`Facturaci\u00f3n y pagos`}</h3>
           <Suspense fallback={<LoadingSpinner />}>
             <BillingPortal />
           </Suspense>
@@ -301,9 +301,9 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
       {settingsSection === 'privacidad' && (
         <div className="space-y-6">
           {/* Export data */}
-          <div className="bg-white rounded-2xl p-6 border border-sage/10">
-            <h3 className="text-sm font-semibold text-forest/50 uppercase tracking-wider mb-5">Descargar mis datos</h3>
-            <p className="text-sage/60 text-sm mb-4">
+          <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-card">
+            <h3 className="text-sm font-semibold text-gantly-muted/50 uppercase tracking-wider mb-5">Descargar mis datos</h3>
+            <p className="text-gantly-muted/60 text-sm mb-4">
               {`Descarga una copia de todos tus datos en formato JSON (Art. 20 RGPD \u2014 Derecho de portabilidad).`}
             </p>
             <button
@@ -322,7 +322,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
                   toast.error('Error al exportar los datos');
                 }
               }}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-forest text-white text-sm font-medium hover:bg-forest/90 transition"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gantly-blue-500 text-white text-sm font-medium hover:bg-gantly-blue-600 transition"
             >
               <span className="material-symbols-outlined text-base">download</span>
               Descargar mis datos
@@ -330,11 +330,11 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
           </div>
 
           {/* Retention policy */}
-          <div className="bg-white rounded-2xl p-6 border border-sage/10">
-            <h3 className="text-sm font-semibold text-forest/50 uppercase tracking-wider mb-5">{`Pol\u00edtica de retenci\u00f3n`}</h3>
+          <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-card">
+            <h3 className="text-sm font-semibold text-gantly-muted/50 uppercase tracking-wider mb-5">{`Pol\u00edtica de retenci\u00f3n`}</h3>
             <div className="flex items-start gap-3">
-              <span className="material-symbols-outlined text-sage/40 mt-0.5">info</span>
-              <p className="text-sage/60 text-sm leading-relaxed">
+              <span className="material-symbols-outlined text-gantly-muted/40 mt-0.5">info</span>
+              <p className="text-gantly-muted/60 text-sm leading-relaxed">
                 {`Tus datos se conservan durante un m\u00e1ximo de 5 a\u00f1os desde tu registro, conforme a la legislaci\u00f3n sanitaria. Tras ese periodo, tus datos son anonimizados autom\u00e1ticamente.`}
               </p>
             </div>
@@ -343,7 +343,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
           {/* Delete account */}
           <div className="bg-white rounded-2xl p-6 border border-red-100">
             <h3 className="text-sm font-semibold text-red-400 uppercase tracking-wider mb-3">Zona de peligro</h3>
-            <p className="text-sage/60 text-sm mb-4">
+            <p className="text-gantly-muted/60 text-sm mb-4">
               {`Eliminar tu cuenta es una acci\u00f3n irreversible. Todos tus datos ser\u00e1n eliminados permanentemente (Art. 17 RGPD \u2014 Derecho de supresi\u00f3n).`}
             </p>
             <button

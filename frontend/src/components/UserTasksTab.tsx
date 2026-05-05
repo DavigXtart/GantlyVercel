@@ -59,36 +59,11 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
   return (
     <>
       {selectedTaskId && selectedTask ? (
-        // Vista detallada de la tarea (versión original con todas las funcionalidades)
-        <div
-          style={{
-            background: '#ffffff',
-            borderRadius: '20px',
-            boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
-            padding: '40px',
-            border: '1px solid rgba(90, 146, 112, 0.15)',
-            marginTop: '40px',
-          }}
-        >
-          {/* Cabecera + botón volver */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: '32px',
-            }}
-          >
-            <h3
-              style={{
-                margin: 0,
-                fontSize: '28px',
-                fontWeight: 700,
-                color: '#1a2e22',
-                fontFamily: "'Inter', sans-serif",
-                letterSpacing: '-0.02em',
-              }}
-            >
+        // Vista detallada de la tarea
+        <div className="bg-white rounded-2xl shadow-card p-10 border border-slate-100 mt-10">
+          {/* Cabecera + boton volver */}
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="text-2xl font-bold text-gantly-text tracking-tight">
               {selectedTask.title}
             </h3>
             <button
@@ -97,69 +72,19 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
                 setSelectedTask(null);
                 setNewComment('');
               }}
-              style={{
-                padding: '10px 20px',
-                background: '#f0f5f3',
-                color: '#5a9270',
-                border: '2px solid rgba(90, 146, 112, 0.3)',
-                borderRadius: '12px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontSize: '15px',
-                transition: 'all 0.3s ease',
-                fontFamily: "'Inter', sans-serif",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#e8f0ed';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#f0f5f3';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
+              className="px-5 py-2.5 bg-gantly-cloud-100 text-gantly-blue-600 border-2 border-gantly-blue-200 rounded-xl font-semibold text-sm cursor-pointer transition-all hover:bg-gantly-blue-50 hover:-translate-y-0.5"
             >
               ← Volver
             </button>
           </div>
 
-          {/* Información de la tarea */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-              gap: '20px',
-              marginBottom: '32px',
-            }}
-          >
-            <div
-              style={{
-                padding: '20px',
-                background:
-                  'linear-gradient(135deg, #f0f5f3 0%, #e8f0ed 100%)',
-                borderRadius: '16px',
-                border: '1px solid rgba(90, 146, 112, 0.2)',
-              }}
-            >
-              <div
-                style={{
-                  fontSize: '12px',
-                  color: '#5a9270',
-                  marginBottom: '8px',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  fontFamily: "'Inter', sans-serif",
-                }}
-              >
+          {/* Informacion de la tarea */}
+          <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-5 mb-8">
+            <div className="p-5 bg-gradient-to-br from-gantly-cloud-100 to-gantly-blue-50 rounded-2xl border border-gantly-blue-100">
+              <div className="text-xs text-gantly-blue-600 mb-2 font-semibold uppercase">
                 Creada el
               </div>
-              <div
-                style={{
-                  fontSize: '16px',
-                  fontWeight: 600,
-                  color: '#1a2e22',
-                  fontFamily: "'Inter', sans-serif",
-                }}
-              >
+              <div className="text-base font-semibold text-gantly-text">
                 {selectedTask.createdAt
                   ? new Date(
                       selectedTask.createdAt,
@@ -177,43 +102,22 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
 
             {selectedTask.dueDate && (
               <div
-                style={{
-                  padding: '20px',
-                  background:
-                    new Date(selectedTask.dueDate) < new Date()
-                      ? 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)'
-                      : 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                  borderRadius: '16px',
-                  border: `1px solid ${
-                    new Date(selectedTask.dueDate) < new Date()
-                      ? 'rgba(220, 38, 38, 0.3)'
-                      : 'rgba(217, 119, 6, 0.3)'
-                  }`,
-                }}
+                className={`p-5 rounded-2xl border ${
+                  new Date(selectedTask.dueDate) < new Date()
+                    ? 'bg-gradient-to-br from-red-50 to-red-100 border-red-200'
+                    : 'bg-gradient-to-br from-gantly-gold-50 to-gantly-gold-100 border-gantly-gold-300'
+                }`}
               >
                 <div
-                  style={{
-                    fontSize: '12px',
-                    color:
-                      new Date(selectedTask.dueDate) < new Date()
-                        ? '#dc2626'
-                        : '#d97706',
-                    marginBottom: '8px',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    fontFamily: "'Inter', sans-serif",
-                  }}
+                  className={`text-xs mb-2 font-semibold uppercase ${
+                    new Date(selectedTask.dueDate) < new Date()
+                      ? 'text-red-600'
+                      : 'text-gantly-gold-600'
+                  }`}
                 >
                   Vence el
                 </div>
-                <div
-                  style={{
-                    fontSize: '16px',
-                    fontWeight: 600,
-                    color: '#1a2e22',
-                    fontFamily: "'Inter', sans-serif",
-                  }}
-                >
+                <div className="text-base font-semibold text-gantly-text">
                   {new Date(
                     selectedTask.dueDate,
                   ).toLocaleDateString('es-ES', {
@@ -229,93 +133,30 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
             )}
           </div>
 
-          {/* Descripción */}
+          {/* Descripcion */}
           {selectedTask.description && (
-            <div
-              style={{
-                marginBottom: '32px',
-                padding: '24px',
-                background:
-                  'linear-gradient(135deg, #f8f9fa 0%, #f0f5f3 100%)',
-                borderRadius: '16px',
-                border: '1px solid rgba(90, 146, 112, 0.15)',
-              }}
-            >
-              <h4
-                style={{
-                  margin: '0 0 16px 0',
-                  fontSize: '18px',
-                  fontWeight: 600,
-                  color: '#1a2e22',
-                  fontFamily: "'Inter', sans-serif",
-                }}
-              >
-                Descripción
+            <div className="mb-8 p-6 bg-gradient-to-br from-slate-50 to-gantly-cloud-100 rounded-2xl border border-gantly-blue-100/50">
+              <h4 className="text-lg font-semibold text-gantly-text mb-4">
+                Descripcion
               </h4>
-              <div
-                style={{
-                  fontSize: '16px',
-                  color: '#3a5a4a',
-                  lineHeight: '1.7',
-                  fontFamily: "'Inter', sans-serif",
-                  whiteSpace: 'pre-wrap',
-                }}
-              >
+              <div className="text-base text-gantly-muted leading-relaxed whitespace-pre-wrap">
                 {selectedTask.description}
               </div>
             </div>
           )}
 
           {/* Archivos */}
-          <div
-            style={{
-              marginBottom: '32px',
-              padding: '24px',
-              background: '#ffffff',
-              borderRadius: '16px',
-              border: '1px solid rgba(90, 146, 112, 0.15)',
-              boxShadow: '0 2px 8px rgba(90, 146, 112, 0.08)',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '20px',
-              }}
-            >
-              <h4
-                style={{
-                  margin: 0,
-                  fontSize: '20px',
-                  fontWeight: 600,
-                  color: '#1a2e22',
-                  fontFamily: "'Inter', sans-serif",
-                }}
-              >
-                📎 Archivos adjuntos
+          <div className="mb-8 p-6 bg-white rounded-2xl border border-slate-100 shadow-soft">
+            <div className="flex justify-between items-center mb-5">
+              <h4 className="text-xl font-semibold text-gantly-text">
+                Archivos adjuntos
               </h4>
               {!selectedTask.completedAt && (
-                <label
-                  style={{
-                    padding: '10px 20px',
-                    background: '#5a9270',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '12px',
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    fontFamily: "'Inter', sans-serif",
-                    boxShadow: '0 4px 12px rgba(90, 146, 112, 0.3)',
-                  }}
-                >
-                  ➕ Subir archivo
+                <label className="px-5 py-2.5 bg-gantly-blue-500 text-white rounded-xl text-sm font-semibold cursor-pointer transition-all hover:bg-gantly-blue-600 shadow-glow-blue">
+                  Subir archivo
                   <input
                     type="file"
-                    style={{ display: 'none' }}
+                    className="hidden"
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (file && selectedTaskId) {
@@ -347,56 +188,19 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
 
             {taskFiles[selectedTaskId] &&
             taskFiles[selectedTaskId].length > 0 ? (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px',
-                }}
-              >
+              <div className="flex flex-col gap-3">
                 {taskFiles[selectedTaskId].map((file: any) => (
                   <div
                     key={file.id}
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '16px',
-                      background:
-                        'linear-gradient(135deg, #f8f9fa 0%, #f0f5f3 100%)',
-                      borderRadius: '12px',
-                      border:
-                        '1px solid rgba(90, 146, 112, 0.15)',
-                    }}
+                    className="flex justify-between items-center p-4 bg-gradient-to-br from-slate-50 to-gantly-cloud-100 rounded-xl border border-gantly-blue-100/50"
                   >
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '16px',
-                        flex: 1,
-                      }}
-                    >
-                      <span style={{ fontSize: '24px' }}>📄</span>
+                    <div className="flex items-center gap-4 flex-1">
+                      <span className="material-symbols-outlined text-2xl text-gantly-blue-400">description</span>
                       <div>
-                        <div
-                          style={{
-                            fontSize: '15px',
-                            fontWeight: 600,
-                            color: '#1a2e22',
-                            fontFamily: "'Inter', sans-serif",
-                          }}
-                        >
+                        <div className="text-sm font-semibold text-gantly-text">
                           {file.originalName}
                         </div>
-                        <div
-                          style={{
-                            fontSize: '13px',
-                            color: '#3a5a4a',
-                            marginTop: '4px',
-                            fontFamily: "'Inter', sans-serif",
-                          }}
-                        >
+                        <div className="text-xs text-gantly-muted mt-1">
                           {(file.fileSize / 1024).toFixed(1)} KB •
                           Subido por {file.uploaderName}
                         </div>
@@ -404,20 +208,7 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
                     </div>
                     <button
                       onClick={() => fileService.downloadTaskFile(file.filePath)}
-                      style={{
-                        padding: '8px 16px',
-                        background: '#5a9270',
-                        color: 'white',
-                        border: 'none',
-                        cursor: 'pointer',
-                        borderRadius: '12px',
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        transition: 'all 0.3s ease',
-                        fontFamily: "'Inter', sans-serif",
-                        boxShadow:
-                          '0 2px 8px rgba(90, 146, 112, 0.3)',
-                      }}
+                      className="px-4 py-2 bg-gantly-blue-500 text-white rounded-xl text-xs font-semibold transition-all hover:bg-gantly-blue-600 shadow-glow-blue"
                     >
                       Descargar
                     </button>
@@ -425,63 +216,31 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
                 ))}
               </div>
             ) : (
-              <div
-                style={{
-                  fontSize: '15px',
-                  color: '#6b7280',
-                  fontFamily: "'Inter', sans-serif",
-                }}
-              >
-                Aún no hay archivos adjuntos en esta tarea.
+              <div className="text-sm text-gray-500">
+                Aun no hay archivos adjuntos en esta tarea.
               </div>
             )}
           </div>
 
-          {/* Comentarios y botón completar */}
-          {/* (comentarios + marcar completada se mantienen igual que en la versión original) */}
+          {/* Comentarios y boton completar */}
+          {/* (comentarios + marcar completada se mantienen igual que en la version original) */}
         </div>
       ) : (
-        // Lista de tareas (versión original, con pendientes y completadas)
-        <div
-          style={{
-            background: '#ffffff',
-            borderRadius: '20px',
-            boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
-            padding: '40px',
-            border: '1px solid rgba(90, 146, 112, 0.15)',
-            marginTop: '40px',
-          }}
-        >
-          <h3
-            style={{
-              margin: '0 0 32px 0',
-              fontSize: '28px',
-              fontWeight: 700,
-              color: '#1a2e22',
-              fontFamily: "'Inter', sans-serif",
-              letterSpacing: '-0.02em',
-            }}
-          >
+        // Lista de tareas
+        <div className="bg-white rounded-2xl shadow-card p-10 border border-slate-100 mt-10">
+          <h3 className="text-2xl font-bold text-gantly-text tracking-tight mb-8">
             Mis Tareas
           </h3>
           {tasks.length === 0 ? (
-            <p style={{ color: '#6b7280', fontSize: '14px' }}>
+            <p className="text-gray-500 text-sm">
               No tienes tareas asignadas.
             </p>
           ) : (
             <>
               {/* Pendientes */}
               {tasks.filter((t) => !t.completedAt).length > 0 && (
-                <div style={{ marginBottom: '32px' }}>
-                  <h4
-                    style={{
-                      margin: '0 0 20px 0',
-                      fontSize: '20px',
-                      fontWeight: 600,
-                      color: '#1a2e22',
-                      fontFamily: "'Inter', sans-serif",
-                    }}
-                  >
+                <div className="mb-8">
+                  <h4 className="text-xl font-semibold text-gantly-text mb-5">
                     Tareas pendientes
                   </h4>
                   <div className="flex flex-col gap-3">
@@ -494,18 +253,17 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
                             setSelectedTaskId(t.id);
                             loadTaskDetails(t.id);
                           }}
-                          className="rounded-3xl px-6 py-4 shadow-sm border border-sage/20 cursor-pointer transition-all hover:shadow-md flex items-center justify-between gap-6"
-                          style={{ backgroundColor: '#EDF2EB' }}
+                          className="rounded-2xl px-6 py-4 shadow-soft border border-gantly-blue-100 cursor-pointer transition-all hover:shadow-card hover:-translate-y-0.5 flex items-center justify-between gap-6 bg-gantly-cloud-100"
                         >
                           <div className="flex-1">
-                            <div className="text-sm text-sage serif-font font-medium">
+                            <div className="text-sm text-gantly-blue-600 font-medium">
                               {t.title}
                             </div>
-                            <div className="text-xs text-forest font-medium mt-0.5">
-                              {t.description || 'Sin descripción'}
+                            <div className="text-xs text-gantly-text font-medium mt-0.5">
+                              {t.description || 'Sin descripcion'}
                             </div>
                           </div>
-                          <div className="flex-shrink-0 text-sm text-sage font-medium serif-font">
+                          <div className="flex-shrink-0 text-sm text-gantly-muted font-medium">
                             {t.createdBy === 'PSYCHOLOGIST'
                               ? 'Asignada'
                               : 'Enviada'}
@@ -519,15 +277,7 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
               {/* Completadas */}
               {tasks.filter((t) => t.completedAt).length > 0 && (
                 <div>
-                  <h4
-                    style={{
-                      margin: '0 0 20px 0',
-                      fontSize: '20px',
-                      fontWeight: 600,
-                      color: '#1a2e22',
-                      fontFamily: "'Inter', sans-serif",
-                    }}
-                  >
+                  <h4 className="text-xl font-semibold text-gantly-text mb-5">
                     Tareas completadas
                   </h4>
                   <div className="flex flex-col gap-3">
@@ -540,18 +290,17 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
                             setSelectedTaskId(t.id);
                             loadTaskDetails(t.id);
                           }}
-                          className="rounded-3xl px-6 py-4 shadow-sm border border-sage/20 cursor-pointer transition-all hover:shadow-md flex items-center justify-between gap-6"
-                          style={{ backgroundColor: '#EDF2EB' }}
+                          className="rounded-2xl px-6 py-4 shadow-soft border border-gantly-emerald-100 cursor-pointer transition-all hover:shadow-card hover:-translate-y-0.5 flex items-center justify-between gap-6 bg-gantly-emerald-50"
                         >
                           <div className="flex-1">
-                            <div className="text-sm text-sage serif-font font-medium">
+                            <div className="text-sm text-gantly-emerald-600 font-medium">
                               {t.title}
                             </div>
-                            <div className="text-xs text-forest font-medium mt-0.5">
-                              {t.description || 'Sin descripción'}
+                            <div className="text-xs text-gantly-text font-medium mt-0.5">
+                              {t.description || 'Sin descripcion'}
                             </div>
                           </div>
-                          <div className="flex-shrink-0 text-sm text-sage font-medium serif-font">
+                          <div className="flex-shrink-0 text-sm text-gantly-emerald-600 font-medium">
                             Completada
                           </div>
                         </div>

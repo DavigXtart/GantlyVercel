@@ -14,36 +14,36 @@ interface MatchingStep {
 
 const matchingSteps: MatchingStep[] = [
   {
-    title: 'Experiencia Clínica',
-    description: 'Analizando años de experiencia del psicólogo según tu nivel de afectación',
+    title: 'Experiencia Clinica',
+    description: 'Analizando anos de experiencia del psicologo segun tu nivel de afectacion',
     weight: '15%',
     icon: '🎓',
-    color: '#5a9270'
+    color: '#2E93CC'
   },
   {
-    title: 'Áreas de Trabajo',
-    description: 'Comparando tus necesidades con las especialidades del psicólogo',
+    title: 'Areas de Trabajo',
+    description: 'Comparando tus necesidades con las especialidades del psicologo',
     weight: '20%',
     icon: '🎯',
-    color: '#667eea'
+    color: '#059669'
   },
   {
-    title: 'Complejidad Clínica',
-    description: 'Evaluando si el psicólogo maneja casos de tu nivel de complejidad',
+    title: 'Complejidad Clinica',
+    description: 'Evaluando si el psicologo maneja casos de tu nivel de complejidad',
     weight: '10%',
     icon: '📊',
-    color: '#f59e0b'
+    color: '#F0C930'
   },
   {
-    title: 'Estilo Terapéutico',
+    title: 'Estilo Terapeutico',
     description: 'Matching entre tu preferencia y el estilo del profesional',
     weight: '12%',
     icon: '💬',
-    color: '#ec4899'
+    color: '#22D3EE'
   },
   {
-    title: 'Población Objetivo',
-    description: 'Verificando que el psicólogo trabaje con tu rango de edad',
+    title: 'Poblacion Objetivo',
+    description: 'Verificando que el psicologo trabaje con tu rango de edad',
     weight: '8%',
     icon: '👥',
     color: '#10b981'
@@ -56,18 +56,18 @@ const matchingSteps: MatchingStep[] = [
     color: '#f97316'
   },
   {
-    title: 'Medicación Psiquiátrica',
-    description: 'Comprobando experiencia con medicación si la necesitas',
+    title: 'Medicacion Psiquiatrica',
+    description: 'Comprobando experiencia con medicacion si la necesitas',
     weight: '10%',
     icon: '💊',
     color: '#8b5cf6'
   },
   {
-    title: 'Preferencia de Género',
+    title: 'Preferencia de Genero',
     description: 'Respetando tu preferencia si la has indicado',
     weight: '5%',
     icon: '⚖️',
-    color: '#6366f1'
+    color: '#0A1628'
   }
 ];
 
@@ -86,7 +86,7 @@ export default function MatchingAnimation({ onComplete }: MatchingAnimationProps
       }, 1500);
       return () => clearTimeout(timer);
     } else if (!showFormula) {
-      // Mostrar fórmula después de todos los pasos
+      // Mostrar formula despues de todos los pasos
       setTimeout(() => {
         setShowFormula(true);
       }, 500);
@@ -96,7 +96,7 @@ export default function MatchingAnimation({ onComplete }: MatchingAnimationProps
         setShowResults(true);
       }, 2000);
     } else {
-      // Completar animación después de mostrar resultados
+      // Completar animacion despues de mostrar resultados
       setTimeout(() => {
         onComplete();
       }, 2000);
@@ -107,126 +107,58 @@ export default function MatchingAnimation({ onComplete }: MatchingAnimationProps
   const completedSteps = matchingSteps.slice(0, currentStep);
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #f0f5f3 0%, #e8f0ed 100%)',
-      padding: '40px 20px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    }}>
-      <div style={{
-        maxWidth: '900px',
-        width: '100%',
-        background: '#fff',
-        borderRadius: '24px',
-        padding: '48px',
-        boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
+    <div className="min-h-screen bg-gradient-to-br from-gantly-cloud to-gantly-blue-50 p-5 md:p-10 flex items-center justify-center">
+      <div className="max-w-[900px] w-full bg-white rounded-3xl p-8 md:p-12 shadow-elevated relative overflow-hidden">
         {/* Barra de progreso */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '4px',
-          background: '#e5e7eb',
-          borderRadius: '24px 24px 0 0'
-        }}>
-          <div style={{
-            height: '100%',
-            background: 'linear-gradient(90deg, #5a9270 0%, #667eea 100%)',
-            width: `${progress}%`,
-            transition: 'width 0.5s ease',
-            borderRadius: '24px 24px 0 0'
-          }} />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gray-200 rounded-t-3xl">
+          <div
+            className="h-full bg-gradient-to-r from-gantly-blue to-gantly-cyan rounded-t-3xl transition-[width] duration-500 ease-out"
+            style={{ width: `${progress}%` }}
+          />
         </div>
 
         {!showFormula && !showResults && (
           <>
-            {/* Título */}
-            <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-              <h1 style={{
-                fontSize: '36px',
-                fontWeight: 700,
-                color: '#1a2e22',
-                marginBottom: '12px',
-                fontFamily: "'Inter', sans-serif"
-              }}>
+            {/* Titulo */}
+            <div className="text-center mb-12">
+              <h1 className="text-4xl font-heading font-bold text-gantly-navy mb-3">
                 Calculando tu Match Perfecto
               </h1>
-              <p style={{
-                fontSize: '18px',
-                color: '#6b7280',
-                fontFamily: "'Inter', sans-serif"
-              }}>
-                Analizando tus respuestas y comparándolas con nuestros psicólogos
+              <p className="text-lg text-gantly-muted font-body">
+                Analizando tus respuestas y comparandolas con nuestros psicologos
               </p>
             </div>
 
             {/* Paso actual */}
             {currentStepData && (
-              <div style={{
-                textAlign: 'center',
-                padding: '40px',
-                background: 'linear-gradient(135deg, #f8f9fa 0%, #f0f5f3 100%)',
-                borderRadius: '20px',
-                marginBottom: '32px',
-                border: `2px solid ${currentStepData.color}40`,
-                animation: 'fadeInScale 0.5s ease',
-                position: 'relative',
-                overflow: 'hidden'
-              }}>
-                <div style={{
-                  position: 'absolute',
-                  top: '-50%',
-                  left: '-50%',
-                  width: '200%',
-                  height: '200%',
-                  background: `radial-gradient(circle, ${currentStepData.color}10 0%, transparent 70%)`,
-                  animation: 'pulse 2s ease-in-out infinite'
-                }} />
-                <div style={{ fontSize: '64px', marginBottom: '20px', position: 'relative', zIndex: 1 }}>
+              <div
+                className="text-center p-10 bg-gradient-to-br from-gray-50 to-gantly-cloud rounded-2xl mb-8 relative overflow-hidden animate-fade-in-up"
+                style={{ border: `2px solid ${currentStepData.color}30` }}
+              >
+                <div
+                  className="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] animate-pulse"
+                  style={{ background: `radial-gradient(circle, ${currentStepData.color}10 0%, transparent 70%)` }}
+                />
+                <div className="text-[64px] mb-5 relative z-10">
                   {currentStepData.icon}
                 </div>
-                <h2 style={{
-                  fontSize: '28px',
-                  fontWeight: 700,
-                  color: currentStepData.color,
-                  marginBottom: '12px',
-                  fontFamily: "'Inter', sans-serif",
-                  position: 'relative',
-                  zIndex: 1
-                }}>
+                <h2
+                  className="text-[28px] font-heading font-bold mb-3 relative z-10"
+                  style={{ color: currentStepData.color }}
+                >
                   {currentStepData.title}
                 </h2>
-                <p style={{
-                  fontSize: '16px',
-                  color: '#3a5a4a',
-                  lineHeight: 1.6,
-                  fontFamily: "'Inter', sans-serif",
-                  position: 'relative',
-                  zIndex: 1
-                }}>
+                <p className="text-base text-gantly-muted leading-relaxed font-body relative z-10">
                   {currentStepData.description}
                 </p>
-                <div style={{
-                  marginTop: '20px',
-                  padding: '8px 16px',
-                  background: `${currentStepData.color}20`,
-                  borderRadius: '20px',
-                  display: 'inline-block',
-                  position: 'relative',
-                  zIndex: 1
-                }}>
-                  <span style={{
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    color: currentStepData.color,
-                    fontFamily: "'Inter', sans-serif"
-                  }}>
+                <div
+                  className="mt-5 px-4 py-2 rounded-full inline-block relative z-10"
+                  style={{ background: `${currentStepData.color}20` }}
+                >
+                  <span
+                    className="text-sm font-semibold font-body"
+                    style={{ color: currentStepData.color }}
+                  >
                     Peso: {currentStepData.weight}
                   </span>
                 </div>
@@ -235,43 +167,23 @@ export default function MatchingAnimation({ onComplete }: MatchingAnimationProps
 
             {/* Pasos completados */}
             {completedSteps.length > 0 && (
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: '16px',
-                marginTop: '32px'
-              }}>
+              <div className="grid grid-cols-2 sm:grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mt-8">
                 {completedSteps.map((step, index) => (
                   <div
                     key={index}
-                    style={{
-                      padding: '20px',
-                      background: '#f8f9fa',
-                      borderRadius: '12px',
-                      border: `2px solid ${step.color}40`,
-                      textAlign: 'center',
-                      opacity: 0.7,
-                      transition: 'opacity 0.3s ease',
-                      animation: 'fadeIn 0.5s ease'
-                    }}
+                    className="p-5 bg-gray-50 rounded-xl text-center opacity-70 animate-fade-in"
+                    style={{ border: `2px solid ${step.color}30` }}
                   >
-                    <div style={{ fontSize: '32px', marginBottom: '8px' }}>
+                    <div className="text-[32px] mb-2">
                       {step.icon}
                     </div>
-                    <div style={{
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      color: step.color,
-                      fontFamily: "'Inter', sans-serif"
-                    }}>
+                    <div
+                      className="text-sm font-semibold font-body"
+                      style={{ color: step.color }}
+                    >
                       {step.title}
                     </div>
-                    <div style={{
-                      fontSize: '12px',
-                      color: '#6b7280',
-                      marginTop: '4px',
-                      fontFamily: "'Inter', sans-serif"
-                    }}>
+                    <div className="text-xs text-gantly-muted mt-1 font-body">
                       {step.weight}
                     </div>
                   </div>
@@ -282,111 +194,61 @@ export default function MatchingAnimation({ onComplete }: MatchingAnimationProps
         )}
 
         {showFormula && !showResults && (
-          <div style={{
-            textAlign: 'center',
-            animation: 'fadeInScale 0.5s ease'
-          }}>
-            <div style={{ fontSize: '64px', marginBottom: '24px' }}>🧮</div>
-            <h2 style={{
-              fontSize: '32px',
-              fontWeight: 700,
-              color: '#1a2e22',
-              marginBottom: '24px',
-              fontFamily: "'Inter', sans-serif"
-            }}>
-              Fórmula de Matching
+          <div className="text-center animate-fade-in-up">
+            <div className="text-[64px] mb-6">🧮</div>
+            <h2 className="text-[32px] font-heading font-bold text-gantly-navy mb-6">
+              Formula de Matching
             </h2>
-            <div style={{
-              background: 'linear-gradient(135deg, #f8f9fa 0%, #f0f5f3 100%)',
-              borderRadius: '16px',
-              padding: '32px',
-              marginBottom: '24px',
-              border: '2px solid rgba(90, 146, 112, 0.2)'
-            }}>
-              <div style={{
-                fontSize: '18px',
-                color: '#3a5a4a',
-                lineHeight: 1.8,
-                fontFamily: "'Inter', sans-serif",
-                textAlign: 'left',
-                display: 'inline-block'
-              }}>
-                <div style={{ marginBottom: '12px' }}>
-                  <strong>Score de Afinidad =</strong>
+            <div className="bg-gradient-to-br from-gray-50 to-gantly-cloud rounded-2xl p-8 mb-6 border-2 border-gantly-blue/15">
+              <div className="text-lg text-gantly-muted leading-[1.8] font-body text-left inline-block">
+                <div className="mb-3">
+                  <strong className="text-gantly-navy">Score de Afinidad =</strong>
                 </div>
-                <div style={{ marginLeft: '20px', marginBottom: '8px' }}>
-                  (Experiencia × 15%) +
+                <div className="ml-5 mb-2">
+                  (Experiencia x 15%) +
                 </div>
-                <div style={{ marginLeft: '20px', marginBottom: '8px' }}>
-                  (Áreas × 20%) +
+                <div className="ml-5 mb-2">
+                  (Areas x 20%) +
                 </div>
-                <div style={{ marginLeft: '20px', marginBottom: '8px' }}>
-                  (Complejidad × 10%) +
+                <div className="ml-5 mb-2">
+                  (Complejidad x 10%) +
                 </div>
-                <div style={{ marginLeft: '20px', marginBottom: '8px' }}>
-                  (Estilo × 12%) +
+                <div className="ml-5 mb-2">
+                  (Estilo x 12%) +
                 </div>
-                <div style={{ marginLeft: '20px', marginBottom: '8px' }}>
-                  (Población × 8%) +
+                <div className="ml-5 mb-2">
+                  (Poblacion x 8%) +
                 </div>
-                <div style={{ marginLeft: '20px', marginBottom: '8px' }}>
-                  (Crisis × 10%) +
+                <div className="ml-5 mb-2">
+                  (Crisis x 10%) +
                 </div>
-                <div style={{ marginLeft: '20px', marginBottom: '8px' }}>
-                  (Medicación × 10%) +
+                <div className="ml-5 mb-2">
+                  (Medicacion x 10%) +
                 </div>
-                <div style={{ marginLeft: '20px', marginBottom: '12px' }}>
-                  (Género × 5%)
+                <div className="ml-5 mb-3">
+                  (Genero x 5%)
                 </div>
-                <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(90, 146, 112, 0.2)' }}>
-                  <strong>% Match = Score × 100</strong>
+                <div className="mt-4 pt-4 border-t border-gantly-blue/15">
+                  <strong className="text-gantly-navy">% Match = Score x 100</strong>
                 </div>
               </div>
             </div>
-            <p style={{
-              fontSize: '16px',
-              color: '#6b7280',
-              fontFamily: "'Inter', sans-serif"
-            }}>
+            <p className="text-base text-gantly-muted font-body">
               Normalizando y calculando porcentajes finales...
             </p>
           </div>
         )}
 
         {showResults && (
-          <div style={{
-            textAlign: 'center',
-            animation: 'fadeInScale 0.5s ease'
-          }}>
-            <div style={{ fontSize: '64px', marginBottom: '24px' }}>✨</div>
-            <h2 style={{
-              fontSize: '32px',
-              fontWeight: 700,
-              color: '#1a2e22',
-              marginBottom: '16px',
-              fontFamily: "'Inter', sans-serif"
-            }}>
-              ¡Matching Completado!
+          <div className="text-center animate-fade-in-up">
+            <div className="text-[64px] mb-6">✨</div>
+            <h2 className="text-[32px] font-heading font-bold text-gantly-navy mb-4">
+              Matching Completado!
             </h2>
-            <p style={{
-              fontSize: '18px',
-              color: '#6b7280',
-              marginBottom: '32px',
-              fontFamily: "'Inter', sans-serif"
-            }}>
-              Hemos encontrado psicólogos que se adaptan perfectamente a tu perfil
+            <p className="text-lg text-gantly-muted mb-8 font-body">
+              Hemos encontrado psicologos que se adaptan perfectamente a tu perfil
             </p>
-            <div style={{
-              display: 'inline-block',
-              padding: '16px 32px',
-              background: 'linear-gradient(135deg, #5a9270 0%, #667eea 100%)',
-              borderRadius: '16px',
-              color: '#fff',
-              fontSize: '18px',
-              fontWeight: 600,
-              fontFamily: "'Inter', sans-serif",
-              animation: 'pulse 2s ease-in-out infinite'
-            }}>
+            <div className="inline-block px-8 py-4 bg-gradient-to-r from-gantly-blue to-gantly-cyan rounded-2xl text-white text-lg font-semibold font-body animate-pulse">
               Mostrando resultados...
             </div>
           </div>
@@ -411,17 +273,8 @@ export default function MatchingAnimation({ onComplete }: MatchingAnimationProps
               opacity: 1;
             }
           }
-          @keyframes pulse {
-            0%, 100% {
-              opacity: 0.3;
-            }
-            50% {
-              opacity: 0.6;
-            }
-          }
         `}</style>
       </div>
     </div>
   );
 }
-

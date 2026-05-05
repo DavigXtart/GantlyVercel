@@ -4,90 +4,30 @@ interface PrivacyPolicyProps {
 
 export default function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
   return (
-    <div className="min-h-screen" style={{ background: '#f5f7f6', color: '#1a2e22' }}>
+    <div className="min-h-screen bg-gantly-cloud text-gantly-text">
       {/* Navigation */}
-      <nav
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 1000,
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(10px)',
-          borderBottom: '1px solid rgba(90, 146, 112, 0.15)',
-          padding: '20px 40px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
+      <nav className="sticky top-0 z-[1000] bg-white/95 backdrop-blur-md border-b border-gantly-blue/10 px-6 md:px-10 py-5 flex justify-between items-center">
         <button
           onClick={onBack}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            color: '#3a5a4a',
-            fontSize: '15px',
-            fontWeight: 500,
-            fontFamily: "'Inter', sans-serif",
-            transition: 'color 0.3s',
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = '#5a9270'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = '#3a5a4a'; }}
+          className="flex items-center gap-2.5 bg-transparent border-none cursor-pointer text-gantly-muted text-[15px] font-medium font-body hover:text-gantly-blue transition-colors"
         >
           &larr; Volver
         </button>
-        <div
-          style={{
-            fontFamily: "'Nunito', sans-serif",
-            fontSize: '28px',
-            fontWeight: 700,
-            color: '#5a9270',
-            letterSpacing: '-0.02em',
-          }}
-        >
+        <div className="font-heading text-[28px] font-bold text-gantly-blue tracking-tight">
           Gantly
         </div>
-        <div style={{ width: '80px' }} />
+        <div className="w-20" />
       </nav>
 
       {/* Content */}
       <main className="max-w-4xl mx-auto px-6 py-16">
-        <div
-          style={{
-            background: '#ffffff',
-            border: '2px solid rgba(90, 146, 112, 0.15)',
-            borderRadius: '24px',
-            padding: '56px',
-            boxShadow: '0 8px 24px rgba(26, 46, 34, 0.08)',
-          }}
-        >
+        <div className="bg-white border-2 border-gantly-blue/10 rounded-3xl p-8 md:p-14 shadow-card">
           {/* Header */}
           <div className="mb-12 text-center">
-            <h1
-              style={{
-                fontFamily: "'Nunito', sans-serif",
-                fontSize: '36px',
-                fontWeight: 700,
-                color: '#1a2e22',
-                letterSpacing: '-0.02em',
-                margin: '0 0 12px',
-              }}
-            >
+            <h1 className="font-heading text-4xl font-bold text-gantly-navy tracking-tight mb-3">
               Politica de Privacidad
             </h1>
-            <p
-              style={{
-                fontFamily: "'Inter', sans-serif",
-                fontSize: '15px',
-                color: '#5a9270',
-                fontWeight: 500,
-                margin: 0,
-              }}
-            >
+            <p className="text-[15px] text-gantly-blue font-medium font-body m-0">
               Ultima actualizacion: 1 de marzo de 2026
             </p>
           </div>
@@ -339,20 +279,8 @@ export default function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
           </Section>
 
           {/* Footer */}
-          <div
-            className="mt-12 pt-8 text-center"
-            style={{
-              borderTop: '1px solid rgba(90, 146, 112, 0.15)',
-            }}
-          >
-            <p
-              style={{
-                fontFamily: "'Inter', sans-serif",
-                fontSize: '14px',
-                color: '#5a9270',
-                margin: 0,
-              }}
-            >
+          <div className="mt-12 pt-8 text-center border-t border-gantly-blue/10">
+            <p className="text-sm text-gantly-blue font-body m-0">
               Gantly Health S.L. - Todos los derechos reservados
             </p>
           </div>
@@ -362,33 +290,15 @@ export default function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
   );
 }
 
-/* ──────────────────────────── Reusable sub-components ──────────────────────────── */
+/* Reusable sub-components */
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mb-10">
-      <h2
-        style={{
-          fontFamily: "'Nunito', sans-serif",
-          fontSize: '22px',
-          fontWeight: 700,
-          color: '#1a2e22',
-          letterSpacing: '-0.01em',
-          margin: '0 0 16px',
-          paddingBottom: '10px',
-          borderBottom: '2px solid rgba(90, 146, 112, 0.15)',
-        }}
-      >
+      <h2 className="font-heading text-[22px] font-bold text-gantly-navy tracking-tight m-0 mb-4 pb-2.5 border-b-2 border-gantly-blue/10">
         {title}
       </h2>
-      <div
-        style={{
-          fontFamily: "'Inter', sans-serif",
-          fontSize: '15px',
-          lineHeight: 1.8,
-          color: '#3a5a4a',
-        }}
-      >
+      <div className="font-body text-[15px] leading-[1.8] text-gantly-muted">
         {children}
       </div>
     </section>
@@ -398,15 +308,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function SubSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mt-4 mb-4">
-      <h3
-        style={{
-          fontFamily: "'Nunito', sans-serif",
-          fontSize: '17px',
-          fontWeight: 600,
-          color: '#2a4a3a',
-          margin: '0 0 8px',
-        }}
-      >
+      <h3 className="font-heading text-[17px] font-semibold text-gantly-navy-400 m-0 mb-2">
         {title}
       </h3>
       {children}
@@ -416,9 +318,9 @@ function SubSection({ title, children }: { title: string; children: React.ReactN
 
 function BulletList({ items }: { items: string[] }) {
   return (
-    <ul className="pl-6 my-3 space-y-2" style={{ listStyleType: 'disc' }}>
+    <ul className="pl-6 my-3 space-y-2 list-disc">
       {items.map((item, i) => (
-        <li key={i} style={{ paddingLeft: '4px' }}>
+        <li key={i} className="pl-1">
           {item}
         </li>
       ))}
@@ -428,9 +330,9 @@ function BulletList({ items }: { items: string[] }) {
 
 function NumberedList({ items }: { items: string[] }) {
   return (
-    <ol className="pl-6 my-3 space-y-2" style={{ listStyleType: 'decimal' }}>
+    <ol className="pl-6 my-3 space-y-2 list-decimal">
       {items.map((item, i) => (
-        <li key={i} style={{ paddingLeft: '4px' }}>
+        <li key={i} className="pl-1">
           {item}
         </li>
       ))}
@@ -440,16 +342,10 @@ function NumberedList({ items }: { items: string[] }) {
 
 function InfoBlock({ items }: { items: { label: string; value: string }[] }) {
   return (
-    <div
-      className="my-4 p-5 rounded-xl"
-      style={{
-        background: 'rgba(90, 146, 112, 0.06)',
-        border: '1px solid rgba(90, 146, 112, 0.15)',
-      }}
-    >
+    <div className="my-4 p-5 rounded-xl bg-gantly-blue/[0.04] border border-gantly-blue/10">
       {items.map((item, i) => (
-        <p key={i} className="my-1" style={{ margin: '6px 0' }}>
-          <strong style={{ color: '#1a2e22' }}>{item.label}:</strong>{' '}
+        <p key={i} className="my-1.5">
+          <strong className="text-gantly-navy">{item.label}:</strong>{' '}
           {item.value}
         </p>
       ))}
@@ -459,14 +355,7 @@ function InfoBlock({ items }: { items: { label: string; value: string }[] }) {
 
 function HighlightBox({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      className="my-4 p-5 rounded-xl"
-      style={{
-        background: 'linear-gradient(135deg, rgba(90, 146, 112, 0.08), rgba(91, 143, 168, 0.06))',
-        borderLeft: '4px solid #5a9270',
-        fontStyle: 'normal',
-      }}
-    >
+    <div className="my-4 p-5 rounded-xl bg-gradient-to-br from-gantly-blue/[0.06] to-gantly-cyan/[0.04] border-l-4 border-l-gantly-blue">
       {children}
     </div>
   );

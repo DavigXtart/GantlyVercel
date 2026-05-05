@@ -23,7 +23,7 @@ export default function MisEstadisticas() {
       setMoodStats(moodData);
       setTestStats(testData);
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Error al cargar estadísticas');
+      toast.error(error.response?.data?.error || 'Error al cargar estadisticas');
     } finally {
       setLoading(false);
     }
@@ -31,181 +31,108 @@ export default function MisEstadisticas() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+      <div className="flex justify-center items-center min-h-[400px]">
         <LoadingSpinner />
       </div>
     );
   }
 
   return (
-    <div style={{
-      background: '#ffffff',
-      borderRadius: '20px',
-      boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
-      padding: '40px',
-      border: '1px solid rgba(90, 146, 112, 0.15)'
-    }}>
-      <h2 style={{ 
-        fontSize: '28px', 
-        fontWeight: 700, 
-        color: '#1a2e22', 
-        marginBottom: '32px',
-        fontFamily: "'Inter', sans-serif"
-      }}>
-        Mis Estadísticas
+    <div className="bg-white rounded-2xl shadow-card p-10 border border-slate-100">
+      <h2 className="text-2xl font-bold text-gantly-text mb-8">
+        Mis Estadisticas
       </h2>
 
-      {/* Estadísticas de Estado de Ánimo */}
-      <div style={{ marginBottom: '40px' }}>
-        <h3 style={{ 
-          fontSize: '20px', 
-          fontWeight: 600, 
-          color: '#3a5a4a', 
-          marginBottom: '24px',
-          fontFamily: "'Inter', sans-serif"
-        }}>
-          📊 Estado de Ánimo (últimos 30 días)
+      {/* Estadisticas de Estado de Animo */}
+      <div className="mb-10">
+        <h3 className="text-xl font-semibold text-gantly-muted mb-6">
+          Estado de Animo (ultimos 30 dias)
         </h3>
         {moodStats && moodStats.totalEntries > 0 ? (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '20px'
-          }}>
-            <div style={{
-              padding: '24px',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              borderRadius: '16px',
-              color: '#fff'
-            }}>
-              <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '8px' }}>
-                Promedio de Estado de Ánimo
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-5">
+            <div className="p-6 bg-gradient-to-br from-gantly-blue-500 to-gantly-blue-700 rounded-2xl text-white">
+              <div className="text-sm opacity-90 mb-2">
+                Promedio de Estado de Animo
               </div>
-              <div style={{ fontSize: '36px', fontWeight: 700 }}>
+              <div className="text-4xl font-bold">
                 {moodStats.averageMood?.toFixed(1) || '0.0'}
               </div>
-              <div style={{ fontSize: '12px', opacity: 0.8, marginTop: '4px' }}>
+              <div className="text-xs opacity-80 mt-1">
                 de 5.0
               </div>
             </div>
-            <div style={{
-              padding: '24px',
-              background: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)',
-              borderRadius: '16px',
-              color: '#fff'
-            }}>
-              <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '8px' }}>
+            <div className="p-6 bg-gradient-to-br from-gantly-gold-400 to-gantly-gold-600 rounded-2xl text-white">
+              <div className="text-sm opacity-90 mb-2">
                 Racha Actual
               </div>
-              <div style={{ fontSize: '36px', fontWeight: 700 }}>
-                {moodStats.streak || 0} días
+              <div className="text-4xl font-bold">
+                {moodStats.streak || 0} dias
               </div>
-              <div style={{ fontSize: '12px', opacity: 0.8, marginTop: '4px' }}>
-                días consecutivos
+              <div className="text-xs opacity-80 mt-1">
+                dias consecutivos
               </div>
             </div>
-            <div style={{
-              padding: '24px',
-              background: 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)',
-              borderRadius: '16px',
-              color: '#fff'
-            }}>
-              <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '8px' }}>
+            <div className="p-6 bg-gradient-to-br from-gantly-emerald-500 to-gantly-emerald-700 rounded-2xl text-white">
+              <div className="text-sm opacity-90 mb-2">
                 Total de Entradas
               </div>
-              <div style={{ fontSize: '36px', fontWeight: 700 }}>
+              <div className="text-4xl font-bold">
                 {moodStats.totalEntries || 0}
               </div>
-              <div style={{ fontSize: '12px', opacity: 0.8, marginTop: '4px' }}>
+              <div className="text-xs opacity-80 mt-1">
                 registros
               </div>
             </div>
           </div>
         ) : (
           <EmptyState
-            title="No hay datos aún"
-            description="Comienza a registrar tu estado de ánimo diario para ver tus estadísticas aquí."
+            title="No hay datos aun"
+            description="Comienza a registrar tu estado de animo diario para ver tus estadisticas aqui."
           />
         )}
       </div>
 
-      {/* Estadísticas de Tests */}
+      {/* Estadisticas de Tests */}
       <div>
-        <h3 style={{ 
-          fontSize: '20px', 
-          fontWeight: 600, 
-          color: '#3a5a4a', 
-          marginBottom: '24px',
-          fontFamily: "'Inter', sans-serif"
-        }}>
-          📝 Tests Completados
+        <h3 className="text-xl font-semibold text-gantly-muted mb-6">
+          Tests Completados
         </h3>
         {testStats && testStats.totalTests > 0 ? (
           <div>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '20px',
-              marginBottom: '32px'
-            }}>
-              <div style={{
-                padding: '24px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                borderRadius: '16px',
-                color: '#fff'
-              }}>
-                <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '8px' }}>
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-5 mb-8">
+              <div className="p-6 bg-gradient-to-br from-gantly-blue-500 to-gantly-blue-700 rounded-2xl text-white">
+                <div className="text-sm opacity-90 mb-2">
                   Total de Tests
                 </div>
-                <div style={{ fontSize: '36px', fontWeight: 700 }}>
+                <div className="text-4xl font-bold">
                   {testStats.totalTests || 0}
                 </div>
               </div>
-              <div style={{
-                padding: '24px',
-                background: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)',
-                borderRadius: '16px',
-                color: '#fff'
-              }}>
-                <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '8px' }}>
-                  Puntuación Promedio
+              <div className="p-6 bg-gradient-to-br from-gantly-gold-400 to-gantly-gold-600 rounded-2xl text-white">
+                <div className="text-sm opacity-90 mb-2">
+                  Puntuacion Promedio
                 </div>
-                <div style={{ fontSize: '36px', fontWeight: 700 }}>
+                <div className="text-4xl font-bold">
                   {testStats.averageScore?.toFixed(1) || '0.0'}
                 </div>
               </div>
             </div>
 
             {testStats.testsByTopic && Object.keys(testStats.testsByTopic).length > 0 && (
-              <div style={{ marginBottom: '32px' }}>
-                <h4 style={{ 
-                  fontSize: '18px', 
-                  fontWeight: 600, 
-                  color: '#1a2e22', 
-                  marginBottom: '16px',
-                  fontFamily: "'Inter', sans-serif"
-                }}>
+              <div className="mb-8">
+                <h4 className="text-lg font-semibold text-gantly-text mb-4">
                   Tests por Tema
                 </h4>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-                  gap: '12px'
-                }}>
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3">
                   {Object.entries(testStats.testsByTopic).map(([topic, count]: [string, any]) => (
                     <div
                       key={topic}
-                      style={{
-                        padding: '16px',
-                        background: '#f8f9fa',
-                        borderRadius: '12px',
-                        border: '1px solid #e5e7eb'
-                      }}
+                      className="p-4 bg-slate-50 rounded-xl border border-slate-200"
                     >
-                      <div style={{ fontSize: '14px', color: '#3a5a4a', marginBottom: '4px' }}>
+                      <div className="text-sm text-gantly-muted mb-1">
                         {topic}
                       </div>
-                      <div style={{ fontSize: '24px', fontWeight: 700, color: '#1a2e22' }}>
+                      <div className="text-2xl font-bold text-gantly-text">
                         {count}
                       </div>
                     </div>
@@ -216,38 +143,24 @@ export default function MisEstadisticas() {
 
             {testStats.recentResults && testStats.recentResults.length > 0 && (
               <div>
-                <h4 style={{ 
-                  fontSize: '18px', 
-                  fontWeight: 600, 
-                  color: '#1a2e22', 
-                  marginBottom: '16px',
-                  fontFamily: "'Inter', sans-serif"
-                }}>
+                <h4 className="text-lg font-semibold text-gantly-text mb-4">
                   Resultados Recientes
                 </h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div className="flex flex-col gap-3">
                   {testStats.recentResults.map((result: any, index: number) => (
                     <div
                       key={index}
-                      style={{
-                        padding: '16px',
-                        background: '#f8f9fa',
-                        borderRadius: '12px',
-                        border: '1px solid #e5e7eb',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                      }}
+                      className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-center"
                     >
                       <div>
-                        <div style={{ fontSize: '16px', fontWeight: 600, color: '#1a2e22' }}>
+                        <div className="text-base font-semibold text-gantly-text">
                           {result.testTitle}
                         </div>
-                        <div style={{ fontSize: '14px', color: '#3a5a4a' }}>
+                        <div className="text-sm text-gantly-muted">
                           {result.topic} • {result.level}
                         </div>
                       </div>
-                      <div style={{ fontSize: '20px', fontWeight: 700, color: '#667eea' }}>
+                      <div className="text-xl font-bold text-gantly-blue-500">
                         {result.score.toFixed(1)}
                       </div>
                     </div>
@@ -259,11 +172,10 @@ export default function MisEstadisticas() {
         ) : (
           <EmptyState
             title="No hay tests completados"
-            description="Completa algunos tests de evaluación para ver tus estadísticas aquí."
+            description="Completa algunos tests de evaluacion para ver tus estadisticas aqui."
           />
         )}
       </div>
     </div>
   );
 }
-

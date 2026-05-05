@@ -387,16 +387,16 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
 
   if (loading && !me) {
     return (
-      <div className="container" style={{ maxWidth: '1200px', padding: '40px' }}>
+      <div className="max-w-[1200px] mx-auto p-10">
         <LoadingSpinner text="Cargando tu espacio..." />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-cream text-forest flex">
+    <div className="min-h-screen bg-gantly-cloud-100 text-gantly-text flex">
       {/* Sidebar */}
-      <aside className="w-24 bg-cream sticky top-0 h-screen flex flex-col items-center pt-2 pb-10 z-40 border-none">
+      <aside className="w-24 bg-white border-r border-gantly-blue-100 sticky top-0 h-screen flex flex-col items-center pt-2 pb-10 z-40">
         <nav className="flex flex-col gap-4 w-full px-3">
           {[
             { id: 'perfil', icon: 'person', label: 'Perfil', requiresPsych: false },
@@ -446,19 +446,22 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       <main className="flex-1 px-8 lg:px-12 py-4 relative overflow-x-hidden">
         {/* Header hero solo en PERFIL */}
         {tab === 'perfil' && (
-          <header className="bg-sage/10 rounded-[4rem] p-8 lg:p-12 mb-10 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-full pointer-events-none opacity-20">
+          <header className="bg-gradient-to-r from-gantly-cloud-100 to-white rounded-2xl p-8 lg:p-12 mb-10 relative overflow-hidden border border-slate-100 shadow-card">
+            <div className="absolute top-0 right-0 w-64 h-full pointer-events-none opacity-10">
               <svg className="w-full h-full" viewBox="0 0 200 200">
                 <path
                   className="line-art"
                   d="M150 40 Q180 80 160 120 T100 160 T40 100 Q60 40 150 40"
+                  stroke="#2E93CC"
+                  fill="none"
+                  strokeWidth="1"
                 />
-                <circle cx="100" cy="100" r="2" fill="#8da693" />
+                <circle cx="100" cy="100" r="2" fill="#2E93CC" />
               </svg>
             </div>
             <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
               <div className="relative">
-                <div className="size-28 md:size-32 rounded-full overflow-hidden border-4 border-white soft-shadow bg-sage/20 flex items-center justify-center">
+                <div className="size-28 md:size-32 rounded-full overflow-hidden border-4 border-white shadow-card bg-gantly-blue-50 flex items-center justify-center">
                   {me?.avatarUrl ? (
                     <img
                       src={me.avatarUrl}
@@ -466,7 +469,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-3xl md:text-4xl text-forest font-semibold">
+                    <span className="text-3xl md:text-4xl text-gantly-text font-semibold">
                       {me?.name ? me.name.charAt(0).toUpperCase() : 'U'}
                     </span>
                   )}
@@ -475,11 +478,11 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               <div className="text-center md:text-left">
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-normal mb-2">
                   Hola,{' '}
-                  <span className="italic text-sage">
+                  <span className="italic text-gantly-blue-500">
                     {me?.name || 'tu espacio emocional'}.
                   </span>
                 </h1>
-                <p className="text-sage/70 font-light mb-4">
+                <p className="text-gantly-muted/70 font-light mb-4">
                   {me?.email}
                   {me?.createdAt && (
                     <>
@@ -493,17 +496,17 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                   onClick={() => {
                     setTab('configuracion');
                   }}
-                  className="px-4 py-2 rounded-full border border-sage/30 text-sm text-sage hover:bg-sage hover:text-white transition inline-flex items-center gap-2"
+                  className="px-4 py-2 rounded-full border border-gantly-blue-200 text-sm text-gantly-blue-600 hover:bg-gantly-blue-500 hover:text-white transition inline-flex items-center gap-2"
                 >
                   <span className="material-symbols-outlined text-base">settings</span>
-                  Configuración
+                  Configuracion
                 </button>
               </div>
             </div>
           </header>
         )}
 
-        {/* Vista PERFIL: tarjetas resumen como en el diseño */}
+        {/* Vista PERFIL: tarjetas resumen como en el diseno */}
         {tab === 'perfil' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Columna izquierda */}
@@ -512,18 +515,18 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                 <button
                   type="button"
                   onClick={() => setTab('mis-estadisticas')}
-                  className="bg-white p-8 rounded-[3rem] border border-sage/10 soft-shadow hover:-translate-y-1 transition-transform duration-300 text-left relative overflow-hidden group"
+                  className="bg-white p-8 rounded-2xl border border-slate-100 shadow-card hover:-translate-y-1 transition-transform duration-300 text-left relative overflow-hidden group"
                 >
                   <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform">
-                    <span className="material-symbols-outlined text-6xl text-sage">
+                    <span className="material-symbols-outlined text-6xl text-gantly-blue-400">
                       monitoring
                     </span>
                   </div>
-                  <div className="size-12 bg-mint flex items-center justify-center rounded-2xl text-sage mb-6">
+                  <div className="size-12 bg-gantly-blue-50 flex items-center justify-center rounded-2xl text-gantly-blue-500 mb-6">
                     <span className="material-symbols-outlined">bar_chart</span>
                   </div>
-                  <h3 className="text-2xl font-normal mb-1">Mis estadísticas</h3>
-                  <p className="text-sm text-sage/60 font-light">
+                  <h3 className="text-2xl font-normal mb-1">Mis estadisticas</h3>
+                  <p className="text-sm text-gantly-muted/60 font-light">
                     Tu progreso en el tiempo
                   </p>
                 </button>
@@ -531,35 +534,35 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                 <button
                   type="button"
                   onClick={() => setTab('evaluaciones')}
-                  className="bg-white p-8 rounded-[3rem] border border-sage/10 soft-shadow hover:-translate-y-1 transition-transform duration-300 text-left relative overflow-hidden group"
+                  className="bg-white p-8 rounded-2xl border border-slate-100 shadow-card hover:-translate-y-1 transition-transform duration-300 text-left relative overflow-hidden group"
                 >
                   <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform">
-                    <span className="material-symbols-outlined text-6xl text-sage">
+                    <span className="material-symbols-outlined text-6xl text-gantly-blue-400">
                       edit_note
                     </span>
                   </div>
-                  <div className="size-12 bg-mint flex items-center justify-center rounded-2xl text-sage mb-6">
+                  <div className="size-12 bg-gantly-blue-50 flex items-center justify-center rounded-2xl text-gantly-blue-500 mb-6">
                     <span className="material-symbols-outlined">description</span>
                   </div>
                   <h3 className="text-2xl font-normal mb-1">Evaluaciones</h3>
-                  <p className="text-sm text-sage/60 font-light">Tests de evaluación</p>
+                  <p className="text-sm text-gantly-muted/60 font-light">Tests de evaluacion</p>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setTab('descubrimiento')}
-                  className="bg-white p-8 rounded-[3rem] border border-sage/10 soft-shadow hover:-translate-y-1 transition-transform duration-300 text-left relative overflow-hidden group"
+                  className="bg-white p-8 rounded-2xl border border-slate-100 shadow-card hover:-translate-y-1 transition-transform duration-300 text-left relative overflow-hidden group"
                 >
                   <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform">
-                    <span className="material-symbols-outlined text-6xl text-sage">
+                    <span className="material-symbols-outlined text-6xl text-gantly-blue-400">
                       search_insights
                     </span>
                   </div>
-                  <div className="size-12 bg-mint flex items-center justify-center rounded-2xl text-sage mb-6">
+                  <div className="size-12 bg-gantly-blue-50 flex items-center justify-center rounded-2xl text-gantly-blue-500 mb-6">
                     <span className="material-symbols-outlined">travel_explore</span>
                   </div>
                   <h3 className="text-2xl font-normal mb-1">Descubrimiento</h3>
-                  <p className="text-sm text-sage/60 font-light">Explora nuevos insights</p>
+                  <p className="text-sm text-gantly-muted/60 font-light">Explora nuevos insights</p>
                 </button>
               </div>
 
@@ -568,57 +571,57 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                 <button
                   type="button"
                   onClick={() => setTab('tareas')}
-                  className="bg-white p-10 rounded-[3rem] border border-sage/10 soft-shadow text-left hover:-translate-y-1 transition-transform duration-300"
+                  className="bg-white p-10 rounded-2xl border border-slate-100 shadow-card text-left hover:-translate-y-1 transition-transform duration-300"
                 >
                   <div className="flex items-center justify-between mb-6">
-                    <span className="text-[10px] uppercase tracking-widest font-bold text-sage/40">
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-gantly-muted/40">
                       Tareas pendientes
                     </span>
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-5xl serif-font italic">
+                    <span className="text-5xl font-heading italic text-gantly-text">
                       {tasks.filter((t) => !t.completedAt).length}
                     </span>
-                    <span className="text-sage font-light">pendiente(s)</span>
+                    <span className="text-gantly-muted font-light">pendiente(s)</span>
                   </div>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setTab('tests-pendientes')}
-                  className="bg-white p-10 rounded-[3rem] border border-sage/10 soft-shadow text-left hover:-translate-y-1 transition-transform duration-300"
+                  className="bg-white p-10 rounded-2xl border border-slate-100 shadow-card text-left hover:-translate-y-1 transition-transform duration-300"
                 >
                   <div className="flex items-center justify-between mb-6">
-                    <span className="text-[10px] uppercase tracking-widest font-bold text-sage/40">
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-gantly-muted/40">
                       Tests pendientes
                     </span>
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-5xl serif-font italic">
+                    <span className="text-5xl font-heading italic text-gantly-text">
                       {assignedTests.filter((t) => !t.completedAt).length}
                     </span>
-                    <span className="text-sage font-light">pendiente(s)</span>
+                    <span className="text-gantly-muted font-light">pendiente(s)</span>
                   </div>
                 </button>
               </div>
             </div>
 
-            {/* Columna derecha: próxima cita */}
+            {/* Columna derecha: proxima cita */}
             <div className="lg:col-span-1">
-              <div className="bg-white p-10 rounded-[4rem] border border-sage/10 soft-shadow h-full flex flex-col">
+              <div className="bg-white p-10 rounded-2xl border border-slate-100 shadow-card h-full flex flex-col">
                 <div className="flex items-center gap-2 mb-4">
-                  <span className="material-symbols-outlined text-amber-500 text-sm">
+                  <span className="material-symbols-outlined text-gantly-gold-500 text-sm">
                     alarm
                   </span>
-                  <span className="text-[10px] uppercase tracking-widest font-bold text-sage/40">
-                    Próxima cita
+                  <span className="text-[10px] uppercase tracking-widest font-bold text-gantly-muted/40">
+                    Proxima cita
                   </span>
                 </div>
 
                 {upcomingAppointment ? (
-                  <div className="bg-amber-light/50 rounded-[3rem] p-8 flex-1 flex flex-col justify-between relative overflow-hidden">
+                  <div className="bg-gantly-gold-50 rounded-2xl p-8 flex-1 flex flex-col justify-between relative overflow-hidden">
                     <div>
-                      <h4 className="text-3xl font-normal mb-4">
+                      <h4 className="text-3xl font-normal mb-4 text-gantly-text">
                         {new Date(upcomingAppointment.startTime).toLocaleDateString(
                           'es-ES',
                           {
@@ -628,7 +631,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                           },
                         )}
                       </h4>
-                      <div className="space-y-3 text-sage">
+                      <div className="space-y-3 text-gantly-muted">
                         <div className="flex items-center gap-3 text-sm">
                           <span className="material-symbols-outlined text-lg">
                             schedule
@@ -648,7 +651,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                               psychology
                             </span>
                             <span className="font-light">
-                              Sesión con {upcomingAppointment.psychologist.name}
+                              Sesion con {upcomingAppointment.psychologist.name}
                             </span>
                           </div>
                         )}
@@ -657,15 +660,15 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
 
                     {upcomingAppointment.paymentStatus === 'PAID' ? (
                     <>
-                    <div className="mt-6 pt-4 border-t border-amber-500/10 text-sm">
-                      <p className="text-amber-600 font-semibold">
-                        Podrás iniciar la videollamada 1 hora antes
+                    <div className="mt-6 pt-4 border-t border-gantly-gold-200 text-sm">
+                      <p className="text-gantly-gold-700 font-semibold">
+                        Podras iniciar la videollamada 1 hora antes
                       </p>
                     </div>
 
                     <button
                       type="button"
-                      className="mt-8 w-full py-3 bg-forest text-cream rounded-full font-medium hover:bg-sage transition-all shadow-lg shadow-forest/10 text-sm"
+                      className="mt-8 w-full py-3 bg-gantly-blue-500 text-white rounded-full font-medium hover:bg-gantly-blue-600 transition-all shadow-glow-blue text-sm"
                       onClick={async () => {
                         const apt = upcomingAppointment;
                         if (me && apt?.psychologist) {
@@ -689,8 +692,8 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     </button>
                     </>
                     ) : (
-                    <div className="mt-6 pt-4 border-t border-amber-500/10 text-sm">
-                      <p className="text-amber-600 font-semibold">
+                    <div className="mt-6 pt-4 border-t border-gantly-gold-200 text-sm">
+                      <p className="text-gantly-gold-700 font-semibold">
                         Debes completar el pago antes de poder acceder a la videollamada
                       </p>
                     </div>
@@ -698,7 +701,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
 
                     <button
                       type="button"
-                      className="mt-4 w-full py-2 text-sm text-sage hover:text-forest font-medium transition underline underline-offset-2"
+                      className="mt-4 w-full py-2 text-sm text-gantly-muted hover:text-gantly-text font-medium transition underline underline-offset-2"
                       onClick={() => {
                         setTab('calendario');
                         setTimeout(() => {
@@ -713,11 +716,11 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     </button>
                   </div>
                 ) : (
-                  <div className="bg-amber-light/30 rounded-[3rem] p-8 flex-1 flex flex-col justify-center text-sage/70 text-sm">
-                    No tienes ninguna cita próxima.
+                  <div className="bg-gantly-cloud-200 rounded-2xl p-8 flex-1 flex flex-col justify-center text-gantly-muted/70 text-sm">
+                    No tienes ninguna cita proxima.
                     <button
                       type="button"
-                      className="mt-4 px-4 py-2 rounded-full border border-sage/40 text-sage text-xs font-medium hover:bg-sage hover:text-white transition"
+                      className="mt-4 px-4 py-2 rounded-full border border-gantly-blue-200 text-gantly-blue-600 text-xs font-medium hover:bg-gantly-blue-500 hover:text-white transition"
                       onClick={() => setTab('calendario')}
                     >
                       Ir al calendario
@@ -752,14 +755,14 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
 
         {/* Chat */}
         {tab === 'chat' && hasPsychologist && (
-          <div style={{ width: '100%' }}>
+          <div className="w-full">
             <ChatWidget mode="USER" />
           </div>
         )}
 
-        {/* Mi Psicólogo - estilo nuevo pero con funcionalidades antiguas */}
+        {/* Mi Psicologo - estilo nuevo pero con funcionalidades antiguas */}
         {tab === 'mi-psicologo' && !showMatchingTest && !showMatchingResults && (
-          <div className="mt-10 bg-white rounded-3xl p-8 border border-sage/10 soft-shadow">
+          <div className="mt-10 bg-white rounded-2xl p-8 border border-slate-100 shadow-card">
             {psych?.status === 'ASSIGNED' ? (
               <>
                 {/* Menor con consentimiento pendiente: bloquear hasta firmar */}
@@ -769,29 +772,29 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                       <LoadingSpinner text="Cargando consentimiento..." />
                     ) : (
                       <>
-                        <div className="p-6 rounded-2xl bg-amber-50 border border-amber-200">
-                          <h3 className="text-xl font-semibold text-amber-900 mb-2">
-                            Consentimiento requerido (menores de 18 años)
+                        <div className="p-6 rounded-2xl bg-gantly-gold-50 border border-gantly-gold-200">
+                          <h3 className="text-xl font-semibold text-gantly-gold-800 mb-2">
+                            Consentimiento requerido (menores de 18 anos)
                           </h3>
-                          <p className="text-sm text-amber-800 mb-4">
-                            Tu psicólogo te ha enviado un documento de consentimiento. Debes leerlo y firmarlo para continuar.
+                          <p className="text-sm text-gantly-gold-700 mb-4">
+                            Tu psicologo te ha enviado un documento de consentimiento. Debes leerlo y firmarlo para continuar.
                           </p>
                         </div>
                         {pendingConsents.map((c: any) => (
-                          <div key={c.id} className="rounded-2xl border border-sage/20 overflow-hidden">
-                            <div className="p-4 bg-sage/10 border-b border-sage/20">
-                              <span className="font-medium text-forest">{c.documentTitle || 'Consentimiento'}</span>
+                          <div key={c.id} className="rounded-2xl border border-gantly-blue-100 overflow-hidden">
+                            <div className="p-4 bg-gantly-blue-50 border-b border-gantly-blue-100">
+                              <span className="font-medium text-gantly-text">{c.documentTitle || 'Consentimiento'}</span>
                             </div>
-                            <div className="p-6 max-h-[400px] overflow-y-auto whitespace-pre-wrap text-sm text-forest">
+                            <div className="p-6 max-h-[400px] overflow-y-auto whitespace-pre-wrap text-sm text-gantly-text">
                               {c.renderedContent || 'Sin contenido.'}
                             </div>
-                            <div className="p-4 bg-sage/5 border-t border-sage/20 flex flex-col sm:flex-row gap-3">
+                            <div className="p-4 bg-gantly-cloud-100 border-t border-gantly-blue-100 flex flex-col sm:flex-row gap-3">
                               <input
                                 type="text"
                                 value={signingConsentId === c.id ? signerNameForConsent : ''}
                                 onChange={(e) => setSignerNameForConsent(e.target.value)}
                                 placeholder="Nombre del firmante (ej. padre/madre/tutor o el menor)"
-                                className="flex-1 px-4 py-3 rounded-xl border border-sage/20 focus:ring-2 focus:ring-sage/30 outline-none"
+                                className="flex-1 px-4 py-3 rounded-xl border border-gantly-blue-100 focus:ring-2 focus:ring-gantly-blue-200 outline-none"
                               />
                               <button
                                 type="button"
@@ -811,7 +814,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                                     setSigningConsentId(null);
                                   }
                                 }}
-                                className="px-6 py-3 rounded-xl bg-forest text-cream font-medium hover:bg-forest/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-6 py-3 rounded-xl bg-gantly-blue-500 text-white font-medium hover:bg-gantly-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 {signingConsentId === c.id ? 'Firmando...' : 'Firmar consentimiento'}
                               </button>
@@ -825,7 +828,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                 <>
                 {/* Header tipo perfil */}
                 <div className="flex flex-col md:flex-row items-center gap-6 mb-8">
-                  <div className="w-24 h-24 rounded-full overflow-hidden soft-shadow flex items-center justify-center">
+                  <div className="w-24 h-24 rounded-full overflow-hidden shadow-card flex items-center justify-center bg-gantly-blue-50">
                     {psych.psychologist?.avatarUrl ? (
                       <img
                         src={psych.psychologist.avatarUrl}
@@ -833,21 +836,21 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                         className="w-full h-full object-cover rounded-full"
                       />
                     ) : (
-                      <span className="text-3xl text-forest">
+                      <span className="text-3xl text-gantly-text">
                         {(psych.psychologist?.name || 'P')[0]}
                       </span>
                     )}
                   </div>
                   <div className="text-center md:text-left flex-1">
-                    <h2 className="text-3xl font-normal text-forest mb-1">
+                    <h2 className="text-3xl font-normal text-gantly-text mb-1">
                       {psych.psychologist?.name}
                     </h2>
-                    <p className="text-sage/70 text-sm mb-4">
+                    <p className="text-gantly-muted/70 text-sm mb-4">
                       {psych.psychologist?.email}
                     </p>
                     <button
                       type="button"
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-sage/30 text-sm text-sage hover:bg-sage hover:text-white transition"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-gantly-blue-200 text-sm text-gantly-blue-600 hover:bg-gantly-blue-500 hover:text-white transition"
                       onClick={() =>
                         loadPsychologistProfile(psych.psychologist.id)
                       }
@@ -857,16 +860,16 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                   </div>
                 </div>
 
-                {/* Citas pasadas con este psicólogo (cards uniformes + valoración) */}
+                {/* Citas pasadas con este psicologo (cards uniformes + valoracion) */}
                 <div className="mt-6">
-                  <h3 className="text-xl font-medium text-forest mb-3">
+                  <h3 className="text-xl font-medium text-gantly-text mb-3">
                     Mis citas pasadas
                   </h3>
                   {loadingPastAppointments ? (
                     <LoadingSpinner text="Cargando citas pasadas..." />
                   ) : pastAppointments.length === 0 ? (
-                    <p className="text-sage/70 text-sm">
-                      Aún no tienes citas pasadas con tu psicólogo.
+                    <p className="text-gantly-muted/70 text-sm">
+                      Aun no tienes citas pasadas con tu psicologo.
                     </p>
                   ) : (
                     <div className="flex flex-col gap-3">
@@ -876,11 +879,11 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                         return (
                           <div
                             key={apt.id}
-                            className="rounded-3xl px-6 py-4 shadow-sm bg-sage/10 border border-sage/20 flex items-center justify-between gap-6"
+                            className="rounded-2xl px-6 py-4 shadow-soft bg-gantly-cloud-100 border border-gantly-blue-100 flex items-center justify-between gap-6"
                           >
                             {/* Columna izquierda: fecha y hora */}
                             <div className="flex-1">
-                              <div className="text-sm text-sage/70 serif-font">
+                              <div className="text-sm text-gantly-muted/70 font-heading">
                                 {new Date(apt.startTime).toLocaleDateString(
                                   'es-ES',
                                   {
@@ -891,7 +894,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                                   },
                                 )}
                               </div>
-                              <div className="text-xs text-forest font-medium mt-0.5">
+                              <div className="text-xs text-gantly-text font-medium mt-0.5">
                                 {new Date(apt.startTime).toLocaleTimeString(
                                   'es-ES',
                                   { hour: '2-digit', minute: '2-digit' },
@@ -912,7 +915,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                                     key={star}
                                     className={
                                       hasRating && star <= apt.rating.rating
-                                        ? 'text-yellow-400'
+                                        ? 'text-gantly-gold-400'
                                         : 'text-gray-300'
                                     }
                                   >
@@ -920,7 +923,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                                   </span>
                                 ))}
                               </div>
-                              <p className="min-h-[28px] text-[11px] text-sage/80 italic text-center flex items-center justify-center">
+                              <p className="min-h-[28px] text-[11px] text-gantly-muted/80 italic text-center flex items-center justify-center">
                                 {hasRating && comment ? `"${comment}"` : ''}
                               </p>
                             </div>
@@ -935,29 +938,29 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               </>
             ) : (
               <div className="text-center py-12">
-                <h3 className="text-xl font-semibold text-forest mb-2">
-                  Encuentra tu psicólogo ideal
+                <h3 className="text-xl font-semibold text-gantly-text mb-2">
+                  Encuentra tu psicologo ideal
                 </h3>
-                <p className="text-sage/70 mb-6">
-                  Completa el test de matching para encontrar psicólogos que se adapten a tus necesidades, o usa un código de referencia si ya tienes un psicólogo.
+                <p className="text-gantly-muted/70 mb-6">
+                  Completa el test de matching para encontrar psicologos que se adapten a tus necesidades, o usa un codigo de referencia si ya tienes un psicologo.
                 </p>
 
-                {/* Formulario para usar código de referencia */}
+                {/* Formulario para usar codigo de referencia */}
                 <div className="max-w-md mx-auto mb-8">
-                  <div className="bg-sage/5 rounded-2xl p-6 border border-sage/20">
-                    <h4 className="text-lg font-medium text-forest mb-3">
-                      ¿Tienes un código de referencia?
+                  <div className="bg-gantly-cloud-100 rounded-2xl p-6 border border-gantly-blue-100">
+                    <h4 className="text-lg font-medium text-gantly-text mb-3">
+                      Tienes un codigo de referencia?
                     </h4>
-                    <p className="text-sm text-sage/70 mb-4">
-                      Si un psicólogo te ha compartido un código o enlace, úsalo aquí para unirte directamente a su consulta.
+                    <p className="text-sm text-gantly-muted/70 mb-4">
+                      Si un psicologo te ha compartido un codigo o enlace, usalo aqui para unirte directamente a su consulta.
                     </p>
                     <div className="flex gap-2">
                       <input
                         type="text"
                         value={referralCodeInput}
                         onChange={(e) => setReferralCodeInput(e.target.value)}
-                        placeholder="Código de referencia (ej: juan-garcia)"
-                        className="flex-1 px-4 py-2 rounded-xl border border-sage/20 text-forest placeholder:text-sage/50 focus:outline-none focus:ring-2 focus:ring-sage/30"
+                        placeholder="Codigo de referencia (ej: juan-garcia)"
+                        className="flex-1 px-4 py-2 rounded-xl border border-gantly-blue-100 text-gantly-text placeholder:text-gantly-muted/50 focus:outline-none focus:ring-2 focus:ring-gantly-blue-200"
                         onKeyPress={(e) => {
                           if (e.key === 'Enter' && referralCodeInput.trim()) {
                             handleUseReferralCode();
@@ -967,22 +970,22 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                       <button
                         onClick={handleUseReferralCode}
                         disabled={!referralCodeInput.trim() || usingReferralCode}
-                        className="px-6 py-2 bg-sage text-white rounded-xl hover:bg-sage/90 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                        className="px-6 py-2 bg-gantly-blue-500 text-white rounded-xl hover:bg-gantly-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                       >
-                        {usingReferralCode ? 'Uniendo...' : 'Usar código'}
+                        {usingReferralCode ? 'Uniendo...' : 'Usar codigo'}
                       </button>
                     </div>
                   </div>
                 </div>
 
                 <div className="text-center">
-                  <p className="text-sage/70 text-sm mb-6 max-w-md mx-auto">
+                  <p className="text-gantly-muted/70 text-sm mb-6 max-w-md mx-auto">
                     O completa nuestro test de matching para encontrar el
                     profesional que mejor se adapte a tus necesidades.
                   </p>
                   <button
                     type="button"
-                    className="px-6 py-3 rounded-full bg-sage text-cream text-sm font-semibold hover:bg-forest transition shadow-sm"
+                    className="px-6 py-3 rounded-full bg-gantly-blue-500 text-white text-sm font-semibold hover:bg-gantly-blue-600 transition shadow-glow-blue"
                     onClick={() => setShowMatchingTest(true)}
                   >
                     Comenzar test de matching
@@ -1042,26 +1045,8 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
         )}
 
         {tab === 'tests-pendientes' && hasPsychologist && (
-          <div
-            style={{
-              background: '#ffffff',
-              borderRadius: '20px',
-              boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
-              padding: '40px',
-              border: '1px solid rgba(90, 146, 112, 0.15)',
-              marginTop: '40px',
-            }}
-          >
-            <h3
-              style={{
-                margin: '0 0 32px 0',
-                fontSize: '28px',
-                fontWeight: 700,
-                color: '#1a2e22',
-                fontFamily: "'Inter', sans-serif",
-                letterSpacing: '-0.02em',
-              }}
-            >
+          <div className="bg-white rounded-2xl shadow-card p-10 border border-slate-100 mt-10">
+            <h3 className="text-2xl font-bold text-gantly-text tracking-tight mb-8">
               Tests Pendientes
             </h3>
             {assignedTests.length === 0 ? (
@@ -1075,12 +1060,11 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                 {assignedTests.map((at: any) => (
                   <div
                     key={at.id}
-                    className={`rounded-3xl px-6 py-4 shadow-sm border border-sage/20 transition-all flex items-center justify-between gap-6 ${
+                    className={`rounded-2xl px-6 py-4 shadow-soft border border-gantly-blue-100 transition-all flex items-center justify-between gap-6 bg-gantly-cloud-100 ${
                       at.completedAt
                         ? 'cursor-default'
-                        : 'cursor-pointer hover:shadow-md'
+                        : 'cursor-pointer hover:shadow-card hover:-translate-y-0.5'
                     }`}
-                    style={{ backgroundColor: '#EDF2EB' }}
                     onClick={async () => {
                       if (!at.completedAt && (at.testId || at.test?.id)) {
                         const testId = at.testId || at.test?.id;
@@ -1097,11 +1081,11 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     }}
                   >
                     <div className="flex-1">
-                      <div className="text-sm text-sage serif-font font-medium">
+                      <div className="text-sm text-gantly-blue-600 font-medium">
                         {at.testTitle || at.test?.title || 'Test'}
                       </div>
                       {at.assignedAt && (
-                        <div className="text-xs text-forest font-medium mt-0.5">
+                        <div className="text-xs text-gantly-text font-medium mt-0.5">
                           Asignado:{' '}
                           {new Date(at.assignedAt).toLocaleDateString(
                             'es-ES',
@@ -1115,7 +1099,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                         </div>
                       )}
                     </div>
-                    <div className="flex-shrink-0 text-sm text-sage font-medium serif-font">
+                    <div className="flex-shrink-0 text-sm text-gantly-muted font-medium">
                       {at.completedAt ? 'Completado' : 'Pendiente'}
                     </div>
                   </div>
@@ -1126,8 +1110,8 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
         )}
 
         {tab === 'calendario' && hasPsychologist && (
-          <div className="mt-10 bg-white rounded-3xl p-8 border border-sage/10 soft-shadow">
-            <h2 className="text-2xl font-normal mb-4">Calendario</h2>
+          <div className="mt-10 bg-white rounded-2xl p-8 border border-slate-100 shadow-card">
+            <h2 className="text-2xl font-normal mb-4 text-gantly-text">Calendario</h2>
             {loadingSlots ? (
               <LoadingSpinner text="Cargando calendario..." />
             ) : (
@@ -1156,10 +1140,10 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             )}
 
             {!loadingSlots && myAppointments.length > 0 && (
-              <div className="mt-10 border-t border-sage/10 pt-8" data-section="mis-citas">
+              <div className="mt-10 border-t border-slate-100 pt-8" data-section="mis-citas">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-[22px] font-normal text-forest flex items-center gap-2">
-                    <span className="material-symbols-outlined text-xl text-sage">
+                  <h3 className="text-[22px] font-normal text-gantly-text flex items-center gap-2">
+                    <span className="material-symbols-outlined text-xl text-gantly-blue-500">
                       calendar_today
                     </span>
                     Mis citas
@@ -1194,7 +1178,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                       ? 'bg-[#FAF5E6] text-[#9A8754]'
                       : isCancelled
                       ? 'bg-[#F5F5F5] text-[#8E8E8E]'
-                      : 'bg-sage/10 text-sage/70';
+                      : 'bg-gantly-blue-50 text-gantly-muted';
 
                     const badgeBg = isBooked || isPaid
                       ? 'bg-[#E8F5E9]'
@@ -1204,7 +1188,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                       ? 'bg-[#F7F3E6]'
                       : isCancelled
                       ? 'bg-[#F2F2F2]'
-                      : 'bg-sage/10';
+                      : 'bg-gantly-blue-50';
 
                     const badgeIconColor = isBooked || isPaid
                       ? 'text-[#2E7D32]'
@@ -1214,15 +1198,15 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                       ? 'text-[#B29D6B]'
                       : isCancelled
                       ? 'text-[#9E9E9E]'
-                      : 'text-sage';
+                      : 'text-gantly-blue-500';
 
                     return (
                       <div
                         key={apt.id}
-                        className="rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow border border-sage/15 flex flex-col min-h-[190px] bg-white"
+                        className="rounded-2xl p-8 shadow-soft hover:shadow-card transition-shadow border border-slate-100 flex flex-col min-h-[190px] bg-white"
                       >
                         <div className="flex items-start justify-between mb-6">
-                          <p className="text-[10px] tracking-[0.25em] font-bold text-sage/50 uppercase">
+                          <p className="text-[10px] tracking-[0.25em] font-bold text-gantly-muted/50 uppercase">
                             Próxima cita
                           </p>
                           <div
@@ -1236,7 +1220,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                           </div>
                         </div>
 
-                        <h4 className="serif-font text-3xl text-forest mb-1">
+                        <h4 className="font-heading text-3xl text-gantly-text mb-1">
                           {new Date(apt.startTime).toLocaleDateString('es-ES', {
                             weekday: 'short',
                             day: '2-digit',
@@ -1244,7 +1228,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                           })}
                         </h4>
 
-                        <p className="text-sm text-sage/70 font-medium mb-10">
+                        <p className="text-sm text-gantly-muted/70 font-medium mb-10">
                           {new Date(apt.startTime).toLocaleTimeString('es-ES', {
                             hour: '2-digit',
                             minute: '2-digit',
@@ -1258,13 +1242,13 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                         </p>
 
                         <div className="mt-auto flex items-center justify-between">
-                          <span className="text-sm text-sage/80 font-medium">
+                          <span className="text-sm text-gantly-muted/80 font-medium">
                             {apt.psychologist?.name || 'Terapia online'}
                           </span>
                           <div className="flex items-center gap-2">
                             {isConfirmed && apt.paymentStatus === 'PENDING' && (
                               <button
-                                className="inline-flex items-center justify-center rounded-full px-4 py-1 text-[13px] font-semibold shadow-sm bg-[#5a9270] text-white hover:bg-[#4a8062] transition-colors cursor-pointer border-none"
+                                className="inline-flex items-center justify-center rounded-full px-4 py-1 text-[13px] font-semibold shadow-sm bg-gantly-blue-500 text-white hover:bg-gantly-blue-600 transition-colors cursor-pointer border-none"
                                 onClick={async (e) => {
                                   e.stopPropagation();
                                   try {
@@ -1290,10 +1274,10 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                   })}
                 </div>
 
-                <div className="mt-10 flex items-center justify-end border-t border-sage/10 pt-6">
+                <div className="mt-10 flex items-center justify-end border-t border-slate-100 pt-6">
                   <button
                     type="button"
-                    className="inline-flex items-center gap-2 text-sm font-semibold text-forest hover:text-sage"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-gantly-text hover:text-gantly-blue-500"
                     onClick={() => {
                       setTab('mis-citas');
                     }}
@@ -1310,7 +1294,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             )}
 
             {!loadingSlots && slots.length === 0 && myAppointments.length === 0 && (
-              <p className="text-sage/70 text-sm">
+              <p className="text-gantly-muted/70 text-sm">
                 De momento no hay disponibilidad publicada por tu psicólogo.
               </p>
             )}
@@ -1319,10 +1303,10 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
 
         {/* Historial completo de citas */}
         {tab === 'mis-citas' && hasPsychologist && (
-          <div className="mt-10 bg-cream rounded-3xl p-8 border border-sage/10 soft-shadow">
+          <div className="mt-10 bg-gantly-cloud-100 rounded-2xl p-8 border border-slate-100 shadow-card">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-normal text-forest flex items-center gap-2">
-                <span className="material-symbols-outlined text-xl text-sage">
+              <h2 className="text-2xl font-normal text-gantly-text flex items-center gap-2">
+                <span className="material-symbols-outlined text-xl text-gantly-blue-500">
                   history
                 </span>
                 Historial de citas
@@ -1332,7 +1316,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             {loadingPastAppointments ? (
               <LoadingSpinner text="Cargando historial de citas..." />
             ) : pastAppointments.length === 0 ? (
-              <p className="text-sage/70 text-sm">
+              <p className="text-gantly-muted/70 text-sm">
                 Aún no tienes citas en tu historial.
               </p>
             ) : (
@@ -1371,7 +1355,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                       ? 'bg-[#FAF5E6] text-[#9A8754]'
                       : isCancelled
                       ? 'bg-[#F5F5F5] text-[#8E8E8E]'
-                      : 'bg-sage/10 text-sage/70';
+                      : 'bg-gantly-blue-50 text-gantly-muted';
 
                     const badgeBg = isBooked || isPaid
                       ? 'bg-[#E8F5E9]'
@@ -1381,7 +1365,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                       ? 'bg-[#F7F3E6]'
                       : isCancelled
                       ? 'bg-[#F2F2F2]'
-                      : 'bg-sage/10';
+                      : 'bg-gantly-blue-50';
 
                     const badgeIconColor = isBooked || isPaid
                       ? 'text-[#2E7D32]'
@@ -1391,15 +1375,15 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                       ? 'text-[#B29D6B]'
                       : isCancelled
                       ? 'text-[#9E9E9E]'
-                      : 'text-sage';
+                      : 'text-gantly-blue-500';
 
                     return (
                       <div
                         key={apt.id}
-                        className="rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow border border-sage/15 flex flex-col min-h-[190px] bg-white"
+                        className="rounded-2xl p-8 shadow-soft hover:shadow-card transition-shadow border border-slate-100 flex flex-col min-h-[190px] bg-white"
                       >
                         <div className="flex items-start justify-between mb-6">
-                          <p className="text-[10px] tracking-[0.25em] font-bold text-sage/50 uppercase">
+                          <p className="text-[10px] tracking-[0.25em] font-bold text-gantly-muted/50 uppercase">
                             Cita
                           </p>
                           <div
@@ -1413,7 +1397,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                           </div>
                         </div>
 
-                        <h4 className="serif-font text-2xl text-forest mb-1">
+                        <h4 className="font-heading text-2xl text-gantly-text mb-1">
                           {new Date(apt.startTime).toLocaleDateString('es-ES', {
                             weekday: 'short',
                             day: '2-digit',
@@ -1422,7 +1406,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                           })}
                         </h4>
 
-                        <p className="text-sm text-sage/70 font-medium mb-8">
+                        <p className="text-sm text-gantly-muted/70 font-medium mb-8">
                           {new Date(apt.startTime).toLocaleTimeString('es-ES', {
                             hour: '2-digit',
                             minute: '2-digit',
@@ -1436,7 +1420,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                         </p>
 
                         <div className="mt-auto flex items-center justify-between">
-                          <span className="text-sm text-sage/80 font-medium">
+                          <span className="text-sm text-gantly-muted/80 font-medium">
                             {apt.psychologist?.name || 'Terapia online'}
                           </span>
                           <span
@@ -1455,22 +1439,22 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
 
         {/* Mensajes Clinica */}
         {tab === 'mensajes-clinica' && hasClinic && (
-          <div className="mt-10 bg-white rounded-3xl p-8 border border-sage/10 soft-shadow">
-            <h2 className="text-2xl font-normal mb-6 flex items-center gap-2">
-              <span className="material-symbols-outlined text-xl text-sage">business_messages</span>
+          <div className="mt-10 bg-white rounded-2xl p-8 border border-slate-100 shadow-card">
+            <h2 className="text-2xl font-normal mb-6 flex items-center gap-2 text-gantly-text">
+              <span className="material-symbols-outlined text-xl text-gantly-blue-500">business_messages</span>
               Mensajes de tu clinica
             </h2>
 
             {clinicChatLoading ? (
               <div className="flex justify-center py-8">
-                <div className="w-6 h-6 border-2 border-sage/20 border-t-sage rounded-full animate-spin" />
+                <div className="w-6 h-6 border-2 border-gantly-blue-100 border-t-gantly-blue-500 rounded-full animate-spin" />
               </div>
             ) : (
               <>
                 {/* Messages list */}
                 <div className="space-y-3 max-h-[500px] overflow-y-auto mb-6 pr-2">
                   {clinicChatMessages.length === 0 ? (
-                    <p className="text-sage/60 text-sm text-center py-8">
+                    <p className="text-gantly-muted/60 text-sm text-center py-8">
                       No hay mensajes todavia. Escribe el primer mensaje a tu clinica.
                     </p>
                   ) : (
@@ -1482,12 +1466,12 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                         <div
                           className={`max-w-[75%] rounded-2xl px-4 py-3 ${
                             msg.sender === 'PATIENT'
-                              ? 'bg-sage text-white rounded-br-md'
-                              : 'bg-sage/10 text-forest rounded-bl-md'
+                              ? 'bg-gantly-blue-500 text-white rounded-br-md'
+                              : 'bg-gantly-cloud-200 text-gantly-text rounded-bl-md'
                           }`}
                         >
                           <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                          <p className={`text-[10px] mt-1 ${msg.sender === 'PATIENT' ? 'text-white/60' : 'text-sage/50'}`}>
+                          <p className={`text-[10px] mt-1 ${msg.sender === 'PATIENT' ? 'text-white/60' : 'text-gantly-muted/50'}`}>
                             {new Date(msg.createdAt).toLocaleString('es-ES', {
                               day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
                             })}
@@ -1511,12 +1495,12 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     }}
                     placeholder="Escribe un mensaje..."
                     rows={2}
-                    className="flex-1 px-4 py-3 rounded-xl border border-sage/20 text-forest placeholder-sage/50 focus:outline-none focus:ring-2 focus:ring-sage/30 resize-none"
+                    className="flex-1 px-4 py-3 rounded-xl border border-gantly-blue-100 text-gantly-text placeholder-gantly-muted/50 focus:outline-none focus:ring-2 focus:ring-gantly-blue-200 resize-none"
                   />
                   <button
                     onClick={handleSendClinicChat}
                     disabled={!clinicChatInput.trim() || clinicChatSending}
-                    className="px-5 py-3 bg-sage text-white rounded-xl font-medium hover:bg-forest transition disabled:opacity-50 disabled:cursor-not-allowed self-end"
+                    className="px-5 py-3 bg-gantly-blue-500 text-white rounded-xl font-medium hover:bg-gantly-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed self-end"
                   >
                     {clinicChatSending ? (
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

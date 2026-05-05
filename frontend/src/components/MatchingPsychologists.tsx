@@ -37,12 +37,12 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
   const [, setDataLoaded] = useState(false);
 
   useEffect(() => {
-    // Cargar datos en segundo plano mientras se muestra la animación
+    // Cargar datos en segundo plano mientras se muestra la animacion
     loadPsychologists();
   }, []);
 
   useEffect(() => {
-    // Cuando los datos estén cargados, marcar como listo
+    // Cuando los datos esten cargados, marcar como listo
     if (!loading && psychologists.length > 0) {
       setDataLoaded(true);
     }
@@ -54,7 +54,7 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
       const data = await matchingService.getMatchingPsychologists();
       // Ordenar por matchPercentage descendente
       const sorted = [...data].sort((a, b) => b.matchPercentage - a.matchPercentage);
-      
+
       // Si el mejor tiene menos del 45%, mostrar solo el primero
       if (sorted.length > 0 && sorted[0].matchPercentage <= 45) {
         setPsychologists([sorted[0]]);
@@ -63,7 +63,7 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
         setPsychologists(sorted.slice(0, 3));
       }
     } catch (error: any) {
-      toast.error('Error al cargar psicólogos: ' + (error.response?.data?.error || error.message));
+      toast.error('Error al cargar psicologos: ' + (error.response?.data?.error || error.message));
     } finally {
       setLoading(false);
     }
@@ -73,12 +73,12 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
     try {
       setSelecting(psychologistId);
       await userPsychologistService.selectPsychologist(psychologistId);
-      toast.success('Psicólogo seleccionado correctamente');
+      toast.success('Psicologo seleccionado correctamente');
       if (onSelect) {
         onSelect(psychologistId);
       }
     } catch (error: any) {
-      toast.error('Error al seleccionar psicólogo: ' + (error.response?.data?.error || error.message));
+      toast.error('Error al seleccionar psicologo: ' + (error.response?.data?.error || error.message));
     } finally {
       setSelecting(null);
     }
@@ -89,28 +89,28 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
       setLoadingProfile(true);
       const profile = await profileService.getPsychologistProfile(psychologistId);
       setPsychologistProfile(profile);
-      
-      // Cargar valoración del psicólogo
+
+      // Cargar valoracion del psicologo
       try {
         const rating = await calendarService.getPsychologistRating(psychologistId);
         setPsychologistRating(rating);
       } catch (err) {
         // error handled silently
       }
-      
+
       setSelectedPsychologist(psychologistId);
     } catch (err: any) {
-      toast.error('Error al cargar el perfil del psicólogo: ' + (err.response?.data?.error || err.message));
+      toast.error('Error al cargar el perfil del psicologo: ' + (err.response?.data?.error || err.message));
     } finally {
       setLoadingProfile(false);
     }
   };
 
   const getMatchColor = (percentage: number): string => {
-    if (percentage >= 80) return '#10b981'; // Verde
-    if (percentage >= 60) return '#5a9270'; // Verde medio
-    if (percentage >= 40) return '#f59e0b'; // Amarillo
-    return '#ef4444'; // Rojo
+    if (percentage >= 80) return '#059669'; // gantly-emerald
+    if (percentage >= 60) return '#2E93CC'; // gantly-blue
+    if (percentage >= 40) return '#F0C930'; // gantly-gold
+    return '#ef4444'; // red
   };
 
   const getMatchLabel = (percentage: number): string => {
@@ -125,7 +125,7 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
     return renderPsychologistProfile();
   }
 
-  // Mostrar animación primero
+  // Mostrar animacion primero
   if (showAnimation) {
     return (
       <MatchingAnimation
@@ -138,7 +138,7 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+      <div className="flex justify-center items-center min-h-[400px]">
         <LoadingSpinner />
       </div>
     );
@@ -146,48 +146,18 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
 
   if (psychologists.length === 0) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #f0f5f3 0%, #e8f0ed 100%)',
-        padding: '40px 20px'
-      }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          background: '#fff',
-          borderRadius: '20px',
-          padding: '60px 40px',
-          boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
-          textAlign: 'center'
-        }}>
-          <h2 style={{
-            fontSize: '28px',
-            fontWeight: 700,
-            color: '#1a2e22',
-            marginBottom: '16px'
-          }}>
-            No se encontraron psicólogos compatibles
+      <div className="min-h-screen bg-gradient-to-br from-gantly-cloud to-gantly-blue-50 p-5 md:p-10">
+        <div className="max-w-[1200px] mx-auto bg-white rounded-2xl p-10 md:p-[60px_40px] shadow-elevated text-center">
+          <h2 className="text-[28px] font-heading font-bold text-gantly-navy mb-4">
+            No se encontraron psicologos compatibles
           </h2>
-          <p style={{
-            fontSize: '16px',
-            color: '#6b7280',
-            marginBottom: '32px'
-          }}>
-            Por favor, completa el test de matching para encontrar psicólogos que se adapten a tus necesidades.
+          <p className="text-base text-gantly-muted mb-8 font-body">
+            Por favor, completa el test de matching para encontrar psicologos que se adapten a tus necesidades.
           </p>
           {onBack && (
             <button
               onClick={onBack}
-              style={{
-                padding: '12px 32px',
-                background: 'linear-gradient(135deg, #5a9270 0%, #5b8fa8 100%)',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                fontWeight: 600,
-                fontSize: '16px'
-              }}
+              className="px-8 py-3 bg-gantly-blue text-white border-none rounded-xl cursor-pointer font-semibold text-base font-body hover:bg-gantly-blue-600 transition-colors"
             >
               Volver
             </button>
@@ -202,224 +172,98 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
   const hasLowAffinity = bestMatch && bestMatch.matchPercentage <= 45;
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #f0f5f3 0%, #e8f0ed 100%)',
-      padding: '40px 20px'
-    }}>
-      <div style={{
-        maxWidth: '1200px',
-        margin: '0 auto'
-      }}>
+    <div className="min-h-screen bg-gradient-to-br from-gantly-cloud to-gantly-blue-50 p-5 md:p-10">
+      <div className="max-w-[1200px] mx-auto">
         {/* Header */}
-        <div style={{
-          background: '#fff',
-          borderRadius: '20px',
-          padding: '40px',
-          boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
-          marginBottom: '32px'
-        }}>
+        <div className="bg-white rounded-2xl p-8 md:p-10 shadow-card mb-8">
           {onBack && (
             <button
               onClick={onBack}
-              style={{
-                padding: '8px 16px',
-                background: '#f8f9fa',
-                color: '#3a5a4a',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                marginBottom: '24px',
-                fontWeight: 600
-              }}
+              className="px-4 py-2 bg-gray-50 text-gantly-muted border border-gray-200 rounded-lg cursor-pointer mb-6 font-semibold font-body hover:bg-gray-100 transition-colors"
             >
-              ← Volver
+              &larr; Volver
             </button>
           )}
-          <h1 style={{
-            fontSize: '36px',
-            fontWeight: 700,
-            color: '#1a2e22',
-            marginBottom: '12px',
-            fontFamily: "'Inter', sans-serif"
-          }}>
-            Psicólogos recomendados
+          <h1 className="text-4xl font-heading font-bold text-gantly-navy mb-3">
+            Psicologos recomendados
           </h1>
           {hasLowAffinity ? (
             <>
-              <div style={{
-                background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                border: '2px solid #f59e0b',
-                borderRadius: '16px',
-                padding: '24px',
-                marginBottom: '24px'
-              }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  marginBottom: '12px'
-                }}>
-                  <span style={{ fontSize: '32px' }}>⚠️</span>
-                  <h3 style={{
-                    fontSize: '20px',
-                    fontWeight: 700,
-                    color: '#92400e',
-                    margin: 0,
-                    fontFamily: "'Inter', sans-serif"
-                  }}>
+              <div className="bg-gradient-to-br from-gantly-gold-50 to-gantly-gold-100 border-2 border-gantly-gold rounded-2xl p-6 mb-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-[32px]">⚠️</span>
+                  <h3 className="text-xl font-heading font-bold text-amber-800 m-0">
                     Baja afinidad detectada
                   </h3>
                 </div>
-                <p style={{
-                  fontSize: '16px',
-                  color: '#78350f',
-                  lineHeight: 1.6,
-                  margin: 0,
-                  fontFamily: "'Inter', sans-serif"
-                }}>
-                  Los resultados del matching muestran una afinidad baja. Para encontrar psicólogos que se adapten mejor a tus necesidades, te recomendamos <strong>completar el test de matching nuevamente con más precisión</strong>, pensando detenidamente en tus respuestas.
+                <p className="text-base text-amber-900 leading-relaxed m-0 font-body">
+                  Los resultados del matching muestran una afinidad baja. Para encontrar psicologos que se adapten mejor a tus necesidades, te recomendamos <strong>completar el test de matching nuevamente con mas precision</strong>, pensando detenidamente en tus respuestas.
                 </p>
               </div>
-              <p style={{
-                fontSize: '18px',
-                color: '#6b7280',
-                marginBottom: '24px'
-              }}>
-                A continuación encontrarás el psicólogo con mayor afinidad disponible:
+              <p className="text-lg text-gantly-muted mb-6 font-body">
+                A continuacion encontraras el psicologo con mayor afinidad disponible:
               </p>
             </>
           ) : (
-            <p style={{
-              fontSize: '18px',
-              color: '#6b7280',
-              marginBottom: '24px'
-            }}>
-              Estos son los psicólogos que mejor se adaptan a tu perfil, ordenados por afinidad
+            <p className="text-lg text-gantly-muted mb-6 font-body">
+              Estos son los psicologos que mejor se adaptan a tu perfil, ordenados por afinidad
             </p>
           )}
-          <div style={{
-            display: 'flex',
-            gap: '24px',
-            flexWrap: 'wrap',
-            fontSize: '14px',
-            color: '#6b7280'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#10b981' }} />
+          <div className="flex gap-6 flex-wrap text-sm text-gantly-muted font-body">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-gantly-emerald" />
               <span>80%+ Excelente</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#5a9270' }} />
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-gantly-blue" />
               <span>60-79% Buena</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#f59e0b' }} />
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-gantly-gold" />
               <span>40-59% Moderada</span>
             </div>
           </div>
         </div>
 
         {/* Psychologists Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-          gap: '24px'
-        }}>
+        <div className="grid grid-cols-1 md:grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-6">
           {psychologists.map((psychologist) => {
             const matchColor = getMatchColor(psychologist.matchPercentage);
             const matchLabel = getMatchLabel(psychologist.matchPercentage);
-            
+
             const isSuperRecommended = psychologist.averageRating !== null && psychologist.averageRating !== undefined && psychologist.averageRating > 4;
-            
+
             return (
               <div
                 key={psychologist.id}
-                style={{
-                  background: '#fff',
-                  borderRadius: '20px',
-                  padding: '32px',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                  border: `2px solid ${matchColor}20`,
-                  position: 'relative',
-                  overflow: 'hidden',
-                  cursor: 'pointer'
-                }}
+                className="bg-white rounded-2xl p-8 shadow-card hover:-translate-y-1 hover:shadow-elevated transition-all cursor-pointer relative overflow-hidden border border-gray-100"
                 onClick={() => loadPsychologistProfile(psychologist.id)}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-4px)';
-                  e.currentTarget.style.boxShadow = '0 8px 30px rgba(0,0,0,0.12)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)';
-                }}
               >
                 {/* Super Recomendado Badge */}
                 {isSuperRecommended && (
-                  <div style={{
-                    position: 'absolute',
-                    top: '20px',
-                    left: '20px',
-                    background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
-                    color: '#fff',
-                    padding: '8px 16px',
-                    borderRadius: '20px',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    boxShadow: '0 2px 8px rgba(245, 158, 11, 0.4)',
-                    zIndex: 2,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}>
+                  <div className="absolute top-5 left-5 bg-gradient-to-r from-gantly-gold to-gantly-gold-500 text-white px-4 py-2 rounded-full text-[13px] font-bold shadow-[0_2px_8px_rgba(240,201,48,0.4)] z-[2] flex items-center gap-1.5">
                     ⭐ Super Recomendado
                   </div>
                 )}
-                
+
                 {/* Match Badge */}
-                <div style={{
-                  position: 'absolute',
-                  top: '20px',
-                  right: '20px',
-                  background: matchColor,
-                  color: '#fff',
-                  padding: '8px 16px',
-                  borderRadius: '20px',
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  boxShadow: `0 2px 8px ${matchColor}40`,
-                  zIndex: 2
-                }}>
+                <div
+                  className="absolute top-5 right-5 text-white px-4 py-2 rounded-full text-sm font-bold z-[2]"
+                  style={{ background: matchColor, boxShadow: `0 2px 8px ${matchColor}40` }}
+                >
                   {psychologist.matchPercentage}%
                 </div>
 
                 {/* Avatar */}
-                <div style={{
-                  width: '100px',
-                  height: '100px',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #5a9270 0%, #5b8fa8 100%)',
-                  margin: '0 auto 24px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '40px',
-                  color: '#fff',
-                  fontWeight: 700,
-                  overflow: 'hidden',
-                  border: `4px solid ${matchColor}40`
-                }}>
+                <div
+                  className="w-[100px] h-[100px] rounded-full bg-gradient-to-br from-gantly-blue to-gantly-blue-700 mx-auto mb-6 flex items-center justify-center text-[40px] text-white font-bold overflow-hidden"
+                  style={{ border: `4px solid ${matchColor}40` }}
+                >
                   {psychologist.avatarUrl ? (
                     <img
                       src={psychologist.avatarUrl}
                       alt={psychologist.name}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover'
-                      }}
+                      className="w-full h-full object-cover"
                     />
                   ) : (
                     psychologist.name.charAt(0).toUpperCase()
@@ -427,49 +271,37 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
                 </div>
 
                 {/* Name */}
-                <h3 style={{
-                  fontSize: '24px',
-                  fontWeight: 700,
-                  color: '#1a2e22',
-                  marginBottom: '8px',
-                  textAlign: 'center',
-                  fontFamily: "'Inter', sans-serif"
-                }}>
+                <h3 className="text-2xl font-heading font-bold text-gantly-navy mb-2 text-center">
                   {psychologist.name}
                 </h3>
 
                 {/* Match Label */}
-                <p style={{
-                  fontSize: '14px',
-                  color: matchColor,
-                  fontWeight: 600,
-                  textAlign: 'center',
-                  marginBottom: '12px'
-                }}>
+                <p
+                  className="text-sm font-semibold text-center mb-3 font-body"
+                  style={{ color: matchColor }}
+                >
                   {matchLabel}
                 </p>
 
                 {/* Rating */}
                 {psychologist.averageRating !== null && psychologist.averageRating !== undefined && (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '24px' }}>
-                    <div style={{ display: 'flex', gap: '2px' }}>
+                  <div className="flex items-center justify-center gap-2 mb-6">
+                    <div className="flex gap-0.5">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <span
                           key={star}
-                          style={{
-                            fontSize: '16px',
-                            color: star <= Math.round(psychologist.averageRating!) ? '#fbbf24' : '#d1d5db'
-                          }}
+                          className="text-base"
+                          style={{ color: star <= Math.round(psychologist.averageRating!) ? '#F0C930' : '#d1d5db' }}
                         >
                           ★
                         </span>
                       ))}
                     </div>
-                    <span style={{ fontSize: '14px', fontWeight: 600, color: '#1a2e22' }}>
+                    <span className="text-sm font-semibold text-gantly-navy">
                       {typeof psychologist.averageRating === 'number' ? psychologist.averageRating.toFixed(1) : 'N/A'}
                     </span>
                     {psychologist.totalRatings && psychologist.totalRatings > 0 && (
-                      <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                      <span className="text-xs text-gantly-muted">
                         ({psychologist.totalRatings})
                       </span>
                     )}
@@ -477,25 +309,17 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
                 )}
 
                 {/* Info */}
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px',
-                  marginBottom: '32px',
-                  padding: '20px',
-                  background: '#f8f9fa',
-                  borderRadius: '12px'
-                }}>
+                <div className="flex flex-col gap-3 mb-8 p-5 bg-gantly-cloud rounded-xl">
                   {psychologist.age && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-                      <span style={{ color: '#6b7280' }}>Edad:</span>
-                      <span style={{ color: '#1a2e22', fontWeight: 600 }}>{psychologist.age} años</span>
+                    <div className="flex justify-between text-sm font-body">
+                      <span className="text-gantly-muted">Edad:</span>
+                      <span className="text-gantly-navy font-semibold">{psychologist.age} anos</span>
                     </div>
                   )}
                   {psychologist.gender && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-                      <span style={{ color: '#6b7280' }}>Género:</span>
-                      <span style={{ color: '#1a2e22', fontWeight: 600 }}>{psychologist.gender}</span>
+                    <div className="flex justify-between text-sm font-body">
+                      <span className="text-gantly-muted">Genero:</span>
+                      <span className="text-gantly-navy font-semibold">{psychologist.gender}</span>
                     </div>
                   )}
                 </div>
@@ -507,33 +331,13 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
                     handleSelectPsychologist(psychologist.id);
                   }}
                   disabled={selecting === psychologist.id}
-                  style={{
-                    width: '100%',
-                    padding: '14px 24px',
-                    background: selecting === psychologist.id
-                      ? '#d1d5db'
-                      : 'linear-gradient(135deg, #5a9270 0%, #5b8fa8 100%)',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '12px',
-                    cursor: selecting === psychologist.id ? 'not-allowed' : 'pointer',
-                    fontWeight: 600,
-                    fontSize: '16px',
-                    boxShadow: selecting === psychologist.id
-                      ? 'none'
-                      : '0 4px 12px rgba(90, 146, 112, 0.3)',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (selecting !== psychologist.id) {
-                      e.currentTarget.style.transform = 'scale(1.02)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                  }}
+                  className={`w-full py-3.5 px-6 text-white border-none rounded-xl font-semibold text-base font-body transition-all ${
+                    selecting === psychologist.id
+                      ? 'bg-gray-300 cursor-not-allowed shadow-none'
+                      : 'bg-gantly-blue cursor-pointer shadow-glow-blue hover:bg-gantly-blue-600 hover:scale-[1.02]'
+                  }`}
                 >
-                  {selecting === psychologist.id ? 'Seleccionando...' : 'Seleccionar este psicólogo'}
+                  {selecting === psychologist.id ? 'Seleccionando...' : 'Seleccionar este psicologo'}
                 </button>
               </div>
             );
@@ -546,31 +350,19 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
   function renderPsychologistProfile() {
     if (loadingProfile) {
       return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <div className="flex justify-center items-center min-h-[400px]">
           <LoadingSpinner />
         </div>
       );
     }
 
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #f0f5f3 0%, #e8f0ed 100%)',
-        padding: '40px 20px'
-      }}>
-        <div style={{
-          maxWidth: '900px',
-          margin: '0 auto',
-          background: '#ffffff',
-          borderRadius: '20px',
-          boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
-          padding: '40px',
-          border: '1px solid rgba(90, 146, 112, 0.15)'
-        }}>
-          {/* Header con botón volver */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-            <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 700, color: '#1a2e22' }}>
-              Perfil del Psicólogo
+      <div className="min-h-screen bg-gradient-to-br from-gantly-cloud to-gantly-blue-50 p-5 md:p-10">
+        <div className="max-w-[900px] mx-auto bg-white rounded-2xl shadow-card p-8 md:p-10 border border-gantly-blue/10">
+          {/* Header con boton volver */}
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="m-0 text-[28px] font-heading font-bold text-gantly-navy">
+              Perfil del Psicologo
             </h2>
             <button
               onClick={() => {
@@ -578,82 +370,48 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
                 setPsychologistProfile(null);
                 setPsychologistRating(null);
               }}
-              style={{
-                padding: '10px 20px',
-                background: '#f3f4f6',
-                color: '#1f2937',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
+              className="px-5 py-2.5 bg-gray-100 text-gray-700 border border-gray-200 rounded-lg font-semibold cursor-pointer text-sm font-body hover:bg-gray-200 transition-colors"
             >
-              ← Volver
+              &larr; Volver
             </button>
           </div>
 
           {/* Header del perfil */}
-          <div style={{
-            background: 'linear-gradient(135deg, #f0f5f3 0%, #e8f0ed 100%)',
-            padding: '40px',
-            borderRadius: '20px',
-            border: '2px solid rgba(90, 146, 112, 0.3)',
-            marginBottom: '32px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '32px',
-            boxShadow: '0 4px 16px rgba(90, 146, 112, 0.15)'
-          }}>
-            <div style={{
-              width: '120px',
-              height: '120px',
-              borderRadius: '50%',
-              overflow: 'hidden',
-              border: '4px solid white',
-              boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-              background: '#e5e7eb',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '48px',
-              flexShrink: 0
-            }}>
+          <div className="bg-gradient-to-br from-gantly-cloud to-gantly-blue-50 p-8 md:p-10 rounded-2xl border-2 border-gantly-blue/20 mb-8 flex flex-col md:flex-row items-center gap-8 shadow-soft">
+            <div className="w-[120px] h-[120px] rounded-full overflow-hidden border-4 border-white shadow-card bg-gray-200 flex items-center justify-center text-5xl shrink-0">
               {psychologistProfile.avatarUrl ? (
-                <img src={psychologistProfile.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={psychologistProfile.avatarUrl} alt="" className="w-full h-full object-cover" />
               ) : (
-                <div style={{ width: '100%', height: '100%', background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '24px' }}>
+                <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400 text-2xl">
                   {psychologistProfile.name?.charAt(0).toUpperCase() || 'PS'}
                 </div>
               )}
             </div>
-            <div style={{ flex: 1 }}>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: '32px', fontWeight: 700, color: '#1f2937' }}>
+            <div className="flex-1">
+              <h3 className="m-0 mb-2 text-[32px] font-heading font-bold text-gray-800">
                 {psychologistProfile.name}
               </h3>
-              <div style={{ fontSize: '18px', color: '#6b7280', marginBottom: '12px' }}>
+              <div className="text-lg text-gantly-muted mb-3 font-body">
                 {psychologistProfile.email}
               </div>
               {psychologistRating && psychologistRating.averageRating !== null && psychologistRating.averageRating !== undefined && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                  <div style={{ display: 'flex', gap: '2px' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex gap-0.5">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <span
                         key={star}
-                        style={{
-                          fontSize: '18px',
-                          color: star <= Math.round(psychologistRating.averageRating!) ? '#fbbf24' : '#d1d5db'
-                        }}
+                        className="text-lg"
+                        style={{ color: star <= Math.round(psychologistRating.averageRating!) ? '#F0C930' : '#d1d5db' }}
                       >
                         ★
                       </span>
                     ))}
                   </div>
-                  <span style={{ fontSize: '16px', fontWeight: 600, color: '#1f2937' }}>
+                  <span className="text-base font-semibold text-gray-800 font-body">
                     {typeof psychologistRating.averageRating === 'number' ? psychologistRating.averageRating.toFixed(1) : 'N/A'}
                   </span>
-                  <span style={{ fontSize: '14px', color: '#6b7280' }}>
-                    ({psychologistRating.totalRatings} {psychologistRating.totalRatings === 1 ? 'valoración' : 'valoraciones'})
+                  <span className="text-sm text-gantly-muted font-body">
+                    ({psychologistRating.totalRatings} {psychologistRating.totalRatings === 1 ? 'valoracion' : 'valoraciones'})
                   </span>
                 </div>
               )}
@@ -662,16 +420,9 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
                   const specs = JSON.parse(psychologistProfile.specializations);
                   if (Array.isArray(specs) && specs.length > 0) {
                     return (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
+                      <div className="flex flex-wrap gap-2 mt-3">
                         {specs.map((spec: string, idx: number) => (
-                          <span key={idx} style={{
-                            padding: '6px 12px',
-                            background: '#dcfce7',
-                            color: '#15803d',
-                            borderRadius: '20px',
-                            fontSize: '13px',
-                            fontWeight: 500
-                          }}>
+                          <span key={idx} className="px-3 py-1.5 bg-gantly-blue-50 text-gantly-blue-700 rounded-full text-[13px] font-medium font-body">
                             {spec}
                           </span>
                         ))}
@@ -684,34 +435,34 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
             </div>
           </div>
 
-          {/* Biografía */}
+          {/* Biografia */}
           {psychologistProfile.bio && (
-            <div style={{ marginBottom: '32px', padding: '24px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
-              <h3 style={{ margin: '0 0 16px 0', fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>Sobre mí</h3>
-              <p style={{ margin: 0, fontSize: '16px', lineHeight: '1.6', color: '#4b5563' }}>
+            <div className="mb-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
+              <h3 className="m-0 mb-4 text-xl font-heading font-semibold text-gray-800">Sobre mi</h3>
+              <p className="m-0 text-base leading-relaxed text-gray-600 font-body">
                 {psychologistProfile.bio}
               </p>
             </div>
           )}
 
-          {/* Educación */}
+          {/* Educacion */}
           {psychologistProfile.education && (() => {
             try {
               const education = JSON.parse(psychologistProfile.education);
               if (Array.isArray(education) && education.length > 0) {
                 return (
-                  <div style={{ marginBottom: '32px', padding: '24px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
-                    <h3 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>Educación</h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div className="mb-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
+                    <h3 className="m-0 mb-5 text-xl font-heading font-semibold text-gray-800">Educacion</h3>
+                    <div className="flex flex-col gap-4">
                       {education.map((edu: any, idx: number) => (
-                        <div key={idx} style={{ padding: '16px', background: '#ffffff', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-                          <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '4px' }}>
-                            {edu.degree || 'Título'} {edu.field ? `en ${edu.field}` : ''}
+                        <div key={idx} className="p-4 bg-white rounded-lg border border-gray-200">
+                          <div className="text-lg font-semibold text-gray-800 mb-1 font-body">
+                            {edu.degree || 'Titulo'} {edu.field ? `en ${edu.field}` : ''}
                           </div>
-                          <div style={{ fontSize: '16px', color: '#667eea', marginBottom: '4px' }}>
-                            {edu.institution || 'Institución'}
+                          <div className="text-base text-gantly-blue mb-1 font-body">
+                            {edu.institution || 'Institucion'}
                           </div>
-                          <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                          <div className="text-sm text-gantly-muted font-body">
                             {edu.startDate && edu.endDate ? `${edu.startDate} - ${edu.endDate}` : edu.startDate || edu.endDate || ''}
                           </div>
                         </div>
@@ -730,24 +481,24 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
               const certs = JSON.parse(psychologistProfile.certifications);
               if (Array.isArray(certs) && certs.length > 0) {
                 return (
-                  <div style={{ marginBottom: '32px', padding: '24px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
-                    <h3 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>Certificaciones</h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div className="mb-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
+                    <h3 className="m-0 mb-5 text-xl font-heading font-semibold text-gray-800">Certificaciones</h3>
+                    <div className="flex flex-col gap-4">
                       {certs.map((cert: any, idx: number) => (
-                        <div key={idx} style={{ padding: '16px', background: '#ffffff', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-                          <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '4px' }}>
-                            {cert.name || 'Certificación'}
+                        <div key={idx} className="p-4 bg-white rounded-lg border border-gray-200">
+                          <div className="text-lg font-semibold text-gray-800 mb-1 font-body">
+                            {cert.name || 'Certificacion'}
                           </div>
-                          <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
+                          <div className="text-sm text-gantly-muted mb-1 font-body">
                             Emitido por: {cert.issuer || 'N/A'}
                           </div>
                           {cert.date && (
-                            <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
+                            <div className="text-sm text-gantly-muted mb-1 font-body">
                               Fecha: {cert.date}
                             </div>
                           )}
                           {cert.credentialId && (
-                            <div style={{ fontSize: '13px', color: '#9ca3af', fontFamily: 'monospace' }}>
+                            <div className="text-[13px] text-gray-400 font-mono">
                               ID: {cert.credentialId}
                             </div>
                           )}
@@ -767,23 +518,23 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
               const experience = JSON.parse(psychologistProfile.experience);
               if (Array.isArray(experience) && experience.length > 0) {
                 return (
-                  <div style={{ marginBottom: '32px', padding: '24px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
-                    <h3 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>Experiencia Profesional</h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div className="mb-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
+                    <h3 className="m-0 mb-5 text-xl font-heading font-semibold text-gray-800">Experiencia Profesional</h3>
+                    <div className="flex flex-col gap-4">
                       {experience.map((exp: any, idx: number) => (
-                        <div key={idx} style={{ padding: '16px', background: '#ffffff', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-                          <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', marginBottom: '4px' }}>
+                        <div key={idx} className="p-4 bg-white rounded-lg border border-gray-200">
+                          <div className="text-lg font-semibold text-gray-800 mb-1 font-body">
                             {exp.title || 'Cargo'}
                           </div>
-                          <div style={{ fontSize: '16px', color: '#667eea', marginBottom: '4px' }}>
+                          <div className="text-base text-gantly-blue mb-1 font-body">
                             {exp.company || 'Empresa'}
                           </div>
                           {exp.description && (
-                            <div style={{ fontSize: '14px', color: '#4b5563', marginTop: '8px', lineHeight: '1.6' }}>
+                            <div className="text-sm text-gray-600 mt-2 leading-relaxed font-body">
                               {exp.description}
                             </div>
                           )}
-                          <div style={{ fontSize: '14px', color: '#6b7280', marginTop: '8px' }}>
+                          <div className="text-sm text-gantly-muted mt-2 font-body">
                             {exp.startDate && exp.endDate ? `${exp.startDate} - ${exp.endDate}` : exp.startDate ? `Desde ${exp.startDate}` : exp.endDate ? `Hasta ${exp.endDate}` : ''}
                           </div>
                         </div>
@@ -796,8 +547,8 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
             return null;
           })()}
 
-          {/* Botón para seleccionar */}
-          <div style={{ marginTop: '32px', display: 'flex', gap: '16px', justifyContent: 'center' }}>
+          {/* Boton para seleccionar */}
+          <div className="mt-8 flex gap-4 justify-center">
             <button
               onClick={() => {
                 if (selectedPsychologist) {
@@ -805,24 +556,13 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
                 }
               }}
               disabled={selecting === selectedPsychologist}
-              style={{
-                padding: '14px 32px',
-                background: selecting === selectedPsychologist
-                  ? '#d1d5db'
-                  : 'linear-gradient(135deg, #5a9270 0%, #5b8fa8 100%)',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '12px',
-                cursor: selecting === selectedPsychologist ? 'not-allowed' : 'pointer',
-                fontWeight: 600,
-                fontSize: '16px',
-                boxShadow: selecting === selectedPsychologist
-                  ? 'none'
-                  : '0 4px 12px rgba(90, 146, 112, 0.3)',
-                transition: 'all 0.2s ease'
-              }}
+              className={`px-8 py-3.5 text-white border-none rounded-xl font-semibold text-base font-body transition-all ${
+                selecting === selectedPsychologist
+                  ? 'bg-gray-300 cursor-not-allowed shadow-none'
+                  : 'bg-gantly-blue cursor-pointer shadow-glow-blue hover:bg-gantly-blue-600'
+              }`}
             >
-              {selecting === selectedPsychologist ? 'Seleccionando...' : 'Seleccionar este psicólogo'}
+              {selecting === selectedPsychologist ? 'Seleccionando...' : 'Seleccionar este psicologo'}
             </button>
           </div>
         </div>
@@ -830,4 +570,3 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
     );
   }
 }
-

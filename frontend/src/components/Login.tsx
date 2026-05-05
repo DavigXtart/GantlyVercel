@@ -67,7 +67,7 @@ export default function Login({
     setFormError(null);
     const emailError = validateEmail(email);
     const passwordError = validatePassword(password);
-    
+
     if (emailError || passwordError) {
       setErrors({ email: emailError, password: passwordError });
       return;
@@ -177,13 +177,13 @@ export default function Login({
 
   if (needsVerification) {
     return (
-      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #e8ece9 0%, #d4e0d8 50%, #e0e8e3 100%)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '80px 24px', fontFamily: "'Inter', sans-serif" }}>
-        <div style={{ width: '100%', maxWidth: '420px', background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(90,146,112,0.2)', borderRadius: '24px', padding: '48px 40px', boxShadow: '0 8px 32px rgba(90,146,112,0.15)' }}>
-          <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: '28px', fontWeight: 700, color: '#5a9270', marginBottom: '8px', textAlign: 'center' }}>Verifica tu email</div>
-          <p style={{ color: '#3a5a4a', fontSize: '15px', textAlign: 'center', marginBottom: '8px' }}>Hemos enviado un código de 6 dígitos a:</p>
-          <p style={{ color: '#1a2e22', fontSize: '16px', fontWeight: 600, textAlign: 'center', marginBottom: '24px' }}>{email}</p>
+      <div className="min-h-screen bg-gradient-to-br from-gantly-navy-700 via-gantly-blue-600 to-gantly-cyan-500 flex justify-center items-center px-6 py-20">
+        <div className="w-full max-w-[420px] bg-white shadow-card rounded-2xl p-12">
+          <h2 className="font-heading text-[28px] font-bold text-gantly-blue-600 mb-2 text-center">Verifica tu email</h2>
+          <p className="text-gantly-muted text-[15px] text-center mb-2">Hemos enviado un código de 6 dígitos a:</p>
+          <p className="text-gantly-text font-semibold text-base text-center mb-6">{email}</p>
           <form onSubmit={handleVerifyCode}>
-            <div style={{ marginBottom: '20px' }}>
+            <div className="mb-5">
               <input
                 type="text"
                 inputMode="numeric"
@@ -193,21 +193,25 @@ export default function Login({
                 onChange={e => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 placeholder="000000"
                 autoFocus
-                style={{ width: '100%', padding: '16px', fontSize: '24px', textAlign: 'center', letterSpacing: '8px', border: '2px solid rgba(90,146,112,0.3)', borderRadius: '12px', outline: 'none', fontFamily: "'Inter', sans-serif", fontWeight: 700, boxSizing: 'border-box' }}
+                className="w-full p-4 text-2xl text-center tracking-[8px] border-2 border-gantly-blue-200 rounded-xl outline-none font-bold focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/20 transition-colors"
               />
             </div>
-            {formError && <p style={{ color: '#dc2626', fontSize: '14px', marginBottom: '16px', textAlign: 'center' }}>{formError}</p>}
-            <button type="submit" disabled={verifying || verificationCode.length !== 6} style={{ width: '100%', padding: '14px', background: (verifying || verificationCode.length !== 6) ? '#cbd5d1' : '#5a9270', color: 'white', border: 'none', borderRadius: '12px', fontSize: '16px', fontWeight: 600, cursor: 'pointer', opacity: (verifying || verificationCode.length !== 6) ? 0.6 : 1 }}>
+            {formError && <p className="text-red-600 text-sm mb-4 text-center">{formError}</p>}
+            <button
+              type="submit"
+              disabled={verifying || verificationCode.length !== 6}
+              className="w-full py-3.5 bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white rounded-full text-base font-semibold transition-all disabled:bg-gray-300 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
               {verifying ? 'Verificando...' : 'Verificar'}
             </button>
           </form>
-          <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '14px', color: '#6b7280' }}>
+          <div className="text-center mt-4 text-sm text-gray-500">
             ¿No recibiste el código?{' '}
-            <button onClick={() => { authService.resendVerificationByEmail(email).then(() => toast.success('Código reenviado')).catch(() => toast.error('Error al reenviar')); }} type="button" style={{ border: 'none', background: 'transparent', color: '#5a9270', fontWeight: 600, cursor: 'pointer', fontSize: '14px' }}>
+            <button onClick={() => { authService.resendVerificationByEmail(email).then(() => toast.success('Código reenviado')).catch(() => toast.error('Error al reenviar')); }} type="button" className="bg-transparent border-none text-gantly-blue-600 font-semibold cursor-pointer text-sm hover:underline">
               Reenviar
             </button>
           </div>
-          <button onClick={() => { setNeedsVerification(false); setVerificationCode(''); setFormError(null); }} style={{ width: '100%', marginTop: '12px', padding: '12px', background: 'transparent', border: '1px solid rgba(90,146,112,0.3)', borderRadius: '12px', color: '#5a9270', fontSize: '14px', cursor: 'pointer' }}>
+          <button onClick={() => { setNeedsVerification(false); setVerificationCode(''); setFormError(null); }} className="w-full mt-3 py-3 bg-transparent border border-gantly-blue-200 rounded-xl text-gantly-blue-600 text-sm cursor-pointer hover:bg-gantly-blue-50 transition-colors">
             Volver al login
           </button>
         </div>
@@ -217,12 +221,12 @@ export default function Login({
 
   if (requires2FA) {
     return (
-      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #e8ece9 0%, #d4e0d8 50%, #e0e8e3 100%)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '80px 24px', fontFamily: "'Inter', sans-serif" }}>
-        <div style={{ width: '100%', maxWidth: '420px', background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(90,146,112,0.2)', borderRadius: '24px', padding: '48px 40px', boxShadow: '0 8px 32px rgba(90,146,112,0.15)' }}>
-          <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: '28px', fontWeight: 700, color: '#5a9270', marginBottom: '8px', textAlign: 'center' }}>Verificación 2FA</div>
-          <p style={{ color: '#3a5a4a', fontSize: '15px', textAlign: 'center', marginBottom: '24px' }}>Introduce el código de tu aplicación de autenticación.</p>
+      <div className="min-h-screen bg-gradient-to-br from-gantly-navy-700 via-gantly-blue-600 to-gantly-cyan-500 flex justify-center items-center px-6 py-20">
+        <div className="w-full max-w-[420px] bg-white shadow-card rounded-2xl p-12">
+          <h2 className="font-heading text-[28px] font-bold text-gantly-blue-600 mb-2 text-center">Verificación 2FA</h2>
+          <p className="text-gantly-muted text-[15px] text-center mb-6">Introduce el código de tu aplicación de autenticación.</p>
           <form onSubmit={handle2FASubmit}>
-            <div style={{ marginBottom: '20px' }}>
+            <div className="mb-5">
               <input
                 type="text"
                 inputMode="numeric"
@@ -231,15 +235,19 @@ export default function Login({
                 value={totpCode}
                 onChange={e => setTotpCode(e.target.value.replace(/\D/g, ''))}
                 placeholder="000000"
-                style={{ width: '100%', padding: '14px 16px', fontSize: '24px', textAlign: 'center', letterSpacing: '0.3em', border: '1px solid rgba(90,146,112,0.3)', borderRadius: '12px', outline: 'none', fontFamily: "'Inter', sans-serif" }}
+                className="w-full py-3.5 px-4 text-2xl text-center tracking-[0.3em] border border-gantly-blue-200 rounded-xl outline-none focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/20 transition-colors"
               />
             </div>
-            {formError && <p style={{ color: '#dc2626', fontSize: '14px', marginBottom: '16px', textAlign: 'center' }}>{formError}</p>}
-            <button type="submit" disabled={loading || totpCode.length !== 6} style={{ width: '100%', padding: '14px', background: '#5a9270', color: 'white', border: 'none', borderRadius: '12px', fontSize: '16px', fontWeight: 600, cursor: 'pointer', opacity: loading || totpCode.length !== 6 ? 0.6 : 1 }}>
+            {formError && <p className="text-red-600 text-sm mb-4 text-center">{formError}</p>}
+            <button
+              type="submit"
+              disabled={loading || totpCode.length !== 6}
+              className="w-full py-3.5 bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white rounded-full text-base font-semibold transition-all disabled:bg-gray-300 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
               {loading ? 'Verificando...' : 'Verificar'}
             </button>
           </form>
-          <button onClick={() => { setRequires2FA(false); setTempToken(null); setTotpCode(''); setFormError(null); }} style={{ width: '100%', marginTop: '12px', padding: '12px', background: 'transparent', border: '1px solid rgba(90,146,112,0.3)', borderRadius: '12px', color: '#5a9270', fontSize: '14px', cursor: 'pointer' }}>
+          <button onClick={() => { setRequires2FA(false); setTempToken(null); setTotpCode(''); setFormError(null); }} className="w-full mt-3 py-3 bg-transparent border border-gantly-blue-200 rounded-xl text-gantly-blue-600 text-sm cursor-pointer hover:bg-gantly-blue-50 transition-colors">
             Volver al login
           </button>
         </div>
@@ -248,143 +256,40 @@ export default function Login({
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #e8ece9 0%, #d4e0d8 50%, #e0e8e3 100%)',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: '80px 24px',
-        position: 'relative',
-        fontFamily: "'Inter', sans-serif",
-      }}
-    >
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '1000px',
-          display: 'grid',
-          gridTemplateColumns: 'minmax(300px, 1fr) minmax(320px, 1fr)',
-          gap: '48px',
-          position: 'relative',
-          zIndex: 1,
-        }}
-      >
+    <div className="min-h-screen bg-gradient-to-br from-gantly-navy-700 via-gantly-blue-600 to-gantly-cyan-500 flex justify-center items-center px-6 py-20 relative">
+      <div className="w-full max-w-[1000px] grid grid-cols-1 md:grid-cols-[minmax(300px,1fr)_minmax(320px,1fr)] gap-12 relative z-[1]">
         {/* Panel izquierdo - Información */}
-        <div
-          style={{
-            background: 'rgba(255, 255, 255, 0.9)',
-            border: '1px solid rgba(90, 146, 112, 0.2)',
-            borderRadius: '24px',
-            padding: '48px 40px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '24px',
-            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
-          }}
-        >
-          <div style={{ 
-            fontFamily: "'Nunito', sans-serif",
-            fontSize: '32px', 
-            fontWeight: 700, 
-            color: '#5a9270',
-            letterSpacing: '-0.02em',
-            marginBottom: '8px',
-          }}>
+        <div className="bg-white/90 border border-gantly-blue-100 rounded-2xl p-12 flex flex-col gap-6 shadow-card">
+          <div className="font-heading text-[32px] font-bold text-gantly-blue-500 tracking-tight mb-2">
             Gantly
           </div>
-          <h1 style={{ 
-            margin: 0, 
-            fontSize: '36px', 
-            lineHeight: 1.3, 
-            color: '#1a2e22',
-            fontFamily: "'Nunito', sans-serif",
-            fontWeight: 700,
-          }}>
+          <h1 className="m-0 text-4xl leading-tight text-gantly-text font-heading font-bold">
             {isCompanyMode ? 'Acceso empresas' : 'Bienvenido de nuevo'}
           </h1>
-          <p style={{ 
-            margin: 0, 
-            fontSize: '17px', 
-            lineHeight: 1.7, 
-            color: '#3a5a4a',
-            marginBottom: '8px',
-          }}>
+          <p className="m-0 text-[17px] leading-relaxed text-gantly-muted mb-2">
             {isCompanyMode
               ? 'Gestiona a tus psicólogos y el bienestar emocional de tu equipo desde un panel unificado y seguro.'
               : 'Conecta con tu espacio de bienestar emocional. Accede a tus evaluaciones, seguimiento personalizado y sesiones con profesionales de la psicología.'}
           </p>
-          <div style={{ 
-            marginTop: '24px', 
-            display: 'flex', 
-            flexDirection: 'column',
-            gap: '16px', 
-            fontSize: '16px', 
-            color: '#3a5a4a',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ 
-                width: '24px', 
-                height: '24px', 
-                borderRadius: '50%', 
-                background: '#d4e0d8',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}>✓</div>
+          <div className="mt-6 flex flex-col gap-4 text-base text-gantly-muted">
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full bg-gantly-blue-100 flex items-center justify-center flex-shrink-0 text-gantly-blue-600 text-sm">✓</div>
               <span>Evaluaciones personalizadas</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ 
-                width: '24px', 
-                height: '24px', 
-                borderRadius: '50%', 
-                background: '#d4e0d8',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}>✓</div>
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full bg-gantly-blue-100 flex items-center justify-center flex-shrink-0 text-gantly-blue-600 text-sm">✓</div>
               <span>Seguimiento emocional confidencial</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ 
-                width: '24px', 
-                height: '24px', 
-                borderRadius: '50%', 
-                background: '#d4e0d8',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}>✓</div>
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full bg-gantly-blue-100 flex items-center justify-center flex-shrink-0 text-gantly-blue-600 text-sm">✓</div>
               <span>Planes adaptados a ti</span>
             </div>
           </div>
-          <div style={{ 
-            marginTop: 'auto', 
-            fontSize: '15px', 
-            color: '#3a5a4a',
-            paddingTop: '24px',
-            borderTop: '1px solid rgba(90, 146, 112, 0.15)',
-          }}>
+          <div className="mt-auto text-[15px] text-gantly-muted pt-6 border-t border-gantly-blue-100">
             ¿No tienes cuenta?{' '}
             <button
               onClick={onSwitchToRegister}
-              style={{
-                border: 'none',
-                background: 'transparent',
-                color: '#5a9270',
-                fontWeight: 600,
-                cursor: 'pointer',
-                textDecoration: 'none',
-                fontFamily: "'Inter', sans-serif",
-                fontSize: '15px',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}
+              className="border-none bg-transparent text-gantly-blue-600 font-semibold cursor-pointer text-[15px] hover:underline"
             >
               Crear cuenta
             </button>
@@ -392,80 +297,27 @@ export default function Login({
         </div>
 
         {/* Panel derecho - Formulario */}
-        <div
-          style={{
-            background: 'rgba(255, 255, 255, 0.95)',
-            border: '1px solid rgba(90, 146, 112, 0.2)',
-            borderRadius: '24px',
-            padding: '48px 40px',
-            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
-          }}
-        >
-          <h2 style={{ 
-            margin: '0 0 8px', 
-            fontSize: '28px', 
-            color: '#1a2e22',
-            fontFamily: "'Nunito', sans-serif",
-            fontWeight: 700,
-          }}>
+        <div className="bg-white shadow-card border border-gantly-blue-100 rounded-2xl p-12">
+          <h2 className="m-0 mb-2 text-[28px] text-gantly-text font-heading font-bold">
             {isCompanyMode ? 'Iniciar sesión como empresa' : 'Iniciar sesión'}
           </h2>
-          <p style={{ 
-            margin: '0 0 32px', 
-            fontSize: '16px', 
-            color: '#3a5a4a',
-          }}>
+          <p className="m-0 mb-8 text-base text-gantly-muted">
             {isCompanyMode
               ? 'Introduce las credenciales de tu cuenta de empresa para acceder al panel de Gantly.'
               : 'Ingresa tus datos para acceder a tu espacio personal.'}
           </p>
 
           {formError && (
-            <div
-              style={{
-                marginBottom: '24px',
-                padding: '12px 16px',
-                borderRadius: '12px',
-                background: '#fee2e2',
-                border: '1px solid #ef4444',
-                color: '#991b1b',
-                fontSize: '14px',
-                fontFamily: "'Inter', sans-serif",
-              }}
-            >
+            <div className="mb-6 px-4 py-3 rounded-xl bg-red-50 border border-red-400 text-red-800 text-sm">
               {formError}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
             {!isCompanyMode && (
               <a
                 href={authService.getOAuth2LoginUrl('google')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '12px',
-                  padding: '14px 24px',
-                  borderRadius: '24px',
-                  border: '1px solid rgba(90, 146, 112, 0.3)',
-                  background: '#fff',
-                  color: '#1a2e22',
-                  fontSize: '16px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  textDecoration: 'none',
-                  fontFamily: "'Inter', sans-serif",
-                  transition: 'all 0.2s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#f8fbf7';
-                  e.currentTarget.style.borderColor = '#5a9270';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#fff';
-                  e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
-                }}
+                className="flex items-center justify-center gap-3 py-3.5 px-6 rounded-full border border-gantly-blue-200 bg-white text-gantly-text text-base font-semibold no-underline transition-all hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -476,10 +328,10 @@ export default function Login({
                 Continuar con Google
               </a>
             )}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div style={{ flex: 1, height: '1px', background: 'rgba(90, 146, 112, 0.2)' }} />
-              <span style={{ fontSize: '13px', color: '#3a5a4a' }}>o</span>
-              <div style={{ flex: 1, height: '1px', background: 'rgba(90, 146, 112, 0.2)' }} />
+            <div className="flex items-center gap-4">
+              <div className="flex-1 h-px bg-gantly-blue-100" />
+              <span className="text-[13px] text-gantly-muted">o</span>
+              <div className="flex-1 h-px bg-gantly-blue-100" />
             </div>
             <FormField
               label="Email"
@@ -515,26 +367,15 @@ export default function Login({
               ariaLabel="Contraseña"
             />
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+            <div className="flex justify-between items-center mt-1">
               {!isCompanyMode ? (
                 <>
                   <button
                     type="button"
                     onClick={() => {
-                      // Navegar a pantalla de login de empresa
                       onSwitchToCompanyLogin?.();
                     }}
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      color: '#5a9270',
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                      padding: 0,
-                      fontFamily: "'Inter', sans-serif",
-                      textDecoration: 'none',
-                    }}
+                    className="bg-transparent border-none text-gantly-blue-600 text-sm font-medium cursor-pointer p-0 hover:underline"
                   >
                     Soy empresa
                   </button>
@@ -545,23 +386,13 @@ export default function Login({
                   onClick={() => {
                     onSwitchToUserLogin?.();
                   }}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: '#5a9270',
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    padding: 0,
-                    fontFamily: "'Inter', sans-serif",
-                    textDecoration: 'none',
-                  }}
+                  className="bg-transparent border-none text-gantly-blue-600 text-sm font-medium cursor-pointer p-0 hover:underline"
                 >
                   Acceder como usuario
                 </button>
               )}
             </div>
-            <div style={{ marginTop: '-8px', marginBottom: '8px' }}>
+            <div className="-mt-2 mb-2">
               <button
                 type="button"
                 onClick={() => {
@@ -580,19 +411,7 @@ export default function Login({
                     });
                   }
                 }}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#5a9270',
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  textDecoration: 'none',
-                  padding: 0,
-                  fontFamily: "'Inter', sans-serif",
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}
+                className="bg-transparent border-none text-gantly-blue-600 text-sm font-medium cursor-pointer p-0 hover:underline"
               >
                 ¿Olvidaste tu contraseña?
               </button>
@@ -603,32 +422,7 @@ export default function Login({
               disabled={loading}
               aria-label="Iniciar sesión"
               aria-busy={loading}
-              style={{
-                marginTop: '8px',
-                padding: '14px 24px',
-                borderRadius: '24px',
-                border: 'none',
-                background: loading ? '#cbd5d1' : '#5a9270',
-                color: '#ffffff',
-                fontSize: '16px',
-                fontWeight: 600,
-                cursor: loading ? 'not-allowed' : 'pointer',
-                boxShadow: loading ? 'none' : '0 4px 12px rgba(90, 146, 112, 0.3)',
-                transition: 'all 0.3s',
-                fontFamily: "'Inter', sans-serif",
-              }}
-              onMouseEnter={(e) => {
-                if (!loading) {
-                  e.currentTarget.style.background = '#4a8062';
-                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!loading) {
-                  e.currentTarget.style.background = '#5a9270';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
-                }
-              }}
+              className="mt-2 py-3.5 px-6 rounded-full border-none bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white text-base font-semibold cursor-pointer shadow-md hover:shadow-lg transition-all disabled:bg-gray-300 disabled:cursor-not-allowed disabled:shadow-none"
             >
               {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
             </button>
@@ -638,4 +432,3 @@ export default function Login({
     </div>
   );
 }
-

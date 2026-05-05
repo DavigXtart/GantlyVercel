@@ -386,7 +386,7 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
           alignItems: 'center',
           justifyContent: 'center',
           position: 'relative',
-          fontFamily: "'Inter', sans-serif",
+
         }}
       >
         <img 
@@ -406,16 +406,16 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
         <div
           style={{
             background: 'rgba(250, 232, 214, 0.85)',
-            border: '1px solid rgba(90, 146, 112, 0.2)',
+            border: '1px solid rgba(46, 147, 204, 0.2)',
             borderRadius: '24px',
             padding: '48px 40px',
             textAlign: 'center',
-            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
+            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)',
             position: 'relative',
             zIndex: 2,
           }}
         >
-          <p style={{ fontSize: '18px', color: '#3a5a4a', fontWeight: 500, margin: 0 }}>
+          <p style={{ fontSize: '18px', color: '#475569', fontWeight: 500, margin: 0 }}>
             Cargando test de matching...
           </p>
         </div>
@@ -432,7 +432,7 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
           alignItems: 'center',
           justifyContent: 'center',
           position: 'relative',
-          fontFamily: "'Inter', sans-serif",
+
         }}
       >
         <img 
@@ -452,12 +452,12 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
         <div
           style={{
             background: 'rgba(250, 232, 214, 0.85)',
-            border: '1px solid rgba(90, 146, 112, 0.2)',
+            border: '1px solid rgba(46, 147, 204, 0.2)',
             borderRadius: '24px',
             padding: '48px 40px',
             maxWidth: '480px',
             textAlign: 'center',
-            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
+            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)',
             position: 'relative',
             zIndex: 2,
           }}
@@ -465,15 +465,14 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
           <h2 style={{ 
             margin: '0 0 12px', 
             fontSize: '26px',
-            color: '#1a2e22',
-            fontFamily: "'Nunito', sans-serif",
+            color: '#0F172A',
             fontWeight: 700,
           }}>
             Test no disponible
           </h2>
           <p style={{ 
             margin: '0 0 24px', 
-            color: '#3a5a4a',
+            color: '#475569',
             fontSize: '16px',
           }}>
             El test de matching no está configurado.
@@ -485,14 +484,14 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
                 padding: '12px 24px',
                 borderRadius: '24px',
                 border: 'none',
-                background: '#5a9270',
+                background: '#2E93CC',
                 color: '#ffffff',
                 fontSize: '15px',
                 fontWeight: 600,
                 cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(90, 146, 112, 0.3)',
+                boxShadow: '0 4px 12px rgba(46, 147, 204, 0.3)',
                 transition: 'all 0.3s',
-                fontFamily: "'Inter', sans-serif",
+      
               }}
             >
               Volver
@@ -512,7 +511,7 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
           alignItems: 'center',
           justifyContent: 'center',
           position: 'relative',
-          fontFamily: "'Inter', sans-serif",
+
         }}
       >
         <img 
@@ -532,16 +531,16 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
         <div
           style={{
             background: 'rgba(250, 232, 214, 0.85)',
-            border: '1px solid rgba(90, 146, 112, 0.2)',
+            border: '1px solid rgba(46, 147, 204, 0.2)',
             borderRadius: '24px',
             padding: '48px 40px',
             textAlign: 'center',
-            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
+            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)',
             position: 'relative',
             zIndex: 2,
           }}
         >
-          <p style={{ fontSize: '18px', color: '#3a5a4a', fontWeight: 500, margin: 0 }}>
+          <p style={{ fontSize: '18px', color: '#475569', fontWeight: 500, margin: 0 }}>
             No hay preguntas disponibles
           </p>
         </div>
@@ -566,29 +565,29 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
             style={{
               padding: '18px 24px',
               borderRadius: '16px',
-              border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.3)'}`,
-              background: isSelected ? '#d4e0d8' : '#f8f9fa',
-              color: '#1a2e22',
+              border: `2px solid ${isSelected ? '#2E93CC' : 'rgba(46, 147, 204, 0.3)'}`,
+              background: isSelected ? '#D2EBF8' : '#f8f9fa',
+              color: '#0F172A',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
-              fontFamily: "'Inter', sans-serif",
+    
               fontSize: '16px',
               textAlign: 'left',
-              boxShadow: isSelected ? '0 4px 12px rgba(90, 146, 112, 0.2)' : 'none',
+              boxShadow: isSelected ? '0 4px 12px rgba(46, 147, 204, 0.2)' : 'none',
             }}
             onMouseEnter={(e) => {
               if (!isSelected) {
-                e.currentTarget.style.borderColor = '#5a9270';
+                e.currentTarget.style.borderColor = '#2E93CC';
                 e.currentTarget.style.background = 'rgba(250, 232, 214, 0.6)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.15)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(46, 147, 204, 0.15)';
               }
             }}
             onMouseLeave={(e) => {
               if (!isSelected) {
-                e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
+                e.currentTarget.style.borderColor = 'rgba(46, 147, 204, 0.3)';
                 e.currentTarget.style.background = '#f8f9fa';
                 e.currentTarget.style.boxShadow = 'none';
               }
@@ -600,11 +599,11 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
                 width: '24px',
                 height: '24px',
                 borderRadius: '50%',
-                border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.4)'}`,
+                border: `2px solid ${isSelected ? '#2E93CC' : 'rgba(46, 147, 204, 0.4)'}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: isSelected ? '#5a9270' : 'transparent',
+                background: isSelected ? '#2E93CC' : 'transparent',
                 color: isSelected ? '#ffffff' : 'transparent',
                 transition: 'all 0.3s ease',
                 flexShrink: 0,
@@ -632,29 +631,29 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
               style={{
                 padding: '18px 24px',
                 borderRadius: '16px',
-                border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.3)'}`,
-                background: isSelected ? '#d4e0d8' : '#f8f9fa',
-                color: '#1a2e22',
+                border: `2px solid ${isSelected ? '#2E93CC' : 'rgba(46, 147, 204, 0.3)'}`,
+                background: isSelected ? '#D2EBF8' : '#f8f9fa',
+                color: '#0F172A',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
-                fontFamily: "'Inter', sans-serif",
+      
                 fontSize: '16px',
                 textAlign: 'left',
-                boxShadow: isSelected ? '0 4px 12px rgba(90, 146, 112, 0.2)' : 'none',
+                boxShadow: isSelected ? '0 4px 12px rgba(46, 147, 204, 0.2)' : 'none',
               }}
               onMouseEnter={(e) => {
                 if (!isSelected) {
-                  e.currentTarget.style.borderColor = '#5a9270';
+                  e.currentTarget.style.borderColor = '#2E93CC';
                   e.currentTarget.style.background = 'rgba(250, 232, 214, 0.6)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.15)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(46, 147, 204, 0.15)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isSelected) {
-                  e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
+                  e.currentTarget.style.borderColor = 'rgba(46, 147, 204, 0.3)';
                   e.currentTarget.style.background = '#f8f9fa';
                   e.currentTarget.style.boxShadow = 'none';
                 }
@@ -666,11 +665,11 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
                   width: '24px',
                   height: '24px',
                   borderRadius: '6px',
-                  border: `2px solid ${isSelected ? '#5a9270' : 'rgba(90, 146, 112, 0.4)'}`,
+                  border: `2px solid ${isSelected ? '#2E93CC' : 'rgba(46, 147, 204, 0.4)'}`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  background: isSelected ? '#5a9270' : 'transparent',
+                  background: isSelected ? '#2E93CC' : 'transparent',
                   color: isSelected ? '#ffffff' : 'transparent',
                   transition: 'all 0.3s ease',
                   flexShrink: 0,
@@ -697,9 +696,9 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
           width: '100%',
           padding: '16px',
           borderRadius: '16px',
-          border: '1px solid rgba(90, 146, 112, 0.4)',
+          border: '1px solid rgba(46, 147, 204, 0.4)',
           fontSize: '16px',
-          fontFamily: "'Inter', sans-serif",
+
           resize: 'vertical',
         }}
       />
@@ -721,7 +720,6 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        fontFamily: "'Inter', sans-serif",
         overflow: 'hidden',
       }}
     >
@@ -783,10 +781,9 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
         }}
       >
         <div style={{
-          fontFamily: "'Nunito', sans-serif",
           fontSize: '28px',
           fontWeight: 700,
-          color: '#5a9270',
+          color: '#2E93CC',
           letterSpacing: '-0.02em',
         }}>
           Gantly
@@ -797,24 +794,24 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
             style={{
               padding: '10px 24px',
               borderRadius: '24px',
-              border: '1px solid rgba(90, 146, 112, 0.3)',
+              border: '1px solid rgba(46, 147, 204, 0.3)',
               background: 'rgba(250, 232, 214, 0.85)',
-              color: '#3a5a4a',
+              color: '#475569',
               fontSize: '15px',
               fontWeight: 500,
               cursor: 'pointer',
               transition: 'all 0.3s',
-              fontFamily: "'Inter', sans-serif",
+    
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = 'rgba(250, 232, 214, 1)';
-              e.currentTarget.style.borderColor = '#5a9270';
-              e.currentTarget.style.color = '#5a9270';
+              e.currentTarget.style.borderColor = '#2E93CC';
+              e.currentTarget.style.color = '#2E93CC';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'rgba(250, 232, 214, 0.85)';
-              e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)';
-              e.currentTarget.style.color = '#3a5a4a';
+              e.currentTarget.style.borderColor = 'rgba(46, 147, 204, 0.3)';
+              e.currentTarget.style.color = '#475569';
             }}
           >
             Guardar y salir
@@ -836,26 +833,25 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
         <div
           style={{
             background: 'rgba(250, 232, 214, 0.85)',
-            border: '1px solid rgba(90, 146, 112, 0.2)',
+            border: '1px solid rgba(46, 147, 204, 0.2)',
             borderRadius: '24px',
             padding: '32px 40px',
-            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)'
+            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)'
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
             <div style={{ flex: 1 }}>
               <h2 style={{ 
                 margin: 0, 
-                fontSize: '28px', 
-                color: '#1a2e22',
-                fontFamily: "'Nunito', sans-serif",
+                fontSize: '28px',
+                color: '#0F172A',
                 fontWeight: 700,
               }}>
                 {test.title}
               </h2>
               <p style={{ 
                 margin: '8px 0 0', 
-                color: '#3a5a4a', 
+                color: '#475569', 
                 fontSize: '16px', 
                 maxWidth: '560px',
                 lineHeight: 1.6,
@@ -867,11 +863,11 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
               style={{
                 padding: '8px 16px',
                 borderRadius: '20px',
-                background: '#d4e0d8',
-                color: '#3a5a4a',
+                background: '#D2EBF8',
+                color: '#475569',
                 fontSize: '14px',
                 fontWeight: 600,
-                fontFamily: "'Inter', sans-serif",
+      
               }}
             >
               Pregunta {currentQuestionIndex + 1} de {visibleQuestions.length}
@@ -890,7 +886,7 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
               style={{
                 width: `${progress}%`,
                 height: '100%',
-                background: '#5a9270',
+                background: '#2E93CC',
                 transition: 'width 0.45s ease',
                 borderRadius: '999px',
               }}
@@ -902,19 +898,18 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
         <div
           style={{
             background: 'rgba(250, 232, 214, 0.9)',
-            border: '1px solid rgba(90, 146, 112, 0.2)',
+            border: '1px solid rgba(46, 147, 204, 0.2)',
             borderRadius: '24px',
             padding: '48px 40px',
-            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
+            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)',
           }}
         >
           <h3
             style={{
               margin: '0 0 32px',
               fontSize: 'clamp(24px, 3vw, 32px)',
-              color: '#1a2e22',
+              color: '#0F172A',
               lineHeight: 1.4,
-              fontFamily: "'Nunito', sans-serif",
               fontWeight: 600,
             }}
           >
@@ -929,10 +924,10 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
             display: 'flex',
             justifyContent: 'space-between',
             background: 'rgba(250, 232, 214, 0.85)',
-            border: '1px solid rgba(90, 146, 112, 0.2)',
+            border: '1px solid rgba(46, 147, 204, 0.2)',
             borderRadius: '24px',
             padding: '24px 32px',
-            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)'
+            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)'
           }}
         >
           <button
@@ -943,11 +938,11 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
               borderRadius: '24px',
               border: 'none',
               background: 'rgba(255,255,255,0.7)',
-              color: '#3a5a4a',
+              color: '#475569',
               fontWeight: 600,
               cursor: currentQuestionIndex === 0 ? 'not-allowed' : 'pointer',
               opacity: currentQuestionIndex === 0 ? 0.5 : 1,
-              fontFamily: "'Inter', sans-serif",
+    
             }}
           >
             ← Anterior
@@ -961,14 +956,14 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
                 padding: '14px 32px',
                 borderRadius: '24px',
                 border: 'none',
-                background: !isCurrentAnswered || submitting ? '#cbd5d1' : '#5a9270',
+                background: !isCurrentAnswered || submitting ? '#CBD5E1' : '#2E93CC',
                 color: '#ffffff',
                 fontSize: '16px',
                 fontWeight: 600,
                 cursor: !isCurrentAnswered || submitting ? 'not-allowed' : 'pointer',
-                boxShadow: !isCurrentAnswered || submitting ? 'none' : '0 4px 12px rgba(90, 146, 112, 0.3)',
+                boxShadow: !isCurrentAnswered || submitting ? 'none' : '0 4px 12px rgba(46, 147, 204, 0.3)',
                 transition: 'all 0.3s',
-                fontFamily: "'Inter', sans-serif",
+      
               }}
             >
               {submitting ? 'Enviando...' : 'Completar Test'}
@@ -981,14 +976,14 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
                 padding: '14px 32px',
                 borderRadius: '24px',
                 border: 'none',
-                background: isCurrentAnswered ? '#5a9270' : '#cbd5d1',
+                background: isCurrentAnswered ? '#2E93CC' : '#CBD5E1',
                 color: '#ffffff',
                 fontSize: '16px',
                 fontWeight: 600,
                 cursor: isCurrentAnswered ? 'pointer' : 'not-allowed',
-                boxShadow: isCurrentAnswered ? '0 4px 12px rgba(90, 146, 112, 0.3)' : 'none',
+                boxShadow: isCurrentAnswered ? '0 4px 12px rgba(46, 147, 204, 0.3)' : 'none',
                 transition: 'all 0.3s',
-                fontFamily: "'Inter', sans-serif",
+      
               }}
             >
               Siguiente →

@@ -26,8 +26,8 @@ interface LanguageItem { language?: string; level?: string; }
 
 function ProfileSection({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div style={{ marginBottom: '12px' }}>
-      <h4 style={{ margin: '0 0 6px', fontSize: '13px', fontWeight: 600, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{title}</h4>
+    <div className="mb-3">
+      <h4 className="m-0 mb-1.5 text-[13px] font-semibold text-slate-700 uppercase tracking-wide">{title}</h4>
       {children}
     </div>
   );
@@ -289,140 +289,139 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
 
     return (
       <div>
-        <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-6">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center gap-3.5">
               {p.avatarUrl ? (
-                <img src={p.avatarUrl} alt={p.name} style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', border: '2px solid #fde68a' }} />
+                <img src={p.avatarUrl} alt={p.name} className="w-14 h-14 rounded-full object-cover border-2 border-gantly-gold-200" />
               ) : (
-                <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#f59e0b', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', fontWeight: 700, flexShrink: 0 }}>
+                <div className="w-14 h-14 rounded-full bg-gantly-gold flex items-center justify-center text-[22px] font-bold text-white flex-shrink-0">
                   {p.name.charAt(0).toUpperCase()}
                 </div>
               )}
               <div>
-                <h2 style={{ margin: 0 }}>{p.name}</h2>
-                <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>{p.email}</p>
+                <h2 className="m-0 font-heading font-bold text-slate-800">{p.name}</h2>
+                <p className="text-slate-500 mt-1">{p.email}</p>
               </div>
             </div>
-            <button className="btn-secondary" onClick={() => { setSelectedPendingId(null); setRejectingId(null); setRejectReason(''); }}
-              style={{ width: 'auto', padding: '12px 24px' }}>
+            <button className="btn-secondary w-auto px-6 py-3" onClick={() => { setSelectedPendingId(null); setRejectingId(null); setRejectReason(''); }}>
               ← Volver
             </button>
           </div>
 
           {/* Info badges */}
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '24px' }}>
+          <div className="flex gap-3 flex-wrap mb-6">
             {p.licenseNumber && (
-              <span style={{ fontSize: '13px', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '8px', padding: '6px 14px', color: '#9a3412', fontWeight: 500 }}>
+              <span className="text-[13px] bg-orange-50 border border-orange-200 rounded-lg px-3.5 py-1.5 text-orange-800 font-medium">
                 N. Colegiado: {p.licenseNumber}
               </span>
             )}
-            {p.gender && <span style={{ fontSize: '13px', background: '#f0f5f3', borderRadius: '8px', padding: '6px 14px', color: '#374151' }}>{p.gender}</span>}
-            {p.age != null && <span style={{ fontSize: '13px', background: '#f0f5f3', borderRadius: '8px', padding: '6px 14px', color: '#374151' }}>{p.age} anos</span>}
-            <span style={{ fontSize: '13px', background: '#fefce8', borderRadius: '8px', padding: '6px 14px', color: '#92400e' }}>
+            {p.gender && <span className="text-[13px] bg-slate-50 rounded-lg px-3.5 py-1.5 text-slate-700">{p.gender}</span>}
+            {p.age != null && <span className="text-[13px] bg-slate-50 rounded-lg px-3.5 py-1.5 text-slate-700">{p.age} anos</span>}
+            <span className="text-[13px] bg-gantly-gold-50 rounded-lg px-3.5 py-1.5 text-amber-700 font-medium">
               Pendiente de aprobacion
             </span>
           </div>
 
-          <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: 'var(--bg-primary)', borderRadius: '12px' }}>
+          <div className="mb-6 p-4 bg-slate-50 rounded-xl">
             <p><strong>Registrado:</strong> {formatDate(p.createdAt)}</p>
           </div>
 
           {/* Rejection reason */}
           {p.rejectionReason && (
-            <div style={{ marginBottom: '24px', padding: '14px 18px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px' }}>
-              <p style={{ margin: 0, fontSize: '14px', color: '#dc2626' }}><strong>Motivo rechazo anterior:</strong> {p.rejectionReason}</p>
+            <div className="mb-6 px-4 py-3.5 bg-red-50 border border-red-200 rounded-xl">
+              <p className="m-0 text-sm text-red-600"><strong>Motivo rechazo anterior:</strong> {p.rejectionReason}</p>
             </div>
           )}
 
           {/* Profile sections */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '24px' }}>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-6 mb-6">
             <div>
               {p.bio && (
-                <div className="card" style={{ marginBottom: '16px' }}>
-                  <h3>Sobre mi</h3>
-                  <p style={{ margin: '8px 0 0', fontSize: '14px', color: '#374151', lineHeight: 1.6 }}>{p.bio}</p>
+                <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-5 mb-4">
+                  <h3 className="font-heading font-bold text-slate-800">Sobre mi</h3>
+                  <p className="mt-2 mb-0 text-sm text-slate-700 leading-relaxed">{p.bio}</p>
                 </div>
               )}
 
               {(hasEducation || p.education) && (
-                <div className="card" style={{ marginBottom: '16px' }}>
-                  <h3>Formacion</h3>
+                <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-5 mb-4">
+                  <h3 className="font-heading font-bold text-slate-800">Formacion</h3>
                   {hasEducation ? educationItems.map((ed, i) => (
-                    <div key={i} style={{ marginTop: '10px', fontSize: '14px', color: '#374151' }}>
+                    <div key={i} className="mt-2.5 text-sm text-slate-700">
                       <div><strong>{ed.degree}</strong>{ed.field ? ` en ${ed.field}` : ''}{ed.institution ? ` — ${ed.institution}` : ''}</div>
-                      {(ed.startDate || ed.endDate) && <div style={{ fontSize: '13px', color: '#9ca3af' }}>{ed.startDate || '?'} - {ed.endDate || 'Actualidad'}</div>}
+                      {(ed.startDate || ed.endDate) && <div className="text-[13px] text-slate-400">{ed.startDate || '?'} - {ed.endDate || 'Actualidad'}</div>}
                     </div>
-                  )) : <p style={{ margin: '8px 0 0', fontSize: '14px', color: '#374151' }}>{p.education}</p>}
+                  )) : <p className="mt-2 mb-0 text-sm text-slate-700">{p.education}</p>}
                 </div>
               )}
 
               {(hasExperience || p.experience) && (
-                <div className="card" style={{ marginBottom: '16px' }}>
-                  <h3>Experiencia</h3>
+                <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-5 mb-4">
+                  <h3 className="font-heading font-bold text-slate-800">Experiencia</h3>
                   {hasExperience ? experienceItems.map((ex, i) => (
-                    <div key={i} style={{ marginTop: '10px', fontSize: '14px', color: '#374151' }}>
+                    <div key={i} className="mt-2.5 text-sm text-slate-700">
                       <div><strong>{ex.title}</strong>{ex.company ? ` — ${ex.company}` : ''}</div>
-                      {(ex.startDate || ex.endDate) && <div style={{ fontSize: '13px', color: '#9ca3af' }}>{ex.startDate || '?'} - {ex.endDate || 'Actualidad'}</div>}
-                      {ex.description && <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px' }}>{ex.description}</div>}
+                      {(ex.startDate || ex.endDate) && <div className="text-[13px] text-slate-400">{ex.startDate || '?'} - {ex.endDate || 'Actualidad'}</div>}
+                      {ex.description && <div className="text-[13px] text-slate-500 mt-1">{ex.description}</div>}
                     </div>
-                  )) : <p style={{ margin: '8px 0 0', fontSize: '14px', color: '#374151' }}>{p.experience}</p>}
+                  )) : <p className="mt-2 mb-0 text-sm text-slate-700">{p.experience}</p>}
                 </div>
               )}
             </div>
 
             <div>
               {(hasCerts || p.certifications) && (
-                <div className="card" style={{ marginBottom: '16px' }}>
-                  <h3>Certificaciones</h3>
+                <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-5 mb-4">
+                  <h3 className="font-heading font-bold text-slate-800">Certificaciones</h3>
                   {hasCerts ? certItems.map((c, i) => (
-                    <div key={i} style={{ marginTop: '10px', fontSize: '14px', color: '#374151' }}>
+                    <div key={i} className="mt-2.5 text-sm text-slate-700">
                       <div><strong>{c.name}</strong>{c.issuer ? ` — ${c.issuer}` : ''}{c.date ? ` (${c.date})` : ''}</div>
-                      {c.credentialId && <div style={{ fontSize: '13px', color: '#9ca3af' }}>ID: {c.credentialId}</div>}
+                      {c.credentialId && <div className="text-[13px] text-slate-400">ID: {c.credentialId}</div>}
                     </div>
-                  )) : <p style={{ margin: '8px 0 0', fontSize: '14px', color: '#374151' }}>{p.certifications}</p>}
+                  )) : <p className="mt-2 mb-0 text-sm text-slate-700">{p.certifications}</p>}
                 </div>
               )}
 
               {(hasSpecs || p.specializations) && (
-                <div className="card" style={{ marginBottom: '16px' }}>
-                  <h3>Especialidades</h3>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
+                <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-5 mb-4">
+                  <h3 className="font-heading font-bold text-slate-800">Especialidades</h3>
+                  <div className="flex flex-wrap gap-2 mt-2.5">
                     {hasSpecs ? specItems.map((s, i) => (
-                      <span key={i} style={{ padding: '4px 12px', borderRadius: '9999px', fontSize: '13px', background: '#ecfdf5', color: '#065f46', border: '1px solid #a7f3d0' }}>{s}</span>
-                    )) : <p style={{ margin: 0, fontSize: '14px', color: '#374151' }}>{p.specializations}</p>}
+                      <span key={i} className="px-3 py-1 rounded-full text-[13px] bg-gantly-emerald-50 text-gantly-emerald-800 border border-gantly-emerald-200">{s}</span>
+                    )) : <p className="m-0 text-sm text-slate-700">{p.specializations}</p>}
                   </div>
                 </div>
               )}
 
               {(hasLangs || p.languages) && (
-                <div className="card" style={{ marginBottom: '16px' }}>
-                  <h3>Idiomas</h3>
-                  <div style={{ marginTop: '10px' }}>
+                <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-5 mb-4">
+                  <h3 className="font-heading font-bold text-slate-800">Idiomas</h3>
+                  <div className="mt-2.5">
                     {hasLangs ? langItems.map((l, i) => (
-                      <span key={i} style={{ marginRight: '12px', fontSize: '14px', color: '#374151' }}>{l.language}{l.level ? ` (${l.level})` : ''}{i < langItems.length - 1 ? ',' : ''}</span>
-                    )) : <p style={{ margin: 0, fontSize: '14px', color: '#374151' }}>{p.languages}</p>}
+                      <span key={i} className="mr-3 text-sm text-slate-700">{l.language}{l.level ? ` (${l.level})` : ''}{i < langItems.length - 1 ? ',' : ''}</span>
+                    )) : <p className="m-0 text-sm text-slate-700">{p.languages}</p>}
                   </div>
                 </div>
               )}
 
               {hasInterests && (
-                <div className="card" style={{ marginBottom: '16px' }}>
-                  <h3>Intereses</h3>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
+                <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-5 mb-4">
+                  <h3 className="font-heading font-bold text-slate-800">Intereses</h3>
+                  <div className="flex flex-wrap gap-2 mt-2.5">
                     {interestItems.map((s, i) => (
-                      <span key={i} style={{ padding: '4px 12px', borderRadius: '9999px', fontSize: '13px', background: '#eff6ff', color: '#1e40af', border: '1px solid #bfdbfe' }}>{s}</span>
+                      <span key={i} className="px-3 py-1 rounded-full text-[13px] bg-gantly-blue-50 text-gantly-blue-700 border border-gantly-blue-200">{s}</span>
                     ))}
                   </div>
                 </div>
               )}
 
               {(p.linkedinUrl || p.website) && (
-                <div className="card" style={{ marginBottom: '16px' }}>
-                  <h3>Links</h3>
-                  <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginTop: '10px' }}>
-                    {p.linkedinUrl && <a href={p.linkedinUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '14px', color: '#2563eb' }}>LinkedIn</a>}
-                    {p.website && <a href={p.website} target="_blank" rel="noopener noreferrer" style={{ fontSize: '14px', color: '#2563eb' }}>Web</a>}
+                <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-5 mb-4">
+                  <h3 className="font-heading font-bold text-slate-800">Links</h3>
+                  <div className="flex gap-4 flex-wrap mt-2.5">
+                    {p.linkedinUrl && <a href={p.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-gantly-blue-500 hover:text-gantly-blue-700">LinkedIn</a>}
+                    {p.website && <a href={p.website} target="_blank" rel="noopener noreferrer" className="text-sm text-gantly-blue-500 hover:text-gantly-blue-700">Web</a>}
                   </div>
                 </div>
               )}
@@ -430,28 +429,27 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
           </div>
 
           {/* Action buttons */}
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', padding: '20px', background: '#fefce8', borderRadius: '12px', border: '1px solid #fde68a' }}>
-            <button className="btn" onClick={() => handleApprovePsychologist(p.profileId)}
-              style={{ padding: '10px 28px', fontSize: '14px', background: '#059669', borderRadius: '8px' }}>
+          <div className="flex gap-3 flex-wrap items-center p-5 bg-gantly-gold-50 rounded-xl border border-gantly-gold-200">
+            <button className="btn px-7 py-2.5 text-sm bg-gantly-emerald rounded-lg" onClick={() => handleApprovePsychologist(p.profileId)}>
               Aprobar
             </button>
             {rejectingId === p.profileId ? (
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <div className="flex gap-2 items-center flex-wrap">
                 <input type="text" placeholder="Motivo (opcional)" value={rejectReason}
                   onChange={(e) => setRejectReason(e.target.value)}
-                  style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', minWidth: '200px' }} />
+                  className="px-3 py-2 rounded-lg border border-slate-300 text-sm min-w-[200px] focus:border-gantly-blue-500 outline-none" />
                 <button onClick={() => handleRejectPsychologist(p.profileId)}
-                  style={{ padding: '8px 18px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer' }}>
+                  className="px-4 py-2 bg-red-600 text-white border-none rounded-lg text-[13px] cursor-pointer hover:bg-red-700 transition-colors">
                   Confirmar rechazo
                 </button>
                 <button onClick={() => { setRejectingId(null); setRejectReason(''); }}
-                  style={{ padding: '8px 18px', background: '#e5e7eb', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer' }}>
+                  className="px-4 py-2 bg-slate-200 border-none rounded-lg text-[13px] cursor-pointer hover:bg-slate-300 transition-colors">
                   Cancelar
                 </button>
               </div>
             ) : (
               <button onClick={() => setRejectingId(p.profileId)}
-                style={{ padding: '10px 28px', fontSize: '14px', background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: '8px', cursor: 'pointer' }}>
+                className="px-7 py-2.5 text-sm bg-red-50 text-red-600 border border-red-300 rounded-lg cursor-pointer hover:bg-red-100 transition-colors">
                 Rechazar
               </button>
             )}
@@ -465,7 +463,7 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
   if (filterRole === 'PSYCHOLOGIST' && selectedUserId) {
     if (loading && !psychologistSummary) {
       return (
-        <div className="card">
+        <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-6">
           <div className="loading">Cargando datos del psicólogo...</div>
         </div>
       );
@@ -474,25 +472,24 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
     const ps = psychologistSummary;
     return (
       <div>
-        <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-6">
+          <div className="flex justify-between items-center mb-6">
             <div>
-              <h2>{ps.name}</h2>
-              <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>{ps.email}</p>
+              <h2 className="font-heading font-bold text-slate-800">{ps.name}</h2>
+              <p className="text-slate-500 mt-1">{ps.email}</p>
             </div>
             <button
-              className="btn-secondary"
+              className="btn-secondary w-auto px-6 py-3"
               onClick={() => {
                 setSelectedUserId(null);
                 setPsychologistSummary(null);
               }}
-              style={{ width: 'auto', padding: '12px 24px' }}
             >
               ← Volver
             </button>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px', marginBottom: '32px' }}>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4 mb-8">
                 <div
                   onClick={async () => {
                     if (ps.totalRatings === 0) return;
@@ -507,99 +504,66 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
                       setLoadingRatings(false);
                     }
                   }}
-                  style={{
-                    padding: '16px',
-                    background: '#f0f5f3',
-                    borderRadius: '12px',
-                    border: '1px solid rgba(90, 146, 112, 0.2)',
-                    cursor: ps.totalRatings > 0 ? 'pointer' : 'default',
-                    opacity: ps.totalRatings > 0 ? 1 : 0.8
-                  }}
+                  className={`p-4 bg-slate-50 rounded-xl border border-slate-200 ${ps.totalRatings > 0 ? 'cursor-pointer hover:bg-slate-100 transition-colors' : 'opacity-80'}`}
                   title={ps.totalRatings > 0 ? 'Click para ver todas las reseñas' : undefined}
                 >
-                  <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Valoración media</div>
-                  <div style={{ fontSize: '24px', fontWeight: 700, color: '#5a9270' }}>
+                  <div className="text-sm text-slate-500">Valoración media</div>
+                  <div className="text-2xl font-bold text-gantly-blue-500">
                     {ps.averageRating != null ? `${ps.averageRating.toFixed(1)} ★` : '—'}
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>({ps.totalRatings} valoraciones)</div>
+                  <div className="text-xs text-slate-500">({ps.totalRatings} valoraciones)</div>
                 </div>
-                <div style={{ padding: '16px', background: '#f0f5f3', borderRadius: '12px', border: '1px solid rgba(90, 146, 112, 0.2)' }}>
-                  <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Total facturado</div>
-                  <div style={{ fontSize: '24px', fontWeight: 700, color: '#5a9270' }}>
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                  <div className="text-sm text-slate-500">Total facturado</div>
+                  <div className="text-2xl font-bold text-gantly-emerald">
                     {ps.totalBilled != null ? `${Number(ps.totalBilled).toFixed(2)} €` : '0 €'}
                   </div>
                 </div>
-                <div style={{ padding: '16px', background: '#f0f5f3', borderRadius: '12px', border: '1px solid rgba(90, 146, 112, 0.2)' }}>
-                  <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Pacientes activos</div>
-                  <div style={{ fontSize: '24px', fontWeight: 700, color: '#5a9270' }}>{ps.activePatients.length}</div>
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                  <div className="text-sm text-slate-500">Pacientes activos</div>
+                  <div className="text-2xl font-bold text-gantly-blue-500">{ps.activePatients.length}</div>
                 </div>
-                <div style={{ padding: '16px', background: '#f0f5f3', borderRadius: '12px', border: '1px solid rgba(90, 146, 112, 0.2)' }}>
-                  <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Pacientes dados de alta</div>
-                  <div style={{ fontSize: '24px', fontWeight: 700, color: '#5a9270' }}>{ps.dischargedPatients.length}</div>
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                  <div className="text-sm text-slate-500">Pacientes dados de alta</div>
+                  <div className="text-2xl font-bold text-gantly-blue-500">{ps.dischargedPatients.length}</div>
                 </div>
               </div>
 
               {showRatingsModal && (
                 <div
-                  style={{
-                    position: 'fixed',
-                    inset: 0,
-                    background: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000,
-                    padding: '24px'
-                  }}
+                  className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-6"
                   onClick={() => setShowRatingsModal(false)}
                 >
                   <div
-                    style={{
-                      background: 'white',
-                      borderRadius: '12px',
-                      maxWidth: '520px',
-                      width: '100%',
-                      maxHeight: '80vh',
-                      overflow: 'hidden',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      boxShadow: '0 20px 40px rgba(0,0,0,0.15)'
-                    }}
+                    className="bg-white rounded-xl max-w-[520px] w-full max-h-[80vh] overflow-hidden flex flex-col shadow-elevated"
                     onClick={e => e.stopPropagation()}
                   >
-                    <div style={{ padding: '20px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <h3 style={{ margin: 0 }}>Reseñas de pacientes</h3>
+                    <div className="px-6 py-5 border-b border-slate-200 flex justify-between items-center">
+                      <h3 className="m-0 font-heading font-bold text-slate-800">Reseñas de pacientes</h3>
                       <button
-                        className="btn-secondary"
-                        style={{ padding: '8px 16px', fontSize: '14px' }}
+                        className="btn-secondary px-4 py-2 text-sm"
                         onClick={() => setShowRatingsModal(false)}
                       >
                         Cerrar
                       </button>
                     </div>
-                    <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
+                    <div className="px-6 py-5 overflow-y-auto flex-1">
                       {loadingRatings ? (
-                        <p style={{ color: 'var(--text-secondary)' }}>Cargando reseñas...</p>
+                        <p className="text-slate-500">Cargando reseñas...</p>
                       ) : ratingsList.length === 0 ? (
-                        <p style={{ color: 'var(--text-secondary)' }}>No hay reseñas</p>
+                        <p className="text-slate-500">No hay reseñas</p>
                       ) : (
                         ratingsList.map((r, i) => (
                           <div
                             key={i}
-                            style={{
-                              padding: '16px',
-                              marginBottom: '12px',
-                              background: '#f9fafb',
-                              borderRadius: '8px',
-                              border: '1px solid #e5e7eb'
-                            }}
+                            className="p-4 mb-3 bg-slate-50 rounded-lg border border-slate-200"
                           >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                              <strong>{r.patientName}</strong>
-                              <span style={{ color: '#fbbf24', fontSize: '16px' }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
+                            <div className="flex justify-between items-center mb-2">
+                              <strong className="text-slate-800">{r.patientName}</strong>
+                              <span className="text-amber-400 text-base">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
                             </div>
-                            {r.comment && <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary)' }}>{r.comment}</p>}
-                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px' }}>{formatDate(r.createdAt)}</div>
+                            {r.comment && <p className="m-0 text-sm text-slate-500">{r.comment}</p>}
+                            <div className="text-xs text-slate-400 mt-2">{formatDate(r.createdAt)}</div>
                           </div>
                         ))
                       )}
@@ -608,56 +572,56 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
                 </div>
               )}
 
-              <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: 'var(--bg-primary)', borderRadius: '12px' }}>
+              <div className="mb-6 p-4 bg-slate-50 rounded-xl">
                 <p><strong>Registrado:</strong> {formatDate(ps.createdAt)}</p>
               </div>
 
-              <div className="card" style={{ marginBottom: '24px' }}>
-                <h3>Pacientes activos ({ps.activePatients.length})</h3>
+              <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-5 mb-6">
+                <h3 className="font-heading font-bold text-slate-800">Pacientes activos ({ps.activePatients.length})</h3>
                 {ps.activePatients.length === 0 ? (
-                  <p style={{ color: 'var(--text-secondary)' }}>No hay pacientes activos</p>
+                  <p className="text-slate-500">No hay pacientes activos</p>
                 ) : (
-                  <ul style={{ listStyle: 'none', padding: 0 }}>
+                  <ul className="list-none p-0">
                     {ps.activePatients.map(p => (
-                      <li key={p.id} style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <li key={p.id} className="p-3 border-b border-slate-100 flex justify-between items-center">
                         <div>
-                          <strong>{p.name}</strong> — {p.email}
+                          <strong className="text-slate-800">{p.name}</strong> — <span className="text-slate-500">{p.email}</span>
                         </div>
-                        <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Asignado: {formatDate(p.assignedAt)}</span>
+                        <span className="text-xs text-slate-400">Asignado: {formatDate(p.assignedAt)}</span>
                       </li>
                     ))}
                   </ul>
                 )}
               </div>
 
-              <div className="card" style={{ marginBottom: '24px' }}>
-                <h3>Pacientes dados de alta ({ps.dischargedPatients.length})</h3>
+              <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-5 mb-6">
+                <h3 className="font-heading font-bold text-slate-800">Pacientes dados de alta ({ps.dischargedPatients.length})</h3>
                 {ps.dischargedPatients.length === 0 ? (
-                  <p style={{ color: 'var(--text-secondary)' }}>No hay pacientes dados de alta</p>
+                  <p className="text-slate-500">No hay pacientes dados de alta</p>
                 ) : (
-                  <ul style={{ listStyle: 'none', padding: 0 }}>
+                  <ul className="list-none p-0">
                     {ps.dischargedPatients.map(p => (
-                      <li key={p.id} style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <li key={p.id} className="p-3 border-b border-slate-100 flex justify-between items-center">
                         <div>
-                          <strong>{p.name}</strong> — {p.email}
+                          <strong className="text-slate-800">{p.name}</strong> — <span className="text-slate-500">{p.email}</span>
                         </div>
-                        <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Asignado: {formatDate(p.assignedAt)}</span>
+                        <span className="text-xs text-slate-400">Asignado: {formatDate(p.assignedAt)}</span>
                       </li>
                     ))}
                   </ul>
                 )}
               </div>
 
-              <div className="card" style={{ marginBottom: '24px' }}>
-                <h3>Citas agendadas ({ps.scheduledAppointments.length})</h3>
+              <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-5 mb-6">
+                <h3 className="font-heading font-bold text-slate-800">Citas agendadas ({ps.scheduledAppointments.length})</h3>
                 {ps.scheduledAppointments.length === 0 ? (
-                  <p style={{ color: 'var(--text-secondary)' }}>No hay citas agendadas</p>
+                  <p className="text-slate-500">No hay citas agendadas</p>
                 ) : (
-                  <ul style={{ listStyle: 'none', padding: 0 }}>
+                  <ul className="list-none p-0">
                     {ps.scheduledAppointments.map(a => (
-                      <li key={a.id} style={{ padding: '12px', borderBottom: '1px solid #e5e7eb' }}>
-                        <div><strong>{a.patientName}</strong> — {a.patientEmail}</div>
-                        <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+                      <li key={a.id} className="p-3 border-b border-slate-100">
+                        <div><strong className="text-slate-800">{a.patientName}</strong> — <span className="text-slate-500">{a.patientEmail}</span></div>
+                        <div className="text-sm text-slate-500">
                           {formatDate(a.startTime)} — {a.price != null ? `${Number(a.price).toFixed(2)} €` : '—'}
                         </div>
                       </li>
@@ -666,16 +630,16 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
                 )}
               </div>
 
-              <div className="card" style={{ marginBottom: '24px' }}>
-                <h3>Citas pasadas ({ps.pastAppointments.length})</h3>
+              <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-5 mb-6">
+                <h3 className="font-heading font-bold text-slate-800">Citas pasadas ({ps.pastAppointments.length})</h3>
                 {ps.pastAppointments.length === 0 ? (
-                  <p style={{ color: 'var(--text-secondary)' }}>No hay citas pasadas</p>
+                  <p className="text-slate-500">No hay citas pasadas</p>
                 ) : (
-                  <ul style={{ listStyle: 'none', padding: 0, maxHeight: '300px', overflowY: 'auto' }}>
+                  <ul className="list-none p-0 max-h-[300px] overflow-y-auto">
                     {ps.pastAppointments.slice(0, 50).map(a => (
-                      <li key={a.id} style={{ padding: '12px', borderBottom: '1px solid #e5e7eb' }}>
-                        <div><strong>{a.patientName}</strong> — {a.patientEmail}</div>
-                        <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+                      <li key={a.id} className="p-3 border-b border-slate-100">
+                        <div><strong className="text-slate-800">{a.patientName}</strong> — <span className="text-slate-500">{a.patientEmail}</span></div>
+                        <div className="text-sm text-slate-500">
                           {formatDate(a.startTime)} — {a.price != null ? `${Number(a.price).toFixed(2)} €` : '—'}
                         </div>
                       </li>
@@ -683,7 +647,7 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
                   </ul>
                 )}
                 {ps.pastAppointments.length > 50 && (
-                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px' }}>
+                  <p className="text-xs text-slate-400 mt-2">
                     Mostrando las 50 más recientes de {ps.pastAppointments.length} citas
                   </p>
                 )}
@@ -697,25 +661,24 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
   if (selectedUserId && userDetails) {
     return (
       <div>
-        <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-6">
+          <div className="flex justify-between items-center mb-6">
             <div>
-              <h2>{userDetails.name}</h2>
-              <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>{userDetails.email}</p>
+              <h2 className="font-heading font-bold text-slate-800">{userDetails.name}</h2>
+              <p className="text-slate-500 mt-1">{userDetails.email}</p>
             </div>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button 
-                className="btn-secondary" 
+            <div className="flex gap-3">
+              <button
+                className="btn-secondary w-auto px-6 py-3"
                 onClick={() => {
                   setSelectedUserId(null);
                   setUserDetails(null);
                 }}
-                style={{ width: 'auto', padding: '12px 24px' }}
               >
                 ← Volver
               </button>
               <button
-                className="btn"
+                className="btn w-auto px-6 py-3"
                 onClick={async () => {
                   try {
                     const blob = new Blob([await resultsService.exportUserAll(userDetails.id)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -730,22 +693,21 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
                     alert('Error al exportar los datos del paciente');
                   }
                 }}
-                style={{ width: 'auto', padding: '12px 24px' }}
               >
                 Exportar paciente
               </button>
             </div>
           </div>
 
-          <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: 'var(--bg-primary)', borderRadius: '12px' }}>
+          <div className="mb-6 p-4 bg-slate-50 rounded-xl">
             <p><strong>Fecha de registro:</strong> {formatDate(userDetails.createdAt)}</p>
           </div>
 
           {overallStats && overallStats.factors && overallStats.factors.length > 0 && (
-            <div className="card" style={{ marginBottom: '24px' }}>
-              <h3>Media general (todos los tests) - Factores</h3>
-              <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap', marginTop: '12px' }}>
-                <div style={{ flex: 1, minWidth: 260 }}>
+            <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-5 mb-6">
+              <h3 className="font-heading font-bold text-slate-800">Media general (todos los tests) - Factores</h3>
+              <div className="flex gap-6 items-center flex-wrap mt-3">
+                <div className="flex-1 min-w-[260px]">
                   <BarChart
                     data={overallStats.factors.map((f: any) => ({
                       label: f.code || f.name,
@@ -758,10 +720,10 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
             </div>
           )}
 
-          <div className="card" style={{ marginBottom: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3>Estadísticas por Test</h3>
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-5 mb-6">
+            <div className="flex justify-between items-center">
+              <h3 className="font-heading font-bold text-slate-800">Estadísticas por Test</h3>
+              <div className="flex gap-3 items-center">
                 <select
                   value={selectedTestForStats ?? ''}
                   onChange={(e) => {
@@ -773,7 +735,7 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
                       setUserStats(null);
                     }
                   }}
-                  style={{ padding: '10px', border: '1px solid var(--border)', borderRadius: '8px' }}
+                  className="px-2.5 py-2 border border-slate-200 rounded-lg text-sm focus:border-gantly-blue-500 outline-none"
                 >
                   <option value="">Selecciona test…</option>
                   {tests.map((t: any) => (
@@ -783,18 +745,18 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
               </div>
             </div>
             {!selectedTestForStats && (
-              <p style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>Selecciona un test para ver sus estadísticas.</p>
+              <p className="text-slate-500 mt-2">Selecciona un test para ver sus estadísticas.</p>
             )}
             {selectedTestForStats && loading && (
-              <p style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>Cargando estadísticas...</p>
+              <p className="text-slate-500 mt-2">Cargando estadísticas...</p>
             )}
             {selectedTestForStats && !loading && userStats && (
-              <div style={{ marginTop: '16px' }}>
+              <div className="mt-4">
                 {userStats.subfactors && userStats.subfactors.length > 0 && (
-                  <div style={{ marginBottom: '24px' }}>
-                    <h4>Subfactores (gráfico)</h4>
-                    <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <div style={{ flex: 1, minWidth: 260 }}>
+                  <div className="mb-6">
+                    <h4 className="font-heading font-semibold text-slate-700">Subfactores (gráfico)</h4>
+                    <div className="flex gap-6 items-center flex-wrap">
+                    <div className="flex-1 min-w-[260px]">
                       <BarChart
                         data={userStats.subfactors.map((sf: any) => ({
                           label: sf.subfactorName || sf.subfactorCode,
@@ -807,10 +769,10 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
                   </div>
                 )}
                 {userStats.factors && userStats.factors.length > 0 && (
-                  <div style={{ marginBottom: '24px' }}>
-                    <h4>Factores (gráfico)</h4>
-                    <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <div style={{ flex: 1, minWidth: 260 }}>
+                  <div className="mb-6">
+                    <h4 className="font-heading font-semibold text-slate-700">Factores (gráfico)</h4>
+                    <div className="flex gap-6 items-center flex-wrap">
+                    <div className="flex-1 min-w-[260px]">
                       <FactorChart
                         data={userStats.factors.map((f: any) => {
                           // Convertir porcentaje a escala 1-10
@@ -834,70 +796,70 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
 
 
           {userDetails.tests.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
+            <div className="text-center py-10 text-slate-500">
               <p>Este usuario aún no ha completado ningún test.</p>
             </div>
           ) : (
             <div className="tests-list">
               {userDetails.tests.map((test) => (
-                <div key={test.testId} className="card" style={{ marginBottom: '24px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                <div key={test.testId} className="bg-white rounded-xl shadow-soft border border-slate-200 p-5 mb-6">
+                  <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h3>{test.testTitle}</h3>
-                      <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                      <h3 className="font-heading font-bold text-slate-800">{test.testTitle}</h3>
+                      <p className="text-sm text-slate-500 mt-1">
                         Código: {test.testCode}
                       </p>
                     </div>
                   </div>
 
-                    <div style={{ marginTop: '20px' }}>
+                    <div className="mt-5">
                       {test.testCode === 'INITIAL' && test.answers.length > 0 && (
                         <InitialTestSummary test={test} />
                       )}
-                    <h4 style={{ fontSize: '18px', marginBottom: '16px' }}>
+                    <h4 className="text-lg font-heading font-semibold text-slate-700 mb-4">
                       Respuestas ({test.answers.length})
                     </h4>
                     <div className="answers-list">
                       {test.answers.map((answer, idx) => (
-                        <div key={answer.questionId} className="answer-card-admin" style={{ marginBottom: '12px' }}>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                              <span className="question-number" style={{ fontSize: '12px', width: '24px', height: '24px' }}>
+                        <div key={answer.questionId} className="answer-card-admin mb-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="question-number text-xs w-6 h-6 flex items-center justify-center rounded-full bg-gantly-blue-50 text-gantly-blue-600 font-semibold">
                                 {idx + 1}
                               </span>
-                              <strong style={{ fontSize: '15px' }}>{answer.questionText}</strong>
+                              <strong className="text-[15px] text-slate-800">{answer.questionText}</strong>
                             </div>
-                            <div style={{ paddingLeft: '32px' }}>
+                            <div className="pl-8">
                               {answer.answerText ? (
                                 <div>
-                                  <p style={{ margin: '4px 0', fontSize: '14px' }}>
+                                  <p className="my-1 text-sm text-slate-700">
                                     <strong>Respuesta:</strong> {answer.answerText}
                                     {answer.answerValue !== undefined && answer.answerValue !== null && (
-                                      <span style={{ color: 'var(--text-secondary)', marginLeft: '8px' }}>
+                                      <span className="text-slate-400 ml-2">
                                         (Valor: {answer.answerValue})
                                       </span>
                                     )}
                                   </p>
                                   {answer.textValue && (
-                                    <p style={{ margin: '4px 0', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                                    <p className="my-1 text-[13px] text-slate-500">
                                       <strong>Detalle:</strong> {answer.textValue}
                                     </p>
                                   )}
                                 </div>
                               ) : answer.textValue ? (
-                                <p style={{ margin: '4px 0', fontSize: '14px' }}>
+                                <p className="my-1 text-sm text-slate-700">
                                   <strong>Detalle:</strong> {answer.textValue}
                                 </p>
                               ) : answer.numericValue !== undefined && answer.numericValue !== null ? (
-                                <p style={{ margin: '4px 0', fontSize: '14px' }}>
+                                <p className="my-1 text-sm text-slate-700">
                                   <strong>Valor numérico:</strong> {answer.numericValue}
                                 </p>
                               ) : (
-                                <p style={{ margin: '4px 0', fontSize: '14px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                                <p className="my-1 text-sm text-slate-400 italic">
                                   Sin respuesta registrada
                                 </p>
                               )}
-                              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                              <p className="text-xs text-slate-400 mt-1">
                                 {formatDate(answer.createdAt)}
                               </p>
                             </div>
@@ -918,33 +880,27 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
 
   return (
     <div>
-      <div className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', gap: '16px', flexWrap: 'wrap' }}>
+      <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-6">
+        <div className="flex justify-between items-center mb-6 gap-4 flex-wrap">
           <div>
-            <h2>
-              {filterRole === 'USER' ? 'Pacientes' : 
-               filterRole === 'PSYCHOLOGIST' ? 'Psicólogos' : 
+            <h2 className="font-heading font-bold text-slate-800">
+              {filterRole === 'USER' ? 'Pacientes' :
+               filterRole === 'PSYCHOLOGIST' ? 'Psicólogos' :
                'Usuarios Registrados'} ({displayedUsers.length})
             </h2>
             {searchTerm.trim() && (
-              <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary)' }}>
+              <p className="m-0 text-sm text-slate-500">
                 Mostrando {displayedUsers.length} coincidencia(s)
               </p>
             )}
           </div>
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="flex gap-3 items-center flex-wrap">
             <input
               type="text"
               placeholder="Buscar usuario por nombre o email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{
-                padding: '10px 14px',
-                borderRadius: '10px',
-                border: '1px solid var(--border)',
-                fontSize: '15px',
-                minWidth: '220px'
-              }}
+              className="px-3.5 py-2.5 rounded-lg border border-slate-200 text-[15px] min-w-[220px] focus:border-gantly-blue-500 focus:ring-1 focus:ring-gantly-blue-200 outline-none"
             />
           </div>
         </div>
@@ -952,7 +908,7 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
         {loading && users.length === 0 ? (
           <div className="loading">Cargando usuarios...</div>
         ) : displayedUsers.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
+          <div className="text-center py-10 text-slate-500">
             <p>
               {filterRole === 'USER' ? 'No hay pacientes registrados aún.' :
                filterRole === 'PSYCHOLOGIST' ? 'No hay psicólogos registrados aún.' :
@@ -965,15 +921,14 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
             {displayedUsers.map(user => (
               <div
                 key={user.id}
-                className="user-card-admin"
+                className="user-card-admin bg-gradient-to-b from-white to-gantly-cloud-100 border border-slate-200 rounded-xl p-4 cursor-pointer hover:shadow-card hover:-translate-y-0.5 transition-all"
                 onClick={() => setSelectedUserId(user.id)}
-                style={{ cursor: 'pointer' }}
               >
-                <h3>{user.name}</h3>
-                <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                <h3 className="font-heading font-bold text-slate-800">{user.name}</h3>
+                <p className="text-sm text-slate-500 mt-1">
                   {user.email}
                 </p>
-                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px' }}>
+                <p className="text-xs text-slate-400 mt-2">
                   Registrado: {formatDate(user.createdAt)}
                 </p>
               </div>
@@ -984,19 +939,18 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
 
       {/* Pending psychologists section */}
       {filterRole === 'PSYCHOLOGIST' && pendingPsychologists.length > 0 && (
-        <div className="card" style={{ marginTop: '24px', borderLeft: '4px solid #f59e0b' }}>
-          <h2 style={{ margin: '0 0 16px' }}>Pendientes de aprobacion ({pendingPsychologists.length})</h2>
+        <div className="bg-white rounded-xl shadow-soft border border-slate-200 border-l-4 border-l-gantly-gold p-6 mt-6">
+          <h2 className="m-0 mb-4 font-heading font-bold text-slate-800">Pendientes de aprobacion ({pendingPsychologists.length})</h2>
           <div className="users-grid">
             {pendingPsychologists.map(p => (
               <div
                 key={p.profileId}
-                className="user-card-admin"
+                className="user-card-admin cursor-pointer border-gantly-gold-200 bg-gantly-gold-50 rounded-xl p-4 hover:shadow-card hover:-translate-y-0.5 transition-all"
                 onClick={() => setSelectedPendingId(p.profileId)}
-                style={{ cursor: 'pointer', borderColor: '#fde68a', background: '#fefce8' }}
               >
-                <h3>{p.name}</h3>
-                <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px' }}>{p.email}</p>
-                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px' }}>
+                <h3 className="font-heading font-bold text-slate-800">{p.name}</h3>
+                <p className="text-sm text-slate-500 mt-1">{p.email}</p>
+                <p className="text-xs text-slate-400 mt-2">
                   Registrado: {formatDate(p.createdAt)}
                 </p>
               </div>
@@ -1007,4 +961,3 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
     </div>
   );
 }
-

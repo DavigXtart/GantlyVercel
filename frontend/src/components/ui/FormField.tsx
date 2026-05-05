@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import { cn } from '@/lib/utils';
 
 interface FormFieldProps {
   label: string;
@@ -34,8 +35,6 @@ export default function FormField({
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setTouched(true);
-    e.currentTarget.style.borderColor = showError ? '#ef4444' : '#e5e7eb';
-    e.currentTarget.style.boxShadow = 'none';
     if (onBlur) onBlur(e);
   };
 
@@ -43,18 +42,16 @@ export default function FormField({
   const errorId = `error-${name}`;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <div className="flex flex-col gap-1.5">
       <label
         htmlFor={inputId}
-        style={{
-          fontSize: '14px',
-          fontWeight: 600,
-          color: showError ? '#ef4444' : '#1f2937',
-          fontFamily: "'Inter', sans-serif"
-        }}
+        className={cn(
+          'text-sm font-semibold',
+          showError ? 'text-red-500' : 'text-gantly-text'
+        )}
       >
         {label}
-        {required && <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>}
+        {required && <span className="text-red-500 ml-1">*</span>}
       </label>
       {children || (
         <input
@@ -70,39 +67,25 @@ export default function FormField({
           aria-describedby={showError ? errorId : ariaDescribedBy}
           aria-invalid={showError ? "true" : "false"}
           aria-required={required}
-          style={{
-            padding: '12px 16px',
-            borderRadius: '8px',
-            border: `2px solid ${showError ? '#ef4444' : '#e5e7eb'}`,
-            background: showError ? '#fef2f2' : '#ffffff',
-            color: '#1f2937',
-            fontSize: '15px',
-            fontFamily: "'Inter', sans-serif",
-            transition: 'all 0.2s',
-            outline: 'none'
-          }}
-          onFocus={(e) => {
-            e.currentTarget.style.borderColor = showError ? '#ef4444' : '#667eea';
-            e.currentTarget.style.boxShadow = showError 
-              ? '0 0 0 3px rgba(239, 68, 68, 0.1)' 
-              : '0 0 0 3px rgba(102, 126, 234, 0.1)';
-          }}
+          className={cn(
+            'w-full px-4 py-3 rounded-xl border text-[15px] font-body text-gantly-text',
+            'transition-all duration-200 outline-none',
+            'focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/10',
+            showError
+              ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-500/10'
+              : 'border-[var(--color-border)] bg-white'
+          )}
         />
       )}
       {showError && (
-        <div
+        <p
           id={errorId}
           role="alert"
           aria-live="polite"
-          style={{
-            fontSize: '13px',
-            color: '#ef4444',
-            fontFamily: "'Inter', sans-serif",
-            display: 'block'
-          }}
+          className="text-xs text-red-500 font-medium"
         >
           {error}
-        </div>
+        </p>
       )}
     </div>
   );

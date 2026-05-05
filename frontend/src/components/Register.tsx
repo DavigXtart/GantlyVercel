@@ -131,153 +131,43 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #e8ece9 0%, #d4e0d8 50%, #e0e8e3 100%)',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: '80px 24px',
-        position: 'relative',
-        fontFamily: "'Inter', sans-serif",
-      }}
-    >
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '1000px',
-          display: 'grid',
-          gridTemplateColumns: 'minmax(300px, 1fr) minmax(320px, 1fr)',
-          gap: '48px',
-          position: 'relative',
-          zIndex: 1,
-        }}
-      >
+    <div className="min-h-screen bg-gradient-to-br from-gantly-navy-700 via-gantly-blue-600 to-gantly-cyan-500 flex justify-center items-center px-6 py-20 relative">
+      <div className="w-full max-w-[1000px] grid grid-cols-1 md:grid-cols-[minmax(300px,1fr)_minmax(320px,1fr)] gap-12 relative z-[1]">
         {/* Panel izquierdo - Información */}
-        <div
-          style={{
-            background: 'rgba(255, 255, 255, 0.9)',
-            border: '1px solid rgba(90, 146, 112, 0.2)',
-            borderRadius: '24px',
-            padding: '48px 40px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '24px',
-            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
-          }}
-        >
-          <div style={{
-            fontFamily: "'Nunito', sans-serif",
-            fontSize: '32px',
-            fontWeight: 700,
-            color: '#5a9270',
-            letterSpacing: '-0.02em',
-            marginBottom: '8px',
-          }}>
+        <div className="bg-white/90 border border-gantly-blue-100 rounded-2xl p-12 flex flex-col gap-6 shadow-card">
+          <div className="font-heading text-[32px] font-bold text-gantly-blue-500 tracking-tight mb-2">
             Gantly
           </div>
-          <h1 style={{
-            margin: 0,
-            fontSize: '36px',
-            lineHeight: 1.3,
-            color: '#1a2e22',
-            fontFamily: "'Nunito', sans-serif",
-            fontWeight: 700,
-          }}>
+          <h1 className="m-0 text-4xl leading-tight text-gantly-text font-heading font-bold">
             Comienza tu camino
           </h1>
           {psychologistReferralCode && (
-            <div style={{
-              padding: '12px 16px',
-              background: 'rgba(90, 146, 112, 0.15)',
-              borderRadius: '12px',
-              fontSize: '15px',
-              color: '#3a5a4a',
-              marginBottom: '12px',
-            }}>
+            <div className="py-3 px-4 bg-gantly-blue-50 rounded-xl text-[15px] text-gantly-muted mb-3">
               Serás asignado directamente a tu psicólogo tras registrarte.
             </div>
           )}
-          <p style={{
-            margin: 0,
-            fontSize: '17px',
-            lineHeight: 1.7,
-            color: '#3a5a4a',
-            marginBottom: '8px',
-          }}>
+          <p className="m-0 text-[17px] leading-relaxed text-gantly-muted mb-2">
             Crea tu cuenta para acceder a evaluaciones personalizadas, seguimiento emocional y acompañamiento profesional adaptado a tus necesidades.
           </p>
-          <div style={{
-            marginTop: '24px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-            fontSize: '16px',
-            color: '#3a5a4a',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{
-                width: '24px',
-                height: '24px',
-                borderRadius: '50%',
-                background: '#d4e0d8',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}>✓</div>
+          <div className="mt-6 flex flex-col gap-4 text-base text-gantly-muted">
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full bg-gantly-blue-100 flex items-center justify-center flex-shrink-0 text-gantly-blue-600 text-sm">✓</div>
               <span>Evaluaciones basadas en ciencia</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{
-                width: '24px',
-                height: '24px',
-                borderRadius: '50%',
-                background: '#d4e0d8',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}>✓</div>
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full bg-gantly-blue-100 flex items-center justify-center flex-shrink-0 text-gantly-blue-600 text-sm">✓</div>
               <span>Sesiones con profesionales especializados</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{
-                width: '24px',
-                height: '24px',
-                borderRadius: '50%',
-                background: '#d4e0d8',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}>✓</div>
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full bg-gantly-blue-100 flex items-center justify-center flex-shrink-0 text-gantly-blue-600 text-sm">✓</div>
               <span>Planes personalizados para ti</span>
             </div>
           </div>
-          <div style={{
-            marginTop: 'auto',
-            fontSize: '15px',
-            color: '#3a5a4a',
-            paddingTop: '24px',
-            borderTop: '1px solid rgba(90, 146, 112, 0.15)',
-          }}>
+          <div className="mt-auto text-[15px] text-gantly-muted pt-6 border-t border-gantly-blue-100">
             ¿Ya tienes cuenta?{' '}
             <button
               onClick={onSwitchToLogin}
-              style={{
-                border: 'none',
-                background: 'transparent',
-                color: '#5a9270',
-                fontWeight: 600,
-                cursor: 'pointer',
-                textDecoration: 'none',
-                fontFamily: "'Inter', sans-serif",
-                fontSize: '15px',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}
+              className="border-none bg-transparent text-gantly-blue-600 font-semibold cursor-pointer text-[15px] hover:underline"
             >
               Iniciar sesión
             </button>
@@ -285,27 +175,19 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
         </div>
 
         {/* Panel derecho - Formulario / Verificación */}
-        <div
-          style={{
-            background: 'rgba(255, 255, 255, 0.95)',
-            border: '1px solid rgba(90, 146, 112, 0.2)',
-            borderRadius: '24px',
-            padding: '48px 40px',
-            boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
-          }}
-        >
+        <div className="bg-white shadow-card border border-gantly-blue-100 rounded-2xl p-12">
           {step === 'form' ? (
             <>
-              <h2 style={{ margin: '0 0 8px', fontSize: '28px', color: '#1a2e22', fontFamily: "'Nunito', sans-serif", fontWeight: 700 }}>
+              <h2 className="m-0 mb-2 text-[28px] text-gantly-text font-heading font-bold">
                 Crear cuenta
               </h2>
-              <p style={{ margin: '0 0 32px', fontSize: '16px', color: '#3a5a4a' }}>
+              <p className="m-0 mb-8 text-base text-gantly-muted">
                 Completa tus datos para comenzar tu experiencia.
               </p>
 
               {inviteLoading && (
                 <div className="flex items-center justify-center py-4 mb-4">
-                  <div className="w-5 h-5 border-2 border-sage/20 border-t-sage rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-gantly-blue-200 border-t-gantly-blue-500 rounded-full animate-spin" />
                 </div>
               )}
 
@@ -316,16 +198,16 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
               )}
 
               {inviteInfo && (
-                <div className="bg-sage/10 border border-sage/20 rounded-2xl p-4 mb-4 flex items-center gap-3">
-                  <span className="material-symbols-outlined text-sage">business</span>
+                <div className="bg-gantly-blue-50 border border-gantly-blue-200 rounded-2xl p-4 mb-4 flex items-center gap-3">
+                  <span className="material-symbols-outlined text-gantly-blue-500">business</span>
                   <div>
-                    <p className="text-sm font-medium text-forest">Invitación de {inviteInfo.companyName}</p>
-                    <p className="text-xs text-sage/70">Crea tu cuenta para unirte a la clínica</p>
+                    <p className="text-sm font-medium text-gantly-text">Invitación de {inviteInfo.companyName}</p>
+                    <p className="text-xs text-gantly-muted">Crea tu cuenta para unirte a la clínica</p>
                   </div>
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }} aria-label="Formulario de registro">
+              <form onSubmit={handleSubmit} className="flex flex-col gap-6" aria-label="Formulario de registro">
                 <FormField label="Nombre completo" name="name" type="text" value={name}
                   onChange={(e) => { setName(e.target.value); if (errors.name) setErrors({ ...errors, name: validateName(e.target.value) }); }}
                   error={errors.name} required placeholder="Tu nombre" ariaLabel="Nombre completo" />
@@ -338,32 +220,30 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
                 <FormField label="Fecha de nacimiento" name="birthDate" type="date" value={birthDate}
                   onChange={(e) => { setBirthDate(e.target.value); if (errors.birthDate) setErrors({ ...errors, birthDate: undefined }); }}
                   error={errors.birthDate} placeholder="" ariaLabel="Fecha de nacimiento" />
-                <button type="submit" disabled={loading} style={{
-                  marginTop: '8px', padding: '14px 24px', borderRadius: '24px', border: 'none',
-                  background: loading ? '#cbd5d1' : '#5a9270', color: '#ffffff', fontSize: '16px',
-                  fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer',
-                  boxShadow: loading ? 'none' : '0 4px 12px rgba(90, 146, 112, 0.3)',
-                  transition: 'all 0.3s', fontFamily: "'Inter', sans-serif",
-                }}>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="mt-2 py-3.5 px-6 rounded-full border-none bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white text-base font-semibold cursor-pointer shadow-md hover:shadow-lg transition-all disabled:bg-gray-300 disabled:cursor-not-allowed disabled:shadow-none"
+                >
                   {loading ? 'Creando cuenta...' : 'Crear cuenta'}
                 </button>
               </form>
             </>
           ) : (
             <>
-              <h2 style={{ margin: '0 0 8px', fontSize: '28px', color: '#1a2e22', fontFamily: "'Nunito', sans-serif", fontWeight: 700 }}>
+              <h2 className="m-0 mb-2 text-[28px] text-gantly-text font-heading font-bold">
                 Verifica tu email
               </h2>
-              <p style={{ margin: '0 0 8px', fontSize: '16px', color: '#3a5a4a' }}>
+              <p className="m-0 mb-2 text-base text-gantly-muted">
                 Hemos enviado un codigo de 6 digitos a:
               </p>
-              <p style={{ margin: '0 0 32px', fontSize: '16px', color: '#1a2e22', fontWeight: 600 }}>
+              <p className="m-0 mb-8 text-base text-gantly-text font-semibold">
                 {email}
               </p>
 
-              <form onSubmit={handleVerifyCode} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <form onSubmit={handleVerifyCode} className="flex flex-col gap-6">
                 <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#3a5a4a', marginBottom: '8px', fontFamily: "'Inter', sans-serif" }}>
+                  <label className="block text-sm font-semibold text-gantly-muted mb-2">
                     Codigo de verificacion
                   </label>
                   <input
@@ -374,43 +254,26 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
                     onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     placeholder="000000"
                     autoFocus
-                    style={{
-                      width: '100%', padding: '16px', borderRadius: '12px', border: '2px solid rgba(90, 146, 112, 0.3)',
-                      fontSize: '24px', fontWeight: 700, textAlign: 'center', letterSpacing: '8px',
-                      fontFamily: "'Inter', sans-serif", outline: 'none', boxSizing: 'border-box',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = '#5a9270'; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.3)'; }}
+                    className="w-full p-4 rounded-xl border-2 border-gantly-blue-200 text-2xl font-bold text-center tracking-[8px] outline-none transition-colors focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/20"
                   />
                 </div>
 
-                <button type="submit" disabled={verifying || verificationCode.length !== 6} style={{
-                  padding: '14px 24px', borderRadius: '24px', border: 'none',
-                  background: (verifying || verificationCode.length !== 6) ? '#cbd5d1' : '#5a9270',
-                  color: '#ffffff', fontSize: '16px', fontWeight: 600,
-                  cursor: (verifying || verificationCode.length !== 6) ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 4px 12px rgba(90, 146, 112, 0.3)', transition: 'all 0.3s',
-                  fontFamily: "'Inter', sans-serif",
-                }}>
+                <button
+                  type="submit"
+                  disabled={verifying || verificationCode.length !== 6}
+                  className="py-3.5 px-6 rounded-full border-none bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white text-base font-semibold cursor-pointer shadow-md transition-all disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
                   {verifying ? 'Verificando...' : 'Verificar'}
                 </button>
 
-                <div style={{ textAlign: 'center', fontSize: '14px', color: '#6b7280' }}>
+                <div className="text-center text-sm text-gray-500">
                   ¿No recibiste el codigo?{' '}
-                  <button onClick={handleResendCode} type="button" style={{
-                    border: 'none', background: 'transparent', color: '#5a9270',
-                    fontWeight: 600, cursor: 'pointer', fontFamily: "'Inter', sans-serif", fontSize: '14px',
-                  }}>
+                  <button onClick={handleResendCode} type="button" className="border-none bg-transparent text-gantly-blue-600 font-semibold cursor-pointer text-sm hover:underline">
                     Reenviar
                   </button>
                 </div>
 
-                <button onClick={() => { setStep('form'); setVerificationCode(''); }} type="button" style={{
-                  border: 'none', background: 'transparent', color: '#6b7280',
-                  cursor: 'pointer', fontFamily: "'Inter', sans-serif", fontSize: '14px',
-                  textAlign: 'center',
-                }}>
+                <button onClick={() => { setStep('form'); setVerificationCode(''); }} type="button" className="border-none bg-transparent text-gray-500 cursor-pointer text-sm text-center hover:underline">
                   Volver al formulario
                 </button>
               </form>

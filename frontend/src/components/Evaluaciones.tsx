@@ -17,8 +17,8 @@ export default function Evaluaciones() {
     setLoading(true);
     try {
       const response = await evaluationTestService.getTestsByCategory('EVALUATION');
-      // Filtrar tests placeholder (los que tienen código que empieza con SECTION_PLACEHOLDER_)
-      const filteredTests = (response.tests || []).filter((t: any) => 
+      // Filtrar tests placeholder (los que tienen codigo que empieza con SECTION_PLACEHOLDER_)
+      const filteredTests = (response.tests || []).filter((t: any) =>
         !t.code || !t.code.startsWith('SECTION_PLACEHOLDER_')
       );
       setTests(filteredTests);
@@ -33,63 +33,35 @@ export default function Evaluaciones() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+      <div className="flex justify-center items-center min-h-[400px]">
         <LoadingSpinner />
       </div>
     );
   }
 
-  const filteredTests = selectedTopic 
+  const filteredTests = selectedTopic
     ? tests.filter(t => t.topic === selectedTopic)
     : tests;
 
   return (
-    <div style={{
-      background: '#ffffff',
-      borderRadius: '20px',
-      boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
-      padding: '40px',
-      border: '1px solid rgba(90, 146, 112, 0.15)'
-    }}>
-      <h2 style={{ 
-        fontSize: '28px', 
-        fontWeight: 700, 
-        color: '#1a2e22', 
-        marginBottom: '32px',
-        fontFamily: "'Inter', sans-serif"
-      }}>
+    <div className="bg-white rounded-2xl shadow-card p-10 border border-slate-100">
+      <h2 className="text-2xl font-bold text-gantly-text mb-8">
         Evaluaciones
       </h2>
 
       {topics.length > 0 && (
-        <div style={{ marginBottom: '32px' }}>
-          <h3 style={{ 
-            fontSize: '18px', 
-            fontWeight: 600, 
-            color: '#3a5a4a', 
-            marginBottom: '16px',
-            fontFamily: "'Inter', sans-serif"
-          }}>
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-gantly-muted mb-4">
             Filtrar por tema:
           </h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+          <div className="flex flex-wrap gap-3">
             <button
               onClick={() => setSelectedTopic(null)}
-              style={{
-                padding: '10px 20px',
-                background: selectedTopic === null 
-                  ? 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)'
-                  : '#f8f9fa',
-                color: selectedTopic === null ? '#fff' : '#3a5a4a',
-                border: selectedTopic === null 
-                  ? '2px solid #f59e0b'
-                  : '2px solid #e5e7eb',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                fontWeight: 600,
-                fontSize: '14px',
-                transition: 'all 0.3s ease'
-              }}
+              className={`px-5 py-2.5 rounded-xl cursor-pointer font-semibold text-sm transition-all border-2 ${
+                selectedTopic === null
+                  ? 'bg-gantly-gold-400 text-white border-gantly-gold-400 shadow-sm'
+                  : 'bg-slate-50 text-gantly-muted border-slate-200 hover:border-gantly-blue-200'
+              }`}
             >
               Todos
             </button>
@@ -97,21 +69,11 @@ export default function Evaluaciones() {
               <button
                 key={topic}
                 onClick={() => setSelectedTopic(topic)}
-                style={{
-                  padding: '10px 20px',
-                  background: selectedTopic === topic 
-                    ? 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)'
-                    : '#f8f9fa',
-                  color: selectedTopic === topic ? '#fff' : '#3a5a4a',
-                  border: selectedTopic === topic 
-                    ? '2px solid #f59e0b'
-                    : '2px solid #e5e7eb',
-                  borderRadius: '12px',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  transition: 'all 0.3s ease'
-                }}
+                className={`px-5 py-2.5 rounded-xl cursor-pointer font-semibold text-sm transition-all border-2 ${
+                  selectedTopic === topic
+                    ? 'bg-gantly-gold-400 text-white border-gantly-gold-400 shadow-sm'
+                    : 'bg-slate-50 text-gantly-muted border-slate-200 hover:border-gantly-blue-200'
+                }`}
               >
                 {topic}
               </button>
@@ -121,68 +83,28 @@ export default function Evaluaciones() {
       )}
 
       {filteredTests.length > 0 ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-5">
           {filteredTests.map(test => (
             <div
               key={test.id}
-              style={{
-                padding: '24px',
-                background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                borderRadius: '16px',
-                border: '2px solid rgba(217, 119, 6, 0.2)',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 8px 24px rgba(217, 119, 6, 0.3)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-              }}
+              className="p-6 bg-gradient-to-br from-gantly-gold-50 to-gantly-gold-100 rounded-2xl border-2 border-gantly-gold-200 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-elevated"
               onClick={() => {
-                toast.info('Esta funcionalidad estará disponible próximamente');
+                toast.info('Esta funcionalidad estara disponible proximamente');
               }}
             >
-              <div style={{ 
-                fontSize: '12px', 
-                color: '#d97706', 
-                marginBottom: '8px', 
-                fontWeight: 600,
-                textTransform: 'uppercase'
-              }}>
+              <div className="text-xs text-gantly-gold-600 mb-2 font-semibold uppercase">
                 {test.topic}
               </div>
-              <h3 style={{ 
-                fontSize: '20px', 
-                fontWeight: 700, 
-                color: '#1a2e22', 
-                marginBottom: '12px',
-                fontFamily: "'Inter', sans-serif"
-              }}>
+              <h3 className="text-xl font-bold text-gantly-text mb-3">
                 {test.title}
               </h3>
               {test.description && (
-                <p style={{ 
-                  fontSize: '14px', 
-                  color: '#3a5a4a', 
-                  marginBottom: '16px',
-                  lineHeight: '1.5'
-                }}>
+                <p className="text-sm text-gantly-muted mb-4 leading-relaxed">
                   {test.description}
                 </p>
               )}
-              <div style={{
-                padding: '8px 16px',
-                background: '#fff',
-                borderRadius: '8px',
-                display: 'inline-block',
-                fontSize: '14px',
-                fontWeight: 600,
-                color: '#d97706'
-              }}>
-                Próximamente
+              <div className="px-4 py-2 bg-white rounded-lg inline-block text-sm font-semibold text-gantly-gold-600">
+                Proximamente
               </div>
             </div>
           ))}
@@ -190,10 +112,9 @@ export default function Evaluaciones() {
       ) : (
         <EmptyState
           title="No hay tests disponibles"
-          description="Los tests de evaluación estarán disponibles próximamente."
+          description="Los tests de evaluacion estaran disponibles proximamente."
         />
       )}
     </div>
   );
 }
-

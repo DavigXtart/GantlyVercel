@@ -326,57 +326,28 @@ export default function ChatWidget({ mode, otherId }: Props) {
 
   if (mode === 'USER' && psychId == null) {
     return (
-      <div style={{
-        padding: '40px 20px',
-        textAlign: 'center',
-        background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
-        borderRadius: '12px',
-        color: 'white'
-      }}>
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>💬</div>
-        <h3 style={{ margin: '0 0 8px 0', fontSize: '20px' }}>Esperando asignación</h3>
-        <p style={{ margin: 0, opacity: 0.9 }}>Un administrador te asignará un psicólogo pronto</p>
+      <div className="p-10 text-center bg-gradient-to-r from-gantly-blue-500 to-gantly-cyan-500 rounded-xl text-white">
+        <div className="text-5xl mb-4">💬</div>
+        <h3 className="font-heading text-xl font-semibold mb-2">Esperando asignación</h3>
+        <p className="opacity-90">Un administrador te asignará un psicólogo pronto</p>
       </div>
     );
   }
   
   if (mode === 'PSYCHOLOGIST' && otherId == null) {
     return (
-      <div style={{
-        padding: '40px 20px',
-        textAlign: 'center',
-        background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
-        borderRadius: '12px',
-        color: 'white'
-      }}>
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>👥</div>
-        <h3 style={{ margin: '0 0 8px 0', fontSize: '20px' }}>Selecciona un paciente</h3>
-        <p style={{ margin: 0, opacity: 0.9 }}>Elige un paciente de la lista para comenzar a chatear</p>
+      <div className="p-10 text-center bg-gradient-to-r from-gantly-blue-500 to-gantly-cyan-500 rounded-xl text-white">
+        <div className="text-5xl mb-4">👥</div>
+        <h3 className="font-heading text-xl font-semibold mb-2">Selecciona un paciente</h3>
+        <p className="opacity-90">Elige un paciente de la lista para comenzar a chatear</p>
       </div>
     );
   }
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      height: '75vh',
-      width: '100%',
-      background: '#ffffff',
-      borderRadius: '12px',
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-      overflow: 'hidden',
-      border: '1px solid #e5e7eb'
-    }}>
+    <div className="flex flex-col h-[75vh] w-full bg-white rounded-xl shadow-card overflow-hidden border border-slate-200">
       {/* Header */}
-      <div style={{
-        background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
-        padding: '16px 20px',
-        color: 'white',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px'
-      }}>
+      <div className="bg-gradient-to-r from-gantly-blue-500 to-gantly-cyan-500 px-5 py-4 text-white flex items-center gap-3">
         <div style={{
           width: '40px',
           height: '40px',
@@ -504,9 +475,9 @@ export default function ChatWidget({ mode, otherId }: Props) {
                     alignItems: isMe ? 'flex-end' : 'flex-start'
                   }}>
                     <div style={{
-                      background: isMe 
-                        ? 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)'
-                        : '#ffffff',
+                      background: isMe
+                        ? '#2E93CC'
+                        : '#f1f5f9',
                       color: isMe ? 'white' : '#1f2937',
                       padding: '10px 14px',
                       borderRadius: isMe ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
@@ -533,7 +504,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
                       width: '32px',
                       height: '32px',
                       borderRadius: '50%',
-                      background: currentUser?.avatarUrl ? 'transparent' : 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
+                      background: currentUser?.avatarUrl ? 'transparent' : '#2E93CC',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -551,7 +522,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
                             const parent = e.currentTarget.parentElement;
                             if (parent) {
                               parent.textContent = mode === 'USER' ? '\u{1F464}' : '\u{1F468}\u{200D}\u{2695}\u{FE0F}';
-                              parent.style.background = 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)';
+                              parent.style.background = '#2E93CC';
                               parent.style.display = 'flex';
                               parent.style.alignItems = 'center';
                               parent.style.justifyContent = 'center';
@@ -603,8 +574,8 @@ export default function ChatWidget({ mode, otherId }: Props) {
           }}
           onFocus={(e) => {
             if (connected) {
-              e.target.style.borderColor = '#5a9270';
-              e.target.style.boxShadow = '0 0 0 3px rgba(90, 146, 112, 0.1)';
+              e.target.style.borderColor = '#2E93CC';
+              e.target.style.boxShadow = '0 0 0 3px rgba(46, 147, 204, 0.1)';
             }
           }}
           onBlur={(e) => {
@@ -617,8 +588,8 @@ export default function ChatWidget({ mode, otherId }: Props) {
           disabled={!connected || sending || !input.trim()}
           style={{
             padding: '12px 24px',
-            background: connected && input.trim() 
-              ? 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)'
+            background: connected && input.trim()
+              ? '#2E93CC'
               : '#e5e7eb',
             color: connected && input.trim() ? 'white' : '#9ca3af',
             border: 'none',

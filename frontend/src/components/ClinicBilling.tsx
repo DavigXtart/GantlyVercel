@@ -51,17 +51,9 @@ function fmtEuro(amount?: number): string {
 
 function Spinner() {
   return (
-    <div
-      style={{
-        width: 36,
-        height: 36,
-        border: '3px solid #e5e7eb',
-        borderTopColor: '#5a9270',
-        borderRadius: '50%',
-        animation: 'spin 0.8s linear infinite',
-        margin: '60px auto',
-      }}
-    />
+    <div className="flex justify-center py-16">
+      <div className="w-9 h-9 border-[3px] border-slate-200 border-t-gantly-blue rounded-full animate-spin" />
+    </div>
   );
 }
 
@@ -69,43 +61,26 @@ function Spinner() {
 // Payment status badge
 // ---------------------------------------------------------------------------
 function PaymentBadge({ status }: { status?: string }) {
-  if (!status) return <span style={{ color: '#9ca3af', fontSize: 13 }}>—</span>;
+  if (!status) return <span className="text-slate-400 text-[13px]">—</span>;
   const lc = status.toLowerCase();
-  let bg = '#fef3c7';
-  let color = '#92400e';
+  let classes = 'px-2.5 py-0.5 rounded-xl text-xs font-semibold whitespace-nowrap ';
   let label = status;
   if (lc === 'paid' || lc === 'pagada' || lc === 'pagado') {
-    bg = '#dcfce7';
-    color = '#166534';
+    classes += 'bg-gantly-emerald-50 text-gantly-emerald-700';
     label = 'Pagada';
   } else if (lc === 'pending' || lc === 'pendiente') {
-    bg = '#fef3c7';
-    color = '#92400e';
+    classes += 'bg-gantly-gold-50 text-gantly-gold-700';
     label = 'Pendiente';
   } else if (lc === 'fractional' || lc === 'fraccionada') {
-    bg = '#fff7ed';
-    color = '#c2410c';
+    classes += 'bg-orange-50 text-orange-700';
     label = 'Fraccionada';
   } else if (lc === 'cancelled' || lc === 'cancelada' || lc === 'cancelado') {
-    bg = '#fee2e2';
-    color = '#991b1b';
+    classes += 'bg-red-50 text-red-700';
     label = 'Cancelada';
+  } else {
+    classes += 'bg-slate-100 text-slate-600';
   }
-  return (
-    <span
-      style={{
-        background: bg,
-        color,
-        padding: '2px 10px',
-        borderRadius: 12,
-        fontSize: 12,
-        fontWeight: 600,
-        whiteSpace: 'nowrap',
-      }}
-    >
-      {label}
-    </span>
-  );
+  return <span className={classes}>{label}</span>;
 }
 
 // ---------------------------------------------------------------------------
@@ -121,20 +96,11 @@ function SummaryCard({
   accent?: string;
 }) {
   return (
-    <div
-      style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
-        borderRadius: 12,
-        padding: '18px 24px',
-        flex: 1,
-        minWidth: 160,
-      }}
-    >
-      <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', marginBottom: 6 }}>
+    <div className="bg-white border border-slate-200 rounded-xl px-6 py-4 flex-1 min-w-[160px]">
+      <div className="text-xs font-semibold text-slate-500 uppercase mb-1.5">
         {label}
       </div>
-      <div style={{ fontSize: 22, fontWeight: 700, color: accent ?? '#111827' }}>{value}</div>
+      <div className="text-[22px] font-bold" style={{ color: accent ?? '#0f172a' }}>{value}</div>
     </div>
   );
 }
@@ -157,40 +123,40 @@ function generateInvoicePdf(item: {
     const margin = 20;
 
     // Header
-    doc.setFillColor(248, 251, 247);
+    doc.setFillColor(241, 245, 249);
     doc.rect(0, 0, pageW, 40, 'F');
-    doc.setTextColor(24, 56, 46);
+    doc.setTextColor(15, 23, 42);
     doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
     doc.text('GANTLY', margin, 20);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(123, 159, 134);
+    doc.setTextColor(46, 147, 204);
     doc.text('Plataforma de Salud Mental', margin, 27);
 
     // Invoice number
     const invoiceNum = `FAC-${new Date(item.startTime).getFullYear()}-${String(item.appointmentId).padStart(5, '0')}`;
-    doc.setTextColor(24, 56, 46);
+    doc.setTextColor(15, 23, 42);
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.text('FACTURA', pageW - margin - 40, 18, { align: 'right' });
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(123, 159, 134);
+    doc.setTextColor(46, 147, 204);
     doc.text(invoiceNum, pageW - margin, 25, { align: 'right' });
 
     // Divider
-    doc.setDrawColor(224, 240, 230);
+    doc.setDrawColor(226, 232, 240);
     doc.line(margin, 44, pageW - margin, 44);
 
     // Info section
-    doc.setTextColor(24, 56, 46);
+    doc.setTextColor(15, 23, 42);
     let y = 54;
     const addRow = (label: string, value: string) => {
       doc.setFontSize(9);
-      doc.setTextColor(123, 159, 134);
+      doc.setTextColor(46, 147, 204);
       doc.text(label.toUpperCase(), margin, y);
-      doc.setTextColor(24, 56, 46);
+      doc.setTextColor(15, 23, 42);
       doc.setFont('helvetica', 'bold');
       doc.text(value, margin, y + 5);
       doc.setFont('helvetica', 'normal');
@@ -205,10 +171,10 @@ function generateInvoicePdf(item: {
 
     // Price table
     y += 4;
-    doc.setFillColor(248, 251, 247);
+    doc.setFillColor(241, 245, 249);
     doc.roundedRect(margin, y, pageW - margin * 2, 30, 4, 4, 'F');
     doc.setFontSize(9);
-    doc.setTextColor(123, 159, 134);
+    doc.setTextColor(46, 147, 204);
     doc.text('BASE IMPONIBLE', margin + 6, y + 10);
     doc.text('IVA (21%)', pageW / 2, y + 10);
     doc.text('TOTAL', pageW - margin - 6, y + 10, { align: 'right' });
@@ -218,7 +184,7 @@ function generateInvoicePdf(item: {
     const iva = price - base;
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(24, 56, 46);
+    doc.setTextColor(15, 23, 42);
     doc.text(`€${base.toFixed(2)}`, margin + 6, y + 22);
     doc.text(`€${iva.toFixed(2)}`, pageW / 2, y + 22);
     doc.text(`€${price.toFixed(2)}`, pageW - margin - 6, y + 22, { align: 'right' });
@@ -227,12 +193,12 @@ function generateInvoicePdf(item: {
     y += 38;
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(123, 159, 134);
+    doc.setTextColor(46, 147, 204);
     doc.text(`Estado de pago: ${item.paymentStatus === 'PAID' ? 'PAGADO' : 'PENDIENTE'}`, margin, y);
 
     // Footer
     doc.setFontSize(8);
-    doc.setTextColor(180, 200, 185);
+    doc.setTextColor(148, 163, 184);
     doc.text('Gantly · Plataforma de Salud Mental · gantly.com', pageW / 2, 285, { align: 'center' });
 
     doc.save(`${invoiceNum}.pdf`);
@@ -278,14 +244,6 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Inject keyframe
-  if (typeof document !== 'undefined' && !document.getElementById('clinic-billing-spin')) {
-    const style = document.createElement('style');
-    style.id = 'clinic-billing-spin';
-    style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
-    document.head.appendChild(style);
-  }
-
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -326,68 +284,50 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
     .reduce((sum, i) => sum + (i.price ?? 0), 0);
 
   return (
-    <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div className="p-6 flex flex-col gap-5">
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#111827' }}>Facturación</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-bold text-slate-900">Facturación</h2>
         <button
           onClick={() => exportCsv(items)}
           disabled={items.length === 0}
-          style={{
-            background: items.length === 0 ? '#f3f4f6' : '#5a9270',
-            color: items.length === 0 ? '#9ca3af' : 'white',
-            border: 'none',
-            borderRadius: 8,
-            padding: '8px 18px',
-            fontWeight: 600,
-            fontSize: 13,
-            cursor: items.length === 0 ? 'not-allowed' : 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-          }}
+          className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-[13px] font-semibold transition-colors ${
+            items.length === 0
+              ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+              : 'bg-gantly-blue text-white hover:bg-gantly-blue-600 cursor-pointer'
+          }`}
         >
-          ⬇ Exportar CSV
+          <span className="material-symbols-outlined text-base">download</span>
+          Exportar CSV
         </button>
       </div>
 
       {/* Filters */}
-      <div
-        style={{
-          background: 'white',
-          border: '1px solid #e5e7eb',
-          borderRadius: 12,
-          padding: '16px 20px',
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 16,
-          alignItems: 'flex-end',
-        }}
-      >
-        <label style={labelStyle}>
+      <div className="bg-white border border-slate-200 rounded-xl p-4 px-5 flex flex-wrap gap-4 items-end">
+        <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
           Desde
           <input
             type="date"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
-            style={inputStyle}
+            className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] text-slate-900 outline-none focus:border-gantly-blue-300 bg-white"
           />
         </label>
-        <label style={labelStyle}>
+        <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
           Hasta
           <input
             type="date"
             value={to}
             onChange={(e) => setTo(e.target.value)}
-            style={inputStyle}
+            className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] text-slate-900 outline-none focus:border-gantly-blue-300 bg-white"
           />
         </label>
-        <label style={labelStyle}>
+        <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
           Psicólogo
           <select
             value={psychologistId ?? ''}
             onChange={(e) => setPsychologistId(e.target.value ? Number(e.target.value) : undefined)}
-            style={{ ...inputStyle, cursor: 'pointer' }}
+            className="px-2.5 py-2 rounded-lg border border-slate-200 text-[13px] text-slate-900 outline-none focus:border-gantly-blue-300 bg-white cursor-pointer"
           >
             <option value="">Todos los psicólogos</option>
             {psychologists.map((p) => (
@@ -399,33 +339,23 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
         </label>
         <button
           onClick={load}
-          style={{
-            background: '#5a9270',
-            color: 'white',
-            border: 'none',
-            borderRadius: 8,
-            padding: '8px 18px',
-            fontWeight: 600,
-            fontSize: 13,
-            cursor: 'pointer',
-            alignSelf: 'flex-end',
-          }}
+          className="self-end px-4 py-2 bg-gantly-blue text-white rounded-lg text-[13px] font-semibold hover:bg-gantly-blue-600 transition-colors cursor-pointer"
         >
           Aplicar filtros
         </button>
       </div>
 
       {/* Summary cards */}
-      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-        <SummaryCard label="Total facturado" value={fmtEuro(totalPaid)} accent="#166534" />
-        <SummaryCard label="Total pendiente" value={fmtEuro(totalPending)} accent="#92400e" />
-        <SummaryCard label="Total cancelado" value={fmtEuro(totalCancelled)} accent="#991b1b" />
+      <div className="flex gap-4 flex-wrap">
+        <SummaryCard label="Total facturado" value={fmtEuro(totalPaid)} accent="#059669" />
+        <SummaryCard label="Total pendiente" value={fmtEuro(totalPending)} accent="#ca8a04" />
+        <SummaryCard label="Total cancelado" value={fmtEuro(totalCancelled)} accent="#dc2626" />
         <SummaryCard label="N.º citas" value={String(items.length)} />
       </div>
 
       {/* Error */}
       {error && (
-        <div style={{ background: '#fee2e2', color: '#991b1b', padding: '10px 16px', borderRadius: 8, fontSize: 14 }}>
+        <div className="bg-red-50 text-red-700 px-4 py-2.5 rounded-lg text-sm">
           {error}
         </div>
       )}
@@ -434,48 +364,20 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
       {loading ? (
         <Spinner />
       ) : items.length === 0 ? (
-        <div
-          style={{
-            background: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: 12,
-            padding: 48,
-            textAlign: 'center',
-            color: '#6b7280',
-          }}
-        >
+        <div className="bg-white border border-slate-200 rounded-xl p-12 text-center text-slate-500">
           No hay registros para el rango de fechas seleccionado.
         </div>
       ) : (
-        <div
-          style={{
-            background: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: 12,
-            overflow: 'hidden',
-          }}
-        >
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
           {/* Table header */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '110px 80px 1fr 1fr 1fr 80px 110px 44px',
-              background: '#f9fafb',
-              padding: '10px 16px',
-              fontSize: 12,
-              fontWeight: 600,
-              color: '#6b7280',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-            }}
-          >
+          <div className="grid grid-cols-[110px_80px_1fr_1fr_1fr_80px_110px_44px] bg-slate-50 px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">
             <span>Fecha</span>
             <span>Hora</span>
             <span>Psicólogo</span>
             <span>Paciente</span>
             <span>Servicio</span>
-            <span style={{ textAlign: 'right' }}>Precio</span>
-            <span style={{ textAlign: 'center' }}>Estado pago</span>
+            <span className="text-right">Precio</span>
+            <span className="text-center">Estado pago</span>
             <span />
           </div>
 
@@ -483,33 +385,24 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
           {items.map((item) => (
             <div
               key={item.appointmentId}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '110px 80px 1fr 1fr 1fr 80px 110px 44px',
-                padding: '12px 16px',
-                borderTop: '1px solid #f3f4f6',
-                fontSize: 13,
-                alignItems: 'center',
-              }}
+              className="grid grid-cols-[110px_80px_1fr_1fr_1fr_80px_110px_44px] px-4 py-3 border-t border-slate-100 text-[13px] items-center"
             >
-              <span style={{ color: '#374151' }}>{fmtDate(item.startTime)}</span>
-              <span style={{ color: '#6b7280' }}>{fmtTime(item.startTime)}</span>
-              <span style={{ color: '#111827', fontWeight: 500 }}>{item.psychologistName}</span>
-              <span style={{ color: '#374151' }}>{item.patientName ?? '—'}</span>
-              <span style={{ color: '#6b7280' }}>{item.service ?? '—'}</span>
-              <span style={{ textAlign: 'right', fontWeight: 600, color: '#111827' }}>{fmtEuro(item.price)}</span>
-              <span style={{ textAlign: 'center' }}>
+              <span className="text-slate-700">{fmtDate(item.startTime)}</span>
+              <span className="text-slate-500">{fmtTime(item.startTime)}</span>
+              <span className="text-slate-900 font-medium">{item.psychologistName}</span>
+              <span className="text-slate-700">{item.patientName ?? '—'}</span>
+              <span className="text-slate-500">{item.service ?? '—'}</span>
+              <span className="text-right font-semibold text-slate-900">{fmtEuro(item.price)}</span>
+              <span className="text-center">
                 <PaymentBadge status={item.paymentStatus} />
               </span>
-              <span style={{ textAlign: 'center' }}>
+              <span className="text-center">
                 <button
                   onClick={() => generateInvoicePdf(item, clinicName || 'Mi Clinica')}
                   title="Descargar factura"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 4, lineHeight: 1 }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = '#5a9270')}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = '#9ca3af')}
+                  className="text-slate-400 hover:text-gantly-blue transition-colors p-1"
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>receipt</span>
+                  <span className="material-symbols-outlined text-lg">receipt</span>
                 </button>
               </span>
             </div>
@@ -519,22 +412,3 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
     </div>
   );
 }
-
-const labelStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 4,
-  fontSize: 13,
-  fontWeight: 500,
-  color: '#374151',
-};
-
-const inputStyle: React.CSSProperties = {
-  padding: '8px 10px',
-  borderRadius: 8,
-  border: '1px solid #e5e7eb',
-  fontSize: 13,
-  outline: 'none',
-  background: 'white',
-  color: '#111827',
-};

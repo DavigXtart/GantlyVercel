@@ -37,49 +37,40 @@ export default function RegisterCompany({ onBack, onLogin, onSuccess }: Register
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #f5f7f6 0%, #e8ece9 50%, #d4e0d8 100%)',
-      padding: '100px 24px 80px',
-      fontFamily: "'Inter', sans-serif",
-    }}>
-      <div style={{ maxWidth: '420px', margin: '0 auto' }}>
-        <div style={{
-          background: 'white',
-          borderRadius: '16px',
-          padding: '40px',
-          boxShadow: '0 8px 32px rgba(90, 146, 112, 0.15)',
-          border: '1px solid rgba(90, 146, 112, 0.2)',
-        }}>
-          <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#1a2e22', marginBottom: '8px' }}>
+    <div className="min-h-screen bg-gradient-to-br from-gantly-navy-700 via-gantly-blue-600 to-gantly-cyan-500 px-6 pt-[100px] pb-20">
+      <div className="max-w-[420px] mx-auto">
+        <div className="bg-white rounded-2xl p-10 shadow-card border border-gantly-blue-100">
+          <h1 className="text-2xl font-bold text-gantly-text mb-2 font-heading">
             Registrar empresa
           </h1>
-          <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '24px' }}>
+          <p className="text-gantly-muted text-sm mb-6">
             Crea tu cuenta como empresa. Recibirás un código de referencia para que tus psicólogos se registren.
           </p>
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label>Nombre de la empresa *</label>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <div>
+              <label className="block text-sm font-semibold text-gantly-text mb-2">Nombre de la empresa *</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ej: Clínica Psicológica XYZ"
                 required
+                className="w-full py-3.5 px-4 rounded-xl border border-gantly-blue-200 text-base outline-none transition-colors focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/20"
               />
             </div>
-            <div className="form-group">
-              <label>Email *</label>
+            <div>
+              <label className="block text-sm font-semibold text-gantly-text mb-2">Email *</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="empresa@ejemplo.com"
                 required
+                className="w-full py-3.5 px-4 rounded-xl border border-gantly-blue-200 text-base outline-none transition-colors focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/20"
               />
             </div>
-            <div className="form-group">
-              <label>Contraseña *</label>
+            <div>
+              <label className="block text-sm font-semibold text-gantly-text mb-2">Contraseña *</label>
               <input
                 type="password"
                 value={password}
@@ -87,18 +78,31 @@ export default function RegisterCompany({ onBack, onLogin, onSuccess }: Register
                 placeholder="Mínimo 6 caracteres"
                 required
                 minLength={6}
+                className="w-full py-3.5 px-4 rounded-xl border border-gantly-blue-200 text-base outline-none transition-colors focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/20"
               />
             </div>
-            {error && <p style={{ color: '#dc2626', fontSize: '14px', marginBottom: '16px' }}>{error}</p>}
-            <button type="submit" className="btn" disabled={loading} style={{ width: '100%' }}>
+            {error && <p className="text-red-600 text-sm">{error}</p>}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 rounded-full border-none bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white text-base font-semibold cursor-pointer shadow-md hover:shadow-lg transition-all disabled:bg-gray-300 disabled:cursor-not-allowed disabled:shadow-none"
+            >
               {loading ? 'Registrando...' : 'Registrarme'}
             </button>
           </form>
-          <div style={{ marginTop: '24px', display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button type="button" className="btn-secondary" onClick={onBack} style={{ padding: '10px 20px' }}>
+          <div className="mt-6 flex gap-4 justify-center flex-wrap">
+            <button
+              type="button"
+              onClick={onBack}
+              className="py-2.5 px-5 rounded-full border border-gantly-blue-200 bg-transparent text-gantly-blue-600 text-sm font-semibold cursor-pointer transition-all hover:bg-gantly-blue-50"
+            >
               Volver
             </button>
-            <button type="button" className="btn-secondary" onClick={onLogin} style={{ padding: '10px 20px' }}>
+            <button
+              type="button"
+              onClick={onLogin}
+              className="py-2.5 px-5 rounded-full border border-gantly-blue-200 bg-transparent text-gantly-blue-600 text-sm font-semibold cursor-pointer transition-all hover:bg-gantly-blue-50"
+            >
               Ya tengo cuenta
             </button>
           </div>

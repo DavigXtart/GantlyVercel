@@ -17,9 +17,9 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
   const [expandedPatients, setExpandedPatients] = useState<Set<number>>(new Set());
 
   return (
-    <div className="mt-10 bg-white rounded-3xl p-8 border border-sage/10 soft-shadow">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-        <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+    <div className="mt-10 bg-white rounded-2xl p-8 border border-slate-100 shadow-card">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="m-0 text-2xl font-bold text-gantly-blue-600">
           Tests Asignados
         </h3>
         <button
@@ -41,48 +41,24 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
               toast.error('Error al cargar los tests. Por favor intenta de nuevo.');
             }
           }}
-          style={{
-            padding: '10px 20px',
-            background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            fontSize: '14px',
-            transition: 'all 0.2s'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+          className="px-5 py-2.5 bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white border-none rounded-xl font-semibold cursor-pointer text-sm transition-all hover:scale-105"
         >
           Asignar Test
         </button>
       </div>
 
       {showAssignTestForm && (
-        <div style={{
-          marginBottom: '24px',
-          padding: '24px',
-          background: '#f9fafb',
-          borderRadius: '12px',
-          border: '2px solid #e5e7eb'
-        }}>
-          <h4 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 600 }}>Asignar Test a Paciente</h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div className="mb-6 p-6 bg-slate-50 rounded-xl border-2 border-slate-200">
+          <h4 className="m-0 mb-4 text-lg font-semibold">Asignar Test a Paciente</h4>
+          <div className="flex flex-col gap-3">
             <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: 600, color: '#1f2937' }}>
+              <label className="block mb-1.5 text-sm font-semibold text-slate-800">
                 Paciente:
               </label>
               <select
                 value={assignTestForm.userId}
                 onChange={(e) => setAssignTestForm({ ...assignTestForm, userId: e.target.value })}
-                style={{
-                  padding: '10px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  fontSize: '14px',
-                  width: '100%'
-                }}
+                className="w-full p-2.5 rounded-lg border border-slate-200 text-sm"
               >
                 <option value="">Selecciona un paciente</option>
                 {patients.length === 0 ? (
@@ -94,63 +70,28 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                 )}
               </select>
               {patients.length === 0 && (
-                <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>
+                <div className="text-xs text-red-500 mt-1">
                   No tienes pacientes asignados. Pide al administrador que asigne pacientes a tu perfil.
                 </div>
               )}
             </div>
             <div>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: 600, color: '#1f2937' }}>
+              <label className="block mb-1.5 text-sm font-semibold text-slate-800">
                 Test:
               </label>
-              <div style={{ position: 'relative', marginBottom: '8px' }}>
+              <div className="relative mb-2">
                 <input
                   type="text"
                   placeholder="Buscar test por nombre o codigo..."
                   value={testSearchTerm}
                   onChange={(e) => setTestSearchTerm(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    paddingLeft: '40px',
-                    borderRadius: '8px',
-                    border: '2px solid #e5e7eb',
-                    fontSize: '14px',
-                    outline: 'none',
-                    transition: 'border-color 0.2s',
-                    background: '#ffffff'
-                  }}
-                  onFocus={(e) => e.currentTarget.style.borderColor = '#5a9270'}
-                  onBlur={(e) => e.currentTarget.style.borderColor = '#e5e7eb'}
+                  className="w-full p-2.5 pl-10 rounded-lg border-2 border-slate-200 text-sm outline-none focus:border-gantly-blue-500 bg-white transition-colors"
                 />
-                <span style={{
-                  position: 'absolute',
-                  left: '12px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  fontSize: '16px',
-                  color: '#9ca3af'
-                }}>&#x1F50D;</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base text-slate-400">&#x1F50D;</span>
                 {testSearchTerm.trim() && (
                   <button
                     onClick={() => setTestSearchTerm('')}
-                    style={{
-                      position: 'absolute',
-                      right: '8px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      background: 'transparent',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontSize: '18px',
-                      color: '#9ca3af',
-                      padding: '4px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = '#ef4444'}
-                    onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-lg text-slate-400 hover:text-red-500 p-1 flex items-center justify-center"
                   >
                     &times;
                   </button>
@@ -171,14 +112,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                     <select
                       value={assignTestForm.testId}
                       onChange={(e) => setAssignTestForm({ ...assignTestForm, testId: e.target.value })}
-                      style={{
-                        padding: '10px',
-                        borderRadius: '8px',
-                        border: '2px solid #e5e7eb',
-                        fontSize: '14px',
-                        width: '100%',
-                        background: '#ffffff'
-                      }}
+                      className="w-full p-2.5 rounded-lg border-2 border-slate-200 text-sm bg-white"
                     >
                       <option value="">{testSearchTerm.trim() ? `Selecciona de ${filteredTests.length} resultado(s)` : 'Selecciona un test'}</option>
                       {availableTests.length === 0 ? (
@@ -192,17 +126,17 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                       )}
                     </select>
                     {testSearchTerm.trim() && filteredTests.length > 0 && (
-                      <div style={{ fontSize: '12px', color: '#059669', fontWeight: 500, marginTop: '4px' }}>
+                      <div className="text-xs text-emerald-600 font-medium mt-1">
                         Mostrando {filteredTests.length} de {availableTests.length} tests
                       </div>
                     )}
                     {availableTests.length === 0 && (
-                      <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>
+                      <div className="text-xs text-red-500 mt-1">
                         No hay tests disponibles. Verifica que haya tests activos en el sistema.
                       </div>
                     )}
                     {testSearchTerm.trim() && filteredTests.length === 0 && availableTests.length > 0 && (
-                      <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>
+                      <div className="text-xs text-red-500 mt-1">
                         No se encontraron tests que coincidan con "{testSearchTerm}"
                       </div>
                     )}
@@ -210,7 +144,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                 );
               })()}
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div className="flex gap-2">
               <button
                 onClick={async () => {
                   if (!assignTestForm.userId || !assignTestForm.testId) {
@@ -246,16 +180,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                     toast.error(`Error al asignar el test: ${errorMessage}`);
                   }
                 }}
-                style={{
-                  padding: '10px 20px',
-                  background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
+                className="px-5 py-2.5 bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white border-none rounded-xl font-semibold cursor-pointer text-sm"
               >
                 Asignar
               </button>
@@ -265,16 +190,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                   setAssignTestForm({ userId: '', testId: '' });
                   setTestSearchTerm('');
                 }}
-                style={{
-                  padding: '10px 20px',
-                  background: '#e5e7eb',
-                  color: '#1f2937',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
+                className="px-5 py-2.5 bg-slate-200 text-slate-800 border-none rounded-xl font-semibold cursor-pointer text-sm"
               >
                 Cancelar
               </button>
@@ -295,18 +211,12 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
 
         if (testsByPatient.size === 0) {
           return (
-            <div style={{
-              padding: '60px 40px',
-              textAlign: 'center',
-              background: '#f9fafb',
-              borderRadius: '12px',
-              border: '2px dashed #d1d5db'
-            }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>&#x1F4DD;</div>
-              <div style={{ fontSize: '18px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>
+            <div className="py-14 px-10 text-center bg-slate-50 rounded-xl border-2 border-dashed border-slate-300">
+              <div className="text-5xl mb-4">&#x1F4DD;</div>
+              <div className="text-lg font-semibold text-slate-500 mb-2">
                 No hay tests asignados
               </div>
-              <div style={{ fontSize: '14px', color: '#9ca3af' }}>
+              <div className="text-sm text-slate-400">
                 Asigna tests a tus pacientes para que los completen
               </div>
             </div>
@@ -314,7 +224,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
         }
 
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="flex flex-col gap-4">
             {Array.from(testsByPatient.entries()).map(([userId, patientTests]) => {
               const patient = patients.find(p => p.id === userId) || {
                 id: userId,
@@ -330,23 +240,10 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
               return (
                 <div
                   key={userId}
-                  style={{
-                    border: '2px solid #e5e7eb',
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    transition: 'all 0.2s'
-                  }}
+                  className="border-2 border-slate-200 rounded-xl overflow-hidden transition-all"
                 >
                   <div
-                    style={{
-                      padding: '20px',
-                      background: isExpanded ? '#f3f4f6' : '#ffffff',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '16px'
-                    }}
+                    className={`p-5 cursor-pointer flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors ${isExpanded ? 'bg-slate-100' : 'bg-white'}`}
                     onClick={() => {
                       const newExpanded = new Set(expandedPatients);
                       if (newExpanded.has(userId)) {
@@ -356,36 +253,14 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                       }
                       setExpandedPatients(newExpanded);
                     }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#f9fafb';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = isExpanded ? '#f3f4f6' : '#ffffff';
-                    }}
                   >
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{
-                        width: '48px',
-                        height: '48px',
-                        borderRadius: '50%',
-                        overflow: 'hidden',
-                        background: '#e5e7eb',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '20px',
-                        flexShrink: 0,
-                        border: '2px solid #d1d5db'
-                      }}>
+                    <div className="flex-1 flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-200 flex items-center justify-center text-xl flex-shrink-0 border-2 border-slate-300">
                         {patientAvatarUrl ? (
                           <img
                             src={patientAvatarUrl}
                             alt={patient.name}
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'cover'
-                            }}
+                            className="w-full h-full object-cover"
                             onError={(e) => {
                               e.currentTarget.style.display = 'none';
                               const parent = e.currentTarget.parentElement;
@@ -400,52 +275,38 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                         )}
                       </div>
                       <div>
-                        <div style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937' }}>
+                        <div className="text-lg font-semibold text-slate-800">
                           {patient.name}
                         </div>
-                        <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                        <div className="text-xs text-slate-400">
                           {patient.email}
                         </div>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                    <div className="flex items-center gap-4">
+                      <div className="flex gap-2 items-center">
+                        <div className="text-sm text-slate-500">
                           {patientTests.length} test{patientTests.length !== 1 ? 's' : ''}
                         </div>
                         {completedCount > 0 && (
-                          <div style={{
-                            padding: '4px 8px',
-                            background: '#22c55e',
-                            color: 'white',
-                            borderRadius: '6px',
-                            fontSize: '11px',
-                            fontWeight: 600
-                          }}>
+                          <div className="px-2 py-1 bg-emerald-500 text-white rounded-md text-[11px] font-semibold">
                             {completedCount} completado{completedCount !== 1 ? 's' : ''}
                           </div>
                         )}
                         {pendingCount > 0 && (
-                          <div style={{
-                            padding: '4px 8px',
-                            background: '#f59e0b',
-                            color: 'white',
-                            borderRadius: '6px',
-                            fontSize: '11px',
-                            fontWeight: 600
-                          }}>
+                          <div className="px-2 py-1 bg-amber-500 text-white rounded-md text-[11px] font-semibold">
                             {pendingCount} pendiente{pendingCount !== 1 ? 's' : ''}
                           </div>
                         )}
                       </div>
-                      <div style={{ fontSize: '20px', color: '#9ca3af' }}>
+                      <div className="text-xl text-slate-400">
                         {isExpanded ? '\u25BC' : '\u25B6'}
                       </div>
                     </div>
                   </div>
                   {isExpanded && (
-                    <div style={{ padding: '16px', background: '#ffffff', borderTop: '1px solid #e5e7eb' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div className="p-4 bg-white border-t border-slate-200">
+                      <div className="flex flex-col gap-3">
                         {patientTests.map((at: any) => (
                           <div
                             key={at.id}
@@ -454,59 +315,33 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                                 onViewTestDetails(at.userId, at.testId, at.id);
                               }
                             }}
-                            style={{
-                              padding: '16px',
-                              background: at.completedAt ? '#f0fdf4' : '#fef3c7',
-                              border: `2px solid ${at.completedAt ? '#22c55e' : '#f59e0b'}`,
-                              borderRadius: '8px',
-                              display: 'flex',
-                              alignItems: 'flex-start',
-                              justifyContent: 'space-between',
-                              gap: '16px',
-                              cursor: at.completedAt ? 'pointer' : 'default',
-                              transition: at.completedAt ? 'all 0.2s' : 'none'
-                            }}
-                            onMouseEnter={(e) => {
-                              if (at.completedAt) {
-                                e.currentTarget.style.transform = 'translateY(-2px)';
-                                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (at.completedAt) {
-                                e.currentTarget.style.transform = 'translateY(0)';
-                                e.currentTarget.style.boxShadow = 'none';
-                              }
-                            }}
+                            className={`p-4 rounded-lg flex items-start justify-between gap-4 transition-all ${
+                              at.completedAt
+                                ? 'bg-emerald-50 border-2 border-emerald-500 cursor-pointer hover:-translate-y-0.5 hover:shadow-md'
+                                : 'bg-amber-50 border-2 border-amber-500 cursor-default'
+                            }`}
                           >
-                            <div style={{ flex: 1 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                                <div style={{
-                                  padding: '4px 8px',
-                                  background: at.completedAt ? '#22c55e' : '#f59e0b',
-                                  color: 'white',
-                                  borderRadius: '6px',
-                                  fontSize: '11px',
-                                  fontWeight: 600
-                                }}>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className={`px-2 py-1 text-white rounded-md text-[11px] font-semibold ${at.completedAt ? 'bg-emerald-500' : 'bg-amber-500'}`}>
                                   {at.completedAt ? 'Completado' : 'Pendiente'}
                                 </div>
                                 {at.assignedAt && (
-                                  <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                                  <div className="text-xs text-slate-400">
                                     Asignado: {new Date(at.assignedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                                   </div>
                                 )}
                                 {at.completedAt && (
-                                  <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                                  <div className="text-xs text-slate-400">
                                     Completado: {new Date(at.completedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                                   </div>
                                 )}
                               </div>
-                              <div style={{ fontSize: '16px', fontWeight: 600, color: '#1f2937', marginBottom: '4px' }}>
+                              <div className="text-base font-semibold text-slate-800 mb-1">
                                 {at.testTitle || at.test?.title || 'Test'}
                               </div>
                               {at.testCode && (
-                                <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                                <div className="text-xs text-slate-400">
                                   Codigo: {at.testCode}
                                 </div>
                               )}
@@ -524,16 +359,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                                     }
                                   }
                                 }}
-                                style={{
-                                  padding: '6px 12px',
-                                  background: '#ef4444',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '6px',
-                                  fontWeight: 600,
-                                  cursor: 'pointer',
-                                  fontSize: '11px'
-                                }}
+                                className="px-3 py-1.5 bg-red-500 text-white border-none rounded-md font-semibold cursor-pointer text-[11px]"
                               >
                                 Desasignar
                               </button>

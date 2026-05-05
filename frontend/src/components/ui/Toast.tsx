@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
 
 type ToastType = 'success' | 'error' | 'warning' | 'info';
 
@@ -24,7 +25,7 @@ function addToast(message: string, type: ToastType) {
   const newToast: Toast = { id, message, type };
   toasts = [...toasts, newToast];
   notifyListeners();
-  
+
   setTimeout(() => {
     removeToast(id);
   }, 5000);
@@ -41,7 +42,7 @@ function notifyListeners() {
 
 export function useToasts() {
   const [state, setState] = useState<Toast[]>([]);
-  
+
   useEffect(() => {
     listeners.push(setState);
     setState([...toasts]);
@@ -50,93 +51,64 @@ export function useToasts() {
       if (index > -1) listeners.splice(index, 1);
     };
   }, []);
-  
+
   return state;
 }
 
-const typeStyles = {
-  success: { bg: '#d1fae5', border: '#10b981', text: '#065f46', icon: '✅' },
-  error: { bg: '#fee2e2', border: '#ef4444', text: '#991b1b', icon: '❌' },
-  warning: { bg: '#fef3c7', border: '#f59e0b', text: '#92400e', icon: '⚠️' },
-  info: { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af', icon: 'ℹ️' }
+const typeConfig: Record<ToastType, { containerClass: string; icon: string }> = {
+  success: {
+    containerClass: 'bg-gantly-emerald-50 border-gantly-emerald-500 text-gantly-emerald-800',
+    icon: '✓',
+  },
+  error: {
+    containerClass: 'bg-red-50 border-red-500 text-red-800',
+    icon: '✕',
+  },
+  warning: {
+    containerClass: 'bg-gantly-gold-50 border-gantly-gold-500 text-gantly-gold-800',
+    icon: '!',
+  },
+  info: {
+    containerClass: 'bg-gantly-blue-50 border-gantly-blue-500 text-gantly-blue-800',
+    icon: 'i',
+  },
 };
 
 export function ToastContainer() {
-  const toasts = useToasts();
-  
-  if (toasts.length === 0) return null;
-  
+  const currentToasts = useToasts();
+
+  if (currentToasts.length === 0) return null;
+
   return (
-    <div style={{
-      position: 'fixed',
-      top: '20px',
-      right: '20px',
-      zIndex: 10000,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '12px',
-      maxWidth: '400px'
-    }}>
-      {toasts.map(toast => {
-        const style = typeStyles[toast.type];
+    <div className="fixed top-5 right-5 z-[10000] flex flex-col gap-3 max-w-[400px]">
+      {currentToasts.map(t => {
+        const config = typeConfig[t.type];
         return (
           <div
-            key={toast.id}
-            onClick={() => removeToast(toast.id)}
-            style={{
-              background: style.bg,
-              border: `2px solid ${style.border}`,
-              borderRadius: '12px',
-              padding: '16px 20px',
-              color: style.text,
-              fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: "'Inter', sans-serif",
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              animation: 'slideIn 0.3s ease-out',
-              minWidth: '300px'
-            }}
+            key={t.id}
+            onClick={() => removeToast(t.id)}
+            className={cn(
+              'border-l-4 rounded-xl px-5 py-4 shadow-elevated cursor-pointer',
+              'flex items-center gap-3 min-w-[300px] animate-slide-in-right',
+              config.containerClass
+            )}
           >
-            <span style={{ fontSize: '20px' }}>{style.icon}</span>
-            <span style={{ flex: 1 }}>{toast.message}</span>
+            <span className="w-6 h-6 rounded-full bg-current/10 flex items-center justify-center text-sm font-bold flex-shrink-0">
+              {config.icon}
+            </span>
+            <span className="flex-1 text-sm font-medium">{t.message}</span>
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                removeToast(toast.id);
+                removeToast(t.id);
               }}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: style.text,
-                fontSize: '20px',
-                cursor: 'pointer',
-                padding: '0',
-                lineHeight: '1',
-                opacity: 0.7
-              }}
+              className="text-current/60 hover:text-current text-lg leading-none p-0 bg-transparent border-none cursor-pointer"
             >
               ×
             </button>
           </div>
         );
       })}
-      <style>{`
-        @keyframes slideIn {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-      `}</style>
     </div>
   );
 }
-

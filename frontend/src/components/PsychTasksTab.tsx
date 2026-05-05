@@ -86,17 +86,10 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
   return (
     <>
       {selectedTaskId && selectedTask ? (
-        // Vista detallada de la tarea (igual que en UserDashboard)
-        <div className="mt-10 bg-white rounded-3xl p-8 border border-sage/10 soft-shadow">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
-            <h3 style={{
-              margin: 0,
-              fontSize: '28px',
-              fontWeight: 700,
-              color: '#1a2e22',
-              fontFamily: "'Inter', sans-serif",
-              letterSpacing: '-0.02em'
-            }}>
+        // Vista detallada de la tarea
+        <div className="mt-10 bg-white rounded-2xl p-8 border border-slate-100 shadow-card">
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="m-0 text-[28px] font-bold text-gantly-text tracking-tight">
               {selectedTask.title}
             </h3>
             <button
@@ -105,60 +98,19 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                 setSelectedTask(null);
                 setNewComment('');
               }}
-              style={{
-                padding: '10px 20px',
-                background: '#f0f5f3',
-                color: '#5a9270',
-                border: '2px solid rgba(90, 146, 112, 0.3)',
-                borderRadius: '12px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontSize: '15px',
-                transition: 'all 0.3s ease',
-                fontFamily: "'Inter', sans-serif"
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#e8f0ed';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#f0f5f3';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
+              className="px-5 py-2.5 bg-gantly-blue-50 text-gantly-blue-600 border-2 border-gantly-blue-200 rounded-xl font-semibold cursor-pointer text-[15px] transition-all hover:bg-gantly-blue-100 hover:-translate-y-0.5"
             >
               ← Volver
             </button>
           </div>
 
           {/* Información de la tarea */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-            gap: '20px',
-            marginBottom: '32px'
-          }}>
-            <div style={{
-              padding: '20px',
-              background: 'linear-gradient(135deg, #f0f5f3 0%, #e8f0ed 100%)',
-              borderRadius: '16px',
-              border: '1px solid rgba(90, 146, 112, 0.2)'
-            }}>
-              <div style={{
-                fontSize: '12px',
-                color: '#5a9270',
-                marginBottom: '8px',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                fontFamily: "'Inter', sans-serif"
-              }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+            <div className="p-5 bg-gantly-blue-50 rounded-2xl border border-gantly-blue-100">
+              <div className="text-xs text-gantly-blue-600 mb-2 font-semibold uppercase">
                 Creada el
               </div>
-              <div style={{
-                fontSize: '16px',
-                fontWeight: 600,
-                color: '#1a2e22',
-                fontFamily: "'Inter', sans-serif"
-              }}>
+              <div className="text-base font-semibold text-gantly-text">
                 {selectedTask.createdAt ? new Date(selectedTask.createdAt).toLocaleDateString('es-ES', {
                   weekday: 'long',
                   year: 'numeric',
@@ -171,30 +123,17 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
             </div>
 
             {selectedTask.dueDate && (
-              <div style={{
-                padding: '20px',
-                background: new Date(selectedTask.dueDate) < new Date()
-                  ? 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)'
-                  : 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                borderRadius: '16px',
-                border: `1px solid ${new Date(selectedTask.dueDate) < new Date() ? 'rgba(220, 38, 38, 0.3)' : 'rgba(217, 119, 6, 0.3)'}`
-              }}>
-                <div style={{
-                  fontSize: '12px',
-                  color: new Date(selectedTask.dueDate) < new Date() ? '#dc2626' : '#d97706',
-                  marginBottom: '8px',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  fontFamily: "'Inter', sans-serif"
-                }}>
+              <div className={`p-5 rounded-2xl border ${
+                new Date(selectedTask.dueDate) < new Date()
+                  ? 'bg-red-50 border-red-200'
+                  : 'bg-amber-50 border-amber-200'
+              }`}>
+                <div className={`text-xs mb-2 font-semibold uppercase ${
+                  new Date(selectedTask.dueDate) < new Date() ? 'text-red-600' : 'text-amber-600'
+                }`}>
                   Vence el
                 </div>
-                <div style={{
-                  fontSize: '16px',
-                  fontWeight: 600,
-                  color: '#1a2e22',
-                  fontFamily: "'Inter', sans-serif"
-                }}>
+                <div className="text-base font-semibold text-gantly-text">
                   {new Date(selectedTask.dueDate).toLocaleDateString('es-ES', {
                     weekday: 'long',
                     year: 'numeric',
@@ -205,135 +144,56 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                   })}
                 </div>
                 {new Date(selectedTask.dueDate) >= new Date() && (
-                  <div style={{
-                    fontSize: '14px',
-                    color: '#3a5a4a',
-                    marginTop: '8px',
-                    fontFamily: "'Inter', sans-serif"
-                  }}>
-                    {Math.ceil((new Date(selectedTask.dueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} días restantes
+                  <div className="text-sm text-slate-600 mt-2">
+                    {Math.ceil((new Date(selectedTask.dueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} dias restantes
                   </div>
                 )}
               </div>
             )}
 
-            <div style={{
-              padding: '20px',
-              background: 'linear-gradient(135deg, #f0f5f3 0%, #e8f0ed 100%)',
-              borderRadius: '16px',
-              border: '1px solid rgba(90, 146, 112, 0.2)'
-            }}>
-              <div style={{
-                fontSize: '12px',
-                color: '#5a9270',
-                marginBottom: '8px',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                fontFamily: "'Inter', sans-serif"
-              }}>
+            <div className="p-5 bg-gantly-blue-50 rounded-2xl border border-gantly-blue-100">
+              <div className="text-xs text-gantly-blue-600 mb-2 font-semibold uppercase">
                 {selectedTask.createdBy === 'PSYCHOLOGIST' ? 'Asignada por' : 'Enviada por'}
               </div>
-              <div style={{
-                fontSize: '16px',
-                fontWeight: 600,
-                color: '#1a2e22',
-                fontFamily: "'Inter', sans-serif"
-              }}>
+              <div className="text-base font-semibold text-gantly-text">
                 {selectedTask.createdBy === 'PSYCHOLOGIST' ? selectedTask.psychologistName : selectedTask.userName}
               </div>
             </div>
           </div>
 
-          {/* Descripción */}
+          {/* Descripcion */}
           {selectedTask.description && (
-            <div style={{
-              marginBottom: '32px',
-              padding: '24px',
-              background: 'linear-gradient(135deg, #f8f9fa 0%, #f0f5f3 100%)',
-              borderRadius: '16px',
-              border: '1px solid rgba(90, 146, 112, 0.15)'
-            }}>
-              <h4 style={{
-                margin: '0 0 16px 0',
-                fontSize: '18px',
-                fontWeight: 600,
-                color: '#1a2e22',
-                fontFamily: "'Inter', sans-serif"
-              }}>
-                Descripción
+            <div className="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
+              <h4 className="m-0 mb-4 text-lg font-semibold text-gantly-text">
+                Descripcion
               </h4>
-              <div style={{
-                fontSize: '16px',
-                color: '#3a5a4a',
-                lineHeight: '1.7',
-                fontFamily: "'Inter', sans-serif",
-                whiteSpace: 'pre-wrap'
-              }}>
+              <div className="text-base text-slate-600 leading-relaxed whitespace-pre-wrap">
                 {selectedTask.description}
               </div>
             </div>
           )}
 
           {/* Archivos */}
-          <div style={{
-            marginBottom: '32px',
-            padding: '24px',
-            background: '#ffffff',
-            borderRadius: '16px',
-            border: '1px solid rgba(90, 146, 112, 0.15)',
-            boxShadow: '0 2px 8px rgba(90, 146, 112, 0.08)'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h4 style={{
-                margin: 0,
-                fontSize: '20px',
-                fontWeight: 600,
-                color: '#1a2e22',
-                fontFamily: "'Inter', sans-serif"
-              }}>
-                📎 Archivos adjuntos
+          <div className="mb-8 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
+            <div className="flex justify-between items-center mb-5">
+              <h4 className="m-0 text-xl font-semibold text-gantly-text">
+                Archivos adjuntos
               </h4>
-              <label style={{
-                padding: '10px 20px',
-                background: '#5a9270',
-                color: 'white',
-                border: 'none',
-                borderRadius: '12px',
-                fontSize: '14px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                fontFamily: "'Inter', sans-serif",
-                boxShadow: '0 4px 12px rgba(90, 146, 112, 0.3)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
-                e.currentTarget.style.background = '#4a8062';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
-                e.currentTarget.style.background = '#5a9270';
-              }}
-              >
-                ➕ Subir archivo
+              <label className="px-5 py-2.5 bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white border-none rounded-xl text-sm font-semibold cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-lg">
+                Subir archivo
                 <input
                   type="file"
-                  style={{ display: 'none' }}
+                  className="hidden"
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (file) {
                       try {
                         await tasksService.uploadFile(selectedTaskId, file);
                         await loadTaskFiles(selectedTaskId);
-                        // Archivo subido exitosamente (sin pop-up)
-                        // Resetear el input para permitir subir el mismo archivo de nuevo
                         e.target.value = '';
                       } catch (error: any) {
                         const errorMessage = error.response?.data?.error || error.response?.data?.message || error.response?.data?.details || error.message || 'Error desconocido';
                         toast.error('Error al subir el archivo: ' + errorMessage);
-                        // Resetear el input incluso si hay error
                         e.target.value = '';
                       }
                     }
@@ -342,61 +202,21 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
               </label>
             </div>
             {taskFiles[selectedTaskId] && taskFiles[selectedTaskId].length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div className="flex flex-col gap-3">
                 {taskFiles[selectedTaskId].map((file: any) => (
-                  <div key={file.id} style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '16px',
-                    background: 'linear-gradient(135deg, #f8f9fa 0%, #f0f5f3 100%)',
-                    borderRadius: '12px',
-                    border: '1px solid rgba(90, 146, 112, 0.15)'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
-                      <span style={{ fontSize: '24px' }}>📄</span>
+                  <div key={file.id} className="flex justify-between items-center p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div className="flex items-center gap-4 flex-1">
+                      <span className="text-2xl">📄</span>
                       <div>
-                        <div style={{
-                          fontSize: '15px',
-                          fontWeight: 600,
-                          color: '#1a2e22',
-                          fontFamily: "'Inter', sans-serif"
-                        }}>{file.originalName}</div>
-                        <div style={{
-                          fontSize: '13px',
-                          color: '#3a5a4a',
-                          marginTop: '4px',
-                          fontFamily: "'Inter', sans-serif"
-                        }}>
+                        <div className="text-[15px] font-semibold text-gantly-text">{file.originalName}</div>
+                        <div className="text-[13px] text-slate-500 mt-1">
                           {(file.fileSize / 1024).toFixed(1)} KB • Subido por {file.uploaderName}
                         </div>
                       </div>
                     </div>
                     <button
                       onClick={() => fileService.downloadTaskFile(file.filePath)}
-                      style={{
-                        padding: '8px 16px',
-                        background: '#5a9270',
-                        color: 'white',
-                        border: 'none',
-                        cursor: 'pointer',
-                        borderRadius: '12px',
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        transition: 'all 0.3s ease',
-                        fontFamily: "'Inter', sans-serif",
-                        boxShadow: '0 2px 8px rgba(90, 146, 112, 0.3)'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = '#4a8062';
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.4)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = '#5a9270';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.3)';
-                      }}
+                      className="px-4 py-2 bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white border-none cursor-pointer rounded-xl text-[13px] font-semibold transition-all hover:-translate-y-0.5 hover:shadow-md"
                     >
                       Descargar
                     </button>
@@ -404,60 +224,28 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                 ))}
               </div>
             ) : (
-              <div style={{
-                fontSize: '15px',
-                color: '#3a5a4a',
-                textAlign: 'center',
-                padding: '40px',
-                fontFamily: "'Inter', sans-serif"
-              }}>
-                No hay archivos adjuntos aún
+              <div className="text-[15px] text-slate-500 text-center py-10">
+                No hay archivos adjuntos aun
               </div>
             )}
           </div>
 
           {/* Comentarios */}
-          <div style={{
-            padding: '24px',
-            background: '#ffffff',
-            borderRadius: '16px',
-            border: '1px solid rgba(90, 146, 112, 0.15)',
-            boxShadow: '0 2px 8px rgba(90, 146, 112, 0.08)'
-          }}>
-            <h4 style={{
-              margin: '0 0 20px 0',
-              fontSize: '20px',
-              fontWeight: 600,
-              color: '#1a2e22',
-              fontFamily: "'Inter', sans-serif"
-            }}>
-              💬 Comentarios
+          <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
+            <h4 className="m-0 mb-5 text-xl font-semibold text-gantly-text">
+              Comentarios
             </h4>
 
             {/* Lista de comentarios */}
             {taskComments[selectedTaskId] && taskComments[selectedTaskId].length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
+              <div className="flex flex-col gap-4 mb-6">
                 {taskComments[selectedTaskId].map((comment: any) => (
-                  <div key={comment.id} style={{
-                    padding: '16px',
-                    background: 'linear-gradient(135deg, #f8f9fa 0%, #f0f5f3 100%)',
-                    borderRadius: '12px',
-                    border: '1px solid rgba(90, 146, 112, 0.15)'
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                      <div style={{
-                        fontSize: '14px',
-                        fontWeight: 600,
-                        color: '#1a2e22',
-                        fontFamily: "'Inter', sans-serif"
-                      }}>
+                  <div key={comment.id} className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="text-sm font-semibold text-gantly-text">
                         {comment.userName}
                       </div>
-                      <div style={{
-                        fontSize: '12px',
-                        color: '#3a5a4a',
-                        fontFamily: "'Inter', sans-serif"
-                      }}>
+                      <div className="text-xs text-slate-500">
                         {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString('es-ES', {
                           day: 'numeric',
                           month: 'short',
@@ -467,90 +255,30 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                         }) : ''}
                       </div>
                     </div>
-                    <div style={{
-                      fontSize: '15px',
-                      color: '#3a5a4a',
-                      lineHeight: '1.6',
-                      fontFamily: "'Inter', sans-serif",
-                      whiteSpace: 'pre-wrap'
-                    }}>
+                    <div className="text-[15px] text-slate-600 leading-relaxed whitespace-pre-wrap">
                       {comment.content}
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div style={{
-                fontSize: '15px',
-                color: '#3a5a4a',
-                textAlign: 'center',
-                padding: '40px',
-                marginBottom: '24px',
-                fontFamily: "'Inter', sans-serif"
-              }}>
-                No hay comentarios aún. Sé el primero en comentar.
+              <div className="text-[15px] text-slate-500 text-center py-10 mb-6">
+                No hay comentarios aun. Se el primero en comentar.
               </div>
             )}
 
             {/* Formulario de nuevo comentario */}
-            <div style={{ display: 'flex', gap: '12px' }}>
+            <div className="flex gap-3">
               <textarea
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="Escribe un comentario..."
-                style={{
-                  flex: 1,
-                  padding: '12px 16px',
-                  borderRadius: '12px',
-                  border: '2px solid rgba(90, 146, 112, 0.2)',
-                  fontSize: '15px',
-                  fontFamily: "'Inter', sans-serif",
-                  color: '#1a2e22',
-                  resize: 'vertical',
-                  minHeight: '80px',
-                  outline: 'none',
-                  transition: 'all 0.3s ease'
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = '#5a9270';
-                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(90, 146, 112, 0.1)';
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(90, 146, 112, 0.2)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
+                className="flex-1 p-3 px-4 rounded-xl border-2 border-slate-200 text-[15px] text-gantly-text resize-y min-h-[80px] outline-none transition-all focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-100"
               />
               <button
                 onClick={() => handleAddComment(selectedTaskId)}
                 disabled={!newComment.trim()}
-                style={{
-                  padding: '12px 24px',
-                  background: newComment.trim() ? '#5a9270' : '#d1d5db',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '12px',
-                  fontSize: '15px',
-                  fontWeight: 600,
-                  cursor: newComment.trim() ? 'pointer' : 'not-allowed',
-                  transition: 'all 0.3s ease',
-                  fontFamily: "'Inter', sans-serif",
-                  boxShadow: newComment.trim() ? '0 4px 12px rgba(90, 146, 112, 0.3)' : 'none',
-                  alignSelf: 'flex-start'
-                }}
-                onMouseEnter={(e) => {
-                  if (newComment.trim()) {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.4)';
-                    e.currentTarget.style.background = '#4a8062';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (newComment.trim()) {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(90, 146, 112, 0.3)';
-                    e.currentTarget.style.background = '#5a9270';
-                  }
-                }}
+                className="self-start px-6 py-3 bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white border-none rounded-xl text-[15px] font-semibold cursor-pointer transition-all disabled:bg-slate-300 disabled:cursor-not-allowed hover:-translate-y-0.5 hover:shadow-lg disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
                 Enviar
               </button>
@@ -558,36 +286,17 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
           </div>
         </div>
       ) : selectedPatientForTasks ? (
-        // Lista de tareas de un paciente específico
-        <div style={{
-          background: '#ffffff',
-          borderRadius: '12px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          padding: '32px',
-          border: '1px solid #e5e7eb'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+        // Lista de tareas de un paciente especifico
+        <div className="bg-white rounded-2xl shadow-card p-8 border border-slate-100">
+          <div className="flex items-center justify-between mb-6">
             <div>
               <button
                 onClick={() => setSelectedPatientForTasks(null)}
-                style={{
-                  padding: '8px 16px',
-                  background: '#f0f5f3',
-                  color: '#5a9270',
-                  border: '2px solid rgba(90, 146, 112, 0.3)',
-                  borderRadius: '8px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  marginBottom: '12px',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.background = '#e8f0ed'}
-                onMouseLeave={(e) => e.currentTarget.style.background = '#f0f5f3'}
+                className="px-4 py-2 bg-gantly-blue-50 text-gantly-blue-600 border-2 border-gantly-blue-200 rounded-lg font-semibold cursor-pointer text-sm mb-3 transition-all hover:bg-gantly-blue-100"
               >
                 ← Volver a pacientes
               </button>
-              <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <h3 className="m-0 text-2xl font-bold text-gantly-blue-600">
                 Tareas de {patients.find((p: any) => p.id === selectedPatientForTasks)?.name || 'Paciente'}
               </h3>
             </div>
@@ -596,79 +305,44 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                 setTaskForm({ ...taskForm, userId: selectedPatientForTasks.toString() });
                 setShowTaskForm(true);
               }}
-              style={{
-                padding: '10px 20px',
-                background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontSize: '14px',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              className="px-5 py-2.5 bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white border-none rounded-xl font-semibold cursor-pointer text-sm transition-all hover:scale-105"
             >
               + Nueva Tarea
             </button>
           </div>
 
           {showTaskForm && (
-            <div style={{
-              marginBottom: '24px',
-              padding: '24px',
-              background: '#f9fafb',
-              borderRadius: '12px',
-              border: '2px solid #e5e7eb'
-            }}>
-              <h4 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 600 }}>Crear Nueva Tarea</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="mb-6 p-6 bg-slate-50 rounded-xl border-2 border-slate-200">
+              <h4 className="m-0 mb-4 text-lg font-semibold">Crear Nueva Tarea</h4>
+              <div className="flex flex-col gap-3">
                 <input
                   type="text"
-                  placeholder="Título de la tarea"
+                  placeholder="Titulo de la tarea"
                   value={taskForm.title}
                   onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
-                  style={{
-                    padding: '10px',
-                    borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
-                    fontSize: '14px'
-                  }}
+                  className="p-2.5 rounded-lg border border-slate-200 text-sm"
                 />
                 <textarea
-                  placeholder="Descripción (opcional)"
+                  placeholder="Descripcion (opcional)"
                   value={taskForm.description}
                   onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
-                  style={{
-                    padding: '10px',
-                    borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
-                    fontSize: '14px',
-                    minHeight: '80px',
-                    resize: 'vertical'
-                  }}
+                  className="p-2.5 rounded-lg border border-slate-200 text-sm min-h-[80px] resize-y"
                 />
                 <input
                   type="datetime-local"
                   value={taskForm.dueDate}
                   onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
-                  style={{
-                    padding: '10px',
-                    borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
-                    fontSize: '14px'
-                  }}
+                  className="p-2.5 rounded-lg border border-slate-200 text-sm"
                 />
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div className="flex gap-2">
                   <button
                     onClick={async () => {
                       if (!taskForm.title) {
-                        toast.warning('Por favor completa el título de la tarea');
+                        toast.warning('Por favor completa el titulo de la tarea');
                         return;
                       }
                       if (!me || !me.id) {
-                        toast.error('Error: No se pudo obtener la información del psicólogo. Por favor recarga la página.');
+                        toast.error('Error: No se pudo obtener la informacion del psicologo. Por favor recarga la pagina.');
                         return;
                       }
                       try {
@@ -682,21 +356,11 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                         await onRefresh();
                         setShowTaskForm(false);
                         setTaskForm({ userId: '', title: '', description: '', dueDate: '' });
-                        // Tarea creada exitosamente (sin pop-up)
                       } catch (error: any) {
                         toast.error('Error al crear la tarea: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
                       }
                     }}
-                    style={{
-                      padding: '10px 20px',
-                      background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontSize: '14px'
-                    }}
+                    className="px-5 py-2.5 bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white border-none rounded-xl font-semibold cursor-pointer text-sm"
                   >
                     Crear
                   </button>
@@ -705,16 +369,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                       setShowTaskForm(false);
                       setTaskForm({ userId: '', title: '', description: '', dueDate: '' });
                     }}
-                    style={{
-                      padding: '10px 20px',
-                      background: '#e5e7eb',
-                      color: '#1f2937',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontSize: '14px'
-                    }}
+                    className="px-5 py-2.5 bg-slate-200 text-slate-800 border-none rounded-xl font-semibold cursor-pointer text-sm"
                   >
                     Cancelar
                   </button>
@@ -724,7 +379,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
           )}
 
           {tasksByPatient[selectedPatientForTasks] && tasksByPatient[selectedPatientForTasks].length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div className="flex flex-col gap-4">
               {tasksByPatient[selectedPatientForTasks].map((t: any) => (
                 <div
                   key={t.id}
@@ -732,90 +387,42 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                     setSelectedTaskId(t.id);
                     loadTaskDetails(t.id);
                   }}
-                  style={{
-                    padding: '28px',
-                    background: t.createdBy === 'PSYCHOLOGIST' ? 'linear-gradient(135deg, #f0f5f3 0%, #e8f0ed 100%)' : '#ffffff',
-                    border: `2px solid ${t.createdBy === 'PSYCHOLOGIST' ? 'rgba(90, 146, 112, 0.3)' : 'rgba(90, 146, 112, 0.15)'}`,
-                    borderRadius: '16px',
-                    transition: 'all 0.3s ease',
-                    boxShadow: '0 2px 8px rgba(90, 146, 112, 0.08)',
-                    cursor: 'pointer'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.15)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.08)';
-                  }}
+                  className={`p-7 rounded-2xl transition-all shadow-sm cursor-pointer hover:-translate-y-1 hover:shadow-card border-2 ${
+                    t.createdBy === 'PSYCHOLOGIST'
+                      ? 'bg-gantly-blue-50 border-gantly-blue-200'
+                      : 'bg-white border-slate-200'
+                  }`}
                 >
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px' }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
-                        <div style={{
-                          padding: '6px 12px',
-                          background: t.createdBy === 'PSYCHOLOGIST' ? '#5a9270' : '#7fb3a3',
-                          color: 'white',
-                          borderRadius: '20px',
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          fontFamily: "'Inter', sans-serif"
-                        }}>
-                          {t.createdBy === 'PSYCHOLOGIST' ? '📤 Creada por mí' : '📥 Enviada por paciente'}
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-3 flex-wrap">
+                        <div className={`px-3 py-1.5 text-white rounded-full text-xs font-semibold ${
+                          t.createdBy === 'PSYCHOLOGIST' ? 'bg-gantly-blue-500' : 'bg-gantly-blue-300'
+                        }`}>
+                          {t.createdBy === 'PSYCHOLOGIST' ? 'Creada por mi' : 'Enviada por paciente'}
                         </div>
                         {t.createdAt && (
-                          <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                          <div className="text-xs text-slate-400">
                             Creada: {new Date(t.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </div>
                         )}
                         {t.dueDate && (
-                          <div style={{
-                            padding: '4px 8px',
-                            background: new Date(t.dueDate) < new Date() ? '#fee2e2' : '#fef3c7',
-                            color: new Date(t.dueDate) < new Date() ? '#dc2626' : '#d97706',
-                            borderRadius: '6px',
-                            fontSize: '12px',
-                            fontWeight: 600
-                          }}>
-                            ⏰ Vence: {new Date(t.dueDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          <div className={`px-2 py-1 rounded-md text-xs font-semibold ${
+                            new Date(t.dueDate) < new Date() ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'
+                          }`}>
+                            Vence: {new Date(t.dueDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                           </div>
                         )}
                       </div>
-                      <div style={{
-                        fontSize: '22px',
-                        fontWeight: 700,
-                        color: '#1a2e22',
-                        marginBottom: '12px',
-                        fontFamily: "'Inter', sans-serif",
-                        letterSpacing: '-0.01em'
-                      }}>
+                      <div className="text-[22px] font-bold text-gantly-text mb-3 tracking-tight">
                         {t.title}
                       </div>
-                      <div style={{
-                        fontSize: '15px',
-                        color: '#3a5a4a',
-                        lineHeight: '1.6',
-                        marginBottom: '16px',
-                        fontFamily: "'Inter', sans-serif",
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden'
-                      }}>
-                        {t.description || 'Sin descripción'}
+                      <div className="text-[15px] text-slate-600 leading-relaxed mb-4 line-clamp-2 overflow-hidden">
+                        {t.description || 'Sin descripcion'}
                       </div>
                       {t.completedAt && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <div style={{
-                            padding: '4px 10px',
-                            background: '#E8F5E9',
-                            color: '#2E7D32',
-                            borderRadius: '6px',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            fontFamily: "'Inter', sans-serif"
-                          }}>
+                        <div className="flex items-center gap-3">
+                          <div className="px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-md text-xs font-semibold">
                             Completada
                           </div>
                           <button
@@ -831,24 +438,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                                 }
                               })();
                             }}
-                            style={{
-                              padding: '4px 12px',
-                              background: '#FFF3E0',
-                              color: '#E65100',
-                              border: '1px solid rgba(230, 81, 0, 0.3)',
-                              borderRadius: '6px',
-                              fontSize: '12px',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                              fontFamily: "'Inter', sans-serif",
-                              transition: 'all 0.2s ease'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background = '#FFE0B2';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = '#FFF3E0';
-                            }}
+                            className="px-3 py-1 bg-orange-50 text-orange-700 border border-orange-300 rounded-md text-xs font-semibold cursor-pointer transition-all hover:bg-orange-100"
                           >
                             Reabrir
                           </button>
@@ -860,15 +450,9 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
               ))}
             </div>
           ) : (
-            <div style={{
-              padding: '60px 40px',
-              textAlign: 'center',
-              background: '#f9fafb',
-              borderRadius: '12px',
-              border: '2px dashed #d1d5db'
-            }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
-              <div style={{ fontSize: '18px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>
+            <div className="py-14 px-10 text-center bg-slate-50 rounded-xl border-2 border-dashed border-slate-300">
+              <div className="text-5xl mb-4">📋</div>
+              <div className="text-lg font-semibold text-slate-500 mb-2">
                 No hay tareas para este paciente
               </div>
             </div>
@@ -876,56 +460,27 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
         </div>
       ) : (
         // Lista de pacientes con tareas
-        <div style={{
-          background: '#ffffff',
-          borderRadius: '12px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          padding: '32px',
-          border: '1px solid #e5e7eb'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 700, background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+        <div className="bg-white rounded-2xl shadow-card p-8 border border-slate-100">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="m-0 text-2xl font-bold text-gantly-blue-600">
               Tareas por Paciente
             </h3>
             <button
               onClick={() => setShowTaskForm(true)}
-              style={{
-                padding: '10px 20px',
-                background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                fontSize: '14px',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              className="px-5 py-2.5 bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white border-none rounded-xl font-semibold cursor-pointer text-sm transition-all hover:scale-105"
             >
               + Nueva Tarea
             </button>
           </div>
 
           {showTaskForm && (
-            <div style={{
-              marginBottom: '24px',
-              padding: '24px',
-              background: '#f9fafb',
-              borderRadius: '12px',
-              border: '2px solid #e5e7eb'
-            }}>
-              <h4 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 600 }}>Crear Nueva Tarea</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="mb-6 p-6 bg-slate-50 rounded-xl border-2 border-slate-200">
+              <h4 className="m-0 mb-4 text-lg font-semibold">Crear Nueva Tarea</h4>
+              <div className="flex flex-col gap-3">
                 <select
                   value={taskForm.userId}
                   onChange={(e) => setTaskForm({ ...taskForm, userId: e.target.value })}
-                  style={{
-                    padding: '10px',
-                    borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
-                    fontSize: '14px'
-                  }}
+                  className="p-2.5 rounded-lg border border-slate-200 text-sm"
                 >
                   <option value="">Selecciona un paciente</option>
                   {patients.map(p => (
@@ -934,41 +489,24 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                 </select>
                 <input
                   type="text"
-                  placeholder="Título de la tarea"
+                  placeholder="Titulo de la tarea"
                   value={taskForm.title}
                   onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
-                  style={{
-                    padding: '10px',
-                    borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
-                    fontSize: '14px'
-                  }}
+                  className="p-2.5 rounded-lg border border-slate-200 text-sm"
                 />
                 <textarea
-                  placeholder="Descripción (opcional)"
+                  placeholder="Descripcion (opcional)"
                   value={taskForm.description}
                   onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
-                  style={{
-                    padding: '10px',
-                    borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
-                    fontSize: '14px',
-                    minHeight: '80px',
-                    resize: 'vertical'
-                  }}
+                  className="p-2.5 rounded-lg border border-slate-200 text-sm min-h-[80px] resize-y"
                 />
                 <input
                   type="datetime-local"
                   value={taskForm.dueDate}
                   onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
-                  style={{
-                    padding: '10px',
-                    borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
-                    fontSize: '14px'
-                  }}
+                  className="p-2.5 rounded-lg border border-slate-200 text-sm"
                 />
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div className="flex gap-2">
                   <button
                     onClick={async () => {
                       if (!taskForm.userId || !taskForm.title) {
@@ -976,7 +514,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                         return;
                       }
                       if (!me || !me.id) {
-                        toast.error('Error: No se pudo obtener la información del psicólogo. Por favor recarga la página.');
+                        toast.error('Error: No se pudo obtener la informacion del psicologo. Por favor recarga la pagina.');
                         return;
                       }
                       try {
@@ -990,21 +528,11 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                         await onRefresh();
                         setShowTaskForm(false);
                         setTaskForm({ userId: '', title: '', description: '', dueDate: '' });
-                        // Tarea creada exitosamente (sin pop-up)
                       } catch (error: any) {
                         toast.error('Error al crear la tarea: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
                       }
                     }}
-                    style={{
-                      padding: '10px 20px',
-                      background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontSize: '14px'
-                    }}
+                    className="px-5 py-2.5 bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white border-none rounded-xl font-semibold cursor-pointer text-sm"
                   >
                     Crear
                   </button>
@@ -1013,16 +541,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                       setShowTaskForm(false);
                       setTaskForm({ userId: '', title: '', description: '', dueDate: '' });
                     }}
-                    style={{
-                      padding: '10px 20px',
-                      background: '#e5e7eb',
-                      color: '#1f2937',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontSize: '14px'
-                    }}
+                    className="px-5 py-2.5 bg-slate-200 text-slate-800 border-none rounded-xl font-semibold cursor-pointer text-sm"
                   >
                     Cancelar
                   </button>
@@ -1038,53 +557,26 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
               description="Crea tareas para tus pacientes o revisa las enviadas por ellos."
             />
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
               {patientsWithTasks.map((p: any) => (
                 <div
                   key={p.id}
                   onClick={() => setSelectedPatientForTasks(p.id)}
-                  style={{
-                    padding: '24px',
-                    background: 'linear-gradient(135deg, #f0f5f3 0%, #e8f0ed 100%)',
-                    border: '2px solid rgba(90, 146, 112, 0.3)',
-                    borderRadius: '16px',
-                    transition: 'all 0.3s ease',
-                    boxShadow: '0 2px 8px rgba(90, 146, 112, 0.08)',
-                    cursor: 'pointer'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(90, 146, 112, 0.15)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(90, 146, 112, 0.08)';
-                  }}
+                  className="p-6 bg-gantly-blue-50 border-2 border-gantly-blue-200 rounded-2xl transition-all shadow-sm cursor-pointer hover:-translate-y-1 hover:shadow-card"
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
-                    <div style={{
-                      width: '60px',
-                      height: '60px',
-                      borderRadius: '50%',
-                      background: '#e5e7eb',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '24px',
-                      border: '3px solid white',
-                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
-                    }}>
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-[60px] h-[60px] rounded-full bg-slate-200 flex items-center justify-center text-2xl border-[3px] border-white shadow-sm overflow-hidden">
                       {p.avatarUrl ? (
-                        <img src={p.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                        <img src={p.avatarUrl} alt="" className="w-full h-full object-cover rounded-full" />
                       ) : (
                         '👤'
                       )}
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '18px', fontWeight: 600, color: '#1a2e22', marginBottom: '4px', fontFamily: "'Inter', sans-serif" }}>
+                    <div className="flex-1">
+                      <div className="text-lg font-semibold text-gantly-text mb-1">
                         {p.name}
                       </div>
-                      <div style={{ fontSize: '14px', color: '#3a5a4a', fontFamily: "'Inter', sans-serif" }}>
+                      <div className="text-sm text-slate-500">
                         {tasksByPatient[p.id]?.length || 0} {tasksByPatient[p.id]?.length === 1 ? 'tarea' : 'tareas'}
                       </div>
                     </div>

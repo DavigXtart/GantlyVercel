@@ -41,29 +41,29 @@ function SessionNotesSection({ appointmentId, existingNotes }: { appointmentId: 
   };
 
   return (
-    <div style={{ marginTop: '12px', borderTop: '1px solid rgba(90,146,112,0.1)', paddingTop: '12px' }}>
+    <div className="mt-3 border-t border-slate-100 pt-3">
       <button
         onClick={() => setExpanded(!expanded)}
-        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: '#5a9270', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px', padding: 0 }}
+        className="bg-transparent border-none cursor-pointer text-sm text-gantly-blue-500 font-medium flex items-center gap-1 p-0"
       >
-        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{expanded ? 'expand_less' : 'expand_more'}</span>
-        Notas de sesión {existingNotes ? '(editadas)' : ''}
+        <span className="material-symbols-outlined text-[18px]">{expanded ? 'expand_less' : 'expand_more'}</span>
+        Notas de sesion {existingNotes ? '(editadas)' : ''}
       </button>
       {expanded && (
-        <div style={{ marginTop: '8px' }}>
+        <div className="mt-2">
           <textarea
             value={notes}
             onChange={e => setNotes(e.target.value)}
             maxLength={500}
-            placeholder="Escribe notas sobre esta sesión..."
-            style={{ width: '100%', minHeight: '80px', padding: '12px', border: '1px solid rgba(90,146,112,0.2)', borderRadius: '12px', fontSize: '14px', fontFamily: "'Inter', sans-serif", resize: 'vertical' }}
+            placeholder="Escribe notas sobre esta sesion..."
+            className="w-full min-h-[80px] p-3 border border-slate-200 rounded-xl text-sm resize-y"
           />
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
-            <span style={{ fontSize: '12px', color: '#9ca3af' }}>{notes.length}/500</span>
+          <div className="flex justify-between items-center mt-2">
+            <span className="text-xs text-slate-400">{notes.length}/500</span>
             <button
               onClick={handleSave}
               disabled={saving}
-              style={{ padding: '6px 16px', background: '#5a9270', color: 'white', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', opacity: saving ? 0.6 : 1 }}
+              className="px-4 py-1.5 bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white border-none rounded-lg text-[13px] cursor-pointer disabled:opacity-60"
             >
               {saving ? 'Guardando...' : saved ? 'Guardado!' : 'Guardar notas'}
             </button>
@@ -464,16 +464,16 @@ export default function PsychDashboard() {
 
   if (loading && !me) {
     return (
-      <div className="container" style={{ maxWidth: '1200px', padding: '40px' }}>
+      <div className="max-w-[1200px] mx-auto p-10">
         <LoadingSpinner text="Cargando perfil..." />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-cream text-forest flex">
+    <div className="min-h-screen bg-slate-50 text-gantly-text flex">
       {/* Sidebar */}
-      <aside className="w-24 bg-cream sticky top-0 h-screen flex flex-col items-center pt-2 pb-10 z-40 border-none">
+      <aside className="w-24 bg-white border-r border-gantly-blue-100 sticky top-0 h-screen flex flex-col items-center pt-2 pb-10 z-40">
         <nav className="flex flex-col gap-4 w-full px-3">
           {[
             { id: 'perfil', icon: 'person', label: 'Perfil' },
@@ -491,7 +491,11 @@ export default function PsychDashboard() {
                 key={item.id}
                 type="button"
                 onClick={() => setTab(item.id as Tab)}
-                className={`sidebar-item ${isActive ? 'active' : ''}`}
+                className={`flex flex-col items-center justify-center gap-1 py-3 px-2 rounded-xl w-full border-none cursor-pointer transition-all ${
+                  isActive
+                    ? 'bg-gantly-blue-50 text-gantly-blue-600'
+                    : 'bg-transparent text-slate-500 hover:bg-slate-100 hover:text-gantly-blue-500'
+                }`}
               >
                 <span className="material-symbols-outlined font-light text-lg">
                   {item.icon}
@@ -509,65 +513,39 @@ export default function PsychDashboard() {
       <main className="flex-1 px-8 lg:px-12 py-4 relative overflow-x-hidden">
       {showRatingsModal && (
         <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '24px'
-          }}
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-6"
           onClick={() => setShowRatingsModal(false)}
         >
           <div
-            style={{
-              background: 'white',
-              borderRadius: '12px',
-              maxWidth: '520px',
-              width: '100%',
-              maxHeight: '80vh',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.15)'
-            }}
+            className="bg-white rounded-2xl max-w-[520px] w-full max-h-[80vh] overflow-hidden flex flex-col shadow-elevated"
             onClick={e => e.stopPropagation()}
           >
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0 }}>Reseñas de pacientes</h3>
+            <div className="px-6 py-5 border-b border-slate-200 flex justify-between items-center">
+              <h3 className="m-0">Resenas de pacientes</h3>
               <button
-                className="btn-secondary"
-                style={{ padding: '8px 16px', fontSize: '14px' }}
+                className="px-4 py-2 text-sm bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-slate-700 font-medium cursor-pointer"
                 onClick={() => setShowRatingsModal(false)}
               >
                 Cerrar
               </button>
             </div>
-            <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
+            <div className="px-6 py-5 overflow-y-auto flex-1">
               {loadingRatings ? (
-                <p style={{ color: 'var(--text-secondary)' }}>Cargando reseñas...</p>
+                <p className="text-slate-500">Cargando resenas...</p>
               ) : ratingsList.length === 0 ? (
-                <p style={{ color: 'var(--text-secondary)' }}>No hay reseñas</p>
+                <p className="text-slate-500">No hay resenas</p>
               ) : (
                 ratingsList.map((r, i) => (
                   <div
                     key={i}
-                    style={{
-                      padding: '16px',
-                      marginBottom: '12px',
-                      background: '#f9fafb',
-                      borderRadius: '8px',
-                      border: '1px solid #e5e7eb'
-                    }}
+                    className="p-4 mb-3 bg-slate-50 rounded-lg border border-slate-200"
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div className="flex justify-between items-center mb-2">
                       <strong>{r.patientName}</strong>
-                      <span style={{ color: '#fbbf24', fontSize: '16px' }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
+                      <span className="text-amber-400 text-base">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
                     </div>
-                    {r.comment && <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary)' }}>{r.comment}</p>}
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px' }}>{formatDate(r.createdAt)}</div>
+                    {r.comment && <p className="m-0 text-sm text-slate-500">{r.comment}</p>}
+                    <div className="text-xs text-slate-500 mt-2">{formatDate(r.createdAt)}</div>
                   </div>
                 ))
               )}
@@ -588,19 +566,19 @@ export default function PsychDashboard() {
 
         {/* Header hero solo en PERFIL */}
         {tab === 'perfil' && (
-          <header className="bg-sage/10 rounded-[4rem] p-8 lg:p-12 mb-10 relative overflow-hidden">
+          <header className="bg-gantly-blue-50 rounded-2xl p-8 lg:p-12 mb-10 relative overflow-hidden">
             <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
               <div className="flex flex-col md:flex-row items-center gap-8">
                 <div className="relative">
-                  <div className="size-28 md:size-32 rounded-full overflow-hidden border-4 border-white soft-shadow bg-sage/20 flex items-center justify-center">
+                  <div className="size-28 md:size-32 rounded-full overflow-hidden border-4 border-white shadow-card bg-gantly-blue-100 flex items-center justify-center">
                     {me?.avatarUrl ? (
                       <img
                         src={me.avatarUrl}
-                        alt={me.name || 'Psicólogo'}
+                        alt={me.name || 'Psicologo'}
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <span className="text-3xl md:text-4xl text-forest font-semibold">
+                      <span className="text-3xl md:text-4xl text-gantly-blue-600 font-semibold">
                         {me?.name ? me.name.charAt(0).toUpperCase() : 'P'}
                       </span>
                     )}
@@ -609,11 +587,11 @@ export default function PsychDashboard() {
                 <div className="text-center md:text-left">
                   <h1 className="text-4xl md:text-5xl lg:text-6xl font-normal mb-2">
                     Hola,{' '}
-                    <span className="italic text-sage">
+                    <span className="italic text-gantly-blue-500">
                       {me?.name || 'tu espacio profesional'}.
                     </span>
                   </h1>
-                  <p className="text-sage/70 font-light mb-4">
+                  <p className="text-slate-500 font-light mb-4">
                     {me?.email}
                     {me?.createdAt && (
                       <>
@@ -625,12 +603,12 @@ export default function PsychDashboard() {
                 </div>
               </div>
               {/* Toggle Aceptando nuevos pacientes - integrado en el header */}
-              <div className="flex items-center gap-3 px-5 py-3 bg-white/60 backdrop-blur-sm rounded-full border border-sage/20 shadow-sm hover:bg-white/80 transition-all">
+              <div className="flex items-center gap-3 px-5 py-3 bg-white/60 backdrop-blur-sm rounded-full border border-slate-200 shadow-sm hover:bg-white/80 transition-all">
                 <div className="text-right">
-                  <div className="text-sm font-medium text-forest">
+                  <div className="text-sm font-medium text-gantly-text">
                     {me?.isFull ? 'Lleno' : 'Aceptando nuevos pacientes'}
                   </div>
-                  <div className="text-xs text-sage/60">
+                  <div className="text-xs text-slate-400">
                     {me?.isFull ? 'No en recomendaciones' : 'En recomendaciones'}
                   </div>
                 </div>
@@ -679,7 +657,7 @@ export default function PsychDashboard() {
           {/* Columna izquierda */}
           <div className="lg:col-span-2 space-y-8">
             {/* Información del perfil */}
-            <div className="bg-white rounded-3xl p-8 border border-sage/10 soft-shadow">
+            <div className="bg-white rounded-2xl p-8 border border-slate-100 shadow-card">
               <div className="flex flex-col md:flex-row items-start gap-6 mb-8">
                 <div className="flex-1">
                   {myRating && myRating.averageRating !== null && (
@@ -710,7 +688,7 @@ export default function PsychDashboard() {
                           </span>
                         ))}
                       </div>
-                      <span className="text-sm font-medium text-forest">
+                      <span className="text-sm font-medium text-gantly-text">
                         {myRating.averageRating.toFixed(1)} ({myRating.totalRatings} valoraciones)
                       </span>
                     </div>
@@ -721,7 +699,7 @@ export default function PsychDashboard() {
                         await loadPsychologistProfile();
                         setTab('editar-perfil-profesional');
                       }}
-                      className="px-4 py-2 rounded-full border border-sage/30 text-sm text-sage hover:bg-sage hover:text-white transition"
+                      className="px-4 py-2 rounded-full border border-slate-200 text-sm text-gantly-blue-500 hover:bg-gantly-blue-500 hover:text-white transition"
                     >
                       Editar Perfil Profesional
                     </button>
@@ -741,7 +719,7 @@ export default function PsychDashboard() {
                           toast.error('Error al obtener el código de referencia: ' + errorMsg);
                         }
                       }}
-                      className="px-4 py-2 rounded-full border border-sage/30 text-sm text-sage hover:bg-sage hover:text-white transition"
+                      className="px-4 py-2 rounded-full border border-slate-200 text-sm text-gantly-blue-500 hover:bg-gantly-blue-500 hover:text-white transition"
                     >
                       Invitar Paciente
                     </button>
@@ -773,17 +751,17 @@ export default function PsychDashboard() {
 
               {/* Estadísticas */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="p-6 bg-sage/5 rounded-2xl border border-sage/20">
-                  <div className="text-xs text-sage/70 mb-2 font-semibold uppercase tracking-wider">
+                <div className="p-6 bg-gantly-blue-50 rounded-2xl border border-slate-200">
+                  <div className="text-xs text-gantly-blue-500/70 mb-2 font-semibold uppercase tracking-wider">
                     Pacientes asignados
                   </div>
-                  <div className="text-3xl font-bold text-forest">
+                  <div className="text-3xl font-bold text-gantly-text">
                     {patients.length}
                   </div>
                 </div>
 
-                <div className="p-6 bg-sage/5 rounded-2xl border border-sage/20">
-                  <div className="text-xs text-sage/70 mb-2 font-semibold uppercase tracking-wider">
+                <div className="p-6 bg-gantly-blue-50 rounded-2xl border border-slate-200">
+                  <div className="text-xs text-gantly-blue-500/70 mb-2 font-semibold uppercase tracking-wider">
                     Tareas creadas
                   </div>
                   <div className="text-3xl font-bold text-green-600">
@@ -795,7 +773,7 @@ export default function PsychDashboard() {
                   className={`p-6 rounded-2xl border cursor-pointer transition-all ${
                     pendingRequests.length > 0 
                       ? 'bg-red-50 border-red-300 shadow-md animate-pulse' 
-                      : 'bg-sage/5 border-sage/20'
+                      : 'bg-gantly-blue-50 border-slate-200'
                   }`}
                   onClick={() => {
                     setTab('calendario');
@@ -808,7 +786,7 @@ export default function PsychDashboard() {
                   }}
                 >
                   <div className={`text-xs mb-2 font-semibold uppercase tracking-wider ${
-                    pendingRequests.length > 0 ? 'text-red-700' : 'text-sage/70'
+                    pendingRequests.length > 0 ? 'text-red-700' : 'text-gantly-blue-500/70'
                   }`}>
                     {pendingRequests.length > 0 ? '⚠️ ' : ''}Citas por confirmar
                   </div>
@@ -825,12 +803,12 @@ export default function PsychDashboard() {
 
           {/* Columna derecha: próxima cita */}
           <div className="lg:col-span-1">
-            <div className="bg-white p-10 rounded-[4rem] border border-sage/10 soft-shadow h-full flex flex-col">
+            <div className="bg-white p-10 rounded-[4rem] border border-slate-100 shadow-card h-full flex flex-col">
               <div className="flex items-center gap-2 mb-4">
                 <span className="material-symbols-outlined text-amber-500 text-sm">
                   alarm
                 </span>
-                <span className="text-[10px] uppercase tracking-widest font-bold text-sage/40">
+                <span className="text-[10px] uppercase tracking-widest font-bold text-gantly-blue-500/40">
                   Próxima cita
                 </span>
               </div>
@@ -859,7 +837,7 @@ export default function PsychDashboard() {
                           },
                         )}
                       </h4>
-                      <div className="space-y-3 text-sage">
+                      <div className="space-y-3 text-gantly-blue-500">
                         <div className="flex items-center gap-3 text-sm">
                           <span className="material-symbols-outlined text-lg">
                             schedule
@@ -894,7 +872,7 @@ export default function PsychDashboard() {
 
                     <button
                       type="button"
-                      className="mt-8 w-full py-3 bg-forest text-cream rounded-full font-medium hover:bg-sage transition-all shadow-lg shadow-forest/10 text-sm"
+                      className="mt-8 w-full py-3 bg-gantly-blue-600 text-white rounded-full font-medium hover:bg-gantly-blue-500 transition-all shadow-lg shadow-gantly-blue-500/10 text-sm"
                       onClick={async () => {
                         if (me && upcomingAppointment.user) {
                           try {
@@ -918,7 +896,7 @@ export default function PsychDashboard() {
 
                     <button
                       type="button"
-                      className="mt-4 w-full py-2 text-sm text-sage hover:text-forest font-medium transition underline underline-offset-2"
+                      className="mt-4 w-full py-2 text-sm text-gantly-blue-500 hover:text-gantly-text font-medium transition underline underline-offset-2"
                       onClick={() => {
                         setTab('calendario');
                         setTimeout(() => {
@@ -933,11 +911,11 @@ export default function PsychDashboard() {
                     </button>
                   </div>
                 ) : (
-                  <div className="bg-amber-light/30 rounded-[3rem] p-8 flex-1 flex flex-col justify-center text-sage/70 text-sm">
+                  <div className="bg-amber-light/30 rounded-[3rem] p-8 flex-1 flex flex-col justify-center text-gantly-blue-500/70 text-sm">
                     No tienes ninguna cita próxima.
                     <button
                       type="button"
-                      className="mt-4 px-4 py-2 rounded-full border border-sage/40 text-sage text-xs font-medium hover:bg-sage hover:text-white transition"
+                      className="mt-4 px-4 py-2 rounded-full border border-slate-300 text-gantly-blue-500 text-xs font-medium hover:bg-gantly-blue-500 hover:text-white transition"
                       onClick={() => setTab('calendario')}
                     >
                       Ir al calendario
@@ -952,7 +930,7 @@ export default function PsychDashboard() {
 
       {/* Test de Matching */}
       {tab === 'matching-test' && (
-        <div className="mt-10 bg-white rounded-3xl p-8 border border-sage/10 soft-shadow">
+        <div className="mt-10 bg-white rounded-3xl p-8 border border-slate-100 shadow-card">
           <PsychologistMatchingTest
             onComplete={async () => {
               // Marcar como completado optimísticamente
@@ -1020,7 +998,7 @@ export default function PsychDashboard() {
       {tab === 'calendario' && (
         <div className="mt-10">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-3xl font-normal text-forest">
+            <h3 className="text-3xl font-normal text-gantly-text">
               Gestión de Calendario
             </h3>
           </div>
@@ -1117,11 +1095,11 @@ export default function PsychDashboard() {
           {pendingRequests.length > 0 && (
             <div 
               id="solicitudes-pendientes"
-              className="mt-10 bg-white rounded-3xl p-8 border border-sage/10 soft-shadow"
+              className="mt-10 bg-white rounded-3xl p-8 border border-slate-100 shadow-card"
             >
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-[22px] font-normal text-forest flex items-center gap-2">
-                  <span className="material-symbols-outlined text-xl text-sage">
+                <h3 className="text-[22px] font-normal text-gantly-text flex items-center gap-2">
+                  <span className="material-symbols-outlined text-xl text-gantly-blue-500">
                     schedule
                   </span>
                   Citas por confirmar
@@ -1131,10 +1109,10 @@ export default function PsychDashboard() {
                 {pendingRequests.map((req: any) => (
                   <div
                     key={req.id}
-                    className="rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow border border-sage/15 flex flex-col min-h-[190px] bg-white"
+                    className="rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow border border-slate-200 flex flex-col min-h-[190px] bg-white"
                   >
                     <div className="flex items-start justify-between mb-6">
-                      <p className="text-[10px] tracking-[0.25em] font-bold text-sage/50 uppercase">
+                      <p className="text-[10px] tracking-[0.25em] font-bold text-gantly-blue-500/50 uppercase">
                         Próxima cita
                       </p>
                       <div className="w-9 h-9 rounded-full flex items-center justify-center bg-[#FAF5E6]">
@@ -1144,7 +1122,7 @@ export default function PsychDashboard() {
                       </div>
                     </div>
 
-                    <h4 className="serif-font text-3xl text-forest mb-1">
+                    <h4 className="serif-font text-3xl text-gantly-text mb-1">
                       {new Date(req.appointment.startTime).toLocaleDateString('es-ES', {
                         weekday: 'short',
                         day: '2-digit',
@@ -1152,7 +1130,7 @@ export default function PsychDashboard() {
                       })}
                     </h4>
 
-                    <p className="text-sm text-sage/70 font-medium mb-4">
+                    <p className="text-sm text-gantly-blue-500/70 font-medium mb-4">
                       {new Date(req.appointment.startTime).toLocaleTimeString('es-ES', {
                         hour: '2-digit',
                         minute: '2-digit',
@@ -1165,16 +1143,16 @@ export default function PsychDashboard() {
                     </p>
 
                     {req.appointment.price && (
-                      <p className="text-sm text-sage font-semibold mb-2">
+                      <p className="text-sm text-gantly-blue-500 font-semibold mb-2">
                         {req.appointment.price} €
                       </p>
                     )}
 
-                    <p className="text-sm text-sage/80 font-medium mb-2">
+                    <p className="text-sm text-gantly-blue-500/80 font-medium mb-2">
                       {req.user.name || req.user.email}
                     </p>
 
-                    <p className="text-xs text-sage/60 mb-6">
+                    <p className="text-xs text-gantly-blue-500/60 mb-6">
                       Solicitada: {new Date(req.requestedAt).toLocaleDateString('es-ES', {
                         day: '2-digit',
                         month: '2-digit',
@@ -1199,7 +1177,7 @@ export default function PsychDashboard() {
                             }
                           }
                         }}
-                        className="flex-1 px-4 py-2 bg-sage text-white rounded-xl hover:bg-sage/90 transition font-medium text-sm"
+                        className="flex-1 px-4 py-2 bg-gantly-blue-500 text-white rounded-xl hover:bg-gantly-blue-600 transition font-medium text-sm"
                       >
                         Confirmar
                       </button>
@@ -1237,12 +1215,12 @@ export default function PsychDashboard() {
                 background: '#ffffff',
                 borderRadius: '20px',
                 boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
-                border: '1px solid rgba(90, 146, 112, 0.15)',
+                border: '1px solid #e2e8f0',
                 padding: '32px'
               }}>
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-[22px] font-normal text-forest flex items-center gap-2">
-                  <span className="material-symbols-outlined text-xl text-sage">
+                <h3 className="text-[22px] font-normal text-gantly-text flex items-center gap-2">
+                  <span className="material-symbols-outlined text-xl text-gantly-blue-500">
                     calendar_today
                   </span>
                   Citas Confirmadas y Reservadas
@@ -1264,10 +1242,10 @@ export default function PsychDashboard() {
                   return (
                     <div
                       key={apt.id}
-                      className="rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow border border-sage/15 flex flex-col min-h-[190px] bg-white"
+                      className="rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow border border-slate-200 flex flex-col min-h-[190px] bg-white"
                     >
                       <div className="flex items-start justify-between mb-6">
-                        <p className="text-[10px] tracking-[0.25em] font-bold text-sage/50 uppercase">
+                        <p className="text-[10px] tracking-[0.25em] font-bold text-gantly-blue-500/50 uppercase">
                           Próxima cita
                         </p>
                         <div className={`w-9 h-9 rounded-full flex items-center justify-center ${badgeBg}`}>
@@ -1277,7 +1255,7 @@ export default function PsychDashboard() {
                         </div>
                       </div>
 
-                      <h4 className="serif-font text-3xl text-forest mb-1">
+                      <h4 className="serif-font text-3xl text-gantly-text mb-1">
                         {new Date(apt.startTime).toLocaleDateString('es-ES', {
                           weekday: 'short',
                           day: '2-digit',
@@ -1285,7 +1263,7 @@ export default function PsychDashboard() {
                         })}
                       </h4>
 
-                      <p className="text-sm text-sage/70 font-medium mb-10">
+                      <p className="text-sm text-gantly-blue-500/70 font-medium mb-10">
                         {new Date(apt.startTime).toLocaleTimeString('es-ES', {
                           hour: '2-digit',
                           minute: '2-digit',
@@ -1299,7 +1277,7 @@ export default function PsychDashboard() {
                       </p>
 
                       <div className="mt-auto flex items-center justify-between">
-                        <span className="text-sm text-sage/80 font-medium">
+                        <span className="text-sm text-gantly-blue-500/80 font-medium">
                           {apt.user?.name || 'Paciente'}
                         </span>
                         <span className={`inline-flex items-center justify-center rounded-full px-4 py-1 text-[13px] font-medium shadow-sm ${statusClasses}`}>
@@ -1320,8 +1298,8 @@ export default function PsychDashboard() {
       {/* Citas Pasadas */}
       {tab === 'citas-pasadas' && (
         <div className="mt-10 w-full">
-          <div className="bg-white rounded-3xl p-8 border border-sage/10 soft-shadow mb-6">
-            <h3 className="text-3xl font-normal text-forest mb-6">
+          <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-card mb-6">
+            <h3 className="text-3xl font-normal text-gantly-text mb-6">
               Mis Citas Pasadas
             </h3>
             {myRating && myRating.averageRating !== null && (
@@ -1369,7 +1347,7 @@ export default function PsychDashboard() {
               borderRadius: '20px',
               boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
               padding: '60px',
-              border: '1px solid rgba(90, 146, 112, 0.15)',
+              border: '1px solid #e2e8f0',
               textAlign: 'center'
             }}>
               <p style={{ color: '#6b7280', fontSize: '16px' }}>No tienes citas pasadas aún</p>
@@ -1384,7 +1362,7 @@ export default function PsychDashboard() {
                     borderRadius: '16px',
                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
                     padding: '24px',
-                    border: '1px solid rgba(90, 146, 112, 0.15)'
+                    border: '1px solid #e2e8f0'
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -1459,7 +1437,7 @@ export default function PsychDashboard() {
       {tab === 'chat' && (
         <div className="mt-10">
           <div className="flex gap-6 items-start">
-            <div className="w-80 bg-white rounded-3xl p-6 border border-sage/10 soft-shadow max-h-[600px] overflow-y-auto">
+            <div className="w-80 bg-white rounded-3xl p-6 border border-slate-100 shadow-card max-h-[600px] overflow-y-auto">
               <h4 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 600, color: '#1f2937' }}>
                 Seleccionar Paciente
               </h4>
@@ -1475,7 +1453,7 @@ export default function PsychDashboard() {
                       onClick={() => setSelectedPatient(p.id)}
                       style={{
                         padding: '12px',
-                        background: selectedPatient === p.id ? 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)' : '#f9fafb',
+                        background: selectedPatient === p.id ? '#2E93CC' : '#f9fafb',
                         color: selectedPatient === p.id ? 'white' : '#1f2937',
                         borderRadius: '8px',
                         cursor: 'pointer',
@@ -1702,7 +1680,7 @@ export default function PsychDashboard() {
                             {test.answers.map((answer: any, idx: number) => (
                               <div key={answer.questionId} style={{ marginBottom: '12px', padding: '12px', background: '#f9fafb', borderRadius: '8px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                                  <span style={{ fontSize: '12px', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#5a9270', color: 'white', borderRadius: '50%', fontWeight: 600 }}>
+                                  <span style={{ fontSize: '12px', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#2E93CC', color: 'white', borderRadius: '50%', fontWeight: 600 }}>
                                     {idx + 1}
                                   </span>
                                   <strong style={{ fontSize: '15px' }}>{answer.questionText}</strong>
@@ -1787,7 +1765,7 @@ export default function PsychDashboard() {
                     onClick={() => testReportRef.current?.exportPdf()}
                     style={{
                       padding: '10px 20px',
-                      background: 'linear-gradient(135deg, #5a9270 0%, #4a8062 100%)',
+                      background: '#2E93CC',
                       color: 'white',
                       border: 'none',
                       borderRadius: '8px',
@@ -1883,7 +1861,7 @@ export default function PsychDashboard() {
                     {testAnswers.answers.map((answer: any, idx: number) => (
                       <div key={answer.questionId} style={{ marginBottom: '12px', padding: '12px', background: '#f9fafb', borderRadius: '8px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                          <span style={{ fontSize: '12px', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#5a9270', color: 'white', borderRadius: '50%', fontWeight: 600 }}>
+                          <span style={{ fontSize: '12px', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#2E93CC', color: 'white', borderRadius: '50%', fontWeight: 600 }}>
                             {idx + 1}
                           </span>
                           <strong style={{ fontSize: '15px' }}>{answer.questionText}</strong>
@@ -1978,28 +1956,28 @@ export default function PsychDashboard() {
           onClick={() => setShowReferralModal(false)}
         >
           <div
-            className="bg-white rounded-3xl p-8 max-w-md w-full border border-sage/10 soft-shadow"
+            className="bg-white rounded-3xl p-8 max-w-md w-full border border-slate-100 shadow-card"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-normal text-forest">
+              <h3 className="text-2xl font-normal text-gantly-text">
                 Invitar Paciente
               </h3>
               <button
                 onClick={() => setShowReferralModal(false)}
-                className="text-sage/60 hover:text-forest transition"
+                className="text-gantly-blue-500/60 hover:text-gantly-text transition"
               >
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
 
-            <p className="text-sage/70 mb-4">
+            <p className="text-gantly-blue-500/70 mb-4">
               Comparte este enlace con tus pacientes para que se unan directamente a tu consulta:
             </p>
 
-            <div className="bg-sage/5 rounded-2xl p-4 mb-4 border border-sage/20">
+            <div className="bg-gantly-blue-50 rounded-2xl p-4 mb-4 border border-slate-200">
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs text-sage/70 font-semibold uppercase tracking-wider">
+                <span className="text-xs text-gantly-blue-500/70 font-semibold uppercase tracking-wider">
                   Enlace de invitación
                 </span>
               </div>
@@ -2008,7 +1986,7 @@ export default function PsychDashboard() {
                   type="text"
                   readOnly
                   value={referralUrl}
-                  className="flex-1 bg-white border border-sage/20 rounded-xl px-4 py-2 text-sm text-forest"
+                  className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm text-gantly-text"
                   onClick={(e) => (e.target as HTMLInputElement).select()}
                 />
                 <button
@@ -2020,16 +1998,16 @@ export default function PsychDashboard() {
                       toast.error('Error al copiar el enlace');
                     }
                   }}
-                  className="px-4 py-2 bg-sage text-white rounded-xl hover:bg-sage/90 transition text-sm font-medium"
+                  className="px-4 py-2 bg-gantly-blue-500 text-white rounded-xl hover:bg-gantly-blue-600 transition text-sm font-medium"
                 >
                   Copiar
                 </button>
               </div>
             </div>
 
-            <div className="bg-sage/5 rounded-2xl p-4 mb-4 border border-sage/20">
+            <div className="bg-gantly-blue-50 rounded-2xl p-4 mb-4 border border-slate-200">
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs text-sage/70 font-semibold uppercase tracking-wider">
+                <span className="text-xs text-gantly-blue-500/70 font-semibold uppercase tracking-wider">
                   Código de referencia
                 </span>
               </div>
@@ -2038,7 +2016,7 @@ export default function PsychDashboard() {
                   type="text"
                   readOnly
                   value={referralCode}
-                  className="flex-1 bg-white border border-sage/20 rounded-xl px-4 py-2 text-sm text-forest font-mono"
+                  className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm text-gantly-text font-mono"
                   onClick={(e) => (e.target as HTMLInputElement).select()}
                 />
                 <button
@@ -2050,20 +2028,20 @@ export default function PsychDashboard() {
                       toast.error('Error al copiar el código');
                     }
                   }}
-                  className="px-4 py-2 bg-sage text-white rounded-xl hover:bg-sage/90 transition text-sm font-medium"
+                  className="px-4 py-2 bg-gantly-blue-500 text-white rounded-xl hover:bg-gantly-blue-600 transition text-sm font-medium"
                 >
                   Copiar
                 </button>
               </div>
             </div>
 
-            <p className="text-xs text-sage/60 mb-4">
+            <p className="text-xs text-gantly-blue-500/60 mb-4">
               Los pacientes que usen este enlace o código se unirán automáticamente a tu consulta como pacientes asignados.
             </p>
 
             <button
               onClick={() => setShowReferralModal(false)}
-              className="w-full px-4 py-2 rounded-full border border-sage/30 text-sm text-sage hover:bg-sage hover:text-white transition"
+              className="w-full px-4 py-2 rounded-full border border-slate-200 text-sm text-gantly-blue-500 hover:bg-gantly-blue-500 hover:text-white transition"
             >
               Cerrar
             </button>
