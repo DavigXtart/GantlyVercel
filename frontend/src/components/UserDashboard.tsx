@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import NotificationBell from './ui/NotificationBell';
 import {
   profileService,
   tasksService,
@@ -570,9 +571,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <button type="button" className="p-2 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors duration-200 relative">
-              <span className="material-symbols-outlined text-slate-500 text-xl">notifications</span>
-            </button>
+            <NotificationBell />
           </div>
         </nav>
 

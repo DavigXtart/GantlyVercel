@@ -95,10 +95,10 @@ export default function NotificationBell() {
     <div ref={ref} className="relative">
       <button
         onClick={handleOpen}
-        className="relative p-2 rounded-xl hover:bg-gantly-blue-50 transition-colors"
+        className="relative p-2 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer bg-transparent border-none"
         title="Notificaciones"
       >
-        <span className="material-symbols-outlined text-[22px] text-gantly-muted">notifications</span>
+        <span className="material-symbols-outlined text-[22px] text-slate-500">notifications</span>
         {count > 0 && (
           <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
             {count > 99 ? '99+' : count}
@@ -107,13 +107,13 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-12 w-80 bg-white rounded-2xl shadow-elevated border border-slate-100 z-50 overflow-hidden">
+        <div className="absolute right-0 top-12 w-80 bg-white rounded-2xl shadow-xl border border-slate-200/80 z-50 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-            <h3 className="text-sm font-medium text-gantly-text">Notificaciones</h3>
+            <h3 className="text-sm font-medium text-slate-900">Notificaciones</h3>
             {count > 0 && (
               <button
                 onClick={handleMarkAllRead}
-                className="text-xs text-gantly-muted hover:text-gantly-blue-500 transition-colors bg-transparent border-none cursor-pointer"
+                className="text-xs text-slate-400 hover:text-gantly-blue transition-colors bg-transparent border-none cursor-pointer"
               >
                 Marcar todas como leídas
               </button>
@@ -122,28 +122,28 @@ export default function NotificationBell() {
 
           <div className="max-h-80 overflow-y-auto">
             {loading ? (
-              <div className="p-6 text-center text-gantly-muted text-sm">Cargando...</div>
+              <div className="p-6 text-center text-slate-400 text-sm">Cargando...</div>
             ) : notifications.length === 0 ? (
-              <div className="p-6 text-center text-gantly-muted text-sm">Sin notificaciones</div>
+              <div className="p-6 text-center text-slate-400 text-sm">Sin notificaciones</div>
             ) : (
               notifications.slice(0, 20).map(n => (
                 <button
                   key={n.id}
                   onClick={() => !n.read && handleMarkRead(n.id)}
-                  className={`w-full text-left px-4 py-3 border-b border-slate-50 hover:bg-gantly-cloud-100 transition-colors flex gap-3 bg-transparent cursor-pointer ${!n.read ? 'bg-gantly-blue-50/50' : ''}`}
+                  className={`w-full text-left px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition-colors flex gap-3 bg-transparent cursor-pointer ${!n.read ? 'bg-gantly-blue/5' : ''}`}
                 >
-                  <span className={`material-symbols-outlined text-lg mt-0.5 ${n.type === 'CRISIS' ? 'text-red-500' : 'text-gantly-muted'}`}>
+                  <span className={`material-symbols-outlined text-lg mt-0.5 ${n.type === 'CRISIS' ? 'text-red-500' : 'text-slate-400'}`}>
                     {typeIcon[n.type] || 'circle_notifications'}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm m-0 ${n.type === 'CRISIS' ? 'font-bold text-red-600' : !n.read ? 'font-medium text-gantly-text' : 'text-gantly-muted'}`}>
+                    <p className={`text-sm m-0 ${n.type === 'CRISIS' ? 'font-bold text-red-600' : !n.read ? 'font-medium text-slate-900' : 'text-slate-500'}`}>
                       {n.title}
                     </p>
-                    <p className="text-xs text-gantly-muted truncate m-0">{n.message}</p>
+                    <p className="text-xs text-slate-400 truncate m-0">{n.message}</p>
                     <p className="text-[10px] text-slate-400 mt-1 m-0">{timeAgo(n.createdAt)}</p>
                   </div>
                   {!n.read && (
-                    <span className="w-2 h-2 rounded-full bg-gantly-blue-500 mt-2 flex-shrink-0" />
+                    <span className="w-2 h-2 rounded-full bg-gantly-blue mt-2 flex-shrink-0" />
                   )}
                 </button>
               ))

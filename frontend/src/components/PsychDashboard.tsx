@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { profileService, psychService, calendarService, tasksService, assignedTestsService, testService, resultsService, matchingService, calendarNotesService, jitsiService, API_BASE_URL } from '../services/api';
+import NotificationBell from './ui/NotificationBell';
 import ChatWidget from './ChatWidget';
 import CalendarWeek from './CalendarWeek';
 import JitsiVideoCall from './JitsiVideoCall';
@@ -552,12 +553,7 @@ export default function PsychDashboard() {
             {mainTabs.find(t => t.id === activeTabGroup)?.label || 'Dashboard'}
           </h2>
           <div className="flex items-center gap-3">
-            <button className="relative p-2 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors duration-200 border-none bg-transparent">
-              <span className="material-symbols-outlined text-[22px] text-slate-500">notifications</span>
-              {pendingRequests.length > 0 && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-              )}
-            </button>
+            <NotificationBell />
           </div>
         </header>
 
