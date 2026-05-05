@@ -65,6 +65,7 @@ export default {
       fontFamily: {
         heading: ['Outfit', 'sans-serif'],
         body: ['Work Sans', 'sans-serif'],
+        handwritten: ['Caveat', 'cursive'],
       },
       borderRadius: {
         lg: "var(--radius)",

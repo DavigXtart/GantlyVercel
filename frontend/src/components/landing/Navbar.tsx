@@ -36,17 +36,16 @@ export default function Navbar({ onLogin, onStart }: NavbarProps) {
     i18n.changeLanguage(i18n.language === 'es' ? 'en' : 'es');
   };
 
-  const bgOpacity = scrolled ? 'rgba(10, 22, 40, 0.92)' : 'rgba(10, 22, 40, 0.7)';
-
   return (
     <nav
-      className="fixed top-4 left-4 right-4 z-50 rounded-2xl"
+      className={`fixed top-4 left-4 right-4 z-50 rounded-2xl transition-all duration-300 ${
+        scrolled
+          ? 'bg-white/90 shadow-lg shadow-slate-200/50 border border-slate-200/60'
+          : 'bg-white/15 border border-white/20'
+      }`}
       style={{
-        background: bgOpacity,
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
-        border: '1px solid rgba(34, 211, 238, 0.1)',
-        transition: 'background 0.3s ease',
       }}
     >
       <div className="flex items-center justify-between px-5 py-3">
@@ -55,7 +54,7 @@ export default function Navbar({ onLogin, onStart }: NavbarProps) {
           <img
             src={LogoSvg}
             alt="Gantly"
-            className="h-7 brightness-0 invert cursor-pointer"
+            className={`h-7 cursor-pointer transition-all duration-300 ${scrolled ? '' : 'brightness-0 invert'}`}
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           />
         </div>
@@ -66,7 +65,11 @@ export default function Navbar({ onLogin, onStart }: NavbarProps) {
             <li key={key}>
               <button
                 onClick={() => handleNavLink(href)}
-                className="text-sm font-body text-white/70 hover:text-white transition-colors"
+                className={`text-sm font-body transition-colors cursor-pointer ${
+                  scrolled
+                    ? 'text-slate-600 hover:text-gantly-blue'
+                    : 'text-white/80 hover:text-white'
+                }`}
               >
                 {t(`landing.nav.${key}`)}
               </button>
@@ -78,19 +81,31 @@ export default function Navbar({ onLogin, onStart }: NavbarProps) {
         <div className="hidden lg:flex items-center gap-3">
           <button
             onClick={toggleLanguage}
-            className="text-xs font-body text-white/50 hover:text-white/80 transition-colors px-2 py-1 rounded-md border border-white/10 hover:border-white/20"
+            className={`text-xs font-body transition-colors px-2 py-1 rounded-md border cursor-pointer ${
+              scrolled
+                ? 'text-slate-400 hover:text-slate-600 border-slate-200 hover:border-slate-300'
+                : 'text-white/60 hover:text-white/90 border-white/20 hover:border-white/40'
+            }`}
           >
             {t('landing.nav.language')}
           </button>
           <button
             onClick={onLogin}
-            className="text-sm font-body text-white/80 hover:text-white transition-colors px-4 py-1.5 rounded-xl border border-white/15 hover:border-white/30"
+            className={`text-sm font-body transition-colors px-4 py-1.5 rounded-xl border cursor-pointer ${
+              scrolled
+                ? 'text-slate-600 hover:text-slate-800 border-slate-200 hover:border-slate-300'
+                : 'text-white/80 hover:text-white border-white/20 hover:border-white/40'
+            }`}
           >
             {t('landing.nav.login')}
           </button>
           <button
             onClick={onStart}
-            className="text-sm font-heading font-semibold text-gantly-navy bg-gantly-gold hover:bg-yellow-300 transition-colors px-5 py-1.5 rounded-xl"
+            className={`text-sm font-heading font-semibold transition-colors px-5 py-1.5 rounded-xl cursor-pointer ${
+              scrolled
+                ? 'text-white bg-gantly-blue hover:bg-sky-600 shadow-sm shadow-gantly-blue/20'
+                : 'text-gantly-text bg-white hover:bg-white/90'
+            }`}
           >
             {t('landing.nav.start')}
           </button>
@@ -98,7 +113,9 @@ export default function Navbar({ onLogin, onStart }: NavbarProps) {
 
         {/* Mobile hamburger */}
         <button
-          className="lg:hidden text-white/80 hover:text-white transition-colors p-1"
+          className={`lg:hidden transition-colors p-1 cursor-pointer ${
+            scrolled ? 'text-slate-600 hover:text-slate-800' : 'text-white/80 hover:text-white'
+          }`}
           onClick={() => setMobileOpen((v) => !v)}
           aria-label="Toggle menu"
         >
@@ -109,38 +126,50 @@ export default function Navbar({ onLogin, onStart }: NavbarProps) {
       {/* Mobile dropdown */}
       {mobileOpen && (
         <div
-          className="lg:hidden border-t px-5 py-4 flex flex-col gap-4"
-          style={{ borderColor: 'rgba(34, 211, 238, 0.1)' }}
+          className={`lg:hidden border-t px-5 py-4 flex flex-col gap-4 ${
+            scrolled ? 'border-slate-200/60' : 'border-white/20'
+          }`}
         >
           <ul className="flex flex-col gap-3">
             {NAV_LINKS.map(({ key, href }) => (
               <li key={key}>
                 <button
                   onClick={() => handleNavLink(href)}
-                  className="text-sm font-body text-white/70 hover:text-white transition-colors w-full text-left"
+                  className={`text-sm font-body transition-colors w-full text-left cursor-pointer ${
+                    scrolled ? 'text-slate-600 hover:text-gantly-blue' : 'text-white/80 hover:text-white'
+                  }`}
                 >
                   {t(`landing.nav.${key}`)}
                 </button>
               </li>
             ))}
           </ul>
-          <div className="flex flex-col gap-2 pt-2 border-t" style={{ borderColor: 'rgba(34, 211, 238, 0.1)' }}>
+          <div className={`flex flex-col gap-2 pt-2 border-t ${scrolled ? 'border-slate-200/60' : 'border-white/20'}`}>
             <button
               onClick={toggleLanguage}
-              className="text-xs font-body text-white/50 hover:text-white/80 transition-colors text-left"
+              className={`text-xs font-body transition-colors text-left cursor-pointer ${
+                scrolled ? 'text-slate-400 hover:text-slate-600' : 'text-white/60 hover:text-white'
+              }`}
             >
               {t('landing.nav.language')}
             </button>
             <button
               onClick={() => { onLogin(); setMobileOpen(false); }}
-              className="text-sm font-body text-white/80 hover:text-white transition-colors text-left py-2 border-b"
-              style={{ borderColor: 'rgba(255,255,255,0.08)' }}
+              className={`text-sm font-body transition-colors text-left py-2 border-b cursor-pointer ${
+                scrolled
+                  ? 'text-slate-600 hover:text-slate-800 border-slate-200/60'
+                  : 'text-white/80 hover:text-white border-white/10'
+              }`}
             >
               {t('landing.nav.login')}
             </button>
             <button
               onClick={() => { onStart(); setMobileOpen(false); }}
-              className="text-sm font-heading font-semibold text-gantly-navy bg-gantly-gold hover:bg-yellow-300 transition-colors px-5 py-2 rounded-xl text-center mt-1"
+              className={`text-sm font-heading font-semibold transition-colors px-5 py-2 rounded-xl text-center mt-1 cursor-pointer ${
+                scrolled
+                  ? 'text-white bg-gantly-blue hover:bg-sky-600'
+                  : 'text-gantly-text bg-white hover:bg-white/90'
+              }`}
             >
               {t('landing.nav.start')}
             </button>
