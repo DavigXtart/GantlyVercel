@@ -1,5 +1,6 @@
 package com.alvaro.psicoapp.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.Instant;
 
@@ -10,6 +11,7 @@ public class AppointmentRequestEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @ManyToOne(optional = false)
     @JoinColumn(name = "appointment_id")
     private AppointmentEntity appointment;

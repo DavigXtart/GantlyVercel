@@ -1,5 +1,6 @@
 package com.alvaro.psicoapp.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -69,6 +70,7 @@ public class AppointmentEntity {
     @Column(name = "room_id")
     private Long roomId;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "appointment", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<AppointmentRequestEntity> requests = new ArrayList<>();
 
