@@ -3,6 +3,7 @@
 ## Communication Style
 - **Respuestas cortas y concisas**. No gastar tiempo en explicaciones largas cuando no son necesarias.
 - Usar skills de superpowers y ui-ux-pro-max para todas las tareas relevantes.
+- **SIEMPRE usar el skill ui-ux-pro-max para cualquier tarea de frontend** (diseño, componentes, estilos, layouts, rediseños).
 
 ## Session Context Files
 - Los archivos en `docs/sessions/` contienen el contexto de cada sesion de trabajo.

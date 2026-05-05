@@ -12,94 +12,107 @@ const UserPsychProfileTab: React.FC<UserPsychProfileTabProps> = ({
   onBack,
 }) => {
   return (
-    <div className="bg-white rounded-2xl shadow-card p-10 border border-slate-100 max-w-[900px] mx-auto mt-10">
+    <div className="max-w-[900px] mx-auto">
       {loadingPsychologistProfile ? (
         <div className="text-center py-16">
-          <p className="text-gray-500 text-base">
-            Cargando perfil del psicologo...
+          <div className="w-16 h-16 rounded-2xl bg-gantly-blue/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <span className="material-symbols-outlined text-gantly-blue text-2xl">person</span>
+          </div>
+          <p className="text-sm font-body text-gantly-muted">
+            Cargando perfil del psicólogo...
           </p>
         </div>
       ) : (
         <>
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-bold text-gantly-text">
-              Perfil del Psicologo
-            </h2>
+          {/* Back button */}
+          <div className="mb-6">
             <button
               onClick={onBack}
-              className="px-5 py-2.5 bg-slate-100 text-gantly-text border border-slate-200 rounded-xl font-semibold cursor-pointer text-sm hover:bg-slate-200 transition-colors"
+              className="text-sm text-gantly-blue hover:text-gantly-navy cursor-pointer transition-all duration-200 flex items-center gap-1 hover:bg-gantly-ice px-3 py-2 rounded-xl"
             >
-              ← Volver
+              <span className="material-symbols-outlined text-base">arrow_back</span>
+              Volver
             </button>
           </div>
 
-          {/* Header del perfil */}
-          <div className="bg-gradient-to-br from-gantly-cloud-100 to-gantly-blue-50 p-10 rounded-2xl border-2 border-gantly-blue-200 mb-8 flex flex-col md:flex-row items-center gap-8 shadow-glow-blue">
-            <div className="w-[120px] h-[120px] rounded-full overflow-hidden border-4 border-white shadow-card bg-slate-200 flex items-center justify-center text-5xl flex-shrink-0">
-              {psychologistProfile.avatarUrl ? (
-                <img
-                  src={psychologistProfile.avatarUrl}
-                  alt=""
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-slate-200 flex items-center justify-center text-slate-400 text-2xl">
-                  PS
+          {/* Profile hero header */}
+          <div className="rounded-2xl overflow-hidden mb-6 border border-slate-100 shadow-sm">
+            <div className="h-1.5 bg-gradient-to-r from-gantly-blue via-gantly-cyan to-gantly-emerald"></div>
+            <div className="p-8 md:p-10" style={{ background: 'linear-gradient(135deg, #1B6FA0 0%, #2E93CC 30%, #48C6D4 65%, #78D4B0 100%)' }}>
+              <div className="flex flex-col md:flex-row items-center gap-6">
+                <div className="w-24 h-24 rounded-2xl overflow-hidden bg-white/20 flex items-center justify-center flex-shrink-0 ring-4 ring-white/20 shadow-xl">
+                  {psychologistProfile.avatarUrl ? (
+                    <img
+                      src={psychologistProfile.avatarUrl}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-3xl text-white font-heading font-bold">
+                      {psychologistProfile.name ? psychologistProfile.name.charAt(0).toUpperCase() : 'P'}
+                    </span>
+                  )}
                 </div>
-              )}
-            </div>
-            <div className="flex-1 text-center md:text-left">
-              <h3 className="text-3xl font-bold text-gantly-text mb-2">
-                {psychologistProfile.name}
-              </h3>
-              <div className="text-lg text-gray-500 mb-3">
-                {psychologistProfile.email}
+                <div className="flex-1 text-center md:text-left">
+                  <h3 className="text-2xl font-heading font-bold text-white mb-1">
+                    {psychologistProfile.name}
+                  </h3>
+                  <p className="text-sm font-body text-white/70">
+                    {psychologistProfile.email}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Biografia */}
+          {/* Bio */}
           {psychologistProfile.bio && (
-            <div className="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
-              <h3 className="text-xl font-semibold text-gantly-text mb-4">
-                Sobre mi
+            <div className="bg-white rounded-2xl border border-slate-100 border-l-4 border-l-gantly-blue p-6 mb-4 shadow-sm hover:shadow-md transition-all duration-200">
+              <h3 className="text-sm font-heading font-semibold text-gantly-text uppercase tracking-wide mb-3 flex items-center gap-2">
+                <span className="w-8 h-8 rounded-lg bg-gantly-blue/10 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-gantly-blue text-sm">person</span>
+                </span>
+                Sobre mí
               </h3>
-              <p className="text-base leading-relaxed text-gantly-muted">
+              <p className="text-sm font-body text-gantly-muted leading-relaxed">
                 {psychologistProfile.bio}
               </p>
             </div>
           )}
 
-          {/* Educacion */}
+          {/* Education */}
           {psychologistProfile.education && (() => {
             try {
               const education = JSON.parse(psychologistProfile.education);
               if (Array.isArray(education) && education.length > 0) {
                 return (
-                  <div className="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
-                    <h3 className="text-xl font-semibold text-gantly-text mb-5">
-                      Educacion
+                  <div className="bg-white rounded-2xl border border-slate-100 border-l-4 border-l-gantly-cyan p-6 mb-4 shadow-sm hover:shadow-md transition-all duration-200">
+                    <h3 className="text-sm font-heading font-semibold text-gantly-text uppercase tracking-wide mb-4 flex items-center gap-2">
+                      <span className="w-8 h-8 rounded-lg bg-gantly-cyan/10 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-gantly-cyan text-sm">school</span>
+                      </span>
+                      Educación
                     </h3>
-                    <div className="flex flex-col gap-4">
+                    <div className="space-y-3">
                       {education.map((edu: any, idx: number) => (
                         <div
                           key={idx}
-                          className="p-4 bg-white rounded-xl border border-slate-200"
+                          className="p-4 bg-gantly-cloud/50 rounded-xl border border-slate-100 hover:border-gantly-cyan/20 transition-all duration-200"
                         >
-                          <div className="text-lg font-semibold text-gantly-text mb-1">
-                            {edu.degree || 'Titulo'}{' '}
+                          <p className="text-sm font-body font-semibold text-gantly-text mb-0.5">
+                            {edu.degree || 'Título'}{' '}
                             {edu.field ? `en ${edu.field}` : ''}
-                          </div>
-                          <div className="text-base text-gantly-blue-500 mb-1">
-                            {edu.institution || 'Institucion'}
-                          </div>
-                          <div className="text-sm text-gray-500">
+                          </p>
+                          <p className="text-sm font-body text-gantly-blue">
+                            {edu.institution || 'Institución'}
+                          </p>
+                          <p className="text-xs font-body text-gantly-muted mt-1">
                             {edu.startDate && edu.endDate
                               ? `${edu.startDate} - ${edu.endDate}`
                               : edu.startDate ||
                                 edu.endDate ||
                                 ''}
-                          </div>
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -112,7 +125,7 @@ const UserPsychProfileTab: React.FC<UserPsychProfileTabProps> = ({
             return null;
           })()}
 
-          {/* Certificaciones */}
+          {/* Certifications */}
           {psychologistProfile.certifications && (() => {
             try {
               const certs = JSON.parse(
@@ -120,31 +133,34 @@ const UserPsychProfileTab: React.FC<UserPsychProfileTabProps> = ({
               );
               if (Array.isArray(certs) && certs.length > 0) {
                 return (
-                  <div className="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
-                    <h3 className="text-xl font-semibold text-gantly-text mb-5">
+                  <div className="bg-white rounded-2xl border border-slate-100 border-l-4 border-l-gantly-gold p-6 mb-4 shadow-sm hover:shadow-md transition-all duration-200">
+                    <h3 className="text-sm font-heading font-semibold text-gantly-text uppercase tracking-wide mb-4 flex items-center gap-2">
+                      <span className="w-8 h-8 rounded-lg bg-gantly-gold/10 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-gantly-gold text-sm">workspace_premium</span>
+                      </span>
                       Certificaciones
                     </h3>
-                    <div className="flex flex-col gap-4">
+                    <div className="space-y-3">
                       {certs.map((cert: any, idx: number) => (
                         <div
                           key={idx}
-                          className="p-4 bg-white rounded-xl border border-slate-200"
+                          className="p-4 bg-gantly-cloud/50 rounded-xl border border-slate-100 hover:border-gantly-gold/20 transition-all duration-200"
                         >
-                          <div className="text-lg font-semibold text-gantly-text mb-1">
-                            {cert.name || 'Certificacion'}
-                          </div>
-                          <div className="text-sm text-gray-500 mb-1">
+                          <p className="text-sm font-body font-semibold text-gantly-text mb-0.5">
+                            {cert.name || 'Certificación'}
+                          </p>
+                          <p className="text-xs font-body text-gantly-muted mb-0.5">
                             Emitido por: {cert.issuer || 'N/A'}
-                          </div>
+                          </p>
                           {cert.date && (
-                            <div className="text-sm text-gray-500 mb-1">
+                            <p className="text-xs font-body text-gantly-muted">
                               Fecha: {cert.date}
-                            </div>
+                            </p>
                           )}
                           {cert.credentialId && (
-                            <div className="text-xs text-slate-400 font-mono">
+                            <p className="text-xs font-body text-gantly-muted/70 font-mono mt-1">
                               ID: {cert.credentialId}
-                            </div>
+                            </p>
                           )}
                         </div>
                       ))}
@@ -156,7 +172,7 @@ const UserPsychProfileTab: React.FC<UserPsychProfileTabProps> = ({
             return null;
           })()}
 
-          {/* Experiencia */}
+          {/* Experience */}
           {psychologistProfile.experience && (() => {
             try {
               const experience = JSON.parse(
@@ -164,28 +180,31 @@ const UserPsychProfileTab: React.FC<UserPsychProfileTabProps> = ({
               );
               if (Array.isArray(experience) && experience.length > 0) {
                 return (
-                  <div className="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
-                    <h3 className="text-xl font-semibold text-gantly-text mb-5">
+                  <div className="bg-white rounded-2xl border border-slate-100 border-l-4 border-l-gantly-emerald p-6 mb-4 shadow-sm hover:shadow-md transition-all duration-200">
+                    <h3 className="text-sm font-heading font-semibold text-gantly-text uppercase tracking-wide mb-4 flex items-center gap-2">
+                      <span className="w-8 h-8 rounded-lg bg-gantly-emerald/10 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-gantly-emerald text-sm">work</span>
+                      </span>
                       Experiencia profesional
                     </h3>
-                    <div className="flex flex-col gap-4">
+                    <div className="space-y-3">
                       {experience.map((exp: any, idx: number) => (
                         <div
                           key={idx}
-                          className="p-4 bg-white rounded-xl border border-slate-200"
+                          className="p-4 bg-gantly-cloud/50 rounded-xl border border-slate-100 hover:border-gantly-emerald/20 transition-all duration-200"
                         >
-                          <div className="text-lg font-semibold text-gantly-text mb-1">
+                          <p className="text-sm font-body font-semibold text-gantly-text mb-0.5">
                             {exp.title || 'Cargo'}
-                          </div>
-                          <div className="text-base text-gantly-blue-500 mb-1">
+                          </p>
+                          <p className="text-sm font-body text-gantly-emerald">
                             {exp.company || 'Empresa'}
-                          </div>
+                          </p>
                           {exp.description && (
-                            <div className="text-sm text-gantly-muted mt-2 leading-relaxed">
+                            <p className="text-sm font-body text-gantly-muted mt-2 leading-relaxed">
                               {exp.description}
-                            </div>
+                            </p>
                           )}
-                          <div className="text-sm text-gray-500 mt-2">
+                          <p className="text-xs font-body text-gantly-muted mt-2">
                             {exp.startDate && exp.endDate
                               ? `${exp.startDate} - ${exp.endDate}`
                               : exp.startDate
@@ -193,7 +212,7 @@ const UserPsychProfileTab: React.FC<UserPsychProfileTabProps> = ({
                               : exp.endDate
                               ? `Hasta ${exp.endDate}`
                               : ''}
-                          </div>
+                          </p>
                         </div>
                       ))}
                     </div>

@@ -641,6 +641,20 @@ export default function ClinicDashboard() {
             </button>
           ))}
         </nav>
+        <div className="mt-auto px-3 pb-3">
+          <button
+            type="button"
+            onClick={() => {
+              localStorage.removeItem('token');
+              localStorage.removeItem('refreshToken');
+              window.location.reload();
+            }}
+            className="flex flex-col items-center gap-1 py-2 px-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer w-full"
+          >
+            <span className="material-symbols-outlined text-lg">logout</span>
+            <span className="text-[10px] font-medium uppercase tracking-tighter">Salir</span>
+          </button>
+        </div>
       </aside>
 
       {/* Content */}

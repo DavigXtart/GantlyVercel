@@ -417,14 +417,14 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                 onClick={() => setViewMode('week')}
                 style={{
                   padding: '8px 16px',
-                  background: viewMode === 'week' ? 'linear-gradient(135deg, #2E93CC 0%, #22D3EE 100%)' : 'transparent',
+                  background: viewMode === 'week' ? '#3b82f6' : 'transparent',
                   color: viewMode === 'week' ? '#fff' : '#475569',
                   border: 'none',
                   borderRadius: '8px',
                   cursor: 'pointer',
                   fontWeight: 600,
                   fontSize: '14px',
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.2s ease'
                 }}
               >
                 Semana
@@ -433,14 +433,14 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                 onClick={() => setViewMode('month')}
                 style={{
                   padding: '8px 16px',
-                  background: viewMode === 'month' ? 'linear-gradient(135deg, #2E93CC 0%, #22D3EE 100%)' : 'transparent',
+                  background: viewMode === 'month' ? '#3b82f6' : 'transparent',
                   color: viewMode === 'month' ? '#fff' : '#475569',
                   border: 'none',
                   borderRadius: '8px',
                   cursor: 'pointer',
                   fontWeight: 600,
                   fontSize: '14px',
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.2s ease'
                 }}
               >
                 Mes
@@ -490,23 +490,22 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
               }}
               style={{
                 padding: '10px 20px',
-                background: 'linear-gradient(135deg, #2E93CC 0%, #22D3EE 100%)',
+                background: '#3b82f6',
                 color: '#fff',
                 border: 'none',
                 borderRadius: '12px',
                 cursor: 'pointer',
                 fontWeight: 600,
                 fontSize: '14px',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 4px 12px rgba(46, 147, 204, 0.3)'
+                transition: 'all 0.2s ease'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(46, 147, 204, 0.4)';
+                e.currentTarget.style.background = '#2563eb';
+                e.currentTarget.style.transform = 'translateY(-1px)';
               }}
               onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#3b82f6';
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(46, 147, 204, 0.3)';
               }}
             >
               + Nueva Entrada
@@ -514,103 +513,97 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
           </div>
         </div>
 
-        {/* Navegación de fecha */}
+        {/* Navegacion de fecha */}
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           marginBottom: '24px',
-          padding: '16px',
-          background: 'linear-gradient(135deg, #f0f5f3 0%, #e8f0ed 100%)',
-          borderRadius: '16px',
-          border: '1px solid rgba(46, 147, 204, 0.2)'
+          padding: '12px 16px',
+          background: '#f8fafc',
+          borderRadius: '12px',
+          border: '1px solid #e2e8f0'
         }}>
           <button
             onClick={() => viewMode === 'week' ? navigateWeek('prev') : navigateMonth('prev')}
             style={{
-              padding: '10px 16px',
-              background: '#fff',
-              color: '#2E93CC',
-              border: '2px solid #2E93CC',
-              borderRadius: '12px',
+              padding: '8px 14px',
+              background: 'transparent',
+              color: '#64748b',
+              border: 'none',
+              borderRadius: '8px',
               cursor: 'pointer',
               fontWeight: 600,
-              fontSize: '16px',
-              transition: 'all 0.3s ease',
+              fontSize: '14px',
+              transition: 'all 0.2s ease',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px'
+              gap: '4px'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#2E93CC';
-              e.currentTarget.style.color = '#fff';
-              e.currentTarget.style.transform = 'scale(1.05)';
+              e.currentTarget.style.background = '#e2e8f0';
+              e.currentTarget.style.color = '#334155';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#fff';
-              e.currentTarget.style.color = '#2E93CC';
-              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = '#64748b';
             }}
           >
-            ← Anterior
+            &larr;
           </button>
-          
+
           <div style={{
-            fontSize: '20px',
-            fontWeight: 700,
-            color: '#0F172A',
+            fontSize: '16px',
+            fontWeight: 600,
+            color: '#1e293b',
             textAlign: 'center',
             flex: 1
           }}>
             {viewMode === 'week' ? (
               <>
-                {weekDates[0].toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })} - {weekDates[6].toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                {weekDates[0].toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })} &ndash; {weekDates[6].toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
               </>
             ) : (
               (() => {
                 const monthDates = getMonthDates();
                 if (monthDates.length === 0) return '';
-                
-                // Encontrar el primer día del mes actual en el array
+
                 const firstDayOfMonth = monthDates.find(d => d.getDate() === 1);
                 if (firstDayOfMonth) {
                   return firstDayOfMonth.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
                 }
-                
-                // Fallback: usar el mes del primer día del array
+
                 return monthDates[0].toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
               })()
             )}
           </div>
-          
+
           <button
             onClick={() => viewMode === 'week' ? navigateWeek('next') : navigateMonth('next')}
             style={{
-              padding: '10px 16px',
-              background: '#fff',
-              color: '#2E93CC',
-              border: '2px solid #2E93CC',
-              borderRadius: '12px',
+              padding: '8px 14px',
+              background: 'transparent',
+              color: '#64748b',
+              border: 'none',
+              borderRadius: '8px',
               cursor: 'pointer',
               fontWeight: 600,
-              fontSize: '16px',
-              transition: 'all 0.3s ease',
+              fontSize: '14px',
+              transition: 'all 0.2s ease',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px'
+              gap: '4px'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#2E93CC';
-              e.currentTarget.style.color = '#fff';
-              e.currentTarget.style.transform = 'scale(1.05)';
+              e.currentTarget.style.background = '#e2e8f0';
+              e.currentTarget.style.color = '#334155';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#fff';
-              e.currentTarget.style.color = '#2E93CC';
-              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = '#64748b';
             }}
           >
-            Siguiente →
+            &rarr;
           </button>
         </div>
 
@@ -795,17 +788,17 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                       onClick={() => handleDateClick(date)}
                       style={{
                         padding: '20px',
-                        background: entry 
-                          ? 'linear-gradient(135deg, #2E93CC 0%, #22D3EE 100%)' 
-                          : isToday 
-                            ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)'
+                        background: entry
+                          ? '#3b82f6'
+                          : isToday
+                            ? '#fef9c3'
                             : isValidDate
-                              ? '#e8f5e9'
-                              : '#f8f9fa',
-                        borderRadius: '16px',
-                        border: isToday ? '3px solid #f59e0b' : entry ? '2px solid rgba(255,255,255,0.3)' : isValidDate ? '2px dashed #2E93CC' : '1px solid #e5e7eb',
+                              ? '#f0fdf4'
+                              : '#f8fafc',
+                        borderRadius: '12px',
+                        border: isToday ? '2px solid #eab308' : entry ? '2px solid #2563eb' : isValidDate ? '1px dashed #94a3b8' : '1px solid #e2e8f0',
                         cursor: isClickable ? 'pointer' : 'default',
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        transition: 'all 0.2s ease',
                         textAlign: 'center',
                         color: entry ? '#fff' : isToday ? '#92400e' : '#475569',
                         minHeight: '120px',
@@ -813,28 +806,28 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                         flexDirection: 'column',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        boxShadow: entry ? '0 4px 12px rgba(46, 147, 204, 0.2)' : isToday ? '0 4px 12px rgba(245, 158, 11, 0.2)' : 'none',
+                        boxShadow: 'none',
                         position: 'relative',
                         overflow: 'hidden'
                       }}
                       onMouseEnter={(e) => {
                         if (entry) {
-                          e.currentTarget.style.transform = 'translateY(-6px) scale(1.02)';
-                          e.currentTarget.style.boxShadow = '0 12px 24px rgba(46, 147, 204, 0.4)';
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.25)';
                         } else if (isToday) {
-                          e.currentTarget.style.transform = 'translateY(-4px)';
-                          e.currentTarget.style.boxShadow = '0 8px 16px rgba(245, 158, 11, 0.3)';
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(234, 179, 8, 0.2)';
                         } else if (isValidDate) {
-                          e.currentTarget.style.transform = 'translateY(-4px)';
-                          e.currentTarget.style.boxShadow = '0 8px 16px rgba(46, 147, 204, 0.3)';
-                          e.currentTarget.style.background = '#c8e6c9';
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.06)';
+                          e.currentTarget.style.background = '#dcfce7';
                         }
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                        e.currentTarget.style.boxShadow = entry ? '0 4px 12px rgba(46, 147, 204, 0.2)' : isToday ? '0 4px 12px rgba(245, 158, 11, 0.2)' : isValidDate ? '0 4px 12px rgba(46, 147, 204, 0.1)' : 'none';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = 'none';
                         if (isValidDate && !entry && !isToday) {
-                          e.currentTarget.style.background = '#e8f5e9';
+                          e.currentTarget.style.background = '#f0fdf4';
                         }
                       }}
                     >
@@ -888,14 +881,16 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                 marginBottom: '24px'
               }}>
                 {/* Días de la semana */}
-                {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map((day, idx) => (
+                {['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'].map((day, idx) => (
                   <div key={idx} style={{
                     padding: '12px',
                     textAlign: 'center',
-                    fontWeight: 700,
-                    color: '#2E93CC',
-                    fontSize: '14px',
-                    background: '#f0f5f3',
+                    fontWeight: 600,
+                    color: '#64748b',
+                    fontSize: '12px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    background: '#f8fafc',
                     borderRadius: '8px'
                   }}>
                     {day}
@@ -922,17 +917,17 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                       onClick={() => handleDateClick(date)}
                       style={{
                         padding: '12px 8px',
-                        background: entry 
-                          ? 'linear-gradient(135deg, #2E93CC 0%, #22D3EE 100%)' 
-                          : isToday 
-                            ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)'
+                        background: entry
+                          ? '#3b82f6'
+                          : isToday
+                            ? '#fef9c3'
                             : isValidDate && isCurrentMonth
-                              ? '#e8f5e9'
-                              : isCurrentMonth ? '#f8f9fa' : '#f0f0f0',
-                        borderRadius: '12px',
-                        border: isToday ? '2px solid #f59e0b' : entry ? '2px solid rgba(255,255,255,0.3)' : isValidDate && isCurrentMonth ? '2px dashed #2E93CC' : '1px solid #e5e7eb',
+                              ? '#f0fdf4'
+                              : isCurrentMonth ? '#f8fafc' : '#f1f5f9',
+                        borderRadius: '10px',
+                        border: isToday ? '2px solid #eab308' : entry ? '2px solid #2563eb' : isValidDate && isCurrentMonth ? '1px dashed #94a3b8' : '1px solid #e2e8f0',
                         cursor: isClickable ? 'pointer' : 'default',
-                        transition: 'all 0.3s ease',
+                        transition: 'all 0.2s ease',
                         textAlign: 'center',
                         color: entry ? '#fff' : isToday ? '#92400e' : isCurrentMonth ? '#475569' : '#9ca3af',
                         minHeight: '80px',
@@ -945,19 +940,19 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                       }}
                         onMouseEnter={(e) => {
                           if (entry) {
-                            e.currentTarget.style.transform = 'scale(1.05)';
+                            e.currentTarget.style.transform = 'translateY(-1px)';
                             e.currentTarget.style.zIndex = '10';
                           } else if (isValidDate && isCurrentMonth) {
-                            e.currentTarget.style.transform = 'scale(1.05)';
+                            e.currentTarget.style.transform = 'translateY(-1px)';
                             e.currentTarget.style.zIndex = '10';
-                            e.currentTarget.style.background = '#c8e6c9';
+                            e.currentTarget.style.background = '#dcfce7';
                           }
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'scale(1)';
+                          e.currentTarget.style.transform = 'translateY(0)';
                           e.currentTarget.style.zIndex = '1';
                           if (isValidDate && isCurrentMonth && !entry) {
-                            e.currentTarget.style.background = '#e8f5e9';
+                            e.currentTarget.style.background = '#f0fdf4';
                           }
                         }}
                     >

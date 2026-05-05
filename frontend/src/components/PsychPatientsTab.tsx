@@ -63,32 +63,41 @@ export default function PsychPatientsTab({
   const dischargedPatients = useMemo(() => filteredPatients.filter(p => !isPatientMinor(p) && p.status === 'DISCHARGED'), [filteredPatients]);
 
   return (
-    <div className="mt-10 bg-white rounded-2xl p-8 border border-slate-100 shadow-card">
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-        <h3 className="m-0 text-2xl font-bold text-gantly-blue-600">
-          Mis Pacientes
-        </h3>
+    <div>
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
+            <span className="material-symbols-outlined text-white text-lg">group</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <h3 className="m-0 text-2xl font-bold text-slate-800">Mis Pacientes</h3>
+            <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-sm font-semibold">{patients.length}</span>
+          </div>
+        </div>
         <button
           onClick={onRefresh}
-          className="px-4 py-2 bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white border-none rounded-xl font-semibold cursor-pointer text-sm transition-all hover:scale-105"
+          className="px-4 py-2 border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl font-medium cursor-pointer text-sm transition-all duration-300"
         >
           Refrescar
         </button>
       </div>
 
       {/* Buscador y filtros */}
-      <div className="flex gap-3 mb-6 flex-wrap items-center">
-        <input
-          type="text"
-          placeholder="Buscar por nombre o email..."
-          value={patientSearchTerm}
-          onChange={(e) => setPatientSearchTerm(e.target.value)}
-          className="p-2.5 px-3.5 rounded-xl border border-slate-200 text-[15px] min-w-[220px] flex-1"
-        />
+      <div className="flex gap-3 mb-6 flex-wrap items-center bg-white p-4 rounded-2xl border border-slate-100">
+        <div className="relative flex-1 min-w-[200px]">
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-lg">search</span>
+          <input
+            type="text"
+            placeholder="Buscar por nombre o email..."
+            value={patientSearchTerm}
+            onChange={(e) => setPatientSearchTerm(e.target.value)}
+            className="h-12 w-full pl-10 pr-4 rounded-xl border border-slate-200 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+          />
+        </div>
         <select
           value={patientFilterGender}
           onChange={(e) => setPatientFilterGender(e.target.value)}
-          className="p-2.5 px-3.5 rounded-xl border border-slate-200 text-[15px] min-w-[150px]"
+          className="h-12 px-4 rounded-xl border border-slate-200 text-sm text-slate-800 min-w-[140px]"
         >
           <option value="">Todos los generos</option>
           <option value="MALE">Hombre</option>
@@ -98,7 +107,7 @@ export default function PsychPatientsTab({
         <select
           value={patientFilterLastVisit}
           onChange={(e) => setPatientFilterLastVisit(e.target.value)}
-          className="p-2.5 px-3.5 rounded-xl border border-slate-200 text-[15px] min-w-[180px]"
+          className="h-12 px-4 rounded-xl border border-slate-200 text-sm text-slate-800 min-w-[160px]"
         >
           <option value="">Todas las visitas</option>
           <option value="week">Ultima semana</option>
@@ -122,63 +131,50 @@ export default function PsychPatientsTab({
           {/* Pacientes Activos */}
           {activePatients.length > 0 && (
             <div className="mb-8">
-              <h4 className="text-xl font-semibold text-slate-800 mb-4">
-                Pacientes Activos ({activePatients.length})
+              <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                Pacientes Activos
+                <span className="bg-emerald-50 text-emerald-600 px-2.5 py-0.5 rounded-full text-xs font-semibold">{activePatients.length}</span>
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                 {activePatients.map(p => (
                   <div
                     key={p.id}
                     onClick={() => onViewPatient(p.id)}
-                    className="p-6 bg-slate-50 border-2 border-slate-200 rounded-xl transition-all cursor-pointer flex flex-col min-h-[260px] hover:border-gantly-blue-400 hover:shadow-card"
+                    className="bg-white rounded-2xl p-6 border border-slate-100 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col min-h-[200px]"
                   >
-                    <div className="flex items-center gap-4 mb-4 flex-1 min-h-0">
-                      <div className="w-[60px] h-[60px] flex-shrink-0 rounded-full overflow-hidden bg-slate-200 flex items-center justify-center text-2xl border-[3px] border-white shadow-sm">
+                    <div className="flex items-center gap-3 mb-4 flex-1 min-h-0">
+                      <div className="w-16 h-16 flex-shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white text-xl font-bold">
                         {p.avatarUrl ? (
                           <img src={p.avatarUrl} alt="" className="w-full h-full object-cover" />
                         ) : (
-                          '👤'
+                          (p.name || '?')[0].toUpperCase()
                         )}
                       </div>
                       <div className="flex-1 min-w-0 overflow-hidden">
-                        <div className="text-lg font-semibold text-slate-800 mb-1 overflow-hidden text-ellipsis whitespace-nowrap" title={p.name}>
-                          {p.name}
-                        </div>
-                        <div className="text-sm text-slate-500 mb-1 overflow-hidden text-ellipsis whitespace-nowrap" title={p.email}>
-                          {p.email}
-                        </div>
+                        <div className="text-lg font-semibold text-slate-800 truncate group-hover:text-blue-600 transition-colors" title={p.name}>{p.name}</div>
+                        <div className="text-sm text-slate-500 truncate" title={p.email}>{p.email}</div>
                         {p.lastVisit && (
-                          <div className="text-xs text-emerald-600 font-medium mt-1">
-                            Ultima visita: {new Date(p.lastVisit).toLocaleDateString('es-ES', {
-                              day: 'numeric',
-                              month: 'short',
-                              year: 'numeric'
-                            })}
+                          <div className="text-xs text-emerald-600 font-medium mt-1.5 flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[12px]">event_available</span>
+                            Ultima visita: {new Date(p.lastVisit).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </div>
                         )}
                         {!p.lastVisit && (
-                          <div className="text-xs text-slate-400 italic mt-1">
-                            Sin visitas registradas
-                          </div>
+                          <div className="text-xs text-slate-400 italic mt-1.5">Sin visitas registradas</div>
                         )}
                       </div>
                     </div>
                     <div className="flex gap-2 flex-col flex-shrink-0">
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOpenChat(p.id);
-                        }}
-                        className="w-full py-2.5 bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white border-none rounded-lg font-semibold cursor-pointer text-sm transition-all hover:scale-[1.02]"
+                        onClick={(e) => { e.stopPropagation(); onOpenChat(p.id); }}
+                        className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg hover:shadow-blue-500/25 text-white border-none rounded-xl font-medium cursor-pointer text-sm transition-all duration-300"
                       >
                         Abrir Chat
                       </button>
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onUpdateStatus(p.id, 'DISCHARGED');
-                        }}
-                        className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-500 border border-slate-300 rounded-lg font-semibold cursor-pointer text-[13px] transition-all"
+                        onClick={(e) => { e.stopPropagation(); onUpdateStatus(p.id, 'DISCHARGED'); }}
+                        className="w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-500 border border-slate-200 rounded-xl font-medium cursor-pointer text-xs transition-all duration-300"
                       >
                         Dar de Alta
                       </button>
@@ -191,12 +187,14 @@ export default function PsychPatientsTab({
 
           {/* Menores de edad */}
           <div className="mb-8">
-            <h4 className="text-xl font-semibold text-slate-800 mb-4">
-              Menores de edad ({minorPatients.length})
+            <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+              Menores de edad
+              <span className="bg-amber-50 text-amber-600 px-2.5 py-0.5 rounded-full text-xs font-semibold">{minorPatients.length}</span>
             </h4>
             {minorPatients.length === 0 ? (
-              <p className="text-sm text-slate-500 mb-4">
-                Los pacientes con fecha de nacimiento o edad menor de 18 anos apareceran aqui. Pueden requerir consentimiento firmado antes de acceder a todo el contenido.
+              <p className="text-sm text-slate-400 mb-4 bg-white p-4 rounded-xl border border-dashed border-slate-200">
+                Los pacientes con fecha de nacimiento o edad menor de 18 anos apareceran aqui.
               </p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -213,28 +211,27 @@ export default function PsychPatientsTab({
                         }
                         onViewPatient(p.id);
                       }}
-                      className={`p-6 rounded-xl transition-all cursor-pointer flex flex-col min-h-[280px] border-2 ${
-                        consentSigned
-                          ? 'bg-slate-50 border-slate-200 hover:border-gantly-blue-400 hover:shadow-card'
-                          : 'bg-gradient-to-br from-orange-50 to-amber-50 border-amber-300/50 hover:border-amber-400 hover:shadow-md'
+                      className={`bg-white rounded-2xl p-6 border hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col min-h-[220px] ${
+                        consentSigned ? 'border-slate-100' : 'border-amber-200'
                       }`}
                     >
-                      <div className="flex items-center gap-4 mb-4 flex-1 min-h-0">
-                        <div className="w-[60px] h-[60px] flex-shrink-0 rounded-full overflow-hidden bg-slate-200 flex items-center justify-center text-2xl border-[3px] border-white shadow-sm">
+                      <div className="flex items-center gap-3 mb-4 flex-1 min-h-0">
+                        <div className="w-16 h-16 flex-shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white text-xl font-bold">
                           {p.avatarUrl ? (
                             <img src={p.avatarUrl} alt="" className="w-full h-full object-cover" />
                           ) : (
-                            '👤'
+                            (p.name || '?')[0].toUpperCase()
                           )}
                         </div>
                         <div className="flex-1 min-w-0 overflow-hidden">
-                          <div className="text-lg font-semibold text-slate-800 mb-1 overflow-hidden text-ellipsis whitespace-nowrap" title={p.name}>
-                            {p.name}
-                          </div>
-                          <div className="text-sm text-slate-500 mb-1.5 overflow-hidden text-ellipsis whitespace-nowrap" title={p.email}>
-                            {p.email}
-                          </div>
-                          <div className={`text-xs font-bold ${consentSigned ? 'text-emerald-600' : 'text-amber-700'}`}>
+                          <div className="text-lg font-semibold text-slate-800 truncate group-hover:text-blue-600 transition-colors" title={p.name}>{p.name}</div>
+                          <div className="text-sm text-slate-500 truncate" title={p.email}>{p.email}</div>
+                          <div className={`text-xs font-semibold mt-1.5 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 ${
+                            consentSigned
+                              ? 'bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border border-amber-200'
+                          }`}>
+                            <span className="material-symbols-outlined text-[12px]">{consentSigned ? 'verified' : 'pending'}</span>
                             {consentSigned ? 'Consentimiento firmado' : 'Consentimiento pendiente'}
                           </div>
                         </div>
@@ -242,11 +239,8 @@ export default function PsychPatientsTab({
 
                       <div className="flex gap-2 flex-col flex-shrink-0">
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onOpenChat(p.id);
-                          }}
-                          className="w-full py-2.5 bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white border-none rounded-lg font-semibold cursor-pointer text-sm transition-all"
+                          onClick={(e) => { e.stopPropagation(); onOpenChat(p.id); }}
+                          className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg hover:shadow-blue-500/25 text-white border-none rounded-xl font-medium cursor-pointer text-sm transition-all duration-300"
                         >
                           Abrir Chat
                         </button>
@@ -265,17 +259,14 @@ export default function PsychPatientsTab({
                                 toast.error('No se pudieron cargar los tipos de documento');
                               }
                             }}
-                            className="w-full py-2.5 bg-orange-50 text-amber-700 border border-amber-300/50 rounded-lg font-bold cursor-pointer text-[13px] transition-all hover:bg-orange-100"
+                            className="w-full py-2 bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border border-amber-200 rounded-xl font-medium cursor-pointer text-xs transition-all duration-300 hover:shadow-md"
                           >
                             Adjuntar consentimiento
                           </button>
                         ) : (
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onUpdateStatus(p.id, 'DISCHARGED');
-                            }}
-                            className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-500 border border-slate-300 rounded-lg font-semibold cursor-pointer text-[13px]"
+                            onClick={(e) => { e.stopPropagation(); onUpdateStatus(p.id, 'DISCHARGED'); }}
+                            className="w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-500 border border-slate-200 rounded-xl font-medium cursor-pointer text-xs transition-all duration-300"
                           >
                             Dar de Alta
                           </button>
@@ -291,63 +282,50 @@ export default function PsychPatientsTab({
           {/* Pacientes Dados de Alta */}
           {dischargedPatients.length > 0 && (
             <div>
-              <h4 className="text-xl font-semibold text-slate-800 mb-4">
-                Pacientes Dados de Alta ({dischargedPatients.length})
+              <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-slate-400"></span>
+                Pacientes Dados de Alta
+                <span className="bg-slate-100 text-slate-500 px-2.5 py-0.5 rounded-full text-xs font-semibold">{dischargedPatients.length}</span>
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                 {dischargedPatients.map(p => (
                   <div
                     key={p.id}
                     onClick={() => onViewPatient(p.id)}
-                    className="p-6 bg-slate-50 border-2 border-slate-300 rounded-xl opacity-70 transition-all cursor-pointer min-h-[260px] flex flex-col hover:border-gantly-blue-400 hover:shadow-card hover:opacity-90"
+                    className="bg-white rounded-2xl p-6 border border-slate-100 opacity-60 hover:opacity-90 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group min-h-[200px] flex flex-col"
                   >
-                    <div className="flex items-center gap-4 mb-4 flex-1 min-h-0">
-                      <div className="w-[60px] h-[60px] flex-shrink-0 rounded-full overflow-hidden bg-slate-200 flex items-center justify-center text-2xl border-[3px] border-white shadow-sm">
+                    <div className="flex items-center gap-3 mb-4 flex-1 min-h-0">
+                      <div className="w-16 h-16 flex-shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br from-slate-400 to-slate-500 flex items-center justify-center text-white text-xl font-bold">
                         {p.avatarUrl ? (
                           <img src={p.avatarUrl} alt="" className="w-full h-full object-cover" />
                         ) : (
-                          '👤'
+                          (p.name || '?')[0].toUpperCase()
                         )}
                       </div>
                       <div className="flex-1 min-w-0 overflow-hidden">
-                        <div className="text-lg font-semibold text-slate-800 mb-1 overflow-hidden text-ellipsis whitespace-nowrap" title={p.name}>
-                          {p.name}
-                        </div>
-                        <div className="text-sm text-slate-500 mb-1 overflow-hidden text-ellipsis whitespace-nowrap" title={p.email}>
-                          {p.email}
-                        </div>
+                        <div className="text-lg font-semibold text-slate-800 truncate group-hover:text-blue-600 transition-colors" title={p.name}>{p.name}</div>
+                        <div className="text-sm text-slate-500 truncate" title={p.email}>{p.email}</div>
                         {p.lastVisit && (
-                          <div className="text-xs text-emerald-600 font-medium mt-1">
-                            Ultima visita: {new Date(p.lastVisit).toLocaleDateString('es-ES', {
-                              day: 'numeric',
-                              month: 'short',
-                              year: 'numeric'
-                            })}
+                          <div className="text-xs text-emerald-600 font-medium mt-1.5 flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[12px]">event_available</span>
+                            Ultima visita: {new Date(p.lastVisit).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </div>
                         )}
                         {!p.lastVisit && (
-                          <div className="text-xs text-slate-400 italic mt-1">
-                            Sin visitas registradas
-                          </div>
+                          <div className="text-xs text-slate-400 italic mt-1.5">Sin visitas registradas</div>
                         )}
                       </div>
                     </div>
                     <div className="flex gap-2 flex-col flex-shrink-0">
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOpenChat(p.id);
-                        }}
-                        className="w-full py-2.5 bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white border-none rounded-lg font-semibold cursor-pointer text-sm transition-all hover:scale-[1.02]"
+                        onClick={(e) => { e.stopPropagation(); onOpenChat(p.id); }}
+                        className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg hover:shadow-blue-500/25 text-white border-none rounded-xl font-medium cursor-pointer text-sm transition-all duration-300"
                       >
                         Abrir Chat
                       </button>
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onUpdateStatus(p.id, 'ACTIVE');
-                        }}
-                        className="w-full py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 border border-blue-300 rounded-lg font-semibold cursor-pointer text-[13px] transition-all"
+                        onClick={(e) => { e.stopPropagation(); onUpdateStatus(p.id, 'ACTIVE'); }}
+                        className="w-full py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl font-medium cursor-pointer text-xs transition-all duration-300"
                       >
                         Reactivar
                       </button>
@@ -368,19 +346,19 @@ export default function PsychPatientsTab({
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-[560px] bg-white rounded-2xl border border-slate-200 shadow-elevated p-6"
+            className="w-full max-w-[520px] bg-white rounded-2xl border border-slate-100 shadow-2xl p-8"
           >
             <div className="flex justify-between items-center gap-3">
               <div>
-                <div className="text-lg font-extrabold text-gantly-text">Adjuntar consentimiento</div>
-                <div className="text-[13px] text-slate-500 mt-1">
-                  Selecciona el tipo de documento y el lugar. El contenido se rellenara automaticamente (psicologo, fecha, hora, etc.).
+                <div className="text-lg font-bold text-slate-800">Adjuntar consentimiento</div>
+                <div className="text-xs text-slate-500 mt-1">
+                  Selecciona el tipo de documento y el lugar. El contenido se rellenara automaticamente.
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => !sendingConsent && setShowConsentModal(false)}
-                className="border-none bg-transparent cursor-pointer text-slate-500 text-lg disabled:cursor-not-allowed"
+                className="w-8 h-8 rounded-lg border-none bg-slate-100 cursor-pointer text-slate-400 hover:text-slate-600 hover:bg-slate-200 text-lg disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center"
                 aria-label="Cerrar"
                 disabled={sendingConsent}
               >
@@ -388,45 +366,39 @@ export default function PsychPatientsTab({
               </button>
             </div>
 
-            <div className="mt-5 grid gap-3">
+            <div className="mt-5 grid gap-4">
               <div>
-                <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
-                  Tipo de documento
-                </label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Tipo de documento</label>
                 <select
                   value={consentForm.documentTypeId || 0}
                   onChange={(e) => setConsentForm({ ...consentForm, documentTypeId: parseInt(e.target.value, 10) })}
-                  className="w-full p-2.5 px-3 rounded-xl border border-slate-200 text-sm"
+                  className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
                 >
                   {(consentDocTypes || []).length === 0 && <option value={0}>No hay tipos disponibles</option>}
                   {(consentDocTypes || []).map((t: any) => (
-                    <option key={t.id} value={t.id}>
-                      {t.title}
-                    </option>
+                    <option key={t.id} value={t.id}>{t.title}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-[13px] font-bold text-slate-800 mb-1.5">
-                  Lugar (opcional)
-                </label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Lugar (opcional)</label>
                 <input
                   type="text"
                   value={consentForm.place}
                   onChange={(e) => setConsentForm({ ...consentForm, place: e.target.value })}
                   placeholder="Ej: Madrid"
-                  className="w-full p-2.5 px-3 rounded-xl border border-slate-200 text-sm"
+                  className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
                 />
               </div>
             </div>
 
-            <div className="flex gap-2.5 justify-end mt-5">
+            <div className="flex gap-3 justify-end mt-6">
               <button
                 type="button"
                 onClick={() => !sendingConsent && setShowConsentModal(false)}
                 disabled={sendingConsent}
-                className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-100 text-slate-700 font-bold cursor-pointer disabled:cursor-not-allowed"
+                className="px-5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-medium cursor-pointer text-sm disabled:cursor-not-allowed hover:bg-slate-100 transition-all duration-300"
               >
                 Cancelar
               </button>
@@ -446,7 +418,7 @@ export default function PsychPatientsTab({
                     setSendingConsent(false);
                   }
                 }}
-                className="px-3.5 py-2.5 rounded-xl border-none bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white font-extrabold cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed"
+                className="px-5 py-2.5 rounded-xl border-none bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg hover:shadow-blue-500/25 text-white font-medium cursor-pointer text-sm disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed disabled:shadow-none transition-all duration-300"
               >
                 {sendingConsent ? 'Enviando...' : 'Enviar'}
               </button>

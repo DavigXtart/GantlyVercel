@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react';
-import Lottie from 'lottie-react';
-import JSZip from 'jszip';
 import { initialTestService } from '../services/api';
-import backgroundPng from '../assets/Adobe Express - file (1).png';
-import airBalloonLottieUrl from '../assets/Air Balloony.lottie?url';
 import { toast } from './ui/Toast';
+import LogoSvg from '../assets/logo-gantly.svg';
 
 interface Question {
   id: number;
@@ -46,16 +43,16 @@ const DETAIL_INPUT_PATTERN = /especificar/i;
 
 const getQuestionMeta = (position: number): QuestionMeta | null => {
   if (position === 1) {
-    return { block: 'Bloque 1 · Motivo principal', helper: 'Cuéntanos qué te trae a terapia.' };
+    return { block: 'Bloque 1 · Motivo principal', helper: 'Cuentanos que te trae a terapia.' };
   }
   if (position === 2 || position === 3) {
-    return { block: 'Bloque 2 · Preferencias del profesional', helper: 'Ayúdanos a adaptar el estilo del psicólogo.' };
+    return { block: 'Bloque 2 · Preferencias del profesional', helper: 'Ayudanos a adaptar el estilo del psicologo.' };
   }
   if (position >= 4 && position <= 7) {
     return { block: 'Bloque 3 · Tu estilo y personalidad', helper: 'Escala de 1 (muy en desacuerdo) a 5 (muy de acuerdo).' };
   }
   if (position === 8 || position === 9) {
-    return { block: 'Bloque 4 · Experiencia previa', helper: 'Nos ayuda a saber qué ha funcionado antes.' };
+    return { block: 'Bloque 4 · Experiencia previa', helper: 'Nos ayuda a saber que ha funcionado antes.' };
   }
   if (position === 10 || position === 11) {
     return { block: 'Bloque 5 · Disponibilidad', helper: 'Puedes elegir varias franjas si lo necesitas.' };
@@ -64,7 +61,7 @@ const getQuestionMeta = (position: number): QuestionMeta | null => {
     return { block: 'Bloque 6 · Presupuesto y urgencia', helper: 'Esto nos permite priorizar y ajustar sugerencias.' };
   }
   if (position === 14 || position === 15) {
-    return { block: 'Bloque 7 · Contexto personal', helper: 'Información para ajustar el matching.' };
+    return { block: 'Bloque 7 · Contexto personal', helper: 'Informacion para ajustar el matching.' };
   }
   if (position === 16) {
     return { block: 'Resumen final', helper: 'Comparte cualquier detalle adicional.' };
@@ -84,85 +81,18 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
   const [answers, setAnswers] = useState<Record<number, QuestionResponse>>({});
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [airBalloonData, setAirBalloonData] = useState<any>(null);
 
   useEffect(() => {
     initializeTest();
-    // Cargar animaciones Lottie (archivos ZIP comprimidos)
-    const loadLottieFile = async (url: string, setData: (data: any) => void, _name: string) => {
-      try {
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const arrayBuffer = await response.arrayBuffer();
-        const zip = await JSZip.loadAsync(arrayBuffer);
-
-        let jsonFile = null;
-        const manifestFile = zip.file('manifest.json');
-
-        if (manifestFile) {
-          const manifestData = await manifestFile.async('string');
-          const manifest = JSON.parse(manifestData);
-
-          if (manifest.animations && manifest.animations.length > 0) {
-            const animationInfo = manifest.animations[0];
-
-            let animationFile = null;
-            if (typeof animationInfo === 'string') {
-              animationFile = animationInfo;
-            } else if (typeof animationInfo === 'object' && animationInfo !== null) {
-              animationFile = animationInfo.file ||
-                             animationInfo.id ||
-                             animationInfo.uuid ||
-                             animationInfo.path ||
-                             animationInfo.name ||
-                             (animationInfo.animations && animationInfo.animations[0]) ||
-                             Object.values(animationInfo).find(v => typeof v === 'string' && v.length > 10);
-            }
-
-            if (animationFile && typeof animationFile === 'string') {
-              let filePath = animationFile;
-              if (!filePath.includes('/')) {
-                filePath = `animations/${filePath}`;
-              }
-              if (!filePath.endsWith('.json')) {
-                filePath = `${filePath}.json`;
-              }
-              jsonFile = zip.file(filePath);
-            }
-          }
-        }
-
-        if (!jsonFile) {
-          const jsonFiles = Object.keys(zip.files).filter(fname =>
-            fname.endsWith('.json') && fname !== 'manifest.json'
-          );
-          if (jsonFiles.length > 0) {
-            jsonFile = zip.file(jsonFiles[0]);
-          }
-        }
-
-        if (jsonFile) {
-          const jsonData = await jsonFile.async('string');
-          const parsedData = JSON.parse(jsonData);
-          setData(parsedData);
-        }
-      } catch (err) {
-        // error handled silently
-      }
-    };
-    
-    loadLottieFile(airBalloonLottieUrl, setAirBalloonData, 'Air Balloon');
   }, []);
 
   const initializeTest = async () => {
     try {
       setLoading(true);
-      // Crear sesión temporal
+      // Crear sesion temporal
       const newSessionId = await initialTestService.createSession();
       setSessionId(newSessionId);
-      
+
       // Obtener el test inicial
       const testData = await initialTestService.getTest(newSessionId);
       if (testData.questions) {
@@ -287,7 +217,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
       return nextEntries;
     });
 
-    // Manejar la lógica especial para la pregunta 8 (si ha ido al psicólogo)
+    // Manejar la logica especial para la pregunta 8 (si ha ido al psicologo)
     let shouldSkipQuestion9 = false;
     if (question.position === 8 && test) {
       const selectedAnswer = question.answers.find(a => a.id === answerId);
@@ -298,19 +228,19 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           selectedAnswer.text.toLowerCase().includes('nunca') ||
           selectedAnswer.text.toLowerCase().includes('no he ido') ||
           selectedAnswer.text.toLowerCase().includes('no he asistido') ||
-          (selectedAnswer.text.toLowerCase().startsWith('no') && !selectedAnswer.text.toLowerCase().includes('sí'))
+          (selectedAnswer.text.toLowerCase().startsWith('no') && !selectedAnswer.text.toLowerCase().includes('si'))
         );
-        
+
         if (neverAttended) {
           shouldSkipQuestion9 = true;
-          // Auto-responder la pregunta 9 con "nunca he ido" o la primera opción que indique eso
-          const autoOption = experienceQuestion.answers.find(a => 
+          // Auto-responder la pregunta 9 con "nunca he ido" o la primera opcion que indique eso
+          const autoOption = experienceQuestion.answers.find(a =>
             a.text.toLowerCase().includes('nunca') ||
             a.text.toLowerCase().includes('no he ido') ||
             a.text.toLowerCase().includes('no he asistido') ||
             a.text.toLowerCase().includes('ninguna')
-          ) || experienceQuestion.answers[0]; // Si no encuentra, usar la primera opción
-          
+          ) || experienceQuestion.answers[0]; // Si no encuentra, usar la primera opcion
+
           if (autoOption) {
             setAnswers(prev => ({
               ...prev,
@@ -345,7 +275,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
             if (shouldSkipQuestion9) {
               const question9Index = test.questions.findIndex(q => q.position === 9);
               if (question9Index !== -1 && question9Index < test.questions.length - 1) {
-                return question9Index + 1; // Saltar a la pregunta después de la 9
+                return question9Index + 1; // Saltar a la pregunta despues de la 9
               }
             }
             return currentIndex + 1;
@@ -419,11 +349,11 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
     if (!test || !sessionId) return;
 
     // Filtrar preguntas que deben ser respondidas
-    // Si la pregunta 8 indica que nunca ha asistido, la pregunta 9 ya está auto-respondida
+    // Si la pregunta 8 indica que nunca ha asistido, la pregunta 9 ya esta auto-respondida
     const question8 = test.questions.find(q => q.position === 8);
     const question9 = test.questions.find(q => q.position === 9);
     let questionsToCheck = test.questions;
-    
+
     if (question8 && question9) {
       const answer8 = answers[question8.id];
       if (answer8?.answerId) {
@@ -432,10 +362,10 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           selectedAnswer8.text.toLowerCase().includes('nunca') ||
           selectedAnswer8.text.toLowerCase().includes('no he ido') ||
           selectedAnswer8.text.toLowerCase().includes('no he asistido') ||
-          (selectedAnswer8.text.toLowerCase().startsWith('no') && !selectedAnswer8.text.toLowerCase().includes('sí'))
+          (selectedAnswer8.text.toLowerCase().startsWith('no') && !selectedAnswer8.text.toLowerCase().includes('si'))
         );
-        
-        // Si nunca ha asistido, excluir la pregunta 9 de la validación (ya está auto-respondida)
+
+        // Si nunca ha asistido, excluir la pregunta 9 de la validacion (ya esta auto-respondida)
         if (neverAttended) {
           questionsToCheck = test.questions.filter(q => q.position !== 9);
         }
@@ -453,72 +383,10 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
 
   if (loading) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-
-        }}
-      >
-        {/* Background PNG */}
-        <img 
-          src={backgroundPng} 
-          alt="background" 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            zIndex: 0,
-            pointerEvents: 'none',
-          }}
-        />
-        
-        {/* Lottie Animations */}
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 1,
-            pointerEvents: 'none',
-          }}
-        >
-          <div
-            style={{
-              position: 'absolute',
-              top: '10%',
-              right: '5%',
-              width: '200px',
-              height: '200px',
-            }}
-          >
-            {airBalloonData && <Lottie animationData={airBalloonData} loop={true} />}
-          </div>
-        </div>
-        
-        <div
-          style={{
-            background: 'rgba(250, 232, 214, 0.85)',
-            border: '1px solid rgba(46, 147, 204, 0.2)',
-            borderRadius: '24px',
-            padding: '48px 40px',
-            textAlign: 'center',
-            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)',
-            position: 'relative',
-            zIndex: 2,
-          }}
-        >
-          <p style={{ fontSize: '18px', color: '#475569', fontWeight: 500, margin: 0 }}>
-            Cargando evaluación inicial...
-          </p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-lg text-slate-600 font-medium">Cargando evaluacion inicial...</p>
         </div>
       </div>
     );
@@ -526,109 +394,13 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
 
   if (!test || !test.questions || test.questions.length === 0) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-
-        }}
-      >
-        {/* Background PNG */}
-        <img 
-          src={backgroundPng} 
-          alt="background" 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            zIndex: 0,
-            pointerEvents: 'none',
-          }}
-        />
-        
-        {/* Lottie Animations */}
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 1,
-            pointerEvents: 'none',
-          }}
-        >
-          <div
-            style={{
-              position: 'absolute',
-              top: '10%',
-              right: '5%',
-              width: '200px',
-              height: '200px',
-            }}
-          >
-            {airBalloonData && <Lottie animationData={airBalloonData} loop={true} />}
-          </div>
-        </div>
-        
-        <div
-          style={{
-            background: 'rgba(250, 232, 214, 0.85)',
-            border: '1px solid rgba(46, 147, 204, 0.2)',
-            borderRadius: '24px',
-            padding: '48px 40px',
-            maxWidth: '480px',
-            textAlign: 'center',
-            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)',
-            position: 'relative',
-            zIndex: 2,
-          }}
-        >
-          <h2 style={{ 
-            margin: '0 0 12px', 
-            fontSize: '26px',
-            color: '#0F172A',
-
-            fontWeight: 700,
-          }}>
-            Test no disponible
-          </h2>
-          <p style={{ 
-            margin: '0 0 24px', 
-            color: '#475569',
-            fontSize: '16px',
-          }}>
-            El test inicial aún no está configurado.
-          </p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex items-center justify-center px-6">
+        <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 p-8 md:p-12 max-w-md text-center">
+          <h2 className="text-2xl font-bold text-slate-800 mb-3">Test no disponible</h2>
+          <p className="text-slate-500 mb-6">El test inicial aun no esta configurado.</p>
           <button
             onClick={onBack}
-            style={{
-              padding: '12px 24px',
-              borderRadius: '24px',
-              border: 'none',
-              background: '#2E93CC',
-              color: '#ffffff',
-              fontSize: '15px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(46, 147, 204, 0.3)',
-              transition: 'all 0.3s',
-    
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#2577A4';
-              e.currentTarget.style.boxShadow = '0 6px 16px rgba(46, 147, 204, 0.4)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#2E93CC';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(46, 147, 204, 0.3)';
-            }}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-medium transition-colors duration-200 cursor-pointer"
           >
             Volver
           </button>
@@ -647,79 +419,38 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
   const questionMeta = getQuestionMeta(currentQuestion.position);
 
   const renderSingleOptions = () => (
-    <div style={{ display: 'grid', gap: '16px' }}>
+    <div className="flex flex-col gap-3">
       {currentQuestion.answers.map(answer => {
         const isSelected = currentAnswer?.answerId === answer.id;
         const requiresDetail = DETAIL_INPUT_PATTERN.test(answer.text);
         return (
-          <div key={answer.id} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div key={answer.id} className="flex flex-col gap-2">
             <button
               onClick={() => handleAnswer(currentQuestion.id, answer.id, answer.value || undefined)}
-              style={{
-                padding: '18px 24px',
-                borderRadius: '16px',
-                border: `2px solid ${isSelected ? '#2E93CC' : 'rgba(46, 147, 204, 0.3)'}`,
-                background: isSelected ? '#EBF6FC' : '#f8f9fa',
-                color: '#0F172A',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-      
-                fontSize: '16px',
-                textAlign: 'left',
-                boxShadow: isSelected ? '0 4px 12px rgba(46, 147, 204, 0.2)' : 'none',
-              }}
-              onMouseEnter={(e) => {
-                if (!isSelected) {
-                  e.currentTarget.style.borderColor = '#2E93CC';
-                  e.currentTarget.style.background = 'rgba(250, 232, 214, 0.6)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(46, 147, 204, 0.15)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isSelected) {
-                  e.currentTarget.style.borderColor = 'rgba(46, 147, 204, 0.3)';
-                  e.currentTarget.style.background = '#f8f9fa';
-                  e.currentTarget.style.boxShadow = 'none';
-                }
-              }}
+              className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all duration-200 text-left ${
+                isSelected
+                  ? 'border-blue-500 bg-blue-50 shadow-sm'
+                  : 'border-slate-200 hover:border-blue-400 hover:bg-blue-50/50'
+              }`}
             >
-              <span style={{ fontSize: '16px', fontWeight: 500, flex: 1 }}>{answer.text}</span>
               <div
-                style={{
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '50%',
-                  border: `2px solid ${isSelected ? '#2E93CC' : 'rgba(46, 147, 204, 0.4)'}`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: isSelected ? '#2E93CC' : 'transparent',
-                  color: isSelected ? '#ffffff' : 'transparent',
-                  transition: 'all 0.3s ease',
-                  flexShrink: 0,
-                  marginLeft: '16px',
-                }}
+                className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all duration-200 ${
+                  isSelected
+                    ? 'bg-blue-500 border-blue-500'
+                    : 'border-slate-300'
+                }`}
               >
-                {isSelected && '✓'}
+                {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
               </div>
+              <span className="text-slate-700 font-medium">{answer.text}</span>
             </button>
             {isSelected && requiresDetail && (
               <input
                 type="text"
                 value={currentAnswer?.textValue || ''}
                 onChange={(e) => handleTextChange(currentQuestion.id, e.target.value)}
-                placeholder="Especifica aquí..."
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  borderRadius: '12px',
-                  border: '1px solid rgba(46, 147, 204, 0.4)',
-                  fontSize: '15px',
-        
-                }}
+                placeholder="Especifica aqui..."
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
               />
             )}
           </div>
@@ -731,65 +462,42 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
   const renderMultiOptions = () => {
     const selectedIds = new Set(currentAnswer?.answerIds || []);
     return (
-      <div style={{ display: 'grid', gap: '16px' }}>
+      <div className="flex flex-col gap-3">
         {currentQuestion.answers.map(answer => {
           const isSelected = selectedIds.has(answer.id);
           const requiresDetail = DETAIL_INPUT_PATTERN.test(answer.text);
           return (
-            <div key={answer.id} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div key={answer.id} className="flex flex-col gap-2">
               <button
                 onClick={() => handleAnswer(currentQuestion.id, answer.id, undefined, false)}
-                style={{
-                  padding: '18px 24px',
-                  borderRadius: '16px',
-                  border: `2px solid ${isSelected ? '#2E93CC' : 'rgba(46, 147, 204, 0.3)'}`,
-                  background: isSelected ? '#EBF6FC' : '#f8f9fa',
-                  color: '#0F172A',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-        
-                  fontSize: '16px',
-                  textAlign: 'left',
-                  boxShadow: isSelected ? '0 4px 12px rgba(46, 147, 204, 0.2)' : 'none',
-                }}
+                className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all duration-200 text-left ${
+                  isSelected
+                    ? 'border-blue-500 bg-blue-50 shadow-sm'
+                    : 'border-slate-200 hover:border-blue-400 hover:bg-blue-50/50'
+                }`}
               >
-                <span style={{ fontSize: '16px', fontWeight: 500, flex: 1 }}>{answer.text}</span>
                 <div
-                  style={{
-                    width: '24px',
-                    height: '24px',
-                    borderRadius: '6px',
-                    border: `2px solid ${isSelected ? '#2E93CC' : 'rgba(46, 147, 204, 0.4)'}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: isSelected ? '#2E93CC' : 'transparent',
-                    color: isSelected ? '#ffffff' : 'transparent',
-                    transition: 'all 0.3s ease',
-                    flexShrink: 0,
-                    marginLeft: '16px',
-                  }}
+                  className={`w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-all duration-200 ${
+                    isSelected
+                      ? 'bg-blue-500 border-blue-500'
+                      : 'border-slate-300'
+                  }`}
                 >
-                  {isSelected && '✓'}
+                  {isSelected && (
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
                 </div>
+                <span className="text-slate-700 font-medium">{answer.text}</span>
               </button>
               {isSelected && requiresDetail && (
                 <input
                   type="text"
                   value={currentAnswer?.multiTextValues?.[answer.id] || ''}
                   onChange={(e) => handleMultiAnswerDetailChange(currentQuestion.id, answer.id, e.target.value)}
-                  placeholder="Especifica aquí..."
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    borderRadius: '12px',
-                    border: '1px solid rgba(46, 147, 204, 0.4)',
-                    fontSize: '15px',
-          
-                  }}
+                  placeholder="Especifica aqui..."
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                 />
               )}
             </div>
@@ -800,32 +508,26 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
   };
 
   const renderScaleOptions = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', padding: '12px' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(60px, 1fr))', gap: '12px' }}>
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-6 sm:grid-cols-11 gap-2">
         {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => {
           const isSelected = currentAnswer?.numericValue === value;
           return (
             <button
               key={value}
               onClick={() => handleAnswer(currentQuestion.id, undefined, value, false)}
-              style={{
-                padding: '16px 0',
-                borderRadius: '12px',
-                border: `2px solid ${isSelected ? '#2E93CC' : 'rgba(46, 147, 204, 0.3)'}`,
-                background: isSelected ? '#2E93CC' : '#f8f9fa',
-                color: isSelected ? '#ffffff' : '#0F172A',
-                fontWeight: 600,
-                fontSize: '16px',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-              }}
+              className={`py-3 rounded-xl font-semibold text-sm cursor-pointer transition-all duration-200 ${
+                isSelected
+                  ? 'bg-blue-500 text-white shadow-md'
+                  : 'bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600 border border-slate-200 hover:border-blue-400'
+              }`}
             >
               {value}
             </button>
           );
         })}
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#2E93CC' }}>
+      <div className="flex justify-between text-xs text-slate-400 px-1">
         <span>Muy en desacuerdo</span>
         <span>Muy de acuerdo</span>
       </div>
@@ -833,7 +535,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
   );
 
   const renderNumberInput = () => (
-    <div style={{ marginTop: '12px' }}>
+    <div className="mt-3">
       <input
         type="number"
         min={1}
@@ -841,34 +543,19 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
         value={currentAnswer?.numericValue ?? ''}
         onChange={(e) => handleNumberChange(currentQuestion.id, e.target.value)}
         placeholder="Ej. 28"
-        style={{
-          width: '100%',
-          padding: '16px',
-          borderRadius: '12px',
-          border: '1px solid rgba(46, 147, 204, 0.4)',
-          fontSize: '18px',
-
-        }}
+        className="w-full px-4 py-4 border border-slate-200 rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
       />
     </div>
   );
 
   const renderTextInput = () => (
-    <div style={{ marginTop: '12px' }}>
+    <div className="mt-3">
       <textarea
         value={currentAnswer?.textValue || ''}
         onChange={(e) => handleTextChange(currentQuestion.id, e.target.value)}
         rows={4}
         placeholder="Comparte cualquier detalle que quieras que tengamos en cuenta..."
-        style={{
-          width: '100%',
-          padding: '16px',
-          borderRadius: '16px',
-          border: '1px solid rgba(46, 147, 204, 0.4)',
-          fontSize: '16px',
-
-          resize: 'vertical',
-        }}
+        className="w-full px-4 py-4 border border-slate-200 rounded-xl text-base resize-y focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
       />
     </div>
   );
@@ -882,260 +569,75 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        padding: '80px 24px 80px',
-        position: 'relative',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Background PNG */}
-      <img 
-        src={backgroundPng} 
-        alt="background" 
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          zIndex: 0,
-          pointerEvents: 'none',
-        }}
-        onLoad={() => {}}
-      />
-      
-      {/* Lottie Animations */}
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 1,
-          pointerEvents: 'none',
-        }}
-      >
-        {/* Air Balloon Lottie */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '10%',
-            right: '5%',
-            width: '200px',
-            height: '200px',
-            zIndex: 10,
-          }}
-        >
-          {airBalloonData ? (
-            <Lottie animationData={airBalloonData} loop={true} />
-          ) : (
-            <div style={{ 
-              width: '100%', 
-              height: '100%', 
-              background: 'rgba(255,0,0,0.1)',
-              border: '1px dashed red' 
-            }}>
-              Cargando globo...
-            </div>
-          )}
-        </div>
-      </div>
-      {/* Top navigation */}
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '960px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '32px',
-          position: 'relative',
-          zIndex: 2,
-        }}
-      >
-        <div style={{
-          fontSize: '28px',
-          fontWeight: 700,
-          color: '#2E93CC',
-          letterSpacing: '-0.02em',
-        }}>
-          Gantly
-        </div>
-        <button
-          onClick={onBack}
-          style={{
-            padding: '10px 24px',
-            borderRadius: '24px',
-            border: '1px solid rgba(46, 147, 204, 0.3)',
-            background: 'rgba(250, 232, 214, 0.85)',
-            color: '#475569',
-            fontSize: '15px',
-            fontWeight: 500,
-            cursor: 'pointer',
-            transition: 'all 0.3s',
-  
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(250, 232, 214, 1)';
-            e.currentTarget.style.borderColor = '#2E93CC';
-            e.currentTarget.style.color = '#2E93CC';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(250, 232, 214, 0.85)';
-            e.currentTarget.style.borderColor = 'rgba(46, 147, 204, 0.3)';
-            e.currentTarget.style.color = '#475569';
-          }}
-        >
-          Guardar y salir
-        </button>
-      </div>
-
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '960px',
-          position: 'relative',
-          zIndex: 2,
-          display: 'grid',
-          gap: '24px',
-        }}
-      >
-        {/* Progress */}
-        <div
-          style={{
-            background: 'rgba(250, 232, 214, 0.85)',
-            border: '1px solid rgba(46, 147, 204, 0.2)',
-            borderRadius: '24px',
-            padding: '32px 40px',
-            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)'
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
-            <div style={{ flex: 1 }}>
-              <h2 style={{ 
-                margin: 0, 
-                fontSize: '28px', 
-                color: '#0F172A',
-    
-                fontWeight: 700,
-              }}>
-                {test.title}
-              </h2>
-              <p style={{ 
-                margin: '8px 0 0', 
-                color: '#475569', 
-                fontSize: '16px', 
-                maxWidth: '560px',
-                lineHeight: 1.6,
-              }}>
-                {test.description}
-              </p>
-            </div>
-            <div
-              style={{
-                padding: '8px 16px',
-                borderRadius: '20px',
-                background: '#EBF6FC',
-                color: '#475569',
-                fontSize: '14px',
-                fontWeight: 600,
-      
-              }}
-            >
-              Pregunta {currentQuestionIndex + 1} de {test.questions.length}
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+      {/* Sticky Header */}
+      <header className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img src={LogoSvg} alt="Gantly" className="h-7" />
+            <span className="text-slate-800 font-semibold text-sm sm:text-base truncate max-w-[200px] sm:max-w-none">
+              {test.title}
+            </span>
           </div>
-          <div
-            style={{
-              width: '100%',
-              height: '10px',
-              borderRadius: '999px',
-              overflow: 'hidden',
-              background: '#EBF6FC'
-            }}
+          <button
+            onClick={onBack}
+            className="text-slate-400 hover:text-slate-600 text-sm cursor-pointer transition-colors duration-200"
           >
-            <div
-              style={{
-                width: `${progress}%`,
-                height: '100%',
-                background: '#2E93CC',
-                transition: 'width 0.45s ease',
-                borderRadius: '999px',
-              }}
-            />
-          </div>
+            Guardar y salir
+          </button>
         </div>
+      </header>
 
-        {/* Question */}
-        <div
-          style={{
-            background: 'rgba(250, 232, 214, 0.9)',
-            border: '1px solid rgba(46, 147, 204, 0.2)',
-            borderRadius: '24px',
-            padding: '48px 40px',
-            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)',
-          }}
-        >
+      {/* Progress Bar */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-6">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-medium text-slate-500">
+            Pregunta {currentQuestionIndex + 1} de {totalQuestions}
+          </span>
+          <span className="text-xs text-slate-400">{Math.round(progress)}%</span>
+        </div>
+        <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-blue-500 rounded-full transition-all duration-500 ease-out"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Question Area */}
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 p-6 sm:p-8 md:p-12">
+          {/* Block Meta */}
           {questionMeta && (
-            <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '14px', fontWeight: 700, color: '#2E93CC', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
+            <div className="mb-6">
+              <span className="text-xs font-bold text-blue-600 uppercase tracking-wide">
                 {questionMeta.block}
-              </div>
+              </span>
               {questionMeta.helper && (
-                <p style={{ marginTop: '4px', fontSize: '14px', color: '#475569' }}>
-                  {questionMeta.helper}
-                </p>
+                <p className="mt-1 text-sm text-slate-500">{questionMeta.helper}</p>
               )}
             </div>
           )}
-          <h3
-            style={{
-              margin: '0 0 32px',
-              fontSize: 'clamp(24px, 3vw, 32px)',
-              color: '#0F172A',
-              lineHeight: 1.4,
-  
-              fontWeight: 600,
-            }}
-          >
+
+          {/* Question Text */}
+          <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-8 leading-relaxed">
             {currentQuestion.text}
-          </h3>
+          </h2>
+
+          {/* Answer Options */}
           {renderQuestionContent()}
         </div>
 
-        {/* Bottom bar */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            background: 'rgba(250, 232, 214, 0.85)',
-            border: '1px solid rgba(46, 147, 204, 0.2)',
-            borderRadius: '24px',
-            padding: '24px 32px',
-            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)'
-          }}
-        >
+        {/* Navigation Buttons */}
+        <div className="flex items-center justify-between mt-6">
           <button
             onClick={goToPreviousQuestion}
             disabled={currentQuestionIndex === 0 || submitting}
-            className="btn-secondary"
-            style={{
-              padding: '12px 24px',
-              borderRadius: '24px',
-              border: 'none',
-              background: 'rgba(255,255,255,0.7)',
-              color: '#475569',
-              fontWeight: 600,
-              cursor: currentQuestionIndex === 0 ? 'not-allowed' : 'pointer',
-              opacity: currentQuestionIndex === 0 ? 0.5 : 1,
-            }}
+            className={`font-medium transition-colors duration-200 ${
+              currentQuestionIndex === 0
+                ? 'text-slate-300 cursor-not-allowed'
+                : 'text-slate-500 hover:text-slate-700 cursor-pointer'
+            }`}
           >
             ← Anterior
           </button>
@@ -1144,39 +646,23 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
             <button
               onClick={handleSubmit}
               disabled={!allAnswered || submitting}
-              style={{
-                padding: '14px 32px',
-                borderRadius: '24px',
-                border: 'none',
-                background: !allAnswered || submitting ? '#94a3b8' : '#2E93CC',
-                color: '#ffffff',
-                fontSize: '16px',
-                fontWeight: 600,
-                cursor: !allAnswered || submitting ? 'not-allowed' : 'pointer',
-                boxShadow: !allAnswered || submitting ? 'none' : '0 4px 12px rgba(46, 147, 204, 0.3)',
-                transition: 'all 0.3s',
-      
-              }}
+              className={`px-6 py-3 rounded-xl font-medium transition-colors duration-200 ${
+                !allAnswered || submitting
+                  ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                  : 'bg-blue-500 hover:bg-blue-600 text-white cursor-pointer'
+              }`}
             >
-              {submitting ? 'Enviando...' : 'Enviar evaluación'}
+              {submitting ? 'Enviando...' : 'Enviar evaluacion'}
             </button>
           ) : (
             <button
               onClick={goToNextQuestion}
               disabled={!isCurrentAnswered}
-              style={{
-                padding: '14px 32px',
-                borderRadius: '24px',
-                border: 'none',
-                background: isCurrentAnswered ? '#2E93CC' : '#94a3b8',
-                color: '#ffffff',
-                fontSize: '16px',
-                fontWeight: 600,
-                cursor: isCurrentAnswered ? 'pointer' : 'not-allowed',
-                boxShadow: isCurrentAnswered ? '0 4px 12px rgba(46, 147, 204, 0.3)' : 'none',
-                transition: 'all 0.3s',
-      
-              }}
+              className={`px-6 py-3 rounded-xl font-medium transition-colors duration-200 ${
+                !isCurrentAnswered
+                  ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                  : 'bg-blue-500 hover:bg-blue-600 text-white cursor-pointer'
+              }`}
             >
               Siguiente →
             </button>
@@ -1186,4 +672,3 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
     </div>
   );
 }
-

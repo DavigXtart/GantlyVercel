@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { profileService, psychService, calendarService, tasksService, assignedTestsService, testService, resultsService, matchingService, calendarNotesService, API_BASE_URL } from '../services/api';
+import { profileService, psychService, calendarService, tasksService, assignedTestsService, testService, resultsService, matchingService, calendarNotesService, jitsiService, API_BASE_URL } from '../services/api';
 import ChatWidget from './ChatWidget';
 import CalendarWeek from './CalendarWeek';
 import JitsiVideoCall from './JitsiVideoCall';
@@ -17,6 +17,7 @@ import PsychPatientsTab from './PsychPatientsTab';
 import PsychTasksTab from './PsychTasksTab';
 import PsychTestsTab from './PsychTestsTab';
 import PsychBillingTab from './PsychBillingTab';
+import LogoSvg from '../assets/logo-gantly.svg';
 
 
 type Tab = 'perfil' | 'pacientes' | 'calendario' | 'tareas' | 'chat' | 'citas-pasadas' | 'tests-asignados' | 'patient-profile' | 'test-details' | 'editar-perfil-profesional' | 'matching-test' | 'facturacion';
@@ -44,7 +45,7 @@ function SessionNotesSection({ appointmentId, existingNotes }: { appointmentId: 
     <div className="mt-3 border-t border-slate-100 pt-3">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="bg-transparent border-none cursor-pointer text-sm text-gantly-blue-500 font-medium flex items-center gap-1 p-0"
+        className="bg-transparent border-none cursor-pointer text-sm text-gantly-blue font-medium font-body flex items-center gap-1 p-0 transition-colors duration-200 hover:text-gantly-blue/80"
       >
         <span className="material-symbols-outlined text-[18px]">{expanded ? 'expand_less' : 'expand_more'}</span>
         Notas de sesion {existingNotes ? '(editadas)' : ''}
@@ -56,14 +57,14 @@ function SessionNotesSection({ appointmentId, existingNotes }: { appointmentId: 
             onChange={e => setNotes(e.target.value)}
             maxLength={500}
             placeholder="Escribe notas sobre esta sesion..."
-            className="w-full min-h-[80px] p-3 border border-slate-200 rounded-xl text-sm resize-y"
+            className="w-full min-h-[80px] p-3 border border-slate-200 rounded-lg text-sm font-body resize-y outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
           />
           <div className="flex justify-between items-center mt-2">
             <span className="text-xs text-slate-400">{notes.length}/500</span>
             <button
               onClick={handleSave}
               disabled={saving}
-              className="px-4 py-1.5 bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white border-none rounded-lg text-[13px] cursor-pointer disabled:opacity-60"
+              className="px-4 py-1.5 bg-gantly-blue hover:bg-gantly-blue/90 text-white border-none rounded-lg text-[13px] font-heading cursor-pointer disabled:opacity-60 transition-colors duration-200"
             >
               {saving ? 'Guardando...' : saved ? 'Guardado!' : 'Guardar notas'}
             </button>
@@ -96,8 +97,8 @@ export default function PsychDashboard() {
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [referralUrl, setReferralUrl] = useState<string | null>(null);
   const [showReferralModal, setShowReferralModal] = useState(false);
-  
-  
+
+
   // Estados para vista de perfil de paciente
   const [viewingPatientId, setViewingPatientId] = useState<number | null>(null);
   const [patientDetails, setPatientDetails] = useState<any>(null);
@@ -105,13 +106,13 @@ export default function PsychDashboard() {
   const [selectedTestForStats, setSelectedTestForStats] = useState<number | null>(null);
   const [patientStats, setPatientStats] = useState<any>(null);
   const [loadingPatientDetails, setLoadingPatientDetails] = useState(false);
-  
+
   // Estados para vista de detalles de test asignado
   const [viewingTestDetails, setViewingTestDetails] = useState<{ patientId: number; testId: number; assignedTestId: number } | null>(null);
   const [testDetailsData, setTestDetailsData] = useState<any>(null);
   const [testAnswers, setTestAnswers] = useState<any>(null);
   const [loadingTestDetails, setLoadingTestDetails] = useState(false);
-  
+
   // Estados para citas pasadas del psicólogo
   const [pastAppointmentsPsych, setPastAppointmentsPsych] = useState<any[]>([]);
   const [loadingPastAppointmentsPsych, setLoadingPastAppointmentsPsych] = useState(false);
@@ -122,26 +123,26 @@ export default function PsychDashboard() {
   const [showRatingsModal, setShowRatingsModal] = useState(false);
   const [ratingsList, setRatingsList] = useState<Array<{ rating: number; comment: string; patientName: string; createdAt: string }>>([]);
   const [loadingRatings, setLoadingRatings] = useState(false);
-  
+
   // Estados para perfil profesional del psicólogo
   const [psychologistProfile, setPsychologistProfile] = useState<any>(null);
-  
+
   // Estados para test de matching
   const [matchingTestCompleted, setMatchingTestCompleted] = useState<boolean | null>(null);
   const [checkingMatchingTest, setCheckingMatchingTest] = useState(false);
   const [hasCheckedInitialStatus, setHasCheckedInitialStatus] = useState(false);
-  
+
   // Ref para mantener el componente montado incluso si showVideoCall cambia temporalmente
   const videoCallRef = useRef<{ room: string | null; user: any; otherUser: any } | null>(null);
   const testReportRef = useRef<TestReportHandle>(null);
-  
+
   // Actualizar ref cuando hay una videollamada activa
   useEffect(() => {
     if (showVideoCall && videoCallRoom && me) {
       videoCallRef.current = { room: videoCallRoom, user: me, otherUser: videoCallOtherUser };
     }
   }, [showVideoCall, videoCallRoom, me, videoCallOtherUser]);
-  
+
   // Función estable de cierre que solo se ejecuta manualmente
   const handleVideoCallClose = useCallback(() => {
     // Solo cerrar cuando el usuario hace clic explícitamente
@@ -175,7 +176,7 @@ export default function PsychDashboard() {
     } finally {
       setLoading(false);
     }
-    
+
     // Cargar tests asignados de forma asíncrona y no bloqueante
     setTimeout(async () => {
       try {
@@ -185,7 +186,7 @@ export default function PsychDashboard() {
         setAssignedTests([]);
       }
     }, 100);
-    
+
     // Cargar tests disponibles de forma asíncrona y no bloqueante
     setTimeout(async () => {
       try {
@@ -199,13 +200,14 @@ export default function PsychDashboard() {
   };
 
 
+
   const loadPatientDetails = async (patientId: number) => {
     try {
       setLoadingPatientDetails(true);
       const data = await psychService.getPatientDetails(patientId);
       setPatientDetails(data);
       setViewingPatientId(patientId);
-      
+
       // Calcular media general de factores entre tests completados
       try {
         const testIds = (data?.tests || []).map((t: any) => t.testId);
@@ -258,11 +260,11 @@ export default function PsychDashboard() {
     try {
       setLoadingTestDetails(true);
       setViewingTestDetails({ patientId, testId, assignedTestId });
-      
+
       // Cargar respuestas del test
       const answersData = await psychService.getPatientTestAnswers(patientId, testId);
       setTestAnswers(answersData);
-      
+
       // Cargar estadísticas (factores y subfactores)
       const statsData = await resultsService.getUserTest(patientId, testId);
       setTestDetailsData(statsData);
@@ -290,19 +292,16 @@ export default function PsychDashboard() {
     loadMySlots();
     checkMatchingTestStatus();
   }, []);
-  
+
   const checkMatchingTestStatus = async () => {
     try {
       setCheckingMatchingTest(true);
       const status = await matchingService.getPsychologistTestStatus();
       setMatchingTestCompleted(status.completed || false);
     } catch (error: any) {
-      // Si es un 404, significa que el endpoint aún no está disponible (servidor no reiniciado)
-      // En ese caso, asumimos que el test no está completo para mostrar el banner
       if (error.response?.status === 404) {
         setMatchingTestCompleted(false);
       } else {
-        // Para otros errores, también asumimos false para mostrar el banner
         setMatchingTestCompleted(false);
       }
     } finally {
@@ -316,11 +315,11 @@ export default function PsychDashboard() {
       loadMyRating();
     }
   }, [me, tab]);
-  
+
   // Verificar si debe mostrar el test de matching al iniciar sesión (solo la primera vez que se carga)
   useEffect(() => {
-    if (!me || checkingMatchingTest || matchingTestCompleted === null) return; // Esperar a que todo cargue
-    if (hasCheckedInitialStatus) return; // Ya se verificó
+    if (!me || checkingMatchingTest || matchingTestCompleted === null) return;
+    if (hasCheckedInitialStatus) return;
 
     setHasCheckedInitialStatus(true);
     if (me.role === 'PSYCHOLOGIST' && matchingTestCompleted === false && tab === 'perfil') {
@@ -370,8 +369,6 @@ export default function PsychDashboard() {
     }
   }, [tab]);
 
-  // El calendario se actualiza solo al cambiar a la pestaña de calendario (ya está en el useEffect de arriba)
-
 
   const onAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target;
@@ -388,7 +385,6 @@ export default function PsychDashboard() {
     } catch (error: any) {
       toast.error('Error al subir el avatar: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
     } finally {
-      // Permitir seleccionar el mismo archivo nuevamente
       input.value = '';
     }
   };
@@ -455,253 +451,324 @@ export default function PsychDashboard() {
   const formatDate = (dateString?: string) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return date.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
   };
 
   if (loading && !me) {
     return (
-      <div className="max-w-[1200px] mx-auto p-10">
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <LoadingSpinner text="Cargando perfil..." />
       </div>
     );
   }
 
+  // Tabs visible in the main nav (not internal navigation tabs like patient-profile, test-details, etc.)
+  const mainTabs = [
+    { id: 'perfil', label: 'Inicio', icon: 'home' },
+    { id: 'pacientes', label: 'Pacientes', icon: 'group' },
+    { id: 'tareas', label: 'Tareas', icon: 'task_alt' },
+    { id: 'tests-asignados', label: 'Tests', icon: 'psychology' },
+    { id: 'calendario', label: 'Calendario', icon: 'calendar_month' },
+    { id: 'chat', label: 'Chat', icon: 'chat' },
+    { id: 'citas-pasadas', label: 'Historial', icon: 'history' },
+    { id: 'facturacion', label: 'Facturación', icon: 'receipt_long' },
+  ];
+
+  // Determine which tab group to highlight (some tabs are sub-views)
+  const activeTabGroup = (() => {
+    if (tab === 'editar-perfil-profesional' || tab === 'matching-test') return 'perfil';
+    if (tab === 'patient-profile') return 'pacientes';
+    if (tab === 'test-details') return 'tests-asignados';
+    return tab;
+  })();
+
   return (
-    <div className="min-h-screen bg-slate-50 text-gantly-text flex">
-      {/* Sidebar */}
-      <aside className="w-24 bg-white border-r border-gantly-blue-100 sticky top-0 h-screen flex flex-col items-center pt-2 pb-10 z-40">
-        <nav className="flex flex-col gap-4 w-full px-3">
-          {[
-            { id: 'perfil', icon: 'person', label: 'Perfil' },
-            { id: 'pacientes', icon: 'people', label: 'Pacientes' },
-            { id: 'tareas', icon: 'task_alt', label: 'Tareas' },
-            { id: 'tests-asignados', icon: 'assignment', label: 'Tests' },
-            { id: 'calendario', icon: 'calendar_today', label: 'Calendario' },
-            { id: 'chat', icon: 'chat', label: 'Chat' },
-            { id: 'citas-pasadas', icon: 'history', label: 'Citas' },
-            { id: 'facturacion', icon: 'receipt_long', label: 'Facturac.' },
-          ].map((item) => {
-            const isActive = tab === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setTab(item.id as Tab)}
-                className={`flex flex-col items-center justify-center gap-1 py-3 px-2 rounded-xl w-full border-none cursor-pointer transition-all ${
-                  isActive
-                    ? 'bg-gantly-blue-50 text-gantly-blue-600'
-                    : 'bg-transparent text-slate-500 hover:bg-slate-100 hover:text-gantly-blue-500'
-                }`}
-              >
-                <span className="material-symbols-outlined font-light text-lg">
-                  {item.icon}
-                </span>
-                <span className="text-[10px] font-medium uppercase tracking-tighter">
-                  {item.label}
-                </span>
-              </button>
-            );
-          })}
+    <div className="min-h-screen bg-slate-50 flex">
+      {/* Dark Sidebar */}
+      <aside className="w-64 bg-gradient-to-b from-gantly-navy to-[#0d1f3c] flex-shrink-0 fixed inset-y-0 left-0 z-50 flex flex-col">
+        {/* Logo */}
+        <div className="px-6 py-5 border-b border-white/5">
+          <img src={LogoSvg} alt="Gantly" className="h-7 brightness-0 invert" />
+        </div>
+
+        {/* Nav items */}
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          {mainTabs.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id as Tab)}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[15px] font-medium cursor-pointer transition-all duration-200 border-none ${
+                activeTabGroup === t.id
+                  ? 'bg-gantly-blue/20 text-white border-l-2 border-l-gantly-cyan font-semibold'
+                  : 'text-white hover:bg-white/10'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[20px]">{t.icon}</span>
+              {t.label}
+            </button>
+          ))}
         </nav>
+
+        {/* User info + logout at bottom */}
+        <div className="px-4 py-4 border-t border-white/5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-9 h-9 rounded-full overflow-hidden bg-white/10 flex items-center justify-center flex-shrink-0">
+              {me?.avatarUrl ? (
+                <img src={me.avatarUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-sm font-semibold text-white">
+                  {me?.name ? me.name.charAt(0).toUpperCase() : 'P'}
+                </span>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium text-white truncate">{me?.name || 'Profesional'}</div>
+              <div className="text-xs text-slate-400 truncate">{me?.email}</div>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              localStorage.removeItem('token');
+              localStorage.removeItem('refreshToken');
+              window.location.href = '/login';
+            }}
+            className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer transition-all duration-200 border-none bg-transparent"
+          >
+            <span className="material-symbols-outlined text-[18px]">logout</span>
+            Cerrar sesión
+          </button>
+        </div>
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 px-8 lg:px-12 py-4 relative overflow-x-hidden">
-      {showRatingsModal && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-6"
-          onClick={() => setShowRatingsModal(false)}
-        >
-          <div
-            className="bg-white rounded-2xl max-w-[520px] w-full max-h-[80vh] overflow-hidden flex flex-col shadow-elevated"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="px-6 py-5 border-b border-slate-200 flex justify-between items-center">
-              <h3 className="m-0">Resenas de pacientes</h3>
-              <button
-                className="px-4 py-2 text-sm bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-slate-700 font-medium cursor-pointer"
-                onClick={() => setShowRatingsModal(false)}
-              >
-                Cerrar
-              </button>
-            </div>
-            <div className="px-6 py-5 overflow-y-auto flex-1">
-              {loadingRatings ? (
-                <p className="text-slate-500">Cargando resenas...</p>
-              ) : ratingsList.length === 0 ? (
-                <p className="text-slate-500">No hay resenas</p>
-              ) : (
-                ratingsList.map((r, i) => (
-                  <div
-                    key={i}
-                    className="p-4 mb-3 bg-slate-50 rounded-lg border border-slate-200"
-                  >
-                    <div className="flex justify-between items-center mb-2">
-                      <strong>{r.patientName}</strong>
-                      <span className="text-amber-400 text-base">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
-                    </div>
-                    {r.comment && <p className="m-0 text-sm text-slate-500">{r.comment}</p>}
-                    <div className="text-xs text-slate-500 mt-2">{formatDate(r.createdAt)}</div>
-                  </div>
-                ))
+      <div className="flex-1 ml-64">
+        {/* Top bar */}
+        <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/50 px-8 py-4 flex items-center justify-between">
+          <h2 className="text-lg font-heading font-bold text-gantly-text">
+            {mainTabs.find(t => t.id === activeTabGroup)?.label || 'Dashboard'}
+          </h2>
+          <div className="flex items-center gap-3">
+            <button className="relative p-2 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors duration-200 border-none bg-transparent">
+              <span className="material-symbols-outlined text-[22px] text-slate-500">notifications</span>
+              {pendingRequests.length > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
               )}
-            </div>
+            </button>
           </div>
-        </div>
-      )}
-      <style>{`
-        @keyframes pulseAlert {
-          0%, 100% {
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
-          }
-          50% {
-            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
-          }
-        }
-      `}</style>
+        </header>
 
-        {/* Header hero solo en PERFIL */}
-        {tab === 'perfil' && (
-          <header className="bg-gantly-blue-50 rounded-2xl p-8 lg:p-12 mb-10 relative overflow-hidden">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
-              <div className="flex flex-col md:flex-row items-center gap-8">
-                <div className="relative">
-                  <div className="size-28 md:size-32 rounded-full overflow-hidden border-4 border-white shadow-card bg-gantly-blue-100 flex items-center justify-center">
-                    {me?.avatarUrl ? (
-                      <img
-                        src={me.avatarUrl}
-                        alt={me.name || 'Psicologo'}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-3xl md:text-4xl text-gantly-blue-600 font-semibold">
-                        {me?.name ? me.name.charAt(0).toUpperCase() : 'P'}
-                      </span>
-                    )}
-                  </div>
+        <div className="px-8 py-6">
+          {/* Ratings Modal */}
+          {showRatingsModal && (
+            <div
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000] p-6"
+              onClick={() => setShowRatingsModal(false)}
+            >
+              <div
+                className="bg-white rounded-2xl max-w-[520px] w-full max-h-[80vh] overflow-hidden flex flex-col shadow-2xl shadow-slate-900/20"
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="px-6 py-5 border-b border-slate-200 flex justify-between items-center">
+                  <h3 className="m-0 text-lg font-heading font-bold text-gantly-text">Resenas de pacientes</h3>
+                  <button
+                    className="px-4 py-2 text-sm bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg text-slate-700 font-medium cursor-pointer transition-colors duration-200"
+                    onClick={() => setShowRatingsModal(false)}
+                  >
+                    Cerrar
+                  </button>
                 </div>
-                <div className="text-center md:text-left">
-                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-normal mb-2">
-                    Hola,{' '}
-                    <span className="italic text-gantly-blue-500">
-                      {me?.name || 'tu espacio profesional'}.
-                    </span>
-                  </h1>
-                  <p className="text-slate-500 font-light mb-4">
-                    {me?.email}
-                    {me?.createdAt && (
-                      <>
-                        {' • Miembro desde '}
-                        {formatDate(me.createdAt)}
-                      </>
-                    )}
-                  </p>
+                <div className="px-6 py-5 overflow-y-auto flex-1">
+                  {loadingRatings ? (
+                    <p className="text-slate-500">Cargando resenas...</p>
+                  ) : ratingsList.length === 0 ? (
+                    <p className="text-slate-500">No hay resenas</p>
+                  ) : (
+                    ratingsList.map((r, i) => (
+                      <div
+                        key={i}
+                        className="p-4 mb-3 bg-slate-50 rounded-xl border border-slate-100"
+                      >
+                        <div className="flex justify-between items-center mb-2">
+                          <strong className="font-heading text-gantly-text">{r.patientName}</strong>
+                          <span className="text-gantly-gold text-base">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
+                        </div>
+                        {r.comment && <p className="m-0 text-sm text-slate-500">{r.comment}</p>}
+                        <div className="text-xs text-slate-400 mt-2">{formatDate(r.createdAt)}</div>
+                      </div>
+                    ))
+                  )}
                 </div>
-              </div>
-              {/* Toggle Aceptando nuevos pacientes - integrado en el header */}
-              <div className="flex items-center gap-3 px-5 py-3 bg-white/60 backdrop-blur-sm rounded-full border border-slate-200 shadow-sm hover:bg-white/80 transition-all">
-                <div className="text-right">
-                  <div className="text-sm font-medium text-gantly-text">
-                    {me?.isFull ? 'Lleno' : 'Aceptando nuevos pacientes'}
-                  </div>
-                  <div className="text-xs text-slate-400">
-                    {me?.isFull ? 'No en recomendaciones' : 'En recomendaciones'}
-                  </div>
-                </div>
-                <label className="relative inline-block w-9 h-5 cursor-pointer flex-shrink-0">
-                  <input
-                    type="checkbox"
-                    checked={me?.isFull || false}
-                    onChange={async (e) => {
-                      const newValue = e.target.checked;
-                      const previousValue = me?.isFull || false;
-                      setMe({ ...me, isFull: newValue });
-                      try {
-                        const response: any = await psychService.updateIsFull(newValue);
-                        if (response && response.isFull !== undefined) {
-                          setMe({ ...me, isFull: response.isFull });
-                          toast.success(response.isFull ? 'Marcado como lleno' : 'Aceptando nuevos pacientes');
-                        } else {
-                          const psychProfile: any = await psychService.getProfile();
-                          if (psychProfile && psychProfile.isFull !== undefined) {
-                            setMe({ ...me, isFull: psychProfile.isFull });
-                            toast.success(psychProfile.isFull ? 'Marcado como lleno' : 'Aceptando nuevos pacientes');
-                          } else {
-                            toast.success(newValue ? 'Marcado como lleno' : 'Aceptando nuevos pacientes');
-                          }
-                        }
-                      } catch (error: any) {
-                        setMe({ ...me, isFull: previousValue });
-                        toast.error('Error al actualizar: ' + (error.response?.data?.error || error.message));
-                      }
-                    }}
-                    className="sr-only"
-                  />
-                  <span className={`absolute inset-0 rounded-full transition-colors ${me?.isFull ? 'bg-red-400' : 'bg-green-400'}`}>
-                    <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform shadow-sm ${me?.isFull ? 'translate-x-4' : ''}`} />
-                  </span>
-                </label>
               </div>
             </div>
-          </header>
-        )}
+          )}
 
-      {/* Perfil */}
-      {/* Vista PERFIL: tarjetas resumen como en el diseño */}
-      {tab === 'perfil' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Columna izquierda */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Información del perfil */}
-            <div className="bg-white rounded-2xl p-8 border border-slate-100 shadow-card">
-              <div className="flex flex-col md:flex-row items-start gap-6 mb-8">
-                <div className="flex-1">
-                  {myRating && myRating.averageRating !== null && (
-                    <div
-                      onClick={async () => {
-                        if (myRating.totalRatings === 0 || !me?.id) return;
-                        setShowRatingsModal(true);
-                        setLoadingRatings(true);
-                        try {
-                          const list = await calendarService.getPsychologistRatings(me.id);
-                          setRatingsList(list);
-                        } catch (e) {
-                          setRatingsList([]);
-                        } finally {
-                          setLoadingRatings(false);
-                        }
-                      }}
-                      className="flex items-center gap-2 mb-3 cursor-pointer"
-                      title={myRating.totalRatings > 0 ? 'Click para ver todas las reseñas' : undefined}
-                    >
-                      <div className="flex gap-0.5">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <span
-                            key={star}
-                            className={star <= Math.round(myRating.averageRating!) ? 'text-yellow-400' : 'text-gray-300'}
-                          >
-                            ★
+          {/* Tab Content */}
+
+          {/* Perfil / Home */}
+          {tab === 'perfil' && (
+            <div className="space-y-6">
+              {/* Hero Profile Card */}
+              <div className="rounded-2xl p-8 text-white shadow-2xl shadow-gantly-blue/20 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1B6FA0 0%, #2E93CC 30%, #48C6D4 65%, #78D4B0 100%)' }}>
+                {/* Subtle pattern overlay */}
+                <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_30%_50%,white_1px,transparent_1px)] bg-[length:20px_20px]" />
+
+                <div className="relative z-10">
+                  <div className="flex flex-col md:flex-row items-start md:items-center gap-5 mb-6">
+                    {/* Avatar */}
+                    <label className="cursor-pointer relative group flex-shrink-0">
+                      <div className="w-16 h-16 rounded-full ring-4 ring-white/30 overflow-hidden bg-white/20 flex items-center justify-center">
+                        {me?.avatarUrl ? (
+                          <img src={me.avatarUrl} alt={me.name || ''} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-2xl font-semibold text-white">
+                            {me?.name ? me.name.charAt(0).toUpperCase() : 'P'}
                           </span>
-                        ))}
+                        )}
                       </div>
-                      <span className="text-sm font-medium text-gantly-text">
-                        {myRating.averageRating.toFixed(1)} ({myRating.totalRatings} valoraciones)
-                      </span>
+                      <div className="absolute inset-0 rounded-full bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-200">
+                        <span className="material-symbols-outlined text-white text-[20px]">photo_camera</span>
+                      </div>
+                      <input type="file" accept="image/*" className="hidden" onChange={onAvatarChange} />
+                    </label>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <h1 className="text-2xl font-bold text-white truncate mb-1">
+                        Hola, {me?.name || 'Profesional'}.
+                      </h1>
+                      <p className="text-sm text-white/70 mt-0.5 font-body">
+                        {me?.email}
+                        {me?.createdAt && (
+                          <span> · Miembro desde {new Date(me.createdAt).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })}</span>
+                        )}
+                      </p>
+                      {myRating && myRating.averageRating !== null && (
+                        <div
+                          onClick={async () => {
+                            if (myRating.totalRatings === 0 || !me?.id) return;
+                            setShowRatingsModal(true);
+                            setLoadingRatings(true);
+                            try {
+                              const list = await calendarService.getPsychologistRatings(me.id);
+                              setRatingsList(list);
+                            } catch (e) {
+                              setRatingsList([]);
+                            } finally {
+                              setLoadingRatings(false);
+                            }
+                          }}
+                          className="flex items-center gap-1.5 mt-2 cursor-pointer"
+                          title={myRating.totalRatings > 0 ? 'Click para ver todas las resenas' : undefined}
+                        >
+                          <span className="text-gantly-gold text-sm">
+                            {'★'.repeat(Math.round(myRating.averageRating))}{'☆'.repeat(5 - Math.round(myRating.averageRating))}
+                          </span>
+                          <span className="text-sm text-white/70 font-medium font-body">
+                            {myRating.averageRating.toFixed(1)} ({myRating.totalRatings} valoraciones)
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  )}
-                  <div className="flex gap-4 flex-wrap mt-4">
+
+                    {/* Toggle Aceptando nuevos pacientes */}
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <div className="text-right">
+                        <div className="text-sm font-medium text-white">
+                          {me?.isFull ? 'Lleno' : 'Aceptando pacientes'}
+                        </div>
+                        <div className="text-xs text-white/60">
+                          {me?.isFull ? 'No en recomendaciones' : 'En recomendaciones'}
+                        </div>
+                      </div>
+                      <label className="relative inline-block w-9 h-5 cursor-pointer flex-shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={me?.isFull || false}
+                          onChange={async (e) => {
+                            const newValue = e.target.checked;
+                            const previousValue = me?.isFull || false;
+                            setMe({ ...me, isFull: newValue });
+                            try {
+                              const response: any = await psychService.updateIsFull(newValue);
+                              if (response && response.isFull !== undefined) {
+                                setMe({ ...me, isFull: response.isFull });
+                                toast.success(response.isFull ? 'Marcado como lleno' : 'Aceptando nuevos pacientes');
+                              } else {
+                                const psychProfile: any = await psychService.getProfile();
+                                if (psychProfile && psychProfile.isFull !== undefined) {
+                                  setMe({ ...me, isFull: psychProfile.isFull });
+                                  toast.success(psychProfile.isFull ? 'Marcado como lleno' : 'Aceptando nuevos pacientes');
+                                } else {
+                                  toast.success(newValue ? 'Marcado como lleno' : 'Aceptando nuevos pacientes');
+                                }
+                              }
+                            } catch (error: any) {
+                              setMe({ ...me, isFull: previousValue });
+                              toast.error('Error al actualizar: ' + (error.response?.data?.error || error.message));
+                            }
+                          }}
+                          className="sr-only"
+                        />
+                        <span className={`absolute inset-0 rounded-full transition-colors duration-200 ${me?.isFull ? 'bg-red-400' : 'bg-gantly-emerald'}`}>
+                          <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform duration-200 shadow-sm ${me?.isFull ? 'translate-x-4' : ''}`} />
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Stat cards inside hero */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center">
+                      <div className="text-3xl font-bold text-white">{patients.length}</div>
+                      <div className="text-xs text-white/60 uppercase tracking-wide mt-1 font-body">Pacientes</div>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center">
+                      <div className="text-3xl font-bold text-white">{tasks.filter(t => t.createdBy === 'PSYCHOLOGIST').length}</div>
+                      <div className="text-xs text-white/60 uppercase tracking-wide mt-1 font-body">Tareas</div>
+                    </div>
+                    <div
+                      className={`backdrop-blur-sm rounded-xl p-4 text-center cursor-pointer transition-all duration-200 ${
+                        pendingRequests.length > 0
+                          ? 'bg-gantly-gold/20 hover:bg-gantly-gold/30'
+                          : 'bg-white/10 hover:bg-white/15'
+                      }`}
+                      onClick={() => {
+                        setTab('calendario');
+                        setTimeout(() => {
+                          const pendingSection = document.getElementById('solicitudes-pendientes');
+                          if (pendingSection) {
+                            pendingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }
+                        }, 100);
+                      }}
+                    >
+                      <div className={`text-3xl font-bold ${pendingRequests.length > 0 ? 'text-gantly-gold' : 'text-white'}`}>
+                        {pendingRequests.length}
+                      </div>
+                      <div className="text-xs text-white/60 uppercase tracking-wide mt-1 font-body">Por confirmar</div>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center">
+                      <div className="text-3xl font-bold text-white">
+                        {slots.filter(s => (s.status === 'BOOKED' || s.status === 'CONFIRMED') && s.user && new Date(s.startTime) > new Date()).length}
+                      </div>
+                      <div className="text-xs text-white/60 uppercase tracking-wide mt-1 font-body">Citas hoy</div>
+                    </div>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="flex gap-3 flex-wrap">
                     <button
                       onClick={async () => {
                         await loadPsychologistProfile();
                         setTab('editar-perfil-profesional');
                       }}
-                      className="px-4 py-2 rounded-full border border-slate-200 text-sm text-gantly-blue-500 hover:bg-gantly-blue-500 hover:text-white transition"
+                      className="bg-white/20 hover:bg-white/30 text-white rounded-xl px-5 py-2.5 backdrop-blur-sm transition-all duration-300 cursor-pointer text-sm font-medium border-none"
                     >
-                      Editar Perfil Profesional
+                      Editar Perfil
                     </button>
                     <button
                       onClick={async () => {
@@ -719,7 +786,7 @@ export default function PsychDashboard() {
                           toast.error('Error al obtener el código de referencia: ' + errorMsg);
                         }
                       }}
-                      className="px-4 py-2 rounded-full border border-slate-200 text-sm text-gantly-blue-500 hover:bg-gantly-blue-500 hover:text-white transition"
+                      className="bg-white/20 hover:bg-white/30 text-white rounded-xl px-5 py-2.5 backdrop-blur-sm transition-all duration-300 cursor-pointer text-sm font-medium border-none"
                     >
                       Invitar Paciente
                     </button>
@@ -729,19 +796,19 @@ export default function PsychDashboard() {
 
               {/* Test de Matching - Aviso si no está completo */}
               {matchingTestCompleted === false && (
-                <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-2xl mb-6">
+                <div className="p-5 bg-gantly-gold/10 border border-gantly-gold/20 rounded-2xl shadow-sm">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-yellow-900 mb-2">
-                        ⚠️ Test de Matching Pendiente
+                      <h3 className="text-base font-heading font-semibold text-gantly-text mb-1">
+                        Test de Matching Pendiente
                       </h3>
-                      <p className="text-sm text-yellow-800">
-                        Completa el test de matching para que los pacientes puedan encontrarte. Este test ayuda a conectar a los pacientes con psicólogos que mejor se adapten a sus necesidades.
+                      <p className="text-sm font-body text-gantly-muted">
+                        Completa el test de matching para que los pacientes puedan encontrarte.
                       </p>
                     </div>
                     <button
                       onClick={() => setTab('matching-test')}
-                      className="px-6 py-3 bg-yellow-500 text-white rounded-full font-semibold hover:bg-yellow-600 transition shadow-sm whitespace-nowrap"
+                      className="px-5 py-2.5 bg-gantly-gold text-gantly-navy rounded-xl font-heading font-medium hover:bg-gantly-gold/90 transition-all duration-300 cursor-pointer text-sm whitespace-nowrap shadow-lg shadow-gantly-gold/20 border-none"
                     >
                       Completar Test
                     </button>
@@ -749,1244 +816,897 @@ export default function PsychDashboard() {
                 </div>
               )}
 
-              {/* Estadísticas */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="p-6 bg-gantly-blue-50 rounded-2xl border border-slate-200">
-                  <div className="text-xs text-gantly-blue-500/70 mb-2 font-semibold uppercase tracking-wider">
-                    Pacientes asignados
-                  </div>
-                  <div className="text-3xl font-bold text-gantly-text">
-                    {patients.length}
-                  </div>
-                </div>
+              {/* Próxima cita */}
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-300 p-6">
+                <h3 className="text-sm font-heading font-medium text-slate-500 uppercase tracking-wide mb-4">Proxima cita</h3>
+                {(() => {
+                  const now = new Date();
+                  const upcomingAppointment = slots
+                    .filter(s => (s.status === 'BOOKED' || s.status === 'CONFIRMED') && s.user)
+                    .filter(apt => {
+                      if (!apt.startTime || !apt.endTime) return false;
+                      const aptDate = new Date(apt.startTime);
+                      return aptDate > now;
+                    })
+                    .sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())[0];
 
-                <div className="p-6 bg-gantly-blue-50 rounded-2xl border border-slate-200">
-                  <div className="text-xs text-gantly-blue-500/70 mb-2 font-semibold uppercase tracking-wider">
-                    Tareas creadas
-                  </div>
-                  <div className="text-3xl font-bold text-green-600">
-                    {tasks.filter(t => t.createdBy === 'PSYCHOLOGIST').length}
-                  </div>
-                </div>
-
-                <div 
-                  className={`p-6 rounded-2xl border cursor-pointer transition-all ${
-                    pendingRequests.length > 0 
-                      ? 'bg-red-50 border-red-300 shadow-md animate-pulse' 
-                      : 'bg-gantly-blue-50 border-slate-200'
-                  }`}
-                  onClick={() => {
-                    setTab('calendario');
-                    setTimeout(() => {
-                      const pendingSection = document.getElementById('solicitudes-pendientes');
-                      if (pendingSection) {
-                        pendingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                      }
-                    }, 100);
-                  }}
-                >
-                  <div className={`text-xs mb-2 font-semibold uppercase tracking-wider ${
-                    pendingRequests.length > 0 ? 'text-red-700' : 'text-gantly-blue-500/70'
-                  }`}>
-                    {pendingRequests.length > 0 ? '⚠️ ' : ''}Citas por confirmar
-                  </div>
-                  <div className={`text-3xl font-bold ${
-                    pendingRequests.length > 0 ? 'text-red-600' : 'text-yellow-600'
-                  }`}>
-                    {pendingRequests.length}
-                  </div>
-                </div>
-
-              </div>
-            </div>
-          </div>
-
-          {/* Columna derecha: próxima cita */}
-          <div className="lg:col-span-1">
-            <div className="bg-white p-10 rounded-[4rem] border border-slate-100 shadow-card h-full flex flex-col">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="material-symbols-outlined text-amber-500 text-sm">
-                  alarm
-                </span>
-                <span className="text-[10px] uppercase tracking-widest font-bold text-gantly-blue-500/40">
-                  Próxima cita
-                </span>
-              </div>
-
-              {(() => {
-                const now = new Date();
-                const upcomingAppointment = slots
-                  .filter(s => (s.status === 'BOOKED' || s.status === 'CONFIRMED') && s.user)
-                  .filter(apt => {
-                    if (!apt.startTime || !apt.endTime) return false;
-                    const aptDate = new Date(apt.startTime);
-                    return aptDate > now;
-                  })
-                  .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())[0];
-
-                return upcomingAppointment ? (
-                  <div className="bg-amber-light/50 rounded-[3rem] p-8 flex-1 flex flex-col justify-between relative overflow-hidden">
-                    <div>
-                      <h4 className="text-3xl font-normal mb-4">
-                        {new Date(upcomingAppointment.startTime).toLocaleDateString(
-                          'es-ES',
-                          {
-                            weekday: 'short',
+                  return upcomingAppointment ? (
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                      <div>
+                        <div className="text-lg font-heading font-bold text-gantly-text">
+                          {new Date(upcomingAppointment.startTime).toLocaleDateString('es-ES', {
+                            weekday: 'long',
                             day: 'numeric',
-                            month: 'short',
-                          },
-                        )}
-                      </h4>
-                      <div className="space-y-3 text-gantly-blue-500">
-                        <div className="flex items-center gap-3 text-sm">
-                          <span className="material-symbols-outlined text-lg">
-                            schedule
-                          </span>
-                          <span className="font-light">
-                            {new Date(
-                              upcomingAppointment.startTime,
-                            ).toLocaleTimeString('es-ES', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </span>
-                        </div>
-                        {upcomingAppointment.user && (
-                          <div className="flex items-center gap-3 text-sm">
-                            <span className="material-symbols-outlined text-lg">
-                              person
-                            </span>
-                            <span className="font-light">
-                              {upcomingAppointment.user.name || upcomingAppointment.user.email}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="mt-6 pt-4 border-t border-amber-500/10 text-sm">
-                      <p className="text-amber-600 font-semibold">
-                        Podrás iniciar la videollamada 1 hora antes
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      className="mt-8 w-full py-3 bg-gantly-blue-600 text-white rounded-full font-medium hover:bg-gantly-blue-500 transition-all shadow-lg shadow-gantly-blue-500/10 text-sm"
-                      onClick={async () => {
-                        if (me && upcomingAppointment.user) {
-                          try {
-                            const roomInfo = await jitsiService.getRoomInfo(
-                              upcomingAppointment.user.email,
-                            );
-                            setVideoCallRoom(roomInfo.roomName);
-                            setVideoCallOtherUser({ email: roomInfo.otherUser.email, name: roomInfo.otherUser.name });
-                            setShowVideoCall(true);
-                          } catch (error: any) {
-                            toast.error(
-                              error.response?.data?.error ||
-                                'No tienes permiso para iniciar esta videollamada',
-                            );
-                          }
-                        }
-                      }}
-                    >
-                      Join Call
-                    </button>
-
-                    <button
-                      type="button"
-                      className="mt-4 w-full py-2 text-sm text-gantly-blue-500 hover:text-gantly-text font-medium transition underline underline-offset-2"
-                      onClick={() => {
-                        setTab('calendario');
-                        setTimeout(() => {
-                          const citasSection = document.querySelector('[data-section="citas-confirmadas"]');
-                          if (citasSection) {
-                            citasSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                          }
-                        }, 100);
-                      }}
-                    >
-                      Ver todas
-                    </button>
-                  </div>
-                ) : (
-                  <div className="bg-amber-light/30 rounded-[3rem] p-8 flex-1 flex flex-col justify-center text-gantly-blue-500/70 text-sm">
-                    No tienes ninguna cita próxima.
-                    <button
-                      type="button"
-                      className="mt-4 px-4 py-2 rounded-full border border-slate-300 text-gantly-blue-500 text-xs font-medium hover:bg-gantly-blue-500 hover:text-white transition"
-                      onClick={() => setTab('calendario')}
-                    >
-                      Ir al calendario
-                    </button>
-                  </div>
-                );
-              })()}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Test de Matching */}
-      {tab === 'matching-test' && (
-        <div className="mt-10 bg-white rounded-3xl p-8 border border-slate-100 shadow-card">
-          <PsychologistMatchingTest
-            onComplete={async () => {
-              // Marcar como completado optimísticamente
-              setMatchingTestCompleted(true);
-              // Verificar el estado real (si el endpoint está disponible)
-              try {
-                await checkMatchingTestStatus();
-              } catch (error) {
-                // Si falla (por ejemplo, 404 porque el servidor no se reinició), mantener true
-              }
-              setTab('perfil');
-              toast.success('Test de matching completado correctamente');
-            }}
-            onBack={() => setTab('perfil')}
-          />
-        </div>
-      )}
-
-      {tab === 'editar-perfil-profesional' && (
-        <PsychEditProfileTab onBack={() => setTab('perfil')} />
-      )}
-
-      {/* Pacientes */}
-      {tab === 'pacientes' && (
-        <PsychPatientsTab
-          patients={patients}
-          loadingPatients={loadingPatients}
-          onRefresh={loadData}
-          onOpenChat={(patientId) => {
-            setSelectedPatient(patientId);
-            setTab('chat');
-          }}
-          onViewPatient={(patientId) => {
-            loadPatientDetails(patientId);
-            setTab('patient-profile');
-          }}
-          onUpdateStatus={updatePatientStatus}
-        />
-      )}
-
-      {/* Tareas */}
-      {tab === 'tareas' && (
-        <PsychTasksTab
-          me={me}
-          tasks={tasks}
-          patients={patients}
-          onRefresh={loadData}
-        />
-      )}
-
-      {/* Tests Asignados */}
-      {tab === 'tests-asignados' && (
-        <PsychTestsTab
-          patients={patients}
-          assignedTests={assignedTests}
-          onRefresh={loadData}
-          onViewTestDetails={(patientId, testId, assignedTestId) => {
-            loadTestDetails(patientId, testId, assignedTestId);
-            setTab('test-details');
-          }}
-        />
-      )}
-
-      {/* Calendario */}
-      {tab === 'calendario' && (
-        <div className="mt-10">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-3xl font-normal text-gantly-text">
-              Gestión de Calendario
-            </h3>
-          </div>
-          {loadingSlots ? (
-            <LoadingSpinner text="Cargando calendario..." />
-          ) : (
-            <>
-          <CalendarWeek
-            mode="PSYCHO"
-            slots={slots}
-            initialWeekStart={calendarWeekStart || undefined}
-            onWeekChange={(weekStart) => setCalendarWeekStart(weekStart)}
-            sessionPrices={psychologistProfile?.sessionPrices ? JSON.parse(psychologistProfile.sessionPrices) : null}
-            patients={patients.map((p: any) => ({ id: p.id, name: p.name, email: p.email }))}
-            onCreateSlot={async (start, end, price) => {
-              try {
-                // Calcular y guardar la semana de la cita antes de crearla
-                const slotDate = new Date(start);
-                const day = (slotDate.getDay() + 6) % 7; // Monday=0
-                const slotWeekStart = new Date(slotDate);
-                slotWeekStart.setDate(slotDate.getDate() - day);
-                slotWeekStart.setHours(0, 0, 0, 0);
-                setCalendarWeekStart(slotWeekStart);
-                
-                await calendarService.createSlot(start, end, price);
-                await loadMySlots();
-                await loadPendingRequests();
-                toast.success('Cita creada exitosamente');
-              } catch (e: any) {
-                const errorMessage = e?.response?.data?.error || 'Error al crear el slot';
-                toast.error(errorMessage);
-              }
-            }}
-            onCreateSlotsRange={async (slots) => {
-              try {
-                // Crear múltiples slots
-                for (const slot of slots) {
-                  await calendarService.createSlot(slot.start, slot.end, slot.price);
-                }
-                await loadMySlots();
-                await loadPendingRequests();
-                toast.success(`${slots.length} citas creadas exitosamente`);
-              } catch (e: any) {
-                const errorMessage = e?.response?.data?.error || 'Error al crear los slots';
-                toast.error(errorMessage);
-                throw e;
-              }
-            }}
-            onAssignToPatient={async (appointmentId, userId) => {
-              try {
-                const slot = slots.find(s => s.id === appointmentId);
-                if (!slot) {
-                  throw new Error('Cita no encontrada');
-                }
-                // Primero eliminar el slot libre para evitar solapamiento al crear la cita
-                await calendarService.deleteSlot(appointmentId);
-                await calendarService.createForPatient(
-                  userId,
-                  slot.startTime,
-                  slot.endTime,
-                  slot.price
-                );
-                await loadMySlots();
-                await loadPendingRequests();
-              } catch (e: any) {
-                const errorMessage = e?.response?.data?.error || 'Error al asignar la cita';
-                toast.error(errorMessage);
-                throw e;
-              }
-            }}
-            onDeleteSlot={async (appointmentId) => {
-              try {
-                await calendarService.deleteSlot(appointmentId);
-                await loadMySlots();
-                await loadPendingRequests();
-              } catch (e: any) {
-                // error handled silently
-              }
-            }}
-            onUpdateSlot={async (appointmentId, updates) => {
-              try {
-                await calendarService.updateSlot(appointmentId, updates);
-                await loadMySlots();
-                await loadPendingRequests();
-                toast.success('Cita actualizada exitosamente');
-              } catch (e: any) {
-                const errorMessage = e?.response?.data?.error || 'Error al actualizar la cita';
-                toast.error(errorMessage);
-              }
-            }}
-          />
-          
-          {/* Solicitudes Pendientes */}
-          {pendingRequests.length > 0 && (
-            <div 
-              id="solicitudes-pendientes"
-              className="mt-10 bg-white rounded-3xl p-8 border border-slate-100 shadow-card"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-[22px] font-normal text-gantly-text flex items-center gap-2">
-                  <span className="material-symbols-outlined text-xl text-gantly-blue-500">
-                    schedule
-                  </span>
-                  Citas por confirmar
-                </h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {pendingRequests.map((req: any) => (
-                  <div
-                    key={req.id}
-                    className="rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow border border-slate-200 flex flex-col min-h-[190px] bg-white"
-                  >
-                    <div className="flex items-start justify-between mb-6">
-                      <p className="text-[10px] tracking-[0.25em] font-bold text-gantly-blue-500/50 uppercase">
-                        Próxima cita
-                      </p>
-                      <div className="w-9 h-9 rounded-full flex items-center justify-center bg-[#FAF5E6]">
-                        <span className="material-symbols-outlined text-xl text-[#B29D6B]">
-                          psychology
-                        </span>
-                      </div>
-                    </div>
-
-                    <h4 className="serif-font text-3xl text-gantly-text mb-1">
-                      {new Date(req.appointment.startTime).toLocaleDateString('es-ES', {
-                        weekday: 'short',
-                        day: '2-digit',
-                        month: 'short',
-                      })}
-                    </h4>
-
-                    <p className="text-sm text-gantly-blue-500/70 font-medium mb-4">
-                      {new Date(req.appointment.startTime).toLocaleTimeString('es-ES', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}{' '}
-                      -{' '}
-                      {new Date(req.appointment.endTime).toLocaleTimeString('es-ES', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </p>
-
-                    {req.appointment.price && (
-                      <p className="text-sm text-gantly-blue-500 font-semibold mb-2">
-                        {req.appointment.price} €
-                      </p>
-                    )}
-
-                    <p className="text-sm text-gantly-blue-500/80 font-medium mb-2">
-                      {req.user.name || req.user.email}
-                    </p>
-
-                    <p className="text-xs text-gantly-blue-500/60 mb-6">
-                      Solicitada: {new Date(req.requestedAt).toLocaleDateString('es-ES', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                      })} {new Date(req.requestedAt).toLocaleTimeString('es-ES', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </p>
-
-                    <div className="mt-auto flex gap-3">
-                      <button
-                        onClick={async () => {
-                          if (confirm('¿Confirmar esta cita para ' + (req.user.name || req.user.email) + '?')) {
-                            try {
-                              await calendarService.confirmAppointment(req.id);
-                              toast.success('Cita confirmada exitosamente. Se ha enviado un correo al paciente.');
-                              await loadMySlots();
-                              await loadPendingRequests();
-                            } catch (e: any) {
-                              toast.error(e?.response?.data?.error || 'Error al confirmar la cita');
-                            }
-                          }
-                        }}
-                        className="flex-1 px-4 py-2 bg-gantly-blue-500 text-white rounded-xl hover:bg-gantly-blue-600 transition font-medium text-sm"
-                      >
-                        Confirmar
-                      </button>
-                      <button
-                        onClick={async () => {
-                          if (confirm('¿Cancelar esta cita?')) {
-                            try {
-                              await calendarService.cancelAppointment(req.appointment.id);
-                              toast.success('Cita cancelada exitosamente');
-                              await loadMySlots();
-                              await loadPendingRequests();
-                            } catch (e: any) {
-                              toast.error(e?.response?.data?.error || 'Error al cancelar la cita');
-                            }
-                          }
-                        }}
-                        className="flex-1 px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition font-medium text-sm"
-                      >
-                        Cancelar
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          {/* Citas Confirmadas y Reservadas */}
-          {!loadingSlots && slots.filter(s => (s.status === 'CONFIRMED' || s.status === 'BOOKED') && s.user).length > 0 && (
-            <div 
-              id="citas-confirmadas"
-              data-section="citas-confirmadas"
-              style={{
-                marginTop: '32px',
-                background: '#ffffff',
-                borderRadius: '20px',
-                boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
-                border: '1px solid #e2e8f0',
-                padding: '32px'
-              }}>
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-[22px] font-normal text-gantly-text flex items-center gap-2">
-                  <span className="material-symbols-outlined text-xl text-gantly-blue-500">
-                    calendar_today
-                  </span>
-                  Citas Confirmadas y Reservadas
-                </h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {slots.filter(s => (s.status === 'CONFIRMED' || s.status === 'BOOKED') && s.user).map(apt => {
-                  const status = apt.status as string | undefined;
-                  const isConfirmed = status === 'CONFIRMED';
-                  const isBooked = status === 'BOOKED';
-                  
-                  const statusLabel = isConfirmed ? 'Confirmada' : isBooked ? 'Reservada' : 'Programada';
-                  const statusClasses = isConfirmed 
-                    ? 'bg-[#F1F8F6] text-[#6B8B7E]'
-                    : 'bg-[#FAF5E6] text-[#9A8754]';
-                  const badgeBg = isConfirmed ? 'bg-[#E9F0EE]' : 'bg-[#F7F3E6]';
-                  const badgeIconColor = isConfirmed ? 'text-[#8DA399]' : 'text-[#B29D6B]';
-                  
-                  return (
-                    <div
-                      key={apt.id}
-                      className="rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow border border-slate-200 flex flex-col min-h-[190px] bg-white"
-                    >
-                      <div className="flex items-start justify-between mb-6">
-                        <p className="text-[10px] tracking-[0.25em] font-bold text-gantly-blue-500/50 uppercase">
-                          Próxima cita
-                        </p>
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center ${badgeBg}`}>
-                          <span className={`material-symbols-outlined text-xl ${badgeIconColor}`}>
-                            psychology
-                          </span>
-                        </div>
-                      </div>
-
-                      <h4 className="serif-font text-3xl text-gantly-text mb-1">
-                        {new Date(apt.startTime).toLocaleDateString('es-ES', {
-                          weekday: 'short',
-                          day: '2-digit',
-                          month: 'short',
-                        })}
-                      </h4>
-
-                      <p className="text-sm text-gantly-blue-500/70 font-medium mb-10">
-                        {new Date(apt.startTime).toLocaleTimeString('es-ES', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}{' '}
-                        -{' '}
-                        {apt.endTime &&
-                          new Date(apt.endTime).toLocaleTimeString('es-ES', {
-                            hour: '2-digit',
-                            minute: '2-digit',
+                            month: 'long',
                           })}
-                      </p>
-
-                      <div className="mt-auto flex items-center justify-between">
-                        <span className="text-sm text-gantly-blue-500/80 font-medium">
-                          {apt.user?.name || 'Paciente'}
-                        </span>
-                        <span className={`inline-flex items-center justify-center rounded-full px-4 py-1 text-[13px] font-medium shadow-sm ${statusClasses}`}>
-                          {statusLabel}
-                        </span>
+                        </div>
+                        <div className="text-sm text-slate-500 mt-1">
+                          {new Date(upcomingAppointment.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                          {upcomingAppointment.user && (
+                            <span> · {upcomingAppointment.user.name || upcomingAppointment.user.email}</span>
+                          )}
+                        </div>
                       </div>
+                      <button
+                        type="button"
+                        className="px-5 py-2.5 bg-gantly-blue text-white rounded-xl font-heading font-medium hover:bg-gantly-blue/90 transition-all duration-300 cursor-pointer text-sm shadow-lg shadow-gantly-blue/20 border-none"
+                        onClick={async () => {
+                          if (me && upcomingAppointment.user) {
+                            try {
+                              const roomInfo = await jitsiService.getRoomInfo(upcomingAppointment.user.email);
+                              setVideoCallRoom(roomInfo.roomName);
+                              setVideoCallOtherUser({ email: roomInfo.otherUser.email, name: roomInfo.otherUser.name });
+                              setShowVideoCall(true);
+                            } catch (error: any) {
+                              toast.error(error.response?.data?.error || 'No tienes permiso para iniciar esta videollamada');
+                            }
+                          }
+                        }}
+                      >
+                        Iniciar Videollamada
+                      </button>
                     </div>
+                  ) : (
+                    <p className="text-sm text-slate-400">No tienes ninguna cita proxima.</p>
                   );
-                })}
+                })()}
               </div>
             </div>
           )}
-            </>
-          )}
-        </div>
-      )}
 
-      {/* Citas Pasadas */}
-      {tab === 'citas-pasadas' && (
-        <div className="mt-10 w-full">
-          <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-card mb-6">
-            <h3 className="text-3xl font-normal text-gantly-text mb-6">
-              Mis Citas Pasadas
-            </h3>
-            {myRating && myRating.averageRating !== null && (
-              <div
-                onClick={async () => {
-                  if (myRating.totalRatings === 0 || !me?.id) return;
-                  setShowRatingsModal(true);
-                  setLoadingRatings(true);
+          {/* Test de Matching */}
+          {tab === 'matching-test' && (
+            <div className="bg-white rounded-2xl p-8 border border-slate-100 shadow-sm">
+              <PsychologistMatchingTest
+                onComplete={async () => {
+                  setMatchingTestCompleted(true);
                   try {
-                    const list = await calendarService.getPsychologistRatings(me.id);
-                    setRatingsList(list);
-                  } catch (e) {
-                    setRatingsList([]);
-                  } finally {
-                    setLoadingRatings(false);
+                    await checkMatchingTestStatus();
+                  } catch (error) {
+                    // Si falla, mantener true
+                  }
+                  setTab('perfil');
+                  toast.success('Test de matching completado correctamente');
+                }}
+                onBack={() => setTab('perfil')}
+              />
+            </div>
+          )}
+
+          {tab === 'editar-perfil-profesional' && (
+            <PsychEditProfileTab onBack={() => setTab('perfil')} />
+          )}
+
+          {/* Pacientes */}
+          {tab === 'pacientes' && (
+            <PsychPatientsTab
+              patients={patients}
+              loadingPatients={loadingPatients}
+              onRefresh={loadData}
+              onOpenChat={(patientId) => {
+                setSelectedPatient(patientId);
+                setTab('chat');
+              }}
+              onViewPatient={(patientId) => {
+                loadPatientDetails(patientId);
+                setTab('patient-profile');
+              }}
+              onUpdateStatus={updatePatientStatus}
+            />
+          )}
+
+          {/* Tareas */}
+          {tab === 'tareas' && (
+            <PsychTasksTab
+              me={me}
+              tasks={tasks}
+              patients={patients}
+              onRefresh={loadData}
+            />
+          )}
+
+          {/* Tests Asignados */}
+          {tab === 'tests-asignados' && (
+            <PsychTestsTab
+              patients={patients}
+              assignedTests={assignedTests}
+              onRefresh={loadData}
+              onViewTestDetails={(patientId, testId, assignedTestId) => {
+                loadTestDetails(patientId, testId, assignedTestId);
+                setTab('test-details');
+              }}
+            />
+          )}
+
+          {/* Calendario */}
+          {tab === 'calendario' && (
+            <div>
+              {loadingSlots ? (
+                <LoadingSpinner text="Cargando calendario..." />
+              ) : (
+                <>
+              <CalendarWeek
+                mode="PSYCHO"
+                slots={slots}
+                initialWeekStart={calendarWeekStart || undefined}
+                onWeekChange={(weekStart) => setCalendarWeekStart(weekStart)}
+                sessionPrices={psychologistProfile?.sessionPrices ? JSON.parse(psychologistProfile.sessionPrices) : null}
+                patients={patients.map((p: any) => ({ id: p.id, name: p.name, email: p.email }))}
+                onCreateSlot={async (start, end, price) => {
+                  try {
+                    const slotDate = new Date(start);
+                    const day = (slotDate.getDay() + 6) % 7;
+                    const slotWeekStart = new Date(slotDate);
+                    slotWeekStart.setDate(slotDate.getDate() - day);
+                    slotWeekStart.setHours(0, 0, 0, 0);
+                    setCalendarWeekStart(slotWeekStart);
+
+                    await calendarService.createSlot(start, end, price);
+                    await loadMySlots();
+                    await loadPendingRequests();
+                    toast.success('Cita creada exitosamente');
+                  } catch (e: any) {
+                    const errorMessage = e?.response?.data?.error || 'Error al crear el slot';
+                    toast.error(errorMessage);
                   }
                 }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  marginTop: '16px',
-                  cursor: myRating.totalRatings > 0 ? 'pointer' : 'default'
+                onCreateSlotsRange={async (slots) => {
+                  try {
+                    for (const slot of slots) {
+                      await calendarService.createSlot(slot.start, slot.end, slot.price);
+                    }
+                    await loadMySlots();
+                    await loadPendingRequests();
+                    toast.success(`${slots.length} citas creadas exitosamente`);
+                  } catch (e: any) {
+                    const errorMessage = e?.response?.data?.error || 'Error al crear los slots';
+                    toast.error(errorMessage);
+                    throw e;
+                  }
                 }}
-                title={myRating.totalRatings > 0 ? 'Click para ver todas las reseñas' : undefined}
-              >
-                <span style={{ fontSize: '24px', color: '#fbbf24' }}>
-                  {'★'.repeat(Math.round(myRating.averageRating))}
-                  {'☆'.repeat(5 - Math.round(myRating.averageRating))}
-                </span>
-                <span style={{ fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>
-                  {myRating.averageRating.toFixed(1)} de 5.0 ({myRating.totalRatings} valoraciones)
-                </span>
-              </div>
-            )}
-          </div>
+                onAssignToPatient={async (appointmentId, userId) => {
+                  try {
+                    const slot = slots.find(s => s.id === appointmentId);
+                    if (!slot) {
+                      throw new Error('Cita no encontrada');
+                    }
+                    await calendarService.deleteSlot(appointmentId);
+                    await calendarService.createForPatient(
+                      userId,
+                      slot.startTime,
+                      slot.endTime,
+                      slot.price
+                    );
+                    await loadMySlots();
+                    await loadPendingRequests();
+                  } catch (e: any) {
+                    const errorMessage = e?.response?.data?.error || 'Error al asignar la cita';
+                    toast.error(errorMessage);
+                    throw e;
+                  }
+                }}
+                onDeleteSlot={async (appointmentId) => {
+                  try {
+                    await calendarService.deleteSlot(appointmentId);
+                    await loadMySlots();
+                    await loadPendingRequests();
+                  } catch (e: any) {
+                    // error handled silently
+                  }
+                }}
+                onUpdateSlot={async (appointmentId, updates) => {
+                  try {
+                    await calendarService.updateSlot(appointmentId, updates);
+                    await loadMySlots();
+                    await loadPendingRequests();
+                    toast.success('Cita actualizada exitosamente');
+                  } catch (e: any) {
+                    const errorMessage = e?.response?.data?.error || 'Error al actualizar la cita';
+                    toast.error(errorMessage);
+                  }
+                }}
+              />
 
-          {loadingPastAppointmentsPsych ? (
-            <div style={{ textAlign: 'center', padding: '60px' }}>
-              <p style={{ color: '#6b7280', fontSize: '16px' }}>Cargando citas pasadas...</p>
-            </div>
-          ) : pastAppointmentsPsych.length === 0 ? (
-            <div style={{
-              background: '#ffffff',
-              borderRadius: '20px',
-              boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
-              padding: '60px',
-              border: '1px solid #e2e8f0',
-              textAlign: 'center'
-            }}>
-              <p style={{ color: '#6b7280', fontSize: '16px' }}>No tienes citas pasadas aún</p>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {pastAppointmentsPsych.map((apt: any) => (
+              {/* Solicitudes Pendientes */}
+              {pendingRequests.length > 0 && (
                 <div
-                  key={apt.id}
-                  style={{
-                    background: '#ffffff',
-                    borderRadius: '16px',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
-                    padding: '24px',
-                    border: '1px solid #e2e8f0'
-                  }}
+                  id="solicitudes-pendientes"
+                  className="mt-8 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm"
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div style={{ flex: 1 }}>
-                      <h4 style={{ margin: '0 0 8px 0', fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>
-                        Cita con {apt.user?.name || 'Paciente'}
-                      </h4>
-                      <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
-                        {new Date(apt.startTime).toLocaleDateString('es-ES', { 
-                          weekday: 'long', 
-                          year: 'numeric', 
-                          month: 'long', 
-                          day: 'numeric' 
-                        })}
-                      </div>
-                      <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
-                        {new Date(apt.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - 
-                        {new Date(apt.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                      {apt.price && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                          <span style={{ fontSize: '14px', color: '#059669', fontWeight: 600 }}>
-                            {parseFloat(apt.price).toFixed(2)}€
-                          </span>
-                          <span style={{
-                            padding: '2px 8px', borderRadius: '999px', fontSize: '11px', fontWeight: 600,
-                            background: apt.paymentStatus === 'PAID' ? 'rgba(34,197,94,0.12)' : 'rgba(234,179,8,0.12)',
-                            color: apt.paymentStatus === 'PAID' ? '#16a34a' : '#ca8a04',
-                          }}>
-                            {apt.paymentStatus === 'PAID' ? 'Pagado' : 'Pendiente'}
-                          </span>
+                  <h3 className="text-lg font-heading font-bold text-gantly-text mb-4 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-lg text-gantly-blue">schedule</span>
+                    Citas por confirmar
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {pendingRequests.map((req: any) => (
+                      <div
+                        key={req.id}
+                        className="rounded-2xl p-5 border border-slate-100 bg-white hover:shadow-lg hover:shadow-gantly-blue/10 transition-all duration-300"
+                      >
+                        <div className="text-lg font-heading font-bold text-gantly-text mb-1">
+                          {new Date(req.appointment.startTime).toLocaleDateString('es-ES', {
+                            weekday: 'short',
+                            day: '2-digit',
+                            month: 'short',
+                          })}
                         </div>
-                      )}
-                    </div>
-                    {apt.rating ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
-                        <div style={{ display: 'flex', gap: '4px' }}>
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <span
-                              key={star}
-                              style={{
-                                fontSize: '20px',
-                                color: star <= apt.rating.rating ? '#fbbf24' : '#d1d5db'
-                              }}
-                            >
-                              ★
-                            </span>
-                          ))}
+                        <div className="text-sm text-slate-500 mb-3">
+                          {new Date(req.appointment.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                          {' - '}
+                          {new Date(req.appointment.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                         </div>
-                        {apt.rating.comment && (
-                          <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', fontStyle: 'italic', maxWidth: '200px', textAlign: 'right' }}>
-                            "{apt.rating.comment}"
-                          </p>
+                        {req.appointment.price && (
+                          <div className="text-sm font-medium text-slate-700 mb-1">{req.appointment.price} EUR</div>
                         )}
-                      </div>
-                    ) : (
-                      <div style={{ fontSize: '14px', color: '#9ca3af', fontStyle: 'italic' }}>
-                        Sin valorar
-                      </div>
-                    )}
-                  </div>
-                  {/* Session Notes */}
-                  <SessionNotesSection appointmentId={apt.id} existingNotes={apt.notes} />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Chat */}
-      {tab === 'chat' && (
-        <div className="mt-10">
-          <div className="flex gap-6 items-start">
-            <div className="w-80 bg-white rounded-3xl p-6 border border-slate-100 shadow-card max-h-[600px] overflow-y-auto">
-              <h4 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 600, color: '#1f2937' }}>
-                Seleccionar Paciente
-              </h4>
-              {patients.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '20px', color: '#9ca3af', fontSize: '14px' }}>
-                  No hay pacientes asignados
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {patients.map(p => (
-                    <div
-                      key={p.id}
-                      onClick={() => setSelectedPatient(p.id)}
-                      style={{
-                        padding: '12px',
-                        background: selectedPatient === p.id ? '#2E93CC' : '#f9fafb',
-                        color: selectedPatient === p.id ? 'white' : '#1f2937',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        border: selectedPatient === p.id ? 'none' : '1px solid #e5e7eb',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px'
-                      }}
-                      onMouseEnter={(e) => {
-                        if (selectedPatient !== p.id) {
-                          e.currentTarget.style.background = '#f3f4f6';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (selectedPatient !== p.id) {
-                          e.currentTarget.style.background = '#f9fafb';
-                        }
-                      }}
-                    >
-                      <div style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '50%',
-                        overflow: 'hidden',
-                        background: '#e5e7eb',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '18px'
-                      }}>
-                        {p.avatarUrl ? (
-                          <img src={p.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        ) : (
-                          '👤'
-                        )}
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 600, fontSize: '14px' }}>{p.name}</div>
-                        <div style={{ fontSize: '12px', opacity: 0.8 }}>{p.email}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div style={{ flex: 1, width: '100%', minWidth: 0 }}>
-              <ChatWidget mode="PSYCHOLOGIST" otherId={selectedPatient || undefined} />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Vista de perfil de paciente */}
-      {tab === 'patient-profile' && viewingPatientId && (
-        <div style={{
-          background: '#ffffff',
-          borderRadius: '12px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          padding: '32px',
-          border: '1px solid #e5e7eb'
-        }}>
-          {loadingPatientDetails ? (
-            <LoadingSpinner text="Cargando detalles del paciente..." />
-          ) : patientDetails ? (
-            <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <div>
-                  <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 700 }}>{patientDetails.name}</h2>
-                  <p style={{ color: '#6b7280', marginTop: '4px' }}>{patientDetails.email}</p>
-                </div>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <button
-                    onClick={() => {
-                      setTab('pacientes');
-                      setViewingPatientId(null);
-                      setPatientDetails(null);
-                      setPatientOverallStats(null);
-                      setPatientStats(null);
-                      setSelectedTestForStats(null);
-                    }}
-                    style={{
-                      padding: '10px 20px',
-                      background: '#f3f4f6',
-                      color: '#1f2937',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontSize: '14px'
-                    }}
-                  >
-                    ← Volver
-                  </button>
-                </div>
-              </div>
-
-              <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: '#f9fafb', borderRadius: '12px' }}>
-                <p><strong>Fecha de registro:</strong> {patientDetails.createdAt ? new Date(patientDetails.createdAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' }) : '—'}</p>
-                <p><strong>Tests completados:</strong> {patientDetails.tests?.length || 0}</p>
-                {patientDetails.gender && <p><strong>Género:</strong> {patientDetails.gender}</p>}
-                {patientDetails.age && <p><strong>Edad:</strong> {patientDetails.age}</p>}
-              </div>
-
-              {patientOverallStats && patientOverallStats.factors && patientOverallStats.factors.length > 0 && (
-                <div style={{ marginBottom: '24px', padding: '24px', background: '#ffffff', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
-                  <h3 style={{ marginTop: 0, marginBottom: '16px' }}>Media general (todos los tests) - Factores</h3>
-                  <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <div style={{ flex: 1, minWidth: 260 }}>
-                      <BarChart
-                        data={patientOverallStats.factors.map((f: any) => ({
-                          label: f.code || f.name,
-                          value: Number(f.percentage) || 0,
-                        }))}
-                        maxValue={100}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div style={{ marginBottom: '24px', padding: '24px', background: '#ffffff', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <h3 style={{ margin: 0 }}>Estadísticas por Test</h3>
-                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <select
-                      value={selectedTestForStats ?? ''}
-                      onChange={(e) => {
-                        const testId = e.target.value ? Number(e.target.value) : null;
-                        setSelectedTestForStats(testId);
-                        if (testId && viewingPatientId) {
-                          loadPatientStats(viewingPatientId, testId);
-                        } else {
-                          setPatientStats(null);
-                        }
-                      }}
-                      style={{ padding: '10px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '14px' }}
-                    >
-                      <option value="">Selecciona test…</option>
-                      {availableTests.map((t: any) => (
-                        <option key={t.id} value={t.id}>{t.title || t.code}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                {!selectedTestForStats && (
-                  <p style={{ color: '#6b7280', marginTop: '8px' }}>Selecciona un test para ver sus estadísticas.</p>
-                )}
-                {selectedTestForStats && loadingPatientDetails && (
-                  <p style={{ color: '#6b7280', marginTop: '8px' }}>Cargando estadísticas...</p>
-                )}
-                {selectedTestForStats && !loadingPatientDetails && patientStats && (
-                  <div style={{ marginTop: '16px' }}>
-                    {patientStats.subfactors && patientStats.subfactors.length > 0 && (
-                      <div style={{ marginBottom: '24px' }}>
-                        <h4>Subfactores (gráfico)</h4>
-                        <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
-                          <div style={{ flex: 1, minWidth: 260 }}>
-                            <BarChart
-                              data={patientStats.subfactors.map((sf: any) => ({
-                                label: sf.subfactorName || sf.subfactorCode,
-                                value: Number(sf.percentage) || 0,
-                                lowPole: sf.minLabel,
-                                highPole: sf.maxLabel,
-                              }))}
-                              maxValue={100}
-                            />
-                          </div>
+                        <div className="text-sm text-slate-600 mb-1">{req.user.name || req.user.email}</div>
+                        <div className="text-xs text-slate-400 mb-4">
+                          Solicitada: {new Date(req.requestedAt).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                         </div>
-                      </div>
-                    )}
-                    {patientStats.factors && patientStats.factors.length > 0 && (
-                      <div style={{ marginBottom: '24px' }}>
-                        <h4>Factores (gráfico)</h4>
-                        <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
-                          <div style={{ flex: 1, minWidth: 260 }}>
-                            <FactorChart
-                              data={patientStats.factors.map((f: any) => {
-                                const percentage = Number(f.percentage) || 0;
-                                const value = Math.round((percentage / 100) * 10);
-                                const code = f.factorCode || '';
-                                return {
-                                  label: f.factorName || code,
-                                  value: Math.max(1, Math.min(10, value)),
-                                  lowPole: f.minLabel,
-                                  highPole: f.maxLabel,
-                                };
-                              })}
-                              maxValue={10}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {patientDetails.tests && patientDetails.tests.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
-                  <p>Este paciente aún no ha completado ningún test.</p>
-                </div>
-              ) : patientDetails.tests && patientDetails.tests.length > 0 ? (
-                <div>
-                  {patientDetails.tests.map((test: any) => (
-                    <div key={test.testId} style={{ marginBottom: '24px', padding: '24px', background: '#ffffff', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                        <div>
-                          <h3 style={{ margin: 0 }}>{test.testTitle}</h3>
-                          <p style={{ fontSize: '14px', color: '#6b7280', marginTop: '4px' }}>
-                            Código: {test.testCode}
-                          </p>
-                        </div>
-                      </div>
-                      <div style={{ marginTop: '20px' }}>
-                        {test.testCode === 'INITIAL' && test.answers && test.answers.length > 0 && (
-                          <InitialTestSummary test={test} />
-                        )}
-                        <h4 style={{ fontSize: '18px', marginBottom: '16px' }}>
-                          Respuestas ({test.answers?.length || 0})
-                        </h4>
-                        {test.answers && test.answers.length > 0 ? (
-                          <div>
-                            {test.answers.map((answer: any, idx: number) => (
-                              <div key={answer.questionId} style={{ marginBottom: '12px', padding: '12px', background: '#f9fafb', borderRadius: '8px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                                  <span style={{ fontSize: '12px', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#2E93CC', color: 'white', borderRadius: '50%', fontWeight: 600 }}>
-                                    {idx + 1}
-                                  </span>
-                                  <strong style={{ fontSize: '15px' }}>{answer.questionText}</strong>
-                                </div>
-                                <div style={{ paddingLeft: '32px' }}>
-                                  {answer.answerText ? (
-                                    <div>
-                                      <p style={{ margin: '4px 0', fontSize: '14px' }}>
-                                        <strong>Respuesta:</strong> {answer.answerText}
-                                        {answer.answerValue !== undefined && answer.answerValue !== null && (
-                                          <span style={{ color: '#6b7280', marginLeft: '8px' }}>
-                                            (Valor: {answer.answerValue})
-                                          </span>
-                                        )}
-                                      </p>
-                                      {answer.textValue && (
-                                        <p style={{ margin: '4px 0', fontSize: '13px', color: '#6b7280' }}>
-                                          <strong>Detalle:</strong> {answer.textValue}
-                                        </p>
-                                      )}
-                                    </div>
-                                  ) : answer.textValue ? (
-                                    <p style={{ margin: '4px 0', fontSize: '14px' }}>
-                                      <strong>Detalle:</strong> {answer.textValue}
-                                    </p>
-                                  ) : answer.numericValue !== undefined && answer.numericValue !== null ? (
-                                    <p style={{ margin: '4px 0', fontSize: '14px' }}>
-                                      <strong>Valor numérico:</strong> {answer.numericValue}
-                                    </p>
-                                  ) : (
-                                    <p style={{ margin: '4px 0', fontSize: '14px', color: '#6b7280', fontStyle: 'italic' }}>
-                                      Sin respuesta registrada
-                                    </p>
-                                  )}
-                                  {answer.createdAt && (
-                                    <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
-                                      {new Date(answer.createdAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p style={{ color: '#6b7280' }}>No hay respuestas registradas para este test.</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-            </>
-          ) : (
-            <EmptyState icon="👤" title="Paciente no encontrado" description="No se pudieron cargar los detalles del paciente." />
-          )}
-        </div>
-      )}
-
-      {/* Vista de detalles de test asignado */}
-      {tab === 'test-details' && viewingTestDetails && (
-        <div style={{
-          background: '#ffffff',
-          borderRadius: '12px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          padding: '32px',
-          border: '1px solid #e5e7eb'
-        }}>
-          {loadingTestDetails ? (
-            <LoadingSpinner text="Cargando detalles del test..." />
-          ) : testDetailsData && testAnswers ? (
-            <>
-              {/* Header con botones */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <div>
-                  <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 700 }}>{testAnswers.testTitle}</h2>
-                  <p style={{ color: '#6b7280', marginTop: '4px' }}>
-                    Código: {testAnswers.testCode}
-                  </p>
-                </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    onClick={() => testReportRef.current?.exportPdf()}
-                    style={{
-                      padding: '10px 20px',
-                      background: '#2E93CC',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                    }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>picture_as_pdf</span>
-                    Exportar PDF
-                  </button>
-                  <button
-                    onClick={() => {
-                      setTab('tests-asignados');
-                      setViewingTestDetails(null);
-                      setTestDetailsData(null);
-                      setTestAnswers(null);
-                    }}
-                    style={{
-                      padding: '10px 20px',
-                      background: '#f3f4f6',
-                      color: '#1f2937',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontSize: '14px'
-                    }}
-                  >
-                    Volver
-                  </button>
-                </div>
-              </div>
-
-              {/* Informe estilo Delphos */}
-              {(() => {
-                const answers = testAnswers.answers || [];
-                const sortedByTime = answers.filter((a: any) => a.createdAt).sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-                const startTime = sortedByTime.length > 0 ? sortedByTime[0].createdAt : undefined;
-                const endTime = sortedByTime.length > 0 ? sortedByTime[sortedByTime.length - 1].createdAt : undefined;
-                let duration: string | undefined;
-                if (startTime && endTime) {
-                  const diffMs = new Date(endTime).getTime() - new Date(startTime).getTime();
-                  const mins = Math.round(diffMs / 60000);
-                  duration = mins >= 60 ? `${Math.floor(mins / 60)}h ${mins % 60}min` : `${mins} min`;
-                }
-                const patientName = viewingTestDetails
-                  ? (patients.find((p: any) => p.id === viewingTestDetails.patientId)?.name || testDetailsData.userEmail || 'Paciente')
-                  : 'Paciente';
-
-                const reportData: TestReportData = {
-                  testTitle: testAnswers.testTitle || '',
-                  userName: patientName,
-                  startTime,
-                  endTime,
-                  duration,
-                  subfactors: (testDetailsData.subfactors || []).map((sf: any) => ({
-                    code: sf.subfactorCode || '',
-                    name: sf.subfactorName || sf.subfactorCode || '',
-                    score: Number(sf.score) || 0,
-                    maxScore: Number(sf.maxScore) || 0,
-                    percentage: Number(sf.percentage) || 0,
-                    minLabel: sf.minLabel,
-                    maxLabel: sf.maxLabel,
-                  })),
-                  factors: (testDetailsData.factors || []).map((f: any) => ({
-                    code: f.factorCode || '',
-                    name: f.factorName || f.factorCode || '',
-                    score: Number(f.score) || 0,
-                    maxScore: Number(f.maxScore) || 0,
-                    percentage: Number(f.percentage) || 0,
-                    minLabel: f.minLabel,
-                    maxLabel: f.maxLabel,
-                  })),
-                };
-                return (
-                  <div style={{ marginBottom: '24px', border: '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden' }}>
-                    <TestReport ref={testReportRef} data={reportData} />
-                  </div>
-                );
-              })()}
-
-              {/* Respuestas (colapsable) */}
-              <details style={{ marginBottom: '24px', padding: '24px', background: '#ffffff', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
-                <summary style={{ cursor: 'pointer', fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>
-                  Respuestas ({testAnswers.answers?.length || 0})
-                </summary>
-                {testAnswers.answers && testAnswers.answers.length > 0 ? (
-                  <div>
-                    {testAnswers.answers.map((answer: any, idx: number) => (
-                      <div key={answer.questionId} style={{ marginBottom: '12px', padding: '12px', background: '#f9fafb', borderRadius: '8px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                          <span style={{ fontSize: '12px', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#2E93CC', color: 'white', borderRadius: '50%', fontWeight: 600 }}>
-                            {idx + 1}
-                          </span>
-                          <strong style={{ fontSize: '15px' }}>{answer.questionText}</strong>
-                        </div>
-                        <div style={{ paddingLeft: '32px' }}>
-                          {answer.answerText ? (
-                            <div>
-                              <p style={{ margin: '4px 0', fontSize: '14px' }}>
-                                <strong>Respuesta:</strong> {answer.answerText}
-                                {answer.answerValue !== undefined && answer.answerValue !== null && (
-                                  <span style={{ color: '#6b7280', marginLeft: '8px' }}>
-                                    (Valor: {answer.answerValue})
-                                  </span>
-                                )}
-                              </p>
-                              {answer.textValue && (
-                                <p style={{ margin: '4px 0', fontSize: '13px', color: '#6b7280' }}>
-                                  <strong>Detalle:</strong> {answer.textValue}
-                                </p>
-                              )}
-                            </div>
-                          ) : answer.textValue ? (
-                            <p style={{ margin: '4px 0', fontSize: '14px' }}>
-                              <strong>Detalle:</strong> {answer.textValue}
-                            </p>
-                          ) : answer.numericValue !== undefined && answer.numericValue !== null ? (
-                            <p style={{ margin: '4px 0', fontSize: '14px' }}>
-                              <strong>Valor numérico:</strong> {answer.numericValue}
-                            </p>
-                          ) : (
-                            <p style={{ margin: '4px 0', fontSize: '14px', color: '#6b7280', fontStyle: 'italic' }}>
-                              Sin respuesta registrada
-                            </p>
-                          )}
-                          {answer.createdAt && (
-                            <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
-                              {new Date(answer.createdAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                            </p>
-                          )}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={async () => {
+                              if (confirm('¿Confirmar esta cita para ' + (req.user.name || req.user.email) + '?')) {
+                                try {
+                                  await calendarService.confirmAppointment(req.id);
+                                  toast.success('Cita confirmada exitosamente. Se ha enviado un correo al paciente.');
+                                  await loadMySlots();
+                                  await loadPendingRequests();
+                                } catch (e: any) {
+                                  toast.error(e?.response?.data?.error || 'Error al confirmar la cita');
+                                }
+                              }
+                            }}
+                            className="flex-1 px-3 py-2 bg-gantly-blue text-white rounded-xl hover:bg-gantly-blue/90 transition-all duration-300 font-heading font-medium text-sm cursor-pointer border-none shadow-md shadow-gantly-blue/20"
+                          >
+                            Confirmar
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (confirm('¿Cancelar esta cita?')) {
+                                try {
+                                  await calendarService.cancelAppointment(req.appointment.id);
+                                  toast.success('Cita cancelada exitosamente');
+                                  await loadMySlots();
+                                  await loadPendingRequests();
+                                } catch (e: any) {
+                                  toast.error(e?.response?.data?.error || 'Error al cancelar la cita');
+                                }
+                              }
+                            }}
+                            className="flex-1 px-3 py-2 bg-red-50 text-red-600 border border-red-200 rounded-xl hover:bg-red-100 transition-colors duration-200 font-medium text-sm cursor-pointer"
+                          >
+                            Cancelar
+                          </button>
                         </div>
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <p style={{ color: '#6b7280' }}>No hay respuestas registradas para este test.</p>
+                </div>
+              )}
+
+              {/* Citas Confirmadas y Reservadas */}
+              {!loadingSlots && slots.filter(s => (s.status === 'CONFIRMED' || s.status === 'BOOKED') && s.user).length > 0 && (
+                <div
+                  id="citas-confirmadas"
+                  data-section="citas-confirmadas"
+                  className="mt-8 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm"
+                >
+                  <h3 className="text-lg font-heading font-bold text-gantly-text mb-4 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-lg text-gantly-blue">calendar_today</span>
+                    Citas Confirmadas y Reservadas
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {slots.filter(s => (s.status === 'CONFIRMED' || s.status === 'BOOKED') && s.user).map(apt => {
+                      const status = apt.status as string | undefined;
+                      const isConfirmed = status === 'CONFIRMED';
+                      const statusLabel = isConfirmed ? 'Confirmada' : 'Reservada';
+
+                      return (
+                        <div
+                          key={apt.id}
+                          className="rounded-2xl p-5 border border-slate-100 bg-white hover:shadow-lg hover:shadow-gantly-blue/10 transition-all duration-300"
+                        >
+                          <div className="text-lg font-heading font-bold text-gantly-text mb-1">
+                            {new Date(apt.startTime).toLocaleDateString('es-ES', {
+                              weekday: 'short',
+                              day: '2-digit',
+                              month: 'short',
+                            })}
+                          </div>
+                          <div className="text-sm font-body text-slate-500 mb-4">
+                            {new Date(apt.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                            {' - '}
+                            {apt.endTime && new Date(apt.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-slate-600 font-body font-medium">{apt.user?.name || 'Paciente'}</span>
+                            <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${
+                              isConfirmed ? 'bg-gantly-emerald/10 text-gantly-emerald' : 'bg-gantly-gold/10 text-gantly-gold'
+                            }`}>
+                              {statusLabel}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Citas Pasadas */}
+          {tab === 'citas-pasadas' && (
+            <div>
+              <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm mb-6">
+                <h3 className="text-lg font-heading font-bold text-gantly-text">Mis Citas Pasadas</h3>
+                {myRating && myRating.averageRating !== null && (
+                  <div
+                    onClick={async () => {
+                      if (myRating.totalRatings === 0 || !me?.id) return;
+                      setShowRatingsModal(true);
+                      setLoadingRatings(true);
+                      try {
+                        const list = await calendarService.getPsychologistRatings(me.id);
+                        setRatingsList(list);
+                      } catch (e) {
+                        setRatingsList([]);
+                      } finally {
+                        setLoadingRatings(false);
+                      }
+                    }}
+                    className="flex items-center gap-2 mt-2 cursor-pointer"
+                    title={myRating.totalRatings > 0 ? 'Click para ver todas las resenas' : undefined}
+                  >
+                    <span className="text-gantly-gold">
+                      {'★'.repeat(Math.round(myRating.averageRating))}{'☆'.repeat(5 - Math.round(myRating.averageRating))}
+                    </span>
+                    <span className="text-sm font-body font-medium text-gantly-muted">
+                      {myRating.averageRating.toFixed(1)} de 5.0 ({myRating.totalRatings} valoraciones)
+                    </span>
+                  </div>
                 )}
-              </details>
-            </>
-          ) : (
-            <EmptyState icon="📊" title="Test no encontrado" description="No se pudieron cargar los detalles del test." />
+              </div>
+
+              {loadingPastAppointmentsPsych ? (
+                <div className="text-center py-10">
+                  <p className="text-slate-500">Cargando citas pasadas...</p>
+                </div>
+              ) : pastAppointmentsPsych.length === 0 ? (
+                <div className="bg-white rounded-2xl p-12 border border-slate-100 shadow-sm text-center">
+                  <p className="text-slate-400">No tienes citas pasadas aun</p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {pastAppointmentsPsych.map((apt: any) => (
+                    <div
+                      key={apt.id}
+                      className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-lg hover:shadow-gantly-blue/10 transition-all duration-300"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h4 className="m-0 text-base font-heading font-semibold text-gantly-text">
+                            Cita con {apt.user?.name || 'Paciente'}
+                          </h4>
+                          <div className="text-sm font-body text-gantly-muted mt-1">
+                            {new Date(apt.startTime).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                          </div>
+                          <div className="text-sm font-body text-gantly-muted">
+                            {new Date(apt.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} -
+                            {new Date(apt.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                          {apt.price && (
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-sm font-heading font-semibold text-gantly-emerald">
+                                {parseFloat(apt.price).toFixed(2)} EUR
+                              </span>
+                              <span className={`text-xs px-2.5 py-1 rounded-full font-heading font-semibold ${
+                                apt.paymentStatus === 'PAID' ? 'bg-gantly-emerald/10 text-gantly-emerald' : 'bg-gantly-gold/10 text-gantly-gold'
+                              }`}>
+                                {apt.paymentStatus === 'PAID' ? 'Pagado' : 'Pendiente'}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        {apt.rating ? (
+                          <div className="flex flex-col items-end gap-1">
+                            <div className="flex gap-0.5">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <span
+                                  key={star}
+                                  className={star <= apt.rating.rating ? 'text-gantly-gold' : 'text-slate-200'}
+                                >
+                                  ★
+                                </span>
+                              ))}
+                            </div>
+                            {apt.rating.comment && (
+                              <p className="m-0 text-xs text-slate-500 italic max-w-[200px] text-right">
+                                &ldquo;{apt.rating.comment}&rdquo;
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-sm text-slate-400 italic">Sin valorar</div>
+                        )}
+                      </div>
+                      <SessionNotesSection appointmentId={apt.id} existingNotes={apt.notes} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Chat */}
+          {tab === 'chat' && (
+            <div className="flex gap-4 items-start">
+              <div className="w-72 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm max-h-[600px] overflow-y-auto flex-shrink-0">
+                <h4 className="m-0 mb-3 text-sm font-heading font-semibold text-gantly-text">Seleccionar Paciente</h4>
+                {patients.length === 0 ? (
+                  <div className="text-center py-5 text-slate-400 text-sm font-body">No hay pacientes asignados</div>
+                ) : (
+                  <div className="flex flex-col gap-1.5">
+                    {patients.map(p => (
+                      <div
+                        key={p.id}
+                        onClick={() => setSelectedPatient(p.id)}
+                        className={`p-3 rounded-xl cursor-pointer transition-all duration-200 flex items-center gap-3 ${
+                          selectedPatient === p.id
+                            ? 'bg-gantly-blue text-white shadow-md shadow-gantly-blue/20'
+                            : 'bg-slate-50 text-slate-800 border border-slate-100 hover:bg-slate-100 hover:shadow-sm'
+                        }`}
+                      >
+                        <div className="w-9 h-9 rounded-full overflow-hidden bg-slate-200 flex items-center justify-center text-sm flex-shrink-0">
+                          {p.avatarUrl ? (
+                            <img src={p.avatarUrl} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <span>👤</span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-heading font-semibold truncate">{p.name}</div>
+                          <div className={`text-xs font-body truncate ${selectedPatient === p.id ? 'opacity-80' : 'text-slate-500'}`}>{p.email}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <ChatWidget mode="PSYCHOLOGIST" otherId={selectedPatient || undefined} />
+              </div>
+            </div>
+          )}
+
+          {/* Vista de perfil de paciente */}
+          {tab === 'patient-profile' && viewingPatientId && (
+            <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+              {loadingPatientDetails ? (
+                <LoadingSpinner text="Cargando detalles del paciente..." />
+              ) : patientDetails ? (
+                <>
+                  <div className="flex justify-between items-center mb-6">
+                    <div>
+                      <h2 className="m-0 text-2xl font-heading font-bold text-gantly-text">{patientDetails.name}</h2>
+                      <p className="text-gantly-muted mt-1 text-sm font-body">{patientDetails.email}</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setTab('pacientes');
+                        setViewingPatientId(null);
+                        setPatientDetails(null);
+                        setPatientOverallStats(null);
+                        setPatientStats(null);
+                        setSelectedTestForStats(null);
+                      }}
+                      className="px-4 py-2 bg-slate-100 text-gantly-muted border border-slate-200 rounded-xl font-heading font-medium cursor-pointer text-sm hover:bg-slate-200 transition-colors duration-200"
+                    >
+                      ← Volver
+                    </button>
+                  </div>
+
+                  <div className="mb-6 p-4 bg-gantly-cloud rounded-xl border border-slate-100">
+                    <p className="text-sm font-body text-gantly-muted m-0"><strong className="font-heading">Fecha de registro:</strong> {patientDetails.createdAt ? new Date(patientDetails.createdAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' }) : '—'}</p>
+                    <p className="text-sm font-body text-gantly-muted m-0 mt-1"><strong className="font-heading">Tests completados:</strong> {patientDetails.tests?.length || 0}</p>
+                    {patientDetails.gender && <p className="text-sm font-body text-gantly-muted m-0 mt-1"><strong className="font-heading">Genero:</strong> {patientDetails.gender}</p>}
+                    {patientDetails.age && <p className="text-sm font-body text-gantly-muted m-0 mt-1"><strong className="font-heading">Edad:</strong> {patientDetails.age}</p>}
+                  </div>
+
+                  {patientOverallStats && patientOverallStats.factors && patientOverallStats.factors.length > 0 && (
+                    <div className="mb-6 p-5 bg-white rounded-xl border border-slate-100">
+                      <h3 className="mt-0 mb-4 text-base font-heading font-semibold text-gantly-text">Media general (todos los tests) - Factores</h3>
+                      <div className="flex gap-6 items-center flex-wrap">
+                        <div className="flex-1 min-w-[260px]">
+                          <BarChart
+                            data={patientOverallStats.factors.map((f: any) => ({
+                              label: f.code || f.name,
+                              value: Number(f.percentage) || 0,
+                            }))}
+                            maxValue={100}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="mb-6 p-5 bg-white rounded-xl border border-slate-100">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="m-0 text-base font-heading font-semibold text-gantly-text">Estadisticas por Test</h3>
+                      <select
+                        value={selectedTestForStats ?? ''}
+                        onChange={(e) => {
+                          const testId = e.target.value ? Number(e.target.value) : null;
+                          setSelectedTestForStats(testId);
+                          if (testId && viewingPatientId) {
+                            loadPatientStats(viewingPatientId, testId);
+                          } else {
+                            setPatientStats(null);
+                          }
+                        }}
+                        className="px-3 py-2 border border-slate-200 rounded-lg text-sm font-body cursor-pointer"
+                      >
+                        <option value="">Selecciona test...</option>
+                        {availableTests.map((t: any) => (
+                          <option key={t.id} value={t.id}>{t.title || t.code}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {!selectedTestForStats && (
+                      <p className="text-slate-500 text-sm mt-2">Selecciona un test para ver sus estadisticas.</p>
+                    )}
+                    {selectedTestForStats && loadingPatientDetails && (
+                      <p className="text-slate-500 text-sm mt-2">Cargando estadisticas...</p>
+                    )}
+                    {selectedTestForStats && !loadingPatientDetails && patientStats && (
+                      <div className="mt-4">
+                        {patientStats.subfactors && patientStats.subfactors.length > 0 && (
+                          <div className="mb-6">
+                            <h4 className="text-sm font-heading font-semibold text-gantly-text mb-3">Subfactores</h4>
+                            <div className="flex gap-6 items-center flex-wrap">
+                              <div className="flex-1 min-w-[260px]">
+                                <BarChart
+                                  data={patientStats.subfactors.map((sf: any) => ({
+                                    label: sf.subfactorName || sf.subfactorCode,
+                                    value: Number(sf.percentage) || 0,
+                                    lowPole: sf.minLabel,
+                                    highPole: sf.maxLabel,
+                                  }))}
+                                  maxValue={100}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {patientStats.factors && patientStats.factors.length > 0 && (
+                          <div className="mb-6">
+                            <h4 className="text-sm font-heading font-semibold text-gantly-text mb-3">Factores</h4>
+                            <div className="flex gap-6 items-center flex-wrap">
+                              <div className="flex-1 min-w-[260px]">
+                                <FactorChart
+                                  data={patientStats.factors.map((f: any) => {
+                                    const percentage = Number(f.percentage) || 0;
+                                    const value = Math.round((percentage / 100) * 10);
+                                    const code = f.factorCode || '';
+                                    return {
+                                      label: f.factorName || code,
+                                      value: Math.max(1, Math.min(10, value)),
+                                      lowPole: f.minLabel,
+                                      highPole: f.maxLabel,
+                                    };
+                                  })}
+                                  maxValue={10}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {patientDetails.tests && patientDetails.tests.length === 0 ? (
+                    <div className="text-center py-10 text-slate-400">
+                      <p>Este paciente aun no ha completado ningun test.</p>
+                    </div>
+                  ) : patientDetails.tests && patientDetails.tests.length > 0 ? (
+                    <div>
+                      {patientDetails.tests.map((test: any) => (
+                        <div key={test.testId} className="mb-5 p-5 bg-white rounded-xl border border-slate-100">
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h3 className="m-0 text-base font-heading font-semibold text-gantly-text">{test.testTitle}</h3>
+                              <p className="text-xs text-slate-400 mt-1 font-mono">Codigo: {test.testCode}</p>
+                            </div>
+                          </div>
+                          <div className="mt-4">
+                            {test.testCode === 'INITIAL' && test.answers && test.answers.length > 0 && (
+                              <InitialTestSummary test={test} />
+                            )}
+                            <h4 className="text-sm font-heading font-semibold text-gantly-text mb-3">
+                              Respuestas ({test.answers?.length || 0})
+                            </h4>
+                            {test.answers && test.answers.length > 0 ? (
+                              <div>
+                                {test.answers.map((answer: any, idx: number) => (
+                                  <div key={answer.questionId} className="mb-2 p-3 bg-slate-50 rounded-lg">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className="text-[11px] w-5 h-5 flex items-center justify-center bg-gantly-blue text-white rounded-full font-semibold">
+                                        {idx + 1}
+                                      </span>
+                                      <strong className="text-sm font-heading text-gantly-text">{answer.questionText}</strong>
+                                    </div>
+                                    <div className="pl-7">
+                                      {answer.answerText ? (
+                                        <div>
+                                          <p className="m-0 text-sm text-slate-600">
+                                            <strong>Respuesta:</strong> {answer.answerText}
+                                            {answer.answerValue !== undefined && answer.answerValue !== null && (
+                                              <span className="text-slate-400 ml-2">(Valor: {answer.answerValue})</span>
+                                            )}
+                                          </p>
+                                          {answer.textValue && (
+                                            <p className="m-0 text-xs text-slate-500 mt-0.5">
+                                              <strong>Detalle:</strong> {answer.textValue}
+                                            </p>
+                                          )}
+                                        </div>
+                                      ) : answer.textValue ? (
+                                        <p className="m-0 text-sm text-slate-600"><strong>Detalle:</strong> {answer.textValue}</p>
+                                      ) : answer.numericValue !== undefined && answer.numericValue !== null ? (
+                                        <p className="m-0 text-sm text-slate-600"><strong>Valor numerico:</strong> {answer.numericValue}</p>
+                                      ) : (
+                                        <p className="m-0 text-sm text-slate-400 italic">Sin respuesta registrada</p>
+                                      )}
+                                      {answer.createdAt && (
+                                        <p className="text-xs text-slate-400 mt-0.5 m-0">
+                                          {new Date(answer.createdAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-slate-400 text-sm">No hay respuestas registradas para este test.</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </>
+              ) : (
+                <EmptyState icon="👤" title="Paciente no encontrado" description="No se pudieron cargar los detalles del paciente." />
+              )}
+            </div>
+          )}
+
+          {/* Vista de detalles de test asignado */}
+          {tab === 'test-details' && viewingTestDetails && (
+            <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+              {loadingTestDetails ? (
+                <LoadingSpinner text="Cargando detalles del test..." />
+              ) : testDetailsData && testAnswers ? (
+                <>
+                  {/* Header con botones */}
+                  <div className="flex justify-between items-center mb-6">
+                    <div>
+                      <h2 className="m-0 text-2xl font-heading font-bold text-gantly-text">{testAnswers.testTitle}</h2>
+                      <p className="text-sm text-gantly-muted mt-1 font-mono">Codigo: {testAnswers.testCode}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => testReportRef.current?.exportPdf()}
+                        className="px-4 py-2 bg-gantly-blue text-white border-none rounded-xl font-heading font-medium cursor-pointer text-sm flex items-center gap-1.5 hover:bg-gantly-blue/90 transition-all duration-300 shadow-md shadow-gantly-blue/20"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+                        Exportar PDF
+                      </button>
+                      <button
+                        onClick={() => {
+                          setTab('tests-asignados');
+                          setViewingTestDetails(null);
+                          setTestDetailsData(null);
+                          setTestAnswers(null);
+                        }}
+                        className="px-4 py-2 bg-slate-100 text-gantly-muted border border-slate-200 rounded-xl font-heading font-medium cursor-pointer text-sm hover:bg-slate-200 transition-colors duration-200"
+                      >
+                        Volver
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Informe estilo Delphos */}
+                  {(() => {
+                    const answers = testAnswers.answers || [];
+                    const sortedByTime = answers.filter((a: any) => a.createdAt).sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                    const startTime = sortedByTime.length > 0 ? sortedByTime[0].createdAt : undefined;
+                    const endTime = sortedByTime.length > 0 ? sortedByTime[sortedByTime.length - 1].createdAt : undefined;
+                    let duration: string | undefined;
+                    if (startTime && endTime) {
+                      const diffMs = new Date(endTime).getTime() - new Date(startTime).getTime();
+                      const mins = Math.round(diffMs / 60000);
+                      duration = mins >= 60 ? `${Math.floor(mins / 60)}h ${mins % 60}min` : `${mins} min`;
+                    }
+                    const patientName = viewingTestDetails
+                      ? (patients.find((p: any) => p.id === viewingTestDetails.patientId)?.name || testDetailsData.userEmail || 'Paciente')
+                      : 'Paciente';
+
+                    const reportData: TestReportData = {
+                      testTitle: testAnswers.testTitle || '',
+                      userName: patientName,
+                      startTime,
+                      endTime,
+                      duration,
+                      subfactors: (testDetailsData.subfactors || []).map((sf: any) => ({
+                        code: sf.subfactorCode || '',
+                        name: sf.subfactorName || sf.subfactorCode || '',
+                        score: Number(sf.score) || 0,
+                        maxScore: Number(sf.maxScore) || 0,
+                        percentage: Number(sf.percentage) || 0,
+                        minLabel: sf.minLabel,
+                        maxLabel: sf.maxLabel,
+                      })),
+                      factors: (testDetailsData.factors || []).map((f: any) => ({
+                        code: f.factorCode || '',
+                        name: f.factorName || f.factorCode || '',
+                        score: Number(f.score) || 0,
+                        maxScore: Number(f.maxScore) || 0,
+                        percentage: Number(f.percentage) || 0,
+                        minLabel: f.minLabel,
+                        maxLabel: f.maxLabel,
+                      })),
+                    };
+                    return (
+                      <div className="mb-6 border border-slate-100 rounded-xl overflow-hidden">
+                        <TestReport ref={testReportRef} data={reportData} />
+                      </div>
+                    );
+                  })()}
+
+                  {/* Respuestas (colapsable) */}
+                  <details className="mb-6 p-5 bg-white rounded-xl border border-slate-100">
+                    <summary className="cursor-pointer text-base font-heading font-semibold text-gantly-text mb-4">
+                      Respuestas ({testAnswers.answers?.length || 0})
+                    </summary>
+                    {testAnswers.answers && testAnswers.answers.length > 0 ? (
+                      <div>
+                        {testAnswers.answers.map((answer: any, idx: number) => (
+                          <div key={answer.questionId} className="mb-2 p-3 bg-slate-50 rounded-lg">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-[11px] w-5 h-5 flex items-center justify-center bg-gantly-blue text-white rounded-full font-semibold">
+                                {idx + 1}
+                              </span>
+                              <strong className="text-sm font-heading text-gantly-text">{answer.questionText}</strong>
+                            </div>
+                            <div className="pl-7">
+                              {answer.answerText ? (
+                                <div>
+                                  <p className="m-0 text-sm text-slate-600">
+                                    <strong>Respuesta:</strong> {answer.answerText}
+                                    {answer.answerValue !== undefined && answer.answerValue !== null && (
+                                      <span className="text-slate-400 ml-2">(Valor: {answer.answerValue})</span>
+                                    )}
+                                  </p>
+                                  {answer.textValue && (
+                                    <p className="m-0 text-xs text-slate-500 mt-0.5"><strong>Detalle:</strong> {answer.textValue}</p>
+                                  )}
+                                </div>
+                              ) : answer.textValue ? (
+                                <p className="m-0 text-sm text-slate-600"><strong>Detalle:</strong> {answer.textValue}</p>
+                              ) : answer.numericValue !== undefined && answer.numericValue !== null ? (
+                                <p className="m-0 text-sm text-slate-600"><strong>Valor numerico:</strong> {answer.numericValue}</p>
+                              ) : (
+                                <p className="m-0 text-sm text-slate-400 italic">Sin respuesta registrada</p>
+                              )}
+                              {answer.createdAt && (
+                                <p className="text-xs text-slate-400 mt-0.5 m-0">
+                                  {new Date(answer.createdAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-slate-400 text-sm">No hay respuestas registradas para este test.</p>
+                    )}
+                  </details>
+                </>
+              ) : (
+                <EmptyState icon="📊" title="Test no encontrado" description="No se pudieron cargar los detalles del test." />
+              )}
+            </div>
+          )}
+
+          {/* Videollamada Jitsi - NUNCA desmontar, usar ref para mantener montado */}
+          {(() => {
+            const shouldRender = showVideoCall || (videoCallRef.current && videoCallRef.current.room);
+            const roomToUse: string | undefined = showVideoCall ? (videoCallRoom ?? undefined) : (videoCallRef.current?.room ?? undefined);
+            const userToUse = showVideoCall ? me : videoCallRef.current?.user;
+            const otherUserToUse = showVideoCall ? videoCallOtherUser : videoCallRef.current?.otherUser;
+
+            return shouldRender && roomToUse && userToUse ? (
+              <div className="fixed inset-0 z-[10000]">
+                <JitsiVideoCall
+                  key={`jitsi-${roomToUse}`}
+                  roomName={roomToUse}
+                  userEmail={userToUse.email}
+                  userName={userToUse.name || 'Psicologo'}
+                  otherUserEmail={otherUserToUse?.email}
+                  otherUserName={otherUserToUse?.name}
+                  onClose={handleVideoCallClose}
+                />
+              </div>
+            ) : null;
+          })()}
+
+          {/* Facturacion */}
+          {tab === 'facturacion' && (
+            <PsychBillingTab
+              appointments={billingAppointments}
+              loading={loadingBillingAppointments}
+              onRefresh={loadBillingAppointments}
+            />
           )}
         </div>
-      )}
-
-      {/* Videollamada Jitsi - NUNCA desmontar, usar ref para mantener montado */}
-      {(() => {
-        // Si tenemos una referencia, renderizar el componente incluso si showVideoCall es false temporalmente
-        const shouldRender = showVideoCall || (videoCallRef.current && videoCallRef.current.room);
-        const roomToUse: string | undefined = showVideoCall ? (videoCallRoom ?? undefined) : (videoCallRef.current?.room ?? undefined);
-        const userToUse = showVideoCall ? me : videoCallRef.current?.user;
-        const otherUserToUse = showVideoCall ? videoCallOtherUser : videoCallRef.current?.otherUser;
-        
-        return shouldRender && roomToUse && userToUse ? (
-          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10000, pointerEvents: 'auto' }}>
-            <JitsiVideoCall
-              key={`jitsi-${roomToUse}`} // Key estable para evitar re-montajes
-              roomName={roomToUse}
-              userEmail={userToUse.email}
-              userName={userToUse.name || 'Psicólogo'}
-              otherUserEmail={otherUserToUse?.email}
-              otherUserName={otherUserToUse?.name}
-              onClose={handleVideoCallClose}
-            />
-          </div>
-        ) : null;
-      })()}
-
-      {/* Facturación */}
-      {tab === 'facturacion' && (
-        <PsychBillingTab
-          appointments={billingAppointments}
-          loading={loadingBillingAppointments}
-          onRefresh={loadBillingAppointments}
-        />
-      )}
-      </main>
+      </div>
 
       {/* Modal de Código de Referencia */}
       {showReferralModal && referralCode && referralUrl && (
         <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
           onClick={() => setShowReferralModal(false)}
         >
           <div
-            className="bg-white rounded-3xl p-8 max-w-md w-full border border-slate-100 shadow-card"
+            className="bg-white rounded-2xl p-6 max-w-md w-full border border-slate-100 shadow-2xl shadow-slate-900/20"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-normal text-gantly-text">
-                Invitar Paciente
-              </h3>
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="text-lg font-heading font-bold text-gantly-text m-0">Invitar Paciente</h3>
               <button
                 onClick={() => setShowReferralModal(false)}
-                className="text-gantly-blue-500/60 hover:text-gantly-text transition"
+                className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer bg-transparent border-none"
               >
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
 
-            <p className="text-gantly-blue-500/70 mb-4">
+            <p className="text-sm text-slate-500 mb-4">
               Comparte este enlace con tus pacientes para que se unan directamente a tu consulta:
             </p>
 
-            <div className="bg-gantly-blue-50 rounded-2xl p-4 mb-4 border border-slate-200">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs text-gantly-blue-500/70 font-semibold uppercase tracking-wider">
-                  Enlace de invitación
-                </span>
-              </div>
+            <div className="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-100">
+              <div className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-2">Enlace de invitacion</div>
               <div className="flex items-center gap-2">
                 <input
                   type="text"
                   readOnly
                   value={referralUrl}
-                  className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm text-gantly-text"
+                  className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700"
                   onClick={(e) => (e.target as HTMLInputElement).select()}
                 />
                 <button
@@ -1998,50 +1718,46 @@ export default function PsychDashboard() {
                       toast.error('Error al copiar el enlace');
                     }
                   }}
-                  className="px-4 py-2 bg-gantly-blue-500 text-white rounded-xl hover:bg-gantly-blue-600 transition text-sm font-medium"
+                  className="px-3 py-2 bg-gantly-blue text-white rounded-lg hover:bg-gantly-blue/90 transition-all duration-300 text-sm font-heading font-medium cursor-pointer border-none shadow-md shadow-gantly-blue/20"
                 >
                   Copiar
                 </button>
               </div>
             </div>
 
-            <div className="bg-gantly-blue-50 rounded-2xl p-4 mb-4 border border-slate-200">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs text-gantly-blue-500/70 font-semibold uppercase tracking-wider">
-                  Código de referencia
-                </span>
-              </div>
+            <div className="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-100">
+              <div className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-2">Codigo de referencia</div>
               <div className="flex items-center gap-2">
                 <input
                   type="text"
                   readOnly
                   value={referralCode}
-                  className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm text-gantly-text font-mono"
+                  className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 font-mono"
                   onClick={(e) => (e.target as HTMLInputElement).select()}
                 />
                 <button
                   onClick={async () => {
                     try {
                       await navigator.clipboard.writeText(referralCode);
-                      toast.success('Código copiado al portapapeles');
+                      toast.success('Codigo copiado al portapapeles');
                     } catch (error) {
-                      toast.error('Error al copiar el código');
+                      toast.error('Error al copiar el codigo');
                     }
                   }}
-                  className="px-4 py-2 bg-gantly-blue-500 text-white rounded-xl hover:bg-gantly-blue-600 transition text-sm font-medium"
+                  className="px-3 py-2 bg-gantly-blue text-white rounded-lg hover:bg-gantly-blue/90 transition-all duration-300 text-sm font-heading font-medium cursor-pointer border-none shadow-md shadow-gantly-blue/20"
                 >
                   Copiar
                 </button>
               </div>
             </div>
 
-            <p className="text-xs text-gantly-blue-500/60 mb-4">
-              Los pacientes que usen este enlace o código se unirán automáticamente a tu consulta como pacientes asignados.
+            <p className="text-xs text-slate-400 mb-4">
+              Los pacientes que usen este enlace o codigo se uniran automaticamente a tu consulta como pacientes asignados.
             </p>
 
             <button
               onClick={() => setShowReferralModal(false)}
-              className="w-full px-4 py-2 rounded-full border border-slate-200 text-sm text-gantly-blue-500 hover:bg-gantly-blue-500 hover:text-white transition"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-heading text-gantly-muted hover:bg-slate-50 transition-colors duration-200 cursor-pointer"
             >
               Cerrar
             </button>

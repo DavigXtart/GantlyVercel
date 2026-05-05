@@ -65,10 +65,10 @@ export default function Navbar({ onLogin, onStart }: NavbarProps) {
             <li key={key}>
               <button
                 onClick={() => handleNavLink(href)}
-                className={`text-sm font-body transition-colors cursor-pointer ${
+                className={`text-[15px] font-medium font-body transition-colors cursor-pointer ${
                   scrolled
                     ? 'text-slate-600 hover:text-gantly-blue'
-                    : 'text-white/80 hover:text-white'
+                    : 'text-white/90 hover:text-white'
                 }`}
               >
                 {t(`landing.nav.${key}`)}
@@ -81,20 +81,20 @@ export default function Navbar({ onLogin, onStart }: NavbarProps) {
         <div className="hidden lg:flex items-center gap-3">
           <button
             onClick={toggleLanguage}
-            className={`text-xs font-body transition-colors px-2 py-1 rounded-md border cursor-pointer ${
+            className={`text-sm font-semibold font-body transition-colors px-3 py-1.5 rounded-lg border cursor-pointer ${
               scrolled
-                ? 'text-slate-400 hover:text-slate-600 border-slate-200 hover:border-slate-300'
-                : 'text-white/60 hover:text-white/90 border-white/20 hover:border-white/40'
+                ? 'text-slate-500 hover:text-slate-700 border-slate-300 hover:border-slate-400 bg-slate-50'
+                : 'text-white/90 hover:text-white border-white/40 hover:border-white/60 bg-white/10'
             }`}
           >
             {t('landing.nav.language')}
           </button>
           <button
             onClick={onLogin}
-            className={`text-sm font-body transition-colors px-4 py-1.5 rounded-xl border cursor-pointer ${
+            className={`text-[15px] font-semibold font-body transition-colors px-5 py-2 rounded-xl border cursor-pointer ${
               scrolled
-                ? 'text-slate-600 hover:text-slate-800 border-slate-200 hover:border-slate-300'
-                : 'text-white/80 hover:text-white border-white/20 hover:border-white/40'
+                ? 'text-slate-700 hover:text-slate-900 border-slate-300 hover:border-slate-400 bg-slate-50 hover:bg-slate-100'
+                : 'text-white hover:text-white border-white/40 hover:border-white/60 bg-white/10 hover:bg-white/20'
             }`}
           >
             {t('landing.nav.login')}

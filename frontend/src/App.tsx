@@ -10,7 +10,7 @@ import GlobalLoader from './components/ui/GlobalLoader';
 import Maintenance from './components/Maintenance';
 import CookieBanner from './components/ui/CookieBanner';
 import CrisisButton from './components/CrisisButton';
-import NotificationBell from './components/ui/NotificationBell';
+import LogoSvg from './assets/logo-gantly.svg';
 
 // Lazy-loaded heavy components
 const AdminPanel = lazy(() => import('./components/AdminPanel'));
@@ -172,37 +172,51 @@ function Dashboard({ role, logout, onStartTest }: {
   const navigate = useNavigate();
   const [adminTab, setAdminTab] = useState<'tests' | 'users' | 'sections' | 'admin-tests' | 'admin-users' | 'patients' | 'psychologists' | 'statistics'>('users');
 
-  return (
-    <div>
-      <nav>
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3
-            onClick={() => navigate('/')}
-            style={{ cursor: 'pointer', userSelect: 'none', transition: 'opacity 0.2s' }}
-            onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
-          >
-            Gantly
-          </h3>
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            {role === 'ADMIN' && (
-              <>
-                <button className={`btn-secondary ${adminTab === 'users' ? 'active' : ''}`} onClick={() => setAdminTab('users')}>Roles</button>
-                <button className={`btn-secondary ${adminTab === 'admin-tests' ? 'active' : ''}`} onClick={() => setAdminTab('admin-tests')}>Tests</button>
-                <button className={`btn-secondary ${adminTab === 'patients' ? 'active' : ''}`} onClick={() => setAdminTab('patients')}>Pacientes</button>
-                <button className={`btn-secondary ${adminTab === 'psychologists' ? 'active' : ''}`} onClick={() => setAdminTab('psychologists')}>Psicólogos</button>
-                <button className={`btn-secondary ${adminTab === 'sections' ? 'active' : ''}`} onClick={() => setAdminTab('sections')}>Secciones</button>
-                <button className={`btn-secondary ${adminTab === 'statistics' ? 'active' : ''}`} onClick={() => setAdminTab('statistics')}>Estadísticas</button>
-              </>
-            )}
-            {(role === 'USER' || role === 'PSYCHOLOGIST' || role === 'EMPRESA') && <NotificationBell />}
-            <button onClick={() => { logout(); navigate('/'); }} className="btn-secondary">Cerrar sesión</button>
-          </div>
-        </div>
-      </nav>
-
+  // For USER, PSYCHOLOGIST, and EMPRESA roles, their dashboards handle their own navbar
+  if (role === 'USER') {
+    return (
       <Suspense fallback={<LazyFallback />}>
-        {role === 'ADMIN' && (
+        <UserDashboard onStartTest={onStartTest} />
+      </Suspense>
+    );
+  }
+
+  if (role === 'PSYCHOLOGIST') {
+    return (
+      <Suspense fallback={<LazyFallback />}>
+        <PsychDashboard />
+      </Suspense>
+    );
+  }
+
+  if (role === 'EMPRESA') {
+    return (
+      <Suspense fallback={<LazyFallback />}>
+        <ClinicDashboard />
+      </Suspense>
+    );
+  }
+
+  // ADMIN role: render the outer nav with tabs
+  if (role === 'ADMIN') {
+    return (
+      <div>
+        <nav>
+          <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <img src={LogoSvg} alt="Gantly" className="h-7 cursor-pointer" onClick={() => navigate('/')} />
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <button className={`btn-secondary ${adminTab === 'users' ? 'active' : ''}`} onClick={() => setAdminTab('users')}>Roles</button>
+              <button className={`btn-secondary ${adminTab === 'admin-tests' ? 'active' : ''}`} onClick={() => setAdminTab('admin-tests')}>Tests</button>
+              <button className={`btn-secondary ${adminTab === 'patients' ? 'active' : ''}`} onClick={() => setAdminTab('patients')}>Pacientes</button>
+              <button className={`btn-secondary ${adminTab === 'psychologists' ? 'active' : ''}`} onClick={() => setAdminTab('psychologists')}>Psicólogos</button>
+              <button className={`btn-secondary ${adminTab === 'sections' ? 'active' : ''}`} onClick={() => setAdminTab('sections')}>Secciones</button>
+              <button className={`btn-secondary ${adminTab === 'statistics' ? 'active' : ''}`} onClick={() => setAdminTab('statistics')}>Estadísticas</button>
+              <button onClick={() => { logout(); navigate('/'); }} className="btn-secondary">Cerrar sesión</button>
+            </div>
+          </div>
+        </nav>
+
+        <Suspense fallback={<LazyFallback />}>
           <div>
             {adminTab === 'users' ? <AdminUsersPanel /> :
               adminTab === 'admin-tests' ? <AdminPanel /> :
@@ -212,25 +226,26 @@ function Dashboard({ role, logout, onStartTest }: {
                       adminTab === 'statistics' ? <AdminStatistics /> :
                         <AdminPanel />}
           </div>
-        )}
-        {role === 'USER' && <UserDashboard onStartTest={onStartTest} />}
-        {role === 'PSYCHOLOGIST' && <PsychDashboard />}
-        {role === 'EMPRESA' && <ClinicDashboard />}
-      </Suspense>
+        </Suspense>
 
-      {!role && (
-        <div className="container" style={{ maxWidth: '1200px', marginTop: 24, padding: '40px', textAlign: 'center' }}>
-          <div style={{ fontSize: '18px', marginBottom: '16px' }}>Cargando tu cuenta...</div>
-          <div style={{ fontSize: '14px', color: '#6b7280' }}>
-            Si esto tarda mucho, verifica que el backend esté funcionando correctamente.
-          </div>
+        <GlobalLoader />
+        <ToastContainer />
+        <CookieBanner onPrivacyClick={() => navigate('/privacidad')} />
+      </div>
+    );
+  }
+
+  // No role yet (loading state)
+  return (
+    <div>
+      <div className="container" style={{ maxWidth: '1200px', marginTop: 24, padding: '40px', textAlign: 'center' }}>
+        <div style={{ fontSize: '18px', marginBottom: '16px' }}>Cargando tu cuenta...</div>
+        <div style={{ fontSize: '14px', color: '#6b7280' }}>
+          Si esto tarda mucho, verifica que el backend esté funcionando correctamente.
         </div>
-      )}
-
+      </div>
       <GlobalLoader />
       <ToastContainer />
-      <CookieBanner onPrivacyClick={() => navigate('/privacidad')} />
-      {role === 'USER' && <CrisisButton />}
     </div>
   );
 }
@@ -255,14 +270,7 @@ function TestPage({ onBack }: { onBack: () => void }) {
     <div>
       <nav>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3
-            onClick={() => navigate('/')}
-            style={{ cursor: 'pointer', userSelect: 'none', transition: 'opacity 0.2s' }}
-            onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
-          >
-            Gantly
-          </h3>
+          <img src={LogoSvg} alt="Gantly" className="h-7 cursor-pointer" onClick={() => navigate('/')} />
           <button onClick={handleBack} className="btn-secondary">Volver</button>
         </div>
       </nav>
@@ -368,11 +376,7 @@ function App() {
           <div>
             <nav>
               <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 onClick={() => navigate('/')} style={{ cursor: 'pointer', userSelect: 'none', transition: 'opacity 0.2s' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}>
-                  Gantly
-                </h3>
+                <img src={LogoSvg} alt="Gantly" className="h-7 cursor-pointer" onClick={() => navigate('/')} />
                 <button onClick={() => navigate('/')} className="btn-secondary">Volver</button>
               </div>
             </nav>

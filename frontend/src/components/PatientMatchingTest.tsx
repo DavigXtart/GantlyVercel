@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react';
-import Lottie from 'lottie-react';
-import JSZip from 'jszip';
 import { matchingService } from '../services/api';
 import { toast } from './ui/Toast';
-import backgroundPng from '../assets/Adobe Express - file (1).png';
-import airBalloonLottieUrl from '../assets/Air Balloony.lottie?url';
+import LogoSvg from '../assets/logo-gantly.svg';
 
 interface Question {
   id: number;
@@ -40,77 +37,9 @@ export default function PatientMatchingTest({ onComplete, onBack }: PatientMatch
   const [answers, setAnswers] = useState<Record<number, { answerId?: number; answerIds?: number[]; textValue?: string; numericValue?: number }>>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [airBalloonData, setAirBalloonData] = useState<any>(null);
 
   useEffect(() => {
     loadTest();
-    
-    // Cargar animaciones Lottie (archivos ZIP comprimidos)
-    const loadLottieFile = async (url: string, setData: (data: any) => void, _name: string) => {
-      try {
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const arrayBuffer = await response.arrayBuffer();
-        const zip = await JSZip.loadAsync(arrayBuffer);
-
-        let jsonFile = null;
-        const manifestFile = zip.file('manifest.json');
-
-        if (manifestFile) {
-          const manifestData = await manifestFile.async('string');
-          const manifest = JSON.parse(manifestData);
-
-          if (manifest.animations && manifest.animations.length > 0) {
-            const animationInfo = manifest.animations[0];
-
-            let animationFile = null;
-            if (typeof animationInfo === 'string') {
-              animationFile = animationInfo;
-            } else if (typeof animationInfo === 'object' && animationInfo !== null) {
-              animationFile = animationInfo.file ||
-                             animationInfo.id ||
-                             animationInfo.uuid ||
-                             animationInfo.path ||
-                             animationInfo.name ||
-                             (animationInfo.animations && animationInfo.animations[0]) ||
-                             Object.values(animationInfo).find(v => typeof v === 'string' && v.length > 10);
-            }
-
-            if (animationFile && typeof animationFile === 'string') {
-              let filePath = animationFile;
-              if (!filePath.includes('/')) {
-                filePath = `animations/${filePath}`;
-              }
-              if (!filePath.endsWith('.json')) {
-                filePath = `${filePath}.json`;
-              }
-              jsonFile = zip.file(filePath);
-            }
-          }
-        }
-
-        if (!jsonFile) {
-          const jsonFiles = Object.keys(zip.files).filter(fname =>
-            fname.endsWith('.json') && fname !== 'manifest.json'
-          );
-          if (jsonFiles.length > 0) {
-            jsonFile = zip.file(jsonFiles[0]);
-          }
-        }
-
-        if (jsonFile) {
-          const jsonData = await jsonFile.async('string');
-          const parsedData = JSON.parse(jsonData);
-          setData(parsedData);
-        }
-      } catch (err) {
-        // Continuar sin la animación si hay error
-      }
-    };
-    
-    loadLottieFile(airBalloonLottieUrl, setAirBalloonData, 'Air Balloon');
   }, []);
 
   const loadTest = async () => {
@@ -136,27 +65,27 @@ export default function PatientMatchingTest({ onComplete, onBack }: PatientMatch
   // Filtrar preguntas visibles basado en respuestas anteriores
   const getVisibleQuestions = (): Question[] => {
     if (!test) return [];
-    
+
     const visible: Question[] = [];
-    const question3 = test.questions.find(q => q.position === 3); // Ocupación principal
+    const question3 = test.questions.find(q => q.position === 3); // Ocupacion principal
     const question4 = test.questions.find(q => q.position === 4); // Toma de decisiones
-    
+
     for (const question of test.questions) {
-      // La pregunta 4 (posición 4) solo se muestra si la pregunta 3 tiene respuesta con posición 3, 4, 5 o 6
-      // Estas posiciones corresponden a: Profesional cualificado (3), Mando intermedio (4), Directivo (5), Autónomo (6)
+      // La pregunta 4 (posicion 4) solo se muestra si la pregunta 3 tiene respuesta con posicion 3, 4, 5 o 6
+      // Estas posiciones corresponden a: Profesional cualificado (3), Mando intermedio (4), Directivo (5), Autonomo (6)
       if (question.position === 4 && question4) {
         if (question3) {
           const answer3 = answers[question3.id];
           if (answer3?.answerId) {
             const selectedAnswer = question3.answers.find(a => a.id === answer3.answerId);
             if (selectedAnswer) {
-              // Verificar si la posición de la respuesta es 3, 4, 5 o 6
+              // Verificar si la posicion de la respuesta es 3, 4, 5 o 6
               const answerPosition = selectedAnswer.position;
               if (answerPosition >= 3 && answerPosition <= 6) {
                 visible.push(question);
               }
             } else {
-              // Si no hay respuesta válida, no mostrar la pregunta 4
+              // Si no hay respuesta valida, no mostrar la pregunta 4
               continue;
             }
           } else {
@@ -170,7 +99,7 @@ export default function PatientMatchingTest({ onComplete, onBack }: PatientMatch
         visible.push(question);
       }
     }
-    
+
     return visible;
   };
 
@@ -178,21 +107,21 @@ export default function PatientMatchingTest({ onComplete, onBack }: PatientMatch
 
   const handleAnswer = (questionId: number, answerId?: number, numericValue?: number, textValue?: string, autoAdvance: boolean = true) => {
     if (!test) return;
-    
+
     const question = test.questions.find(q => q.id === questionId);
     if (!question) return;
 
     setAnswers(prev => {
       const prevEntry = prev[questionId] || {};
-      
+
       if (question.type === 'MULTIPLE' || question.type === 'MULTI') {
         const currentIds = prevEntry.answerIds || [];
         const nextIds = answerId !== undefined
-          ? (currentIds.includes(answerId) 
+          ? (currentIds.includes(answerId)
               ? currentIds.filter(id => id !== answerId)
               : [...currentIds, answerId])
           : currentIds;
-        
+
         return {
           ...prev,
           [questionId]: {
@@ -256,7 +185,7 @@ export default function PatientMatchingTest({ onComplete, onBack }: PatientMatch
   const handleSubmit = async () => {
     if (!test) return;
 
-    // Verificar que todas las preguntas visibles estén respondidas
+    // Verificar que todas las preguntas visibles esten respondidas
     const unansweredQuestions = visibleQuestions.filter(q => !isQuestionAnswered(q));
     if (unansweredQuestions.length > 0) {
       toast.error('Por favor responde todas las preguntas antes de continuar');
@@ -268,7 +197,7 @@ export default function PatientMatchingTest({ onComplete, onBack }: PatientMatch
 
       // Convertir respuestas al formato esperado por el backend
       const submitAnswers: any[] = [];
-      
+
       // Solo enviar respuestas de preguntas visibles
       for (const question of visibleQuestions) {
         const answer = answers[question.id];
@@ -302,10 +231,10 @@ export default function PatientMatchingTest({ onComplete, onBack }: PatientMatch
     }
   };
 
-  // Actualizar el índice cuando cambian las preguntas visibles
+  // Actualizar el indice cuando cambian las preguntas visibles
   useEffect(() => {
     if (visibleQuestions.length > 0) {
-      // Si el índice actual está fuera de rango, ajustarlo
+      // Si el indice actual esta fuera de rango, ajustarlo
       if (currentQuestionIndex >= visibleQuestions.length) {
         setCurrentQuestionIndex(Math.max(0, visibleQuestions.length - 1));
       }
@@ -314,45 +243,10 @@ export default function PatientMatchingTest({ onComplete, onBack }: PatientMatch
 
   if (loading) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-
-        }}
-      >
-        <img 
-          src={backgroundPng} 
-          alt="background" 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            zIndex: 0,
-            pointerEvents: 'none',
-          }}
-        />
-        <div
-          style={{
-            background: 'rgba(250, 232, 214, 0.85)',
-            border: '1px solid rgba(46, 147, 204, 0.2)',
-            borderRadius: '24px',
-            padding: '48px 40px',
-            textAlign: 'center',
-            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)',
-            position: 'relative',
-            zIndex: 2,
-          }}
-        >
-          <p style={{ fontSize: '18px', color: '#475569', fontWeight: 500, margin: 0 }}>
-            Cargando test de matching...
-          </p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-lg text-slate-600 font-medium">Cargando test de matching...</p>
         </div>
       </div>
     );
@@ -360,75 +254,14 @@ export default function PatientMatchingTest({ onComplete, onBack }: PatientMatch
 
   if (!test || test.questions.length === 0) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-
-        }}
-      >
-        <img 
-          src={backgroundPng} 
-          alt="background" 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            zIndex: 0,
-            pointerEvents: 'none',
-          }}
-        />
-        <div
-          style={{
-            background: 'rgba(250, 232, 214, 0.85)',
-            border: '1px solid rgba(46, 147, 204, 0.2)',
-            borderRadius: '24px',
-            padding: '48px 40px',
-            maxWidth: '480px',
-            textAlign: 'center',
-            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)',
-            position: 'relative',
-            zIndex: 2,
-          }}
-        >
-          <h2 style={{ 
-            margin: '0 0 12px', 
-            fontSize: '26px',
-            color: '#0F172A',
-
-            fontWeight: 700,
-          }}>
-            Test no disponible
-          </h2>
-          <p style={{ 
-            margin: '0 0 24px', 
-            color: '#475569',
-            fontSize: '16px',
-          }}>
-            El test de matching no está configurado.
-          </p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex items-center justify-center px-6">
+        <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 p-8 md:p-12 max-w-md text-center">
+          <h2 className="text-2xl font-bold text-slate-800 mb-3">Test no disponible</h2>
+          <p className="text-slate-500 mb-6">El test de matching no esta configurado.</p>
           {onBack && (
             <button
               onClick={onBack}
-              style={{
-                padding: '12px 24px',
-                borderRadius: '24px',
-                border: 'none',
-                background: '#2E93CC',
-                color: '#ffffff',
-                fontSize: '15px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(46, 147, 204, 0.3)',
-                transition: 'all 0.3s',
-      
-              }}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-medium transition-colors duration-200 cursor-pointer"
             >
               Volver
             </button>
@@ -440,45 +273,10 @@ export default function PatientMatchingTest({ onComplete, onBack }: PatientMatch
 
   if (visibleQuestions.length === 0) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-
-        }}
-      >
-        <img 
-          src={backgroundPng} 
-          alt="background" 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            zIndex: 0,
-            pointerEvents: 'none',
-          }}
-        />
-        <div
-          style={{
-            background: 'rgba(250, 232, 214, 0.85)',
-            border: '1px solid rgba(46, 147, 204, 0.2)',
-            borderRadius: '24px',
-            padding: '48px 40px',
-            textAlign: 'center',
-            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)',
-            position: 'relative',
-            zIndex: 2,
-          }}
-        >
-          <p style={{ fontSize: '18px', color: '#475569', fontWeight: 500, margin: 0 }}>
-            No hay preguntas disponibles
-          </p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-lg text-slate-600 font-medium">No hay preguntas disponibles</p>
         </div>
       </div>
     );
@@ -491,63 +289,29 @@ export default function PatientMatchingTest({ onComplete, onBack }: PatientMatch
   const isCurrentAnswered = isQuestionAnswered(currentQuestion);
 
   const renderSingleOptions = () => (
-    <div style={{ display: 'grid', gap: '16px' }}>
+    <div className="flex flex-col gap-3">
       {currentQuestion.answers.map(answer => {
         const isSelected = currentAnswer?.answerId === answer.id;
         return (
           <button
             key={answer.id}
             onClick={() => handleAnswer(currentQuestion.id, answer.id, undefined, undefined, true)}
-            style={{
-              padding: '18px 24px',
-              borderRadius: '16px',
-              border: `2px solid ${isSelected ? '#2E93CC' : 'rgba(46, 147, 204, 0.3)'}`,
-              background: isSelected ? '#EBF6FC' : '#f8f9fa',
-              color: '#0F172A',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-    
-              fontSize: '16px',
-              textAlign: 'left',
-              boxShadow: isSelected ? '0 4px 12px rgba(46, 147, 204, 0.2)' : 'none',
-            }}
-            onMouseEnter={(e) => {
-              if (!isSelected) {
-                e.currentTarget.style.borderColor = '#2E93CC';
-                e.currentTarget.style.background = 'rgba(250, 232, 214, 0.6)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(46, 147, 204, 0.15)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isSelected) {
-                e.currentTarget.style.borderColor = 'rgba(46, 147, 204, 0.3)';
-                e.currentTarget.style.background = '#f8f9fa';
-                e.currentTarget.style.boxShadow = 'none';
-              }
-            }}
+            className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all duration-200 text-left ${
+              isSelected
+                ? 'border-blue-500 bg-blue-50 shadow-sm'
+                : 'border-slate-200 hover:border-blue-400 hover:bg-blue-50/50'
+            }`}
           >
-            <span style={{ fontSize: '16px', fontWeight: 500, flex: 1 }}>{answer.text}</span>
             <div
-              style={{
-                width: '24px',
-                height: '24px',
-                borderRadius: '50%',
-                border: `2px solid ${isSelected ? '#2E93CC' : 'rgba(46, 147, 204, 0.4)'}`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: isSelected ? '#2E93CC' : 'transparent',
-                color: isSelected ? '#ffffff' : 'transparent',
-                transition: 'all 0.3s ease',
-                flexShrink: 0,
-                marginLeft: '16px',
-              }}
+              className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all duration-200 ${
+                isSelected
+                  ? 'bg-blue-500 border-blue-500'
+                  : 'border-slate-300'
+              }`}
             >
-              {isSelected && '✓'}
+              {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
             </div>
+            <span className="text-slate-700 font-medium">{answer.text}</span>
           </button>
         );
       })}
@@ -557,63 +321,33 @@ export default function PatientMatchingTest({ onComplete, onBack }: PatientMatch
   const renderMultiOptions = () => {
     const selectedIds = new Set(currentAnswer?.answerIds || []);
     return (
-      <div style={{ display: 'grid', gap: '16px' }}>
+      <div className="flex flex-col gap-3">
         {currentQuestion.answers.map(answer => {
           const isSelected = selectedIds.has(answer.id);
           return (
             <button
               key={answer.id}
               onClick={() => handleAnswer(currentQuestion.id, answer.id)}
-              style={{
-                padding: '18px 24px',
-                borderRadius: '16px',
-                border: `2px solid ${isSelected ? '#2E93CC' : 'rgba(46, 147, 204, 0.3)'}`,
-                background: isSelected ? '#EBF6FC' : '#f8f9fa',
-                color: '#0F172A',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-      
-                fontSize: '16px',
-                textAlign: 'left',
-                boxShadow: isSelected ? '0 4px 12px rgba(46, 147, 204, 0.2)' : 'none',
-              }}
-              onMouseEnter={(e) => {
-                if (!isSelected) {
-                  e.currentTarget.style.borderColor = '#2E93CC';
-                  e.currentTarget.style.background = 'rgba(250, 232, 214, 0.6)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(46, 147, 204, 0.15)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isSelected) {
-                  e.currentTarget.style.borderColor = 'rgba(46, 147, 204, 0.3)';
-                  e.currentTarget.style.background = '#f8f9fa';
-                  e.currentTarget.style.boxShadow = 'none';
-                }
-              }}
+              className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all duration-200 text-left ${
+                isSelected
+                  ? 'border-blue-500 bg-blue-50 shadow-sm'
+                  : 'border-slate-200 hover:border-blue-400 hover:bg-blue-50/50'
+              }`}
             >
-              <span style={{ fontSize: '16px', fontWeight: 500, flex: 1 }}>{answer.text}</span>
               <div
-                style={{
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '6px',
-                  border: `2px solid ${isSelected ? '#2E93CC' : 'rgba(46, 147, 204, 0.4)'}`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: isSelected ? '#2E93CC' : 'transparent',
-                  color: isSelected ? '#ffffff' : 'transparent',
-                  transition: 'all 0.3s ease',
-                  flexShrink: 0,
-                  marginLeft: '16px',
-                }}
+                className={`w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-all duration-200 ${
+                  isSelected
+                    ? 'bg-blue-500 border-blue-500'
+                    : 'border-slate-300'
+                }`}
               >
-                {isSelected && '✓'}
+                {isSelected && (
+                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
               </div>
+              <span className="text-slate-700 font-medium">{answer.text}</span>
             </button>
           );
         })}
@@ -623,48 +357,32 @@ export default function PatientMatchingTest({ onComplete, onBack }: PatientMatch
 
   const renderTextInput = () => {
     // Detectar si es una pregunta de fecha de nacimiento
-    const isDateQuestion = currentQuestion.text.toLowerCase().includes('fecha de nacimiento') || 
+    const isDateQuestion = currentQuestion.text.toLowerCase().includes('fecha de nacimiento') ||
                           currentQuestion.text.toLowerCase().includes('fecha de nac') ||
                           currentQuestion.type === 'DATE';
-    
+
     if (isDateQuestion) {
       return (
-        <div style={{ marginTop: '12px' }}>
+        <div className="mt-3">
           <input
             type="date"
             value={currentAnswer?.textValue || ''}
             onChange={(e) => handleAnswer(currentQuestion.id, undefined, undefined, e.target.value, false)}
-            max={new Date().toISOString().split('T')[0]} // No permitir fechas futuras
-            style={{
-              width: '100%',
-              padding: '16px',
-              borderRadius: '16px',
-              border: '1px solid rgba(46, 147, 204, 0.4)',
-              fontSize: '16px',
-    
-              backgroundColor: '#ffffff',
-            }}
+            max={new Date().toISOString().split('T')[0]}
+            className="w-full px-4 py-4 border border-slate-200 rounded-xl text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
           />
         </div>
       );
     }
-    
+
     return (
-      <div style={{ marginTop: '12px' }}>
+      <div className="mt-3">
         <textarea
           value={currentAnswer?.textValue || ''}
           onChange={(e) => handleAnswer(currentQuestion.id, undefined, undefined, e.target.value, false)}
           rows={4}
-          placeholder="Escribe tu respuesta aquí..."
-          style={{
-            width: '100%',
-            padding: '16px',
-            borderRadius: '16px',
-            border: '1px solid rgba(46, 147, 204, 0.4)',
-            fontSize: '16px',
-  
-            resize: 'vertical',
-          }}
+          placeholder="Escribe tu respuesta aqui..."
+          className="w-full px-4 py-4 border border-slate-200 rounded-xl text-base resize-y focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
         />
       </div>
     );
@@ -677,240 +395,65 @@ export default function PatientMatchingTest({ onComplete, onBack }: PatientMatch
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        padding: '80px 24px 80px',
-        position: 'relative',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Background PNG */}
-      <img 
-        src={backgroundPng} 
-        alt="background" 
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          zIndex: 0,
-          pointerEvents: 'none',
-        }}
-      />
-      
-      {/* Lottie Animations */}
-      {airBalloonData && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 1,
-            pointerEvents: 'none',
-          }}
-        >
-          <div
-            style={{
-              position: 'absolute',
-              top: '10%',
-              right: '5%',
-              width: '200px',
-              height: '200px',
-              zIndex: 10,
-            }}
-          >
-            <Lottie animationData={airBalloonData} loop={true} />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+      {/* Sticky Header */}
+      <header className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img src={LogoSvg} alt="Gantly" className="h-7" />
+            <span className="text-slate-800 font-semibold text-sm sm:text-base truncate max-w-[200px] sm:max-w-none">
+              {test.title}
+            </span>
           </div>
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="text-slate-400 hover:text-slate-600 text-sm cursor-pointer transition-colors duration-200"
+            >
+              Salir
+            </button>
+          )}
         </div>
-      )}
+      </header>
 
-      {/* Top navigation */}
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '960px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '32px',
-          position: 'relative',
-          zIndex: 2,
-        }}
-      >
-        <div style={{
-          fontSize: '28px',
-          fontWeight: 700,
-          color: '#2E93CC',
-          letterSpacing: '-0.02em',
-        }}>
-          Gantly
+      {/* Progress Bar */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-6">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-medium text-slate-500">
+            Pregunta {currentQuestionIndex + 1} de {visibleQuestions.length}
+          </span>
+          <span className="text-xs text-slate-400">{Math.round(progress)}%</span>
         </div>
-        {onBack && (
-          <button
-            onClick={onBack}
-            style={{
-              padding: '10px 24px',
-              borderRadius: '24px',
-              border: '1px solid rgba(46, 147, 204, 0.3)',
-              background: 'rgba(250, 232, 214, 0.85)',
-              color: '#475569',
-              fontSize: '15px',
-              fontWeight: 500,
-              cursor: 'pointer',
-              transition: 'all 0.3s',
-    
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(250, 232, 214, 1)';
-              e.currentTarget.style.borderColor = '#2E93CC';
-              e.currentTarget.style.color = '#2E93CC';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(250, 232, 214, 0.85)';
-              e.currentTarget.style.borderColor = 'rgba(46, 147, 204, 0.3)';
-              e.currentTarget.style.color = '#475569';
-            }}
-          >
-            Guardar y salir
-          </button>
-        )}
+        <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-blue-500 rounded-full transition-all duration-500 ease-out"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
       </div>
 
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '960px',
-          position: 'relative',
-          zIndex: 2,
-          display: 'grid',
-          gap: '24px',
-        }}
-      >
-        {/* Progress */}
-        <div
-          style={{
-            background: 'rgba(250, 232, 214, 0.85)',
-            border: '1px solid rgba(46, 147, 204, 0.2)',
-            borderRadius: '24px',
-            padding: '32px 40px',
-            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)'
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
-            <div style={{ flex: 1 }}>
-              <h2 style={{ 
-                margin: 0, 
-                fontSize: '28px', 
-                color: '#0F172A',
-    
-                fontWeight: 700,
-              }}>
-                {test.title}
-              </h2>
-              <p style={{ 
-                margin: '8px 0 0', 
-                color: '#475569', 
-                fontSize: '16px', 
-                maxWidth: '560px',
-                lineHeight: 1.6,
-              }}>
-                {test.description}
-              </p>
-            </div>
-            <div
-              style={{
-                padding: '8px 16px',
-                borderRadius: '20px',
-                background: '#EBF6FC',
-                color: '#475569',
-                fontSize: '14px',
-                fontWeight: 600,
-      
-              }}
-            >
-              Pregunta {currentQuestionIndex + 1} de {visibleQuestions.length}
-            </div>
-          </div>
-          <div
-            style={{
-              width: '100%',
-              height: '10px',
-              borderRadius: '999px',
-              overflow: 'hidden',
-              background: '#EBF6FC'
-            }}
-          >
-            <div
-              style={{
-                width: `${progress}%`,
-                height: '100%',
-                background: '#2E93CC',
-                transition: 'width 0.45s ease',
-                borderRadius: '999px',
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Question */}
-        <div
-          style={{
-            background: 'rgba(250, 232, 214, 0.9)',
-            border: '1px solid rgba(46, 147, 204, 0.2)',
-            borderRadius: '24px',
-            padding: '48px 40px',
-            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)',
-          }}
-        >
-          <h3
-            style={{
-              margin: '0 0 32px',
-              fontSize: 'clamp(24px, 3vw, 32px)',
-              color: '#0F172A',
-              lineHeight: 1.4,
-  
-              fontWeight: 600,
-            }}
-          >
+      {/* Question Area */}
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 p-6 sm:p-8 md:p-12">
+          {/* Question Text */}
+          <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-8 leading-relaxed">
             {currentQuestion.text}
-          </h3>
+          </h2>
+
+          {/* Answer Options */}
           {renderQuestionContent()}
         </div>
 
-        {/* Bottom bar */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            background: 'rgba(250, 232, 214, 0.85)',
-            border: '1px solid rgba(46, 147, 204, 0.2)',
-            borderRadius: '24px',
-            padding: '24px 32px',
-            boxShadow: '0 8px 32px rgba(46, 147, 204, 0.15)'
-          }}
-        >
+        {/* Navigation Buttons */}
+        <div className="flex items-center justify-between mt-6">
           <button
             onClick={goToPreviousQuestion}
             disabled={currentQuestionIndex === 0 || submitting}
-            style={{
-              padding: '12px 24px',
-              borderRadius: '24px',
-              border: 'none',
-              background: 'rgba(255,255,255,0.7)',
-              color: '#475569',
-              fontWeight: 600,
-              cursor: currentQuestionIndex === 0 ? 'not-allowed' : 'pointer',
-              opacity: currentQuestionIndex === 0 ? 0.5 : 1,
-    
-            }}
+            className={`font-medium transition-colors duration-200 ${
+              currentQuestionIndex === 0
+                ? 'text-slate-300 cursor-not-allowed'
+                : 'text-slate-500 hover:text-slate-700 cursor-pointer'
+            }`}
           >
             ← Anterior
           </button>
@@ -919,19 +462,11 @@ export default function PatientMatchingTest({ onComplete, onBack }: PatientMatch
             <button
               onClick={handleSubmit}
               disabled={!isCurrentAnswered || submitting}
-              style={{
-                padding: '14px 32px',
-                borderRadius: '24px',
-                border: 'none',
-                background: !isCurrentAnswered || submitting ? '#94a3b8' : '#2E93CC',
-                color: '#ffffff',
-                fontSize: '16px',
-                fontWeight: 600,
-                cursor: !isCurrentAnswered || submitting ? 'not-allowed' : 'pointer',
-                boxShadow: !isCurrentAnswered || submitting ? 'none' : '0 4px 12px rgba(46, 147, 204, 0.3)',
-                transition: 'all 0.3s',
-      
-              }}
+              className={`px-6 py-3 rounded-xl font-medium transition-colors duration-200 ${
+                !isCurrentAnswered || submitting
+                  ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                  : 'bg-blue-500 hover:bg-blue-600 text-white cursor-pointer'
+              }`}
             >
               {submitting ? 'Enviando...' : 'Completar Test'}
             </button>
@@ -939,19 +474,11 @@ export default function PatientMatchingTest({ onComplete, onBack }: PatientMatch
             <button
               onClick={goToNextQuestion}
               disabled={!isCurrentAnswered}
-              style={{
-                padding: '14px 32px',
-                borderRadius: '24px',
-                border: 'none',
-                background: isCurrentAnswered ? '#2E93CC' : '#94a3b8',
-                color: '#ffffff',
-                fontSize: '16px',
-                fontWeight: 600,
-                cursor: isCurrentAnswered ? 'pointer' : 'not-allowed',
-                boxShadow: isCurrentAnswered ? '0 4px 12px rgba(46, 147, 204, 0.3)' : 'none',
-                transition: 'all 0.3s',
-      
-              }}
+              className={`px-6 py-3 rounded-xl font-medium transition-colors duration-200 ${
+                !isCurrentAnswered
+                  ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                  : 'bg-blue-500 hover:bg-blue-600 text-white cursor-pointer'
+              }`}
             >
               Siguiente →
             </button>
