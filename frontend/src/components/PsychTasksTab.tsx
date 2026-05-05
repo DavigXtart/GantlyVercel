@@ -22,10 +22,10 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
   const [expandedTasks, setExpandedTasks] = useState<Set<number>>(new Set());
 
   const loadTaskFiles = async (taskId: number) => {
-    try { setTaskFiles(prev => ({ ...prev, [taskId]: await tasksService.getFiles(taskId) })); } catch {}
+    try { const files = await tasksService.getFiles(taskId); setTaskFiles(prev => ({ ...prev, [taskId]: files })); } catch {}
   };
   const loadTaskComments = async (taskId: number) => {
-    try { setTaskComments(prev => ({ ...prev, [taskId]: await tasksService.getComments(taskId) })); } catch {}
+    try { const comments = await tasksService.getComments(taskId); setTaskComments(prev => ({ ...prev, [taskId]: comments })); } catch {}
   };
   const loadTaskDetails = async (taskId: number) => {
     try {
