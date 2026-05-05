@@ -12,6 +12,7 @@
 - Sesiones disponibles:
   - `2026-05-04-audit-y-fixes.md` — Audit completo del codebase + 25 fixes implementados
   - `2026-05-05-landing-page.md` — Rediseño completo de la landing page (12 secciones, i18n, animaciones)
+  - `2026-05-06-erp-redesign-y-fixes.md` — ERP ConfigTab + rediseño premium + fix notificaciones + fix calendario 500
 
 ## Project Overview
 Plataforma de salud mental que conecta pacientes con psicólogos.
