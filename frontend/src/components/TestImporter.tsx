@@ -109,10 +109,10 @@ export default function TestImporter({ onImported, onCancel }: TestImporterProps
   // Vista de upload / drag-and-drop
   if (!parseResult) {
     return (
-      <div className="card" style={{ marginBottom: '24px' }}>
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6" style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h2>Importar Test desde Excel</h2>
-          <button className="btn-secondary" onClick={onCancel} style={{ width: 'auto', padding: '8px 16px' }}>
+          <button className="px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-xl font-medium hover:bg-slate-50 transition-colors cursor-pointer" onClick={onCancel} style={{ width: 'auto', padding: '8px 16px' }}>
             Cancelar
           </button>
         </div>
@@ -169,14 +169,14 @@ export default function TestImporter({ onImported, onCancel }: TestImporterProps
   // Vista de preview y confirmación
   return (
     <div>
-      <div className="card" style={{ marginBottom: '24px' }}>
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6" style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h2>Preview de importación</h2>
           <div style={{ display: 'flex', gap: '12px' }}>
-            <button className="btn-secondary" onClick={() => { setParseResult(null); setError(null); }} style={{ width: 'auto', padding: '8px 16px' }}>
+            <button className="px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-xl font-medium hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => { setParseResult(null); setError(null); }} style={{ width: 'auto', padding: '8px 16px' }}>
               Seleccionar otro archivo
             </button>
-            <button className="btn-secondary" onClick={onCancel} style={{ width: 'auto', padding: '8px 16px' }}>
+            <button className="px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-xl font-medium hover:bg-slate-50 transition-colors cursor-pointer" onClick={onCancel} style={{ width: 'auto', padding: '8px 16px' }}>
               Cancelar
             </button>
           </div>
@@ -198,7 +198,7 @@ export default function TestImporter({ onImported, onCancel }: TestImporterProps
 
         {/* Formulario */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
-          <div className="form-group" style={{ margin: 0 }}>
+          <div className="flex flex-col gap-1.5" style={{ margin: 0 }}>
             <label>Código del test *</label>
             <input
               value={code}
@@ -207,15 +207,15 @@ export default function TestImporter({ onImported, onCancel }: TestImporterProps
               style={{ textTransform: 'uppercase' }}
             />
           </div>
-          <div className="form-group" style={{ margin: 0 }}>
+          <div className="flex flex-col gap-1.5" style={{ margin: 0 }}>
             <label>Título del test *</label>
             <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ej: Test de personalidad 16PF" />
           </div>
-          <div className="form-group" style={{ margin: 0 }}>
+          <div className="flex flex-col gap-1.5" style={{ margin: 0 }}>
             <label>Descripción (opcional)</label>
             <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} placeholder="Descripción del test..." />
           </div>
-          <div className="form-group" style={{ margin: 0 }}>
+          <div className="flex flex-col gap-1.5" style={{ margin: 0 }}>
             <label>Tipo de test *</label>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {([
@@ -257,7 +257,7 @@ export default function TestImporter({ onImported, onCancel }: TestImporterProps
         )}
 
         <button
-          className="btn"
+          className="px-4 py-2 bg-gantly-blue text-white rounded-xl font-medium hover:bg-gantly-blue-600 transition-colors cursor-pointer"
           onClick={handleImport}
           disabled={loading || !code.trim() || !title.trim()}
           style={{ width: 'auto', padding: '12px 32px' }}
@@ -267,7 +267,7 @@ export default function TestImporter({ onImported, onCancel }: TestImporterProps
       </div>
 
       {/* Preview de preguntas */}
-      <div className="card">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6">
         <h3 style={{ marginBottom: '16px' }}>Preguntas detectadas</h3>
         <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
           {parseResult.questions.map(q => (

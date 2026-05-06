@@ -187,7 +187,7 @@ export default function AdminPanel() {
   }
 
   return (
-    <div className="admin-container">
+    <div className="max-w-7xl mx-auto px-6">
       <div className="admin-header">
         <div>
           <h1 className="font-heading">Gestión de Tests</h1>
@@ -201,14 +201,14 @@ export default function AdminPanel() {
           <h2 className="text-xl font-heading font-bold text-slate-800">Gestión de Tests</h2>
           <div className="flex gap-3">
             <button
-              className="btn-secondary px-6 py-3 w-auto"
+              className="px-6 py-3 bg-white text-slate-700 border border-slate-200 rounded-xl font-medium hover:bg-slate-50 transition-colors cursor-pointer w-auto"
               onClick={() => { setShowImportForm(!showImportForm); setShowCreateForm(false); }}
               disabled={loading}
             >
               {showImportForm ? 'Cancelar' : 'Importar Excel'}
             </button>
             <button
-              className="btn px-6 py-3 w-auto"
+              className="px-6 py-3 bg-gantly-blue text-white rounded-xl font-medium hover:bg-gantly-blue-600 transition-colors cursor-pointer w-auto"
               onClick={() => { setShowCreateForm(!showCreateForm); setShowImportForm(false); }}
               disabled={loading}
             >
@@ -222,7 +222,7 @@ export default function AdminPanel() {
         <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-6 mb-6">
           <h2 className="text-xl font-heading font-bold text-slate-800 mb-4">Crear Nuevo Test</h2>
           <form onSubmit={createTest}>
-            <div className="form-group">
+            <div className="flex flex-col gap-1.5">
               <label>Código del Test *</label>
               <input
                 name="code"
@@ -234,7 +234,7 @@ export default function AdminPanel() {
                 Puede contener letras, números, espacios y caracteres especiales
               </small>
             </div>
-            <div className="form-group">
+            <div className="flex flex-col gap-1.5">
               <label>Título *</label>
               <input
                 name="title"
@@ -243,7 +243,7 @@ export default function AdminPanel() {
                 className="w-full px-4 py-3 text-base rounded-xl border border-slate-200 focus:border-gantly-blue-500 focus:ring-1 focus:ring-gantly-blue-200 outline-none"
               />
             </div>
-            <div className="form-group">
+            <div className="flex flex-col gap-1.5">
               <label>Descripción</label>
               <textarea
                 name="description"
@@ -253,7 +253,7 @@ export default function AdminPanel() {
               />
             </div>
             <div className="flex gap-3">
-              <button type="submit" className="btn" disabled={loading}>
+              <button type="submit" className="px-4 py-2 bg-gantly-blue text-white rounded-xl font-medium hover:bg-gantly-blue-600 transition-colors cursor-pointer" disabled={loading}>
                 {loading ? 'Creando...' : 'Crear Test'}
               </button>
             </div>
@@ -274,12 +274,12 @@ export default function AdminPanel() {
         <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-6 mb-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-heading font-bold text-slate-800">Editar Test</h2>
-            <button className="btn-secondary w-auto px-4 py-2" onClick={() => setEditingTest(null)}>
+            <button className="px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-xl font-medium hover:bg-slate-50 transition-colors cursor-pointer w-auto" onClick={() => setEditingTest(null)}>
               Cerrar
             </button>
           </div>
           <form onSubmit={updateTest}>
-            <div className="form-group">
+            <div className="flex flex-col gap-1.5">
               <label>Código del Test *</label>
               <input
                 name="code"
@@ -288,7 +288,7 @@ export default function AdminPanel() {
                 className="w-full px-4 py-3 text-base rounded-xl border border-slate-200 focus:border-gantly-blue-500 focus:ring-1 focus:ring-gantly-blue-200 outline-none"
               />
             </div>
-            <div className="form-group">
+            <div className="flex flex-col gap-1.5">
               <label>Título *</label>
               <input
                 name="title"
@@ -297,7 +297,7 @@ export default function AdminPanel() {
                 className="w-full px-4 py-3 text-base rounded-xl border border-slate-200 focus:border-gantly-blue-500 focus:ring-1 focus:ring-gantly-blue-200 outline-none"
               />
             </div>
-            <div className="form-group">
+            <div className="flex flex-col gap-1.5">
               <label>Descripción</label>
               <textarea
                 name="description"
@@ -307,7 +307,7 @@ export default function AdminPanel() {
               />
             </div>
 
-            <div className="form-group">
+            <div className="flex flex-col gap-1.5">
               <label>Categoría (Opcional)</label>
               <select
                 name="category"
@@ -323,7 +323,7 @@ export default function AdminPanel() {
               </small>
             </div>
 
-            <div className="form-group">
+            <div className="flex flex-col gap-1.5">
               <label>Sección (Topic) (Opcional)</label>
               <input
                 name="topic"
@@ -342,10 +342,10 @@ export default function AdminPanel() {
             </div>
 
             <div className="flex gap-3">
-              <button type="submit" className="btn" disabled={loading}>
+              <button type="submit" className="px-4 py-2 bg-gantly-blue text-white rounded-xl font-medium hover:bg-gantly-blue-600 transition-colors cursor-pointer" disabled={loading}>
                 {loading ? 'Guardando...' : 'Guardar Cambios'}
               </button>
-              <button type="button" className="btn-secondary" onClick={() => setEditingTest(null)}>
+              <button type="button" className="px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-xl font-medium hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => setEditingTest(null)}>
                 Cancelar
               </button>
             </div>
@@ -388,7 +388,7 @@ export default function AdminPanel() {
         ) : (
           <div className="tests-grid-admin">
             {filteredTests.filter((t: any) => t && t.id).map(test => (
-              <div key={test.id} className="test-card-admin bg-gradient-to-b from-white to-gantly-cloud-100 border border-slate-200 rounded-xl p-5 flex flex-col">
+              <div key={test.id} className="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 bg-gradient-to-b from-white to-gantly-cloud-100 flex flex-col">
                 <div className="flex justify-between items-start mb-2 gap-2">
                   <div className="flex-1 min-w-0">
                     {test.category && (
@@ -420,19 +420,19 @@ export default function AdminPanel() {
                 </div>
                 <div className="flex gap-2 flex-wrap mt-auto pt-3">
                   <button
-                    className="btn flex-1 min-w-[80px] px-3 py-2 text-[13px] rounded-full"
+                    className="flex-1 min-w-[80px] px-3 py-2 text-[13px] bg-gantly-blue text-white rounded-full font-medium hover:bg-gantly-blue-600 transition-colors cursor-pointer"
                     onClick={() => setSelectedTestId(test.id)}
                   >
                     Gestionar
                   </button>
                   <button
-                    className="btn-secondary px-3 py-2 text-[13px]"
+                    className="px-3 py-2 text-[13px] bg-white text-slate-700 border border-slate-200 rounded-xl font-medium hover:bg-slate-50 transition-colors cursor-pointer"
                     onClick={() => setEditingTest(test)}
                   >
                     Editar
                   </button>
                   <button
-                    className="btn-muted px-3 py-2 text-[13px]"
+                    className="px-3 py-2 text-[13px] bg-slate-100 text-slate-600 rounded-xl font-medium hover:bg-slate-200 transition-colors cursor-pointer"
                     onClick={() => deleteTest(test.id)}
                     disabled={loading}
                   >

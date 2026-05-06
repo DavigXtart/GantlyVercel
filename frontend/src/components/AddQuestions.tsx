@@ -54,11 +54,11 @@ export default function AddQuestions({ testId, onBack }: AddQuestionsProps) {
   };
 
   return (
-    <div className="container">
-      <div className="card">
+    <div className="max-w-4xl mx-auto px-6">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2>Test #{testId} - Añadir preguntas</h2>
-          <button className="btn-secondary" onClick={onBack} style={{ width: 'auto' }}>
+          <button className="px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-xl font-medium hover:bg-slate-50 transition-colors cursor-pointer" onClick={onBack} style={{ width: 'auto' }}>
             Volver a tests
           </button>
         </div>
@@ -66,21 +66,21 @@ export default function AddQuestions({ testId, onBack }: AddQuestionsProps) {
         {questions.length === 0 && !showAddQuestion && (
           <div>
             <p>No hay preguntas aún. Añade la primera pregunta.</p>
-            <button className="btn" onClick={() => setShowAddQuestion(true)} style={{ marginTop: '16px' }}>
+            <button className="px-4 py-2 bg-gantly-blue text-white rounded-xl font-medium hover:bg-gantly-blue-600 transition-colors cursor-pointer" onClick={() => setShowAddQuestion(true)} style={{ marginTop: '16px' }}>
               + Añadir pregunta
             </button>
           </div>
         )}
 
         {showAddQuestion && (
-          <div className="card" style={{ marginTop: '24px' }}>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6" style={{ marginTop: '24px' }}>
             <h3>Nueva pregunta</h3>
             <form onSubmit={addQuestion}>
-              <div className="form-group">
+              <div className="flex flex-col gap-1.5">
                 <label>Texto de la pregunta</label>
                 <input name="text" required placeholder="Ej: ¿Cómo te sientes hoy?" />
               </div>
-              <div className="form-group">
+              <div className="flex flex-col gap-1.5">
                 <label>Tipo</label>
                 <select name="type" required style={{ width: '100%', padding: '14px', fontSize: '17px', borderRadius: '12px', border: '1px solid var(--border)' }}>
                   <option value="SINGLE">Una sola opción</option>
@@ -88,10 +88,10 @@ export default function AddQuestions({ testId, onBack }: AddQuestionsProps) {
                   <option value="SCALE">Escala</option>
                 </select>
               </div>
-              <button type="submit" className="btn" disabled={loading}>
+              <button type="submit" className="px-4 py-2 bg-gantly-blue text-white rounded-xl font-medium hover:bg-gantly-blue-600 transition-colors cursor-pointer" disabled={loading}>
                 {loading ? 'Guardando...' : 'Guardar pregunta'}
               </button>
-              <button type="button" className="btn-secondary" onClick={() => setShowAddQuestion(false)} style={{ marginTop: '12px' }}>
+              <button type="button" className="px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-xl font-medium hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => setShowAddQuestion(false)} style={{ marginTop: '12px' }}>
                 Cancelar
               </button>
             </form>
@@ -102,7 +102,7 @@ export default function AddQuestions({ testId, onBack }: AddQuestionsProps) {
           <>
             <div className="tests-grid" style={{ marginTop: '24px' }}>
               {questions.map((q, idx) => (
-                <div key={q.id || idx} className="test-card">
+                <div key={q.id || idx} className="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6">
                   <h4>Pregunta {idx + 1}</h4>
                   <p>{q.text}</p>
                   <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Tipo: {q.type}</p>
@@ -111,16 +111,16 @@ export default function AddQuestions({ testId, onBack }: AddQuestionsProps) {
             </div>
 
             <div style={{ marginTop: '24px' }}>
-              <button className="btn" onClick={() => setShowAddQuestion(true)}>
+              <button className="px-4 py-2 bg-gantly-blue text-white rounded-xl font-medium hover:bg-gantly-blue-600 transition-colors cursor-pointer" onClick={() => setShowAddQuestion(true)}>
                 + Añadir otra pregunta
               </button>
             </div>
 
             {questions.length > 0 && (
-              <div className="card" style={{ marginTop: '24px', backgroundColor: 'var(--bg-primary)' }}>
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6" style={{ marginTop: '24px', backgroundColor: 'var(--bg-primary)' }}>
                 <h3>Añadir opciones de respuesta</h3>
                 <form onSubmit={addAnswer}>
-                  <div className="form-group">
+                  <div className="flex flex-col gap-1.5">
                     <label>Pregunta</label>
                     <select name="questionId" required style={{ width: '100%', padding: '14px', fontSize: '17px', borderRadius: '12px', border: '1px solid var(--border)' }}>
                       {questions.map(q => (
@@ -128,19 +128,19 @@ export default function AddQuestions({ testId, onBack }: AddQuestionsProps) {
                       ))}
                     </select>
                   </div>
-                  <div className="form-group">
+                  <div className="flex flex-col gap-1.5">
                     <label>Texto de la opción</label>
                     <input name="text" required placeholder="Ej: Muy bien" />
                   </div>
-                  <div className="form-group">
+                  <div className="flex flex-col gap-1.5">
                     <label>Valor</label>
                     <input name="value" type="number" required placeholder="0" />
                   </div>
-                  <div className="form-group">
+                  <div className="flex flex-col gap-1.5">
                     <label>Posición</label>
                     <input name="position" type="number" required placeholder="1" />
                   </div>
-                  <button type="submit" className="btn-secondary" disabled={loading}>
+                  <button type="submit" className="px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-xl font-medium hover:bg-slate-50 transition-colors cursor-pointer" disabled={loading}>
                     {loading ? 'Guardando...' : 'Añadir opción'}
                   </button>
                 </form>

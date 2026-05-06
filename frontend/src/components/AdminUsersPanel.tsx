@@ -162,7 +162,7 @@ export default function AdminUsersPanel() {
                         <option key={p.id} value={p.id}>{p.name} ({p.email})</option>
                       ))}
                     </select>
-                    <button className="btn-secondary text-xs px-3 py-1.5" onClick={() => onAssign(u.id)}>Asignar</button>
+                    <button className="bg-white text-slate-700 border border-slate-200 rounded-xl font-medium hover:bg-slate-50 transition-colors cursor-pointer text-xs px-3 py-1.5" onClick={() => onAssign(u.id)}>Asignar</button>
                     {u.psychologistName && (
                       <span className="text-slate-500 text-xs">Asignado: {u.psychologistName}</span>
                     )}
