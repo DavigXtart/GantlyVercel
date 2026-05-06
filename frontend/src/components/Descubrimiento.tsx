@@ -118,14 +118,11 @@ export default function Descubrimiento() {
             return (
               <div
                 key={test.id}
-                className="bg-white rounded-2xl overflow-hidden border border-slate-100 hover:shadow-lg hover:shadow-gantly-blue/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
+                className="bg-white rounded-2xl p-6 border border-slate-100 hover:shadow-lg hover:shadow-gantly-blue/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
                 onClick={() => {
                   toast.info('Esta funcionalidad estara disponible proximamente');
                 }}
               >
-                {/* Gradient header strip */}
-                <div className={`h-2 bg-gradient-to-r ${gradient}`}></div>
-                <div className="p-6">
                   <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300`}>
                     <span className="material-symbols-outlined text-2xl">{icon}</span>
                   </div>
@@ -148,7 +145,6 @@ export default function Descubrimiento() {
                       arrow_forward
                     </span>
                   </div>
-                </div>
               </div>
             );
           })}
