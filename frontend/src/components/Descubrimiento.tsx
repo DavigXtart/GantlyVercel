@@ -52,7 +52,7 @@ export default function Descubrimiento() {
   };
 
   const topicGradients: Record<string, string> = {
-    'Personalidad': 'from-purple-500 to-fuchsia-500',
+    'Personalidad': 'from-gantly-blue to-gantly-cyan',
     'Inteligencia': 'from-amber-500 to-orange-500',
     'Habilidades': 'from-emerald-500 to-teal-500',
     'Creatividad': 'from-pink-500 to-rose-500',
@@ -63,7 +63,7 @@ export default function Descubrimiento() {
     <div>
       {/* Section header */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-fuchsia-500 flex items-center justify-center shadow-sm shadow-purple-500/20">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gantly-blue to-gantly-cyan flex items-center justify-center shadow-sm shadow-purple-500/20">
           <span className="material-symbols-outlined text-white text-lg">explore</span>
         </div>
         <div>
@@ -86,8 +86,8 @@ export default function Descubrimiento() {
               onClick={() => setSelectedTopic(null)}
               className={`px-4 py-2 rounded-full cursor-pointer text-sm font-medium transition-all duration-300 ${
                 selectedTopic === null
-                  ? 'bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white shadow-md shadow-purple-500/20'
-                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200'
+                  ? 'bg-gradient-to-r from-gantly-blue-600 to-gantly-cyan-600 text-white shadow-md shadow-purple-500/20'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-gantly-blue-50 hover:text-gantly-blue hover:border-purple-200'
               }`}
             >
               Todos
@@ -98,8 +98,8 @@ export default function Descubrimiento() {
                 onClick={() => setSelectedTopic(topic)}
                 className={`px-4 py-2 rounded-full cursor-pointer text-sm font-medium transition-all duration-300 ${
                   selectedTopic === topic
-                    ? 'bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white shadow-md shadow-purple-500/20'
-                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200'
+                    ? 'bg-gradient-to-r from-gantly-blue-600 to-gantly-cyan-600 text-white shadow-md shadow-purple-500/20'
+                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-gantly-blue-50 hover:text-gantly-blue hover:border-purple-200'
                 }`}
               >
                 {topic}
@@ -113,7 +113,7 @@ export default function Descubrimiento() {
       {filteredTests.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredTests.map(test => {
-            const gradient = topicGradients[test.topic] || 'from-purple-500 to-fuchsia-500';
+            const gradient = topicGradients[test.topic] || 'from-gantly-blue to-gantly-cyan';
             const icon = topicIcons[test.topic] || 'explore';
             return (
               <div
@@ -129,10 +129,10 @@ export default function Descubrimiento() {
                   <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300`}>
                     <span className="material-symbols-outlined text-2xl">{icon}</span>
                   </div>
-                  <p className="text-xs font-semibold text-purple-600 uppercase tracking-wide mb-2">
+                  <p className="text-xs font-semibold text-gantly-blue uppercase tracking-wide mb-2">
                     {test.topic}
                   </p>
-                  <h3 className="text-lg font-semibold text-slate-800 group-hover:text-purple-600 transition-colors mb-2">
+                  <h3 className="text-lg font-semibold text-slate-800 group-hover:text-gantly-blue transition-colors mb-2">
                     {test.title}
                   </h3>
                   {test.description && (
@@ -144,7 +144,7 @@ export default function Descubrimiento() {
                     <span className="text-xs px-3 py-1 rounded-full font-medium bg-gradient-to-r from-slate-50 to-slate-100 text-slate-500 border border-slate-200">
                       Proximamente
                     </span>
-                    <span className="material-symbols-outlined text-slate-300 group-hover:text-purple-500 transition-colors text-lg">
+                    <span className="material-symbols-outlined text-slate-400 group-hover:text-gantly-blue transition-colors text-lg">
                       arrow_forward
                     </span>
                   </div>

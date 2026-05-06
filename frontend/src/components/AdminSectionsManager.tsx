@@ -414,7 +414,7 @@ export default function AdminSectionsManager() {
                   >
                     {testsInTopic.length === 0 ? (
                       <div className={`col-span-full text-center py-10 text-sm italic ${
-                        selectedCategory === 'EVALUATION' ? 'text-amber-600' : 'text-indigo-500'
+                        selectedCategory === 'EVALUATION' ? 'text-amber-600' : 'text-gantly-blue'
                       }`}>
                         Arrastra tests aquí o haz clic en un test sin asignar para agregarlo
                       </div>
@@ -432,7 +432,7 @@ export default function AdminSectionsManager() {
                           }`}
                         >
                           <div className={`text-xs mb-2 font-semibold uppercase ${
-                            selectedCategory === 'EVALUATION' ? 'text-amber-600' : 'text-indigo-500'
+                            selectedCategory === 'EVALUATION' ? 'text-amber-600' : 'text-gantly-blue'
                           }`}>
                             {test.topic}
                           </div>
@@ -482,7 +482,7 @@ export default function AdminSectionsManager() {
               >
                 {unassignedTests.length === 0 ? (
                   <div className={`col-span-full text-center py-10 text-sm italic ${
-                    selectedCategory === 'EVALUATION' ? 'text-amber-600' : 'text-indigo-500'
+                    selectedCategory === 'EVALUATION' ? 'text-amber-600' : 'text-gantly-blue'
                   }`}>
                     Todos los tests están asignados a secciones. Arrastra tests aquí para moverlos a "Sin asignar".
                   </div>
@@ -500,7 +500,7 @@ export default function AdminSectionsManager() {
                       }`}
                     >
                       <div className={`text-xs mb-2 font-semibold uppercase ${
-                        selectedCategory === 'EVALUATION' ? 'text-amber-600' : 'text-indigo-500'
+                        selectedCategory === 'EVALUATION' ? 'text-amber-600' : 'text-gantly-blue'
                       }`}>
                         Sin asignar
                       </div>

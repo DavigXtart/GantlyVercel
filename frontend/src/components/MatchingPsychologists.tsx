@@ -179,7 +179,7 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
           {onBack && (
             <button
               onClick={onBack}
-              className="px-4 py-2 bg-gray-50 text-gantly-muted border border-gray-200 rounded-lg cursor-pointer mb-6 font-semibold font-body hover:bg-gray-100 transition-colors"
+              className="px-4 py-2 bg-slate-50 text-gantly-muted border border-slate-200 rounded-lg cursor-pointer mb-6 font-semibold font-body hover:bg-slate-100 transition-colors"
             >
               &larr; Volver
             </button>
@@ -236,7 +236,7 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
             return (
               <div
                 key={psychologist.id}
-                className="bg-white rounded-2xl p-8 shadow-card hover:-translate-y-1 hover:shadow-elevated transition-all cursor-pointer relative overflow-hidden border border-gray-100"
+                className="bg-white rounded-2xl p-8 shadow-card hover:-translate-y-1 hover:shadow-elevated transition-all cursor-pointer relative overflow-hidden border border-slate-100"
                 onClick={() => loadPsychologistProfile(psychologist.id)}
               >
                 {/* Super Recomendado Badge */}
@@ -370,7 +370,7 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
                 setPsychologistProfile(null);
                 setPsychologistRating(null);
               }}
-              className="px-5 py-2.5 bg-gray-100 text-gray-700 border border-gray-200 rounded-lg font-semibold cursor-pointer text-sm font-body hover:bg-gray-200 transition-colors"
+              className="px-5 py-2.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg font-semibold cursor-pointer text-sm font-body hover:bg-slate-200 transition-colors"
             >
               &larr; Volver
             </button>
@@ -378,17 +378,17 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
 
           {/* Header del perfil */}
           <div className="bg-gradient-to-br from-gantly-cloud to-gantly-blue-50 p-8 md:p-10 rounded-2xl border-2 border-gantly-blue/20 mb-8 flex flex-col md:flex-row items-center gap-8 shadow-soft">
-            <div className="w-[120px] h-[120px] rounded-full overflow-hidden border-4 border-white shadow-card bg-gray-200 flex items-center justify-center text-5xl shrink-0">
+            <div className="w-[120px] h-[120px] rounded-full overflow-hidden border-4 border-white shadow-card bg-slate-200 flex items-center justify-center text-5xl shrink-0">
               {psychologistProfile.avatarUrl ? (
                 <img src={psychologistProfile.avatarUrl} alt="" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400 text-2xl">
+                <div className="w-full h-full bg-slate-200 flex items-center justify-center text-slate-500 text-2xl">
                   {psychologistProfile.name?.charAt(0).toUpperCase() || 'PS'}
                 </div>
               )}
             </div>
             <div className="flex-1">
-              <h3 className="m-0 mb-2 text-[32px] font-heading font-bold text-gray-800">
+              <h3 className="m-0 mb-2 text-[32px] font-heading font-bold text-slate-800">
                 {psychologistProfile.name}
               </h3>
               <div className="text-lg text-gantly-muted mb-3 font-body">
@@ -407,7 +407,7 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
                       </span>
                     ))}
                   </div>
-                  <span className="text-base font-semibold text-gray-800 font-body">
+                  <span className="text-base font-semibold text-slate-800 font-body">
                     {typeof psychologistRating.averageRating === 'number' ? psychologistRating.averageRating.toFixed(1) : 'N/A'}
                   </span>
                   <span className="text-sm text-gantly-muted font-body">
@@ -437,9 +437,9 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
 
           {/* Biografia */}
           {psychologistProfile.bio && (
-            <div className="mb-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
-              <h3 className="m-0 mb-4 text-xl font-heading font-semibold text-gray-800">Sobre mi</h3>
-              <p className="m-0 text-base leading-relaxed text-gray-600 font-body">
+            <div className="mb-8 p-6 bg-slate-50 rounded-xl border border-slate-200">
+              <h3 className="m-0 mb-4 text-xl font-heading font-semibold text-slate-800">Sobre mi</h3>
+              <p className="m-0 text-base leading-relaxed text-slate-600 font-body">
                 {psychologistProfile.bio}
               </p>
             </div>
@@ -451,12 +451,12 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
               const education = JSON.parse(psychologistProfile.education);
               if (Array.isArray(education) && education.length > 0) {
                 return (
-                  <div className="mb-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
-                    <h3 className="m-0 mb-5 text-xl font-heading font-semibold text-gray-800">Educacion</h3>
+                  <div className="mb-8 p-6 bg-slate-50 rounded-xl border border-slate-200">
+                    <h3 className="m-0 mb-5 text-xl font-heading font-semibold text-slate-800">Educacion</h3>
                     <div className="flex flex-col gap-4">
                       {education.map((edu: any, idx: number) => (
-                        <div key={idx} className="p-4 bg-white rounded-lg border border-gray-200">
-                          <div className="text-lg font-semibold text-gray-800 mb-1 font-body">
+                        <div key={idx} className="p-4 bg-white rounded-lg border border-slate-200">
+                          <div className="text-lg font-semibold text-slate-800 mb-1 font-body">
                             {edu.degree || 'Titulo'} {edu.field ? `en ${edu.field}` : ''}
                           </div>
                           <div className="text-base text-gantly-blue mb-1 font-body">
@@ -481,12 +481,12 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
               const certs = JSON.parse(psychologistProfile.certifications);
               if (Array.isArray(certs) && certs.length > 0) {
                 return (
-                  <div className="mb-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
-                    <h3 className="m-0 mb-5 text-xl font-heading font-semibold text-gray-800">Certificaciones</h3>
+                  <div className="mb-8 p-6 bg-slate-50 rounded-xl border border-slate-200">
+                    <h3 className="m-0 mb-5 text-xl font-heading font-semibold text-slate-800">Certificaciones</h3>
                     <div className="flex flex-col gap-4">
                       {certs.map((cert: any, idx: number) => (
-                        <div key={idx} className="p-4 bg-white rounded-lg border border-gray-200">
-                          <div className="text-lg font-semibold text-gray-800 mb-1 font-body">
+                        <div key={idx} className="p-4 bg-white rounded-lg border border-slate-200">
+                          <div className="text-lg font-semibold text-slate-800 mb-1 font-body">
                             {cert.name || 'Certificacion'}
                           </div>
                           <div className="text-sm text-gantly-muted mb-1 font-body">
@@ -498,7 +498,7 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
                             </div>
                           )}
                           {cert.credentialId && (
-                            <div className="text-[13px] text-gray-400 font-mono">
+                            <div className="text-[13px] text-slate-500 font-mono">
                               ID: {cert.credentialId}
                             </div>
                           )}
@@ -518,19 +518,19 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
               const experience = JSON.parse(psychologistProfile.experience);
               if (Array.isArray(experience) && experience.length > 0) {
                 return (
-                  <div className="mb-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
-                    <h3 className="m-0 mb-5 text-xl font-heading font-semibold text-gray-800">Experiencia Profesional</h3>
+                  <div className="mb-8 p-6 bg-slate-50 rounded-xl border border-slate-200">
+                    <h3 className="m-0 mb-5 text-xl font-heading font-semibold text-slate-800">Experiencia Profesional</h3>
                     <div className="flex flex-col gap-4">
                       {experience.map((exp: any, idx: number) => (
-                        <div key={idx} className="p-4 bg-white rounded-lg border border-gray-200">
-                          <div className="text-lg font-semibold text-gray-800 mb-1 font-body">
+                        <div key={idx} className="p-4 bg-white rounded-lg border border-slate-200">
+                          <div className="text-lg font-semibold text-slate-800 mb-1 font-body">
                             {exp.title || 'Cargo'}
                           </div>
                           <div className="text-base text-gantly-blue mb-1 font-body">
                             {exp.company || 'Empresa'}
                           </div>
                           {exp.description && (
-                            <div className="text-sm text-gray-600 mt-2 leading-relaxed font-body">
+                            <div className="text-sm text-slate-600 mt-2 leading-relaxed font-body">
                               {exp.description}
                             </div>
                           )}

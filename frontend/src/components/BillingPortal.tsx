@@ -65,7 +65,7 @@ export default function BillingPortal() {
     switch (status.toLowerCase()) {
       case 'paid':
         return (
-          <span className="inline-block px-3 py-1 rounded-full text-[0.8rem] font-semibold capitalize bg-green-100 text-green-800">Pagado</span>
+          <span className="inline-block px-3 py-1 rounded-full text-[0.8rem] font-semibold capitalize bg-gantly-emerald-50 text-gantly-emerald-700">Pagado</span>
         );
       case 'pending':
         return (
@@ -77,7 +77,7 @@ export default function BillingPortal() {
         );
       default:
         return (
-          <span className="inline-block px-3 py-1 rounded-full text-[0.8rem] font-semibold capitalize bg-gray-100 text-gray-700">{status}</span>
+          <span className="inline-block px-3 py-1 rounded-full text-[0.8rem] font-semibold capitalize bg-slate-100 text-slate-700">{status}</span>
         );
     }
   }
@@ -93,7 +93,7 @@ export default function BillingPortal() {
       )}
 
       <div className="bg-white rounded-xl shadow-card p-6 mb-6">
-        <h2 className="text-[1.1rem] font-heading font-semibold text-gray-700 mt-0 mb-4">Suscripcion</h2>
+        <h2 className="text-[1.1rem] font-heading font-semibold text-slate-700 mt-0 mb-4">Suscripcion</h2>
         <p className="text-gantly-muted mt-0 mb-4 text-[0.95rem]">
           Gestiona tu suscripcion, metodo de pago y datos de facturacion desde el portal de Stripe.
         </p>
@@ -107,12 +107,12 @@ export default function BillingPortal() {
       </div>
 
       <div className="bg-white rounded-xl shadow-card p-6">
-        <h2 className="text-[1.1rem] font-heading font-semibold text-gray-700 mt-0 mb-4">Historial de pagos</h2>
+        <h2 className="text-[1.1rem] font-heading font-semibold text-slate-700 mt-0 mb-4">Historial de pagos</h2>
 
         {loading ? (
           <div className="text-center py-12 text-gantly-blue text-base">Cargando historial de pagos...</div>
         ) : payments.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
+          <div className="text-center py-12 text-slate-500">
             <p className="m-0 text-base">No hay pagos registrados todavia.</p>
           </div>
         ) : (
@@ -120,19 +120,19 @@ export default function BillingPortal() {
             <table className="w-full border-collapse">
               <thead>
                 <tr>
-                  <th className="text-left px-4 py-3 border-b-2 border-gray-200 text-[0.85rem] font-semibold text-gantly-blue uppercase tracking-wider">Fecha</th>
-                  <th className="text-left px-4 py-3 border-b-2 border-gray-200 text-[0.85rem] font-semibold text-gantly-blue uppercase tracking-wider">Importe</th>
-                  <th className="text-left px-4 py-3 border-b-2 border-gray-200 text-[0.85rem] font-semibold text-gantly-blue uppercase tracking-wider">Estado</th>
-                  <th className="text-left px-4 py-3 border-b-2 border-gray-200 text-[0.85rem] font-semibold text-gantly-blue uppercase tracking-wider">Factura</th>
+                  <th className="text-left px-4 py-3 border-b-2 border-slate-200 text-[0.85rem] font-semibold text-gantly-blue uppercase tracking-wider">Fecha</th>
+                  <th className="text-left px-4 py-3 border-b-2 border-slate-200 text-[0.85rem] font-semibold text-gantly-blue uppercase tracking-wider">Importe</th>
+                  <th className="text-left px-4 py-3 border-b-2 border-slate-200 text-[0.85rem] font-semibold text-gantly-blue uppercase tracking-wider">Estado</th>
+                  <th className="text-left px-4 py-3 border-b-2 border-slate-200 text-[0.85rem] font-semibold text-gantly-blue uppercase tracking-wider">Factura</th>
                 </tr>
               </thead>
               <tbody>
                 {payments.map((payment) => (
                   <tr key={payment.id}>
-                    <td className="px-4 py-3 border-b border-gray-100 text-[0.95rem] text-gray-700">{formatDate(payment.date)}</td>
-                    <td className="px-4 py-3 border-b border-gray-100 text-[0.95rem] text-gray-700">{formatAmount(payment.amount, payment.currency)}</td>
-                    <td className="px-4 py-3 border-b border-gray-100 text-[0.95rem] text-gray-700">{getStatusBadge(payment.status)}</td>
-                    <td className="px-4 py-3 border-b border-gray-100 text-[0.95rem] text-gray-700">
+                    <td className="px-4 py-3 border-b border-slate-100 text-[0.95rem] text-slate-700">{formatDate(payment.date)}</td>
+                    <td className="px-4 py-3 border-b border-slate-100 text-[0.95rem] text-slate-700">{formatAmount(payment.amount, payment.currency)}</td>
+                    <td className="px-4 py-3 border-b border-slate-100 text-[0.95rem] text-slate-700">{getStatusBadge(payment.status)}</td>
+                    <td className="px-4 py-3 border-b border-slate-100 text-[0.95rem] text-slate-700">
                       {payment.invoicePdf ? (
                         <a
                           href={payment.invoicePdf}
@@ -143,7 +143,7 @@ export default function BillingPortal() {
                           Descargar PDF
                         </a>
                       ) : (
-                        <span className="text-gray-300">--</span>
+                        <span className="text-slate-400">--</span>
                       )}
                     </td>
                   </tr>
