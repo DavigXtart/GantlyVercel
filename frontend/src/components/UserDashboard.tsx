@@ -389,10 +389,17 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
     });
   };
 
+  const getGreeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return 'Buenos días';
+    if (h < 20) return 'Buenas tardes';
+    return 'Buenas noches';
+  };
+
   if (loading && !me) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
-        <LoadingSpinner text="Cargando tu espacio..." />
+      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+        <LoadingSpinner text="Cargando..." />
       </div>
     );
   }
@@ -625,12 +632,12 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     </div>
                     <div className="flex-1 min-w-0">
                       <h1 className="text-2xl md:text-3xl font-heading font-bold text-white truncate">
-                        Buenos días, {me?.name?.split(' ')[0] || 'usuario'}
+                        {getGreeting()}, {me?.name?.split(' ')[0] || 'usuario'}
                       </h1>
                       <p className="text-white/70 mt-1 text-sm font-body truncate">
                         {upcomingAppointment
                           ? `Próxima cita: ${new Date(upcomingAppointment.startTime).toLocaleDateString('es-ES', { weekday: 'long' })} ${new Date(upcomingAppointment.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`
-                          : 'Tu espacio de bienestar'}
+                          : ''}
                       </p>
                       <div className="flex flex-wrap gap-2.5 mt-4">
                         <button

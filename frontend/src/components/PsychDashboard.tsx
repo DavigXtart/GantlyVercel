@@ -460,9 +460,16 @@ export default function PsychDashboard() {
     });
   };
 
+  const getGreeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return 'Buenos días';
+    if (h < 20) return 'Buenas tardes';
+    return 'Buenas noches';
+  };
+
   if (loading && !me) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <LoadingSpinner text="Cargando perfil..." />
       </div>
     );
@@ -635,7 +642,7 @@ export default function PsychDashboard() {
                     {/* Info */}
                     <div className="flex-1 min-w-0">
                       <h1 className="text-2xl font-bold text-white truncate mb-1">
-                        Hola, {me?.name || 'Profesional'}.
+                        {getGreeting()}, {me?.name?.split(' ')[0] || 'Profesional'}
                       </h1>
                       <p className="text-sm text-white/70 mt-0.5 font-body">
                         {me?.email}

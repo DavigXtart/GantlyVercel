@@ -11,7 +11,7 @@ const steps = [
   {
     icon: 'waving_hand',
     title: 'Bienvenido a Gantly',
-    description: 'Gantly es tu espacio seguro para cuidar tu salud mental. Aqui encontraras herramientas, profesionales y apoyo personalizado.',
+    description: 'Gantly te conecta con psicólogos verificados. Desde aquí gestionas citas, tareas terapéuticas y tu seguimiento.',
   },
   {
     icon: 'person',
@@ -28,7 +28,7 @@ const steps = [
   {
     icon: 'explore',
     title: 'Explora tu panel',
-    description: 'Desde tu panel podras gestionar citas, completar tareas, llevar un diario de bienestar, chatear con tu psicologo y mucho mas.',
+    description: 'Tu panel incluye agenda, tareas, diario de estado de ánimo y chat directo con tu profesional.',
   },
 ];
 

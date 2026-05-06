@@ -269,20 +269,20 @@ export default function Login({
           <p className="m-0 text-[17px] leading-relaxed text-gantly-muted mb-2">
             {isCompanyMode
               ? 'Gestiona a tus psicólogos y el bienestar emocional de tu equipo desde un panel unificado y seguro.'
-              : 'Conecta con tu espacio de bienestar emocional. Accede a tus evaluaciones, seguimiento personalizado y sesiones con profesionales de la psicología.'}
+              : 'Inicia sesión para acceder a tus citas, tareas y chat con tu psicólogo.'}
           </p>
           <div className="mt-6 flex flex-col gap-4 text-base text-gantly-muted">
             <div className="flex items-center gap-3">
               <div className="w-6 h-6 rounded-full bg-gantly-blue-100 flex items-center justify-center flex-shrink-0 text-gantly-blue-600 text-sm">✓</div>
-              <span>Evaluaciones personalizadas</span>
+              <span>Citas y videollamadas</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="w-6 h-6 rounded-full bg-gantly-blue-100 flex items-center justify-center flex-shrink-0 text-gantly-blue-600 text-sm">✓</div>
-              <span>Seguimiento emocional confidencial</span>
+              <span>Tests y seguimiento</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="w-6 h-6 rounded-full bg-gantly-blue-100 flex items-center justify-center flex-shrink-0 text-gantly-blue-600 text-sm">✓</div>
-              <span>Planes adaptados a ti</span>
+              <span>Chat directo con tu profesional</span>
             </div>
           </div>
           <div className="mt-auto text-[15px] text-gantly-muted pt-6 border-t border-gantly-blue-100">
