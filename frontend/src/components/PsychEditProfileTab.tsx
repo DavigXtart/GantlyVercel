@@ -103,7 +103,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
     <div className="max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gantly-blue to-gantly-blue-600 flex items-center justify-center">
             <span className="material-symbols-outlined text-white text-lg">edit</span>
           </div>
           <h2 className="text-2xl font-bold text-slate-800 m-0">Editar Perfil Profesional</h2>
@@ -450,7 +450,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
           <div className="bg-white rounded-2xl p-8 border border-slate-100">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-1 h-6 rounded-full bg-gradient-to-b from-violet-500 to-purple-500"></div>
+                <div className="w-1 h-6 rounded-full bg-gradient-to-b from-gantly-blue to-gantly-blue-600"></div>
                 <h3 className="m-0 text-lg font-semibold text-slate-800">Especializaciones</h3>
               </div>
               <button

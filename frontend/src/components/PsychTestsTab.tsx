@@ -20,7 +20,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
     <div>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gantly-blue to-gantly-blue-600 flex items-center justify-center">
             <span className="material-symbols-outlined text-white text-lg">psychology</span>
           </div>
           <h3 className="m-0 text-2xl font-bold text-slate-800">Tests Asignados</h3>
@@ -249,7 +249,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                     }}
                   >
                     <div className="flex-1 flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-xl overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-base font-bold flex-shrink-0">
+                      <div className="w-11 h-11 rounded-xl overflow-hidden bg-gradient-to-br from-gantly-blue to-gantly-blue-600 flex items-center justify-center text-white text-base font-bold flex-shrink-0">
                         {patientAvatarUrl ? (
                           <img
                             src={patientAvatarUrl}

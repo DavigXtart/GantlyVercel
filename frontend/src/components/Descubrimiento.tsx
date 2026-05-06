@@ -63,7 +63,7 @@ export default function Descubrimiento() {
     <div>
       {/* Section header */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gantly-blue to-gantly-cyan flex items-center justify-center shadow-sm shadow-purple-500/20">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gantly-blue to-gantly-cyan flex items-center justify-center shadow-sm shadow-gantly-blue/20">
           <span className="material-symbols-outlined text-white text-lg">explore</span>
         </div>
         <div>
@@ -86,7 +86,7 @@ export default function Descubrimiento() {
               onClick={() => setSelectedTopic(null)}
               className={`px-4 py-2 rounded-full cursor-pointer text-sm font-medium transition-all duration-300 ${
                 selectedTopic === null
-                  ? 'bg-gradient-to-r from-gantly-blue-600 to-gantly-cyan-600 text-white shadow-md shadow-purple-500/20'
+                  ? 'bg-gradient-to-r from-gantly-blue-600 to-gantly-cyan-600 text-white shadow-md shadow-gantly-blue/20'
                   : 'bg-white text-slate-600 border border-slate-200 hover:bg-gantly-blue-50 hover:text-gantly-blue hover:border-purple-200'
               }`}
             >
@@ -98,7 +98,7 @@ export default function Descubrimiento() {
                 onClick={() => setSelectedTopic(topic)}
                 className={`px-4 py-2 rounded-full cursor-pointer text-sm font-medium transition-all duration-300 ${
                   selectedTopic === topic
-                    ? 'bg-gradient-to-r from-gantly-blue-600 to-gantly-cyan-600 text-white shadow-md shadow-purple-500/20'
+                    ? 'bg-gradient-to-r from-gantly-blue-600 to-gantly-cyan-600 text-white shadow-md shadow-gantly-blue/20'
                     : 'bg-white text-slate-600 border border-slate-200 hover:bg-gantly-blue-50 hover:text-gantly-blue hover:border-purple-200'
                 }`}
               >
@@ -118,7 +118,7 @@ export default function Descubrimiento() {
             return (
               <div
                 key={test.id}
-                className="bg-white rounded-2xl overflow-hidden border border-slate-100 hover:shadow-lg hover:shadow-purple-500/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
+                className="bg-white rounded-2xl overflow-hidden border border-slate-100 hover:shadow-lg hover:shadow-gantly-blue/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
                 onClick={() => {
                   toast.info('Esta funcionalidad estara disponible proximamente');
                 }}

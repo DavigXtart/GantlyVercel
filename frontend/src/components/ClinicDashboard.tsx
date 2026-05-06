@@ -814,7 +814,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
             <div className="flex-1">
               {loadingRooms ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="w-6 h-6 border-2 border-slate-200 border-t-violet-500 rounded-full animate-spin" />
+                  <div className="w-6 h-6 border-2 border-slate-200 border-t-gantly-blue rounded-full animate-spin" />
                 </div>
               ) : psychologists.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">

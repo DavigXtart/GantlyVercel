@@ -324,7 +324,7 @@ export default function AdminSectionsManager() {
               onClick={() => setSelectedCategory('DISCOVERY')}
               className={`px-6 py-2.5 rounded-xl font-semibold text-sm transition-all border-2 ${
                 selectedCategory === 'DISCOVERY'
-                  ? 'bg-gradient-to-br from-indigo-500 to-purple-500 text-white border-indigo-500'
+                  ? 'bg-gradient-to-br from-gantly-blue to-gantly-cyan text-white border-gantly-blue'
                   : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300'
               }`}
             >

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { AlertTriangle } from 'lucide-react';
 import { matchingService } from '../services/api';
 import { userPsychologistService } from '../services/api';
 import { profileService } from '../services/api';
@@ -191,7 +192,7 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
             <>
               <div className="bg-gradient-to-br from-gantly-gold-50 to-gantly-gold-100 border-2 border-gantly-gold rounded-2xl p-6 mb-6">
                 <div className="flex items-center gap-3 mb-3">
-                  <span className="text-[32px]">⚠️</span>
+                  <AlertTriangle size={32} className="text-amber-600" />
                   <h3 className="text-xl font-heading font-bold text-amber-800 m-0">
                     Baja afinidad detectada
                   </h3>
