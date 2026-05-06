@@ -44,7 +44,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
           <span className="material-symbols-outlined text-xl text-slate-500">arrow_back</span>
         </button>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shadow-sm shadow-blue-500/20">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gantly-blue to-gantly-blue-600 flex items-center justify-center shadow-sm shadow-gantly-blue/20">
             <span className="material-symbols-outlined text-white text-lg">settings</span>
           </div>
           <div>
@@ -68,7 +68,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
             onClick={() => setSettingsSection(s.id)}
             className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-medium cursor-pointer transition-all duration-200 ${
               settingsSection === s.id
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20'
+                ? 'bg-gradient-to-r from-gantly-blue to-gantly-blue-600 text-white shadow-md shadow-gantly-blue/20'
                 : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
             }`}
           >
@@ -85,11 +85,11 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-lg transition-all duration-300">
             <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-5">Foto de perfil</h3>
             <div className="flex items-center gap-5">
-              <div className="w-20 h-20 rounded-2xl overflow-hidden ring-4 ring-blue-100 bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/10">
+              <div className="w-20 h-20 rounded-2xl overflow-hidden ring-4 ring-gantly-blue-100 bg-gradient-to-br from-gantly-blue-100 to-gantly-blue-100 flex items-center justify-center flex-shrink-0 shadow-lg shadow-gantly-blue/10">
                 {me?.avatarUrl ? (
                   <img src={me.avatarUrl} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-2xl text-blue-600 font-semibold">
+                  <span className="text-2xl text-gantly-blue font-semibold">
                     {me?.name ? me.name.charAt(0).toUpperCase() : 'U'}
                   </span>
                 )}
@@ -120,7 +120,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
                       }
                     }}
                   />
-                  <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-sm text-white font-medium hover:shadow-lg hover:shadow-blue-500/25 cursor-pointer transition-all duration-300">
+                  <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-gantly-blue to-gantly-blue-600 text-sm text-white font-medium hover:shadow-lg hover:shadow-gantly-blue/25 cursor-pointer transition-all duration-300">
                     <span className="material-symbols-outlined text-base">upload</span>
                     {uploadingAvatar ? 'Subiendo...' : 'Cambiar foto'}
                   </span>
@@ -140,7 +140,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
                   type="text"
                   value={editProfileForm.name}
                   onChange={(e) => setEditProfileForm({ ...editProfileForm, name: e.target.value })}
-                  className="w-full h-12 rounded-xl border border-slate-200 px-4 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-200 text-sm bg-slate-50 focus:bg-white"
+                  className="w-full h-12 rounded-xl border border-slate-200 px-4 focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue outline-none transition-all duration-200 text-sm bg-slate-50 focus:bg-white"
                   placeholder="Tu nombre"
                 />
               </div>
@@ -150,7 +150,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
                   <select
                     value={editProfileForm.gender}
                     onChange={(e) => setEditProfileForm({ ...editProfileForm, gender: e.target.value })}
-                    className="w-full h-12 rounded-xl border border-slate-200 px-4 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-200 text-sm bg-slate-50 focus:bg-white"
+                    className="w-full h-12 rounded-xl border border-slate-200 px-4 focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue outline-none transition-all duration-200 text-sm bg-slate-50 focus:bg-white"
                   >
                     <option value="">No especificado</option>
                     <option value="MALE">Hombre</option>
@@ -164,7 +164,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
                     type="date"
                     value={editProfileForm.birthDate}
                     onChange={(e) => setEditProfileForm({ ...editProfileForm, birthDate: e.target.value })}
-                    className="w-full h-12 rounded-xl border border-slate-200 px-4 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-200 text-sm bg-slate-50 focus:bg-white"
+                    className="w-full h-12 rounded-xl border border-slate-200 px-4 focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue outline-none transition-all duration-200 text-sm bg-slate-50 focus:bg-white"
                   />
                 </div>
               </div>
@@ -197,7 +197,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
                       setSavingProfile(false);
                     }
                   }}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg hover:shadow-blue-500/25 text-white px-6 py-3 rounded-xl font-medium cursor-pointer transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="bg-gradient-to-r from-gantly-blue to-gantly-blue-600 hover:shadow-lg hover:shadow-gantly-blue/25 text-white px-6 py-3 rounded-xl font-medium cursor-pointer transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {savingProfile ? 'Guardando...' : 'Guardar cambios'}
                 </button>
@@ -220,7 +220,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
                   type="password"
                   value={passwordForm.currentPassword}
                   onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                  className="w-full h-12 rounded-xl border border-slate-200 px-4 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-200 text-sm bg-slate-50 focus:bg-white"
+                  className="w-full h-12 rounded-xl border border-slate-200 px-4 focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue outline-none transition-all duration-200 text-sm bg-slate-50 focus:bg-white"
                   placeholder={'\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022'}
                 />
               </div>
@@ -231,7 +231,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
                     type="password"
                     value={passwordForm.newPassword}
                     onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                    className="w-full h-12 rounded-xl border border-slate-200 px-4 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-200 text-sm bg-slate-50 focus:bg-white"
+                    className="w-full h-12 rounded-xl border border-slate-200 px-4 focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue outline-none transition-all duration-200 text-sm bg-slate-50 focus:bg-white"
                     placeholder={`M\u00ednimo 6 caracteres`}
                   />
                 </div>
@@ -241,7 +241,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
                     type="password"
                     value={passwordForm.confirmPassword}
                     onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                    className="w-full h-12 rounded-xl border border-slate-200 px-4 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-200 text-sm bg-slate-50 focus:bg-white"
+                    className="w-full h-12 rounded-xl border border-slate-200 px-4 focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue outline-none transition-all duration-200 text-sm bg-slate-50 focus:bg-white"
                     placeholder={'\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022'}
                   />
                 </div>
@@ -271,7 +271,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
                       setSavingPassword(false);
                     }
                   }}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg hover:shadow-blue-500/25 text-white px-6 py-3 rounded-xl font-medium cursor-pointer transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="bg-gradient-to-r from-gantly-blue to-gantly-blue-600 hover:shadow-lg hover:shadow-gantly-blue/25 text-white px-6 py-3 rounded-xl font-medium cursor-pointer transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {savingPassword ? 'Guardando...' : `Cambiar contrase\u00f1a`}
                 </button>
@@ -308,8 +308,8 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
           {/* Export data */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-lg transition-all duration-300">
             <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                <span className="material-symbols-outlined text-blue-600 text-sm">download</span>
+              <span className="w-8 h-8 rounded-lg bg-gantly-blue-50 flex items-center justify-center">
+                <span className="material-symbols-outlined text-gantly-blue text-sm">download</span>
               </span>
               Descargar mis datos
             </h3>
@@ -332,7 +332,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
                   toast.error('Error al exportar los datos');
                 }
               }}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg hover:shadow-blue-500/25 text-white px-6 py-3 rounded-xl font-medium cursor-pointer transition-all duration-300 flex items-center gap-2"
+              className="bg-gradient-to-r from-gantly-blue to-gantly-blue-600 hover:shadow-lg hover:shadow-gantly-blue/25 text-white px-6 py-3 rounded-xl font-medium cursor-pointer transition-all duration-300 flex items-center gap-2"
             >
               <span className="material-symbols-outlined text-base">download</span>
               Descargar mis datos

@@ -123,7 +123,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
           {/* Biografia */}
           <div className="bg-white rounded-2xl p-8 border border-slate-100">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-1 h-6 rounded-full bg-gradient-to-b from-blue-500 to-indigo-500"></div>
+              <div className="w-1 h-6 rounded-full bg-gradient-to-b from-gantly-blue to-gantly-blue-600"></div>
               <h3 className="m-0 text-lg font-semibold text-slate-800">Biografia / Sobre mi</h3>
             </div>
             <textarea
@@ -131,7 +131,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
               onChange={(e) => setPsychProfileForm({ ...psychProfileForm, bio: e.target.value })}
               placeholder="Escribe una breve biografia sobre ti, tu experiencia y tu enfoque profesional..."
               rows={5}
-              className="w-full p-4 rounded-xl border border-slate-200 text-sm text-slate-800 resize-y leading-relaxed outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+              className="w-full p-4 rounded-xl border border-slate-200 text-sm text-slate-800 resize-y leading-relaxed outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
             />
           </div>
 
@@ -147,7 +147,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                   ...psychProfileForm,
                   education: [...psychProfileForm.education, { degree: '', field: '', institution: '', startDate: '', endDate: '' }]
                 })}
-                className="px-4 py-2 bg-transparent text-blue-600 border-2 border-dashed border-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-blue-50 hover:border-blue-400"
+                className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
               >
                 + Anadir
               </button>
@@ -166,7 +166,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                         setPsychProfileForm({ ...psychProfileForm, education: newEducation });
                       }}
                       placeholder="Ej: Licenciatura, Grado, Master..."
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                     />
                   </div>
                   <div>
@@ -180,7 +180,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                         setPsychProfileForm({ ...psychProfileForm, education: newEducation });
                       }}
                       placeholder="Ej: Psicologia Clinica..."
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                     />
                   </div>
                 </div>
@@ -195,7 +195,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                       setPsychProfileForm({ ...psychProfileForm, education: newEducation });
                     }}
                     placeholder="Ej: Universidad Complutense de Madrid"
-                    className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                    className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -210,7 +210,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                         setPsychProfileForm({ ...psychProfileForm, education: newEducation });
                       }}
                       placeholder="Ej: 2010"
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                     />
                   </div>
                   <div>
@@ -224,7 +224,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                         setPsychProfileForm({ ...psychProfileForm, education: newEducation });
                       }}
                       placeholder="Ej: 2014 o 'En curso'"
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                     />
                   </div>
                 </div>
@@ -256,7 +256,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                   ...psychProfileForm,
                   certifications: [...psychProfileForm.certifications, { name: '', issuer: '', date: '', credentialId: '' }]
                 })}
-                className="px-4 py-2 bg-transparent text-blue-600 border-2 border-dashed border-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-blue-50 hover:border-blue-400"
+                className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
               >
                 + Anadir
               </button>
@@ -274,7 +274,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                       setPsychProfileForm({ ...psychProfileForm, certifications: newCerts });
                     }}
                     placeholder="Ej: Certificacion en Terapia Cognitivo-Conductual"
-                    className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                    className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3 mb-3">
@@ -289,7 +289,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                         setPsychProfileForm({ ...psychProfileForm, certifications: newCerts });
                       }}
                       placeholder="Ej: Colegio Oficial de Psicologos"
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                     />
                   </div>
                   <div>
@@ -303,7 +303,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                         setPsychProfileForm({ ...psychProfileForm, certifications: newCerts });
                       }}
                       placeholder="Ej: 2020"
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                     />
                   </div>
                 </div>
@@ -318,7 +318,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                       setPsychProfileForm({ ...psychProfileForm, certifications: newCerts });
                     }}
                     placeholder="Ej: ABC123"
-                    className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                    className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                   />
                 </div>
                 <button
@@ -349,7 +349,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                   ...psychProfileForm,
                   experience: [...psychProfileForm.experience, { title: '', company: '', description: '', startDate: '', endDate: '' }]
                 })}
-                className="px-4 py-2 bg-transparent text-blue-600 border-2 border-dashed border-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-blue-50 hover:border-blue-400"
+                className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
               >
                 + Anadir
               </button>
@@ -368,7 +368,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                         setPsychProfileForm({ ...psychProfileForm, experience: newExp });
                       }}
                       placeholder="Ej: Psicologo Clinico"
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                     />
                   </div>
                   <div>
@@ -382,7 +382,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                         setPsychProfileForm({ ...psychProfileForm, experience: newExp });
                       }}
                       placeholder="Ej: Centro de Psicologia"
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                     />
                   </div>
                 </div>
@@ -397,7 +397,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                     }}
                     placeholder="Describe tus responsabilidades y logros..."
                     rows={2}
-                    className="w-full p-3 rounded-xl border border-slate-200 text-sm text-slate-800 resize-y outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                    className="w-full p-3 rounded-xl border border-slate-200 text-sm text-slate-800 resize-y outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -412,7 +412,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                         setPsychProfileForm({ ...psychProfileForm, experience: newExp });
                       }}
                       placeholder="Ej: 2015"
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                     />
                   </div>
                   <div>
@@ -426,7 +426,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                         setPsychProfileForm({ ...psychProfileForm, experience: newExp });
                       }}
                       placeholder="Ej: 2020 o 'Actual'"
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                     />
                   </div>
                 </div>
@@ -463,7 +463,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                     });
                   }
                 }}
-                className="px-4 py-2 bg-transparent text-blue-600 border-2 border-dashed border-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-blue-50 hover:border-blue-400"
+                className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
               >
                 + Anadir
               </button>
@@ -472,7 +472,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
               {psychProfileForm.specializations.map((spec, idx) => (
                 <span
                   key={idx}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 rounded-xl text-sm font-medium border border-blue-200 hover:shadow-md transition-all duration-300"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-gantly-blue-50 to-gantly-blue-100 text-gantly-blue-700 rounded-xl text-sm font-medium border border-gantly-blue-200 hover:shadow-md transition-all duration-300"
                 >
                   {spec}
                   <button
@@ -480,7 +480,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                       const newSpecs = psychProfileForm.specializations.filter((_, i) => i !== idx);
                       setPsychProfileForm({ ...psychProfileForm, specializations: newSpecs });
                     }}
-                    className="bg-transparent border-none text-blue-400 hover:text-red-500 cursor-pointer text-sm p-0 ml-0.5 transition-colors duration-200"
+                    className="bg-transparent border-none text-gantly-blue hover:text-red-500 cursor-pointer text-sm p-0 ml-0.5 transition-colors duration-200"
                   >
                     x
                   </button>
@@ -509,7 +509,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                     });
                   }
                 }}
-                className="px-4 py-2 bg-transparent text-blue-600 border-2 border-dashed border-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-blue-50 hover:border-blue-400"
+                className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
               >
                 + Anadir
               </button>
@@ -550,7 +550,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                   ...psychProfileForm,
                   languages: [...psychProfileForm.languages, { language: '', level: '' }]
                 })}
-                className="px-4 py-2 bg-transparent text-blue-600 border-2 border-dashed border-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-blue-50 hover:border-blue-400"
+                className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
               >
                 + Anadir
               </button>
@@ -569,7 +569,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                         setPsychProfileForm({ ...psychProfileForm, languages: newLangs });
                       }}
                       placeholder="Ej: Espanol, Ingles..."
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                     />
                   </div>
                   <div>
@@ -583,7 +583,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                         setPsychProfileForm({ ...psychProfileForm, languages: newLangs });
                       }}
                       placeholder="Ej: Nativo, Avanzado..."
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                     />
                   </div>
                 </div>
@@ -620,7 +620,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                 value={psychProfileForm.sessionPrice}
                 onChange={(e) => setPsychProfileForm({ ...psychProfileForm, sessionPrice: e.target.value })}
                 placeholder="50.00"
-                className="w-40 h-14 rounded-xl border border-slate-200 px-4 text-xl font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                className="w-40 h-14 rounded-xl border border-slate-200 px-4 text-xl font-bold text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
               />
               <span className="text-sm font-semibold text-slate-600 bg-slate-100 px-3 py-2 rounded-lg">EUR</span>
             </div>
@@ -640,7 +640,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                   value={psychProfileForm.linkedinUrl}
                   onChange={(e) => setPsychProfileForm({ ...psychProfileForm, linkedinUrl: e.target.value })}
                   placeholder="https://linkedin.com/in/tu-perfil"
-                  className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                  className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                 />
               </div>
               <div>
@@ -650,7 +650,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                   value={psychProfileForm.website}
                   onChange={(e) => setPsychProfileForm({ ...psychProfileForm, website: e.target.value })}
                   placeholder="https://tu-sitio-web.com"
-                  className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                  className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                 />
               </div>
             </div>
@@ -661,7 +661,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
             <button
               onClick={savePsychologistProfile}
               disabled={loadingPsychProfile}
-              className="flex-1 py-3 px-8 bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-none rounded-xl font-semibold cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed text-sm hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300"
+              className="flex-1 py-3 px-8 bg-gradient-to-r from-gantly-blue to-gantly-blue-600 text-white border-none rounded-xl font-semibold cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed text-sm hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300"
             >
               {loadingPsychProfile ? 'Guardando...' : 'Guardar Perfil Profesional'}
             </button>

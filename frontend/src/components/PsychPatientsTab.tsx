@@ -72,7 +72,7 @@ export default function PsychPatientsTab({
           </div>
           <div className="flex items-center gap-3">
             <h3 className="m-0 text-2xl font-bold text-slate-800">Mis Pacientes</h3>
-            <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-sm font-semibold">{patients.length}</span>
+            <span className="bg-gantly-blue-50 text-gantly-blue px-3 py-1 rounded-full text-sm font-semibold">{patients.length}</span>
           </div>
         </div>
         <button
@@ -92,7 +92,7 @@ export default function PsychPatientsTab({
             placeholder="Buscar por nombre o email..."
             value={patientSearchTerm}
             onChange={(e) => setPatientSearchTerm(e.target.value)}
-            className="h-12 w-full pl-10 pr-4 rounded-xl border border-slate-200 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+            className="h-12 w-full pl-10 pr-4 rounded-xl border border-slate-200 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
           />
         </div>
         <select
@@ -142,10 +142,10 @@ export default function PsychPatientsTab({
                   <div
                     key={p.id}
                     onClick={() => onViewPatient(p.id)}
-                    className="bg-white rounded-2xl p-6 border border-slate-100 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col min-h-[200px]"
+                    className="bg-white rounded-2xl p-6 border border-slate-100 hover:shadow-xl hover:shadow-gantly-blue/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col min-h-[200px]"
                   >
                     <div className="flex items-center gap-3 mb-4 flex-1 min-h-0">
-                      <div className="w-16 h-16 flex-shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white text-xl font-bold">
+                      <div className="w-16 h-16 flex-shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br from-gantly-blue to-gantly-blue-600 flex items-center justify-center text-white text-xl font-bold">
                         {p.avatarUrl ? (
                           <img src={p.avatarUrl} alt="" className="w-full h-full object-cover" />
                         ) : (
@@ -153,7 +153,7 @@ export default function PsychPatientsTab({
                         )}
                       </div>
                       <div className="flex-1 min-w-0 overflow-hidden">
-                        <div className="text-lg font-semibold text-slate-800 truncate group-hover:text-blue-600 transition-colors" title={p.name}>{p.name}</div>
+                        <div className="text-lg font-semibold text-slate-800 truncate group-hover:text-gantly-blue transition-colors" title={p.name}>{p.name}</div>
                         <div className="text-sm text-slate-500 truncate" title={p.email}>{p.email}</div>
                         {p.lastVisit && (
                           <div className="text-xs text-emerald-600 font-medium mt-1.5 flex items-center gap-1">
@@ -169,7 +169,7 @@ export default function PsychPatientsTab({
                     <div className="flex gap-2 flex-col flex-shrink-0">
                       <button
                         onClick={(e) => { e.stopPropagation(); onOpenChat(p.id); }}
-                        className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg hover:shadow-blue-500/25 text-white border-none rounded-xl font-medium cursor-pointer text-sm transition-all duration-300"
+                        className="w-full py-2.5 bg-gradient-to-r from-gantly-blue to-gantly-blue-600 hover:shadow-lg hover:shadow-gantly-blue/25 text-white border-none rounded-xl font-medium cursor-pointer text-sm transition-all duration-300"
                       >
                         Abrir Chat
                       </button>
@@ -212,7 +212,7 @@ export default function PsychPatientsTab({
                         }
                         onViewPatient(p.id);
                       }}
-                      className={`bg-white rounded-2xl p-6 border hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col min-h-[220px] ${
+                      className={`bg-white rounded-2xl p-6 border hover:shadow-xl hover:shadow-gantly-blue/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col min-h-[220px] ${
                         consentSigned ? 'border-slate-100' : 'border-amber-200'
                       }`}
                     >
@@ -225,7 +225,7 @@ export default function PsychPatientsTab({
                           )}
                         </div>
                         <div className="flex-1 min-w-0 overflow-hidden">
-                          <div className="text-lg font-semibold text-slate-800 truncate group-hover:text-blue-600 transition-colors" title={p.name}>{p.name}</div>
+                          <div className="text-lg font-semibold text-slate-800 truncate group-hover:text-gantly-blue transition-colors" title={p.name}>{p.name}</div>
                           <div className="text-sm text-slate-500 truncate" title={p.email}>{p.email}</div>
                           <div className={`text-xs font-semibold mt-1.5 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 ${
                             consentSigned
@@ -241,7 +241,7 @@ export default function PsychPatientsTab({
                       <div className="flex gap-2 flex-col flex-shrink-0">
                         <button
                           onClick={(e) => { e.stopPropagation(); onOpenChat(p.id); }}
-                          className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg hover:shadow-blue-500/25 text-white border-none rounded-xl font-medium cursor-pointer text-sm transition-all duration-300"
+                          className="w-full py-2.5 bg-gradient-to-r from-gantly-blue to-gantly-blue-600 hover:shadow-lg hover:shadow-gantly-blue/25 text-white border-none rounded-xl font-medium cursor-pointer text-sm transition-all duration-300"
                         >
                           Abrir Chat
                         </button>
@@ -293,7 +293,7 @@ export default function PsychPatientsTab({
                   <div
                     key={p.id}
                     onClick={() => onViewPatient(p.id)}
-                    className="bg-white rounded-2xl p-6 border border-slate-100 opacity-60 hover:opacity-90 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group min-h-[200px] flex flex-col"
+                    className="bg-white rounded-2xl p-6 border border-slate-100 opacity-60 hover:opacity-90 hover:shadow-xl hover:shadow-gantly-blue/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group min-h-[200px] flex flex-col"
                   >
                     <div className="flex items-center gap-3 mb-4 flex-1 min-h-0">
                       <div className="w-16 h-16 flex-shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br from-slate-400 to-slate-500 flex items-center justify-center text-white text-xl font-bold">
@@ -304,7 +304,7 @@ export default function PsychPatientsTab({
                         )}
                       </div>
                       <div className="flex-1 min-w-0 overflow-hidden">
-                        <div className="text-lg font-semibold text-slate-800 truncate group-hover:text-blue-600 transition-colors" title={p.name}>{p.name}</div>
+                        <div className="text-lg font-semibold text-slate-800 truncate group-hover:text-gantly-blue transition-colors" title={p.name}>{p.name}</div>
                         <div className="text-sm text-slate-500 truncate" title={p.email}>{p.email}</div>
                         {p.lastVisit && (
                           <div className="text-xs text-emerald-600 font-medium mt-1.5 flex items-center gap-1">
@@ -320,13 +320,13 @@ export default function PsychPatientsTab({
                     <div className="flex gap-2 flex-col flex-shrink-0">
                       <button
                         onClick={(e) => { e.stopPropagation(); onOpenChat(p.id); }}
-                        className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg hover:shadow-blue-500/25 text-white border-none rounded-xl font-medium cursor-pointer text-sm transition-all duration-300"
+                        className="w-full py-2.5 bg-gradient-to-r from-gantly-blue to-gantly-blue-600 hover:shadow-lg hover:shadow-gantly-blue/25 text-white border-none rounded-xl font-medium cursor-pointer text-sm transition-all duration-300"
                       >
                         Abrir Chat
                       </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); onUpdateStatus(p.id, 'ACTIVE'); }}
-                        className="w-full py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl font-medium cursor-pointer text-xs transition-all duration-300"
+                        className="w-full py-2 bg-gantly-blue-50 hover:bg-gantly-blue-100 text-gantly-blue-700 border border-gantly-blue-200 rounded-xl font-medium cursor-pointer text-xs transition-all duration-300"
                       >
                         Reactivar
                       </button>
@@ -373,7 +373,7 @@ export default function PsychPatientsTab({
                 <select
                   value={consentForm.documentTypeId || 0}
                   onChange={(e) => setConsentForm({ ...consentForm, documentTypeId: parseInt(e.target.value, 10) })}
-                  className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                  className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                 >
                   {(consentDocTypes || []).length === 0 && <option value={0}>No hay tipos disponibles</option>}
                   {(consentDocTypes || []).map((t: any) => (
@@ -389,7 +389,7 @@ export default function PsychPatientsTab({
                   value={consentForm.place}
                   onChange={(e) => setConsentForm({ ...consentForm, place: e.target.value })}
                   placeholder="Ej: Madrid"
-                  className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                  className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                 />
               </div>
             </div>
@@ -419,7 +419,7 @@ export default function PsychPatientsTab({
                     setSendingConsent(false);
                   }
                 }}
-                className="px-5 py-2.5 rounded-xl border-none bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg hover:shadow-blue-500/25 text-white font-medium cursor-pointer text-sm disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed disabled:shadow-none transition-all duration-300"
+                className="px-5 py-2.5 rounded-xl border-none bg-gradient-to-r from-gantly-blue to-gantly-blue-600 hover:shadow-lg hover:shadow-gantly-blue/25 text-white font-medium cursor-pointer text-sm disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed disabled:shadow-none transition-all duration-300"
               >
                 {sendingConsent ? 'Enviando...' : 'Enviar'}
               </button>

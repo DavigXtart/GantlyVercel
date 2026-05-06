@@ -44,7 +44,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
               toast.error('Error al cargar los tests. Por favor intenta de nuevo.');
             }
           }}
-          className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-none rounded-xl font-medium cursor-pointer text-sm hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300"
+          className="px-5 py-2.5 bg-gradient-to-r from-gantly-blue to-gantly-blue-600 text-white border-none rounded-xl font-medium cursor-pointer text-sm hover:shadow-lg hover:shadow-gantly-blue/25 transition-all duration-300"
         >
           Asignar Test
         </button>
@@ -59,7 +59,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
               <select
                 value={assignTestForm.userId}
                 onChange={(e) => setAssignTestForm({ ...assignTestForm, userId: e.target.value })}
-                className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
               >
                 <option value="">Selecciona un paciente</option>
                 {patients.length === 0 ? (
@@ -84,7 +84,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                   placeholder="Buscar test por nombre o codigo..."
                   value={testSearchTerm}
                   onChange={(e) => setTestSearchTerm(e.target.value)}
-                  className="h-12 w-full pl-10 pr-10 rounded-xl border border-slate-200 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white transition-all duration-200"
+                  className="h-12 w-full pl-10 pr-10 rounded-xl border border-slate-200 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue bg-white transition-all duration-200"
                 />
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-lg">search</span>
                 {testSearchTerm.trim() && (
@@ -111,7 +111,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                     <select
                       value={assignTestForm.testId}
                       onChange={(e) => setAssignTestForm({ ...assignTestForm, testId: e.target.value })}
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 bg-white outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 bg-white outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                     >
                       <option value="">{testSearchTerm.trim() ? `Selecciona de ${filteredTests.length} resultado(s)` : 'Selecciona un test'}</option>
                       {availableTests.length === 0 ? (
@@ -179,7 +179,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                     toast.error(`Error al asignar el test: ${errorMessage}`);
                   }
                 }}
-                className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-none rounded-xl font-medium cursor-pointer text-sm hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300"
+                className="px-5 py-2.5 bg-gradient-to-r from-gantly-blue to-gantly-blue-600 text-white border-none rounded-xl font-medium cursor-pointer text-sm hover:shadow-lg hover:shadow-gantly-blue/25 transition-all duration-300"
               >
                 Asignar
               </button>
@@ -234,7 +234,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
               return (
                 <div
                   key={userId}
-                  className="bg-white border border-slate-100 rounded-2xl overflow-hidden hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300"
+                  className="bg-white border border-slate-100 rounded-2xl overflow-hidden hover:shadow-lg hover:shadow-gantly-blue/5 transition-all duration-300"
                 >
                   <div
                     className={`p-5 cursor-pointer flex items-center justify-between gap-4 hover:bg-slate-50/80 transition-all duration-300 ${isExpanded ? 'bg-slate-50/50' : ''}`}
@@ -301,7 +301,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                                 onViewTestDetails(at.userId, at.testId, at.id);
                               }
                             }}
-                            className={`bg-white rounded-2xl p-5 border border-slate-100 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 ${
+                            className={`bg-white rounded-2xl p-5 border border-slate-100 hover:shadow-lg hover:shadow-gantly-blue/10 transition-all duration-300 ${
                               at.completedAt
                                 ? 'border-l-4 border-l-emerald-500 cursor-pointer'
                                 : 'border-l-4 border-l-amber-400 cursor-default'
@@ -346,7 +346,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                                         onViewTestDetails(at.userId, at.testId, at.id);
                                       }
                                     }}
-                                    className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-none rounded-xl text-sm font-medium cursor-pointer hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300"
+                                    className="px-4 py-2 bg-gradient-to-r from-gantly-blue to-gantly-blue-600 text-white border-none rounded-xl text-sm font-medium cursor-pointer hover:shadow-lg hover:shadow-gantly-blue/25 transition-all duration-300"
                                   >
                                     Ver resultados
                                   </button>
