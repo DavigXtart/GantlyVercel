@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, type ReactNode } from 'react';
+import { GraduationCap, Target, BarChart3, MessageCircle, Users, Zap, Pill, Scale, Calculator, Sparkles } from 'lucide-react';
 
 interface MatchingAnimationProps {
   onComplete: () => void;
@@ -8,7 +9,7 @@ interface MatchingStep {
   title: string;
   description: string;
   weight: string;
-  icon: string;
+  icon: ReactNode;
   color: string;
 }
 
@@ -17,56 +18,56 @@ const matchingSteps: MatchingStep[] = [
     title: 'Experiencia Clinica',
     description: 'Analizando anos de experiencia del psicologo segun tu nivel de afectacion',
     weight: '15%',
-    icon: '🎓',
+    icon: <GraduationCap size={48} />,
     color: '#2E93CC'
   },
   {
     title: 'Areas de Trabajo',
     description: 'Comparando tus necesidades con las especialidades del psicologo',
     weight: '20%',
-    icon: '🎯',
+    icon: <Target size={48} />,
     color: '#059669'
   },
   {
     title: 'Complejidad Clinica',
     description: 'Evaluando si el psicologo maneja casos de tu nivel de complejidad',
     weight: '10%',
-    icon: '📊',
+    icon: <BarChart3 size={48} />,
     color: '#F0C930'
   },
   {
     title: 'Estilo Terapeutico',
     description: 'Matching entre tu preferencia y el estilo del profesional',
     weight: '12%',
-    icon: '💬',
+    icon: <MessageCircle size={48} />,
     color: '#22D3EE'
   },
   {
     title: 'Poblacion Objetivo',
     description: 'Verificando que el psicologo trabaje con tu rango de edad',
     weight: '8%',
-    icon: '👥',
+    icon: <Users size={48} />,
     color: '#10b981'
   },
   {
     title: 'Crisis Vitales',
     description: 'Evaluando experiencia en situaciones de crisis si aplica',
     weight: '10%',
-    icon: '⚡',
+    icon: <Zap size={48} />,
     color: '#f97316'
   },
   {
     title: 'Medicacion Psiquiatrica',
     description: 'Comprobando experiencia con medicacion si la necesitas',
     weight: '10%',
-    icon: '💊',
+    icon: <Pill size={48} />,
     color: '#8b5cf6'
   },
   {
     title: 'Preferencia de Genero',
     description: 'Respetando tu preferencia si la has indicado',
     weight: '5%',
-    icon: '⚖️',
+    icon: <Scale size={48} />,
     color: '#0A1628'
   }
 ];
@@ -139,7 +140,7 @@ export default function MatchingAnimation({ onComplete }: MatchingAnimationProps
                   className="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] animate-pulse"
                   style={{ background: `radial-gradient(circle, ${currentStepData.color}10 0%, transparent 70%)` }}
                 />
-                <div className="text-[64px] mb-5 relative z-10">
+                <div className="mb-5 relative z-10 flex justify-center" style={{ color: currentStepData.color }}>
                   {currentStepData.icon}
                 </div>
                 <h2
@@ -174,8 +175,8 @@ export default function MatchingAnimation({ onComplete }: MatchingAnimationProps
                     className="p-5 bg-gray-50 rounded-xl text-center opacity-70 animate-fade-in"
                     style={{ border: `2px solid ${step.color}30` }}
                   >
-                    <div className="text-[32px] mb-2">
-                      {step.icon}
+                    <div className="mb-2 flex justify-center" style={{ color: step.color }}>
+                      {React.cloneElement(step.icon as React.ReactElement, { size: 24 })}
                     </div>
                     <div
                       className="text-sm font-semibold font-body"
@@ -195,7 +196,7 @@ export default function MatchingAnimation({ onComplete }: MatchingAnimationProps
 
         {showFormula && !showResults && (
           <div className="text-center animate-fade-in-up">
-            <div className="text-[64px] mb-6">🧮</div>
+            <div className="mb-6 flex justify-center text-gantly-navy"><Calculator size={48} /></div>
             <h2 className="text-[32px] font-heading font-bold text-gantly-navy mb-6">
               Formula de Matching
             </h2>
@@ -241,7 +242,7 @@ export default function MatchingAnimation({ onComplete }: MatchingAnimationProps
 
         {showResults && (
           <div className="text-center animate-fade-in-up">
-            <div className="text-[64px] mb-6">✨</div>
+            <div className="mb-6 flex justify-center text-gantly-blue"><Sparkles size={48} /></div>
             <h2 className="text-[32px] font-heading font-bold text-gantly-navy mb-4">
               Matching Completado!
             </h2>
