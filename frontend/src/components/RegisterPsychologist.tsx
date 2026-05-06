@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { User, GraduationCap, Lock, CheckCircle } from 'lucide-react';
 import { authService } from '../services/api';
 
 interface RegisterPsychologistProps {
@@ -129,10 +130,10 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
   };
 
   const steps = [
-    { number: 1, title: 'Información personal', icon: '👤' },
-    { number: 2, title: 'Credenciales profesionales', icon: '🎓' },
-    { number: 3, title: 'Contraseña', icon: '🔒' },
-    { number: 4, title: 'Confirmación', icon: '✅' },
+    { number: 1, title: 'Información personal', icon: <User size={18} /> },
+    { number: 2, title: 'Credenciales profesionales', icon: <GraduationCap size={18} /> },
+    { number: 3, title: 'Contraseña', icon: <Lock size={18} /> },
+    { number: 4, title: 'Confirmación', icon: <CheckCircle size={18} /> },
   ];
 
   return (
