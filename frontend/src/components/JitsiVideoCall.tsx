@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Video, AlertTriangle } from 'lucide-react';
 import { JitsiErrorBoundary } from './JitsiErrorBoundary';
 
 interface JitsiVideoCallProps {
@@ -685,7 +686,7 @@ function JitsiVideoCallComponent({
       }}>
         <div>
           <div style={{ fontSize: '18px', fontWeight: 600, marginBottom: '4px' }}>
-            📹 Videollamada - {roomName}
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Video size={18} /> Videollamada - {roomName}</span>
           </div>
           {otherUserName && (
             <div style={{ fontSize: '14px', opacity: 0.9 }}>
@@ -775,7 +776,7 @@ function JitsiVideoCallComponent({
             color: 'white',
             maxWidth: '400px'
           }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
+            <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}><AlertTriangle size={48} color="#f59e0b" /></div>
             <div style={{ fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>
               No se pudo cargar la videollamada
             </div>
@@ -843,7 +844,7 @@ export default function JitsiVideoCall(props: JitsiVideoCallProps) {
         color: 'white'
       }}>
         <div>
-          <div style={{ fontSize: '18px', marginBottom: '16px' }}>⚠️ Error al cargar videollamada</div>
+          <div style={{ fontSize: '18px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}><AlertTriangle size={18} color="#f59e0b" /> Error al cargar videollamada</div>
           <button
             onClick={() => {
               try {

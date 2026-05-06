@@ -1280,7 +1280,7 @@ export default function PsychDashboard() {
                           {p.avatarUrl ? (
                             <img src={p.avatarUrl} alt="" className="w-full h-full object-cover" />
                           ) : (
-                            <span>👤</span>
+                            <User size={16} className="text-slate-400" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
