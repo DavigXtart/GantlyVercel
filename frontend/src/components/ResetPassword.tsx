@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { authService } from '../services/api';
 import FormField from './ui/FormField';
 import { toast } from './ui/Toast';
+import { CheckCircle } from 'lucide-react';
 
 interface ResetPasswordProps {
   token: string;
@@ -59,7 +60,7 @@ export default function ResetPassword({ token, onSuccess, onBack }: ResetPasswor
     return (
       <div className="min-h-screen bg-gradient-to-br from-gantly-navy-700 via-gantly-blue-600 to-gantly-cyan-500 flex justify-center items-center px-6 py-20">
         <div className="w-full max-w-[500px] bg-white shadow-card border border-gantly-blue-100 rounded-2xl p-12 text-center">
-          <div className="text-6xl mb-6">✅</div>
+          <div className="mb-6 flex justify-center"><CheckCircle className="w-14 h-14 text-gantly-emerald" /></div>
           <h2 className="m-0 mb-4 text-[28px] text-gantly-text font-heading font-bold">
             Contraseña restablecida
           </h2>

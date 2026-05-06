@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { authService } from '../services/api';
 import FormField from './ui/FormField';
 import { toast } from './ui/Toast';
+import { Mail } from 'lucide-react';
 
 interface ForgotPasswordProps {
   onBack: () => void;
@@ -95,7 +96,7 @@ export default function ForgotPassword({ onBack, onSuccess: _onSuccess }: Forgot
         ) : (
           <>
             <div className="text-center">
-              <div className="text-6xl mb-6">✉️</div>
+              <div className="mb-6 flex justify-center"><Mail className="w-14 h-14 text-gantly-blue" /></div>
               <h2 className="m-0 mb-4 text-[28px] text-gantly-text font-heading font-bold">
                 Email enviado
               </h2>

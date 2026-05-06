@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { adminService, testService } from '../services/api';
 import TestImporter from './TestImporter';
+import { Pencil, Trash2 } from 'lucide-react';
 
 interface TestManagerProps {
   testId: number;
@@ -931,7 +932,7 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
                           onClick={() => setEditingQuestion(question)}
                           style={{ padding: '8px 16px', fontSize: '14px' }}
                         >
-                          ✏️ Editar Pregunta
+                          <Pencil size={14} className="inline mr-1" /> Editar Pregunta
                         </button>
                         <button 
                           className="btn" 
@@ -946,7 +947,7 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
                           disabled={loading}
                           style={{ padding: '8px 16px', fontSize: '14px' }}
                         >
-                          🗑️ Eliminar Pregunta
+                          <Trash2 size={14} className="inline mr-1" /> Eliminar Pregunta
                         </button>
                         <span style={{ marginLeft: 'auto', fontSize: 13, color: 'var(--text-secondary)' }}>Subfactor:</span>
                         <select
@@ -996,7 +997,7 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
                                   onClick={() => setEditingAnswer({ answer, questionId: question.id })}
                                   style={{ padding: '6px 12px', fontSize: '13px' }}
                                 >
-                                  ✏️
+                                  <Pencil size={14} />
                                 </button>
                                 <button 
                                   className="btn-danger" 
@@ -1004,7 +1005,7 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
                                   disabled={loading}
                                   style={{ padding: '6px 12px', fontSize: '13px' }}
                                 >
-                                  🗑️
+                                  <Trash2 size={14} />
                                 </button>
                               </div>
                             </div>
