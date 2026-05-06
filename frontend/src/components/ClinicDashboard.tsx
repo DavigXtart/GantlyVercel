@@ -76,7 +76,7 @@ function KpiCard({
         </div>
         <h3 className="text-3xl font-bold text-gantly-text mb-1">{value}</h3>
         <p className="text-base font-medium text-slate-700 mb-0.5">{label}</p>
-        <p className="text-sm text-slate-400 font-light">{subtitle}</p>
+        <p className="text-sm text-slate-500 font-light">{subtitle}</p>
       </div>
     </button>
   );
@@ -242,12 +242,12 @@ function EquipoTab({ psychologists, onRefresh }: { psychologists: Psychologist[]
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Current psychologists */}
         <div>
-          <h2 className="text-xs font-heading font-bold text-slate-400 uppercase tracking-widest mb-4">
+          <h2 className="text-xs font-heading font-bold text-slate-500 uppercase tracking-widest mb-4">
             Psicologos del equipo
           </h2>
           <div className="space-y-3">
             {psychologists.length === 0 && (
-              <div className="bg-white rounded-xl border border-slate-200 shadow-soft p-6 text-center text-slate-400 text-sm">
+              <div className="bg-white rounded-xl border border-slate-200 shadow-soft p-6 text-center text-slate-500 text-sm">
                 Aun no hay psicologos en tu clinica
               </div>
             )}
@@ -280,13 +280,13 @@ function EquipoTab({ psychologists, onRefresh }: { psychologists: Psychologist[]
                 {/* Schedule panel */}
                 {selectedPsychId === p.id && (
                   <div className="bg-white rounded-b-xl border border-t-0 border-slate-200 shadow-soft px-4 pb-4">
-                    <p className="text-xs font-heading font-bold text-slate-400 uppercase tracking-widest py-3">
+                    <p className="text-xs font-heading font-bold text-slate-500 uppercase tracking-widest py-3">
                       Agenda proximos 30 dias
                     </p>
                     {loadingSchedule ? (
                       <div className="py-4 text-center"><div className="w-5 h-5 border-2 border-slate-200 border-t-gantly-blue rounded-full animate-spin mx-auto" /></div>
                     ) : schedule.length === 0 ? (
-                      <p className="text-sm text-slate-400 text-center py-3">Sin citas programadas</p>
+                      <p className="text-sm text-slate-500 text-center py-3">Sin citas programadas</p>
                     ) : (
                       <div className="space-y-2">
                         {schedule.map(slot => {
@@ -327,7 +327,7 @@ function EquipoTab({ psychologists, onRefresh }: { psychologists: Psychologist[]
 
         {/* Invite section */}
         <div>
-          <h2 className="text-xs font-heading font-bold text-slate-400 uppercase tracking-widest mb-4">
+          <h2 className="text-xs font-heading font-bold text-slate-500 uppercase tracking-widest mb-4">
             Invitar psicologo
           </h2>
           <div className="bg-white rounded-xl border border-slate-200 shadow-soft p-6 mb-4">
@@ -354,13 +354,13 @@ function EquipoTab({ psychologists, onRefresh }: { psychologists: Psychologist[]
           </div>
 
           {/* Pending invitations */}
-          <h3 className="text-xs font-heading font-bold text-slate-400 uppercase tracking-widest mb-3">
+          <h3 className="text-xs font-heading font-bold text-slate-500 uppercase tracking-widest mb-3">
             Invitaciones pendientes
           </h3>
           {loadingInvites ? (
             <div className="text-center py-4"><div className="w-6 h-6 border-2 border-slate-200 border-t-gantly-blue rounded-full animate-spin mx-auto" /></div>
           ) : invitations.length === 0 ? (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-soft p-4 text-center text-slate-400 text-sm">
+            <div className="bg-white rounded-xl border border-slate-200 shadow-soft p-4 text-center text-slate-500 text-sm">
               No hay invitaciones pendientes
             </div>
           ) : (
@@ -369,7 +369,7 @@ function EquipoTab({ psychologists, onRefresh }: { psychologists: Psychologist[]
                 <div key={inv.id} className="bg-gantly-gold/5 rounded-xl border border-gantly-gold/20 shadow-soft px-4 py-3 flex items-center gap-3">
                   <span className="material-symbols-outlined text-gantly-gold text-base">mail</span>
                   <span className="text-sm text-slate-900 flex-1">{inv.email}</span>
-                  <span className="text-[10px] text-slate-400 bg-gantly-gold/10 px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] text-slate-500 bg-gantly-gold/10 px-2 py-0.5 rounded-full">
                     Expira {new Date(inv.expiresAt).toLocaleDateString('es-ES')}
                   </span>
                   <button
@@ -583,7 +583,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                 </div>
                 <div>
                   <h3 className="text-sm font-heading font-bold text-slate-900">Datos de la clinica</h3>
-                  <p className="text-xs text-slate-400">Informacion general y contacto</p>
+                  <p className="text-xs text-slate-500">Informacion general y contacto</p>
                 </div>
               </div>
               {infoSaved && (
@@ -628,7 +628,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                     <span className="material-symbols-outlined text-sm">{copiedCode ? 'check' : 'content_copy'}</span>
                   </button>
                 </div>
-                <span className="text-[11px] text-slate-400 hidden sm:inline">Codigo para invitar psicologos</span>
+                <span className="text-[11px] text-slate-500 hidden sm:inline">Codigo para invitar psicologos</span>
               </div>
               <button onClick={handleSaveInfo} disabled={savingInfo} className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-gantly-blue to-gantly-cyan text-white text-sm font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-50 cursor-pointer border-none">
                 {savingInfo ? 'Guardando...' : 'Guardar cambios'}
@@ -648,7 +648,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                 </div>
                 <div>
                   <h3 className="text-sm font-heading font-bold text-slate-900">Horario semanal</h3>
-                  <p className="text-xs text-slate-400">Horario de apertura de la clinica</p>
+                  <p className="text-xs text-slate-500">Horario de apertura de la clinica</p>
                 </div>
               </div>
               {scheduleSaved && (
@@ -659,7 +659,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
             <div className="flex-1 space-y-1">
               {schedule.map((day, idx) => (
                 <div key={day.day} className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-colors duration-200 ${day.closed ? 'bg-slate-50/50' : 'hover:bg-slate-50/80'}`}>
-                  <span className={`w-20 text-sm font-medium ${day.closed ? 'text-slate-400' : 'text-slate-700'}`}>{day.day}</span>
+                  <span className={`w-20 text-sm font-medium ${day.closed ? 'text-slate-500' : 'text-slate-700'}`}>{day.day}</span>
                   {/* Toggle switch */}
                   <button
                     type="button"
@@ -677,7 +677,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                         className="h-8 px-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 outline-none focus:border-gantly-blue transition-colors w-[110px]" />
                     </div>
                   ) : (
-                    <span className="text-xs text-slate-400 italic">Cerrado</span>
+                    <span className="text-xs text-slate-500 italic">Cerrado</span>
                   )}
                 </div>
               ))}
@@ -705,7 +705,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                 </div>
                 <div>
                   <h3 className="text-sm font-heading font-bold text-slate-900">Catalogo de servicios</h3>
-                  <p className="text-xs text-slate-400">{services.length} servicio{services.length !== 1 ? 's' : ''} configurado{services.length !== 1 ? 's' : ''}</p>
+                  <p className="text-xs text-slate-500">{services.length} servicio{services.length !== 1 ? 's' : ''} configurado{services.length !== 1 ? 's' : ''}</p>
                 </div>
               </div>
               {!showServiceForm && (
@@ -759,8 +759,8 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                   <div className="size-12 rounded-2xl bg-slate-50 flex items-center justify-center mb-3">
                     <span className="material-symbols-outlined text-slate-300 text-2xl">inventory_2</span>
                   </div>
-                  <p className="text-sm text-slate-400">Sin servicios configurados</p>
-                  <p className="text-xs text-slate-300 mt-1">Anade tu primer servicio para empezar</p>
+                  <p className="text-sm text-slate-500">Sin servicios configurados</p>
+                  <p className="text-xs text-slate-400 mt-1">Anade tu primer servicio para empezar</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -777,7 +777,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                               <span className="text-xs font-semibold text-emerald-600">{svc.defaultPrice}€</span>
                             )}
                             {svc.durationMinutes != null && (
-                              <span className="text-[11px] text-slate-400 flex items-center gap-0.5">
+                              <span className="text-[11px] text-slate-500 flex items-center gap-0.5">
                                 <span className="material-symbols-outlined text-[11px]">timer</span>
                                 {svc.durationMinutes} min
                               </span>
@@ -803,11 +803,11 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
           <div className="p-6 flex-1 flex flex-col">
             <div className="flex items-center gap-2.5 mb-5">
               <div className="size-9 rounded-xl bg-gradient-to-br from-violet-50 to-purple-50 flex items-center justify-center">
-                <span className="material-symbols-outlined text-violet-500 text-lg">meeting_room</span>
+                <span className="material-symbols-outlined text-gantly-blue text-lg">meeting_room</span>
               </div>
               <div>
                 <h3 className="text-sm font-heading font-bold text-slate-900">Despachos</h3>
-                <p className="text-xs text-slate-400">Un despacho por psicologo para citas presenciales</p>
+                <p className="text-xs text-slate-500">Un despacho por psicologo para citas presenciales</p>
               </div>
             </div>
 
@@ -821,8 +821,8 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                   <div className="size-12 rounded-2xl bg-slate-50 flex items-center justify-center mb-3">
                     <span className="material-symbols-outlined text-slate-300 text-2xl">group_off</span>
                   </div>
-                  <p className="text-sm text-slate-400">No hay psicologos en la clinica</p>
-                  <p className="text-xs text-slate-300 mt-1">Invita psicologos desde la pestana Equipo</p>
+                  <p className="text-sm text-slate-500">No hay psicologos en la clinica</p>
+                  <p className="text-xs text-slate-400 mt-1">Invita psicologos desde la pestana Equipo</p>
                 </div>
               ) : (
                 <ul className="space-y-2">
@@ -842,7 +842,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                           <div className="flex-1 min-w-0">
                             <span className="text-sm font-medium text-slate-900 block truncate">{psych.name}</span>
                             {room && (
-                              <span className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
+                              <span className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
                                 <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: room.color }} />
                                 {room.name}
                               </span>
@@ -860,7 +860,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                           ) : !isAdding ? (
                             <button
                               onClick={() => startAdding(psych.id, `Consulta ${idx + 1}`)}
-                              className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-gantly-blue border border-dashed border-slate-200 hover:border-gantly-blue/40 px-2.5 py-1.5 rounded-lg transition-all cursor-pointer bg-transparent"
+                              className="flex items-center gap-1 text-[11px] text-slate-500 hover:text-gantly-blue border border-dashed border-slate-200 hover:border-gantly-blue/40 px-2.5 py-1.5 rounded-lg transition-all cursor-pointer bg-transparent"
                             >
                               <span className="material-symbols-outlined text-sm">add</span>
                               Asignar

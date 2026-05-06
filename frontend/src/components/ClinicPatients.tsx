@@ -113,7 +113,7 @@ function ExpandableSection({ label, value }: { label: string; value?: string }) 
         className="w-full bg-transparent border-none text-left py-2.5 cursor-pointer flex justify-between items-center text-[13px] text-slate-700 font-medium hover:bg-slate-50/50 rounded-lg px-2 transition-colors duration-200"
       >
         {label}
-        <span className="text-[11px] text-slate-400">{open ? '\u25B2' : '\u25BC'}</span>
+        <span className="text-[11px] text-slate-500">{open ? '\u25B2' : '\u25BC'}</span>
       </button>
       {open && (
         <div className="pb-2.5 px-2 text-[13px] text-slate-500 leading-relaxed">
@@ -164,14 +164,14 @@ function ListView({
       {loading ? (
         <Spinner />
       ) : patients.length === 0 ? (
-        <div className="text-center p-12 text-slate-400 flex flex-col items-center gap-3">
+        <div className="text-center p-12 text-slate-500 flex flex-col items-center gap-3">
           <span className="material-symbols-outlined text-4xl text-slate-300">person_search</span>
           <span className="text-sm">No hay pacientes{search ? ' que coincidan con la búsqueda' : ' registrados aún'}.</span>
         </div>
       ) : (
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           {/* Table header */}
-          <div className="grid grid-cols-[60px_1fr_1fr_120px_1fr_100px_100px] bg-slate-50/80 px-4 py-3 text-xs font-heading font-bold text-slate-400 uppercase tracking-widest">
+          <div className="grid grid-cols-[60px_1fr_1fr_120px_1fr_100px_100px] bg-slate-50/80 px-4 py-3 text-xs font-heading font-bold text-slate-500 uppercase tracking-widest">
             <span>N.º</span>
             <span>Nombre</span>
             <span>Email</span>
@@ -374,7 +374,7 @@ function DetailView({
     `px-5 py-2.5 border-none bg-transparent cursor-pointer text-sm transition-all duration-200 font-heading ${
       tab === t
         ? 'font-bold text-gantly-blue border-b-2 border-gantly-blue'
-        : 'font-normal text-slate-400 hover:text-slate-600 border-b-2 border-transparent'
+        : 'font-normal text-slate-500 hover:text-slate-700 border-b-2 border-transparent'
     }`;
 
   return (
@@ -465,7 +465,7 @@ function DetailView({
           {tab === 'citas' && (
             <div className="flex flex-col gap-2.5">
               {(!patient.appointments || patient.appointments.length === 0) ? (
-                <div className="text-slate-400 text-center p-10 flex flex-col items-center gap-3">
+                <div className="text-slate-500 text-center p-10 flex flex-col items-center gap-3">
                   <span className="material-symbols-outlined text-4xl text-slate-300">event_busy</span>
                   <span className="text-sm">No hay citas para este paciente.</span>
                 </div>
@@ -581,7 +581,7 @@ function DetailView({
               {loadingDocs ? (
                 <Spinner />
               ) : documents.length === 0 ? (
-                <div className="text-center p-12 text-slate-400 text-sm flex flex-col items-center gap-3">
+                <div className="text-center p-12 text-slate-500 text-sm flex flex-col items-center gap-3">
                   <span className="material-symbols-outlined text-4xl text-slate-300">folder_open</span>
                   <span>Sin documentos para este paciente.</span>
                 </div>
@@ -597,7 +597,7 @@ function DetailView({
                         <p className="m-0 text-[13px] text-slate-900 truncate">
                           {doc.originalName}
                         </p>
-                        <p className="m-0 text-[11px] text-slate-400 mt-0.5">
+                        <p className="m-0 text-[11px] text-slate-500 mt-0.5">
                           {new Date(doc.uploadedAt).toLocaleDateString('es-ES')}
                         </p>
                       </div>
@@ -627,7 +627,7 @@ function DetailView({
               {/* Messages area */}
               <div className="flex-1 overflow-y-auto flex flex-col gap-2 pb-4">
                 {chatMessages.length === 0 ? (
-                  <div className="text-center p-12 text-slate-400 text-sm flex flex-col items-center gap-3">
+                  <div className="text-center p-12 text-slate-500 text-sm flex flex-col items-center gap-3">
                     <span className="material-symbols-outlined text-4xl text-slate-300">chat_bubble_outline</span>
                     <span>Sin mensajes. Inicia la conversación con el paciente.</span>
                   </div>
@@ -647,7 +647,7 @@ function DetailView({
                           }`}
                         >
                           <p className="m-0">{msg.content}</p>
-                          <p className={`m-0 mt-1 text-[10px] text-right ${isClinic ? 'opacity-70' : 'text-slate-400'}`}>
+                          <p className={`m-0 mt-1 text-[10px] text-right ${isClinic ? 'opacity-70' : 'text-slate-500'}`}>
                             {new Date(msg.createdAt).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                           </p>
                         </div>
@@ -906,7 +906,7 @@ export default function ClinicPatients({ onBack: _onBack }: Props) {
       <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center gap-3">
         <h2 className="m-0 font-heading font-bold text-gantly-text text-xl">Pacientes</h2>
         {view === 'list' && (
-          <span className="text-sm text-slate-400 font-body ml-1">{patients.length} registrados</span>
+          <span className="text-sm text-slate-500 font-body ml-1">{patients.length} registrados</span>
         )}
       </div>
 

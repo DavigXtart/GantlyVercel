@@ -264,7 +264,7 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
               <span className="material-symbols-outlined text-amber-500 text-lg">schedule</span>
             </div>
             <div className="text-2xl font-heading font-bold text-slate-900">{fmtEuro(totalPending)}</div>
-            <div className="text-[11px] font-heading font-bold uppercase tracking-widest text-slate-400 mt-1">Pendiente</div>
+            <div className="text-xs font-heading font-bold uppercase tracking-widest text-slate-500 mt-1">Pendiente</div>
           </div>
         </div>
         {/* Cancelled */}
@@ -275,7 +275,7 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
               <span className="material-symbols-outlined text-red-400 text-lg">block</span>
             </div>
             <div className="text-2xl font-heading font-bold text-slate-900">{fmtEuro(totalCancelled)}</div>
-            <div className="text-[11px] font-heading font-bold uppercase tracking-widest text-slate-400 mt-1">Cancelado</div>
+            <div className="text-xs font-heading font-bold uppercase tracking-widest text-slate-500 mt-1">Cancelado</div>
           </div>
         </div>
         {/* Count */}
@@ -286,7 +286,7 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
               <span className="material-symbols-outlined text-gantly-blue text-lg">receipt_long</span>
             </div>
             <div className="text-2xl font-heading font-bold text-slate-900">{items.length}</div>
-            <div className="text-[11px] font-heading font-bold uppercase tracking-widest text-slate-400 mt-1">Citas</div>
+            <div className="text-xs font-heading font-bold uppercase tracking-widest text-slate-500 mt-1">Citas</div>
           </div>
         </div>
       </div>
@@ -347,13 +347,13 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
             <table className="w-full">
               <thead>
                 <tr className="bg-slate-50/60">
-                  <th className="text-left px-5 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Fecha</th>
-                  <th className="text-left px-3 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Hora</th>
-                  <th className="text-left px-3 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Psicologo</th>
-                  <th className="text-left px-3 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Paciente</th>
-                  <th className="text-left px-3 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Servicio</th>
-                  <th className="text-right px-3 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Importe</th>
-                  <th className="text-center px-3 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Estado</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Fecha</th>
+                  <th className="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Hora</th>
+                  <th className="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Psicologo</th>
+                  <th className="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Paciente</th>
+                  <th className="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Servicio</th>
+                  <th className="text-right px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Importe</th>
+                  <th className="text-center px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Estado</th>
                   <th className="w-10 px-3 py-3" />
                 </tr>
               </thead>
