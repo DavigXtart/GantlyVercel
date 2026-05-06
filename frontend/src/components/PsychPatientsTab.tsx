@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { Users } from 'lucide-react';
 import { consentService } from '../services/api';
 import LoadingSpinner from './ui/LoadingSpinner';
 import EmptyState from './ui/EmptyState';
@@ -122,7 +123,7 @@ export default function PsychPatientsTab({
         <LoadingSpinner text="Cargando pacientes..." />
       ) : filteredPatients.length === 0 ? (
         <EmptyState
-          icon="👥"
+          icon={<Users className="w-12 h-12 text-slate-300" />}
           title={patientSearchTerm.trim() || patientFilterGender || patientFilterLastVisit ? "No se encontraron pacientes" : "No hay pacientes asignados"}
           description={patientSearchTerm.trim() || patientFilterGender || patientFilterLastVisit ? "Intenta cambiar los filtros de busqueda." : "Aun no tienes pacientes asignados. Los pacientes apareceran aqui una vez que se registren y te seleccionen."}
         />

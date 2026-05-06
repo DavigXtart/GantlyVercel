@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
+import { User, BarChart3 } from 'lucide-react';
 import { profileService, psychService, calendarService, tasksService, assignedTestsService, testService, resultsService, matchingService, calendarNotesService, jitsiService, API_BASE_URL } from '../services/api';
 import NotificationBell from './ui/NotificationBell';
 import ChatWidget from './ChatWidget';
@@ -1495,7 +1496,7 @@ export default function PsychDashboard() {
                   ) : null}
                 </>
               ) : (
-                <EmptyState icon="👤" title="Paciente no encontrado" description="No se pudieron cargar los detalles del paciente." />
+                <EmptyState icon={<User className="w-12 h-12 text-slate-300" />} title="Paciente no encontrado" description="No se pudieron cargar los detalles del paciente." />
               )}
             </div>
           )}
@@ -1633,7 +1634,7 @@ export default function PsychDashboard() {
                   </details>
                 </>
               ) : (
-                <EmptyState icon="📊" title="Test no encontrado" description="No se pudieron cargar los detalles del test." />
+                <EmptyState icon={<BarChart3 className="w-12 h-12 text-slate-300" />} title="Test no encontrado" description="No se pudieron cargar los detalles del test." />
               )}
             </div>
           )}
