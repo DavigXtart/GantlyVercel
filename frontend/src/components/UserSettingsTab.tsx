@@ -2,6 +2,7 @@ import { useState, useEffect, lazy, Suspense } from 'react';
 import { profileService, authService } from '../services/api';
 import { toast } from './ui/Toast';
 import LoadingSpinner from './ui/LoadingSpinner';
+import { ArrowLeft, Settings, User, Lock, Receipt, Shield, Upload, Download, Info, AlertTriangle, Trash2, type LucideIcon } from 'lucide-react';
 
 const BillingPortal = lazy(() => import('./BillingPortal'));
 const TwoFactorSetup = lazy(() => import('./TwoFactorSetup'));
@@ -41,11 +42,11 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
           onClick={onBack}
           className="p-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 cursor-pointer transition-all duration-200 hover:shadow-sm"
         >
-          <span className="material-symbols-outlined text-xl text-slate-500">arrow_back</span>
+          <ArrowLeft className="text-slate-500" size={20} />
         </button>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gantly-blue to-gantly-blue-600 flex items-center justify-center shadow-sm shadow-gantly-blue/20">
-            <span className="material-symbols-outlined text-white text-lg">settings</span>
+            <Settings className="text-white" size={18} />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-800">{`Configuraci\u00f3n`}</h1>
@@ -57,10 +58,10 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
       {/* Section tabs */}
       <div className="flex gap-1 bg-white rounded-2xl p-1.5 mb-8 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300">
         {([
-          { id: 'perfil' as SettingsSection, icon: 'person', label: 'Perfil' },
-          { id: 'seguridad' as SettingsSection, icon: 'lock', label: 'Seguridad' },
-          { id: 'pagos' as SettingsSection, icon: 'receipt_long', label: 'Pagos' },
-          { id: 'privacidad' as SettingsSection, icon: 'shield', label: 'Privacidad' },
+          { id: 'perfil' as SettingsSection, Icon: User, label: 'Perfil' },
+          { id: 'seguridad' as SettingsSection, Icon: Lock, label: 'Seguridad' },
+          { id: 'pagos' as SettingsSection, Icon: Receipt, label: 'Pagos' },
+          { id: 'privacidad' as SettingsSection, Icon: Shield, label: 'Privacidad' },
         ]).map((s) => (
           <button
             key={s.id}
@@ -72,7 +73,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
                 : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
             }`}
           >
-            <span className="material-symbols-outlined text-base">{s.icon}</span>
+            <s.Icon size={16} />
             <span className="hidden sm:inline">{s.label}</span>
           </button>
         ))}
@@ -121,11 +122,11 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
                     }}
                   />
                   <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-gantly-blue to-gantly-blue-600 text-sm text-white font-medium hover:shadow-lg hover:shadow-gantly-blue/25 cursor-pointer transition-all duration-300">
-                    <span className="material-symbols-outlined text-base">upload</span>
+                    <Upload size={16} />
                     {uploadingAvatar ? 'Subiendo...' : 'Cambiar foto'}
                   </span>
                 </label>
-                <p className="text-xs text-slate-400">{`JPG, PNG. M\u00e1ximo 10MB.`}</p>
+                <p className="text-xs text-slate-500">{`JPG, PNG. M\u00e1ximo 10MB.`}</p>
               </div>
             </div>
           </div>
@@ -309,7 +310,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-lg transition-all duration-300">
             <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4 flex items-center gap-2">
               <span className="w-8 h-8 rounded-lg bg-gantly-blue-50 flex items-center justify-center">
-                <span className="material-symbols-outlined text-gantly-blue text-sm">download</span>
+                <Download className="text-gantly-blue" size={14} />
               </span>
               Descargar mis datos
             </h3>
@@ -334,7 +335,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
               }}
               className="bg-gradient-to-r from-gantly-blue to-gantly-blue-600 hover:shadow-lg hover:shadow-gantly-blue/25 text-white px-6 py-3 rounded-xl font-medium cursor-pointer transition-all duration-300 flex items-center gap-2"
             >
-              <span className="material-symbols-outlined text-base">download</span>
+              <Download size={16} />
               Descargar mis datos
             </button>
           </div>
@@ -343,7 +344,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-lg transition-all duration-300">
             <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4 flex items-center gap-2">
               <span className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                <span className="material-symbols-outlined text-slate-600 text-sm">info</span>
+                <Info className="text-slate-600" size={14} />
               </span>
               {`Pol\u00edtica de retenci\u00f3n`}
             </h3>
@@ -356,7 +357,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
           <div className="border-2 border-red-200 bg-red-50/50 rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
             <h3 className="text-sm font-semibold text-red-500 uppercase tracking-wide mb-3 flex items-center gap-2">
               <span className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
-                <span className="material-symbols-outlined text-red-500 text-sm">warning</span>
+                <AlertTriangle className="text-red-500" size={14} />
               </span>
               Zona de peligro
             </h3>
@@ -385,7 +386,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
               }}
               className="px-6 py-3 rounded-xl border-2 border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 hover:border-red-300 cursor-pointer transition-all duration-200 flex items-center gap-2"
             >
-              <span className="material-symbols-outlined text-base">delete_forever</span>
+              <Trash2 size={16} />
               Eliminar mi cuenta permanentemente
             </button>
           </div>

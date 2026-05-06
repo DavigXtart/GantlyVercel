@@ -408,7 +408,7 @@ export default function PatientMatchingTest({ onComplete, onBack }: PatientMatch
           {onBack && (
             <button
               onClick={onBack}
-              className="text-slate-400 hover:text-slate-600 text-sm cursor-pointer transition-colors duration-200"
+              className="text-slate-500 hover:text-slate-600 text-sm cursor-pointer transition-colors duration-200"
             >
               Salir
             </button>
@@ -422,7 +422,7 @@ export default function PatientMatchingTest({ onComplete, onBack }: PatientMatch
           <span className="text-xs font-medium text-slate-500">
             Pregunta {currentQuestionIndex + 1} de {visibleQuestions.length}
           </span>
-          <span className="text-xs text-slate-400">{Math.round(progress)}%</span>
+          <span className="text-xs text-slate-500">{Math.round(progress)}%</span>
         </div>
         <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
           <div
@@ -451,7 +451,7 @@ export default function PatientMatchingTest({ onComplete, onBack }: PatientMatch
             disabled={currentQuestionIndex === 0 || submitting}
             className={`font-medium transition-colors duration-200 ${
               currentQuestionIndex === 0
-                ? 'text-slate-300 cursor-not-allowed'
+                ? 'text-slate-500 cursor-not-allowed'
                 : 'text-slate-500 hover:text-slate-700 cursor-pointer'
             }`}
           >

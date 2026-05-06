@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect, Fragment } from 'react';
+import { ChevronLeft, ChevronRight, CalendarCheck, CheckCircle, Clock, CreditCard, Calendar, UserPlus, Pencil, X, PlusCircle, Plus, Info } from 'lucide-react';
 import { toast } from './ui/Toast';
 
 type Slot = { id: number; startTime: string; endTime: string; status: 'FREE'|'REQUESTED'|'CONFIRMED'|'BOOKED'|'CANCELLED'; user?: { name: string }; price?: number; paymentStatus?: string };
@@ -423,7 +424,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
             onClick={() => handleWeekChange(addDays(weekStart, -7))}
             className="w-10 h-10 flex items-center justify-center rounded-xl bg-gantly-cloud hover:bg-gantly-blue hover:text-white cursor-pointer transition-all duration-200 text-gantly-muted border-none shadow-sm hover:shadow-md"
           >
-            <span className="material-symbols-outlined text-xl">chevron_left</span>
+            <ChevronLeft size={20} />
           </button>
           <div className="text-center">
             <span className="font-heading text-xl font-bold text-gantly-text tracking-tight">
@@ -434,7 +435,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
             onClick={() => handleWeekChange(addDays(weekStart, 7))}
             className="w-10 h-10 flex items-center justify-center rounded-xl bg-gantly-cloud hover:bg-gantly-blue hover:text-white cursor-pointer transition-all duration-200 text-gantly-muted border-none shadow-sm hover:shadow-md"
           >
-            <span className="material-symbols-outlined text-xl">chevron_right</span>
+            <ChevronRight size={20} />
           </button>
         </div>
 
@@ -442,29 +443,29 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="bg-gantly-cloud/60 rounded-xl px-4 py-3 border border-gantly-blue/10 group hover:border-gantly-blue/30 transition-all duration-200">
             <div className="flex items-center gap-2 mb-1">
-              <span className="material-symbols-outlined text-base text-gantly-blue">event_available</span>
+              <CalendarCheck size={16} className="text-gantly-blue" />
               <span className="font-body text-[11px] uppercase tracking-wider text-gantly-muted font-medium">Disponibles</span>
             </div>
             <div className="font-heading text-2xl font-bold text-gantly-blue">{weekStats.free}</div>
           </div>
           <div className="bg-gantly-emerald/5 rounded-xl px-4 py-3 border border-gantly-emerald/10 group hover:border-gantly-emerald/30 transition-all duration-200">
             <div className="flex items-center gap-2 mb-1">
-              <span className="material-symbols-outlined text-base text-gantly-emerald">check_circle</span>
+              <CheckCircle size={16} className="text-gantly-emerald" />
               <span className="font-body text-[11px] uppercase tracking-wider text-gantly-muted font-medium">Reservadas</span>
             </div>
             <div className="font-heading text-2xl font-bold text-gantly-emerald">{weekStats.booked}</div>
           </div>
           <div className="bg-gantly-gold/5 rounded-xl px-4 py-3 border border-gantly-gold/10 group hover:border-gantly-gold/30 transition-all duration-200">
             <div className="flex items-center gap-2 mb-1">
-              <span className="material-symbols-outlined text-base text-gantly-gold">pending</span>
+              <Clock size={16} className="text-gantly-gold" />
               <span className="font-body text-[11px] uppercase tracking-wider text-gantly-muted font-medium">Pendientes</span>
             </div>
             <div className="font-heading text-2xl font-bold text-yellow-700">{weekStats.pending}</div>
           </div>
           {mode === 'PSYCHO' && (
-            <div className="rounded-xl px-4 py-3 border border-gantly-blue/10 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1B6FA0 0%, #2E93CC 30%, #48C6D4 65%, #78D4B0 100%)' }}>
+            <div className="rounded-xl px-4 py-3 border border-gantly-blue/10 relative overflow-hidden bg-gradient-brand">
               <div className="flex items-center gap-2 mb-1">
-                <span className="material-symbols-outlined text-base text-white/80">payments</span>
+                <CreditCard size={16} className="text-white/80" />
                 <span className="font-body text-[11px] uppercase tracking-wider text-white/70 font-medium">Ingresos sem.</span>
               </div>
               <div className="font-heading text-2xl font-bold text-white">{weekStats.revenue.toFixed(0)}&euro;</div>
@@ -473,7 +474,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
           {mode === 'USER' && (
             <div className="bg-slate-50 rounded-xl px-4 py-3 border border-slate-100">
               <div className="flex items-center gap-2 mb-1">
-                <span className="material-symbols-outlined text-base text-gantly-muted">calendar_month</span>
+                <Calendar size={16} className="text-gantly-muted" />
                 <span className="font-body text-[11px] uppercase tracking-wider text-gantly-muted font-medium">Total</span>
               </div>
               <div className="font-heading text-2xl font-bold text-gantly-text">{weekStats.total}</div>
@@ -502,7 +503,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
       <div className="grid overflow-x-auto" style={{ gridTemplateColumns: '72px repeat(7, 1fr)' }}>
         {/* Hour header */}
         <div className="bg-slate-50/60 px-2 py-3 border-r border-slate-100/80 flex items-end justify-center">
-          <span className="material-symbols-outlined text-base text-gantly-muted/60">schedule</span>
+          <Clock size={16} className="text-gantly-muted/60" />
         </div>
 
         {/* Day headers */}
@@ -519,16 +520,16 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
               key={i}
               className={`px-2 py-3 text-center border-b ${i < 6 ? 'border-r border-slate-100/80' : ''} ${todayCol ? 'bg-gradient-to-b from-gantly-blue/8 to-gantly-blue/3 border-b-2 border-b-gantly-blue' : 'bg-slate-50/50 border-slate-100/80'} transition-colors duration-200`}
             >
-              <div className={`font-body text-[10px] uppercase tracking-widest font-semibold ${isWeekend ? 'text-slate-400' : todayCol ? 'text-gantly-blue' : 'text-gantly-muted'}`}>
+              <div className={`font-body text-[10px] uppercase tracking-widest font-semibold ${isWeekend ? 'text-slate-500' : todayCol ? 'text-gantly-blue' : 'text-gantly-muted'}`}>
                 {d.toLocaleDateString('es-ES', { weekday: 'short' })}
               </div>
               <div className="mt-1 flex items-center justify-center">
                 {todayCol ? (
-                  <span className="w-9 h-9 flex items-center justify-center rounded-full text-white font-heading font-bold text-base shadow-lg shadow-gantly-blue/25 mx-auto" style={{ background: 'linear-gradient(135deg, #2E93CC, #22D3EE)' }}>
+                  <span className="w-9 h-9 flex items-center justify-center rounded-full text-white font-heading font-bold text-base shadow-lg shadow-gantly-blue/25 mx-auto bg-gradient-brand-alt">
                     {d.toLocaleDateString('es-ES', { day: 'numeric' })}
                   </span>
                 ) : (
-                  <span className={`font-heading font-bold text-lg ${isWeekend ? 'text-slate-400' : 'text-gantly-text'}`}>
+                  <span className={`font-heading font-bold text-lg ${isWeekend ? 'text-slate-500' : 'text-gantly-text'}`}>
                     {d.toLocaleDateString('es-ES', { day: 'numeric' })}
                   </span>
                 )}
@@ -711,7 +712,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                                       className="w-[18px] h-[18px] flex items-center justify-center rounded bg-gantly-emerald/10 text-gantly-emerald border-none text-[10px] cursor-pointer transition-all duration-200 hover:bg-gantly-emerald/20 hover:scale-110"
                                       title="Asignar a paciente"
                                     >
-                                      <span className="material-symbols-outlined text-[12px]">person_add</span>
+                                      <UserPlus size={12} />
                                     </button>
                                   )}
                                   {onUpdateSlot && (s.status === 'FREE' || s.status === 'REQUESTED') && (
@@ -726,7 +727,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                                       }}
                                       className="w-[18px] h-[18px] flex items-center justify-center rounded bg-gantly-blue/10 text-gantly-blue border-none text-[11px] cursor-pointer transition-all duration-200 hover:bg-gantly-blue/20 hover:scale-110"
                                     >
-                                      <span className="material-symbols-outlined text-[12px]">edit</span>
+                                      <Pencil size={12} />
                                     </button>
                                   )}
                                   {onDeleteSlot && (s.status === 'FREE' || s.status === 'REQUESTED') && (
@@ -743,7 +744,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                                       }}
                                       className="w-[18px] h-[18px] flex items-center justify-center rounded bg-red-500/10 text-red-500 border-none text-sm font-bold cursor-pointer transition-all duration-200 hover:bg-red-500/20 hover:scale-110 leading-none"
                                     >
-                                      <span className="material-symbols-outlined text-[12px]">close</span>
+                                      <X size={12} />
                                     </button>
                                   )}
                                 </div>
@@ -760,11 +761,11 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                       }`}>
                         {isHovered ? (
                           <div className="flex flex-col items-center gap-0.5">
-                            <span className="material-symbols-outlined text-lg text-gantly-blue">add_circle</span>
+                            <PlusCircle size={18} className="text-gantly-blue" />
                             <span className="text-[9px] font-semibold text-gantly-blue/70">Nueva</span>
                           </div>
                         ) : (
-                          <span className="material-symbols-outlined text-sm text-slate-200">add</span>
+                          <Plus size={16} className="text-slate-200" />
                         )}
                       </div>
                     )
@@ -798,7 +799,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
         </div>
         {mode === 'PSYCHO' && (
           <div className="flex items-center gap-2 text-[11px] text-gantly-muted font-body">
-            <span className="material-symbols-outlined text-sm text-gantly-blue/60">info</span>
+            <Info size={16} className="text-gantly-blue/60" />
             <span>Arrastra para crear varias citas a la vez</span>
           </div>
         )}

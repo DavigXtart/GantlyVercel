@@ -452,7 +452,7 @@ export default function AdminSectionsManager() {
                             }`}>
                               {test.active ? 'Activo' : 'Inactivo'}
                             </span>
-                            <span className="text-[11px] text-slate-400">
+                            <span className="text-[11px] text-slate-500">
                               {test.code}
                             </span>
                           </div>
@@ -520,7 +520,7 @@ export default function AdminSectionsManager() {
                         }`}>
                           {test.active ? 'Activo' : 'Inactivo'}
                         </span>
-                        <span className="text-[11px] text-slate-400">
+                        <span className="text-[11px] text-slate-500">
                           {test.code}
                         </span>
                       </div>

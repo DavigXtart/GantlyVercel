@@ -211,7 +211,7 @@ function MiniCalendar({ selectedDate, onSelectDate }: MiniCalendarProps) {
       {/* Day labels */}
       <div className="grid grid-cols-7 gap-px mb-0.5">
         {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((d) => (
-          <div key={d} className="text-center text-[10px] text-slate-400 font-semibold py-0.5">
+          <div key={d} className="text-center text-[10px] text-slate-500 font-semibold py-0.5">
             {d}
           </div>
         ))}
@@ -746,7 +746,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
 
           {/* Agendas */}
           <div>
-            <div className="text-xs font-heading font-bold text-slate-400 uppercase tracking-widest mb-2">
+            <div className="text-xs font-heading font-bold text-slate-500 uppercase tracking-widest mb-2">
               Agendas
             </div>
             {psychologists.map((p) => {
@@ -859,7 +859,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
               className="h-10 pl-8 pr-2.5 rounded-xl border-2 border-slate-200 text-[13px] text-slate-700 outline-none w-[180px] focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
             />
             <svg
-              className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400"
+              className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500"
               width="15"
               height="15"
               viewBox="0 0 20 20"
@@ -911,7 +911,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                   {hours.map((h) => (
                     <div
                       key={h}
-                      className="absolute right-2 text-[11px] text-slate-400 font-medium select-none"
+                      className="absolute right-2 text-[11px] text-slate-500 font-medium select-none"
                       style={{ top: (h - HOUR_START) * 60 * PX_PER_MINUTE - 8 }}
                     >
                       {String(h).padStart(2, '0')}:00
@@ -937,7 +937,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                     </div>
                   ))}
                   {displayedPsychs.length === 0 && (
-                    <div className="px-4 text-[13px] text-slate-400 flex items-center">
+                    <div className="px-4 text-[13px] text-slate-500 flex items-center">
                       No hay psicólogos visibles
                     </div>
                   )}
@@ -947,7 +947,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                 <div className="flex flex-1">
                   {displayedPsychs.map((p) => renderColumn(p.id, currentDate, getAppsForColumn(p.id, currentDate)))}
                   {displayedPsychs.length === 0 && (
-                    <div className="flex-1 flex items-center justify-center text-slate-400 text-sm">
+                    <div className="flex-1 flex items-center justify-center text-slate-500 text-sm">
                       Selecciona al menos una agenda del panel lateral
                     </div>
                   )}
@@ -962,7 +962,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                 <div className="h-20 border-b border-slate-200" />
                 <div className="relative" style={{ height: GRID_HEIGHT }}>
                   {hours.map((h) => (
-                    <div key={h} className="absolute right-2 text-[11px] text-slate-400 font-medium select-none" style={{ top: (h - HOUR_START) * 60 * PX_PER_MINUTE - 8 }}>
+                    <div key={h} className="absolute right-2 text-[11px] text-slate-500 font-medium select-none" style={{ top: (h - HOUR_START) * 60 * PX_PER_MINUTE - 8 }}>
                       {String(h).padStart(2, '0')}:00
                     </div>
                   ))}
@@ -1095,7 +1095,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
             </div>
 
             {activeTab === 'bloqueo' ? (
-              <div className="p-6 text-slate-400 text-[13px] text-center pt-12">
+              <div className="p-6 text-slate-500 text-[13px] text-center pt-12">
                 La funcionalidad de bloqueo de horario estará disponible próximamente.
               </div>
             ) : (
@@ -1103,7 +1103,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
 
                 {/* -- Paciente -- */}
                 <fieldset className="border-2 border-slate-100 rounded-2xl p-4">
-                  <legend className="text-xs font-heading font-bold text-slate-400 uppercase tracking-widest px-2">
+                  <legend className="text-xs font-heading font-bold text-slate-500 uppercase tracking-widest px-2">
                     Paciente
                   </legend>
 
@@ -1160,7 +1160,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                       </div>
                     )}
                     {showPatientDropdown && patientResults.length === 0 && !searchLoading && patientSearch.trim().length > 0 && (
-                      <div className="absolute top-full left-0 right-0 bg-white rounded-xl border-2 border-slate-100 p-3 text-[13px] text-slate-400 mt-1 z-[100]">
+                      <div className="absolute top-full left-0 right-0 bg-white rounded-xl border-2 border-slate-100 p-3 text-[13px] text-slate-500 mt-1 z-[100]">
                         No se encontraron pacientes
                       </div>
                     )}
@@ -1175,19 +1175,19 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                       </div>
                       <button
                         onClick={() => { setFormPatientId(null); setFormPatientName(''); setPatientSearch(''); }}
-                        className="bg-transparent border-none cursor-pointer text-slate-400 text-base p-0.5 hover:text-slate-600 transition-colors"
+                        className="bg-transparent border-none cursor-pointer text-slate-500 text-base p-0.5 hover:text-slate-600 transition-colors"
                       >
                         &times;
                       </button>
                     </div>
                   ) : (
-                    <div className="mt-2 text-xs text-slate-400 italic">Sin paciente asociado</div>
+                    <div className="mt-2 text-xs text-slate-500 italic">Sin paciente asociado</div>
                   )}
                 </fieldset>
 
                 {/* -- Detalles -- */}
                 <fieldset className="border-2 border-slate-100 rounded-2xl p-4">
-                  <legend className="text-xs font-heading font-bold text-slate-400 uppercase tracking-widest px-2">
+                  <legend className="text-xs font-heading font-bold text-slate-500 uppercase tracking-widest px-2">
                     Detalles de la cita
                   </legend>
 
@@ -1289,7 +1289,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                         ))}
                       </select>
                       {rooms.length === 0 && (
-                        <p className="text-[11px] text-slate-400 mt-1">
+                        <p className="text-[11px] text-slate-500 mt-1">
                           No hay despachos configurados. Ve a Configuración para añadirlos.
                         </p>
                       )}
@@ -1313,7 +1313,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
 
                 {/* -- Precio -- */}
                 <fieldset className="border-2 border-slate-100 rounded-2xl p-4">
-                  <legend className="text-xs font-heading font-bold text-slate-400 uppercase tracking-widest px-2">
+                  <legend className="text-xs font-heading font-bold text-slate-500 uppercase tracking-widest px-2">
                     Precio
                   </legend>
 
@@ -1330,7 +1330,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                           onChange={(e) => setFormPrice(e.target.value)}
                           className="w-full h-12 pl-6 pr-2 rounded-xl border-2 border-slate-200 text-sm text-slate-700 outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
                         />
-                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-semibold">&euro;</span>
+                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-semibold">&euro;</span>
                       </div>
                     </div>
                     <div>
@@ -1377,7 +1377,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
 
                 {/* -- Notas -- */}
                 <fieldset className="border-2 border-slate-100 rounded-2xl p-4">
-                  <legend className="text-xs font-heading font-bold text-slate-400 uppercase tracking-widest px-2">
+                  <legend className="text-xs font-heading font-bold text-slate-500 uppercase tracking-widest px-2">
                     Notas internas
                   </legend>
                   <textarea

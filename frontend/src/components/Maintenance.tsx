@@ -1,10 +1,10 @@
+import { Wrench } from 'lucide-react';
+
 export default function Maintenance() {
   return (
     <div className="min-h-screen bg-gantly-cloud flex items-center justify-center px-6">
       <div className="text-center max-w-md">
-        <span className="material-symbols-outlined text-[80px] text-gantly-blue/40 mb-6 block">
-          construction
-        </span>
+        <Wrench className="text-gantly-blue/40 mb-6 mx-auto" size={80} />
         <h1 className="text-3xl font-heading font-light text-gantly-navy mb-4">
           Estamos en mantenimiento
         </h1>

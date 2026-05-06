@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { clinicService, fileService } from '../services/api';
 import type { ClinicPatientSummary, ClinicPatientDetail, UpdatePatientReq } from '../services/api';
+import { Search, Mail, Phone, CalendarX, Link as LinkIcon, Pencil, Upload, FolderOpen, FileText, Download, Trash2, MessageCircle, Send } from 'lucide-react';
 
 interface Props {
   onBack?: () => void;
@@ -165,7 +166,7 @@ function ListView({
         <Spinner />
       ) : patients.length === 0 ? (
         <div className="text-center p-12 text-slate-500 flex flex-col items-center gap-3">
-          <span className="material-symbols-outlined text-4xl text-slate-300">person_search</span>
+          <Search className="text-slate-500" size={32} />
           <span className="text-sm">No hay pacientes{search ? ' que coincidan con la búsqueda' : ' registrados aún'}.</span>
         </div>
       ) : (
@@ -405,12 +406,12 @@ function DetailView({
         {/* Contact */}
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2 text-[13px] text-slate-700">
-            <span className="material-symbols-outlined text-base text-slate-400">mail</span>
+            <Mail className="text-slate-500" size={16} />
             <span>{patient.email}</span>
           </div>
           {patient.phone && (
             <div className="flex items-center gap-2 text-[13px] text-slate-700">
-              <span className="material-symbols-outlined text-base text-slate-400">phone</span>
+              <Phone className="text-slate-500" size={16} />
               <span>{patient.phone}</span>
             </div>
           )}
@@ -466,7 +467,7 @@ function DetailView({
             <div className="flex flex-col gap-2.5">
               {(!patient.appointments || patient.appointments.length === 0) ? (
                 <div className="text-slate-500 text-center p-10 flex flex-col items-center gap-3">
-                  <span className="material-symbols-outlined text-4xl text-slate-300">event_busy</span>
+                  <CalendarX className="text-slate-500" size={32} />
                   <span className="text-sm">No hay citas para este paciente.</span>
                 </div>
               ) : (
@@ -501,7 +502,7 @@ function DetailView({
                                 paymentLinkLoading === appt.id ? 'bg-gantly-blue-50 cursor-wait' : 'bg-white hover:bg-gantly-blue hover:text-white cursor-pointer'
                               }`}
                             >
-                              <span className="material-symbols-outlined text-sm">link</span>
+                              <LinkIcon size={14} />
                               {paymentLinkLoading === appt.id ? 'Generando...' : 'Link de pago'}
                             </button>
                           )}
@@ -543,9 +544,9 @@ function DetailView({
                           <button
                             onClick={() => { setEditingNoteId(appt.id); setNoteText(appt.clinicNotes || ''); }}
                             title="Editar nota"
-                            className="bg-transparent border-none cursor-pointer text-slate-300 hover:text-gantly-blue p-0.5 ml-auto flex-shrink-0 leading-none transition-colors"
+                            className="bg-transparent border-none cursor-pointer text-slate-500 hover:text-gantly-blue p-0.5 ml-auto flex-shrink-0 leading-none transition-colors"
                           >
-                            <span className="material-symbols-outlined text-base">edit_note</span>
+                            <Pencil size={16} />
                           </button>
                         </div>
                       )}
@@ -565,7 +566,7 @@ function DetailView({
                     uploadingDoc ? 'bg-slate-400 cursor-not-allowed' : 'bg-gradient-to-r from-gantly-blue to-gantly-cyan cursor-pointer hover:shadow-lg hover:shadow-gantly-blue/25'
                   }`}
                 >
-                  <span className="material-symbols-outlined text-base">upload_file</span>
+                  <Upload size={16} />
                   {uploadingDoc ? 'Subiendo...' : 'Subir documento'}
                   <input
                     ref={fileInputRef}
@@ -582,7 +583,7 @@ function DetailView({
                 <Spinner />
               ) : documents.length === 0 ? (
                 <div className="text-center p-12 text-slate-500 text-sm flex flex-col items-center gap-3">
-                  <span className="material-symbols-outlined text-4xl text-slate-300">folder_open</span>
+                  <FolderOpen className="text-slate-500" size={32} />
                   <span>Sin documentos para este paciente.</span>
                 </div>
               ) : (
@@ -592,7 +593,7 @@ function DetailView({
                       key={doc.id}
                       className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl border-2 border-slate-100 hover:border-gantly-blue/20 hover:shadow-sm transition-all duration-200 bg-white"
                     >
-                      <span className="material-symbols-outlined text-xl text-slate-400">description</span>
+                      <FileText className="text-slate-500 flex-shrink-0" size={20} />
                       <div className="flex-1 min-w-0">
                         <p className="m-0 text-[13px] text-slate-900 truncate">
                           {doc.originalName}
@@ -603,16 +604,16 @@ function DetailView({
                       </div>
                       <button
                         onClick={() => fileService.downloadClinicDoc(doc.fileName)}
-                        className="bg-transparent border-none cursor-pointer text-slate-400 hover:text-gantly-blue leading-none p-0.5 transition-colors"
+                        className="bg-transparent border-none cursor-pointer text-slate-500 hover:text-gantly-blue leading-none p-0.5 transition-colors"
                       >
-                        <span className="material-symbols-outlined text-lg">download</span>
+                        <Download size={18} />
                       </button>
                       <button
                         onClick={() => handleDocDelete(doc.id)}
-                        className="bg-transparent border-none cursor-pointer text-slate-300 hover:text-red-500 leading-none p-0.5 transition-colors"
+                        className="bg-transparent border-none cursor-pointer text-slate-500 hover:text-red-500 leading-none p-0.5 transition-colors"
                         title="Eliminar documento"
                       >
-                        <span className="material-symbols-outlined text-lg">delete</span>
+                        <Trash2 size={18} />
                       </button>
                     </div>
                   ))}
@@ -628,7 +629,7 @@ function DetailView({
               <div className="flex-1 overflow-y-auto flex flex-col gap-2 pb-4">
                 {chatMessages.length === 0 ? (
                   <div className="text-center p-12 text-slate-500 text-sm flex flex-col items-center gap-3">
-                    <span className="material-symbols-outlined text-4xl text-slate-300">chat_bubble_outline</span>
+                    <MessageCircle className="text-slate-500" size={32} />
                     <span>Sin mensajes. Inicia la conversación con el paciente.</span>
                   </div>
                 ) : (
@@ -676,7 +677,7 @@ function DetailView({
                       : 'bg-gradient-to-r from-gantly-blue to-gantly-cyan cursor-pointer hover:shadow-md hover:shadow-gantly-blue/25'
                   }`}
                 >
-                  <span className="material-symbols-outlined text-base">send</span>
+                  <Send size={16} />
                   Enviar
                 </button>
               </div>

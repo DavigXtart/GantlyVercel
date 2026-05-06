@@ -350,7 +350,7 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
                   {hasEducation ? educationItems.map((ed, i) => (
                     <div key={i} className="mt-2.5 text-sm text-slate-700">
                       <div><strong>{ed.degree}</strong>{ed.field ? ` en ${ed.field}` : ''}{ed.institution ? ` — ${ed.institution}` : ''}</div>
-                      {(ed.startDate || ed.endDate) && <div className="text-[13px] text-slate-400">{ed.startDate || '?'} - {ed.endDate || 'Actualidad'}</div>}
+                      {(ed.startDate || ed.endDate) && <div className="text-[13px] text-slate-500">{ed.startDate || '?'} - {ed.endDate || 'Actualidad'}</div>}
                     </div>
                   )) : <p className="mt-2 mb-0 text-sm text-slate-700">{p.education}</p>}
                 </div>
@@ -362,7 +362,7 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
                   {hasExperience ? experienceItems.map((ex, i) => (
                     <div key={i} className="mt-2.5 text-sm text-slate-700">
                       <div><strong>{ex.title}</strong>{ex.company ? ` — ${ex.company}` : ''}</div>
-                      {(ex.startDate || ex.endDate) && <div className="text-[13px] text-slate-400">{ex.startDate || '?'} - {ex.endDate || 'Actualidad'}</div>}
+                      {(ex.startDate || ex.endDate) && <div className="text-[13px] text-slate-500">{ex.startDate || '?'} - {ex.endDate || 'Actualidad'}</div>}
                       {ex.description && <div className="text-[13px] text-slate-500 mt-1">{ex.description}</div>}
                     </div>
                   )) : <p className="mt-2 mb-0 text-sm text-slate-700">{p.experience}</p>}
@@ -377,7 +377,7 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
                   {hasCerts ? certItems.map((c, i) => (
                     <div key={i} className="mt-2.5 text-sm text-slate-700">
                       <div><strong>{c.name}</strong>{c.issuer ? ` — ${c.issuer}` : ''}{c.date ? ` (${c.date})` : ''}</div>
-                      {c.credentialId && <div className="text-[13px] text-slate-400">ID: {c.credentialId}</div>}
+                      {c.credentialId && <div className="text-[13px] text-slate-500">ID: {c.credentialId}</div>}
                     </div>
                   )) : <p className="mt-2 mb-0 text-sm text-slate-700">{p.certifications}</p>}
                 </div>
@@ -563,7 +563,7 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
                               <span className="text-amber-400 text-base">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
                             </div>
                             {r.comment && <p className="m-0 text-sm text-slate-500">{r.comment}</p>}
-                            <div className="text-xs text-slate-400 mt-2">{formatDate(r.createdAt)}</div>
+                            <div className="text-xs text-slate-500 mt-2">{formatDate(r.createdAt)}</div>
                           </div>
                         ))
                       )}
@@ -587,7 +587,7 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
                         <div>
                           <strong className="text-slate-800">{p.name}</strong> — <span className="text-slate-500">{p.email}</span>
                         </div>
-                        <span className="text-xs text-slate-400">Asignado: {formatDate(p.assignedAt)}</span>
+                        <span className="text-xs text-slate-500">Asignado: {formatDate(p.assignedAt)}</span>
                       </li>
                     ))}
                   </ul>
@@ -605,7 +605,7 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
                         <div>
                           <strong className="text-slate-800">{p.name}</strong> — <span className="text-slate-500">{p.email}</span>
                         </div>
-                        <span className="text-xs text-slate-400">Asignado: {formatDate(p.assignedAt)}</span>
+                        <span className="text-xs text-slate-500">Asignado: {formatDate(p.assignedAt)}</span>
                       </li>
                     ))}
                   </ul>
@@ -647,7 +647,7 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
                   </ul>
                 )}
                 {ps.pastAppointments.length > 50 && (
-                  <p className="text-xs text-slate-400 mt-2">
+                  <p className="text-xs text-slate-500 mt-2">
                     Mostrando las 50 más recientes de {ps.pastAppointments.length} citas
                   </p>
                 )}
@@ -835,7 +835,7 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
                                   <p className="my-1 text-sm text-slate-700">
                                     <strong>Respuesta:</strong> {answer.answerText}
                                     {answer.answerValue !== undefined && answer.answerValue !== null && (
-                                      <span className="text-slate-400 ml-2">
+                                      <span className="text-slate-500 ml-2">
                                         (Valor: {answer.answerValue})
                                       </span>
                                     )}
@@ -855,11 +855,11 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
                                   <strong>Valor numérico:</strong> {answer.numericValue}
                                 </p>
                               ) : (
-                                <p className="my-1 text-sm text-slate-400 italic">
+                                <p className="my-1 text-sm text-slate-500 italic">
                                   Sin respuesta registrada
                                 </p>
                               )}
-                              <p className="text-xs text-slate-400 mt-1">
+                              <p className="text-xs text-slate-500 mt-1">
                                 {formatDate(answer.createdAt)}
                               </p>
                             </div>
@@ -928,7 +928,7 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
                 <p className="text-sm text-slate-500 mt-1">
                   {user.email}
                 </p>
-                <p className="text-xs text-slate-400 mt-2">
+                <p className="text-xs text-slate-500 mt-2">
                   Registrado: {formatDate(user.createdAt)}
                 </p>
               </div>
@@ -950,7 +950,7 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
               >
                 <h3 className="font-heading font-bold text-slate-800">{p.name}</h3>
                 <p className="text-sm text-slate-500 mt-1">{p.email}</p>
-                <p className="text-xs text-slate-400 mt-2">
+                <p className="text-xs text-slate-500 mt-2">
                   Registrado: {formatDate(p.createdAt)}
                 </p>
               </div>

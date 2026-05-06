@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Users } from 'lucide-react';
+import { Users, Search, CalendarCheck, ShieldCheck, Clock } from 'lucide-react';
 import { consentService } from '../services/api';
 import LoadingSpinner from './ui/LoadingSpinner';
 import EmptyState from './ui/EmptyState';
@@ -68,7 +68,7 @@ export default function PsychPatientsTab({
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
-            <span className="material-symbols-outlined text-white text-lg">group</span>
+            <Users className="text-white" size={18} />
           </div>
           <div className="flex items-center gap-3">
             <h3 className="m-0 text-2xl font-bold text-slate-800">Mis Pacientes</h3>
@@ -86,7 +86,7 @@ export default function PsychPatientsTab({
       {/* Buscador y filtros */}
       <div className="flex gap-3 mb-6 flex-wrap items-center bg-white p-4 rounded-2xl border border-slate-100">
         <div className="relative flex-1 min-w-[200px]">
-          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-lg">search</span>
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
           <input
             type="text"
             placeholder="Buscar por nombre o email..."
@@ -123,7 +123,7 @@ export default function PsychPatientsTab({
         <LoadingSpinner text="Cargando pacientes..." />
       ) : filteredPatients.length === 0 ? (
         <EmptyState
-          icon={<Users className="w-12 h-12 text-slate-300" />}
+          icon={<Users className="w-12 h-12 text-slate-500" />}
           title={patientSearchTerm.trim() || patientFilterGender || patientFilterLastVisit ? "No se encontraron pacientes" : "No hay pacientes asignados"}
           description={patientSearchTerm.trim() || patientFilterGender || patientFilterLastVisit ? "Intenta cambiar los filtros de busqueda." : "Aun no tienes pacientes asignados. Los pacientes apareceran aqui una vez que se registren y te seleccionen."}
         />
@@ -157,12 +157,12 @@ export default function PsychPatientsTab({
                         <div className="text-sm text-slate-500 truncate" title={p.email}>{p.email}</div>
                         {p.lastVisit && (
                           <div className="text-xs text-emerald-600 font-medium mt-1.5 flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[12px]">event_available</span>
+                            <CalendarCheck size={12} />
                             Ultima visita: {new Date(p.lastVisit).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </div>
                         )}
                         {!p.lastVisit && (
-                          <div className="text-xs text-slate-400 italic mt-1.5">Sin visitas registradas</div>
+                          <div className="text-xs text-slate-500 italic mt-1.5">Sin visitas registradas</div>
                         )}
                       </div>
                     </div>
@@ -194,7 +194,7 @@ export default function PsychPatientsTab({
               <span className="bg-amber-50 text-amber-600 px-2.5 py-0.5 rounded-full text-xs font-semibold">{minorPatients.length}</span>
             </h4>
             {minorPatients.length === 0 ? (
-              <p className="text-sm text-slate-400 mb-4 bg-white p-4 rounded-xl border border-dashed border-slate-200">
+              <p className="text-sm text-slate-500 mb-4 bg-white p-4 rounded-xl border border-dashed border-slate-200">
                 Los pacientes con fecha de nacimiento o edad menor de 18 anos apareceran aqui.
               </p>
             ) : (
@@ -232,7 +232,7 @@ export default function PsychPatientsTab({
                               ? 'bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 border border-emerald-200'
                               : 'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border border-amber-200'
                           }`}>
-                            <span className="material-symbols-outlined text-[12px]">{consentSigned ? 'verified' : 'pending'}</span>
+                            {consentSigned ? <ShieldCheck size={12} /> : <Clock size={12} />}
                             {consentSigned ? 'Consentimiento firmado' : 'Consentimiento pendiente'}
                           </div>
                         </div>
@@ -308,12 +308,12 @@ export default function PsychPatientsTab({
                         <div className="text-sm text-slate-500 truncate" title={p.email}>{p.email}</div>
                         {p.lastVisit && (
                           <div className="text-xs text-emerald-600 font-medium mt-1.5 flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[12px]">event_available</span>
+                            <CalendarCheck size={12} />
                             Ultima visita: {new Date(p.lastVisit).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </div>
                         )}
                         {!p.lastVisit && (
-                          <div className="text-xs text-slate-400 italic mt-1.5">Sin visitas registradas</div>
+                          <div className="text-xs text-slate-500 italic mt-1.5">Sin visitas registradas</div>
                         )}
                       </div>
                     </div>
@@ -359,7 +359,7 @@ export default function PsychPatientsTab({
               <button
                 type="button"
                 onClick={() => !sendingConsent && setShowConsentModal(false)}
-                className="w-8 h-8 rounded-lg border-none bg-slate-100 cursor-pointer text-slate-400 hover:text-slate-600 hover:bg-slate-200 text-lg disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center"
+                className="w-8 h-8 rounded-lg border-none bg-slate-100 cursor-pointer text-slate-500 hover:text-slate-600 hover:bg-slate-200 text-lg disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center"
                 aria-label="Cerrar"
                 disabled={sendingConsent}
               >
@@ -419,7 +419,7 @@ export default function PsychPatientsTab({
                     setSendingConsent(false);
                   }
                 }}
-                className="px-5 py-2.5 rounded-xl border-none bg-gradient-to-r from-gantly-blue to-gantly-blue-600 hover:shadow-lg hover:shadow-gantly-blue/25 text-white font-medium cursor-pointer text-sm disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed disabled:shadow-none transition-all duration-300"
+                className="px-5 py-2.5 rounded-xl border-none bg-gradient-to-r from-gantly-blue to-gantly-blue-600 hover:shadow-lg hover:shadow-gantly-blue/25 text-white font-medium cursor-pointer text-sm disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-500 disabled:cursor-not-allowed disabled:shadow-none transition-all duration-300"
               >
                 {sendingConsent ? 'Enviando...' : 'Enviar'}
               </button>

@@ -153,6 +153,12 @@ export default {
         '2xl': '1.25rem',
         '3xl': '1.5rem',
       },
+      backgroundImage: {
+        'gradient-brand': 'linear-gradient(135deg, #1B6FA0 0%, #2E93CC 30%, #48C6D4 65%, #78D4B0 100%)',
+        'gradient-brand-sm': 'linear-gradient(135deg, #1B6FA0, #2E93CC)',
+        'gradient-brand-alt': 'linear-gradient(135deg, #2E93CC, #22D3EE)',
+        'gradient-emerald': 'linear-gradient(135deg, #059669 0%, #0d9488 50%, #2E93CC 100%)',
+      },
       boxShadow: {
         'soft': '0 2px 8px rgba(0, 0, 0, 0.04)',
         'card': '0 4px 16px rgba(0, 0, 0, 0.06)',

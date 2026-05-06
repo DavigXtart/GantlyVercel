@@ -21,7 +21,7 @@ function TestMockup() {
           </div>
           <span className="font-heading text-sm font-semibold text-slate-700">Test de Personalidad 16PF</span>
         </div>
-        <span className="text-xs font-body text-slate-400">Pregunta 12 de 45</span>
+        <span className="text-xs font-body text-slate-500">Pregunta 12 de 45</span>
       </div>
 
       {/* Progress bar */}
@@ -79,7 +79,7 @@ function TestMockup() {
 
       {/* Footer */}
       <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
-        <button className="text-sm font-body text-slate-400">Anterior</button>
+        <button className="text-sm font-body text-slate-500">Anterior</button>
         <button className="text-sm font-heading font-semibold text-white bg-gantly-blue px-6 py-2 rounded-lg">
           Siguiente
         </button>
@@ -114,7 +114,7 @@ function MatchingMockup() {
           </div>
           <div className="flex-1">
             <div className="text-xs font-heading font-semibold text-slate-700">Tu perfil analizado</div>
-            <div className="text-[11px] text-slate-400 font-body">16 factores de personalidad evaluados</div>
+            <div className="text-[11px] text-slate-500 font-body">16 factores de personalidad evaluados</div>
           </div>
           <CheckCircle2 size={18} className="text-emerald-500" />
         </div>
@@ -139,13 +139,13 @@ function MatchingMockup() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-heading font-semibold text-slate-700">{psych.name}</div>
-                <div className="text-xs text-slate-400 font-body">{psych.specialty}</div>
+                <div className="text-xs text-slate-500 font-body">{psych.specialty}</div>
               </div>
               <div className="text-right">
                 <div className={`text-lg font-heading font-bold ${i === 0 ? 'text-emerald-600' : 'text-gantly-blue'}`}>
                   {psych.match}%
                 </div>
-                <div className="text-[10px] text-slate-400">match</div>
+                <div className="text-[10px] text-slate-500">match</div>
               </div>
               {i === 0 && (
                 <div className="flex items-center gap-0.5">
@@ -292,7 +292,7 @@ function FollowUpMockup() {
                   className="w-full rounded-t-md bg-gradient-to-t from-gantly-blue to-cyan-400"
                   style={{ height: `${d.value * 0.7}px` }}
                 />
-                <span className="text-[9px] text-slate-400 font-body">{d.day}</span>
+                <span className="text-[9px] text-slate-500 font-body">{d.day}</span>
               </motion.div>
             ))}
           </div>
@@ -320,7 +320,7 @@ function FollowUpMockup() {
                 }`}>
                   {t.done && <CheckCircle2 size={14} className="text-emerald-500" />}
                 </div>
-                <span className={`text-xs font-body flex-1 ${t.done ? 'text-slate-400 line-through' : 'text-slate-600'}`}>
+                <span className={`text-xs font-body flex-1 ${t.done ? 'text-slate-500 line-through' : 'text-slate-600'}`}>
                   {t.task}
                 </span>
               </motion.div>
@@ -339,7 +339,7 @@ function FollowUpMockup() {
           <Calendar size={16} className="text-gantly-blue" />
           <div>
             <div className="text-xs font-heading font-semibold text-slate-700">Próxima sesión</div>
-            <div className="text-[11px] text-slate-400 font-body">Jueves 15, 17:00 — Dr. García</div>
+            <div className="text-[11px] text-slate-500 font-body">Jueves 15, 17:00 — Dr. García</div>
           </div>
         </motion.div>
       </div>
@@ -449,7 +449,7 @@ export default function PatientFlow() {
                       <div className={`w-10 h-10 rounded-full ${step.iconBg} flex items-center justify-center`}>
                         <Icon size={18} className={step.iconColor} />
                       </div>
-                      <span className="text-sm font-heading font-bold text-slate-300">
+                      <span className="text-sm font-heading font-bold text-slate-500">
                         0{i + 1}
                       </span>
                     </div>

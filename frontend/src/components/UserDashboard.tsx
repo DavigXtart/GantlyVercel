@@ -1,5 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import {
+  Home, Brain, CheckSquare, ClipboardList, CalendarDays, BookOpen,
+  BarChart3, FileText, Compass, MessageCircle, Building2, LogOut,
+  Menu, Video, Plus, ArrowRight, ChevronRight, Settings, TrendingUp,
+  History, Clock, HelpCircle, Send, CalendarCheck, CalendarX,
+} from 'lucide-react';
 import NotificationBell from './ui/NotificationBell';
 import {
   profileService,
@@ -405,18 +411,18 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
     );
   }
 
-  const sidebarItems = [
-    { id: 'perfil', icon: 'home', label: 'Inicio', requiresPsych: false },
-    { id: 'mi-psicologo', icon: 'psychology', label: 'Psicólogo', requiresPsych: false },
-    { id: 'tareas', icon: 'task_alt', label: 'Tareas', requiresPsych: true },
-    { id: 'tests-pendientes', icon: 'assignment', label: 'Tests', requiresPsych: true },
-    { id: 'calendario', icon: 'calendar_today', label: 'Calendario', requiresPsych: true },
-    { id: 'agenda-personal', icon: 'book', label: 'Agenda', requiresPsych: false },
-    { id: 'mis-estadisticas', icon: 'bar_chart', label: 'Estadísticas', requiresPsych: false },
-    { id: 'evaluaciones', icon: 'description', label: 'Evaluaciones', requiresPsych: false },
-    { id: 'descubrimiento', icon: 'explore', label: 'Descubrir', requiresPsych: false },
-    { id: 'chat', icon: 'chat', label: 'Chat', requiresPsych: true },
-    ...(me?.companyId ? [{ id: 'mensajes-clinica', icon: 'business', label: 'Clínica', requiresPsych: false }] : []),
+  const sidebarItems: { id: string; icon: ReactNode; label: string; requiresPsych: boolean }[] = [
+    { id: 'perfil', icon: <Home size={20} />, label: 'Inicio', requiresPsych: false },
+    { id: 'mi-psicologo', icon: <Brain size={20} />, label: 'Psicólogo', requiresPsych: false },
+    { id: 'tareas', icon: <CheckSquare size={20} />, label: 'Tareas', requiresPsych: true },
+    { id: 'tests-pendientes', icon: <ClipboardList size={20} />, label: 'Tests', requiresPsych: true },
+    { id: 'calendario', icon: <CalendarDays size={20} />, label: 'Calendario', requiresPsych: true },
+    { id: 'agenda-personal', icon: <BookOpen size={20} />, label: 'Agenda', requiresPsych: false },
+    { id: 'mis-estadisticas', icon: <BarChart3 size={20} />, label: 'Estadísticas', requiresPsych: false },
+    { id: 'evaluaciones', icon: <FileText size={20} />, label: 'Evaluaciones', requiresPsych: false },
+    { id: 'descubrimiento', icon: <Compass size={20} />, label: 'Descubrir', requiresPsych: false },
+    { id: 'chat', icon: <MessageCircle size={20} />, label: 'Chat', requiresPsych: true },
+    ...(me?.companyId ? [{ id: 'mensajes-clinica', icon: <Building2 size={20} /> as ReactNode, label: 'Clínica', requiresPsych: false }] : []),
   ];
 
   return (
@@ -457,9 +463,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                 }`}
                 title={isDisabled ? 'Requiere psicólogo asignado' : undefined}
               >
-                <span className="material-symbols-outlined text-xl">
-                  {item.icon}
-                </span>
+                {item.icon}
                 <span>{item.label}</span>
               </button>
             );
@@ -480,7 +484,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-white truncate">{me?.name || 'Usuario'}</p>
-              <p className="text-xs text-slate-400 truncate">{me?.email}</p>
+              <p className="text-xs text-slate-500 truncate">{me?.email}</p>
             </div>
           </div>
           <button
@@ -490,9 +494,9 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               localStorage.removeItem('refreshToken');
               window.location.reload();
             }}
-            className="flex items-center gap-2 text-xs text-slate-400 hover:text-white cursor-pointer transition-colors duration-200 w-full px-1"
+            className="flex items-center gap-2 text-xs text-slate-500 hover:text-white cursor-pointer transition-colors duration-200 w-full px-1"
           >
-            <span className="material-symbols-outlined text-sm">logout</span>
+            <LogOut size={14} />
             Cerrar sesión
           </button>
         </div>
@@ -535,9 +539,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                         : 'text-white hover:bg-white/10'
                     }`}
                   >
-                    <span className="material-symbols-outlined text-xl">
-                      {item.icon}
-                    </span>
+                    {item.icon}
                     <span>{item.label}</span>
                   </button>
                 );
@@ -551,9 +553,9 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                   localStorage.removeItem('refreshToken');
                   window.location.reload();
                 }}
-                className="flex items-center gap-2 text-xs text-slate-400 hover:text-white cursor-pointer transition-colors duration-200"
+                className="flex items-center gap-2 text-xs text-slate-500 hover:text-white cursor-pointer transition-colors duration-200"
               >
-                <span className="material-symbols-outlined text-sm">logout</span>
+                <LogOut size={14} />
                 Cerrar sesión
               </button>
             </div>
@@ -572,7 +574,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               className="md:hidden p-2 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors duration-200"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              <span className="material-symbols-outlined text-slate-600">menu</span>
+              <Menu size={24} className="text-slate-600" />
             </button>
             <h1 className="text-lg font-semibold text-slate-800">
               {sidebarItems.find(i => i.id === tab)?.label || 'Panel'}
@@ -602,10 +604,10 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                   setTab(item.id as Tab);
                 }}
                 className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg cursor-pointer transition-colors duration-200 ${
-                  isActive ? 'text-gantly-blue' : isDisabled ? 'text-slate-300' : 'text-slate-500'
+                  isActive ? 'text-gantly-blue' : isDisabled ? 'text-slate-500' : 'text-slate-500'
                 }`}
               >
-                <span className="material-symbols-outlined text-lg">{item.icon}</span>
+                {item.icon}
                 <span className="text-[10px] font-medium">{item.label}</span>
               </button>
             );
@@ -620,7 +622,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               {/* Hero welcome — compact asymmetric */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
                 {/* Main greeting — spans 7 cols */}
-                <div className="lg:col-span-7 relative overflow-hidden rounded-3xl p-7 md:p-9 shadow-2xl shadow-gantly-blue/15" style={{ background: 'linear-gradient(135deg, #1B6FA0 0%, #2E93CC 30%, #48C6D4 65%, #78D4B0 100%)' }}>
+                <div className="lg:col-span-7 relative overflow-hidden rounded-3xl p-7 md:p-9 shadow-2xl shadow-gantly-blue/15 bg-gradient-brand">
                   <div className="absolute -top-16 -right-16 w-56 h-56 bg-white/5 rounded-full blur-2xl" />
                   <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-gantly-cyan/10 rounded-full blur-xl" />
                   <div className="relative z-10 flex items-center gap-5">
@@ -646,7 +648,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                           onClick={() => setTab('calendario')}
                           className="bg-white text-gantly-text hover:bg-white/90 rounded-xl px-4 py-2 text-sm font-heading font-semibold cursor-pointer transition-all duration-200 shadow-lg shadow-black/10 flex items-center gap-2"
                         >
-                          <span className="material-symbols-outlined text-base">calendar_today</span>
+                          <CalendarDays size={16} />
                           Calendario
                         </button>
                         {hasPsychologist && (
@@ -655,7 +657,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                             onClick={() => setTab('chat')}
                             className="bg-white/15 hover:bg-white/25 text-white backdrop-blur-sm rounded-xl px-4 py-2 text-sm font-heading font-semibold cursor-pointer transition-all duration-200 border border-white/20 flex items-center gap-2"
                           >
-                            <span className="material-symbols-outlined text-base">chat</span>
+                            <MessageCircle size={16} />
                             Chat
                           </button>
                         )}
@@ -670,7 +672,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                   <div className="relative">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-8 h-8 rounded-lg bg-gantly-emerald/10 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-gantly-emerald text-lg">event_available</span>
+                        <CalendarCheck size={18} className="text-gantly-emerald" />
                       </div>
                       <span className="text-xs font-body font-semibold text-gantly-emerald uppercase tracking-wider">Próxima cita</span>
                     </div>
@@ -710,7 +712,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                           }
                         }}
                       >
-                        <span className="material-symbols-outlined text-base">videocam</span>
+                        <Video size={16} />
                         Unirse a la llamada
                       </button>
                     ) : upcomingAppointment ? (
@@ -723,7 +725,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                         onClick={() => setTab('calendario')}
                         className="w-full px-4 py-2.5 bg-gantly-cloud text-gantly-blue text-sm font-heading font-semibold rounded-xl cursor-pointer hover:bg-gantly-blue hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
                       >
-                        <span className="material-symbols-outlined text-base">add</span>
+                        <Plus size={16} />
                         Agendar cita
                       </button>
                     )}
@@ -743,7 +745,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                   <div className="absolute -bottom-8 -right-8 w-36 h-36 bg-gantly-blue/5 rounded-full group-hover:scale-150 transition-transform duration-700" />
                   <div className="relative flex items-center gap-5">
                     <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-gantly-blue to-gantly-cyan flex items-center justify-center shadow-lg shadow-gantly-blue/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 flex-shrink-0">
-                      <span className="material-symbols-outlined text-white text-2xl">task_alt</span>
+                      <CheckSquare size={24} className="text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline gap-3">
@@ -762,7 +764,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                         </span>
                       </div>
                     </div>
-                    <span className="material-symbols-outlined text-gantly-muted/40 text-2xl group-hover:text-gantly-blue group-hover:translate-x-1 transition-all duration-300">arrow_forward</span>
+                    <ArrowRight size={24} className="text-gantly-muted/40 group-hover:text-gantly-blue group-hover:translate-x-1 transition-all duration-300" />
                   </div>
                 </button>
 
@@ -776,13 +778,13 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     <div className="absolute top-0 right-0 w-16 h-16 bg-gantly-gold/5 rounded-bl-[2rem] group-hover:scale-150 transition-transform duration-500" />
                     <div className="relative flex items-center gap-4">
                       <div className="w-11 h-11 rounded-xl bg-gantly-gold flex items-center justify-center shadow-md shadow-gantly-gold/20 group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
-                        <span className="material-symbols-outlined text-gantly-navy text-lg">assignment</span>
+                        <ClipboardList size={18} className="text-gantly-navy" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <span className="text-2xl font-heading font-extrabold text-gantly-text">{assignedTests.filter((t) => !t.completedAt).length}</span>
                         <p className="text-xs text-gantly-muted font-body font-medium">Tests pendientes</p>
                       </div>
-                      <span className="material-symbols-outlined text-gantly-muted/30 group-hover:text-gantly-gold-600 transition-colors">chevron_right</span>
+                      <ChevronRight size={24} className="text-gantly-muted/30 group-hover:text-gantly-gold-600 transition-colors" />
                     </div>
                   </button>
 
@@ -794,13 +796,13 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     <div className="absolute top-0 right-0 w-16 h-16 bg-gantly-navy/[0.03] rounded-bl-[2rem] group-hover:scale-150 transition-transform duration-500" />
                     <div className="relative flex items-center gap-4">
                       <div className="w-11 h-11 rounded-xl bg-gantly-navy flex items-center justify-center shadow-md shadow-gantly-navy/20 group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
-                        <span className="material-symbols-outlined text-white text-lg">settings</span>
+                        <Settings size={18} className="text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <span className="text-sm font-heading font-bold text-gantly-text">Configuración</span>
                         <p className="text-xs text-gantly-muted font-body font-medium">Ajustes de cuenta</p>
                       </div>
-                      <span className="material-symbols-outlined text-gantly-muted/30 group-hover:text-gantly-navy transition-colors">chevron_right</span>
+                      <ChevronRight size={24} className="text-gantly-muted/30 group-hover:text-gantly-navy transition-colors" />
                     </div>
                   </button>
                 </div>
@@ -824,12 +826,12 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     <div className="absolute top-4 right-4 w-20 h-20 border border-gantly-blue/10 rounded-full group-hover:scale-125 group-hover:rotate-45 transition-all duration-700" />
                     <div className="relative">
                       <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-gantly-blue to-gantly-cyan flex items-center justify-center shadow-lg shadow-gantly-blue/20 group-hover:rotate-6 transition-transform duration-300">
-                        <span className="material-symbols-outlined text-white text-xl">bar_chart</span>
+                        <BarChart3 size={20} className="text-white" />
                       </div>
                       <h3 className="text-lg font-heading font-bold text-gantly-text mt-4 group-hover:text-gantly-blue transition-colors">Mis estadísticas</h3>
                       <p className="text-sm text-gantly-muted mt-1 font-body leading-relaxed">Visualiza tu progreso y bienestar a lo largo del tiempo</p>
                       <span className="inline-flex items-center gap-1.5 text-xs text-gantly-blue font-heading font-semibold mt-4 group-hover:gap-3 transition-all">
-                        Ver progreso <span className="material-symbols-outlined text-sm">trending_up</span>
+                        Ver progreso <TrendingUp size={14} />
                       </span>
                     </div>
                   </button>
@@ -843,12 +845,12 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     <div className="absolute -top-4 -right-4 w-20 h-20 bg-gantly-gold/5 rounded-full group-hover:scale-[2.5] transition-transform duration-700" />
                     <div className="relative">
                       <div className="w-12 h-12 rounded-2xl bg-gantly-gold flex items-center justify-center shadow-lg shadow-gantly-gold/20 group-hover:rotate-6 transition-transform duration-300">
-                        <span className="material-symbols-outlined text-gantly-navy text-xl">description</span>
+                        <FileText size={20} className="text-gantly-navy" />
                       </div>
                       <h3 className="text-base font-heading font-bold text-gantly-text mt-4 group-hover:text-gantly-gold-700 transition-colors">Evaluaciones</h3>
                       <p className="text-sm text-gantly-muted mt-1 font-body">Tests clínicos y resultados</p>
                       <span className="inline-flex items-center gap-1.5 text-xs text-gantly-gold-700 font-heading font-semibold mt-4 group-hover:gap-3 transition-all">
-                        Completar <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                        Completar <ArrowRight size={14} />
                       </span>
                     </div>
                   </button>
@@ -862,12 +864,12 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-gantly-emerald/[0.03] to-transparent rounded-b-2xl" />
                     <div className="relative">
                       <div className="w-12 h-12 rounded-2xl bg-gantly-emerald flex items-center justify-center shadow-lg shadow-gantly-emerald/20 group-hover:rotate-6 transition-transform duration-300">
-                        <span className="material-symbols-outlined text-white text-xl">explore</span>
+                        <Compass size={20} className="text-white" />
                       </div>
                       <h3 className="text-base font-heading font-bold text-gantly-text mt-4 group-hover:text-gantly-emerald transition-colors">Descubrir</h3>
                       <p className="text-sm text-gantly-muted mt-1 font-body">Insights personalizados</p>
                       <span className="inline-flex items-center gap-1.5 text-xs text-gantly-emerald font-heading font-semibold mt-4 group-hover:gap-3 transition-all">
-                        Explorar <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                        Explorar <ArrowRight size={14} />
                       </span>
                     </div>
                   </button>
@@ -973,7 +975,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                   {/* Psychologist profile hero */}
                   <div className="rounded-2xl overflow-hidden mb-6 border border-slate-100">
                     <div className="h-1.5 bg-gradient-to-r from-gantly-blue via-gantly-cyan to-gantly-emerald"></div>
-                    <div className="p-6 md:p-8" style={{ background: 'linear-gradient(135deg, #1B6FA0 0%, #2E93CC 30%, #48C6D4 65%, #78D4B0 100%)' }}>
+                    <div className="p-6 md:p-8 bg-gradient-brand">
                       <div className="flex flex-col md:flex-row items-center gap-5">
                         <div className="w-20 h-20 rounded-2xl overflow-hidden bg-white/20 flex items-center justify-center flex-shrink-0 ring-4 ring-white/20 shadow-lg">
                           {psych.psychologist?.avatarUrl ? (
@@ -1014,7 +1016,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-sm font-heading font-semibold text-gantly-text uppercase tracking-wide flex items-center gap-2">
                         <span className="w-7 h-7 rounded-lg bg-gantly-blue/10 flex items-center justify-center">
-                          <span className="material-symbols-outlined text-gantly-blue text-sm">history</span>
+                          <History size={14} className="text-gantly-blue" />
                         </span>
                         Mis citas pasadas
                       </h3>
@@ -1028,7 +1030,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                       <LoadingSpinner text="Cargando citas pasadas..." />
                     ) : pastAppointments.length === 0 ? (
                       <div className="text-center py-10 bg-gantly-cloud/30 rounded-xl border-2 border-dashed border-slate-200">
-                        <span className="material-symbols-outlined text-3xl text-gantly-muted/40 mb-2 block">event_busy</span>
+                        <CalendarX size={28} className="text-gantly-muted/40 mb-2 mx-auto block" />
                         <p className="text-sm font-body text-gantly-muted">
                           Aún no tienes citas pasadas con tu psicólogo.
                         </p>
@@ -1046,7 +1048,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                               <div className="flex items-center justify-between gap-4">
                                 <div className="flex items-center gap-3">
                                   <div className="w-10 h-10 rounded-xl bg-gantly-blue/10 flex items-center justify-center flex-shrink-0 group-hover:bg-gantly-blue/15 transition-all duration-200">
-                                    <span className="material-symbols-outlined text-gantly-blue text-lg">event</span>
+                                    <CalendarDays size={18} className="text-gantly-blue" />
                                   </div>
                                   <div>
                                     <p className="text-sm font-body font-semibold text-gantly-text">
@@ -1061,7 +1063,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                                       )}
                                     </p>
                                     <p className="text-xs font-body text-gantly-muted mt-0.5 flex items-center gap-1">
-                                      <span className="material-symbols-outlined text-[12px]">schedule</span>
+                                      <Clock size={12} />
                                       {new Date(apt.startTime).toLocaleTimeString(
                                         'es-ES',
                                         { hour: '2-digit', minute: '2-digit' },
@@ -1110,8 +1112,8 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                 </>
               ) : (
                 <div className="text-center py-12">
-                  <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ background: 'linear-gradient(135deg, #1B6FA0, #2E93CC)' }}>
-                    <span className="material-symbols-outlined text-white text-3xl">psychology</span>
+                  <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 bg-gradient-brand-sm">
+                    <Brain size={28} className="text-white" />
                   </div>
                   <h3 className="text-xl font-heading font-bold text-gantly-text mb-2">
                     {matchingTestCompleted ? 'No se encontraron psicólogos compatibles' : 'Encuentra tu psicólogo ideal'}
@@ -1238,7 +1240,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gantly-gold/10 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-gantly-gold text-xl">assignment</span>
+                    <ClipboardList size={20} className="text-gantly-gold" />
                   </div>
                   <div>
                     <h2 className="text-2xl font-heading font-bold text-gantly-text">Tests asignados</h2>
@@ -1254,7 +1256,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               {assignedTests.length === 0 ? (
                 <div className="bg-gantly-cloud rounded-2xl border border-gantly-blue/10 p-10 text-center">
                   <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center mx-auto mb-4 shadow-sm">
-                    <span className="material-symbols-outlined text-3xl text-gantly-muted">assignment</span>
+                    <ClipboardList size={28} className="text-gantly-muted" />
                   </div>
                   <EmptyState
                     title="No hay tests pendientes"
@@ -1291,7 +1293,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                             <div className="flex items-center justify-between gap-4">
                               <div className="flex items-center gap-4 flex-1 min-w-0">
                                 <div className="w-11 h-11 rounded-xl bg-gantly-gold/10 flex items-center justify-center flex-shrink-0 group-hover:bg-gantly-gold/20 transition-colors duration-300">
-                                  <span className="material-symbols-outlined text-gantly-gold text-lg">quiz</span>
+                                  <HelpCircle size={18} className="text-gantly-gold" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="text-base font-heading font-semibold text-gantly-text group-hover:text-gantly-blue transition-colors truncate">
@@ -1308,7 +1310,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                                 <span className="text-xs font-heading font-semibold bg-gantly-gold/10 text-gantly-gold px-2.5 py-1 rounded-full">Pendiente</span>
                                 <span className="bg-gantly-blue text-white px-4 py-2 rounded-xl font-heading font-semibold text-sm hover:shadow-lg hover:shadow-gantly-blue/25 transition-all duration-300 flex items-center gap-1.5">
                                   Comenzar
-                                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                                  <ArrowRight size={14} />
                                 </span>
                               </div>
                             </div>
@@ -1334,7 +1336,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                             <div className="flex items-center justify-between gap-4">
                               <div className="flex items-center gap-4 flex-1 min-w-0">
                                 <div className="w-11 h-11 rounded-xl bg-gantly-emerald/10 flex items-center justify-center flex-shrink-0">
-                                  <span className="material-symbols-outlined text-gantly-emerald text-lg">task_alt</span>
+                                  <CheckSquare size={18} className="text-gantly-emerald" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="text-base font-heading font-semibold text-gantly-text truncate">
@@ -1363,7 +1365,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             <div>
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 rounded-xl bg-gantly-blue/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-gantly-blue text-xl">calendar_month</span>
+                  <CalendarDays size={20} className="text-gantly-blue" />
                 </div>
                 <h2 className="text-2xl font-heading font-bold text-gantly-text">Calendario</h2>
               </div>
@@ -1428,7 +1430,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                         : isPending
                         ? 'bg-slate-100 text-slate-600'
                         : isCancelled
-                        ? 'bg-slate-100 text-slate-400'
+                        ? 'bg-slate-100 text-slate-500'
                         : 'bg-gantly-blue/10 text-gantly-blue';
 
                       return (
@@ -1557,7 +1559,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                         : isPending
                         ? 'bg-slate-100 text-slate-600'
                         : isCancelled
-                        ? 'bg-slate-100 text-slate-400'
+                        ? 'bg-slate-100 text-slate-500'
                         : 'bg-gantly-blue/10 text-gantly-blue';
 
                       return (
@@ -1609,13 +1611,13 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               <div className="h-1 bg-gradient-to-r from-gantly-blue to-gantly-cyan" />
               <div className="px-6 md:px-8 pt-6 pb-4 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gantly-blue/10 to-gantly-cyan/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-gantly-blue text-xl">business</span>
+                  <Building2 size={20} className="text-gantly-blue" />
                 </div>
                 <div>
                   <h2 className="text-xl font-heading font-bold text-gantly-text">
                     Mensajes de tu clinica
                   </h2>
-                  <p className="text-xs text-slate-400 font-body">Chat directo con tu clinica</p>
+                  <p className="text-xs text-slate-500 font-body">Chat directo con tu clinica</p>
                 </div>
               </div>
 
@@ -1630,8 +1632,8 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     <div className="space-y-3 max-h-[500px] overflow-y-auto mb-6 pr-2">
                       {clinicChatMessages.length === 0 ? (
                         <div className="text-center py-12">
-                          <span className="material-symbols-outlined text-4xl text-slate-200 mb-3 block">chat</span>
-                          <p className="text-slate-400 text-sm font-body">
+                          <MessageCircle size={32} className="text-slate-200 mb-3 mx-auto block" />
+                          <p className="text-slate-500 text-sm font-body">
                             No hay mensajes todavia. Escribe el primer mensaje a tu clinica.
                           </p>
                         </div>
@@ -1649,7 +1651,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                               }`}
                             >
                               <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
-                              <p className={`text-[10px] mt-1.5 text-right ${msg.sender === 'PATIENT' ? 'text-white/60' : 'text-slate-400'}`}>
+                              <p className={`text-[10px] mt-1.5 text-right ${msg.sender === 'PATIENT' ? 'text-white/60' : 'text-slate-500'}`}>
                                 {new Date(msg.createdAt).toLocaleString('es-ES', {
                                   day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
                                 })}
@@ -1683,7 +1685,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                         {clinicChatSending ? (
                           <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         ) : (
-                          <span className="material-symbols-outlined text-lg">send</span>
+                          <Send size={18} />
                         )}
                       </button>
                     </div>

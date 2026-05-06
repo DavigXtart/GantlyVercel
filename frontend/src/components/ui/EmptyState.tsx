@@ -11,7 +11,7 @@ interface EmptyStateProps {
 }
 
 export default function EmptyState({
-  icon = <Inbox className="w-12 h-12 text-slate-300" />,
+  icon = <Inbox className="w-12 h-12 text-slate-500" />,
   title,
   description,
   action,

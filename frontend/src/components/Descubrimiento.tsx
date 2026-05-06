@@ -3,6 +3,7 @@ import { evaluationTestService } from '../services/api';
 import { toast } from './ui/Toast';
 import LoadingSpinner from './ui/LoadingSpinner';
 import EmptyState from './ui/EmptyState';
+import { Compass, Fingerprint, Lightbulb, Star, Palette, MessageSquare, ArrowRight, type LucideIcon } from 'lucide-react';
 
 export default function Descubrimiento() {
   const [loading, setLoading] = useState(true);
@@ -43,12 +44,12 @@ export default function Descubrimiento() {
     ? tests.filter(t => t.topic === selectedTopic)
     : tests;
 
-  const topicIcons: Record<string, string> = {
-    'Personalidad': 'fingerprint',
-    'Inteligencia': 'lightbulb',
-    'Habilidades': 'star',
-    'Creatividad': 'palette',
-    'Comunicacion': 'forum',
+  const topicIconMap: Record<string, LucideIcon> = {
+    'Personalidad': Fingerprint,
+    'Inteligencia': Lightbulb,
+    'Habilidades': Star,
+    'Creatividad': Palette,
+    'Comunicacion': MessageSquare,
   };
 
   const topicGradients: Record<string, string> = {
@@ -64,7 +65,7 @@ export default function Descubrimiento() {
       {/* Section header */}
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gantly-blue to-gantly-cyan flex items-center justify-center shadow-sm shadow-gantly-blue/20">
-          <span className="material-symbols-outlined text-white text-lg">explore</span>
+          <Compass className="text-white" size={18} />
         </div>
         <div>
           <h2 className="text-2xl font-bold text-slate-800">
@@ -114,7 +115,7 @@ export default function Descubrimiento() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredTests.map(test => {
             const gradient = topicGradients[test.topic] || 'from-gantly-blue to-gantly-cyan';
-            const icon = topicIcons[test.topic] || 'explore';
+            const TopicIcon = topicIconMap[test.topic] || Compass;
             return (
               <div
                 key={test.id}
@@ -124,7 +125,7 @@ export default function Descubrimiento() {
                 }}
               >
                   <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300`}>
-                    <span className="material-symbols-outlined text-2xl">{icon}</span>
+                    <TopicIcon size={24} />
                   </div>
                   <p className="text-xs font-semibold text-gantly-blue uppercase tracking-wide mb-2">
                     {test.topic}
@@ -141,9 +142,7 @@ export default function Descubrimiento() {
                     <span className="text-xs px-3 py-1 rounded-full font-medium bg-gradient-to-r from-slate-50 to-slate-100 text-slate-500 border border-slate-200">
                       Proximamente
                     </span>
-                    <span className="material-symbols-outlined text-slate-400 group-hover:text-gantly-blue transition-colors text-lg">
-                      arrow_forward
-                    </span>
+                    <ArrowRight className="text-slate-500 group-hover:text-gantly-blue transition-colors" size={18} />
                   </div>
               </div>
             );
@@ -152,7 +151,7 @@ export default function Descubrimiento() {
       ) : (
         <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center mx-auto mb-4">
-            <span className="material-symbols-outlined text-3xl text-slate-400">explore</span>
+            <Compass className="text-slate-500" size={28} />
           </div>
           <EmptyState
             title="No hay tests disponibles"

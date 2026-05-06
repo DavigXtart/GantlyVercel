@@ -28,7 +28,7 @@ function DashboardMockup() {
           </div>
           <div className="flex-1 flex justify-center">
             <div className="bg-white rounded-md px-12 py-1 border border-slate-150">
-              <span className="text-[10px] text-slate-400 font-body">app.gantly.com</span>
+              <span className="text-[10px] text-slate-500 font-body">app.gantly.com</span>
             </div>
           </div>
         </div>
@@ -45,7 +45,7 @@ function DashboardMockup() {
                 {['Dashboard', 'Pacientes', 'Agenda', 'Tests'].map((tab, i) => (
                   <span
                     key={tab}
-                    className={`text-[10px] font-body ${i === 0 ? 'text-slate-800 font-semibold' : 'text-slate-400'}`}
+                    className={`text-[10px] font-body ${i === 0 ? 'text-slate-800 font-semibold' : 'text-slate-500'}`}
                   >
                     {tab}
                   </span>
@@ -98,7 +98,7 @@ function DashboardMockup() {
                   </div>
                   <div className="flex-1">
                     <div className="text-[9px] text-slate-700 font-medium">{session.name}</div>
-                    <div className="text-[8px] text-slate-400">{session.time}</div>
+                    <div className="text-[8px] text-slate-500">{session.time}</div>
                   </div>
                   <span
                     className="text-[7px] px-1.5 py-0.5 rounded font-medium"
@@ -154,7 +154,7 @@ function DashboardMockup() {
           </div>
           <div>
             <div className="text-[10px] font-heading font-semibold text-slate-800">Nuevo match</div>
-            <div className="text-[8px] text-slate-400 mt-0.5">María G. → Dr. López — 94% compatibilidad</div>
+            <div className="text-[8px] text-slate-500 mt-0.5">María G. → Dr. López — 94% compatibilidad</div>
           </div>
         </div>
       </motion.div>

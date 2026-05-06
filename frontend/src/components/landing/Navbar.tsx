@@ -148,7 +148,7 @@ export default function Navbar({ onLogin, onStart }: NavbarProps) {
             <button
               onClick={toggleLanguage}
               className={`text-xs font-body transition-colors text-left cursor-pointer ${
-                scrolled ? 'text-slate-400 hover:text-slate-600' : 'text-white/60 hover:text-white'
+                scrolled ? 'text-slate-500 hover:text-slate-600' : 'text-white/60 hover:text-white'
               }`}
             >
               {t('landing.nav.language')}

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { authService } from '../services/api';
 import FormField from './ui/FormField';
 import { toast } from './ui/Toast';
+import { Building2 } from 'lucide-react';
 
 interface RegisterProps {
   onRegister: () => void;
@@ -199,7 +200,7 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
 
               {inviteInfo && (
                 <div className="bg-gantly-blue-50 border border-gantly-blue-200 rounded-2xl p-4 mb-4 flex items-center gap-3">
-                  <span className="material-symbols-outlined text-gantly-blue-500">business</span>
+                  <Building2 className="text-gantly-blue-500" size={20} />
                   <div>
                     <p className="text-sm font-medium text-gantly-text">Invitación de {inviteInfo.companyName}</p>
                     <p className="text-xs text-gantly-muted">Crea tu cuenta para unirte a la clínica</p>

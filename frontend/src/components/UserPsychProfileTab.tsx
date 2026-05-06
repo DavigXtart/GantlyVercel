@@ -1,4 +1,5 @@
 import React from 'react';
+import { User, ArrowLeft, GraduationCap, Crown, Briefcase } from 'lucide-react';
 
 interface UserPsychProfileTabProps {
   psychologistProfile: any;
@@ -16,7 +17,7 @@ const UserPsychProfileTab: React.FC<UserPsychProfileTabProps> = ({
       {loadingPsychologistProfile ? (
         <div className="text-center py-16">
           <div className="w-16 h-16 rounded-2xl bg-gantly-blue/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
-            <span className="material-symbols-outlined text-gantly-blue text-2xl">person</span>
+            <User className="text-gantly-blue" size={24} />
           </div>
           <p className="text-sm font-body text-gantly-muted">
             Cargando perfil del psicólogo...
@@ -30,7 +31,7 @@ const UserPsychProfileTab: React.FC<UserPsychProfileTabProps> = ({
               onClick={onBack}
               className="text-sm text-gantly-blue hover:text-gantly-navy cursor-pointer transition-all duration-200 flex items-center gap-1 hover:bg-gantly-ice px-3 py-2 rounded-xl"
             >
-              <span className="material-symbols-outlined text-base">arrow_back</span>
+              <ArrowLeft size={16} />
               Volver
             </button>
           </div>
@@ -38,7 +39,7 @@ const UserPsychProfileTab: React.FC<UserPsychProfileTabProps> = ({
           {/* Profile hero header */}
           <div className="rounded-2xl overflow-hidden mb-6 border border-slate-100 shadow-sm">
             <div className="h-1.5 bg-gradient-to-r from-gantly-blue via-gantly-cyan to-gantly-emerald"></div>
-            <div className="p-8 md:p-10" style={{ background: 'linear-gradient(135deg, #1B6FA0 0%, #2E93CC 30%, #48C6D4 65%, #78D4B0 100%)' }}>
+            <div className="p-8 md:p-10 bg-gradient-brand">
               <div className="flex flex-col md:flex-row items-center gap-6">
                 <div className="w-24 h-24 rounded-2xl overflow-hidden bg-white/20 flex items-center justify-center flex-shrink-0 ring-4 ring-white/20 shadow-xl">
                   {psychologistProfile.avatarUrl ? (
@@ -70,7 +71,7 @@ const UserPsychProfileTab: React.FC<UserPsychProfileTabProps> = ({
             <div className="bg-white rounded-2xl border border-slate-100 border-l-4 border-l-gantly-blue p-6 mb-4 shadow-sm hover:shadow-md transition-all duration-200">
               <h3 className="text-sm font-heading font-semibold text-gantly-text uppercase tracking-wide mb-3 flex items-center gap-2">
                 <span className="w-8 h-8 rounded-lg bg-gantly-blue/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-gantly-blue text-sm">person</span>
+                  <User className="text-gantly-blue" size={14} />
                 </span>
                 Sobre mí
               </h3>
@@ -89,7 +90,7 @@ const UserPsychProfileTab: React.FC<UserPsychProfileTabProps> = ({
                   <div className="bg-white rounded-2xl border border-slate-100 border-l-4 border-l-gantly-cyan p-6 mb-4 shadow-sm hover:shadow-md transition-all duration-200">
                     <h3 className="text-sm font-heading font-semibold text-gantly-text uppercase tracking-wide mb-4 flex items-center gap-2">
                       <span className="w-8 h-8 rounded-lg bg-gantly-cyan/10 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-gantly-cyan text-sm">school</span>
+                        <GraduationCap className="text-gantly-cyan" size={14} />
                       </span>
                       Educación
                     </h3>
@@ -136,7 +137,7 @@ const UserPsychProfileTab: React.FC<UserPsychProfileTabProps> = ({
                   <div className="bg-white rounded-2xl border border-slate-100 border-l-4 border-l-gantly-gold p-6 mb-4 shadow-sm hover:shadow-md transition-all duration-200">
                     <h3 className="text-sm font-heading font-semibold text-gantly-text uppercase tracking-wide mb-4 flex items-center gap-2">
                       <span className="w-8 h-8 rounded-lg bg-gantly-gold/10 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-gantly-gold text-sm">workspace_premium</span>
+                        <Crown className="text-gantly-gold" size={14} />
                       </span>
                       Certificaciones
                     </h3>
@@ -183,7 +184,7 @@ const UserPsychProfileTab: React.FC<UserPsychProfileTabProps> = ({
                   <div className="bg-white rounded-2xl border border-slate-100 border-l-4 border-l-gantly-emerald p-6 mb-4 shadow-sm hover:shadow-md transition-all duration-200">
                     <h3 className="text-sm font-heading font-semibold text-gantly-text uppercase tracking-wide mb-4 flex items-center gap-2">
                       <span className="w-8 h-8 rounded-lg bg-gantly-emerald/10 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-gantly-emerald text-sm">work</span>
+                        <Briefcase className="text-gantly-emerald" size={14} />
                       </span>
                       Experiencia profesional
                     </h3>

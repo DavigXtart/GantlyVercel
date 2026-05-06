@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { Wallet, RefreshCw, TrendingUp, Hourglass, TimerOff, Calendar, ListFilter, X, Receipt, User, ChevronDown, CheckCircle, Clock } from 'lucide-react';
 
 interface Appointment {
   id: number;
@@ -73,17 +74,23 @@ export default function PsychBillingTab({ appointments, loading, onRefresh }: Pr
     return d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
   };
 
+  const paymentBadgeIcons: Record<string, React.ReactNode> = {
+    PAID: <CheckCircle size={13} />,
+    PENDING: <Clock size={13} />,
+    EXPIRED: <TimerOff size={13} />,
+  };
+
   const paymentBadge = (status: string | null) => {
     const s = status || 'PENDING';
-    const styles: Record<string, { classes: string; label: string; icon: string }> = {
-      PAID: { classes: 'bg-gantly-emerald/10 text-gantly-emerald border border-gantly-emerald/20', label: 'Pagado', icon: 'check_circle' },
-      PENDING: { classes: 'bg-gantly-gold/10 text-gantly-gold border border-gantly-gold/20', label: 'Pendiente', icon: 'schedule' },
-      EXPIRED: { classes: 'bg-slate-100 text-slate-500 border border-slate-200', label: 'Expirado', icon: 'timer_off' },
+    const styles: Record<string, { classes: string; label: string }> = {
+      PAID: { classes: 'bg-gantly-emerald/10 text-gantly-emerald border border-gantly-emerald/20', label: 'Pagado' },
+      PENDING: { classes: 'bg-gantly-gold/10 text-gantly-gold border border-gantly-gold/20', label: 'Pendiente' },
+      EXPIRED: { classes: 'bg-slate-100 text-slate-500 border border-slate-200', label: 'Expirado' },
     };
     const st = styles[s] || styles.PENDING;
     return (
       <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-heading font-semibold ${st.classes}`}>
-        <span className="material-symbols-outlined text-[13px]">{st.icon}</span>
+        {paymentBadgeIcons[s] || paymentBadgeIcons.PENDING}
         {st.label}
       </span>
     );
@@ -98,7 +105,7 @@ export default function PsychBillingTab({ appointments, loading, onRefresh }: Pr
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gantly-emerald/10 flex items-center justify-center">
-            <span className="material-symbols-outlined text-gantly-emerald text-xl">account_balance_wallet</span>
+            <Wallet className="text-gantly-emerald" size={20} />
           </div>
           <div>
             <h3 className="m-0 text-2xl font-heading font-bold text-gantly-text">Facturación</h3>
@@ -110,7 +117,7 @@ export default function PsychBillingTab({ appointments, loading, onRefresh }: Pr
           disabled={loading}
           className="h-10 px-4 rounded-xl bg-gantly-cloud hover:bg-gantly-blue hover:text-white text-gantly-blue cursor-pointer flex items-center gap-1.5 text-sm font-heading font-semibold disabled:opacity-60 transition-all duration-300 border-none"
         >
-          <span className={`material-symbols-outlined text-[16px] ${loading ? 'animate-spin' : ''}`}>refresh</span>
+          <RefreshCw className={loading ? 'animate-spin' : ''} size={16} />
           Actualizar
         </button>
       </div>
@@ -118,12 +125,12 @@ export default function PsychBillingTab({ appointments, loading, onRefresh }: Pr
       {/* Revenue overview — asymmetric bento */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-8">
         {/* Main revenue card — large */}
-        <div className="lg:col-span-5 relative overflow-hidden rounded-2xl p-6 shadow-sm border border-gantly-emerald/20" style={{ background: 'linear-gradient(135deg, #059669 0%, #0d9488 50%, #2E93CC 100%)' }}>
+        <div className="lg:col-span-5 relative overflow-hidden rounded-2xl p-6 shadow-sm border border-gantly-emerald/20 bg-gradient-emerald">
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-2xl" />
           <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-white/5 rounded-full blur-xl" />
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-1">
-              <span className="material-symbols-outlined text-white/70 text-lg">trending_up</span>
+              <TrendingUp className="text-white/70" size={18} />
               <span className="text-white/70 text-xs font-body font-medium uppercase tracking-widest">Total cobrado</span>
             </div>
             <p className="text-4xl font-heading font-extrabold text-white m-0 mt-2">
@@ -156,7 +163,7 @@ export default function PsychBillingTab({ appointments, loading, onRefresh }: Pr
                 </p>
               </div>
               <div className="w-12 h-12 rounded-2xl bg-gantly-gold/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <span className="material-symbols-outlined text-gantly-gold text-xl">hourglass_top</span>
+                <Hourglass className="text-gantly-gold" size={20} />
               </div>
             </div>
           </div>
@@ -164,12 +171,12 @@ export default function PsychBillingTab({ appointments, loading, onRefresh }: Pr
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-xs font-body font-semibold text-gantly-muted uppercase tracking-widest">Expirado</span>
-                <p className="text-2xl font-heading font-extrabold text-slate-400 m-0 mt-1">
+                <p className="text-2xl font-heading font-extrabold text-slate-500 m-0 mt-1">
                   {totals.expired.toFixed(2)} &euro;
                 </p>
               </div>
               <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <span className="material-symbols-outlined text-slate-400 text-xl">timer_off</span>
+                <TimerOff className="text-slate-500" size={20} />
               </div>
             </div>
           </div>
@@ -206,7 +213,7 @@ export default function PsychBillingTab({ appointments, loading, onRefresh }: Pr
       {/* Filters — pill style */}
       <div className="flex flex-wrap gap-3 items-center mb-6">
         <div className="flex items-center gap-2 bg-white rounded-xl border border-slate-200 px-1 py-1">
-          <span className="material-symbols-outlined text-gantly-muted text-[18px] ml-2">calendar_month</span>
+          <Calendar className="text-gantly-muted ml-2" size={18} />
           <select
             value={filterMonth}
             onChange={e => setFilterMonth(e.target.value)}
@@ -220,7 +227,7 @@ export default function PsychBillingTab({ appointments, loading, onRefresh }: Pr
         </div>
 
         <div className="flex items-center gap-2 bg-white rounded-xl border border-slate-200 px-1 py-1">
-          <span className="material-symbols-outlined text-gantly-muted text-[18px] ml-2">filter_list</span>
+          <ListFilter className="text-gantly-muted ml-2" size={18} />
           <select
             value={filterPaymentStatus}
             onChange={e => setFilterPaymentStatus(e.target.value)}
@@ -238,7 +245,7 @@ export default function PsychBillingTab({ appointments, loading, onRefresh }: Pr
             onClick={() => { setFilterMonth(''); setFilterPaymentStatus(''); }}
             className="h-9 px-3 rounded-lg text-xs font-heading font-semibold text-gantly-muted hover:text-gantly-text hover:bg-slate-100 cursor-pointer transition-all duration-200 border-none bg-transparent flex items-center gap-1"
           >
-            <span className="material-symbols-outlined text-[14px]">close</span>
+            <X size={14} />
             Limpiar filtros
           </button>
         )}
@@ -264,7 +271,7 @@ export default function PsychBillingTab({ appointments, loading, onRefresh }: Pr
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-16 h-16 rounded-2xl bg-gantly-cloud flex items-center justify-center mb-4">
-              <span className="material-symbols-outlined text-3xl text-gantly-muted">receipt_long</span>
+              <Receipt className="text-gantly-muted" size={28} />
             </div>
             <p className="text-sm font-heading font-semibold text-gantly-text m-0">Sin resultados</p>
             <p className="text-sm font-body text-gantly-muted m-0 mt-1">
@@ -284,7 +291,7 @@ export default function PsychBillingTab({ appointments, loading, onRefresh }: Pr
                   {/* Patient */}
                   <div className="col-span-4 flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-gantly-blue/10 flex items-center justify-center flex-shrink-0 group-hover:bg-gantly-blue/20 transition-colors">
-                      <span className="material-symbols-outlined text-gantly-blue text-base">person</span>
+                      <User className="text-gantly-blue" size={16} />
                     </div>
                     <div className="min-w-0">
                       <span className="font-heading font-semibold text-sm text-gantly-text truncate block">
@@ -314,9 +321,7 @@ export default function PsychBillingTab({ appointments, loading, onRefresh }: Pr
                   {/* Status */}
                   <div className="col-span-3 flex items-center justify-end gap-2">
                     {paymentBadge(a.paymentStatus)}
-                    <span className={`material-symbols-outlined text-gantly-muted/40 text-lg transition-transform duration-200 ${expandedId === a.id ? 'rotate-180' : ''}`}>
-                      expand_more
-                    </span>
+                    <ChevronDown className={`text-gantly-muted/40 transition-transform duration-200 ${expandedId === a.id ? 'rotate-180' : ''}`} size={18} />
                   </div>
                 </div>
 

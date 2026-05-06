@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { psychService } from '../services/api';
 import LoadingSpinner from './ui/LoadingSpinner';
 import { toast } from './ui/Toast';
+import { Pencil } from 'lucide-react';
 
 interface PsychEditProfileTabProps {
   onBack: () => void;
@@ -104,7 +105,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gantly-blue to-gantly-blue-600 flex items-center justify-center">
-            <span className="material-symbols-outlined text-white text-lg">edit</span>
+            <Pencil className="text-white" size={18} />
           </div>
           <h2 className="text-2xl font-bold text-slate-800 m-0">Editar Perfil Profesional</h2>
         </div>
@@ -240,7 +241,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
               </div>
             ))}
             {psychProfileForm.education.length === 0 && (
-              <div className="text-center py-6 text-slate-400 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay educacion anadida.</div>
+              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay educacion anadida.</div>
             )}
           </div>
 
@@ -333,7 +334,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
               </div>
             ))}
             {psychProfileForm.certifications.length === 0 && (
-              <div className="text-center py-6 text-slate-400 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay certificaciones anadidas.</div>
+              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay certificaciones anadidas.</div>
             )}
           </div>
 
@@ -442,7 +443,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
               </div>
             ))}
             {psychProfileForm.experience.length === 0 && (
-              <div className="text-center py-6 text-slate-400 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay experiencia anadida.</div>
+              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay experiencia anadida.</div>
             )}
           </div>
 
@@ -488,7 +489,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
               ))}
             </div>
             {psychProfileForm.specializations.length === 0 && (
-              <div className="text-center py-6 text-slate-400 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay especializaciones anadidas.</div>
+              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay especializaciones anadidas.</div>
             )}
           </div>
 
@@ -534,7 +535,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
               ))}
             </div>
             {psychProfileForm.interests.length === 0 && (
-              <div className="text-center py-6 text-slate-400 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay intereses anadidos.</div>
+              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay intereses anadidos.</div>
             )}
           </div>
 
@@ -599,7 +600,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
               </div>
             ))}
             {psychProfileForm.languages.length === 0 && (
-              <div className="text-center py-6 text-slate-400 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay idiomas anadidos.</div>
+              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay idiomas anadidos.</div>
             )}
           </div>
 

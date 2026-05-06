@@ -3,6 +3,7 @@ import { personalAgendaService, evaluationTestService } from '../services/api';
 import { toast } from './ui/Toast';
 import LoadingSpinner from './ui/LoadingSpinner';
 import EmptyState from './ui/EmptyState';
+import { LineChart, Smile, Flame, FileEdit, HelpCircle, TrendingUp, LayoutGrid, History, BarChart3 } from 'lucide-react';
 
 export default function MisEstadisticas() {
   const [loading, setLoading] = useState(true);
@@ -42,7 +43,7 @@ export default function MisEstadisticas() {
       {/* Section header */}
       <div className="flex items-center gap-3 mb-8">
         <div className="w-10 h-10 rounded-xl bg-gantly-blue/10 flex items-center justify-center">
-          <span className="material-symbols-outlined text-gantly-blue text-xl">analytics</span>
+          <LineChart size={20} className="text-gantly-blue" />
         </div>
         <h2 className="text-2xl font-heading font-bold text-gantly-text">
           Mis Estadisticas
@@ -62,7 +63,7 @@ export default function MisEstadisticas() {
               <div className="absolute top-0 right-0 w-32 h-32 bg-gantly-blue/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
               <div className="relative flex items-center gap-6">
                 <div className="w-16 h-16 rounded-2xl bg-gantly-blue/10 flex items-center justify-center flex-shrink-0">
-                  <span className="material-symbols-outlined text-gantly-blue text-3xl">mood</span>
+                  <Smile size={28} className="text-gantly-blue" />
                 </div>
                 <div>
                   <p className="text-xs font-body text-gantly-muted uppercase tracking-wide mb-1">Promedio de animo</p>
@@ -88,7 +89,7 @@ export default function MisEstadisticas() {
               <div className="bg-white rounded-2xl p-5 border border-slate-100 hover:shadow-lg hover:shadow-gantly-gold/5 transition-all duration-300 flex-1">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gantly-gold/10 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-gantly-gold text-xl">local_fire_department</span>
+                    <Flame size={20} className="text-gantly-gold" />
                   </div>
                   <div>
                     <p className="text-2xl font-heading font-bold text-gantly-text">
@@ -101,7 +102,7 @@ export default function MisEstadisticas() {
               <div className="bg-white rounded-2xl p-5 border border-slate-100 hover:shadow-lg hover:shadow-gantly-emerald/5 transition-all duration-300 flex-1">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gantly-emerald/10 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-gantly-emerald text-xl">edit_note</span>
+                    <FileEdit size={20} className="text-gantly-emerald" />
                   </div>
                   <div>
                     <p className="text-2xl font-heading font-bold text-gantly-text">
@@ -116,7 +117,7 @@ export default function MisEstadisticas() {
         ) : (
           <div className="bg-gantly-cloud rounded-2xl border border-slate-100 p-10 text-center">
             <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center mx-auto mb-4 shadow-sm">
-              <span className="material-symbols-outlined text-3xl text-gantly-muted">mood</span>
+              <Smile size={28} className="text-gantly-muted" />
             </div>
             <EmptyState
               title="No hay datos aun"
@@ -138,7 +139,7 @@ export default function MisEstadisticas() {
             <div className="bg-white rounded-2xl p-5 border border-slate-100 mb-6 flex flex-wrap items-center gap-6">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gantly-navy/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-gantly-navy text-xl">quiz</span>
+                  <HelpCircle size={20} className="text-gantly-navy" />
                 </div>
                 <div>
                   <p className="text-2xl font-heading font-bold text-gantly-text">
@@ -150,7 +151,7 @@ export default function MisEstadisticas() {
               <div className="w-px h-10 bg-slate-200 hidden sm:block"></div>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gantly-blue/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-gantly-blue text-xl">trending_up</span>
+                  <TrendingUp size={20} className="text-gantly-blue" />
                 </div>
                 <div>
                   <p className="text-2xl font-heading font-bold text-gantly-text">
@@ -166,7 +167,7 @@ export default function MisEstadisticas() {
               <div className="bg-white rounded-2xl p-6 border border-slate-100 mb-6">
                 <h4 className="text-sm font-heading font-semibold text-gantly-text mb-4 flex items-center gap-2">
                   <span className="w-7 h-7 rounded-lg bg-gantly-ice flex items-center justify-center">
-                    <span className="material-symbols-outlined text-gantly-blue text-sm">category</span>
+                    <LayoutGrid size={14} className="text-gantly-blue" />
                   </span>
                   Tests por tema
                 </h4>
@@ -194,7 +195,7 @@ export default function MisEstadisticas() {
                 <div className="px-6 py-4 border-b border-slate-100">
                   <h4 className="text-sm font-heading font-semibold text-gantly-text flex items-center gap-2">
                     <span className="w-7 h-7 rounded-lg bg-gantly-ice flex items-center justify-center">
-                      <span className="material-symbols-outlined text-gantly-blue text-sm">history</span>
+                      <History size={14} className="text-gantly-blue" />
                     </span>
                     Resultados recientes
                   </h4>
@@ -209,7 +210,7 @@ export default function MisEstadisticas() {
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-lg bg-gantly-blue/10 flex items-center justify-center">
-                          <span className="material-symbols-outlined text-gantly-blue text-base">assessment</span>
+                          <BarChart3 size={16} className="text-gantly-blue" />
                         </div>
                         <div>
                           <p className="text-sm font-body font-semibold text-gantly-text">
@@ -246,7 +247,7 @@ export default function MisEstadisticas() {
         ) : (
           <div className="bg-gantly-cloud rounded-2xl border border-slate-100 p-10 text-center">
             <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center mx-auto mb-4 shadow-sm">
-              <span className="material-symbols-outlined text-3xl text-gantly-muted">quiz</span>
+              <HelpCircle size={28} className="text-gantly-muted" />
             </div>
             <EmptyState
               title="No hay tests completados"

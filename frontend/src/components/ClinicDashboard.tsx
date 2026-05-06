@@ -5,6 +5,29 @@ import ClinicPatients from './ClinicPatients';
 import ClinicBilling from './ClinicBilling';
 import ClinicStats from './ClinicStats';
 import LogoSvg from '../assets/logo-gantly.svg';
+import {
+  Building2, Users, Calendar, UsersRound, Receipt, BarChart3, Settings, Home,
+  ChevronDown, ChevronUp, Check, Copy, Clock, LogOut, X, Send, Tag, DoorOpen,
+  UserX, Plus, Mail, Stethoscope, Package, Flower2, Timer, Trash2,
+} from 'lucide-react';
+
+const kpiIconMap: Record<string, (size: number) => React.ReactNode> = {
+  groups: (s) => <Users size={s} />,
+  calendar_month: (s) => <Calendar size={s} />,
+  people: (s) => <UsersRound size={s} />,
+  receipt_long: (s) => <Receipt size={s} />,
+  bar_chart: (s) => <BarChart3 size={s} />,
+};
+
+const navIconMap: Record<string, React.ReactNode> = {
+  home: <Home size={20} />,
+  bar_chart: <BarChart3 size={20} />,
+  calendar_month: <Calendar size={20} />,
+  group: <Users size={20} />,
+  people: <UsersRound size={20} />,
+  receipt_long: <Receipt size={20} />,
+  settings: <Settings size={20} />,
+};
 
 type NavTab = 'inicio' | 'estadisticas' | 'agenda' | 'equipo' | 'pacientes' | 'facturacion' | 'configuracion';
 
@@ -68,11 +91,11 @@ function KpiCard({
     >
       <div className="h-1 bg-gradient-to-r from-gantly-blue to-gantly-cyan rounded-t-xl" />
       <div className="p-8">
-        <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform">
-          <span className="material-symbols-outlined text-6xl text-gantly-blue">{icon}</span>
+        <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform text-gantly-blue">
+          {kpiIconMap[icon]?.(48)}
         </div>
         <div className="size-12 bg-gradient-to-br from-gantly-blue/10 to-gantly-cyan/10 flex items-center justify-center rounded-xl text-gantly-blue mb-6">
-          <span className="material-symbols-outlined">{icon}</span>
+          {kpiIconMap[icon]?.(24)}
         </div>
         <h3 className="text-3xl font-bold text-gantly-text mb-1">{value}</h3>
         <p className="text-base font-medium text-slate-700 mb-0.5">{label}</p>
@@ -104,7 +127,7 @@ function HomeTab({
       <header className="bg-gradient-to-br from-gantly-navy via-gantly-blue to-gantly-cyan rounded-2xl p-8 lg:p-10 relative overflow-hidden">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
           <div className="size-20 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-            <span className="material-symbols-outlined text-4xl text-white">business</span>
+            <Building2 size={32} className="text-white" />
           </div>
           <div>
             <h1 className="text-4xl md:text-5xl font-heading font-bold mb-2 text-white">
@@ -121,9 +144,7 @@ function HomeTab({
                   onClick={onCopyReferral}
                   className="px-4 py-1.5 rounded-full border border-white/30 text-sm text-white hover:bg-white/20 transition inline-flex items-center gap-1.5 bg-transparent cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-base">
-                    {copied ? 'check' : 'content_copy'}
-                  </span>
+                  {copied ? <Check size={16} /> : <Copy size={16} />}
                   {copied ? 'Copiado' : 'Copiar'}
                 </button>
               </div>
@@ -272,9 +293,7 @@ function EquipoTab({ psychologists, onRefresh }: { psychologists: Psychologist[]
                     <span className="px-2 py-1 rounded-full bg-gantly-emerald-50 text-[10px] font-medium text-gantly-emerald-700 uppercase tracking-wider">
                       Activo
                     </span>
-                    <span className="material-symbols-outlined text-slate-400 text-base">
-                      {selectedPsychId === p.id ? 'expand_less' : 'expand_more'}
-                    </span>
+                    {selectedPsychId === p.id ? <ChevronUp size={16} className="text-slate-500" /> : <ChevronDown size={16} className="text-slate-500" />}
                   </div>
                 </button>
                 {/* Schedule panel */}
@@ -345,7 +364,7 @@ function EquipoTab({ psychologists, onRefresh }: { psychologists: Psychologist[]
                 disabled={sending}
                 className="px-5 h-12 bg-gantly-blue text-white rounded-xl text-sm font-medium hover:bg-gantly-blue-600 transition disabled:opacity-50 inline-flex items-center gap-1.5 cursor-pointer border-none"
               >
-                <span className="material-symbols-outlined text-base">send</span>
+                <Send size={16} />
                 {sending ? 'Enviando...' : 'Invitar'}
               </button>
             </form>
@@ -367,17 +386,17 @@ function EquipoTab({ psychologists, onRefresh }: { psychologists: Psychologist[]
             <div className="space-y-2">
               {invitations.map(inv => (
                 <div key={inv.id} className="bg-gantly-gold/5 rounded-xl border border-gantly-gold/20 shadow-soft px-4 py-3 flex items-center gap-3">
-                  <span className="material-symbols-outlined text-gantly-gold text-base">mail</span>
+                  <Mail size={16} className="text-gantly-gold" />
                   <span className="text-sm text-slate-900 flex-1">{inv.email}</span>
                   <span className="text-[10px] text-slate-500 bg-gantly-gold/10 px-2 py-0.5 rounded-full">
                     Expira {new Date(inv.expiresAt).toLocaleDateString('es-ES')}
                   </span>
                   <button
                     onClick={() => handleCancel(inv.id)}
-                    className="text-slate-400 hover:text-red-400 transition cursor-pointer bg-transparent border-none"
+                    className="text-slate-500 hover:text-red-400 transition cursor-pointer bg-transparent border-none"
                     title="Cancelar invitacion"
                   >
-                    <span className="material-symbols-outlined text-base">close</span>
+                    <X size={16} />
                   </button>
                 </div>
               ))}
@@ -566,7 +585,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
   }
 
   const [copiedCode, setCopiedCode] = useState(false);
-  const inputCls = "w-full h-11 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-900 outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 focus:bg-white transition-all duration-200 placeholder:text-slate-400";
+  const inputCls = "w-full h-11 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-900 outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 focus:bg-white transition-all duration-200 placeholder:text-slate-500";
 
   return (
     <div className="space-y-6">
@@ -579,7 +598,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2.5">
                 <div className="size-9 rounded-xl bg-gradient-to-br from-gantly-blue/10 to-gantly-cyan/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-gantly-blue text-lg">business</span>
+                  <Building2 size={18} className="text-gantly-blue" />
                 </div>
                 <div>
                   <h3 className="text-sm font-heading font-bold text-slate-900">Datos de la clínica</h3>
@@ -618,14 +637,14 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
             <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-2">
-                  <span className="material-symbols-outlined text-sm text-slate-400">tag</span>
+                  <Tag size={14} className="text-slate-500" />
                   <span className="text-sm font-mono font-bold text-slate-700">{clinicInfo?.referralCode ?? '—'}</span>
                   <button
                     onClick={() => { navigator.clipboard.writeText(clinicInfo?.referralCode ?? ''); setCopiedCode(true); setTimeout(() => setCopiedCode(false), 1500); }}
                     className="text-gantly-blue hover:text-gantly-blue/70 cursor-pointer bg-transparent border-none p-0.5"
                     title="Copiar código"
                   >
-                    <span className="material-symbols-outlined text-sm">{copiedCode ? 'check' : 'content_copy'}</span>
+                    {copiedCode ? <Check size={14} /> : <Copy size={14} />}
                   </button>
                 </div>
                 <span className="text-[11px] text-slate-500 hidden sm:inline">Código para invitar psicólogos</span>
@@ -644,7 +663,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2.5">
                 <div className="size-9 rounded-xl bg-gradient-to-br from-gantly-cyan/10 to-emerald-100 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-gantly-cyan text-lg">schedule</span>
+                  <Clock size={18} className="text-gantly-cyan" />
                 </div>
                 <div>
                   <h3 className="text-sm font-heading font-bold text-slate-900">Horario semanal</h3>
@@ -672,7 +691,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                     <div className="flex items-center gap-2 flex-1">
                       <input type="time" value={day.openTime} onChange={e => updateDay(idx, 'openTime', e.target.value)}
                         className="h-8 px-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 outline-none focus:border-gantly-blue transition-colors w-[110px]" />
-                      <span className="text-slate-300 text-sm">—</span>
+                      <span className="text-slate-500 text-sm">—</span>
                       <input type="time" value={day.closeTime} onChange={e => updateDay(idx, 'closeTime', e.target.value)}
                         className="h-8 px-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 outline-none focus:border-gantly-blue transition-colors w-[110px]" />
                     </div>
@@ -701,7 +720,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2.5">
                 <div className="size-9 rounded-xl bg-gradient-to-br from-amber-50 to-gantly-gold/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-amber-500 text-lg">medical_services</span>
+                  <Stethoscope size={18} className="text-amber-500" />
                 </div>
                 <div>
                   <h3 className="text-sm font-heading font-bold text-slate-900">Catalogo de servicios</h3>
@@ -710,7 +729,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
               </div>
               {!showServiceForm && (
                 <button onClick={() => setShowServiceForm(true)} className="flex items-center gap-1.5 text-xs text-gantly-blue font-semibold cursor-pointer bg-gantly-blue/5 hover:bg-gantly-blue/10 border-none px-3 py-2 rounded-lg transition-colors">
-                  <span className="material-symbols-outlined text-sm">add</span>
+                  <Plus size={14} />
                   Nuevo
                 </button>
               )}
@@ -757,10 +776,10 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
               ) : services.length === 0 && !showServiceForm ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
                   <div className="size-12 rounded-2xl bg-slate-50 flex items-center justify-center mb-3">
-                    <span className="material-symbols-outlined text-slate-300 text-2xl">inventory_2</span>
+                    <Package size={24} className="text-slate-500" />
                   </div>
                   <p className="text-sm text-slate-500">Sin servicios configurados</p>
-                  <p className="text-xs text-slate-400 mt-1">Anade tu primer servicio para empezar</p>
+                  <p className="text-xs text-slate-500 mt-1">Anade tu primer servicio para empezar</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -768,7 +787,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                     <div key={svc.id} className="flex items-center justify-between px-3.5 py-3 rounded-xl hover:bg-slate-50 group transition-colors duration-200">
                       <div className="flex items-center gap-3">
                         <div className="size-8 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
-                          <span className="material-symbols-outlined text-amber-500 text-sm">spa</span>
+                          <Flower2 size={14} className="text-amber-500" />
                         </div>
                         <div>
                           <span className="text-sm font-medium text-slate-900">{svc.name}</span>
@@ -778,7 +797,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                             )}
                             {svc.durationMinutes != null && (
                               <span className="text-[11px] text-slate-500 flex items-center gap-0.5">
-                                <span className="material-symbols-outlined text-[11px]">timer</span>
+                                <Timer size={11} />
                                 {svc.durationMinutes} min
                               </span>
                             )}
@@ -786,8 +805,8 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                         </div>
                       </div>
                       <button onClick={() => handleDeleteService(svc.id)}
-                        className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-400 transition-all p-1.5 rounded-lg cursor-pointer bg-transparent border-none hover:bg-red-50">
-                        <span className="material-symbols-outlined text-base">delete</span>
+                        className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 transition-all p-1.5 rounded-lg cursor-pointer bg-transparent border-none hover:bg-red-50">
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   ))}
@@ -803,7 +822,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
           <div className="p-6 flex-1 flex flex-col">
             <div className="flex items-center gap-2.5 mb-5">
               <div className="size-9 rounded-xl bg-gradient-to-br from-violet-50 to-purple-50 flex items-center justify-center">
-                <span className="material-symbols-outlined text-gantly-blue text-lg">meeting_room</span>
+                <DoorOpen size={18} className="text-gantly-blue" />
               </div>
               <div>
                 <h3 className="text-sm font-heading font-bold text-slate-900">Despachos</h3>
@@ -819,10 +838,10 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
               ) : psychologists.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
                   <div className="size-12 rounded-2xl bg-slate-50 flex items-center justify-center mb-3">
-                    <span className="material-symbols-outlined text-slate-300 text-2xl">group_off</span>
+                    <UserX size={24} className="text-slate-500" />
                   </div>
                   <p className="text-sm text-slate-500">No hay psicólogos en la clínica</p>
-                  <p className="text-xs text-slate-400 mt-1">Invita psicólogos desde la pestaña Equipo</p>
+                  <p className="text-xs text-slate-500 mt-1">Invita psicólogos desde la pestaña Equipo</p>
                 </div>
               ) : (
                 <ul className="space-y-2">
@@ -852,17 +871,17 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                           {room ? (
                             <button
                               onClick={() => handleDeleteRoom(room.id)}
-                              className="text-slate-300 hover:text-red-400 hover:bg-red-50 transition-all p-1.5 rounded-lg cursor-pointer bg-transparent border-none"
+                              className="text-slate-500 hover:text-red-400 hover:bg-red-50 transition-all p-1.5 rounded-lg cursor-pointer bg-transparent border-none"
                               title="Eliminar despacho"
                             >
-                              <span className="material-symbols-outlined text-base">delete</span>
+                              <Trash2 size={16} />
                             </button>
                           ) : !isAdding ? (
                             <button
                               onClick={() => startAdding(psych.id, `Consulta ${idx + 1}`)}
                               className="flex items-center gap-1 text-[11px] text-slate-500 hover:text-gantly-blue border border-dashed border-slate-200 hover:border-gantly-blue/40 px-2.5 py-1.5 rounded-lg transition-all cursor-pointer bg-transparent"
                             >
-                              <span className="material-symbols-outlined text-sm">add</span>
+                              <Plus size={14} />
                               Asignar
                             </button>
                           ) : null}
@@ -994,7 +1013,7 @@ export default function ClinicDashboard() {
                   : 'text-white hover:bg-white/10'
               }`}
             >
-              <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+              {navIconMap[item.icon]}
               {item.label}
             </button>
           ))}
@@ -1010,7 +1029,7 @@ export default function ClinicDashboard() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-sm font-medium text-white truncate">{clinicInfo?.name || 'Clínica'}</div>
-              <div className="text-xs text-slate-400 truncate">{clinicInfo?.email}</div>
+              <div className="text-xs text-slate-500 truncate">{clinicInfo?.email}</div>
             </div>
           </div>
           <button
@@ -1019,9 +1038,9 @@ export default function ClinicDashboard() {
               localStorage.removeItem('refreshToken');
               window.location.reload();
             }}
-            className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer transition-all duration-200 border-none bg-transparent"
+            className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-slate-500 hover:text-white hover:bg-white/10 cursor-pointer transition-all duration-200 border-none bg-transparent"
           >
-            <span className="material-symbols-outlined text-[18px]">logout</span>
+            <LogOut size={18} />
             Cerrar sesión
           </button>
         </div>

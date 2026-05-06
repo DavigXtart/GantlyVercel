@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { testService, assignedTestsService } from '../services/api';
 import { toast } from './ui/Toast';
+import { Brain, Search, HelpCircle, CalendarDays, CheckCircle, ChevronRight } from 'lucide-react';
 
 interface PsychTestsTabProps {
   patients: any[];
@@ -21,7 +22,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gantly-blue to-gantly-blue-600 flex items-center justify-center">
-            <span className="material-symbols-outlined text-white text-lg">psychology</span>
+            <Brain className="text-white" size={18} />
           </div>
           <h3 className="m-0 text-2xl font-bold text-slate-800">Tests Asignados</h3>
         </div>
@@ -86,11 +87,11 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                   onChange={(e) => setTestSearchTerm(e.target.value)}
                   className="h-12 w-full pl-10 pr-10 rounded-xl border border-slate-200 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue bg-white transition-all duration-200"
                 />
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-lg">search</span>
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                 {testSearchTerm.trim() && (
                   <button
                     onClick={() => setTestSearchTerm('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-lg text-slate-400 hover:text-red-500 p-1 flex items-center justify-center transition-colors duration-200"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-lg text-slate-500 hover:text-red-500 p-1 flex items-center justify-center transition-colors duration-200"
                   >
                     &times;
                   </button>
@@ -211,8 +212,8 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
         if (testsByPatient.size === 0) {
           return (
             <div className="py-16 text-center bg-white rounded-2xl border border-dashed border-slate-200">
-              <span className="material-symbols-outlined text-5xl text-slate-300 mb-3">quiz</span>
-              <div className="text-sm text-slate-400 max-w-xs mx-auto">No hay tests asignados. Asigna tests a tus pacientes para que los completen.</div>
+              <HelpCircle className="text-slate-500 mb-3 mx-auto" size={48} />
+              <div className="text-sm text-slate-500 max-w-xs mx-auto">No hay tests asignados. Asigna tests a tus pacientes para que los completen.</div>
             </div>
           );
         }
@@ -270,7 +271,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                       </div>
                       <div>
                         <div className="text-sm font-semibold text-slate-800">{patient.name}</div>
-                        <div className="text-xs text-slate-400">{patient.email}</div>
+                        <div className="text-xs text-slate-500">{patient.email}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -287,7 +288,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                           </span>
                         )}
                       </div>
-                      <span className={`material-symbols-outlined text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}>chevron_right</span>
+                      <ChevronRight className={`text-slate-500 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} size={18} />
                     </div>
                   </div>
                   {isExpanded && (
@@ -318,14 +319,14 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                                     {at.completedAt ? 'Completado' : 'Pendiente'}
                                   </span>
                                   {at.assignedAt && (
-                                    <span className="text-xs text-slate-400 flex items-center gap-1">
-                                      <span className="material-symbols-outlined text-[12px]">calendar_today</span>
+                                    <span className="text-xs text-slate-500 flex items-center gap-1">
+                                      <CalendarDays size={12} />
                                       Asignado: {new Date(at.assignedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                                     </span>
                                   )}
                                   {at.completedAt && (
-                                    <span className="text-xs text-slate-400 flex items-center gap-1">
-                                      <span className="material-symbols-outlined text-[12px]">check_circle</span>
+                                    <span className="text-xs text-slate-500 flex items-center gap-1">
+                                      <CheckCircle size={12} />
                                       Completado: {new Date(at.completedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                                     </span>
                                   )}
@@ -334,7 +335,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                                   {at.testTitle || at.test?.title || 'Test'}
                                 </div>
                                 {at.testCode && (
-                                  <div className="text-xs text-slate-400 font-mono bg-slate-50 px-2 py-0.5 rounded inline-block">Codigo: {at.testCode}</div>
+                                  <div className="text-xs text-slate-500 font-mono bg-slate-50 px-2 py-0.5 rounded inline-block">Codigo: {at.testCode}</div>
                                 )}
                               </div>
                               <div className="flex items-center gap-2 flex-shrink-0">

@@ -143,7 +143,7 @@ export default function BillingPortal() {
                           Descargar PDF
                         </a>
                       ) : (
-                        <span className="text-slate-400">--</span>
+                        <span className="text-slate-500">--</span>
                       )}
                     </td>
                   </tr>

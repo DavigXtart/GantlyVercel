@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { tasksService, fileService } from '../services/api';
 import { toast } from './ui/Toast';
+import { CheckSquare, Clock, ArrowLeft, Upload, FileText, Upload as CloudUpload, CheckCircle, Send, ShieldCheck, AlertTriangle, ChevronRight, ClipboardList } from 'lucide-react';
 
 interface UserTasksTabProps {
   tasks: any[];
@@ -53,7 +54,7 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
   const pendingCount = pendingTasks.length;
   const progressPercent = totalTasks > 0 ? (completedCount / totalTasks) * 100 : 0;
 
-  const inputCls = "w-full h-11 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-900 outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 focus:bg-white transition-all duration-200 placeholder:text-slate-400";
+  const inputCls = "w-full h-11 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-900 outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 focus:bg-white transition-all duration-200 placeholder:text-slate-500";
 
   // ── Task detail view ──
   if (selectedTaskId && selectedTask) {
@@ -69,9 +70,7 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
           <div className="flex items-start justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className={`size-10 rounded-xl flex items-center justify-center ${selectedTask.completedAt ? 'bg-emerald-50' : 'bg-amber-50'}`}>
-                <span className={`material-symbols-outlined text-lg ${selectedTask.completedAt ? 'text-emerald-600' : 'text-amber-600'}`}>
-                  {selectedTask.completedAt ? 'task_alt' : 'pending_actions'}
-                </span>
+                {selectedTask.completedAt ? <CheckSquare className="text-emerald-600" size={18} /> : <Clock className="text-amber-600" size={18} />}
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-slate-900">{selectedTask.title}</h3>
@@ -85,33 +84,33 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
             </div>
             <button onClick={() => { setSelectedTaskId(null); setSelectedTask(null); setNewComment(''); }}
               className="flex items-center gap-1 text-sm text-slate-500 hover:text-gantly-blue px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer bg-transparent border-none">
-              <span className="material-symbols-outlined text-base">arrow_back</span>Volver
+              <ArrowLeft size={16} />Volver
             </button>
           </div>
 
           {/* Metadata row */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
             <div className="rounded-xl px-4 py-3 bg-slate-50 border border-slate-100">
-              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Creada</div>
+              <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Creada</div>
               <div className="text-sm font-medium text-slate-900">
                 {selectedTask.createdAt ? new Date(selectedTask.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
               </div>
             </div>
             {selectedTask.dueDate && (
               <div className={`rounded-xl px-4 py-3 border ${isOverdue ? 'bg-red-50 border-red-100' : 'bg-amber-50/50 border-amber-100'}`}>
-                <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Vence</div>
+                <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Vence</div>
                 <div className={`text-sm font-medium ${isOverdue ? 'text-red-700' : 'text-slate-900'}`}>
                   {new Date(selectedTask.dueDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </div>
                 {!selectedTask.completedAt && !isOverdue && (
-                  <div className="text-[10px] text-slate-400 mt-0.5">
+                  <div className="text-[10px] text-slate-500 mt-0.5">
                     {Math.ceil((new Date(selectedTask.dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} dias restantes
                   </div>
                 )}
               </div>
             )}
             <div className="rounded-xl px-4 py-3 bg-slate-50 border border-slate-100">
-              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Asignada por</div>
+              <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Asignada por</div>
               <div className="text-sm font-medium text-slate-900">{selectedTask.psychologistName || 'Tu psicologo'}</div>
             </div>
           </div>
@@ -119,7 +118,7 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
           {/* Description */}
           {selectedTask.description && (
             <div className="mb-6 pb-6 border-b border-slate-100">
-              <h4 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-3">Descripcion</h4>
+              <h4 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-3">Descripcion</h4>
               <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap bg-slate-50 rounded-xl p-4 border border-slate-100">
                 {selectedTask.description}
               </div>
@@ -129,12 +128,12 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
           {/* Files */}
           <div className="mb-6 pb-6 border-b border-slate-100">
             <div className="flex justify-between items-center mb-3">
-              <h4 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+              <h4 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
                 Archivos {files.length > 0 && <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">{files.length}</span>}
               </h4>
               {!selectedTask.completedAt && (
                 <label className="flex items-center gap-1.5 text-xs text-gantly-blue font-semibold cursor-pointer bg-gantly-blue/5 hover:bg-gantly-blue/10 border-none px-3 py-2 rounded-lg transition-colors">
-                  <span className="material-symbols-outlined text-sm">upload</span>Subir
+                  <Upload size={14} />Subir
                   <input type="file" className="hidden" onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (file && selectedTaskId) {
@@ -152,11 +151,11 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
                   <div key={file.id} className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 group transition-colors">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="size-9 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-                        <span className="material-symbols-outlined text-slate-500 text-base">description</span>
+                        <FileText className="text-slate-500" size={16} />
                       </div>
                       <div className="min-w-0">
                         <div className="text-sm font-medium text-slate-900 truncate">{file.originalName}</div>
-                        <div className="text-[11px] text-slate-400">{(file.fileSize / 1024).toFixed(1)} KB · {file.uploaderName}</div>
+                        <div className="text-[11px] text-slate-500">{(file.fileSize / 1024).toFixed(1)} KB · {file.uploaderName}</div>
                       </div>
                     </div>
                     <button onClick={() => fileService.downloadTaskFile(file.filePath)}
@@ -168,15 +167,15 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
               </div>
             ) : (
               <div className="text-center py-8 rounded-xl border border-dashed border-slate-200 bg-slate-50/50">
-                <span className="material-symbols-outlined text-2xl text-slate-300 mb-1 block">cloud_upload</span>
-                <p className="text-sm text-slate-400">Sin archivos adjuntos</p>
+                <CloudUpload className="text-slate-500 mb-1 mx-auto" size={24} />
+                <p className="text-sm text-slate-500">Sin archivos adjuntos</p>
               </div>
             )}
           </div>
 
           {/* Comments */}
           <div className="mb-6 pb-6 border-b border-slate-100">
-            <h4 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <h4 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
               Comentarios {comments.length > 0 && <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">{comments.length}</span>}
             </h4>
             {comments.length > 0 ? (
@@ -185,7 +184,7 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
                   <div key={c.id} className="px-4 py-3 bg-slate-50 rounded-xl">
                     <div className="flex justify-between items-center mb-1">
                       <span className="text-sm font-medium text-slate-900">{c.userName}</span>
-                      <span className="text-[11px] text-slate-400">
+                      <span className="text-[11px] text-slate-500">
                         {c.createdAt ? new Date(c.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
                       </span>
                     </div>
@@ -195,14 +194,14 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
               </div>
             ) : (
               <div className="text-center py-5 mb-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/50">
-                <p className="text-sm text-slate-400">Sin comentarios</p>
+                <p className="text-sm text-slate-500">Sin comentarios</p>
               </div>
             )}
             <div className="flex gap-2">
               <textarea value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Escribe un comentario..."
                 className={`${inputCls} min-h-[60px] resize-y py-3 flex-1`} />
               <button onClick={() => handleAddComment(selectedTaskId)} disabled={!newComment.trim()}
-                className="self-end px-4 py-2.5 bg-gantly-blue text-white rounded-xl text-sm font-semibold cursor-pointer border-none hover:bg-gantly-blue/90 transition-colors disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed">
+                className="self-end px-4 py-2.5 bg-gantly-blue text-white rounded-xl text-sm font-semibold cursor-pointer border-none hover:bg-gantly-blue/90 transition-colors disabled:bg-slate-200 disabled:text-slate-500 disabled:cursor-not-allowed">
                 Enviar
               </button>
             </div>
@@ -212,7 +211,7 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
           {!selectedTask.completedAt && (
             <div className="rounded-xl p-4 bg-emerald-50 border border-emerald-100 flex items-center justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-emerald-600 text-lg">check_circle</span>
+                <CheckCircle className="text-emerald-600" size={18} />
                 <div>
                   <div className="text-sm font-medium text-emerald-700">¿Has terminado esta tarea?</div>
                   <div className="text-xs text-slate-500">Marca la tarea como completada cuando la hayas finalizado.</div>
@@ -220,7 +219,7 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
               </div>
               <button onClick={() => handleCompleteTask(selectedTaskId)} disabled={submitting}
                 className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors cursor-pointer border-none ${
-                  submitting ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                  submitting ? 'bg-slate-200 text-slate-500 cursor-not-allowed' : 'bg-emerald-600 text-white hover:bg-emerald-700'
                 }`}>
                 {submitting ? (
                   <span className="flex items-center gap-2">
@@ -228,7 +227,7 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
                   </span>
                 ) : (
                   <span className="flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-sm">send</span>Finalizar tarea
+                    <Send size={14} />Finalizar tarea
                   </span>
                 )}
               </button>
@@ -238,9 +237,9 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
           {/* Already completed */}
           {selectedTask.completedAt && (
             <div className="rounded-xl p-4 bg-emerald-50 border border-emerald-100 flex items-center gap-2">
-              <span className="material-symbols-outlined text-emerald-600 text-lg">verified</span>
+              <ShieldCheck className="text-emerald-600" size={18} />
               <span className="text-sm font-medium text-emerald-700">Tarea completada</span>
-              <span className="text-xs text-slate-400 ml-1">
+              <span className="text-xs text-slate-500 ml-1">
                 {new Date(selectedTask.completedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
               </span>
             </div>
@@ -258,10 +257,10 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
       {tasks.length === 0 ? (
         <div className="text-center py-16 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
           <div className="size-14 rounded-2xl bg-white flex items-center justify-center mx-auto mb-4 shadow-sm">
-            <span className="material-symbols-outlined text-2xl text-slate-300">task</span>
+            <ClipboardList className="text-slate-500" size={24} />
           </div>
           <p className="text-sm font-medium text-slate-900 mb-1">No tienes tareas asignadas</p>
-          <p className="text-sm text-slate-400">Cuando tu psicologo te asigne tareas apareceran aqui.</p>
+          <p className="text-sm text-slate-500">Cuando tu psicologo te asigne tareas apareceran aqui.</p>
         </div>
       ) : (
         <>
@@ -270,21 +269,21 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
             <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
               <div className="h-1 bg-gradient-to-r from-gantly-blue to-gantly-cyan" />
               <div className="p-4">
-                <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Total</div>
+                <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Total</div>
                 <div className="text-2xl font-bold text-slate-900">{totalTasks}</div>
               </div>
             </div>
             <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
               <div className="h-1 bg-gradient-to-r from-amber-300 to-amber-400" />
               <div className="p-4">
-                <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Pendientes</div>
+                <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Pendientes</div>
                 <div className="text-2xl font-bold text-slate-900">{pendingCount}</div>
               </div>
             </div>
             <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
               <div className="h-1 bg-gradient-to-r from-emerald-400 to-emerald-500" />
               <div className="p-4">
-                <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Completadas</div>
+                <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Completadas</div>
                 <div className="text-2xl font-bold text-slate-900">{completedCount}</div>
               </div>
             </div>
@@ -299,7 +298,7 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
           {/* Progress bar */}
           <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-4">
             <div className="flex items-center gap-3">
-              <span className="text-xs text-slate-400 font-medium">Avance:</span>
+              <span className="text-xs text-slate-500 font-medium">Avance:</span>
               <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
                 <div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-gantly-cyan transition-all duration-500"
                   style={{ width: `${progressPercent}%` }} />
@@ -313,7 +312,7 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                <h4 className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">Pendientes</h4>
+                <h4 className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest">Pendientes</h4>
                 <span className="text-[10px] bg-amber-50 text-amber-700 font-semibold px-1.5 py-0.5 rounded">{pendingCount}</span>
               </div>
               <div className="space-y-2">
@@ -323,21 +322,19 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
                     <div key={t.id} onClick={() => { setSelectedTaskId(t.id); loadTaskDetails(t.id); }}
                       className="bg-white rounded-xl px-5 py-4 border border-slate-200/80 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group flex items-center gap-4">
                       <div className={`size-9 rounded-lg flex items-center justify-center flex-shrink-0 ${overdue ? 'bg-red-50' : 'bg-amber-50'}`}>
-                        <span className={`material-symbols-outlined text-base ${overdue ? 'text-red-500' : 'text-amber-600'}`}>
-                          {overdue ? 'warning' : 'pending_actions'}
-                        </span>
+                        {overdue ? <AlertTriangle className="text-red-500" size={16} /> : <Clock className="text-amber-600" size={16} />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-slate-900 group-hover:text-gantly-blue transition-colors">{t.title}</div>
                         {t.description && <p className="text-sm text-slate-500 truncate mt-0.5">{t.description}</p>}
                         {t.dueDate && (
-                          <div className={`text-[11px] mt-1 flex items-center gap-1 ${overdue ? 'text-red-500 font-medium' : 'text-slate-400'}`}>
-                            <span className="material-symbols-outlined text-[12px]">schedule</span>
+                          <div className={`text-[11px] mt-1 flex items-center gap-1 ${overdue ? 'text-red-500 font-medium' : 'text-slate-500'}`}>
+                            <Clock size={12} />
                             Vence: {new Date(t.dueDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                           </div>
                         )}
                       </div>
-                      <span className="material-symbols-outlined text-slate-300 group-hover:text-gantly-blue transition-colors text-lg">chevron_right</span>
+                      <ChevronRight className="text-slate-500 group-hover:text-gantly-blue transition-colors" size={18} />
                     </div>
                   );
                 })}
@@ -350,7 +347,7 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                <h4 className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">Completadas</h4>
+                <h4 className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest">Completadas</h4>
                 <span className="text-[10px] bg-emerald-50 text-emerald-700 font-semibold px-1.5 py-0.5 rounded">{completedCount}</span>
               </div>
               <div className="space-y-2">
@@ -358,13 +355,13 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
                   <div key={t.id} onClick={() => { setSelectedTaskId(t.id); loadTaskDetails(t.id); }}
                     className="bg-white rounded-xl px-5 py-4 border border-slate-200/80 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group flex items-center gap-4 opacity-80 hover:opacity-100">
                     <div className="size-9 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                      <span className="material-symbols-outlined text-emerald-600 text-base">task_alt</span>
+                      <CheckSquare className="text-emerald-600" size={16} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-slate-900 group-hover:text-gantly-blue transition-colors">{t.title}</div>
                       {t.description && <p className="text-sm text-slate-500 truncate mt-0.5">{t.description}</p>}
                     </div>
-                    <span className="material-symbols-outlined text-slate-300 group-hover:text-gantly-blue transition-colors text-lg">chevron_right</span>
+                    <ChevronRight className="text-slate-500 group-hover:text-gantly-blue transition-colors" size={18} />
                   </div>
                 ))}
               </div>

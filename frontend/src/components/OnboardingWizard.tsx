@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Hand, User, Brain, Compass, type LucideIcon } from 'lucide-react';
 
 interface OnboardingWizardProps {
   userName: string;
@@ -7,26 +8,24 @@ interface OnboardingWizardProps {
   onGoToMatching: () => void;
 }
 
+const stepIcons: LucideIcon[] = [Hand, User, Brain, Compass];
+
 const steps = [
   {
-    icon: 'waving_hand',
     title: 'Bienvenido a Gantly',
     description: 'Gantly te conecta con psicólogos verificados. Desde aquí gestionas citas, tareas terapéuticas y tu seguimiento.',
   },
   {
-    icon: 'person',
     title: 'Completa tu perfil',
     description: 'Anade tu foto, fecha de nacimiento y otros datos para personalizar tu experiencia. Un perfil completo ayuda a tu psicologo a conocerte mejor.',
     action: 'profile',
   },
   {
-    icon: 'psychology',
     title: 'Realiza el test de matching',
     description: 'Responde un breve cuestionario para que podamos conectarte con el profesional mas adecuado para ti. Solo lleva unos minutos.',
     action: 'matching',
   },
   {
-    icon: 'explore',
     title: 'Explora tu panel',
     description: 'Tu panel incluye agenda, tareas, diario de estado de ánimo y chat directo con tu profesional.',
   },
@@ -77,9 +76,7 @@ export default function OnboardingWizard({ userName, onComplete, onGoToProfile, 
 
         {/* Content */}
         <div className="px-10 py-8 text-center">
-          <span className="material-symbols-outlined text-[56px] text-gantly-blue/50 mb-4 block">
-            {current.icon}
-          </span>
+          {(() => { const Icon = stepIcons[step]; return <Icon size={56} className="text-gantly-blue/50 mb-4 mx-auto block" />; })()}
           {step === 0 ? (
             <h2 className="text-2xl font-heading font-light text-gantly-navy mb-2">
               {current.title}, <span className="font-medium">{userName}</span>

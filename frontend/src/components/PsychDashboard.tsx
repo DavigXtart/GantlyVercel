@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { User, BarChart3 } from 'lucide-react';
+import { User, BarChart3, ChevronUp, ChevronDown, LogOut, Camera, Clock, CalendarDays, FileDown, X, Home, UsersRound, CheckSquare, Brain, Calendar, MessageCircle, History, Receipt, type LucideIcon } from 'lucide-react';
 import { profileService, psychService, calendarService, tasksService, assignedTestsService, testService, resultsService, matchingService, calendarNotesService, jitsiService, API_BASE_URL } from '../services/api';
 import NotificationBell from './ui/NotificationBell';
 import ChatWidget from './ChatWidget';
@@ -49,7 +49,7 @@ function SessionNotesSection({ appointmentId, existingNotes }: { appointmentId: 
         onClick={() => setExpanded(!expanded)}
         className="bg-transparent border-none cursor-pointer text-sm text-gantly-blue font-medium font-body flex items-center gap-1 p-0 transition-colors duration-200 hover:text-gantly-blue/80"
       >
-        <span className="material-symbols-outlined text-[18px]">{expanded ? 'expand_less' : 'expand_more'}</span>
+        {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
         Notas de sesion {existingNotes ? '(editadas)' : ''}
       </button>
       {expanded && (
@@ -62,7 +62,7 @@ function SessionNotesSection({ appointmentId, existingNotes }: { appointmentId: 
             className="w-full min-h-[80px] p-3 border border-slate-200 rounded-lg text-sm font-body resize-y outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
           />
           <div className="flex justify-between items-center mt-2">
-            <span className="text-xs text-slate-400">{notes.length}/500</span>
+            <span className="text-xs text-slate-500">{notes.length}/500</span>
             <button
               onClick={handleSave}
               disabled={saving}
@@ -476,6 +476,17 @@ export default function PsychDashboard() {
   }
 
   // Tabs visible in the main nav (not internal navigation tabs like patient-profile, test-details, etc.)
+  const iconMap: Record<string, LucideIcon> = {
+    home: Home,
+    group: UsersRound,
+    task_alt: CheckSquare,
+    psychology: Brain,
+    calendar_month: Calendar,
+    chat: MessageCircle,
+    history: History,
+    receipt_long: Receipt,
+  };
+
   const mainTabs = [
     { id: 'perfil', label: 'Inicio', icon: 'home' },
     { id: 'pacientes', label: 'Pacientes', icon: 'group' },
@@ -516,7 +527,7 @@ export default function PsychDashboard() {
                   : 'text-white hover:bg-white/10'
               }`}
             >
-              <span className="material-symbols-outlined text-[20px]">{t.icon}</span>
+              {(() => { const Icon = iconMap[t.icon]; return Icon ? <Icon size={20} /> : null; })()}
               {t.label}
             </button>
           ))}
@@ -536,7 +547,7 @@ export default function PsychDashboard() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-sm font-medium text-white truncate">{me?.name || 'Profesional'}</div>
-              <div className="text-xs text-slate-400 truncate">{me?.email}</div>
+              <div className="text-xs text-slate-500 truncate">{me?.email}</div>
             </div>
           </div>
           <button
@@ -545,9 +556,9 @@ export default function PsychDashboard() {
               localStorage.removeItem('refreshToken');
               window.location.href = '/login';
             }}
-            className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer transition-all duration-200 border-none bg-transparent"
+            className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-slate-500 hover:text-white hover:bg-white/10 cursor-pointer transition-all duration-200 border-none bg-transparent"
           >
-            <span className="material-symbols-outlined text-[18px]">logout</span>
+            <LogOut size={18} />
             Cerrar sesión
           </button>
         </div>
@@ -601,7 +612,7 @@ export default function PsychDashboard() {
                           <span className="text-gantly-gold text-base">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
                         </div>
                         {r.comment && <p className="m-0 text-sm text-slate-500">{r.comment}</p>}
-                        <div className="text-xs text-slate-400 mt-2">{formatDate(r.createdAt)}</div>
+                        <div className="text-xs text-slate-500 mt-2">{formatDate(r.createdAt)}</div>
                       </div>
                     ))
                   )}
@@ -616,7 +627,7 @@ export default function PsychDashboard() {
           {tab === 'perfil' && (
             <div className="space-y-6">
               {/* Hero Profile Card */}
-              <div className="rounded-2xl p-8 text-white shadow-2xl shadow-gantly-blue/20 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1B6FA0 0%, #2E93CC 30%, #48C6D4 65%, #78D4B0 100%)' }}>
+              <div className="rounded-2xl p-8 text-white shadow-2xl shadow-gantly-blue/20 relative overflow-hidden bg-gradient-brand">
                 {/* Subtle pattern overlay */}
                 <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_30%_50%,white_1px,transparent_1px)] bg-[length:20px_20px]" />
 
@@ -634,7 +645,7 @@ export default function PsychDashboard() {
                         )}
                       </div>
                       <div className="absolute inset-0 rounded-full bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-200">
-                        <span className="material-symbols-outlined text-white text-[20px]">photo_camera</span>
+                        <Camera size={20} className="text-white" />
                       </div>
                       <input type="file" accept="image/*" className="hidden" onChange={onAvatarChange} />
                     </label>
@@ -871,7 +882,7 @@ export default function PsychDashboard() {
                       </button>
                     </div>
                   ) : (
-                    <p className="text-sm text-slate-400">No tienes ninguna cita proxima.</p>
+                    <p className="text-sm text-slate-500">No tienes ninguna cita proxima.</p>
                   );
                 })()}
               </div>
@@ -1038,7 +1049,7 @@ export default function PsychDashboard() {
                   className="mt-8 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm"
                 >
                   <h3 className="text-lg font-heading font-bold text-gantly-text mb-4 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-lg text-gantly-blue">schedule</span>
+                    <Clock size={18} className="text-gantly-blue" />
                     Citas por confirmar
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1063,7 +1074,7 @@ export default function PsychDashboard() {
                           <div className="text-sm font-medium text-slate-700 mb-1">{req.appointment.price} EUR</div>
                         )}
                         <div className="text-sm text-slate-600 mb-1">{req.user.name || req.user.email}</div>
-                        <div className="text-xs text-slate-400 mb-4">
+                        <div className="text-xs text-slate-500 mb-4">
                           Solicitada: {new Date(req.requestedAt).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                         </div>
                         <div className="flex gap-2">
@@ -1116,7 +1127,7 @@ export default function PsychDashboard() {
                   className="mt-8 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm"
                 >
                   <h3 className="text-lg font-heading font-bold text-gantly-text mb-4 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-lg text-gantly-blue">calendar_today</span>
+                    <CalendarDays size={18} className="text-gantly-blue" />
                     Citas Confirmadas y Reservadas
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1200,7 +1211,7 @@ export default function PsychDashboard() {
                 </div>
               ) : pastAppointmentsPsych.length === 0 ? (
                 <div className="bg-white rounded-2xl p-12 border border-slate-100 shadow-sm text-center">
-                  <p className="text-slate-400">No tienes citas pasadas aun</p>
+                  <p className="text-slate-500">No tienes citas pasadas aun</p>
                 </div>
               ) : (
                 <div className="flex flex-col gap-3">
@@ -1253,7 +1264,7 @@ export default function PsychDashboard() {
                             )}
                           </div>
                         ) : (
-                          <div className="text-sm text-slate-400 italic">Sin valorar</div>
+                          <div className="text-sm text-slate-500 italic">Sin valorar</div>
                         )}
                       </div>
                       <SessionNotesSection appointmentId={apt.id} existingNotes={apt.notes} />
@@ -1270,7 +1281,7 @@ export default function PsychDashboard() {
               <div className="w-72 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm max-h-[600px] overflow-y-auto flex-shrink-0">
                 <h4 className="m-0 mb-3 text-sm font-heading font-semibold text-gantly-text">Seleccionar Paciente</h4>
                 {patients.length === 0 ? (
-                  <div className="text-center py-5 text-slate-400 text-sm font-body">No hay pacientes asignados</div>
+                  <div className="text-center py-5 text-slate-500 text-sm font-body">No hay pacientes asignados</div>
                 ) : (
                   <div className="flex flex-col gap-1.5">
                     {patients.map(p => (
@@ -1287,7 +1298,7 @@ export default function PsychDashboard() {
                           {p.avatarUrl ? (
                             <img src={p.avatarUrl} alt="" className="w-full h-full object-cover" />
                           ) : (
-                            <User size={16} className="text-slate-400" />
+                            <User size={16} className="text-slate-500" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -1432,7 +1443,7 @@ export default function PsychDashboard() {
                   </div>
 
                   {patientDetails.tests && patientDetails.tests.length === 0 ? (
-                    <div className="text-center py-10 text-slate-400">
+                    <div className="text-center py-10 text-slate-500">
                       <p>Este paciente aun no ha completado ningun test.</p>
                     </div>
                   ) : patientDetails.tests && patientDetails.tests.length > 0 ? (
@@ -1442,7 +1453,7 @@ export default function PsychDashboard() {
                           <div className="flex justify-between items-start mb-4">
                             <div>
                               <h3 className="m-0 text-base font-heading font-semibold text-gantly-text">{test.testTitle}</h3>
-                              <p className="text-xs text-slate-400 mt-1 font-mono">Codigo: {test.testCode}</p>
+                              <p className="text-xs text-slate-500 mt-1 font-mono">Codigo: {test.testCode}</p>
                             </div>
                           </div>
                           <div className="mt-4">
@@ -1468,7 +1479,7 @@ export default function PsychDashboard() {
                                           <p className="m-0 text-sm text-slate-600">
                                             <strong>Respuesta:</strong> {answer.answerText}
                                             {answer.answerValue !== undefined && answer.answerValue !== null && (
-                                              <span className="text-slate-400 ml-2">(Valor: {answer.answerValue})</span>
+                                              <span className="text-slate-500 ml-2">(Valor: {answer.answerValue})</span>
                                             )}
                                           </p>
                                           {answer.textValue && (
@@ -1482,10 +1493,10 @@ export default function PsychDashboard() {
                                       ) : answer.numericValue !== undefined && answer.numericValue !== null ? (
                                         <p className="m-0 text-sm text-slate-600"><strong>Valor numerico:</strong> {answer.numericValue}</p>
                                       ) : (
-                                        <p className="m-0 text-sm text-slate-400 italic">Sin respuesta registrada</p>
+                                        <p className="m-0 text-sm text-slate-500 italic">Sin respuesta registrada</p>
                                       )}
                                       {answer.createdAt && (
-                                        <p className="text-xs text-slate-400 mt-0.5 m-0">
+                                        <p className="text-xs text-slate-500 mt-0.5 m-0">
                                           {new Date(answer.createdAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                         </p>
                                       )}
@@ -1494,7 +1505,7 @@ export default function PsychDashboard() {
                                 ))}
                               </div>
                             ) : (
-                              <p className="text-slate-400 text-sm">No hay respuestas registradas para este test.</p>
+                              <p className="text-slate-500 text-sm">No hay respuestas registradas para este test.</p>
                             )}
                           </div>
                         </div>
@@ -1503,7 +1514,7 @@ export default function PsychDashboard() {
                   ) : null}
                 </>
               ) : (
-                <EmptyState icon={<User className="w-12 h-12 text-slate-300" />} title="Paciente no encontrado" description="No se pudieron cargar los detalles del paciente." />
+                <EmptyState icon={<User className="w-12 h-12 text-slate-500" />} title="Paciente no encontrado" description="No se pudieron cargar los detalles del paciente." />
               )}
             </div>
           )}
@@ -1526,7 +1537,7 @@ export default function PsychDashboard() {
                         onClick={() => testReportRef.current?.exportPdf()}
                         className="px-4 py-2 bg-gantly-blue text-white border-none rounded-xl font-heading font-medium cursor-pointer text-sm flex items-center gap-1.5 hover:bg-gantly-blue/90 transition-all duration-300 shadow-md shadow-gantly-blue/20"
                       >
-                        <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+                        <FileDown size={16} />
                         Exportar PDF
                       </button>
                       <button
@@ -1612,7 +1623,7 @@ export default function PsychDashboard() {
                                   <p className="m-0 text-sm text-slate-600">
                                     <strong>Respuesta:</strong> {answer.answerText}
                                     {answer.answerValue !== undefined && answer.answerValue !== null && (
-                                      <span className="text-slate-400 ml-2">(Valor: {answer.answerValue})</span>
+                                      <span className="text-slate-500 ml-2">(Valor: {answer.answerValue})</span>
                                     )}
                                   </p>
                                   {answer.textValue && (
@@ -1624,10 +1635,10 @@ export default function PsychDashboard() {
                               ) : answer.numericValue !== undefined && answer.numericValue !== null ? (
                                 <p className="m-0 text-sm text-slate-600"><strong>Valor numerico:</strong> {answer.numericValue}</p>
                               ) : (
-                                <p className="m-0 text-sm text-slate-400 italic">Sin respuesta registrada</p>
+                                <p className="m-0 text-sm text-slate-500 italic">Sin respuesta registrada</p>
                               )}
                               {answer.createdAt && (
-                                <p className="text-xs text-slate-400 mt-0.5 m-0">
+                                <p className="text-xs text-slate-500 mt-0.5 m-0">
                                   {new Date(answer.createdAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                 </p>
                               )}
@@ -1636,12 +1647,12 @@ export default function PsychDashboard() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-slate-400 text-sm">No hay respuestas registradas para este test.</p>
+                      <p className="text-slate-500 text-sm">No hay respuestas registradas para este test.</p>
                     )}
                   </details>
                 </>
               ) : (
-                <EmptyState icon={<BarChart3 className="w-12 h-12 text-slate-300" />} title="Test no encontrado" description="No se pudieron cargar los detalles del test." />
+                <EmptyState icon={<BarChart3 className="w-12 h-12 text-slate-500" />} title="Test no encontrado" description="No se pudieron cargar los detalles del test." />
               )}
             </div>
           )}
@@ -1693,9 +1704,9 @@ export default function PsychDashboard() {
               <h3 className="text-lg font-heading font-bold text-gantly-text m-0">Invitar Paciente</h3>
               <button
                 onClick={() => setShowReferralModal(false)}
-                className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer bg-transparent border-none"
+                className="text-slate-500 hover:text-slate-600 transition-colors cursor-pointer bg-transparent border-none"
               >
-                <span className="material-symbols-outlined">close</span>
+                <X size={24} />
               </button>
             </div>
 
@@ -1755,7 +1766,7 @@ export default function PsychDashboard() {
               </div>
             </div>
 
-            <p className="text-xs text-slate-400 mb-4">
+            <p className="text-xs text-slate-500 mb-4">
               Los pacientes que usen este enlace o codigo se uniran automaticamente a tu consulta como pacientes asignados.
             </p>
 

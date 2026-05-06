@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { clinicService } from '../services/api';
 import type { ClinicBillingItem } from '../services/api';
+import { CreditCard, Clock, Ban, Receipt, ListFilter, Download, FileText } from 'lucide-react';
 
 interface Props {
   psychologists: Array<{ id: number; name: string }>;
@@ -53,7 +54,7 @@ function fmtEuro(amount?: number): string {
 // Payment status badge
 // ---------------------------------------------------------------------------
 function PaymentBadge({ status }: { status?: string }) {
-  if (!status) return <span className="text-slate-400 text-xs">—</span>;
+  if (!status) return <span className="text-slate-500 text-xs">—</span>;
   const lc = status.toLowerCase();
   let cls = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold ';
   let label = status;
@@ -250,7 +251,7 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
         <div className="col-span-2 xl:col-span-1 bg-gradient-to-br from-gantly-navy via-gantly-blue to-gantly-cyan rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
           <div className="p-5">
             <div className="size-9 rounded-xl bg-white/10 flex items-center justify-center mb-3">
-              <span className="material-symbols-outlined text-white text-lg">payments</span>
+              <CreditCard className="text-white" size={18} />
             </div>
             <div className="text-2xl font-heading font-bold text-white">{fmtEuro(totalPaid)}</div>
             <div className="text-[11px] font-heading font-bold uppercase tracking-widest text-white/60 mt-1">Cobrado</div>
@@ -261,7 +262,7 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
           <div className="h-1 bg-gradient-to-r from-amber-300 to-amber-400" />
           <div className="p-5">
             <div className="size-9 rounded-xl bg-amber-50 flex items-center justify-center mb-3">
-              <span className="material-symbols-outlined text-amber-500 text-lg">schedule</span>
+              <Clock className="text-amber-500" size={18} />
             </div>
             <div className="text-2xl font-heading font-bold text-slate-900">{fmtEuro(totalPending)}</div>
             <div className="text-xs font-heading font-bold uppercase tracking-widest text-slate-500 mt-1">Pendiente</div>
@@ -272,7 +273,7 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
           <div className="h-1 bg-gradient-to-r from-red-300 to-red-400" />
           <div className="p-5">
             <div className="size-9 rounded-xl bg-red-50 flex items-center justify-center mb-3">
-              <span className="material-symbols-outlined text-red-400 text-lg">block</span>
+              <Ban className="text-red-400" size={18} />
             </div>
             <div className="text-2xl font-heading font-bold text-slate-900">{fmtEuro(totalCancelled)}</div>
             <div className="text-xs font-heading font-bold uppercase tracking-widest text-slate-500 mt-1">Cancelado</div>
@@ -283,7 +284,7 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
           <div className="h-1 bg-gradient-to-r from-gantly-blue to-gantly-cyan" />
           <div className="p-5">
             <div className="size-9 rounded-xl bg-gradient-to-br from-gantly-blue/10 to-gantly-cyan/10 flex items-center justify-center mb-3">
-              <span className="material-symbols-outlined text-gantly-blue text-lg">receipt_long</span>
+              <Receipt className="text-gantly-blue" size={18} />
             </div>
             <div className="text-2xl font-heading font-bold text-slate-900">{items.length}</div>
             <div className="text-xs font-heading font-bold uppercase tracking-widest text-slate-500 mt-1">Citas</div>
@@ -296,9 +297,9 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
         {/* Filter bar */}
         <div className="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <span className="material-symbols-outlined text-slate-400 text-lg">filter_list</span>
+            <ListFilter className="text-slate-500" size={18} />
             <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className={inputCls} />
-            <span className="text-slate-300 text-sm">—</span>
+            <span className="text-slate-500 text-sm">—</span>
             <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className={inputCls} />
             <select
               value={psychologistId ?? ''}
@@ -319,7 +320,7 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
             disabled={items.length === 0}
             className="flex items-center gap-1.5 h-9 px-4 text-sm font-semibold rounded-lg transition-colors cursor-pointer border-none disabled:opacity-40 disabled:cursor-not-allowed bg-slate-100 text-slate-600 hover:bg-slate-200"
           >
-            <span className="material-symbols-outlined text-sm">download</span>
+            <Download size={14} />
             CSV
           </button>
         </div>
@@ -337,10 +338,10 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="size-14 rounded-2xl bg-slate-50 flex items-center justify-center mb-3">
-              <span className="material-symbols-outlined text-slate-300 text-3xl">receipt_long</span>
+              <Receipt className="text-slate-500" size={28} />
             </div>
             <p className="text-sm text-slate-500">No hay registros para este periodo</p>
-            <p className="text-xs text-slate-400 mt-1">Ajusta los filtros o el rango de fechas</p>
+            <p className="text-xs text-slate-500 mt-1">Ajusta los filtros o el rango de fechas</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -371,9 +372,9 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
                       <button
                         onClick={() => generateInvoicePdf(item, clinicName || 'Mi Clínica')}
                         title="Descargar factura"
-                        className="text-slate-300 hover:text-gantly-blue hover:bg-gantly-blue/5 rounded-lg p-1.5 transition-colors cursor-pointer bg-transparent border-none"
+                        className="text-slate-500 hover:text-gantly-blue hover:bg-gantly-blue/5 rounded-lg p-1.5 transition-colors cursor-pointer bg-transparent border-none"
                       >
-                        <span className="material-symbols-outlined text-base">receipt</span>
+                        <FileText size={16} />
                       </button>
                     </td>
                   </tr>

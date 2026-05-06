@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { tasksService, fileService } from '../services/api';
 import EmptyState from './ui/EmptyState';
 import { toast } from './ui/Toast';
+import { ListPlus, ArrowLeft, CheckSquare, Clock as ClockIcon, FileText, Upload, ShieldCheck, Hourglass, AlertTriangle, ChevronRight, ClipboardList, Plus } from 'lucide-react';
 
 interface PsychTasksTabProps {
   me: any;
@@ -55,7 +56,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
 
   useEffect(() => { tasks.forEach(t => { if (!taskFiles[t.id]) loadTaskFiles(t.id); }); }, [tasks.length]);
 
-  const inputCls = "w-full h-11 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-900 outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 focus:bg-white transition-all duration-200 placeholder:text-slate-400";
+  const inputCls = "w-full h-11 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-900 outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 focus:bg-white transition-all duration-200 placeholder:text-slate-500";
 
   // ── Task creation form (shared) ──
   const renderTaskForm = (patientId?: number) => {
@@ -65,7 +66,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
         <div className="h-1 bg-gradient-to-r from-gantly-blue to-gantly-cyan" />
         <div className="p-5 space-y-3">
           <h4 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
-            <span className="material-symbols-outlined text-gantly-blue text-base">add_task</span>
+            <ListPlus className="text-gantly-blue" size={16} />
             Nueva tarea
           </h4>
           {!patientId && (
@@ -126,9 +127,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
           <div className="flex items-start justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className={`size-10 rounded-xl flex items-center justify-center ${selectedTask.completedAt ? 'bg-emerald-50' : 'bg-amber-50'}`}>
-                <span className={`material-symbols-outlined text-lg ${selectedTask.completedAt ? 'text-emerald-600' : 'text-amber-600'}`}>
-                  {selectedTask.completedAt ? 'task_alt' : 'pending_actions'}
-                </span>
+                {selectedTask.completedAt ? <CheckSquare className="text-emerald-600" size={18} /> : <ClockIcon className="text-amber-600" size={18} />}
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-slate-900">{selectedTask.title}</h3>
@@ -142,33 +141,33 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
             </div>
             <button onClick={() => { setSelectedTaskId(null); setSelectedTask(null); setNewComment(''); }}
               className="flex items-center gap-1 text-sm text-slate-500 hover:text-gantly-blue px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer bg-transparent border-none">
-              <span className="material-symbols-outlined text-base">arrow_back</span>Volver
+              <ArrowLeft size={16} />Volver
             </button>
           </div>
 
           {/* Metadata row */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
             <div className="rounded-xl px-4 py-3 bg-slate-50 border border-slate-100">
-              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Creada</div>
+              <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Creada</div>
               <div className="text-sm font-medium text-slate-900">
                 {selectedTask.createdAt ? new Date(selectedTask.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
               </div>
             </div>
             {selectedTask.dueDate && (
               <div className={`rounded-xl px-4 py-3 border ${isOverdue ? 'bg-red-50 border-red-100' : 'bg-amber-50/50 border-amber-100'}`}>
-                <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Vence</div>
+                <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Vence</div>
                 <div className={`text-sm font-medium ${isOverdue ? 'text-red-700' : 'text-slate-900'}`}>
                   {new Date(selectedTask.dueDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </div>
                 {!selectedTask.completedAt && !isOverdue && (
-                  <div className="text-[10px] text-slate-400 mt-0.5">
+                  <div className="text-[10px] text-slate-500 mt-0.5">
                     {Math.ceil((new Date(selectedTask.dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} dias restantes
                   </div>
                 )}
               </div>
             )}
             <div className="rounded-xl px-4 py-3 bg-slate-50 border border-slate-100">
-              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+              <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
                 {selectedTask.createdBy === 'PSYCHOLOGIST' ? 'Asignada por' : 'Enviada por'}
               </div>
               <div className="text-sm font-medium text-slate-900">
@@ -180,7 +179,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
           {/* Description */}
           {selectedTask.description && (
             <div className="mb-6 pb-6 border-b border-slate-100">
-              <h4 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-3">Descripcion</h4>
+              <h4 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-3">Descripcion</h4>
               <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap bg-slate-50 rounded-xl p-4 border border-slate-100">
                 {selectedTask.description}
               </div>
@@ -190,11 +189,11 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
           {/* Files */}
           <div className="mb-6 pb-6 border-b border-slate-100">
             <div className="flex justify-between items-center mb-3">
-              <h4 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+              <h4 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
                 Archivos {files.length > 0 && <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">{files.length}</span>}
               </h4>
               <label className="flex items-center gap-1.5 text-xs text-gantly-blue font-semibold cursor-pointer bg-gantly-blue/5 hover:bg-gantly-blue/10 border-none px-3 py-2 rounded-lg transition-colors">
-                <span className="material-symbols-outlined text-sm">upload</span>Subir
+                <Upload size={14} />Subir
                 <input type="file" className="hidden" onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
@@ -211,11 +210,11 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                   <div key={file.id} className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 group transition-colors">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="size-9 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-                        <span className="material-symbols-outlined text-slate-500 text-base">description</span>
+                        <FileText className="text-slate-500" size={16} />
                       </div>
                       <div className="min-w-0">
                         <div className="text-sm font-medium text-slate-900 truncate">{file.originalName}</div>
-                        <div className="text-[11px] text-slate-400">{(file.fileSize / 1024).toFixed(1)} KB · {file.uploaderName}</div>
+                        <div className="text-[11px] text-slate-500">{(file.fileSize / 1024).toFixed(1)} KB · {file.uploaderName}</div>
                       </div>
                     </div>
                     <button onClick={() => fileService.downloadTaskFile(file.filePath)}
@@ -227,15 +226,15 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
               </div>
             ) : (
               <div className="text-center py-8 rounded-xl border border-dashed border-slate-200 bg-slate-50/50">
-                <span className="material-symbols-outlined text-2xl text-slate-300 mb-1 block">cloud_upload</span>
-                <p className="text-sm text-slate-400">Sin archivos adjuntos</p>
+                <Upload className="text-slate-500 mb-1 mx-auto" size={24} />
+                <p className="text-sm text-slate-500">Sin archivos adjuntos</p>
               </div>
             )}
           </div>
 
           {/* Comments */}
           <div className="mb-6 pb-6 border-b border-slate-100">
-            <h4 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <h4 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
               Comentarios {comments.length > 0 && <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">{comments.length}</span>}
             </h4>
             {comments.length > 0 ? (
@@ -244,7 +243,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                   <div key={c.id} className="px-4 py-3 bg-slate-50 rounded-xl">
                     <div className="flex justify-between items-center mb-1">
                       <span className="text-sm font-medium text-slate-900">{c.userName}</span>
-                      <span className="text-[11px] text-slate-400">
+                      <span className="text-[11px] text-slate-500">
                         {c.createdAt ? new Date(c.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
                       </span>
                     </div>
@@ -254,14 +253,14 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
               </div>
             ) : (
               <div className="text-center py-5 mb-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/50">
-                <p className="text-sm text-slate-400">Sin comentarios</p>
+                <p className="text-sm text-slate-500">Sin comentarios</p>
               </div>
             )}
             <div className="flex gap-2">
               <textarea value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Escribe un comentario..."
                 className={`${inputCls} min-h-[60px] resize-y py-3 flex-1`} />
               <button onClick={() => handleAddComment(selectedTaskId)} disabled={!newComment.trim()}
-                className="self-end px-4 py-2.5 bg-gantly-blue text-white rounded-xl text-sm font-semibold cursor-pointer border-none hover:bg-gantly-blue/90 transition-colors disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed">
+                className="self-end px-4 py-2.5 bg-gantly-blue text-white rounded-xl text-sm font-semibold cursor-pointer border-none hover:bg-gantly-blue/90 transition-colors disabled:bg-slate-200 disabled:text-slate-500 disabled:cursor-not-allowed">
                 Enviar
               </button>
             </div>
@@ -271,9 +270,9 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
           {selectedTask.completedAt ? (
             <div className="rounded-xl p-4 bg-emerald-50 border border-emerald-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-emerald-600 text-lg">verified</span>
+                <ShieldCheck className="text-emerald-600" size={18} />
                 <span className="text-sm font-medium text-emerald-700">Completada</span>
-                <span className="text-xs text-slate-400 ml-1">
+                <span className="text-xs text-slate-500 ml-1">
                   {new Date(selectedTask.completedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </span>
               </div>
@@ -287,10 +286,10 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
             </div>
           ) : (
             <div className="rounded-xl p-4 bg-amber-50 border border-amber-100 flex items-center gap-2">
-              <span className="material-symbols-outlined text-amber-600 text-lg">hourglass_top</span>
+              <Hourglass className="text-amber-600" size={18} />
               <div>
                 <span className="text-sm font-medium text-amber-700">Pendiente</span>
-                <span className="text-xs text-slate-400 ml-2">El paciente puede finalizarla desde su panel</span>
+                <span className="text-xs text-slate-500 ml-2">El paciente puede finalizarla desde su panel</span>
               </div>
             </div>
           )}
@@ -308,7 +307,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
           <div>
             <button onClick={() => setSelectedPatientForTasks(null)}
               className="flex items-center gap-1 text-sm text-slate-500 hover:text-gantly-blue mb-2 cursor-pointer bg-transparent border-none transition-colors">
-              <span className="material-symbols-outlined text-base">arrow_back</span>Volver
+              <ArrowLeft size={16} />Volver
             </button>
             <h3 className="text-lg font-semibold text-slate-900">
               Tareas de {patients.find((p: any) => p.id === selectedPatientForTasks)?.name || 'Paciente'}
@@ -316,7 +315,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
           </div>
           <button onClick={() => { setTaskForm({ ...taskForm, userId: selectedPatientForTasks.toString() }); setShowTaskForm(true); }}
             className="flex items-center gap-1.5 px-4 py-2.5 bg-gantly-blue text-white rounded-xl text-sm font-semibold hover:bg-gantly-blue/90 transition-colors cursor-pointer border-none">
-            <span className="material-symbols-outlined text-sm">add</span>Nueva tarea
+            <Plus size={14} />Nueva tarea
           </button>
         </div>
 
@@ -332,9 +331,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                   className="bg-white rounded-xl px-5 py-4 border border-slate-200/80 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group flex items-center gap-4">
                   <div className={`size-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
                     done ? 'bg-emerald-50' : overdue ? 'bg-red-50' : 'bg-amber-50'}`}>
-                    <span className={`material-symbols-outlined text-base ${done ? 'text-emerald-600' : overdue ? 'text-red-500' : 'text-amber-600'}`}>
-                      {done ? 'task_alt' : overdue ? 'warning' : 'pending_actions'}
-                    </span>
+                    {done ? <CheckSquare className="text-emerald-600" size={16} /> : overdue ? <AlertTriangle className="text-red-500" size={16} /> : <ClockIcon className="text-amber-600" size={16} />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -348,8 +345,8 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                     </div>
                     {t.description && <p className="text-sm text-slate-500 truncate mt-0.5">{t.description}</p>}
                     {t.dueDate && !done && (
-                      <div className={`text-[11px] mt-1 flex items-center gap-1 ${overdue ? 'text-red-500' : 'text-slate-400'}`}>
-                        <span className="material-symbols-outlined text-[12px]">schedule</span>
+                      <div className={`text-[11px] mt-1 flex items-center gap-1 ${overdue ? 'text-red-500' : 'text-slate-500'}`}>
+                        <ClockIcon size={12} />
                         {new Date(t.dueDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                       </div>
                     )}
@@ -362,15 +359,15 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                       Reabrir
                     </button>
                   )}
-                  <span className="material-symbols-outlined text-slate-300 group-hover:text-gantly-blue transition-colors text-lg">chevron_right</span>
+                  <ChevronRight className="text-slate-500 group-hover:text-gantly-blue transition-colors" size={18} />
                 </div>
               );
             })}
           </div>
         ) : (
           <div className="text-center py-12 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-            <span className="material-symbols-outlined text-3xl text-slate-300 mb-2 block">assignment</span>
-            <p className="text-sm text-slate-400">Sin tareas para este paciente</p>
+            <ClipboardList className="text-slate-500 mb-2 mx-auto" size={28} />
+            <p className="text-sm text-slate-500">Sin tareas para este paciente</p>
           </div>
         )}
       </div>
@@ -385,7 +382,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
         <h3 className="text-lg font-semibold text-slate-900">Tareas por paciente</h3>
         <button onClick={() => setShowTaskForm(true)}
           className="flex items-center gap-1.5 px-4 py-2.5 bg-gantly-blue text-white rounded-xl text-sm font-semibold hover:bg-gantly-blue/90 transition-colors cursor-pointer border-none">
-          <span className="material-symbols-outlined text-sm">add</span>Nueva tarea
+          <Plus size={14} />Nueva tarea
         </button>
       </div>
 
@@ -394,21 +391,21 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
           <div className="h-1 bg-gradient-to-r from-gantly-blue to-gantly-cyan" />
           <div className="p-4">
-            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Total</div>
+            <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Total</div>
             <div className="text-2xl font-bold text-slate-900">{totalTasks}</div>
           </div>
         </div>
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
           <div className="h-1 bg-gradient-to-r from-amber-300 to-amber-400" />
           <div className="p-4">
-            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Pendientes</div>
+            <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Pendientes</div>
             <div className="text-2xl font-bold text-slate-900">{pendingCount}</div>
           </div>
         </div>
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
           <div className="h-1 bg-gradient-to-r from-emerald-400 to-emerald-500" />
           <div className="p-4">
-            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Completadas</div>
+            <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Completadas</div>
             <div className="text-2xl font-bold text-slate-900">{completedCount}</div>
           </div>
         </div>
@@ -416,7 +413,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
             <div className="h-1 bg-gradient-to-r from-red-400 to-red-500" />
             <div className="p-4">
-              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Vencidas</div>
+              <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Vencidas</div>
               <div className="text-2xl font-bold text-red-600">{overdueCount}</div>
             </div>
           </div>
@@ -450,16 +447,16 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-slate-900 truncate group-hover:text-gantly-blue transition-colors">{p.name}</div>
-                      <div className="text-[11px] text-slate-400">{pt.length} {pt.length === 1 ? 'tarea' : 'tareas'}</div>
+                      <div className="text-[11px] text-slate-500">{pt.length} {pt.length === 1 ? 'tarea' : 'tareas'}</div>
                     </div>
-                    <span className="material-symbols-outlined text-slate-300 group-hover:text-gantly-blue transition-colors text-lg">chevron_right</span>
+                    <ChevronRight className="text-slate-500 group-hover:text-gantly-blue transition-colors" size={18} />
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                       <div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-gantly-cyan transition-all duration-500"
                         style={{ width: `${pt.length > 0 ? (done / pt.length) * 100 : 0}%` }} />
                     </div>
-                    <span className="text-[10px] font-semibold text-slate-400">{done}/{pt.length}</span>
+                    <span className="text-[10px] font-semibold text-slate-500">{done}/{pt.length}</span>
                   </div>
                 </div>
               </div>

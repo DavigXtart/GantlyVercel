@@ -438,7 +438,7 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
         {onBack && (
           <button
             onClick={onBack}
-            className="text-sm text-slate-400 hover:text-slate-600 cursor-pointer transition-colors duration-200"
+            className="text-sm text-slate-500 hover:text-slate-600 cursor-pointer transition-colors duration-200"
           >
             Guardar y salir
           </button>
@@ -486,7 +486,7 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
               disabled={currentQuestionIndex === 0 || submitting}
               className={`text-sm font-medium transition-colors duration-200
                 ${currentQuestionIndex === 0
-                  ? 'text-slate-300 cursor-not-allowed'
+                  ? 'text-slate-500 cursor-not-allowed'
                   : 'text-slate-500 hover:text-slate-700 cursor-pointer'}`}
             >
               &larr; Anterior

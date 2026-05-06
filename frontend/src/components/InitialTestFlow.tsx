@@ -527,7 +527,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           );
         })}
       </div>
-      <div className="flex justify-between text-xs text-slate-400 px-1">
+      <div className="flex justify-between text-xs text-slate-500 px-1">
         <span>Muy en desacuerdo</span>
         <span>Muy de acuerdo</span>
       </div>
@@ -581,7 +581,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           </div>
           <button
             onClick={onBack}
-            className="text-slate-400 hover:text-slate-600 text-sm cursor-pointer transition-colors duration-200"
+            className="text-slate-500 hover:text-slate-600 text-sm cursor-pointer transition-colors duration-200"
           >
             Guardar y salir
           </button>
@@ -594,7 +594,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           <span className="text-xs font-medium text-slate-500">
             Pregunta {currentQuestionIndex + 1} de {totalQuestions}
           </span>
-          <span className="text-xs text-slate-400">{Math.round(progress)}%</span>
+          <span className="text-xs text-slate-500">{Math.round(progress)}%</span>
         </div>
         <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
           <div
@@ -635,7 +635,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
             disabled={currentQuestionIndex === 0 || submitting}
             className={`font-medium transition-colors duration-200 ${
               currentQuestionIndex === 0
-                ? 'text-slate-300 cursor-not-allowed'
+                ? 'text-slate-500 cursor-not-allowed'
                 : 'text-slate-500 hover:text-slate-700 cursor-pointer'
             }`}
           >
