@@ -13,6 +13,7 @@
   - `2026-05-04-audit-y-fixes.md` — Audit completo del codebase + 25 fixes implementados
   - `2026-05-05-landing-page.md` — Rediseño completo de la landing page (12 secciones, i18n, animaciones)
   - `2026-05-06-erp-redesign-y-fixes.md` — ERP ConfigTab + rediseño premium + fix notificaciones + fix calendario 500
+  - `2026-05-06-ui-unification.md` — Unificacion UI/UX completa (emojis→Lucide, colores→brand tokens, textos, legacy CSS)
 
 ## Project Overview
 Plataforma de salud mental que conecta pacientes con psicólogos.
@@ -332,6 +333,21 @@ Located in `psicoapp/src/main/resources/db/`:
 - Portal paciente con vista clínica
 - Citas recurrentes
 - Catálogo de servicios con precios
+
+## MCP Servers
+- **Playwright**: Browser automation para testing E2E. Configurado con `claude mcp add playwright -- npx @playwright/mcp@latest`
+  - Permite navegar, hacer click, rellenar formularios, hacer screenshots
+  - Requiere reiniciar sesion de Claude Code para activarse
+  - Requiere backend (localhost:8080) y frontend (localhost:5173) corriendo
+  - Flujos a testear: registro (paciente/psicologo/clinica), login, test inicial, matching, citas, chat, tareas, ERP
+
+## UI Design System (unificado Mayo 2026)
+- **Colores**: gantly-blue (#2E93CC), gantly-cyan (#22D3EE), gantly-navy (#0A1628), gantly-gold (#F0C930), gantly-emerald (#059669)
+- **Iconos**: Lucide React (NO emojis como iconos UI). Emojis solo para mood picker y ratings
+- **Cards**: `bg-white rounded-2xl border border-slate-100 shadow-sm`
+- **Contraste minimo**: text-slate-500 para texto secundario legible (NO text-slate-400)
+- **Fuentes**: Outfit (heading), Work Sans (body), Caveat (handwritten)
+- **Legacy CSS eliminado**: .btn, .form-group, .admin-container → Tailwind utilities
 
 ## Build & Run
 - **Maven**: Installed globally at `/c/Program Files (x86)/Apache/Maven/bin/mvn` (no `./mvnw` wrapper)
