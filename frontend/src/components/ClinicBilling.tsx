@@ -220,7 +220,7 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
       const data = await clinicService.getBilling(from || undefined, to || undefined, psychologistId);
       setItems(data);
     } catch {
-      setError('No se pudo cargar la facturacion.');
+      setError('No se pudo cargar la facturación.');
     } finally {
       setLoading(false);
     }
@@ -305,7 +305,7 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
               onChange={(e) => setPsychologistId(e.target.value ? Number(e.target.value) : undefined)}
               className={`${inputCls} cursor-pointer min-w-[160px]`}
             >
-              <option value="">Todos los psicologos</option>
+              <option value="">Todos los psicólogos</option>
               {psychologists.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
@@ -349,7 +349,7 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
                 <tr className="bg-slate-50/60">
                   <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Fecha</th>
                   <th className="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Hora</th>
-                  <th className="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Psicologo</th>
+                  <th className="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Psicólogo</th>
                   <th className="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Paciente</th>
                   <th className="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Servicio</th>
                   <th className="text-right px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Importe</th>
@@ -369,7 +369,7 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
                     <td className="px-3 py-3 text-center"><PaymentBadge status={item.paymentStatus} /></td>
                     <td className="px-3 py-3">
                       <button
-                        onClick={() => generateInvoicePdf(item, clinicName || 'Mi Clinica')}
+                        onClick={() => generateInvoicePdf(item, clinicName || 'Mi Clínica')}
                         title="Descargar factura"
                         className="text-slate-300 hover:text-gantly-blue hover:bg-gantly-blue/5 rounded-lg p-1.5 transition-colors cursor-pointer bg-transparent border-none"
                       >

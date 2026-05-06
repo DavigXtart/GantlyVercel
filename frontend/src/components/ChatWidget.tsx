@@ -415,9 +415,11 @@ export default function ChatWidget({ mode, otherId }: Props) {
           }}>
             <div style={{ marginBottom: '8px', display: 'flex', justifyContent: 'center' }}><MessageCircle size={32} color="#9ca3af" /></div>
             <div>No hay mensajes aún. ¡Comienza la conversación!</div>
-            <div style={{ fontSize: '12px', marginTop: '8px', color: '#9ca3af' }}>
-              Modo: {mode} | Conectado: {connected ? 'Sí' : 'No'} | PsychId: {psychId || 'N/A'} | UserId: {userId || 'N/A'}
-            </div>
+            {import.meta.env.DEV && (
+              <div style={{ fontSize: '12px', marginTop: '8px', color: '#9ca3af' }}>
+                Modo: {mode} | Conectado: {connected ? 'Sí' : 'No'} | PsychId: {psychId || 'N/A'} | UserId: {userId || 'N/A'}
+              </div>
+            )}
           </div>
         ) : (
           <>

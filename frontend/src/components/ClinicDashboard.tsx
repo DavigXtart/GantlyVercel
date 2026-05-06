@@ -108,12 +108,12 @@ function HomeTab({
           </div>
           <div>
             <h1 className="text-4xl md:text-5xl font-heading font-bold mb-2 text-white">
-              {clinicInfo?.name ?? 'Tu clinica'}
+              {clinicInfo?.name ?? 'Tu clínica'}
             </h1>
             <p className="text-white/70 font-light mb-4">{clinicInfo?.email}</p>
             {clinicInfo?.referralCode && (
               <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-xs text-white/60 uppercase tracking-widest">Codigo de empresa</span>
+                <span className="text-xs text-white/60 uppercase tracking-widest">Código de empresa</span>
                 <span className="font-mono text-sm font-bold text-white bg-white/15 backdrop-blur-sm px-3 py-1 rounded-xl">
                   {clinicInfo.referralCode}
                 </span>
@@ -136,9 +136,9 @@ function HomeTab({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <KpiCard
           icon="groups"
-          label="Psicologos"
+          label="Psicólogos"
           value={String(psychologists.length)}
-          subtitle="en la clinica"
+          subtitle="en la clínica"
           onClick={() => onNavigate('equipo')}
           span2
         />
@@ -158,16 +158,16 @@ function HomeTab({
         />
         <KpiCard
           icon="receipt_long"
-          label="Facturacion"
+          label="Facturación"
           value="Ver informe"
           subtitle="mensual"
           onClick={() => onNavigate('facturacion')}
         />
         <KpiCard
           icon="bar_chart"
-          label="Estadisticas"
+          label="Estadísticas"
           value="Ver datos"
-          subtitle="de la clinica"
+          subtitle="de la clínica"
           onClick={() => onNavigate('estadisticas')}
         />
       </div>
@@ -243,12 +243,12 @@ function EquipoTab({ psychologists, onRefresh }: { psychologists: Psychologist[]
         {/* Current psychologists */}
         <div>
           <h2 className="text-xs font-heading font-bold text-slate-500 uppercase tracking-widest mb-4">
-            Psicologos del equipo
+            Psicólogos del equipo
           </h2>
           <div className="space-y-3">
             {psychologists.length === 0 && (
               <div className="bg-white rounded-xl border border-slate-200 shadow-soft p-6 text-center text-slate-500 text-sm">
-                Aun no hay psicologos en tu clinica
+                Aún no hay psicólogos en tu clínica
               </div>
             )}
             {psychologists.map(p => (
@@ -281,7 +281,7 @@ function EquipoTab({ psychologists, onRefresh }: { psychologists: Psychologist[]
                 {selectedPsychId === p.id && (
                   <div className="bg-white rounded-b-xl border border-t-0 border-slate-200 shadow-soft px-4 pb-4">
                     <p className="text-xs font-heading font-bold text-slate-500 uppercase tracking-widest py-3">
-                      Agenda proximos 30 dias
+                      Agenda próximos 30 días
                     </p>
                     {loadingSchedule ? (
                       <div className="py-4 text-center"><div className="w-5 h-5 border-2 border-slate-200 border-t-gantly-blue rounded-full animate-spin mx-auto" /></div>
@@ -328,7 +328,7 @@ function EquipoTab({ psychologists, onRefresh }: { psychologists: Psychologist[]
         {/* Invite section */}
         <div>
           <h2 className="text-xs font-heading font-bold text-slate-500 uppercase tracking-widest mb-4">
-            Invitar psicologo
+            Invitar psicólogo
           </h2>
           <div className="bg-white rounded-xl border border-slate-200 shadow-soft p-6 mb-4">
             <form onSubmit={handleSend} className="flex gap-3">
@@ -582,8 +582,8 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                   <span className="material-symbols-outlined text-gantly-blue text-lg">business</span>
                 </div>
                 <div>
-                  <h3 className="text-sm font-heading font-bold text-slate-900">Datos de la clinica</h3>
-                  <p className="text-xs text-slate-500">Informacion general y contacto</p>
+                  <h3 className="text-sm font-heading font-bold text-slate-900">Datos de la clínica</h3>
+                  <p className="text-xs text-slate-500">Información general y contacto</p>
                 </div>
               </div>
               {infoSaved && (
@@ -597,12 +597,12 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                 <input type="text" value={infoForm.name} onChange={e => setInfoForm(p => ({ ...p, name: e.target.value }))} className={inputCls} />
               </div>
               <div>
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5 block">Telefono</label>
+                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5 block">Teléfono</label>
                 <input type="tel" value={infoForm.phone} onChange={e => setInfoForm(p => ({ ...p, phone: e.target.value }))} className={inputCls} placeholder="+34 600 000 000" />
               </div>
               <div className="col-span-2">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5 block">Direccion</label>
-                <input type="text" value={infoForm.address} onChange={e => setInfoForm(p => ({ ...p, address: e.target.value }))} className={inputCls} placeholder="Calle, numero, ciudad" />
+                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5 block">Dirección</label>
+                <input type="text" value={infoForm.address} onChange={e => setInfoForm(p => ({ ...p, address: e.target.value }))} className={inputCls} placeholder="Calle, número, ciudad" />
               </div>
               <div>
                 <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5 block">Website</label>
@@ -623,12 +623,12 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                   <button
                     onClick={() => { navigator.clipboard.writeText(clinicInfo?.referralCode ?? ''); setCopiedCode(true); setTimeout(() => setCopiedCode(false), 1500); }}
                     className="text-gantly-blue hover:text-gantly-blue/70 cursor-pointer bg-transparent border-none p-0.5"
-                    title="Copiar codigo"
+                    title="Copiar código"
                   >
                     <span className="material-symbols-outlined text-sm">{copiedCode ? 'check' : 'content_copy'}</span>
                   </button>
                 </div>
-                <span className="text-[11px] text-slate-500 hidden sm:inline">Codigo para invitar psicologos</span>
+                <span className="text-[11px] text-slate-500 hidden sm:inline">Código para invitar psicólogos</span>
               </div>
               <button onClick={handleSaveInfo} disabled={savingInfo} className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-gantly-blue to-gantly-cyan text-white text-sm font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-50 cursor-pointer border-none">
                 {savingInfo ? 'Guardando...' : 'Guardar cambios'}
@@ -648,7 +648,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                 </div>
                 <div>
                   <h3 className="text-sm font-heading font-bold text-slate-900">Horario semanal</h3>
-                  <p className="text-xs text-slate-500">Horario de apertura de la clinica</p>
+                  <p className="text-xs text-slate-500">Horario de apertura de la clínica</p>
                 </div>
               </div>
               {scheduleSaved && (
@@ -807,7 +807,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
               </div>
               <div>
                 <h3 className="text-sm font-heading font-bold text-slate-900">Despachos</h3>
-                <p className="text-xs text-slate-500">Un despacho por psicologo para citas presenciales</p>
+                <p className="text-xs text-slate-500">Un despacho por psicólogo para citas presenciales</p>
               </div>
             </div>
 
@@ -821,8 +821,8 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                   <div className="size-12 rounded-2xl bg-slate-50 flex items-center justify-center mb-3">
                     <span className="material-symbols-outlined text-slate-300 text-2xl">group_off</span>
                   </div>
-                  <p className="text-sm text-slate-500">No hay psicologos en la clinica</p>
-                  <p className="text-xs text-slate-400 mt-1">Invita psicologos desde la pestana Equipo</p>
+                  <p className="text-sm text-slate-500">No hay psicólogos en la clínica</p>
+                  <p className="text-xs text-slate-400 mt-1">Invita psicólogos desde la pestaña Equipo</p>
                 </div>
               ) : (
                 <ul className="space-y-2">
@@ -962,12 +962,12 @@ export default function ClinicDashboard() {
 
   const navItems: { id: NavTab; icon: string; label: string }[] = [
     { id: 'inicio',         icon: 'home',           label: 'Inicio' },
-    { id: 'estadisticas',   icon: 'bar_chart',      label: 'Estadisticas' },
+    { id: 'estadisticas',   icon: 'bar_chart',      label: 'Estadísticas' },
     { id: 'agenda',         icon: 'calendar_month',  label: 'Agenda' },
     { id: 'equipo',         icon: 'group',           label: 'Equipo' },
     { id: 'pacientes',      icon: 'people',          label: 'Pacientes' },
-    { id: 'facturacion',    icon: 'receipt_long',    label: 'Facturacion' },
-    { id: 'configuracion',  icon: 'settings',        label: 'Configuracion' },
+    { id: 'facturacion',    icon: 'receipt_long',    label: 'Facturación' },
+    { id: 'configuracion',  icon: 'settings',        label: 'Configuración' },
   ];
 
   const currentTabLabel = navItems.find(t => t.id === activeTab)?.label || 'Dashboard';
@@ -1009,7 +1009,7 @@ export default function ClinicDashboard() {
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-white truncate">{clinicInfo?.name || 'Clinica'}</div>
+              <div className="text-sm font-medium text-white truncate">{clinicInfo?.name || 'Clínica'}</div>
               <div className="text-xs text-slate-400 truncate">{clinicInfo?.email}</div>
             </div>
           </div>
@@ -1022,7 +1022,7 @@ export default function ClinicDashboard() {
             className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer transition-all duration-200 border-none bg-transparent"
           >
             <span className="material-symbols-outlined text-[18px]">logout</span>
-            Cerrar sesion
+            Cerrar sesión
           </button>
         </div>
       </aside>

@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, Fragment } from 'react';
 import { toast } from './ui/Toast';
 
 type Slot = { id: number; startTime: string; endTime: string; status: 'FREE'|'REQUESTED'|'CONFIRMED'|'BOOKED'|'CANCELLED'; user?: { name: string }; price?: number; paymentStatus?: string };
@@ -559,9 +559,8 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
 
         {/* Time slots */}
         {hours.map((h) => (
-          <>
+          <Fragment key={`row-${h}`}>
             <div
-              key={`h-${h}`}
               className="px-2 py-2 border-r border-slate-100/80 border-b border-slate-100/80 bg-slate-50/40 text-[11px] text-gantly-muted/80 font-body font-semibold flex items-center justify-center tabular-nums"
             >
               {String(h).padStart(2, '0')}:00
@@ -773,7 +772,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                 </div>
               );
             })}
-          </>
+          </Fragment>
         ))}
       </div>
 

@@ -67,6 +67,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
   const [loadingPastAppointments, setLoadingPastAppointments] = useState(false);
   const [showMatchingTest, setShowMatchingTest] = useState(false);
   const [showMatchingResults, setShowMatchingResults] = useState(false);
+  const [matchingTestCompleted, setMatchingTestCompleted] = useState(false);
   const [psychologistProfile, setPsychologistProfile] = useState<any>(null);
   const [loadingPsychologistProfile, setLoadingPsychologistProfile] =
     useState(false);
@@ -1113,10 +1114,12 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     <span className="material-symbols-outlined text-white text-3xl">psychology</span>
                   </div>
                   <h3 className="text-xl font-heading font-bold text-gantly-text mb-2">
-                    Encuentra tu psicólogo ideal
+                    {matchingTestCompleted ? 'No se encontraron psicólogos compatibles' : 'Encuentra tu psicólogo ideal'}
                   </h3>
                   <p className="text-sm font-body text-gantly-muted mb-8 max-w-md mx-auto">
-                    Completa el test de matching para encontrar psicólogos que se adapten a tus necesidades, o usa un código de referencia si ya tienes un psicólogo.
+                    {matchingTestCompleted
+                      ? 'En este momento no hay psicólogos disponibles que coincidan con tu perfil. Puedes intentarlo más adelante, repetir el test o usar un código de referencia.'
+                      : 'Completa el test de matching para encontrar psicólogos que se adapten a tus necesidades, o usa un código de referencia si ya tienes un psicólogo.'}
                   </p>
 
                   {/* Referral code form */}
@@ -1154,16 +1157,28 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
 
                   <div className="text-center">
                     <p className="text-sm font-body text-gantly-muted mb-4 max-w-md mx-auto">
-                      O completa nuestro test de matching para encontrar el
-                      profesional que mejor se adapte a tus necesidades.
+                      {matchingTestCompleted
+                        ? 'Puedes repetir el test de matching o ver los resultados actuales.'
+                        : 'O completa nuestro test de matching para encontrar el profesional que mejor se adapte a tus necesidades.'}
                     </p>
-                    <button
-                      type="button"
-                      className="bg-gantly-blue text-white px-6 py-3 rounded-xl font-heading font-semibold cursor-pointer hover:bg-gantly-blue/90 shadow-lg shadow-gantly-blue/20 hover:shadow-xl hover:shadow-gantly-blue/25 transition-all duration-200"
-                      onClick={() => setShowMatchingTest(true)}
-                    >
-                      Comenzar test de matching
-                    </button>
+                    <div className="flex gap-3 justify-center">
+                      <button
+                        type="button"
+                        className="bg-gantly-blue text-white px-6 py-3 rounded-xl font-heading font-semibold cursor-pointer hover:bg-gantly-blue/90 shadow-lg shadow-gantly-blue/20 hover:shadow-xl hover:shadow-gantly-blue/25 transition-all duration-200"
+                        onClick={() => setShowMatchingTest(true)}
+                      >
+                        {matchingTestCompleted ? 'Repetir test de matching' : 'Comenzar test de matching'}
+                      </button>
+                      {matchingTestCompleted && (
+                        <button
+                          type="button"
+                          className="bg-slate-100 text-slate-700 px-6 py-3 rounded-xl font-heading font-semibold cursor-pointer hover:bg-slate-200 transition-all duration-200"
+                          onClick={() => setShowMatchingResults(true)}
+                        >
+                          Ver resultados
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
@@ -1177,6 +1192,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                 onComplete={() => {
                   setShowMatchingTest(false);
                   setShowMatchingResults(true);
+                  setMatchingTestCompleted(true);
                 }}
                 onBack={() => setShowMatchingTest(false)}
               />

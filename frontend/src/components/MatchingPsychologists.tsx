@@ -153,7 +153,7 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
             No se encontraron psicologos compatibles
           </h2>
           <p className="text-base text-gantly-muted mb-8 font-body">
-            Por favor, completa el test de matching para encontrar psicologos que se adapten a tus necesidades.
+            En este momento no hay psicologos disponibles que coincidan con tu perfil. Puedes intentarlo mas adelante o usar un codigo de referencia si ya tienes un psicologo.
           </p>
           {onBack && (
             <button

@@ -12,6 +12,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -167,8 +169,8 @@ public class ClinicController {
                                          @RequestParam(required = false) Long psychologistId) {
         String email = getCompanyEmail(principal);
         if (email == null) return unauthorized();
-        Instant fromI = from != null ? Instant.parse(from) : Instant.now().minusSeconds(30L * 24 * 3600);
-        Instant toI = to != null ? Instant.parse(to) : Instant.now().plusSeconds(365L * 24 * 3600);
+        Instant fromI = from != null ? LocalDate.parse(from).atStartOfDay(ZoneOffset.UTC).toInstant() : Instant.now().minusSeconds(30L * 24 * 3600);
+        Instant toI = to != null ? LocalDate.parse(to).plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant() : Instant.now().plusSeconds(365L * 24 * 3600);
         return ResponseEntity.ok(clinicService.getBilling(email, fromI, toI, psychologistId));
     }
 
