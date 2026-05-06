@@ -183,7 +183,7 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-10 h-10 border-4 border-gantly-blue border-t-transparent rounded-full animate-spin" />
           <p className="text-lg text-slate-600 font-medium">Cargando test...</p>
         </div>
       </div>
@@ -198,7 +198,7 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
           <p className="text-slate-500 mb-6">Este test no tiene preguntas aun.</p>
           <button
             onClick={onBack}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-medium transition-colors duration-200 cursor-pointer"
+            className="bg-gantly-blue hover:bg-gantly-blue-600 text-white px-6 py-3 rounded-xl font-medium transition-colors duration-200 cursor-pointer"
           >
             Volver
           </button>
@@ -242,7 +242,7 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
         </div>
         <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
           <div
-            className="h-full bg-blue-500 rounded-full transition-all duration-500 ease-out"
+            className="h-full bg-gantly-blue rounded-full transition-all duration-500 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -268,14 +268,14 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                     onClick={() => handleAnswer(currentQuestion.id, answer.id)}
                     className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all duration-200 text-left ${
                       isSelected
-                        ? 'border-blue-500 bg-blue-50 shadow-sm'
-                        : 'border-slate-200 hover:border-blue-400 hover:bg-blue-50/50'
+                        ? 'border-gantly-blue bg-gantly-blue-50 shadow-sm'
+                        : 'border-slate-200 hover:border-gantly-blue-400 hover:bg-gantly-blue-50/50'
                     }`}
                   >
                     <div
                       className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all duration-200 ${
                         isSelected
-                          ? 'bg-blue-500 border-blue-500'
+                          ? 'bg-gantly-blue border-gantly-blue'
                           : 'border-slate-300'
                       }`}
                     >
@@ -299,14 +299,14 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                     onClick={() => handleAnswer(currentQuestion.id, isSelected ? undefined : answer.id)}
                     className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all duration-200 text-left ${
                       isSelected
-                        ? 'border-blue-500 bg-blue-50 shadow-sm'
-                        : 'border-slate-200 hover:border-blue-400 hover:bg-blue-50/50'
+                        ? 'border-gantly-blue bg-gantly-blue-50 shadow-sm'
+                        : 'border-slate-200 hover:border-gantly-blue-400 hover:bg-gantly-blue-50/50'
                     }`}
                   >
                     <div
                       className={`w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-all duration-200 ${
                         isSelected
-                          ? 'bg-blue-500 border-blue-500'
+                          ? 'bg-gantly-blue border-gantly-blue'
                           : 'border-slate-300'
                       }`}
                     >
@@ -335,8 +335,8 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                       onClick={() => handleAnswer(currentQuestion.id, undefined, value, false)}
                       className={`py-3 rounded-xl font-semibold text-sm cursor-pointer transition-all duration-200 ${
                         isSelected
-                          ? 'bg-blue-500 text-white shadow-md'
-                          : 'bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600 border border-slate-200 hover:border-blue-400'
+                          ? 'bg-gantly-blue text-white shadow-md'
+                          : 'bg-slate-100 text-slate-600 hover:bg-gantly-blue-50 hover:text-gantly-blue border border-slate-200 hover:border-gantly-blue-400'
                       }`}
                     >
                       {value}
@@ -350,7 +350,7 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
               </div>
               {currentAnswer?.numericValue !== undefined && (
                 <div className="text-center text-sm text-slate-500">
-                  Puntaje seleccionado: <strong className="text-blue-600">{currentAnswer.numericValue}</strong>
+                  Puntaje seleccionado: <strong className="text-gantly-blue">{currentAnswer.numericValue}</strong>
                 </div>
               )}
             </div>
@@ -393,7 +393,7 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                 className={`px-6 py-3 rounded-xl font-medium transition-colors duration-200 ${
                   submitting
                     ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                    : 'bg-blue-500 hover:bg-blue-600 text-white cursor-pointer'
+                    : 'bg-gantly-blue hover:bg-gantly-blue-600 text-white cursor-pointer'
                 }`}
               >
                 {submitting ? 'Enviando...' : 'Enviar evaluacion'}
@@ -405,7 +405,7 @@ export default function TestFlow({ testId, onBack, onComplete }: TestFlowProps) 
                 className={`px-6 py-3 rounded-xl font-medium transition-colors duration-200 ${
                   isLastQuestion
                     ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                    : 'bg-blue-500 hover:bg-blue-600 text-white cursor-pointer'
+                    : 'bg-gantly-blue hover:bg-gantly-blue-600 text-white cursor-pointer'
                 }`}
               >
                 Siguiente →

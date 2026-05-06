@@ -310,7 +310,7 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-2 border-gantly-blue border-t-transparent rounded-full animate-spin"></div>
           <p className="text-slate-600 font-medium">Cargando test de matching...</p>
         </div>
       </div>
@@ -326,7 +326,7 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
           {onBack && (
             <button
               onClick={onBack}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-medium cursor-pointer transition-colors duration-200"
+              className="bg-gantly-blue hover:bg-gantly-blue-600 text-white px-6 py-3 rounded-xl font-medium cursor-pointer transition-colors duration-200"
             >
               Volver
             </button>
@@ -362,11 +362,11 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
             onClick={() => handleAnswer(currentQuestion.id, answer.id, undefined, undefined, true)}
             className={`flex items-center gap-4 p-4 rounded-xl border-2 text-left cursor-pointer transition-all duration-200
               ${isSelected
-                ? 'border-blue-500 bg-blue-50 shadow-sm'
-                : 'border-slate-200 hover:border-blue-400 hover:bg-blue-50/50'}`}
+                ? 'border-gantly-blue bg-gantly-blue-50 shadow-sm'
+                : 'border-slate-200 hover:border-gantly-blue-400 hover:bg-gantly-blue-50/50'}`}
           >
             <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200
-              ${isSelected ? 'border-blue-500 bg-blue-500' : 'border-slate-300'}`}>
+              ${isSelected ? 'border-gantly-blue bg-gantly-blue' : 'border-slate-300'}`}>
               {isSelected && <div className="w-2 h-2 rounded-full bg-white"></div>}
             </div>
             <span className="text-base font-medium text-slate-700">{answer.text}</span>
@@ -388,11 +388,11 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
               onClick={() => handleAnswer(currentQuestion.id, answer.id)}
               className={`flex items-center gap-4 p-4 rounded-xl border-2 text-left cursor-pointer transition-all duration-200
                 ${isSelected
-                  ? 'border-blue-500 bg-blue-50 shadow-sm'
-                  : 'border-slate-200 hover:border-blue-400 hover:bg-blue-50/50'}`}
+                  ? 'border-gantly-blue bg-gantly-blue-50 shadow-sm'
+                  : 'border-slate-200 hover:border-gantly-blue-400 hover:bg-gantly-blue-50/50'}`}
             >
               <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200
-                ${isSelected ? 'border-blue-500 bg-blue-500' : 'border-slate-300'}`}>
+                ${isSelected ? 'border-gantly-blue bg-gantly-blue' : 'border-slate-300'}`}>
                 {isSelected && (
                   <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -414,7 +414,7 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
         onChange={(e) => handleAnswer(currentQuestion.id, undefined, undefined, e.target.value, false)}
         rows={4}
         placeholder="Escribe tu respuesta aquí..."
-        className="w-full p-4 rounded-xl border border-slate-200 text-base resize-y focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200"
+        className="w-full p-4 rounded-xl border border-slate-200 text-base resize-y focus:ring-2 focus:ring-gantly-blue focus:border-gantly-blue outline-none transition-all duration-200"
       />
     </div>
   );
@@ -450,13 +450,13 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-medium text-slate-500">Progreso</span>
-            <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+            <span className="text-xs font-medium text-gantly-blue bg-gantly-blue-50 px-2 py-0.5 rounded-full">
               Pregunta {currentQuestionIndex + 1} de {visibleQuestions.length}
             </span>
           </div>
           <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
             <div
-              className="h-full bg-blue-500 rounded-full transition-all duration-500 ease-out"
+              className="h-full bg-gantly-blue rounded-full transition-all duration-500 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -499,7 +499,7 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
                 className={`px-6 py-3 rounded-xl font-medium text-white transition-all duration-200
                   ${!isCurrentAnswered || submitting
                     ? 'bg-slate-300 cursor-not-allowed'
-                    : 'bg-blue-500 hover:bg-blue-600 shadow-md hover:shadow-lg cursor-pointer'}`}
+                    : 'bg-gantly-blue hover:bg-gantly-blue-600 shadow-md hover:shadow-lg cursor-pointer'}`}
               >
                 {submitting ? 'Enviando...' : 'Completar Test'}
               </button>
@@ -510,7 +510,7 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
                 className={`px-6 py-3 rounded-xl font-medium text-white transition-all duration-200
                   ${!isCurrentAnswered
                     ? 'bg-slate-300 cursor-not-allowed'
-                    : 'bg-blue-500 hover:bg-blue-600 shadow-md hover:shadow-lg cursor-pointer'}`}
+                    : 'bg-gantly-blue hover:bg-gantly-blue-600 shadow-md hover:shadow-lg cursor-pointer'}`}
               >
                 Siguiente &rarr;
               </button>

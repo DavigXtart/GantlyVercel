@@ -385,7 +385,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-10 h-10 border-4 border-gantly-blue border-t-transparent rounded-full animate-spin" />
           <p className="text-lg text-slate-600 font-medium">Cargando evaluacion inicial...</p>
         </div>
       </div>
@@ -400,7 +400,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           <p className="text-slate-500 mb-6">El test inicial aun no esta configurado.</p>
           <button
             onClick={onBack}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-medium transition-colors duration-200 cursor-pointer"
+            className="bg-gantly-blue hover:bg-gantly-blue-600 text-white px-6 py-3 rounded-xl font-medium transition-colors duration-200 cursor-pointer"
           >
             Volver
           </button>
@@ -429,14 +429,14 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
               onClick={() => handleAnswer(currentQuestion.id, answer.id, answer.value || undefined)}
               className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all duration-200 text-left ${
                 isSelected
-                  ? 'border-blue-500 bg-blue-50 shadow-sm'
-                  : 'border-slate-200 hover:border-blue-400 hover:bg-blue-50/50'
+                  ? 'border-gantly-blue bg-gantly-blue-50 shadow-sm'
+                  : 'border-slate-200 hover:border-gantly-blue-400 hover:bg-gantly-blue-50/50'
               }`}
             >
               <div
                 className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all duration-200 ${
                   isSelected
-                    ? 'bg-blue-500 border-blue-500'
+                    ? 'bg-gantly-blue border-gantly-blue'
                     : 'border-slate-300'
                 }`}
               >
@@ -450,7 +450,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
                 value={currentAnswer?.textValue || ''}
                 onChange={(e) => handleTextChange(currentQuestion.id, e.target.value)}
                 placeholder="Especifica aqui..."
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue-400 transition-all"
               />
             )}
           </div>
@@ -472,14 +472,14 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
                 onClick={() => handleAnswer(currentQuestion.id, answer.id, undefined, false)}
                 className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all duration-200 text-left ${
                   isSelected
-                    ? 'border-blue-500 bg-blue-50 shadow-sm'
-                    : 'border-slate-200 hover:border-blue-400 hover:bg-blue-50/50'
+                    ? 'border-gantly-blue bg-gantly-blue-50 shadow-sm'
+                    : 'border-slate-200 hover:border-gantly-blue-400 hover:bg-gantly-blue-50/50'
                 }`}
               >
                 <div
                   className={`w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-all duration-200 ${
                     isSelected
-                      ? 'bg-blue-500 border-blue-500'
+                      ? 'bg-gantly-blue border-gantly-blue'
                       : 'border-slate-300'
                   }`}
                 >
@@ -497,7 +497,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
                   value={currentAnswer?.multiTextValues?.[answer.id] || ''}
                   onChange={(e) => handleMultiAnswerDetailChange(currentQuestion.id, answer.id, e.target.value)}
                   placeholder="Especifica aqui..."
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue-400 transition-all"
                 />
               )}
             </div>
@@ -518,8 +518,8 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
               onClick={() => handleAnswer(currentQuestion.id, undefined, value, false)}
               className={`py-3 rounded-xl font-semibold text-sm cursor-pointer transition-all duration-200 ${
                 isSelected
-                  ? 'bg-blue-500 text-white shadow-md'
-                  : 'bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600 border border-slate-200 hover:border-blue-400'
+                  ? 'bg-gantly-blue text-white shadow-md'
+                  : 'bg-slate-100 text-slate-600 hover:bg-gantly-blue-50 hover:text-gantly-blue border border-slate-200 hover:border-gantly-blue-400'
               }`}
             >
               {value}
@@ -543,7 +543,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
         value={currentAnswer?.numericValue ?? ''}
         onChange={(e) => handleNumberChange(currentQuestion.id, e.target.value)}
         placeholder="Ej. 28"
-        className="w-full px-4 py-4 border border-slate-200 rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+        className="w-full px-4 py-4 border border-slate-200 rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue-400 transition-all"
       />
     </div>
   );
@@ -555,7 +555,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
         onChange={(e) => handleTextChange(currentQuestion.id, e.target.value)}
         rows={4}
         placeholder="Comparte cualquier detalle que quieras que tengamos en cuenta..."
-        className="w-full px-4 py-4 border border-slate-200 rounded-xl text-base resize-y focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+        className="w-full px-4 py-4 border border-slate-200 rounded-xl text-base resize-y focus:outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue-400 transition-all"
       />
     </div>
   );
@@ -598,7 +598,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
         </div>
         <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
           <div
-            className="h-full bg-blue-500 rounded-full transition-all duration-500 ease-out"
+            className="h-full bg-gantly-blue rounded-full transition-all duration-500 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -610,7 +610,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           {/* Block Meta */}
           {questionMeta && (
             <div className="mb-6">
-              <span className="text-xs font-bold text-blue-600 uppercase tracking-wide">
+              <span className="text-xs font-bold text-gantly-blue uppercase tracking-wide">
                 {questionMeta.block}
               </span>
               {questionMeta.helper && (
@@ -649,7 +649,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
               className={`px-6 py-3 rounded-xl font-medium transition-colors duration-200 ${
                 !allAnswered || submitting
                   ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                  : 'bg-blue-500 hover:bg-blue-600 text-white cursor-pointer'
+                  : 'bg-gantly-blue hover:bg-gantly-blue-600 text-white cursor-pointer'
               }`}
             >
               {submitting ? 'Enviando...' : 'Enviar evaluacion'}
@@ -661,7 +661,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
               className={`px-6 py-3 rounded-xl font-medium transition-colors duration-200 ${
                 !isCurrentAnswered
                   ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                  : 'bg-blue-500 hover:bg-blue-600 text-white cursor-pointer'
+                  : 'bg-gantly-blue hover:bg-gantly-blue-600 text-white cursor-pointer'
               }`}
             >
               Siguiente →
