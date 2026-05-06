@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { MessageCircle, Users, User, Stethoscope } from 'lucide-react';
 import { Client } from '@stomp/stompjs';
 import type { IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
@@ -327,7 +328,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
   if (mode === 'USER' && psychId == null) {
     return (
       <div className="p-10 text-center bg-gradient-to-r from-gantly-blue-500 to-gantly-cyan-500 rounded-xl text-white">
-        <div className="text-5xl mb-4">💬</div>
+        <MessageCircle className="w-12 h-12 text-white/80 mb-4 mx-auto" />
         <h3 className="font-heading text-xl font-semibold mb-2">Esperando asignación</h3>
         <p className="opacity-90">Un administrador te asignará un psicólogo pronto</p>
       </div>
@@ -337,7 +338,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
   if (mode === 'PSYCHOLOGIST' && otherId == null) {
     return (
       <div className="p-10 text-center bg-gradient-to-r from-gantly-blue-500 to-gantly-cyan-500 rounded-xl text-white">
-        <div className="text-5xl mb-4">👥</div>
+        <Users className="w-12 h-12 text-white/80 mb-4 mx-auto" />
         <h3 className="font-heading text-xl font-semibold mb-2">Selecciona un paciente</h3>
         <p className="opacity-90">Elige un paciente de la lista para comenzar a chatear</p>
       </div>
@@ -368,7 +369,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
                 e.currentTarget.style.display = 'none';
                 const parent = e.currentTarget.parentElement;
                 if (parent) {
-                  parent.textContent = '\u{1F464}';
+                  parent.textContent = otherUser?.name?.charAt(0)?.toUpperCase() || '?';
                   parent.style.fontSize = '20px';
                   parent.style.display = 'flex';
                   parent.style.alignItems = 'center';
@@ -377,7 +378,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
               }}
             />
           ) : (
-            '👤'
+            <User size={16} />
           )}
         </div>
         <div style={{ flex: 1 }}>
@@ -412,7 +413,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
             color: '#6b7280',
             fontSize: '14px'
           }}>
-            <div style={{ fontSize: '32px', marginBottom: '8px' }}>💬</div>
+            <div style={{ marginBottom: '8px', display: 'flex', justifyContent: 'center' }}><MessageCircle size={32} color="#9ca3af" /></div>
             <div>No hay mensajes aún. ¡Comienza la conversación!</div>
             <div style={{ fontSize: '12px', marginTop: '8px', color: '#9ca3af' }}>
               Modo: {mode} | Conectado: {connected ? 'Sí' : 'No'} | PsychId: {psychId || 'N/A'} | UserId: {userId || 'N/A'}
@@ -455,7 +456,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
                             e.currentTarget.style.display = 'none';
                             const parent = e.currentTarget.parentElement;
                             if (parent) {
-                              parent.textContent = '\u{1F464}';
+                              parent.textContent = otherUser?.name?.charAt(0)?.toUpperCase() || '?';
                               parent.style.fontSize = '14px';
                               parent.style.display = 'flex';
                               parent.style.alignItems = 'center';
@@ -464,7 +465,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
                           }}
                         />
                       ) : (
-                        '👤'
+                        <User size={16} />
                       )}
                     </div>
                   )}
@@ -521,7 +522,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
                             e.currentTarget.style.display = 'none';
                             const parent = e.currentTarget.parentElement;
                             if (parent) {
-                              parent.textContent = mode === 'USER' ? '\u{1F464}' : '\u{1F468}\u{200D}\u{2695}\u{FE0F}';
+                              parent.textContent = currentUser?.name?.charAt(0)?.toUpperCase() || '?';
                               parent.style.background = '#2E93CC';
                               parent.style.display = 'flex';
                               parent.style.alignItems = 'center';
@@ -530,7 +531,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
                           }}
                         />
                       ) : (
-                        mode === 'USER' ? '👤' : '👨‍⚕️'
+                        mode === 'USER' ? <User size={16} /> : <Stethoscope size={16} />
                       )}
                     </div>
                   )}
