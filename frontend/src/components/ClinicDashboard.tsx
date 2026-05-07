@@ -121,6 +121,13 @@ function HomeTab({
   onCopyReferral: () => void;
   onNavigate: (tab: NavTab) => void;
 }) {
+  const [stats, setStats] = useState<{ totalPatients: number; appointmentsThisMonth: number; revenueThisMonth: number } | null>(null);
+  useEffect(() => {
+    clinicService.getStats()
+      .then(s => setStats({ totalPatients: s.totalPatients, appointmentsThisMonth: s.appointmentsThisMonth, revenueThisMonth: s.revenueThisMonth }))
+      .catch(() => {});
+  }, []);
+
   return (
     <div className="space-y-8">
       {/* Hero banner */}
@@ -165,23 +172,23 @@ function HomeTab({
         />
         <KpiCard
           icon="calendar_month"
-          label="Agenda"
-          value="Ver citas"
-          subtitle="y horarios"
+          label="Citas este mes"
+          value={stats ? String(stats.appointmentsThisMonth) : '—'}
+          subtitle="programadas"
           onClick={() => onNavigate('agenda')}
         />
         <KpiCard
           icon="people"
           label="Pacientes"
-          value="Ver listado"
-          subtitle="y expedientes"
+          value={stats ? String(stats.totalPatients) : '—'}
+          subtitle="registrados"
           onClick={() => onNavigate('pacientes')}
         />
         <KpiCard
           icon="receipt_long"
           label="Facturación"
-          value="Ver informe"
-          subtitle="mensual"
+          value={stats ? `${stats.revenueThisMonth.toFixed(0)}€` : '—'}
+          subtitle="este mes"
           onClick={() => onNavigate('facturacion')}
         />
         <KpiCard

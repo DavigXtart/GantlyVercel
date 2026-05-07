@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Home, Brain, CheckSquare, ClipboardList, CalendarDays, BookOpen,
   BarChart3, FileText, Compass, MessageCircle, Building2, LogOut,
   Menu, Video, Plus, ArrowRight, ChevronRight, Settings, TrendingUp,
-  History, Clock, HelpCircle, Send, CalendarCheck, CalendarX,
+  History, Clock, HelpCircle, Send, CalendarCheck, CalendarX, MoreHorizontal, X,
 } from 'lucide-react';
 import NotificationBell from './ui/NotificationBell';
 import api, {
@@ -61,6 +61,7 @@ interface UserDashboardProps {
 export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [tab, setTab] = useState<Tab>('perfil');
+  const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const [me, setMe] = useState<any>(null);
   const [psych, setPsych] = useState<any>(null);
   const [tasks, setTasks] = useState<any[]>([]);
@@ -608,33 +609,101 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
         </nav>
 
         {/* Mobile bottom nav */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200/50 flex justify-around py-2 px-1 md:hidden z-30">
-          {sidebarItems.slice(0, 5).map((item) => {
-            const isActive = tab === item.id;
-            const isDisabled = item.requiresPsych && !hasPsychologist;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                disabled={isDisabled}
-                onClick={() => {
-                  if (isDisabled) {
-                    toast.error('Necesitas psicólogo asignado');
-                    setTab('mi-psicologo');
-                    return;
-                  }
-                  setTab(item.id as Tab);
-                }}
-                className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg cursor-pointer transition-colors duration-200 ${
-                  isActive ? 'text-gantly-blue' : isDisabled ? 'text-slate-500' : 'text-slate-500'
-                }`}
-              >
-                {item.icon}
-                <span className="text-[10px] font-medium">{item.label}</span>
-              </button>
-            );
-          })}
-        </div>
+        {(() => {
+          const mobileMainIds = ['perfil', 'calendario', 'chat', 'agenda-personal'];
+          const mainItems = sidebarItems.filter(i => mobileMainIds.includes(i.id));
+          const moreItems = sidebarItems.filter(i => !mobileMainIds.includes(i.id));
+          const isMoreActive = moreItems.some(i => i.id === tab);
+          return (
+            <>
+              {/* More menu overlay */}
+              {mobileMoreOpen && (
+                <div className="fixed inset-0 z-40 md:hidden" onClick={() => setMobileMoreOpen(false)}>
+                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+                  <div
+                    className="absolute bottom-16 left-2 right-2 bg-white rounded-2xl shadow-2xl border border-slate-200 p-3 animate-in slide-in-from-bottom-4 duration-200"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-between px-2 pb-2 mb-1 border-b border-slate-100">
+                      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Más opciones</span>
+                      <button type="button" onClick={() => setMobileMoreOpen(false)} className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer">
+                        <X size={16} />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1">
+                      {moreItems.map((item) => {
+                        const isActive = tab === item.id;
+                        const isDisabled = item.requiresPsych && !hasPsychologist;
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            disabled={isDisabled}
+                            onClick={() => {
+                              if (isDisabled) {
+                                toast.error('Necesitas psicólogo asignado');
+                                setTab('mi-psicologo');
+                              } else {
+                                setTab(item.id as Tab);
+                              }
+                              setMobileMoreOpen(false);
+                            }}
+                            className={`flex flex-col items-center gap-1 py-3 px-2 rounded-xl cursor-pointer transition-colors duration-150 ${
+                              isActive ? 'bg-gantly-blue/10 text-gantly-blue' : isDisabled ? 'text-slate-300' : 'text-slate-600 hover:bg-slate-50'
+                            }`}
+                          >
+                            {item.icon}
+                            <span className="text-[11px] font-medium leading-tight">{item.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+              {/* Bottom bar */}
+              <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200/50 flex justify-around py-2 px-1 md:hidden z-30">
+                {mainItems.map((item) => {
+                  const isActive = tab === item.id;
+                  const isDisabled = item.requiresPsych && !hasPsychologist;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      disabled={isDisabled}
+                      onClick={() => {
+                        if (isDisabled) {
+                          toast.error('Necesitas psicólogo asignado');
+                          setTab('mi-psicologo');
+                          return;
+                        }
+                        setTab(item.id as Tab);
+                        setMobileMoreOpen(false);
+                      }}
+                      className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg cursor-pointer transition-colors duration-200 ${
+                        isActive ? 'text-gantly-blue' : isDisabled ? 'text-slate-300' : 'text-slate-500'
+                      }`}
+                    >
+                      {item.icon}
+                      <span className="text-[10px] font-medium">{item.label}</span>
+                    </button>
+                  );
+                })}
+                {/* More button */}
+                <button
+                  type="button"
+                  onClick={() => setMobileMoreOpen(prev => !prev)}
+                  className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg cursor-pointer transition-colors duration-200 ${
+                    mobileMoreOpen || isMoreActive ? 'text-gantly-blue' : 'text-slate-500'
+                  }`}
+                >
+                  <MoreHorizontal size={20} />
+                  <span className="text-[10px] font-medium">Más</span>
+                </button>
+              </div>
+            </>
+          );
+        })()}
 
         {/* Content area */}
         <main className="flex-1 p-6 md:p-8 pb-20 md:pb-8 overflow-x-hidden">

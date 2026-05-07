@@ -875,7 +875,11 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
         </div>
 
         {loading && questions.length === 0 ? (
-          <div className="loading">Cargando preguntas...</div>
+          <div className="py-6 space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="animate-pulse bg-slate-100 rounded-xl h-14 w-full" />
+            ))}
+          </div>
         ) : questions.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
             <p>No hay preguntas aún.</p>

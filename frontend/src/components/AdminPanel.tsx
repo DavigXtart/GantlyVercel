@@ -375,7 +375,11 @@ export default function AdminPanel() {
         </div>
 
         {loading && tests.length === 0 ? (
-          <div className="loading">Cargando tests...</div>
+          <div className="py-6 space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="animate-pulse bg-slate-100 rounded-xl h-16 w-full" />
+            ))}
+          </div>
         ) : tests.length === 0 ? (
           <div className="text-center py-10 text-slate-500">
             <p>No hay tests creados aún.</p>

@@ -82,6 +82,13 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
   const hours = Array.from({ length: 13 }).map((_, i) => 8 + i); // 8:00 - 20:00
   const days = useMemo(() => Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i)), [weekStart]);
 
+  // Current time indicator - update every minute
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
   const slotByDayHour = useMemo(() => {
     const map: Record<string, Slot[]> = {};
     for (const s of slots) {
@@ -573,6 +580,8 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
               const isPastTime = isPast(d, h);
               const isHovered = hoveredCell === cellKey;
               const isTodayCol = isToday(d);
+              const isCurrentHour = isTodayCol && now.getHours() === h;
+              const minuteOffset = isCurrentHour ? (now.getMinutes() / 60) * 100 : 0;
 
               return (
                 <div
@@ -619,6 +628,15 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                     }
                   }}
                 >
+                  {/* Current time indicator */}
+                  {isCurrentHour && (
+                    <div className="absolute left-0 right-0 z-20 pointer-events-none" style={{ top: `${minuteOffset}%` }}>
+                      <div className="flex items-center">
+                        <div className="w-2 h-2 rounded-full bg-red-500 -ml-1 shrink-0 shadow-sm shadow-red-500/40" />
+                        <div className="flex-1 h-[2px] bg-red-500 shadow-sm shadow-red-500/30" />
+                      </div>
+                    </div>
+                  )}
                   {list.length > 0 ? (
                     <div className="flex flex-col gap-1">
                       {list.map(s => {

@@ -115,7 +115,13 @@ export default function AdminUsersPanel() {
           className="w-full max-w-[400px] px-4 py-2.5 text-[15px] border border-slate-200 rounded-lg outline-none transition-colors focus:border-gantly-blue-500 focus:ring-1 focus:ring-gantly-blue-200"
         />
       </div>
-      {loading && <div className="text-slate-500 py-4">Cargando...</div>}
+      {loading && (
+        <div className="py-4 space-y-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="animate-pulse bg-slate-100 rounded-lg h-12 w-full" />
+          ))}
+        </div>
+      )}
       <div className="bg-white rounded-xl shadow-soft border border-slate-200 overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>

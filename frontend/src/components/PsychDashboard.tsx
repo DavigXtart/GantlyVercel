@@ -19,6 +19,7 @@ import PsychPatientsTab from './PsychPatientsTab';
 import PsychTasksTab from './PsychTasksTab';
 import PsychTestsTab from './PsychTestsTab';
 import PsychBillingTab from './PsychBillingTab';
+import { SkeletonList, SkeletonStats } from './ui/SkeletonLoader';
 import LogoSvg from '../assets/logo-gantly.svg';
 
 
@@ -618,7 +619,7 @@ export default function PsychDashboard() {
                 </div>
                 <div className="px-6 py-5 overflow-y-auto flex-1">
                   {loadingRatings ? (
-                    <p className="text-slate-500">Cargando resenas...</p>
+                    <SkeletonList rows={3} />
                   ) : ratingsList.length === 0 ? (
                     <p className="text-slate-500">No hay resenas</p>
                   ) : (
@@ -1226,9 +1227,7 @@ export default function PsychDashboard() {
               </div>
 
               {loadingPastAppointmentsPsych ? (
-                <div className="text-center py-10">
-                  <p className="text-slate-500">Cargando citas pasadas...</p>
-                </div>
+                <SkeletonList rows={4} className="py-4" />
               ) : pastAppointmentsPsych.length === 0 ? (
                 <div className="bg-white rounded-2xl p-12 border border-slate-100 shadow-sm text-center">
                   <p className="text-slate-500">No tienes citas pasadas aun</p>
@@ -1413,7 +1412,7 @@ export default function PsychDashboard() {
                       <p className="text-slate-500 text-sm mt-2">Selecciona un test para ver sus estadisticas.</p>
                     )}
                     {selectedTestForStats && loadingPatientDetails && (
-                      <p className="text-slate-500 text-sm mt-2">Cargando estadisticas...</p>
+                      <SkeletonStats count={3} className="mt-3" />
                     )}
                     {selectedTestForStats && !loadingPatientDetails && patientStats && (
                       <div className="mt-4">

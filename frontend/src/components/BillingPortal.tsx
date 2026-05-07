@@ -110,7 +110,16 @@ export default function BillingPortal() {
         <h2 className="text-[1.1rem] font-heading font-semibold text-slate-700 mt-0 mb-4">Historial de pagos</h2>
 
         {loading ? (
-          <div className="text-center py-12 text-gantly-blue text-base">Cargando historial de pagos...</div>
+          <div className="space-y-3 py-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4 py-2">
+                <div className="animate-pulse bg-slate-200 rounded h-3.5 w-24" />
+                <div className="animate-pulse bg-slate-100 rounded h-3 w-32 flex-1" />
+                <div className="animate-pulse bg-slate-200 rounded h-3 w-16" />
+                <div className="animate-pulse bg-slate-200 rounded-full h-6 w-16" />
+              </div>
+            ))}
+          </div>
         ) : payments.length === 0 ? (
           <div className="text-center py-12 text-slate-500">
             <p className="m-0 text-base">No hay pagos registrados todavia.</p>

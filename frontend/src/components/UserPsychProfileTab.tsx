@@ -1,5 +1,6 @@
 import React from 'react';
 import { User, ArrowLeft, GraduationCap, Crown, Briefcase } from 'lucide-react';
+import { SkeletonCard } from './ui/SkeletonLoader';
 
 interface UserPsychProfileTabProps {
   psychologistProfile: any;
@@ -15,13 +16,16 @@ const UserPsychProfileTab: React.FC<UserPsychProfileTabProps> = ({
   return (
     <div className="max-w-[900px] mx-auto">
       {loadingPsychologistProfile ? (
-        <div className="text-center py-16">
-          <div className="w-16 h-16 rounded-2xl bg-gantly-blue/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
-            <User className="text-gantly-blue" size={24} />
+        <div className="space-y-4 py-4">
+          <div className="flex items-center gap-4">
+            <div className="animate-pulse bg-slate-200 rounded-2xl w-20 h-20 shrink-0" />
+            <div className="space-y-2 flex-1">
+              <div className="animate-pulse bg-slate-200 rounded h-5 w-48" />
+              <div className="animate-pulse bg-slate-100 rounded h-3 w-32" />
+            </div>
           </div>
-          <p className="text-sm font-body text-gantly-muted">
-            Cargando perfil del psicólogo...
-          </p>
+          <SkeletonCard />
+          <SkeletonCard />
         </div>
       ) : (
         <>

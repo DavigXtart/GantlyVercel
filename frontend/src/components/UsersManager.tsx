@@ -464,7 +464,11 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
     if (loading && !psychologistSummary) {
       return (
         <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-6">
-          <div className="loading">Cargando datos del psicólogo...</div>
+          <div className="space-y-3">
+            <div className="animate-pulse bg-slate-200 rounded h-5 w-48" />
+            <div className="animate-pulse bg-slate-100 rounded h-3 w-full" />
+            <div className="animate-pulse bg-slate-100 rounded h-3 w-2/3" />
+          </div>
         </div>
       );
     }
@@ -549,7 +553,15 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
                     </div>
                     <div className="px-6 py-5 overflow-y-auto flex-1">
                       {loadingRatings ? (
-                        <p className="text-slate-500">Cargando reseñas...</p>
+                        <div className="space-y-3">
+                          {Array.from({ length: 3 }).map((_, i) => (
+                            <div key={i} className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-2">
+                              <div className="animate-pulse bg-slate-200 rounded h-3.5 w-32" />
+                              <div className="animate-pulse bg-slate-100 rounded h-3 w-full" />
+                              <div className="animate-pulse bg-slate-100 rounded h-3 w-2/3" />
+                            </div>
+                          ))}
+                        </div>
                       ) : ratingsList.length === 0 ? (
                         <p className="text-slate-500">No hay reseñas</p>
                       ) : (
@@ -748,7 +760,14 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
               <p className="text-slate-500 mt-2">Selecciona un test para ver sus estadísticas.</p>
             )}
             {selectedTestForStats && loading && (
-              <p className="text-slate-500 mt-2">Cargando estadísticas...</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="bg-white rounded-2xl border border-slate-100 p-5 space-y-3">
+                    <div className="animate-pulse bg-slate-100 rounded h-3 w-20" />
+                    <div className="animate-pulse bg-slate-200 rounded-lg h-7 w-16" />
+                  </div>
+                ))}
+              </div>
             )}
             {selectedTestForStats && !loading && userStats && (
               <div className="mt-4">
@@ -906,7 +925,17 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
         </div>
 
         {loading && users.length === 0 ? (
-          <div className="loading">Cargando usuarios...</div>
+          <div className="py-6 space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-100">
+                <div className="animate-pulse bg-slate-200 rounded-full w-10 h-10 shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="animate-pulse bg-slate-200 rounded h-3.5 w-2/5" />
+                  <div className="animate-pulse bg-slate-100 rounded h-3 w-3/5" />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : displayedUsers.length === 0 ? (
           <div className="text-center py-10 text-slate-500">
             <p>

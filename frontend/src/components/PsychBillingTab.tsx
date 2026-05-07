@@ -264,9 +264,18 @@ export default function PsychBillingTab({ appointments, loading, onRefresh }: Pr
         </div>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <div className="w-10 h-10 border-2 border-gantly-cloud border-t-gantly-blue rounded-full animate-spin" />
-            <p className="text-sm font-body text-gantly-muted mt-4 m-0">Cargando facturación...</p>
+          <div className="py-6 px-4 space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="grid grid-cols-12 gap-4 items-center py-3">
+                <div className="col-span-4 flex items-center gap-3">
+                  <div className="animate-pulse bg-slate-200 rounded-full w-8 h-8 shrink-0" />
+                  <div className="animate-pulse bg-slate-200 rounded h-3.5 w-24" />
+                </div>
+                <div className="col-span-3"><div className="animate-pulse bg-slate-100 rounded h-3 w-20" /></div>
+                <div className="col-span-2"><div className="animate-pulse bg-slate-100 rounded h-3 w-12 ml-auto" /></div>
+                <div className="col-span-3"><div className="animate-pulse bg-slate-200 rounded-full h-6 w-16 ml-auto" /></div>
+              </div>
+            ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
