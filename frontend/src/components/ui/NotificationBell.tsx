@@ -96,7 +96,8 @@ export default function NotificationBell() {
     <div ref={ref} className="relative">
       <button
         onClick={handleOpen}
-        className="relative p-2 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer bg-transparent border-none"
+        aria-label={`Notificaciones${count > 0 ? ` (${count} sin leer)` : ''}`}
+        className="relative p-2 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer bg-transparent border-none focus-visible:ring-2 focus-visible:ring-gantly-blue focus-visible:ring-offset-2 outline-none"
         title="Notificaciones"
       >
         <Bell className="text-slate-500" size={22} />

@@ -428,8 +428,9 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
         {/* Top row: navigation + date */}
         <div className="flex items-center justify-between mb-4">
           <button
+            aria-label="Semana anterior"
             onClick={() => handleWeekChange(addDays(weekStart, -7))}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-gantly-cloud hover:bg-gantly-blue hover:text-white cursor-pointer transition-all duration-200 text-gantly-muted border-none shadow-sm hover:shadow-md"
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-gantly-cloud hover:bg-gantly-blue hover:text-white cursor-pointer transition-all duration-200 text-gantly-muted border-none shadow-sm hover:shadow-md focus-visible:ring-2 focus-visible:ring-gantly-blue focus-visible:ring-offset-2 outline-none"
           >
             <ChevronLeft size={20} />
           </button>
@@ -439,8 +440,9 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
             </span>
           </div>
           <button
+            aria-label="Semana siguiente"
             onClick={() => handleWeekChange(addDays(weekStart, 7))}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-gantly-cloud hover:bg-gantly-blue hover:text-white cursor-pointer transition-all duration-200 text-gantly-muted border-none shadow-sm hover:shadow-md"
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-gantly-cloud hover:bg-gantly-blue hover:text-white cursor-pointer transition-all duration-200 text-gantly-muted border-none shadow-sm hover:shadow-md focus-visible:ring-2 focus-visible:ring-gantly-blue focus-visible:ring-offset-2 outline-none"
           >
             <ChevronRight size={20} />
           </button>

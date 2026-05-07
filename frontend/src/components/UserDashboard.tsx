@@ -399,6 +399,14 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
     if (tab === 'chat') setHasUnreadChat(false);
   }, [tab]);
 
+  // Close mobile more menu on Escape
+  useEffect(() => {
+    if (!mobileMoreOpen) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setMobileMoreOpen(false); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [mobileMoreOpen]);
+
   // Cargar disponibilidad cuando se entra en la pestana de calendario
   useEffect(() => {
     if (tab === 'calendario' && hasPsychologist) {
@@ -598,7 +606,8 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             {/* Mobile menu button */}
             <button
               type="button"
-              className="md:hidden p-2 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors duration-200"
+              aria-label="Abrir menu"
+              className="md:hidden p-2 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-gantly-blue rounded-lg outline-none"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               <Menu size={24} className="text-slate-600" />
@@ -630,7 +639,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                   >
                     <div className="flex items-center justify-between px-2 pb-2 mb-1 border-b border-slate-100">
                       <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Más opciones</span>
-                      <button type="button" onClick={() => setMobileMoreOpen(false)} className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer">
+                      <button type="button" aria-label="Cerrar menu" onClick={() => setMobileMoreOpen(false)} className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer focus-visible:ring-2 focus-visible:ring-gantly-blue rounded outline-none">
                         <X size={16} />
                       </button>
                     </div>
@@ -696,6 +705,8 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                 {/* More button */}
                 <button
                   type="button"
+                  aria-label="Ver más opciones"
+                  aria-expanded={mobileMoreOpen}
                   onClick={() => setMobileMoreOpen(prev => !prev)}
                   className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg cursor-pointer transition-colors duration-200 ${
                     mobileMoreOpen || isMoreActive ? 'text-gantly-blue' : 'text-slate-500'
