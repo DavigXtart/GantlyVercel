@@ -80,6 +80,7 @@ export default function MisEstadisticas() {
           Estado de animo (ultimos 30 dias)
         </h3>
         {moodStats && moodStats.totalEntries > 0 ? (
+          <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Hero metric — average mood */}
             <div className="md:col-span-2 bg-white rounded-2xl p-6 border border-slate-100 hover:shadow-lg hover:shadow-gantly-blue/5 transition-all duration-300 relative overflow-hidden">
@@ -233,6 +234,7 @@ export default function MisEstadisticas() {
               </div>
             </div>
           )}
+          </>
         ) : (
           <div className="bg-gantly-cloud rounded-2xl border border-slate-100 p-10 text-center">
             <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center mx-auto mb-4 shadow-sm">
