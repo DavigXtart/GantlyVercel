@@ -904,6 +904,10 @@ export const personalAgendaService = {
     const { data } = await api.get('/personal-agenda/entries');
     return data;
   },
+  deleteEntry: async (entryId: number) => {
+    const { data } = await api.delete(`/personal-agenda/entry/${entryId}`);
+    return data;
+  },
   getStatistics: async (days: number = 30) => {
     const { data } = await api.get(`/personal-agenda/statistics?days=${days}`);
     return data;

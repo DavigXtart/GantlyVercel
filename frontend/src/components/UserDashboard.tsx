@@ -12,6 +12,7 @@ import api, {
   tasksService,
   calendarService,
   assignedTestsService,
+  resultsService,
   jitsiService,
   consentService,
   stripeService,
@@ -103,6 +104,9 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   // Unread chat indicator
   const [hasUnreadChat, setHasUnreadChat] = useState(false);
+  const [expandedTestId, setExpandedTestId] = useState<number | null>(null);
+  const [testResults, setTestResults] = useState<Record<number, any>>({}); // cached results by assignedTestId
+  const [loadingTestResult, setLoadingTestResult] = useState(false);
 
   const hasPsychologist = psych?.status === 'ASSIGNED';
   const hasClinic = !!me?.companyId;
@@ -975,6 +979,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               me={me}
               onBack={() => setTab('perfil')}
               onMeUpdate={(updated) => setMe(updated)}
+              onShowOnboarding={() => { setTab('perfil'); setShowOnboarding(true); }}
             />
           )}
 
@@ -1345,15 +1350,21 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               </div>
 
               {assignedTests.length === 0 ? (
-                <div className="bg-gantly-cloud rounded-2xl border border-gantly-blue/10 p-10 text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center mx-auto mb-4 shadow-sm">
-                    <ClipboardList size={28} className="text-gantly-muted" />
-                  </div>
-                  <EmptyState
-                    title="No hay tests pendientes"
-                    description="Aún no tienes tests asignados. Tu psicólogo te asignará tests aquí."
-                  />
-                </div>
+                <EmptyState
+                  icon={<ClipboardList className="w-12 h-12 text-gantly-blue/40" />}
+                  title="No hay tests pendientes"
+                  description="Tu psicólogo te asignará tests aquí. Mientras tanto, puedes explorar las evaluaciones clínicas disponibles."
+                  action={
+                    <button
+                      type="button"
+                      onClick={() => setTab('evaluaciones')}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gantly-blue text-white font-heading font-semibold text-sm cursor-pointer transition-all duration-200 hover:bg-gantly-blue/90 shadow-lg shadow-gantly-blue/20"
+                    >
+                      <Compass size={16} />
+                      Explorar evaluaciones
+                    </button>
+                  }
+                />
               ) : (
                 <div className="space-y-3">
                   {/* Pending tests first */}
@@ -1419,31 +1430,94 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                         <span className="text-xs font-body font-semibold text-gantly-muted uppercase tracking-widest">Completados</span>
                       </div>
                       <div className="space-y-2">
-                        {assignedTests.filter((t: any) => t.completedAt).map((at: any) => (
-                          <div
-                            key={at.id}
-                            className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 border-l-[3px] border-l-gantly-emerald opacity-80 hover:opacity-100 transition-all duration-300"
-                          >
-                            <div className="flex items-center justify-between gap-4">
-                              <div className="flex items-center gap-4 flex-1 min-w-0">
-                                <div className="w-11 h-11 rounded-xl bg-gantly-emerald/10 flex items-center justify-center flex-shrink-0">
-                                  <CheckSquare size={18} className="text-gantly-emerald" />
+                        {assignedTests.filter((t: any) => t.completedAt).map((at: any) => {
+                          const isExpanded = expandedTestId === at.id;
+                          const result = testResults[at.id];
+                          return (
+                            <div
+                              key={at.id}
+                              className="bg-white rounded-2xl shadow-sm border border-slate-100 border-l-[3px] border-l-gantly-emerald transition-all duration-300"
+                            >
+                              <div
+                                className="p-5 flex items-center justify-between gap-4 cursor-pointer hover:bg-slate-50/50 transition-colors rounded-t-2xl"
+                                onClick={async () => {
+                                  if (isExpanded) {
+                                    setExpandedTestId(null);
+                                    return;
+                                  }
+                                  setExpandedTestId(at.id);
+                                  if (!testResults[at.id]) {
+                                    setLoadingTestResult(true);
+                                    try {
+                                      const res = await resultsService.getMyResults();
+                                      // Find result matching this test
+                                      const matchingResult = Array.isArray(res)
+                                        ? res.find((r: any) => r.testId === (at.testId || at.test?.id))
+                                        : null;
+                                      setTestResults(prev => ({ ...prev, [at.id]: matchingResult || null }));
+                                    } catch {
+                                      setTestResults(prev => ({ ...prev, [at.id]: null }));
+                                    } finally {
+                                      setLoadingTestResult(false);
+                                    }
+                                  }
+                                }}
+                              >
+                                <div className="flex items-center gap-4 flex-1 min-w-0">
+                                  <div className="w-11 h-11 rounded-xl bg-gantly-emerald/10 flex items-center justify-center flex-shrink-0">
+                                    <CheckSquare size={18} className="text-gantly-emerald" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-base font-heading font-semibold text-gantly-text truncate">
+                                      {at.testTitle || at.test?.title || 'Test'}
+                                    </p>
+                                    {at.completedAt && (
+                                      <p className="text-xs font-body text-gantly-muted mt-0.5">
+                                        Completado el {new Date(at.completedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                      </p>
+                                    )}
+                                  </div>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-base font-heading font-semibold text-gantly-text truncate">
-                                    {at.testTitle || at.test?.title || 'Test'}
-                                  </p>
-                                  {at.assignedAt && (
-                                    <p className="text-xs font-body text-gantly-muted mt-0.5">
-                                      Completado el {new Date(at.completedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                  <span className="text-xs font-heading font-semibold bg-gantly-emerald/10 text-gantly-emerald px-2.5 py-1 rounded-full">Completado</span>
+                                  <ChevronRight size={16} className={`text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
+                                </div>
+                              </div>
+                              {/* Expanded results */}
+                              {isExpanded && (
+                                <div className="px-5 pb-5 border-t border-slate-100">
+                                  {loadingTestResult && !result ? (
+                                    <div className="py-6 flex justify-center">
+                                      <div className="w-6 h-6 border-2 border-slate-200 border-t-gantly-blue rounded-full animate-spin" />
+                                    </div>
+                                  ) : result && result.subfactorResults ? (
+                                    <div className="pt-4 space-y-3">
+                                      <p className="text-sm font-heading font-semibold text-gantly-text">Resultados por subfactor</p>
+                                      {result.subfactorResults.map((sf: any, idx: number) => (
+                                        <div key={idx}>
+                                          <div className="flex items-center justify-between mb-1">
+                                            <span className="text-xs font-body text-gantly-muted">{sf.subfactorName || sf.code}</span>
+                                            <span className="text-xs font-heading font-semibold text-gantly-text">{sf.percentage != null ? `${Math.round(sf.percentage)}%` : `${sf.score}`}</span>
+                                          </div>
+                                          <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                            <div
+                                              className="h-full rounded-full bg-gradient-to-r from-gantly-blue to-gantly-cyan transition-all duration-500"
+                                              style={{ width: `${sf.percentage != null ? Math.min(sf.percentage, 100) : Math.min((sf.score / (sf.maxScore || 1)) * 100, 100)}%` }}
+                                            />
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <p className="py-4 text-sm text-gantly-muted text-center">
+                                      Los resultados detallados no están disponibles. Consulta con tu psicólogo.
                                     </p>
                                   )}
                                 </div>
-                              </div>
-                              <span className="text-xs font-heading font-semibold bg-gantly-emerald/10 text-gantly-emerald px-2.5 py-1 rounded-full flex-shrink-0">Completado</span>
+                              )}
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -1595,9 +1669,21 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               )}
 
               {!loadingSlots && slots.length === 0 && myAppointments.length === 0 && (
-                <p className="text-sm text-slate-500">
-                  De momento no hay disponibilidad publicada por tu psicólogo.
-                </p>
+                <EmptyState
+                  icon={<CalendarDays className="w-12 h-12 text-gantly-blue/40" />}
+                  title="Sin disponibilidad"
+                  description="Tu psicólogo aún no ha publicado horarios disponibles. Contacta por chat para coordinar tu primera cita."
+                  action={hasPsychologist ? (
+                    <button
+                      type="button"
+                      onClick={() => setTab('chat')}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gantly-blue text-white font-heading font-semibold text-sm cursor-pointer transition-all duration-200 hover:bg-gantly-blue/90 shadow-lg shadow-gantly-blue/20"
+                    >
+                      <MessageCircle size={16} />
+                      Ir al chat
+                    </button>
+                  ) : undefined}
+                />
               )}
             </div>
           )}
@@ -1612,9 +1698,21 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               {loadingPastAppointments ? (
                 <LoadingSpinner text="Cargando historial de citas..." />
               ) : pastAppointments.length === 0 ? (
-                <p className="text-sm text-slate-500">
-                  Aun no tienes citas en tu historial.
-                </p>
+                <EmptyState
+                  icon={<History className="w-12 h-12 text-slate-300" />}
+                  title="Sin historial de citas"
+                  description="Cuando tengas citas completadas, aparecerán aquí con opción de valorar."
+                  action={
+                    <button
+                      type="button"
+                      onClick={() => setTab('calendario')}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gantly-blue text-white font-heading font-semibold text-sm cursor-pointer transition-all duration-200 hover:bg-gantly-blue/90 shadow-lg shadow-gantly-blue/20"
+                    >
+                      <CalendarDays size={16} />
+                      Ver calendario
+                    </button>
+                  }
+                />
               ) : (
                 <div className="space-y-3">
                   {pastAppointments

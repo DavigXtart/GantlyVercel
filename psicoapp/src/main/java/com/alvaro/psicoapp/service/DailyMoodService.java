@@ -85,6 +85,16 @@ public class DailyMoodService {
         }
     }
 
+    @Transactional
+    public void deleteEntry(Long userId, Long entryId) {
+        DailyMoodEntryEntity entry = dailyMoodEntryRepository.findById(entryId)
+            .orElseThrow(() -> new RuntimeException("Entrada no encontrada"));
+        if (!entry.getUser().getId().equals(userId)) {
+            throw new RuntimeException("No tienes permiso para eliminar esta entrada");
+        }
+        dailyMoodEntryRepository.delete(entry);
+    }
+
     public Optional<DailyMoodEntryEntity> getTodayEntry(Long userId) {
         return dailyMoodEntryRepository.findByUser_IdAndEntryDate(userId, LocalDate.now());
     }

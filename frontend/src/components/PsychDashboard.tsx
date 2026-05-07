@@ -903,7 +903,22 @@ export default function PsychDashboard() {
                       </button>
                     </div>
                   ) : (
-                    <p className="text-sm text-slate-500">No tienes ninguna cita proxima.</p>
+                    <EmptyState
+                      icon={<CalendarDays className="w-12 h-12 text-gantly-blue/40" />}
+                      title="Sin citas próximas"
+                      description="Publica horarios disponibles en tu calendario para que los pacientes puedan reservar."
+                      action={
+                        <button
+                          type="button"
+                          onClick={() => setTab('calendario')}
+                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gantly-blue text-white font-heading font-semibold text-sm cursor-pointer transition-all duration-200 hover:bg-gantly-blue/90 shadow-lg shadow-gantly-blue/20"
+                        >
+                          <Calendar size={16} />
+                          Ir al calendario
+                        </button>
+                      }
+                      className="py-6"
+                    />
                   );
                 })()}
               </div>
@@ -1229,9 +1244,11 @@ export default function PsychDashboard() {
               {loadingPastAppointmentsPsych ? (
                 <SkeletonList rows={4} className="py-4" />
               ) : pastAppointmentsPsych.length === 0 ? (
-                <div className="bg-white rounded-2xl p-12 border border-slate-100 shadow-sm text-center">
-                  <p className="text-slate-500">No tienes citas pasadas aun</p>
-                </div>
+                <EmptyState
+                  icon={<History className="w-12 h-12 text-slate-300" />}
+                  title="Sin historial"
+                  description="Las citas completadas aparecerán aquí."
+                />
               ) : (
                 <div className="flex flex-col gap-3">
                   {pastAppointmentsPsych.map((apt: any) => (
@@ -1300,7 +1317,9 @@ export default function PsychDashboard() {
               <div className="w-72 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm max-h-[600px] overflow-y-auto flex-shrink-0">
                 <h4 className="m-0 mb-3 text-sm font-heading font-semibold text-gantly-text">Seleccionar Paciente</h4>
                 {patients.length === 0 ? (
-                  <div className="text-center py-5 text-slate-500 text-sm font-body">No hay pacientes asignados</div>
+                  <div className="text-center py-5 text-slate-500 text-sm font-body">
+                    Aún no tienes pacientes asignados. Completa tu perfil y el test de matching para empezar a recibir pacientes.
+                  </div>
                 ) : (
                   <div className="flex flex-col gap-1.5">
                     {patients.map(p => (

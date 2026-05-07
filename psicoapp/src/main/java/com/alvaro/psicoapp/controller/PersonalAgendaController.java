@@ -59,6 +59,22 @@ public class PersonalAgendaController {
         }
     }
 
+    @DeleteMapping("/entry/{id}")
+    @Operation(summary = "Eliminar entrada", description = "Elimina una entrada del diario de estado de ánimo")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Entrada eliminada exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Error al eliminar la entrada")
+    })
+    public ResponseEntity<?> deleteEntry(Principal principal, @PathVariable Long id) {
+        try {
+            var user = currentUserService.getCurrentUser(principal);
+            dailyMoodService.deleteEntry(user.getId(), id);
+            return ResponseEntity.ok(Map.of("success", true));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @GetMapping("/entry/today")
     @Operation(summary = "Obtener entrada de hoy", description = "Obtiene la entrada del diario de estado de ánimo del día actual")
     @ApiResponses(value = {

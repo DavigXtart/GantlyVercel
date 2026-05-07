@@ -2,7 +2,7 @@ import { useState, useEffect, lazy, Suspense } from 'react';
 import { profileService, authService } from '../services/api';
 import { toast } from './ui/Toast';
 import LoadingSpinner from './ui/LoadingSpinner';
-import { ArrowLeft, Settings, User, Lock, Receipt, Shield, Upload, Download, Info, AlertTriangle, Trash2, type LucideIcon } from 'lucide-react';
+import { ArrowLeft, Settings, User, Lock, Receipt, Shield, Upload, Download, Info, AlertTriangle, Trash2, RotateCcw, type LucideIcon } from 'lucide-react';
 
 const BillingPortal = lazy(() => import('./BillingPortal'));
 const TwoFactorSetup = lazy(() => import('./TwoFactorSetup'));
@@ -13,9 +13,10 @@ interface UserSettingsTabProps {
   me: any;
   onBack: () => void;
   onMeUpdate: (updatedMe: any) => void;
+  onShowOnboarding?: () => void;
 }
 
-export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettingsTabProps) {
+export default function UserSettingsTab({ me, onBack, onMeUpdate, onShowOnboarding }: UserSettingsTabProps) {
   const [settingsSection, setSettingsSection] = useState<SettingsSection>('perfil');
   const [editProfileForm, setEditProfileForm] = useState({ name: '', gender: '', birthDate: '' });
   const [savingProfile, setSavingProfile] = useState(false);
@@ -130,6 +131,24 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate }: UserSettings
               </div>
             </div>
           </div>
+
+          {/* Re-trigger onboarding */}
+          {onShowOnboarding && (
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-lg transition-all duration-300">
+              <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-3">Tutorial de inicio</h3>
+              <p className="text-sm text-slate-500 mb-4">
+                Vuelve a ver el asistente de bienvenida con los pasos para configurar tu cuenta.
+              </p>
+              <button
+                type="button"
+                onClick={onShowOnboarding}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50 cursor-pointer transition-all duration-200"
+              >
+                <RotateCcw size={16} />
+                Ver tutorial de inicio
+              </button>
+            </div>
+          )}
 
           {/* Personal info card */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-lg transition-all duration-300">

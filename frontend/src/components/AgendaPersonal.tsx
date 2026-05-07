@@ -466,12 +466,55 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
 
         {selectedEntry ? (
           <div>
-            <button
-              onClick={() => setSelectedEntry(null)}
-              className="px-4 py-2 bg-slate-50 text-gantly-muted border border-gray-200 rounded-lg cursor-pointer mb-6 font-semibold text-sm hover:bg-slate-100"
-            >
-              ← Volver al calendario
-            </button>
+            <div className="flex items-center justify-between mb-6">
+              <button
+                onClick={() => setSelectedEntry(null)}
+                className="px-4 py-2 bg-slate-50 text-gantly-muted border border-gray-200 rounded-lg cursor-pointer font-semibold text-sm hover:bg-slate-100"
+              >
+                ← Volver al calendario
+              </button>
+              <div className="flex items-center gap-2">
+                {isDateValidForEntry(new Date(selectedEntry.entryDate + 'T00:00:00')) && (
+                  <button
+                    onClick={() => {
+                      // Pre-fill form with existing entry data for editing
+                      setSelectedDate(selectedEntry.entryDate);
+                      setEntryData({
+                        moodRating: selectedEntry.moodRating,
+                        emotions: selectedEntry.emotions ? JSON.parse(selectedEntry.emotions) : [],
+                        activities: selectedEntry.activities ? JSON.parse(selectedEntry.activities) : [],
+                        companions: selectedEntry.companions ? JSON.parse(selectedEntry.companions) : [],
+                        location: selectedEntry.location || '',
+                        notes: selectedEntry.notes || ''
+                      });
+                      setSelectedEntry(null);
+                      setShowCalendar(false);
+                      setStep(1);
+                    }}
+                    className="px-4 py-2 bg-gantly-blue/10 text-gantly-blue border border-gantly-blue/20 rounded-lg cursor-pointer font-semibold text-sm hover:bg-gantly-blue/20 transition-colors duration-200"
+                  >
+                    Editar
+                  </button>
+                )}
+                <button
+                  onClick={async () => {
+                    if (!confirm('¿Seguro que quieres eliminar esta entrada?')) return;
+                    try {
+                      await personalAgendaService.deleteEntry(selectedEntry.id);
+                      toast.success('Entrada eliminada');
+                      setSelectedEntry(null);
+                      const response = await personalAgendaService.getUserEntries();
+                      setEntries(response.entries || []);
+                    } catch (err: any) {
+                      toast.error(err.response?.data?.error || 'Error al eliminar');
+                    }
+                  }}
+                  className="px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg cursor-pointer font-semibold text-sm hover:bg-red-100 transition-colors duration-200"
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
             <div className="p-6 bg-slate-50 rounded-2xl border border-gray-200">
               <h3 className="text-2xl font-bold text-gantly-text mb-6 font-heading">
                 {new Date(selectedEntry.entryDate).toLocaleDateString('es-ES', {
