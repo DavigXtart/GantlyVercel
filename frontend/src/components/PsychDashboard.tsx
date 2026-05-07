@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { User, BarChart3, ChevronUp, ChevronDown, LogOut, Camera, Clock, CalendarDays, FileDown, X, Home, UsersRound, CheckSquare, Brain, Calendar, MessageCircle, History, Receipt, type LucideIcon } from 'lucide-react';
-import { profileService, psychService, calendarService, tasksService, assignedTestsService, testService, resultsService, matchingService, calendarNotesService, jitsiService, API_BASE_URL } from '../services/api';
+import api, { profileService, psychService, calendarService, tasksService, assignedTestsService, testService, resultsService, matchingService, calendarNotesService, jitsiService, API_BASE_URL } from '../services/api';
 import NotificationBell from './ui/NotificationBell';
 import ChatWidget from './ChatWidget';
 import CalendarWeek from './CalendarWeek';
@@ -99,7 +99,7 @@ export default function PsychDashboard() {
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [referralUrl, setReferralUrl] = useState<string | null>(null);
   const [showReferralModal, setShowReferralModal] = useState(false);
-
+  const [hasUnreadChat, setHasUnreadChat] = useState(false);
 
   // Estados para vista de perfil de paciente
   const [viewingPatientId, setViewingPatientId] = useState<number | null>(null);
@@ -154,10 +154,11 @@ export default function PsychDashboard() {
     setVideoCallOtherUser(null);
   }, []);
 
-  // Al entrar al chat, hacer scroll al inicio para que no quede desplazado hacia abajo
+  // Al entrar al chat, hacer scroll al inicio y clear unread badge
   useEffect(() => {
     if (tab === 'chat') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      setHasUnreadChat(false);
     }
   }, [tab]);
 
@@ -178,6 +179,22 @@ export default function PsychDashboard() {
     } finally {
       setLoading(false);
     }
+
+    // Check unread chat messages across all patients
+    setTimeout(async () => {
+      try {
+        const patientList = await psychService.patients();
+        for (const p of patientList) {
+          const { data: history } = await api.get('/chat/history', { params: { userId: p.id } });
+          if (Array.isArray(history) && history.length > 0 && history[0].sender === 'USER') {
+            setHasUnreadChat(true);
+            break;
+          }
+        }
+      } catch {
+        // silently ignore
+      }
+    }, 300);
 
     // Cargar tests asignados de forma asíncrona y no bloqueante
     setTimeout(async () => {
@@ -527,7 +544,10 @@ export default function PsychDashboard() {
                   : 'text-white hover:bg-white/10'
               }`}
             >
-              {(() => { const Icon = iconMap[t.icon]; return Icon ? <Icon size={20} /> : null; })()}
+              <span className="relative">
+                {(() => { const Icon = iconMap[t.icon]; return Icon ? <Icon size={20} /> : null; })()}
+                {t.id === 'chat' && hasUnreadChat && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-gantly-navy" />}
+              </span>
               {t.label}
             </button>
           ))}

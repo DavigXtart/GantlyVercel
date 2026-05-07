@@ -1,14 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { personalAgendaService, evaluationTestService } from '../services/api';
 import { toast } from './ui/Toast';
 import LoadingSpinner from './ui/LoadingSpinner';
 import EmptyState from './ui/EmptyState';
 import { LineChart, Smile, Flame, FileEdit, HelpCircle, TrendingUp, LayoutGrid, History, BarChart3 } from 'lucide-react';
 
+const MOOD_EMOJIS = ['', '😢', '😔', '😐', '🙂', '😄'];
+
 export default function MisEstadisticas() {
   const [loading, setLoading] = useState(true);
   const [moodStats, setMoodStats] = useState<any>(null);
   const [testStats, setTestStats] = useState<any>(null);
+  const [moodEntries, setMoodEntries] = useState<any[]>([]);
 
   useEffect(() => {
     loadStatistics();
@@ -17,18 +20,38 @@ export default function MisEstadisticas() {
   const loadStatistics = async () => {
     setLoading(true);
     try {
-      const [moodData, testData] = await Promise.all([
+      const [moodData, testData, entriesData] = await Promise.all([
         personalAgendaService.getStatistics(30),
-        evaluationTestService.getUserStatistics()
+        evaluationTestService.getUserStatistics(),
+        personalAgendaService.getUserEntries().catch(() => ({ entries: [] })),
       ]);
       setMoodStats(moodData);
       setTestStats(testData);
+      setMoodEntries(entriesData.entries || []);
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Error al cargar estadisticas');
     } finally {
       setLoading(false);
     }
   };
+
+  // Build chart data: last 30 days
+  const chartData = useMemo(() => {
+    const now = new Date();
+    const days: { date: string; label: string; mood: number | null }[] = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const entry = moodEntries.find((e: any) => e.entryDate === dateStr);
+      days.push({
+        date: dateStr,
+        label: d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
+        mood: entry ? entry.moodRating : null,
+      });
+    }
+    return days;
+  }, [moodEntries]);
 
   if (loading) {
     return (
@@ -114,6 +137,102 @@ export default function MisEstadisticas() {
               </div>
             </div>
           </div>
+          {/* Mood Trend Chart */}
+          {chartData.filter(d => d.mood !== null).length >= 2 && (
+            <div className="bg-white rounded-2xl p-6 border border-slate-100 mt-4">
+              <h4 className="text-sm font-heading font-semibold text-gantly-text mb-4 flex items-center gap-2">
+                <span className="w-7 h-7 rounded-lg bg-gantly-blue/10 flex items-center justify-center">
+                  <LineChart size={14} className="text-gantly-blue" />
+                </span>
+                Tendencia de ánimo (30 días)
+              </h4>
+              <div className="relative h-48 mt-2">
+                {/* Y-axis labels */}
+                <div className="absolute left-0 top-0 bottom-6 flex flex-col justify-between text-xs text-slate-400 w-8">
+                  {[5, 4, 3, 2, 1].map(v => (
+                    <span key={v} className="leading-none">{MOOD_EMOJIS[v]}</span>
+                  ))}
+                </div>
+                {/* Grid + Chart */}
+                <div className="ml-10 h-full relative">
+                  {/* Grid lines */}
+                  {[1, 2, 3, 4, 5].map(v => (
+                    <div
+                      key={v}
+                      className="absolute left-0 right-0 border-t border-slate-100"
+                      style={{ bottom: `${((v - 1) / 4) * 100}%` }}
+                    />
+                  ))}
+                  {/* SVG line chart */}
+                  <svg className="absolute inset-0 w-full h-[calc(100%-24px)]" preserveAspectRatio="none" viewBox="0 0 290 40">
+                    {/* Line path */}
+                    <polyline
+                      fill="none"
+                      stroke="#2E93CC"
+                      strokeWidth="1.5"
+                      strokeLinejoin="round"
+                      strokeLinecap="round"
+                      points={chartData
+                        .map((d, i) => {
+                          if (d.mood === null) return null;
+                          const x = (i / 29) * 290;
+                          const y = 40 - ((d.mood - 1) / 4) * 40;
+                          return `${x},${y}`;
+                        })
+                        .filter(Boolean)
+                        .join(' ')}
+                    />
+                    {/* Area fill */}
+                    <polygon
+                      fill="url(#moodGradient)"
+                      opacity="0.15"
+                      points={(() => {
+                        const pts = chartData
+                          .map((d, i) => {
+                            if (d.mood === null) return null;
+                            const x = (i / 29) * 290;
+                            const y = 40 - ((d.mood - 1) / 4) * 40;
+                            return { x, y };
+                          })
+                          .filter(Boolean) as { x: number; y: number }[];
+                        if (pts.length < 2) return '';
+                        return pts.map(p => `${p.x},${p.y}`).join(' ') + ` ${pts[pts.length - 1].x},40 ${pts[0].x},40`;
+                      })()}
+                    />
+                    {/* Dots */}
+                    {chartData.map((d, i) => {
+                      if (d.mood === null) return null;
+                      const x = (i / 29) * 290;
+                      const y = 40 - ((d.mood - 1) / 4) * 40;
+                      return (
+                        <circle
+                          key={i}
+                          cx={x}
+                          cy={y}
+                          r="2"
+                          fill="#2E93CC"
+                          stroke="white"
+                          strokeWidth="1"
+                        />
+                      );
+                    })}
+                    <defs>
+                      <linearGradient id="moodGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#2E93CC" />
+                        <stop offset="100%" stopColor="#2E93CC" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  {/* X-axis labels */}
+                  <div className="absolute bottom-0 left-0 right-0 flex justify-between text-[10px] text-slate-400 h-6 items-end">
+                    {chartData.filter((_, i) => i % 7 === 0 || i === 29).map((d, idx) => (
+                      <span key={idx}>{d.label}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         ) : (
           <div className="bg-gantly-cloud rounded-2xl border border-slate-100 p-10 text-center">
             <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center mx-auto mb-4 shadow-sm">

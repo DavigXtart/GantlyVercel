@@ -7,7 +7,7 @@ import {
   History, Clock, HelpCircle, Send, CalendarCheck, CalendarX,
 } from 'lucide-react';
 import NotificationBell from './ui/NotificationBell';
-import {
+import api, {
   profileService,
   tasksService,
   calendarService,
@@ -100,6 +100,8 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
   const [clinicChatLoading, setClinicChatLoading] = useState(false);
   // Mobile sidebar
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // Unread chat indicator
+  const [hasUnreadChat, setHasUnreadChat] = useState(false);
 
   const hasPsychologist = psych?.status === 'ASSIGNED';
   const hasClinic = !!me?.companyId;
@@ -203,6 +205,21 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       ]);
       setAssignedTests(ats || []);
       setMyAppointments(apps || []);
+
+      // Check for unread chat messages
+      if (p?.status === 'ASSIGNED') {
+        try {
+          const { data: history } = await api.get('/chat/history');
+          if (Array.isArray(history) && history.length > 0) {
+            const lastMsg = history[0]; // most recent first
+            if (lastMsg.sender === 'PSYCHOLOGIST') {
+              setHasUnreadChat(true);
+            }
+          }
+        } catch {
+          // silently ignore
+        }
+      }
     } catch (err: any) {
       toast.error('Error al cargar tu panel. Intenta recargar la pagina.');
     } finally {
@@ -372,6 +389,11 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       )[0];
   }, [myAppointments]);
 
+  // Clear unread chat when entering chat tab
+  useEffect(() => {
+    if (tab === 'chat') setHasUnreadChat(false);
+  }, [tab]);
+
   // Cargar disponibilidad cuando se entra en la pestana de calendario
   useEffect(() => {
     if (tab === 'calendario' && hasPsychologist) {
@@ -421,7 +443,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
     { id: 'mis-estadisticas', icon: <BarChart3 size={20} />, label: 'Estadísticas', requiresPsych: false },
     { id: 'evaluaciones', icon: <FileText size={20} />, label: 'Evaluaciones', requiresPsych: false },
     { id: 'descubrimiento', icon: <Compass size={20} />, label: 'Descubrir', requiresPsych: false },
-    { id: 'chat', icon: <MessageCircle size={20} />, label: 'Chat', requiresPsych: true },
+    { id: 'chat', icon: <div className="relative"><MessageCircle size={20} />{hasUnreadChat && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-gantly-navy" />}</div>, label: 'Chat', requiresPsych: true },
     ...(me?.companyId ? [{ id: 'mensajes-clinica', icon: <Building2 size={20} /> as ReactNode, label: 'Clínica', requiresPsych: false }] : []),
   ];
 
@@ -1591,11 +1613,34 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                               {apt.psychologist?.name || 'Terapia online'}
                             </p>
                           </div>
-                          <span
-                            className={`text-xs px-3 py-1 rounded-full font-semibold ${statusClasses}`}
-                          >
-                            {statusLabel}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`text-xs px-3 py-1 rounded-full font-semibold ${statusClasses}`}
+                            >
+                              {statusLabel}
+                            </span>
+                            {/* Cancel button for upcoming, non-cancelled appointments */}
+                            {!isCancelled && new Date(apt.startTime) > new Date() && (
+                              <button
+                                onClick={async () => {
+                                  if (!confirm('¿Seguro que quieres cancelar esta cita?')) return;
+                                  try {
+                                    await calendarService.cancelAppointment(apt.id);
+                                    toast.success('Cita cancelada correctamente');
+                                    const updated = await calendarService.getPastAppointments();
+                                    setPastAppointments(updated);
+                                    const appointments = await calendarService.myAppointments();
+                                    setMyAppointments(appointments);
+                                  } catch (err: any) {
+                                    toast.error(err.response?.data?.error || 'Error al cancelar la cita');
+                                  }
+                                }}
+                                className="text-xs px-3 py-1 rounded-full font-medium bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors cursor-pointer"
+                              >
+                                Cancelar
+                              </button>
+                            )}
+                          </div>
                         </div>
                       );
                     })}
@@ -1702,6 +1747,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
         <OnboardingWizard
           userName={me.name || 'Usuario'}
           onComplete={() => setShowOnboarding(false)}
+          onGoToProfile={() => { setShowOnboarding(false); setTab('configuracion'); }}
           onGoToMatching={() => { setShowOnboarding(false); setTab('mi-psicologo'); setShowMatchingTest(true); }}
         />
       )}

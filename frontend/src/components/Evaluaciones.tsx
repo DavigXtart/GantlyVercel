@@ -3,22 +3,26 @@ import { evaluationTestService } from '../services/api';
 import { toast } from './ui/Toast';
 import LoadingSpinner from './ui/LoadingSpinner';
 import EmptyState from './ui/EmptyState';
-import { ClipboardList, Brain, Frown, Zap, Heart, Users, ArrowRight, type LucideIcon } from 'lucide-react';
+import EvaluationTestFlow from './EvaluationTestFlow';
+import { hasTestDefinition, getTestDefinition } from '../data/evaluationTestDefinitions';
+import { ClipboardList, Brain, Frown, Zap, Heart, Users, ArrowRight, CheckCircle, type LucideIcon } from 'lucide-react';
 
 export default function Evaluaciones() {
   const [loading, setLoading] = useState(true);
   const [tests, setTests] = useState<any[]>([]);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const [activeTest, setActiveTest] = useState<any | null>(null);
+  const [completedTests, setCompletedTests] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     loadTests();
+    loadCompletedTests();
   }, []);
 
   const loadTests = async () => {
     setLoading(true);
     try {
       const response = await evaluationTestService.getTestsByCategory('EVALUATION');
-      // Filtrar tests placeholder (los que tienen codigo que empieza con SECTION_PLACEHOLDER_)
       const filteredTests = (response.tests || []).filter((t: any) =>
         !t.code || !t.code.startsWith('SECTION_PLACEHOLDER_')
       );
@@ -27,6 +31,26 @@ export default function Evaluaciones() {
       toast.error(error.response?.data?.error || 'Error al cargar tests');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadCompletedTests = async () => {
+    try {
+      const results = await evaluationTestService.getUserResults();
+      if (Array.isArray(results)) {
+        const ids = new Set<number>(results.map((r: any) => r.testId || r.test?.id).filter(Boolean));
+        setCompletedTests(ids);
+      }
+    } catch {
+      // silently ignore
+    }
+  };
+
+  const handleTestClick = (test: any) => {
+    if (test.code && hasTestDefinition(test.code)) {
+      setActiveTest(test);
+    } else {
+      toast.info('Este test estará disponible próximamente');
     }
   };
 
@@ -111,18 +135,30 @@ export default function Evaluaciones() {
       )}
 
       {/* Test cards grid */}
+      {/* EvaluationTestFlow modal */}
+      {activeTest && activeTest.code && getTestDefinition(activeTest.code) && (
+        <EvaluationTestFlow
+          test={activeTest}
+          definition={getTestDefinition(activeTest.code)!}
+          onClose={() => setActiveTest(null)}
+          onComplete={() => {
+            loadCompletedTests();
+          }}
+        />
+      )}
+
       {filteredTests.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredTests.map(test => {
             const gradient = topicGradients[test.topic] || 'from-gantly-blue to-gantly-blue-600';
             const Icon = topicIcons[test.topic] || Brain;
+            const isAvailable = test.code && hasTestDefinition(test.code);
+            const isCompleted = completedTests.has(test.id);
             return (
               <div
                 key={test.id}
                 className="bg-white rounded-2xl p-6 border border-slate-100 hover:shadow-lg hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
-                onClick={() => {
-                  toast.info('Esta funcionalidad estara disponible proximamente');
-                }}
+                onClick={() => handleTestClick(test)}
               >
                 <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300`}>
                   <Icon size={24} />
@@ -139,9 +175,20 @@ export default function Evaluaciones() {
                   </p>
                 )}
                 <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
-                  <span className="text-xs px-3 py-1 rounded-full font-medium bg-gradient-to-r from-slate-50 to-slate-100 text-slate-500 border border-slate-200">
-                    Proximamente
-                  </span>
+                  {isCompleted ? (
+                    <span className="text-xs px-3 py-1 rounded-full font-medium bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center gap-1">
+                      <CheckCircle size={12} />
+                      Completado
+                    </span>
+                  ) : isAvailable ? (
+                    <span className="text-xs px-3 py-1 rounded-full font-medium bg-gantly-blue/10 text-gantly-blue border border-gantly-blue/20">
+                      Disponible
+                    </span>
+                  ) : (
+                    <span className="text-xs px-3 py-1 rounded-full font-medium bg-gradient-to-r from-slate-50 to-slate-100 text-slate-500 border border-slate-200">
+                      Próximamente
+                    </span>
+                  )}
                   <ArrowRight size={18} className="text-slate-500 group-hover:text-gantly-blue transition-colors" />
                 </div>
               </div>

@@ -8,7 +8,7 @@ import LogoSvg from '../assets/logo-gantly.svg';
 import {
   Building2, Users, Calendar, UsersRound, Receipt, BarChart3, Settings, Home,
   ChevronDown, ChevronUp, Check, Copy, Clock, LogOut, X, Send, Tag, DoorOpen,
-  UserX, Plus, Mail, Stethoscope, Package, Flower2, Timer, Trash2,
+  UserX, Plus, Mail, Stethoscope, Package, Flower2, Timer, Trash2, Menu,
 } from 'lucide-react';
 
 const kpiIconMap: Record<string, (size: number) => React.ReactNode> = {
@@ -950,6 +950,7 @@ export default function ClinicDashboard() {
   const [psychologists, setPsychologists] = useState<Psychologist[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -993,11 +994,26 @@ export default function ClinicDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-[55] lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Dark Sidebar */}
-      <aside className="w-64 bg-gradient-to-b from-gantly-navy to-[#0d1f3c] flex-shrink-0 fixed inset-y-0 left-0 z-50 flex flex-col">
-        {/* Logo */}
-        <div className="px-6 py-5 border-b border-white/5">
+      <aside className={`w-64 bg-gradient-to-b from-gantly-navy to-[#0d1f3c] flex-shrink-0 fixed inset-y-0 left-0 z-[60] flex flex-col transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        {/* Logo + close on mobile */}
+        <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between">
           <img src={LogoSvg} alt="Gantly" className="h-7 brightness-0 invert" />
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors cursor-pointer"
+            aria-label="Cerrar menú"
+          >
+            <X size={18} />
+          </button>
         </div>
 
         {/* Nav items */}
@@ -1006,7 +1022,7 @@ export default function ClinicDashboard() {
             <button
               key={item.id}
               type="button"
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[15px] font-medium cursor-pointer transition-all duration-200 border-none ${
                 activeTab === item.id
                   ? 'bg-gantly-blue/20 text-white border-l-2 border-l-gantly-cyan font-semibold'
@@ -1047,15 +1063,23 @@ export default function ClinicDashboard() {
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 ml-64">
+      <div className="flex-1 lg:ml-64">
         {/* Top bar */}
-        <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/50 px-8 py-4 flex items-center justify-between">
+        <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/50 px-4 sm:px-8 py-4 flex items-center justify-between gap-3">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="lg:hidden w-9 h-9 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-600 cursor-pointer transition-colors flex-shrink-0"
+            aria-label="Abrir menú"
+          >
+            <Menu size={20} />
+          </button>
           <h2 className="text-lg font-heading font-bold text-gantly-text">
             {currentTabLabel}
           </h2>
+          <div className="flex-1" />
         </header>
 
-        <div className="px-8 py-6">
+        <div className="px-4 sm:px-8 py-6">
           {loading ? (
             <div className="flex items-center justify-center py-32">
               <div className="w-9 h-9 border-[3px] border-slate-200 border-t-gantly-blue rounded-full animate-spin" />

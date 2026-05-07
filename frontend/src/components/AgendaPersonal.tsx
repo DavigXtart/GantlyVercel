@@ -76,7 +76,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
       const startOfWeek = new Date(firstDayOfMonth);
       startOfWeek.setDate(startOfWeek.getDate() - firstDay);
       startOfWeek.setHours(0, 0, 0, 0);
-      
+
       // Solo actualizar si es diferente
       if (startOfWeek.getTime() !== currentWeekStart.getTime()) {
         setCurrentWeekStart(startOfWeek);
@@ -90,7 +90,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
       const todayResponse = await personalAgendaService.getTodayEntry();
       const allEntriesResponse = await personalAgendaService.getUserEntries();
       setEntries(allEntriesResponse.entries || []);
-      
+
       if (todayResponse.entry) {
         // Ya hay entrada de hoy, mostrar calendario directamente
         setShowCalendar(true);
@@ -157,30 +157,30 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
       toast.error('Por favor selecciona un estado de ánimo');
       return;
     }
-    
+
     // Validar fecha seleccionada (usar formato local para evitar problemas de zona horaria)
     const todayStr = formatDateLocal(new Date());
     const twoDaysAgo = new Date();
     twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
     const minDateStr = formatDateLocal(twoDaysAgo);
-    
+
     if (selectedDate > todayStr) {
       toast.error('No se pueden crear entradas con fechas futuras');
       return;
     }
-    
+
     if (selectedDate < minDateStr) {
       toast.error('Solo se pueden crear entradas para hoy o máximo 2 días atrás');
       return;
     }
-    
+
     setSaving(true);
     try {
       const payload: any = {
         entryDate: selectedDate,
         moodRating: entryData.moodRating
       };
-      
+
       // Solo incluir campos si tienen valor
       if (entryData.emotions && entryData.emotions.length > 0) {
         payload.emotions = JSON.stringify(entryData.emotions);
@@ -197,7 +197,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
       if (entryData.notes && entryData.notes.trim() !== '') {
         payload.notes = entryData.notes;
       }
-      
+
       await personalAgendaService.saveEntry(payload);
       toast.success('Entrada guardada correctamente');
       await loadEntries(); // Recargar entradas después de guardar
@@ -224,11 +224,11 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
     // Encontrar el mes que estamos mostrando buscando el primer día del mes en la semana actual
     const startDate = new Date(currentWeekStart);
     startDate.setHours(0, 0, 0, 0);
-    
+
     // Buscar el primer día del mes en las próximas 7 fechas
     let targetMonth = startDate.getMonth();
     let targetYear = startDate.getFullYear();
-    
+
     // Si el inicio de la semana es del mes anterior, usar el mes siguiente
     for (let i = 0; i < 7; i++) {
       const checkDate = new Date(startDate);
@@ -239,13 +239,13 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
         break;
       }
     }
-    
+
     const firstDay = new Date(targetYear, targetMonth, 1);
     const lastDay = new Date(targetYear, targetMonth + 1, 0);
     const startOfCalendar = new Date(firstDay);
     startOfCalendar.setDate(startOfCalendar.getDate() - startOfCalendar.getDay());
     startOfCalendar.setHours(0, 0, 0, 0);
-    
+
     const dates = [];
     const currentDate = new Date(startOfCalendar);
     while (currentDate <= lastDay || dates.length < 35) {
@@ -268,10 +268,10 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
     // Buscar el primer día del mes en las próximas fechas desde currentWeekStart
     const startDate = new Date(currentWeekStart);
     startDate.setHours(0, 0, 0, 0);
-    
+
     let targetMonth = startDate.getMonth();
     let targetYear = startDate.getFullYear();
-    
+
     // Buscar el primer día del mes en las próximas 7 fechas
     for (let i = 0; i < 7; i++) {
       const checkDate = new Date(startDate);
@@ -282,21 +282,21 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
         break;
       }
     }
-    
+
     // Crear nueva fecha con el mes siguiente/anterior
     const newMonth = targetMonth + (direction === 'next' ? 1 : -1);
     const newYear = targetYear + Math.floor(newMonth / 12);
     const adjustedMonth = ((newMonth % 12) + 12) % 12;
-    
+
     const firstDayOfNewMonth = new Date(newYear, adjustedMonth, 1);
     firstDayOfNewMonth.setHours(0, 0, 0, 0);
-    
+
     // Calcular el domingo de la semana que contiene el primer día del mes
     const firstDay = firstDayOfNewMonth.getDay();
     const startOfWeek = new Date(firstDayOfNewMonth);
     startOfWeek.setDate(startOfWeek.getDate() - firstDay);
     startOfWeek.setHours(0, 0, 0, 0);
-    
+
     setCurrentWeekStart(startOfWeek);
   };
 
@@ -320,7 +320,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
     dateToCheck.setHours(0, 0, 0, 0);
     const twoDaysAgo = new Date(today);
     twoDaysAgo.setDate(today.getDate() - 2);
-    
+
     return dateToCheck <= today && dateToCheck >= twoDaysAgo;
   };
 
@@ -352,7 +352,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+      <div className="flex justify-center items-center min-h-[400px]">
         <LoadingSpinner />
       </div>
     );
@@ -363,117 +363,49 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
     const monthDates = viewMode === 'month' ? getMonthDates() : [];
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     return (
-      <div style={{
-        background: '#ffffff',
-        borderRadius: '20px',
-        boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
-        padding: '40px',
-        border: '1px solid rgba(46, 147, 204, 0.15)',
-        maxWidth: viewMode === 'month' ? '1200px' : '900px',
-        margin: '0 auto',
-        animation: 'fadeIn 0.5s ease-in'
-      }}>
-        <style>{`
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-          @keyframes slideIn {
-            from { transform: translateX(-20px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-          }
-        `}</style>
-        
-        {/* Header con navegación */}
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          marginBottom: '32px',
-          flexWrap: 'wrap',
-          gap: '16px'
-        }}>
-          <h2 style={{ 
-            fontSize: '28px', 
-            fontWeight: 700, 
-            color: '#0F172A',
-            margin: 0
-          }}>
+      <div className={`bg-white rounded-2xl shadow-card p-10 border border-gantly-blue-50 mx-auto animate-fade-in-up ${viewMode === 'month' ? 'max-w-[1200px]' : 'max-w-[900px]'}`}>
+        {/* Header con navegacion */}
+        <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
+          <h2 className="text-[28px] font-bold text-gantly-text font-heading m-0">
             Mi Agenda {viewMode === 'week' ? 'Semanal' : 'Mensual'}
           </h2>
-          
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+
+          <div className="flex gap-3 items-center flex-wrap">
             {/* Selector de vista */}
-            <div style={{
-              display: 'flex',
-              background: '#f8f9fa',
-              borderRadius: '12px',
-              padding: '4px',
-              gap: '4px'
-            }}>
+            <div className="flex bg-slate-50 rounded-xl p-1 gap-1">
               <button
                 onClick={() => setViewMode('week')}
-                style={{
-                  padding: '8px 16px',
-                  background: viewMode === 'week' ? '#3b82f6' : 'transparent',
-                  color: viewMode === 'week' ? '#fff' : '#475569',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  transition: 'all 0.2s ease'
-                }}
+                className={`px-4 py-2 border-none rounded-lg cursor-pointer font-semibold text-sm transition-all duration-200 ${
+                  viewMode === 'week'
+                    ? 'bg-gantly-blue text-white'
+                    : 'bg-transparent text-gantly-muted hover:bg-slate-100'
+                }`}
               >
                 Semana
               </button>
               <button
                 onClick={() => setViewMode('month')}
-                style={{
-                  padding: '8px 16px',
-                  background: viewMode === 'month' ? '#3b82f6' : 'transparent',
-                  color: viewMode === 'month' ? '#fff' : '#475569',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  transition: 'all 0.2s ease'
-                }}
+                className={`px-4 py-2 border-none rounded-lg cursor-pointer font-semibold text-sm transition-all duration-200 ${
+                  viewMode === 'month'
+                    ? 'bg-gantly-blue text-white'
+                    : 'bg-transparent text-gantly-muted hover:bg-slate-100'
+                }`}
               >
                 Mes
               </button>
             </div>
-            
-            {/* Botón de hoy */}
+
+            {/* Boton de hoy */}
             <button
               onClick={goToToday}
-              style={{
-                padding: '8px 16px',
-                background: '#e5e7eb',
-                color: '#475569',
-                border: 'none',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                fontWeight: 600,
-                fontSize: '14px',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#d1d5db';
-                e.currentTarget.style.transform = 'scale(1.05)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#e5e7eb';
-                e.currentTarget.style.transform = 'scale(1)';
-              }}
+              className="px-4 py-2 bg-gray-200 text-gantly-muted border-none rounded-xl cursor-pointer font-semibold text-sm transition-all duration-300 hover:bg-gray-300 hover:scale-105"
             >
               Hoy
             </button>
-            
-            {/* Botón nueva entrada */}
+
+            {/* Boton nueva entrada */}
             <button
               onClick={() => {
                 setShowCalendar(false);
@@ -488,25 +420,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                   notes: ''
                 });
               }}
-              style={{
-                padding: '10px 20px',
-                background: '#3b82f6',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                fontWeight: 600,
-                fontSize: '14px',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#2563eb';
-                e.currentTarget.style.transform = 'translateY(-1px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#3b82f6';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
+              className="px-5 py-2.5 bg-gantly-blue text-white border-none rounded-xl cursor-pointer font-semibold text-sm transition-all duration-200 hover:bg-gantly-blue-600 hover:-translate-y-px"
             >
               + Nueva Entrada
             </button>
@@ -514,51 +428,15 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
         </div>
 
         {/* Navegacion de fecha */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '24px',
-          padding: '12px 16px',
-          background: '#f8fafc',
-          borderRadius: '12px',
-          border: '1px solid #e2e8f0'
-        }}>
+        <div className="flex justify-between items-center mb-6 px-4 py-3 bg-slate-50 rounded-xl border border-slate-200">
           <button
             onClick={() => viewMode === 'week' ? navigateWeek('prev') : navigateMonth('prev')}
-            style={{
-              padding: '8px 14px',
-              background: 'transparent',
-              color: '#64748b',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: 600,
-              fontSize: '14px',
-              transition: 'all 0.2s ease',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#e2e8f0';
-              e.currentTarget.style.color = '#334155';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = '#64748b';
-            }}
+            className="px-3.5 py-2 bg-transparent text-slate-500 border-none rounded-lg cursor-pointer font-semibold text-sm transition-all duration-200 flex items-center gap-1 hover:bg-slate-200 hover:text-slate-700"
           >
             &larr;
           </button>
 
-          <div style={{
-            fontSize: '16px',
-            fontWeight: 600,
-            color: '#1e293b',
-            textAlign: 'center',
-            flex: 1
-          }}>
+          <div className="text-base font-semibold text-slate-800 text-center flex-1">
             {viewMode === 'week' ? (
               <>
                 {weekDates[0].toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })} &ndash; {weekDates[6].toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
@@ -580,28 +458,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
 
           <button
             onClick={() => viewMode === 'week' ? navigateWeek('next') : navigateMonth('next')}
-            style={{
-              padding: '8px 14px',
-              background: 'transparent',
-              color: '#64748b',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: 600,
-              fontSize: '14px',
-              transition: 'all 0.2s ease',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#e2e8f0';
-              e.currentTarget.style.color = '#334155';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = '#64748b';
-            }}
+            className="px-3.5 py-2 bg-transparent text-slate-500 border-none rounded-lg cursor-pointer font-semibold text-sm transition-all duration-200 flex items-center gap-1 hover:bg-slate-200 hover:text-slate-700"
           >
             &rarr;
           </button>
@@ -611,69 +468,42 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
           <div>
             <button
               onClick={() => setSelectedEntry(null)}
-              style={{
-                padding: '8px 16px',
-                background: '#f8f9fa',
-                color: '#475569',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                marginBottom: '24px',
-                fontWeight: 600,
-                fontSize: '14px'
-              }}
+              className="px-4 py-2 bg-slate-50 text-gantly-muted border border-gray-200 rounded-lg cursor-pointer mb-6 font-semibold text-sm hover:bg-slate-100"
             >
               ← Volver al calendario
             </button>
-            <div style={{
-              padding: '24px',
-              background: '#f8f9fa',
-              borderRadius: '16px',
-              border: '1px solid #e5e7eb'
-            }}>
-              <h3 style={{ 
-                fontSize: '24px', 
-                fontWeight: 700, 
-                color: '#0F172A',
-                marginBottom: '24px'
-              }}>
-                {new Date(selectedEntry.entryDate).toLocaleDateString('es-ES', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
+            <div className="p-6 bg-slate-50 rounded-2xl border border-gray-200">
+              <h3 className="text-2xl font-bold text-gantly-text mb-6 font-heading">
+                {new Date(selectedEntry.entryDate).toLocaleDateString('es-ES', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
                 })}
               </h3>
-              
-              <div style={{ marginBottom: '24px' }}>
-                <div style={{ fontSize: '18px', fontWeight: 600, color: '#475569', marginBottom: '12px' }}>
-                  Estado de Ánimo
+
+              <div className="mb-6">
+                <div className="text-lg font-semibold text-gantly-muted mb-3">
+                  Estado de Animo
                 </div>
-                <div style={{ fontSize: '48px', marginBottom: '8px' }}>
+                <div className="text-5xl mb-2">
                   {getMoodEmoji(selectedEntry.moodRating)}
                 </div>
-                <div style={{ fontSize: '16px', color: '#0F172A' }}>
+                <div className="text-base text-gantly-text">
                   {moods.find(m => m.value === selectedEntry.moodRating)?.label || 'N/A'}
                 </div>
               </div>
 
               {selectedEntry.emotions && (
-                <div style={{ marginBottom: '24px' }}>
-                  <div style={{ fontSize: '18px', fontWeight: 600, color: '#475569', marginBottom: '12px' }}>
+                <div className="mb-6">
+                  <div className="text-lg font-semibold text-gantly-muted mb-3">
                     Emociones
                   </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  <div className="flex flex-wrap gap-2">
                     {JSON.parse(selectedEntry.emotions).map((emotion: string, idx: number) => (
                       <span
                         key={idx}
-                        style={{
-                          padding: '8px 16px',
-                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                          color: '#fff',
-                          borderRadius: '20px',
-                          fontSize: '14px',
-                          fontWeight: 600
-                        }}
+                        className="px-4 py-2 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-full text-sm font-semibold"
                       >
                         {emotion}
                       </span>
@@ -683,22 +513,15 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
               )}
 
               {selectedEntry.activities && (
-                <div style={{ marginBottom: '24px' }}>
-                  <div style={{ fontSize: '18px', fontWeight: 600, color: '#475569', marginBottom: '12px' }}>
+                <div className="mb-6">
+                  <div className="text-lg font-semibold text-gantly-muted mb-3">
                     Actividades
                   </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  <div className="flex flex-wrap gap-2">
                     {JSON.parse(selectedEntry.activities).map((activity: string, idx: number) => (
                       <span
                         key={idx}
-                        style={{
-                          padding: '8px 16px',
-                          background: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)',
-                          color: '#fff',
-                          borderRadius: '20px',
-                          fontSize: '14px',
-                          fontWeight: 600
-                        }}
+                        className="px-4 py-2 bg-gradient-to-br from-amber-500 to-orange-500 text-white rounded-full text-sm font-semibold"
                       >
                         {activity}
                       </span>
@@ -708,22 +531,15 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
               )}
 
               {selectedEntry.companions && (
-                <div style={{ marginBottom: '24px' }}>
-                  <div style={{ fontSize: '18px', fontWeight: 600, color: '#475569', marginBottom: '12px' }}>
-                    Con quién
+                <div className="mb-6">
+                  <div className="text-lg font-semibold text-gantly-muted mb-3">
+                    Con quien
                   </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  <div className="flex flex-wrap gap-2">
                     {JSON.parse(selectedEntry.companions).map((companion: string, idx: number) => (
                       <span
                         key={idx}
-                        style={{
-                          padding: '8px 16px',
-                          background: '#2E93CC',
-                          color: '#fff',
-                          borderRadius: '20px',
-                          fontSize: '14px',
-                          fontWeight: 600
-                        }}
+                        className="px-4 py-2 bg-gantly-blue text-white rounded-full text-sm font-semibold"
                       >
                         {companion}
                       </span>
@@ -733,11 +549,11 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
               )}
 
               {selectedEntry.location && (
-                <div style={{ marginBottom: '24px' }}>
-                  <div style={{ fontSize: '18px', fontWeight: 600, color: '#475569', marginBottom: '12px' }}>
-                    Ubicación
+                <div className="mb-6">
+                  <div className="text-lg font-semibold text-gantly-muted mb-3">
+                    Ubicacion
                   </div>
-                  <div style={{ fontSize: '16px', color: '#0F172A' }}>
+                  <div className="text-base text-gantly-text">
                     {selectedEntry.location}
                   </div>
                 </div>
@@ -745,18 +561,10 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
 
               {selectedEntry.notes && (
                 <div>
-                  <div style={{ fontSize: '18px', fontWeight: 600, color: '#475569', marginBottom: '12px' }}>
+                  <div className="text-lg font-semibold text-gantly-muted mb-3">
                     Notas
                   </div>
-                  <div style={{ 
-                    fontSize: '16px', 
-                    color: '#0F172A', 
-                    lineHeight: '1.6',
-                    padding: '16px',
-                    background: '#fff',
-                    borderRadius: '12px',
-                    border: '1px solid #e5e7eb'
-                  }}>
+                  <div className="text-base text-gantly-text leading-relaxed p-4 bg-white rounded-xl border border-gray-200">
                     {selectedEntry.notes}
                   </div>
                 </div>
@@ -764,14 +572,9 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
             </div>
           </div>
         ) : (
-          <div style={{ animation: 'slideIn 0.4s ease-out' }}>
+          <div className="animate-fade-in-up">
             {viewMode === 'week' ? (
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(7, 1fr)',
-                gap: '16px',
-                marginBottom: '24px'
-              }}>
+              <div className="grid grid-cols-7 gap-4 mb-6">
                 {weekDates.map((date, index) => {
                   const entry = getEntryForDate(date);
                   const dateStr = date.toDateString();
@@ -781,91 +584,44 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                   const isClickable = entry || isValidDate;
                   const dayName = date.toLocaleDateString('es-ES', { weekday: 'short' });
                   const dayNumber = date.getDate();
-                  
+
                   return (
                     <div
                       key={index}
                       onClick={() => handleDateClick(date)}
-                      style={{
-                        padding: '20px',
-                        background: entry
-                          ? '#3b82f6'
+                      className={`p-5 rounded-xl text-center min-h-[120px] flex flex-col justify-center items-center relative overflow-hidden transition-all duration-200
+                        ${entry
+                          ? 'bg-gantly-blue border-2 border-gantly-blue-600 text-white hover:-translate-y-0.5 hover:shadow-glow-blue cursor-pointer'
                           : isToday
-                            ? '#fef9c3'
+                            ? 'bg-gantly-gold-100 border-2 border-gantly-gold-500 text-amber-800 hover:-translate-y-0.5 hover:shadow-md cursor-pointer'
                             : isValidDate
-                              ? '#f0fdf4'
-                              : '#f8fafc',
-                        borderRadius: '12px',
-                        border: isToday ? '2px solid #eab308' : entry ? '2px solid #2563eb' : isValidDate ? '1px dashed #94a3b8' : '1px solid #e2e8f0',
-                        cursor: isClickable ? 'pointer' : 'default',
-                        transition: 'all 0.2s ease',
-                        textAlign: 'center',
-                        color: entry ? '#fff' : isToday ? '#92400e' : '#475569',
-                        minHeight: '120px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        boxShadow: 'none',
-                        position: 'relative',
-                        overflow: 'hidden'
-                      }}
-                      onMouseEnter={(e) => {
-                        if (entry) {
-                          e.currentTarget.style.transform = 'translateY(-2px)';
-                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.25)';
-                        } else if (isToday) {
-                          e.currentTarget.style.transform = 'translateY(-2px)';
-                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(234, 179, 8, 0.2)';
-                        } else if (isValidDate) {
-                          e.currentTarget.style.transform = 'translateY(-2px)';
-                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.06)';
-                          e.currentTarget.style.background = '#dcfce7';
+                              ? 'bg-green-50 border border-dashed border-slate-400 text-gantly-muted hover:-translate-y-0.5 hover:shadow-soft hover:bg-green-100 cursor-pointer'
+                              : 'bg-slate-50 border border-slate-200 text-gantly-muted'
                         }
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = 'none';
-                        if (isValidDate && !entry && !isToday) {
-                          e.currentTarget.style.background = '#f0fdf4';
-                        }
-                      }}
+                        ${!isClickable ? 'cursor-default' : ''}
+                      `}
                     >
                       {isToday && !entry && (
-                        <div style={{
-                          position: 'absolute',
-                          top: '8px',
-                          right: '8px',
-                          background: '#f59e0b',
-                          color: '#fff',
-                          borderRadius: '50%',
-                          width: '24px',
-                          height: '24px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '12px',
-                          fontWeight: 700
-                        }}>
+                        <div className="absolute top-2 right-2 bg-amber-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
                           !
                         </div>
                       )}
-                      <div style={{ fontSize: '12px', fontWeight: 600, marginBottom: '8px', opacity: 0.9 }}>
+                      <div className="text-xs font-semibold mb-2 opacity-90">
                         {dayName.toUpperCase()}
                       </div>
-                      <div style={{ fontSize: '28px', fontWeight: 700, marginBottom: '12px' }}>
+                      <div className="text-[28px] font-bold mb-3">
                         {dayNumber}
                       </div>
                       {entry ? (
-                        <div style={{ fontSize: '40px', animation: 'fadeIn 0.5s ease-in' }}>
+                        <div className="text-[40px] animate-fade-in">
                           {getMoodEmoji(entry.moodRating)}
                         </div>
                       ) : isValidDate ? (
-                        <div style={{ fontSize: '14px', opacity: 0.8, fontWeight: 600 }}>
+                        <div className="text-sm opacity-80 font-semibold">
                           Clic para crear
                         </div>
                       ) : (
-                        <div style={{ fontSize: '14px', opacity: 0.6 }}>
+                        <div className="text-sm opacity-60">
                           Sin registro
                         </div>
                       )}
@@ -874,30 +630,15 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                 })}
               </div>
             ) : (
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(7, 1fr)',
-                gap: '8px',
-                marginBottom: '24px'
-              }}>
-                {/* Días de la semana */}
+              <div className="grid grid-cols-7 gap-2 mb-6">
+                {/* Dias de la semana */}
                 {['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'].map((day, idx) => (
-                  <div key={idx} style={{
-                    padding: '12px',
-                    textAlign: 'center',
-                    fontWeight: 600,
-                    color: '#64748b',
-                    fontSize: '12px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    background: '#f8fafc',
-                    borderRadius: '8px'
-                  }}>
+                  <div key={idx} className="p-3 text-center font-semibold text-slate-500 text-xs uppercase tracking-wide bg-slate-50 rounded-lg">
                     {day}
                   </div>
                 ))}
-                
-                {/* Días del mes */}
+
+                {/* Dias del mes */}
                 {monthDates.map((date, index) => {
                   const entry = getEntryForDate(date);
                   const dateStr = date.toDateString();
@@ -910,61 +651,34 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                   const isValidDate = isDateValidForEntry(date);
                   const isClickable = entry || (isValidDate && isCurrentMonth);
                   const dayNumber = date.getDate();
-                  
+
                   return (
                     <div
                       key={index}
                       onClick={() => handleDateClick(date)}
-                      style={{
-                        padding: '12px 8px',
-                        background: entry
-                          ? '#3b82f6'
+                      className={`py-3 px-2 rounded-[10px] text-center min-h-[80px] flex flex-col justify-start items-center gap-1 relative transition-all duration-200
+                        ${entry
+                          ? 'bg-gantly-blue border-2 border-gantly-blue-600 text-white hover:-translate-y-px hover:z-10 cursor-pointer'
                           : isToday
-                            ? '#fef9c3'
+                            ? 'bg-gantly-gold-100 border-2 border-gantly-gold-500 text-amber-800'
                             : isValidDate && isCurrentMonth
-                              ? '#f0fdf4'
-                              : isCurrentMonth ? '#f8fafc' : '#f1f5f9',
-                        borderRadius: '10px',
-                        border: isToday ? '2px solid #eab308' : entry ? '2px solid #2563eb' : isValidDate && isCurrentMonth ? '1px dashed #94a3b8' : '1px solid #e2e8f0',
-                        cursor: isClickable ? 'pointer' : 'default',
-                        transition: 'all 0.2s ease',
-                        textAlign: 'center',
-                        color: entry ? '#fff' : isToday ? '#92400e' : isCurrentMonth ? '#475569' : '#9ca3af',
-                        minHeight: '80px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'flex-start',
-                        alignItems: 'center',
-                        gap: '4px',
-                        position: 'relative'
-                      }}
-                        onMouseEnter={(e) => {
-                          if (entry) {
-                            e.currentTarget.style.transform = 'translateY(-1px)';
-                            e.currentTarget.style.zIndex = '10';
-                          } else if (isValidDate && isCurrentMonth) {
-                            e.currentTarget.style.transform = 'translateY(-1px)';
-                            e.currentTarget.style.zIndex = '10';
-                            e.currentTarget.style.background = '#dcfce7';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'translateY(0)';
-                          e.currentTarget.style.zIndex = '1';
-                          if (isValidDate && isCurrentMonth && !entry) {
-                            e.currentTarget.style.background = '#f0fdf4';
-                          }
-                        }}
+                              ? 'bg-green-50 border border-dashed border-slate-400 text-gantly-muted hover:-translate-y-px hover:z-10 hover:bg-green-100 cursor-pointer'
+                              : isCurrentMonth
+                                ? 'bg-slate-50 border border-slate-200 text-gantly-muted'
+                                : 'bg-slate-100 border border-slate-200 text-gray-400'
+                        }
+                        ${!isClickable ? 'cursor-default' : ''}
+                      `}
                     >
-                      <div style={{ fontSize: '14px', fontWeight: 700 }}>
+                      <div className="text-sm font-bold">
                         {dayNumber}
                       </div>
                       {entry ? (
-                        <div style={{ fontSize: '24px' }}>
+                        <div className="text-2xl">
                           {getMoodEmoji(entry.moodRating)}
                         </div>
                       ) : isValidDate && isCurrentMonth ? (
-                        <div style={{ fontSize: '10px', opacity: 0.7, fontWeight: 600 }}>
+                        <div className="text-[10px] opacity-70 font-semibold">
                           +
                         </div>
                       ) : null}
@@ -980,31 +694,16 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
   }
 
   return (
-    <div style={{
-      background: '#ffffff',
-      borderRadius: '20px',
-      boxShadow: '0 6px 20px rgba(45, 74, 62, 0.12)',
-      padding: '40px',
-      border: '1px solid rgba(46, 147, 204, 0.15)',
-      maxWidth: '800px',
-      margin: '0 auto'
-    }}>
-      {/* Paso 1: Estado de ánimo */}
+    <div className="bg-white rounded-2xl shadow-card p-10 border border-gantly-blue-50 max-w-[800px] mx-auto">
+      {/* Paso 1: Estado de animo */}
       {step === 1 && (
         <div>
           {/* Selector de fecha */}
-          <div style={{ marginBottom: '32px' }}>
-            <label style={{ 
-              display: 'block',
-              fontSize: '16px',
-              fontWeight: 600,
-              color: '#475569',
-              marginBottom: '12px',
-              textAlign: 'center'
-            }}>
+          <div className="mb-8">
+            <label className="block text-base font-semibold text-gantly-muted mb-3 text-center">
               Selecciona la fecha
             </label>
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <div className="flex justify-center">
               <input
                 type="date"
                 value={selectedDate}
@@ -1016,44 +715,18 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                   twoDaysAgo.setDate(today.getDate() - 2);
                   return formatDateLocal(twoDaysAgo);
                 })()}
-                style={{
-                  padding: '12px 16px',
-                  borderRadius: '12px',
-                  border: '2px solid #2E93CC',
-                  fontSize: '16px',
-                  color: '#475569',
-                  fontWeight: 600,
-                  background: '#fff',
-                  cursor: 'pointer',
-                  minWidth: '200px'
-                }}
+                className="px-4 py-3 rounded-xl border-2 border-gantly-blue text-base text-gantly-muted font-semibold bg-white cursor-pointer min-w-[200px]"
               />
             </div>
-            <p style={{
-              fontSize: '12px',
-              color: '#6b7280',
-              textAlign: 'center',
-              marginTop: '8px'
-            }}>
-              Solo puedes crear entradas para hoy o máximo 2 días atrás
+            <p className="text-xs text-slate-500 text-center mt-2">
+              Solo puedes crear entradas para hoy o maximo 2 dias atras
             </p>
           </div>
-          
-          <h2 style={{ 
-            fontSize: '28px', 
-            fontWeight: 700, 
-            color: '#0F172A',
-            marginBottom: '40px',
-            textAlign: 'center'
-          }}>
-            ¿Cómo te sientes esta tarde?
+
+          <h2 className="text-[28px] font-bold text-gantly-text mb-10 text-center font-heading">
+            ¿Como te sientes esta tarde?
           </h2>
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            gap: '20px',
-            flexWrap: 'nowrap'
-          }}>
+          <div className="flex justify-center gap-5 flex-nowrap">
             {moods.map(mood => (
               <button
                 key={mood.value}
@@ -1061,44 +734,21 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                   setEntryData({ ...entryData, moodRating: mood.value });
                   setTimeout(() => setStep(2), 300);
                 }}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '12px',
-                  padding: '24px 20px',
-                  background: entryData.moodRating === mood.value 
-                    ? `linear-gradient(135deg, ${mood.color} 0%, ${mood.color}dd 100%)`
-                    : '#f8f9fa',
-                  border: entryData.moodRating === mood.value 
-                    ? `2px solid ${mood.color}`
-                    : '2px solid transparent',
-                  borderRadius: '16px',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  fontSize: '64px',
-                  minWidth: '120px',
-                  flex: '1'
-                }}
-                onMouseEnter={(e) => {
-                  if (entryData.moodRating !== mood.value) {
-                    e.currentTarget.style.transform = 'scale(1.05)';
-                    e.currentTarget.style.background = `${mood.color}22`;
+                className={`flex flex-col items-center gap-3 px-5 py-6 rounded-2xl cursor-pointer transition-all duration-300 text-[64px] min-w-[120px] flex-1 border-2
+                  ${entryData.moodRating === mood.value
+                    ? 'text-white'
+                    : 'bg-slate-50 border-transparent hover:scale-105'
                   }
-                }}
-                onMouseLeave={(e) => {
-                  if (entryData.moodRating !== mood.value) {
-                    e.currentTarget.style.transform = 'scale(1)';
-                    e.currentTarget.style.background = '#f8f9fa';
-                  }
-                }}
+                `}
+                style={entryData.moodRating === mood.value
+                  ? { background: `linear-gradient(135deg, ${mood.color} 0%, ${mood.color}dd 100%)`, borderColor: mood.color }
+                  : undefined
+                }
               >
                 <span>{mood.emoji}</span>
-                <span style={{ 
-                  fontSize: '14px', 
-                  color: entryData.moodRating === mood.value ? '#fff' : '#475569',
-                  fontWeight: 600
-                }}>
+                <span className={`text-sm font-semibold ${
+                  entryData.moodRating === mood.value ? 'text-white' : 'text-gantly-muted'
+                }`}>
                   {mood.label}
                 </span>
               </button>
@@ -1110,72 +760,36 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
       {/* Paso 2: Emociones */}
       {step === 2 && (
         <div>
-          <h2 style={{ 
-            fontSize: '24px', 
-            fontWeight: 700, 
-            color: '#0F172A',
-            marginBottom: '24px',
-            textAlign: 'center'
-          }}>
-            ¿Qué emociones estás experimentando?
+          <h2 className="text-2xl font-bold text-gantly-text mb-6 text-center font-heading">
+            ¿Que emociones estas experimentando?
           </h2>
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(3, 1fr)', 
-            gap: '12px',
-            marginBottom: '24px'
-          }}>
+          <div className="grid grid-cols-3 gap-3 mb-6">
             {emotions.map(emotion => (
               <button
                 key={emotion}
-                onClick={() => toggleSelection(entryData.emotions, emotion, (arr) => 
+                onClick={() => toggleSelection(entryData.emotions, emotion, (arr) =>
                   setEntryData({ ...entryData, emotions: arr }))}
-                style={{
-                  padding: '16px',
-                  background: entryData.emotions.includes(emotion) 
-                    ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                    : '#f8f9fa',
-                  color: entryData.emotions.includes(emotion) ? '#fff' : '#475569',
-                  border: entryData.emotions.includes(emotion) 
-                    ? '2px solid #667eea'
-                    : '2px solid #e5e7eb',
-                  borderRadius: '12px',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  fontWeight: 600,
-                  fontSize: '14px'
-                }}
+                className={`p-4 rounded-xl cursor-pointer transition-all duration-300 font-semibold text-sm border-2
+                  ${entryData.emotions.includes(emotion)
+                    ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white border-indigo-500'
+                    : 'bg-slate-50 text-gantly-muted border-gray-200 hover:bg-slate-100'
+                  }
+                `}
               >
                 {emotion}
               </button>
             ))}
           </div>
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+          <div className="flex gap-3 justify-center">
             <button
               onClick={() => setStep(1)}
-              style={{
-                padding: '12px 24px',
-                background: '#e5e7eb',
-                color: '#475569',
-                border: 'none',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                fontWeight: 600
-              }}
+              className="px-6 py-3 bg-gray-200 text-gantly-muted border-none rounded-xl cursor-pointer font-semibold hover:bg-gray-300"
             >
-              Atrás
+              Atras
             </button>
             <button
               onClick={() => setStep(3)}
-              style={{
-                padding: '12px 24px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                fontWeight: 600
-              }}
+              className="px-6 py-3 bg-gradient-to-br from-indigo-500 to-purple-600 text-white border-none rounded-xl cursor-pointer font-semibold hover:from-indigo-600 hover:to-purple-700"
             >
               Siguiente
             </button>
@@ -1183,158 +797,81 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
         </div>
       )}
 
-      {/* Paso 3: Actividades, compañeros y ubicación */}
+      {/* Paso 3: Actividades, companeros y ubicacion */}
       {step === 3 && (
         <div>
-          <h2 style={{ 
-            fontSize: '24px', 
-            fontWeight: 700, 
-            color: '#0F172A',
-            marginBottom: '24px',
-            textAlign: 'center'
-          }}>
-            ¿Qué estás haciendo?
+          <h2 className="text-2xl font-bold text-gantly-text mb-6 text-center font-heading">
+            ¿Que estas haciendo?
           </h2>
-          <div style={{ 
-            display: 'flex', 
-            flexWrap: 'wrap', 
-            gap: '12px',
-            marginBottom: '32px',
-            justifyContent: 'center'
-          }}>
+          <div className="flex flex-wrap gap-3 mb-8 justify-center">
             {activities.map(activity => (
               <button
                 key={activity}
-                onClick={() => toggleSelection(entryData.activities, activity, (arr) => 
+                onClick={() => toggleSelection(entryData.activities, activity, (arr) =>
                   setEntryData({ ...entryData, activities: arr }))}
-                style={{
-                  padding: '12px 20px',
-                  background: entryData.activities.includes(activity) 
-                    ? 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)'
-                    : '#f8f9fa',
-                  color: entryData.activities.includes(activity) ? '#fff' : '#475569',
-                  border: entryData.activities.includes(activity) 
-                    ? '2px solid #f59e0b'
-                    : '2px solid #e5e7eb',
-                  borderRadius: '12px',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  fontWeight: 600,
-                  fontSize: '14px'
-                }}
+                className={`px-5 py-3 rounded-xl cursor-pointer transition-all duration-300 font-semibold text-sm border-2
+                  ${entryData.activities.includes(activity)
+                    ? 'bg-gradient-to-br from-amber-500 to-orange-500 text-white border-amber-500'
+                    : 'bg-slate-50 text-gantly-muted border-gray-200 hover:bg-slate-100'
+                  }
+                `}
               >
                 {activity}
               </button>
             ))}
           </div>
 
-          <h3 style={{ 
-            fontSize: '20px', 
-            fontWeight: 600, 
-            color: '#0F172A',
-            marginBottom: '16px'
-          }}>
-            ¿Con quién estás?
+          <h3 className="text-xl font-semibold text-gantly-text mb-4 font-heading">
+            ¿Con quien estas?
           </h3>
-          <div style={{ 
-            display: 'flex', 
-            flexWrap: 'wrap', 
-            gap: '12px',
-            marginBottom: '32px',
-            justifyContent: 'center'
-          }}>
+          <div className="flex flex-wrap gap-3 mb-8 justify-center">
             {companions.map(companion => (
               <button
                 key={companion}
-                onClick={() => toggleSelection(entryData.companions, companion, (arr) => 
+                onClick={() => toggleSelection(entryData.companions, companion, (arr) =>
                   setEntryData({ ...entryData, companions: arr }))}
-                style={{
-                  padding: '12px 20px',
-                  background: entryData.companions.includes(companion) 
-                    ? 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)'
-                    : '#f8f9fa',
-                  color: entryData.companions.includes(companion) ? '#fff' : '#475569',
-                  border: entryData.companions.includes(companion) 
-                    ? '2px solid #f59e0b'
-                    : '2px solid #e5e7eb',
-                  borderRadius: '12px',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  fontWeight: 600,
-                  fontSize: '14px'
-                }}
+                className={`px-5 py-3 rounded-xl cursor-pointer transition-all duration-300 font-semibold text-sm border-2
+                  ${entryData.companions.includes(companion)
+                    ? 'bg-gradient-to-br from-amber-500 to-orange-500 text-white border-amber-500'
+                    : 'bg-slate-50 text-gantly-muted border-gray-200 hover:bg-slate-100'
+                  }
+                `}
               >
                 {companion}
               </button>
             ))}
           </div>
 
-          <h3 style={{ 
-            fontSize: '20px', 
-            fontWeight: 600, 
-            color: '#0F172A',
-            marginBottom: '16px'
-          }}>
-            ¿Dónde estás?
+          <h3 className="text-xl font-semibold text-gantly-text mb-4 font-heading">
+            ¿Donde estas?
           </h3>
-          <div style={{ 
-            display: 'flex', 
-            flexWrap: 'wrap', 
-            gap: '12px',
-            marginBottom: '32px',
-            justifyContent: 'center'
-          }}>
+          <div className="flex flex-wrap gap-3 mb-8 justify-center">
             {locations.map(location => (
               <button
                 key={location}
                 onClick={() => setEntryData({ ...entryData, location })}
-                style={{
-                  padding: '12px 20px',
-                  background: entryData.location === location 
-                    ? 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)'
-                    : '#f8f9fa',
-                  color: entryData.location === location ? '#fff' : '#475569',
-                  border: entryData.location === location 
-                    ? '2px solid #f59e0b'
-                    : '2px solid #e5e7eb',
-                  borderRadius: '12px',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  fontWeight: 600,
-                  fontSize: '14px'
-                }}
+                className={`px-5 py-3 rounded-xl cursor-pointer transition-all duration-300 font-semibold text-sm border-2
+                  ${entryData.location === location
+                    ? 'bg-gradient-to-br from-amber-500 to-orange-500 text-white border-amber-500'
+                    : 'bg-slate-50 text-gantly-muted border-gray-200 hover:bg-slate-100'
+                  }
+                `}
               >
                 {location}
               </button>
             ))}
           </div>
 
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+          <div className="flex gap-3 justify-center">
             <button
               onClick={() => setStep(2)}
-              style={{
-                padding: '12px 24px',
-                background: '#e5e7eb',
-                color: '#475569',
-                border: 'none',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                fontWeight: 600
-              }}
+              className="px-6 py-3 bg-gray-200 text-gantly-muted border-none rounded-xl cursor-pointer font-semibold hover:bg-gray-300"
             >
-              Atrás
+              Atras
             </button>
             <button
               onClick={() => setStep(4)}
-              style={{
-                padding: '12px 24px',
-                background: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                fontWeight: 600
-              }}
+              className="px-6 py-3 bg-gradient-to-br from-amber-500 to-orange-500 text-white border-none rounded-xl cursor-pointer font-semibold hover:from-amber-600 hover:to-orange-600"
             >
               Siguiente
             </button>
@@ -1345,60 +882,31 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
       {/* Paso 4: Notas */}
       {step === 4 && (
         <div>
-          <h2 style={{ 
-            fontSize: '24px', 
-            fontWeight: 700, 
-            color: '#0F172A',
-            marginBottom: '24px',
-            textAlign: 'center'
-          }}>
-            ¿Qué está haciendo que tu tarde sea {entryData.moodRating <= 2 ? 'difícil' : entryData.moodRating >= 4 ? 'genial' : 'así'}?
+          <h2 className="text-2xl font-bold text-gantly-text mb-6 text-center font-heading">
+            ¿Que esta haciendo que tu tarde sea {entryData.moodRating <= 2 ? 'dificil' : entryData.moodRating >= 4 ? 'genial' : 'asi'}?
           </h2>
           <textarea
             value={entryData.notes}
             onChange={(e) => setEntryData({ ...entryData, notes: e.target.value })}
-            placeholder="Escribe aquí..."
-            style={{
-              width: '100%',
-              minHeight: '200px',
-              padding: '16px',
-              borderRadius: '12px',
-              border: '2px solid #e5e7eb',
-              fontSize: '16px',
-              resize: 'vertical',
-              marginBottom: '24px'
-            }}
+            placeholder="Escribe aqui..."
+            className="w-full min-h-[200px] p-4 rounded-xl border-2 border-gray-200 text-base resize-y mb-6 focus:border-gantly-blue focus:outline-none"
           />
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+          <div className="flex gap-3 justify-center">
             <button
               onClick={() => setStep(3)}
-              style={{
-                padding: '12px 24px',
-                background: '#e5e7eb',
-                color: '#475569',
-                border: 'none',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                fontWeight: 600
-              }}
+              className="px-6 py-3 bg-gray-200 text-gantly-muted border-none rounded-xl cursor-pointer font-semibold hover:bg-gray-300"
             >
-              Atrás
+              Atras
             </button>
             <button
               onClick={handleSave}
               disabled={saving}
-              style={{
-                padding: '12px 24px',
-                background: saving 
-                  ? '#9ca3af'
-                  : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '12px',
-                cursor: saving ? 'not-allowed' : 'pointer',
-                fontWeight: 600,
-                opacity: saving ? 0.7 : 1
-              }}
+              className={`px-6 py-3 text-white border-none rounded-xl font-semibold
+                ${saving
+                  ? 'bg-gray-400 cursor-not-allowed opacity-70'
+                  : 'bg-gradient-to-br from-indigo-500 to-purple-600 cursor-pointer hover:from-indigo-600 hover:to-purple-700'
+                }
+              `}
             >
               {saving ? 'Guardando...' : 'Guardar'}
             </button>
