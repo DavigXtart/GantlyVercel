@@ -36,7 +36,7 @@ public class AssignedTestService {
         if (RoleConstants.PSYCHOLOGIST.equals(user.getRole())) {
             assignedTests = assignedTestRepository.findByPsychologist_IdOrderByAssignedAtDesc(user.getId());
         } else {
-            assignedTests = assignedTestRepository.findByUser_IdAndCompletedAtIsNullOrderByAssignedAtDesc(user.getId());
+            assignedTests = assignedTestRepository.findByUser_IdOrderByAssignedAtDesc(user.getId());
         }
         if (assignedTests == null || assignedTests.isEmpty()) return Collections.emptyList();
         return assignedTests.stream().map(this::toDto).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
