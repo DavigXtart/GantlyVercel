@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { trackEvent } from '../utils/analytics';
 
 // Safe localStorage wrapper — handles SecurityError in private browsing / disabled storage
 export const safeStorage = {
@@ -872,6 +873,7 @@ export const jitsiService = {
 // Stripe
 export const stripeService = {
   createCheckoutSession: async (planId: string, isYearly: boolean) => {
+    trackEvent('checkout_started', { plan: planId });
     const { data } = await api.post('/stripe/create-checkout-session', {
       planId,
       isYearly
@@ -891,6 +893,7 @@ export const stripeService = {
     return data as Array<{ id: string; amount: number; currency: string; status: string; date: string; invoicePdf: string | null }>;
   },
   createAppointmentCheckout: async (appointmentId: number) => {
+    trackEvent('appointment_checkout_started');
     const { data } = await api.post('/stripe/appointment-checkout', { appointmentId });
     return data as { sessionId: string; url: string };
   },

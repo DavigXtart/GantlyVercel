@@ -19,9 +19,16 @@
             </encoder>
         </appender>
 
+        <!-- BetterStack/Logtail centralized logging -->
+        <appender name="LOGTAIL" class="com.logtail.logback.LogtailAppender">
+            <sourceToken>${BETTERSTACK_SOURCE_TOKEN:-}</sourceToken>
+            <appName>gantly-api</appName>
+        </appender>
+
         <root level="INFO">
             <appender-ref ref="CONSOLE" />
             <appender-ref ref="FILE" />
+            <appender-ref ref="LOGTAIL" />
         </root>
 
         <logger name="com.alvaro.psicoapp" level="INFO" />

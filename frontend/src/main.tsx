@@ -6,11 +6,27 @@ import './index.css'
 import './i18n/config'
 import App from './App.tsx'
 
-Sentry.init({
-  dsn: import.meta.env.VITE_SENTRY_DSN || '',
-  environment: import.meta.env.MODE,
-  enabled: !!import.meta.env.VITE_SENTRY_DSN,
-})
+// Umami Analytics (privacy-friendly, GDPR compliant)
+if (import.meta.env.VITE_UMAMI_WEBSITE_ID) {
+  const script = document.createElement('script');
+  script.defer = true;
+  script.src = import.meta.env.VITE_UMAMI_URL || 'https://cloud.umami.is/script.js';
+  script.setAttribute('data-website-id', import.meta.env.VITE_UMAMI_WEBSITE_ID);
+  document.head.appendChild(script);
+}
+
+if (import.meta.env.VITE_SENTRY_DSN) {
+  Sentry.init({
+    dsn: import.meta.env.VITE_SENTRY_DSN,
+    environment: import.meta.env.MODE,
+    integrations: [
+      Sentry.browserTracingIntegration(),
+    ],
+    tracesSampleRate: 0.1,
+    replaysSessionSampleRate: 0,
+    replaysOnErrorSampleRate: 0,
+  });
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

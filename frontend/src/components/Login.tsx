@@ -4,6 +4,7 @@ import { authService, companyAuthService, twoFactorService } from '../services/a
 import FormField from './ui/FormField';
 import { toast } from './ui/Toast';
 import LogoSvg from '../assets/logo-gantly.svg';
+import { trackEvent } from '../utils/analytics';
 
 interface LoginProps {
   onLogin: () => void;
@@ -92,6 +93,7 @@ export default function Login({
         }
       }
       setFormError(null);
+      trackEvent('login');
       toast.success('Sesión iniciada correctamente');
       onLogin();
     } catch (err: any) {

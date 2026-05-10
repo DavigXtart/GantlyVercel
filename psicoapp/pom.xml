@@ -118,9 +118,19 @@
       <version>7.14.0</version>
     </dependency>
     <dependency>
+      <groupId>io.sentry</groupId>
+      <artifactId>sentry-logback</artifactId>
+      <version>7.14.0</version>
+    </dependency>
+    <dependency>
       <groupId>dev.samstevens.totp</groupId>
       <artifactId>totp</artifactId>
       <version>1.7.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.logtail</groupId>
+      <artifactId>logback-logtail</artifactId>
+      <version>0.3.4</version>
     </dependency>
   </dependencies>
 

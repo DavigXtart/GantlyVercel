@@ -3,6 +3,7 @@ import { authService } from '../services/api';
 import FormField from './ui/FormField';
 import { toast } from './ui/Toast';
 import { Building2 } from 'lucide-react';
+import { trackEvent } from '../utils/analytics';
 
 interface RegisterProps {
   onRegister: () => void;
@@ -98,6 +99,7 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
         acceptTerms,
         healthConsent
       );
+      trackEvent('register', { role: inviteToken ? 'PSYCHOLOGIST' : 'USER' });
       toast.success('Te hemos enviado un codigo de verificacion a tu email');
       setStep('verify');
     } catch (err: any) {

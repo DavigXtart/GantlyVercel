@@ -31,6 +31,8 @@ Plataforma de salud mental que conecta pacientes con psicólogos.
 - **PDF Export**: html2canvas + jsPDF (frontend)
 - **Excel Import**: Apache POI 5.2.5 (backend)
 - **Payments**: Stripe (subscriptions + single appointment payments)
+- **Email**: Resend API (producción) / SMTP (desarrollo)
+- **Monitoring**: Sentry (error tracking), Umami (analytics), BetterStack/Logtail (logging)
 
 ## Architecture
 - Backend: Controllers → Services → Repositories → JPA Entities
@@ -210,6 +212,14 @@ El módulo de empresa está siendo reemplazado por un ERP completo para clínica
 - **Retención automática**: Job diario 3AM — cuentas no verificadas (30d), notificaciones (90d), cuentas borradas (30d)
 - **Banner storage consent**: CookieBanner global (almacenamiento local, no cookies de seguimiento)
 - **Pendiente (no código)**: DPAs con proveedores, DPIA, registro actividades de tratamiento, DPO, Jitsi en VPS EU
+
+## Email System (Resend + SMTP)
+- **Provider dual**: `EmailService` usa Resend API cuando `RESEND_API_KEY` está configurado, SMTP como fallback
+- **Resend config**: `app.email.resend-api-key`, `app.email.from` (noreply@gantly.com), `app.email.from-name` (Gantly)
+- **SMTP config**: `spring.mail.host/port/username/password` (Gmail)
+- **Templates**: Thymeleaf — el HTML renderizado es idéntico independientemente del proveedor
+- **Selección automática**: `@PostConstruct logProvider()` informa qué proveedor está activo
+- **Dependency**: `com.resend:resend-java:3.1.0`
 
 ## Email Templates (Thymeleaf)
 Located in `psicoapp/src/main/resources/templates/email/`:
@@ -397,6 +407,29 @@ Located in `psicoapp/src/main/resources/db/`:
 - **Timezone**: AppTimezone.APP_ZONE = Europe/Madrid centralizado en todos los servicios
 - **Tax fields**: taxRate, taxAmount, totalAmount, taxExempt — default exento (sanitario)
 
+## Monitoring & Observability
+
+### Sentry (Error Tracking)
+- **Backend**: `sentry-spring-boot-starter-jakarta` + `sentry-logback` (7.14.0)
+- **Frontend**: `@sentry/react` init en `main.tsx` con guard `VITE_SENTRY_DSN`
+- **Config**: `sentry.dsn`, `sentry.environment`, `sentry.traces-sample-rate` (0.1 dev, 0.2 prod)
+- **PII**: `send-default-pii: false` (RGPD compliant)
+- **Env vars**: `SENTRY_DSN` (backend), `VITE_SENTRY_DSN` (frontend)
+
+### Umami (Analytics)
+- **Script**: Cargado dinámicamente en `main.tsx` si `VITE_UMAMI_WEBSITE_ID` está definido
+- **Server**: Self-hosted o Umami Cloud (cloud.umami.is)
+- **RGPD**: No usa cookies, no requiere consentimiento
+- **Custom events**: `trackEvent()` en `frontend/src/utils/analytics.ts`
+- **Eventos trackeados**: `register` (con role), `login`, `checkout_started`, `appointment_checkout_started`
+- **Env vars**: `VITE_UMAMI_WEBSITE_ID`, `VITE_UMAMI_SRC` (URL del script)
+
+### BetterStack / Logtail (Logging centralizado)
+- **Dependency**: `com.logtail:logback-logtail:0.3.4`
+- **Config**: Appender en `logback-spring.xml`, solo perfil `prod`
+- **Env var**: `BETTERSTACK_SOURCE_TOKEN` (en application.yml como `app.betterstack.source-token`)
+- **Formato**: JSON structurado (timestamp, level, logger, thread, message)
+
 ## Deploy Plan (Supabase + Render)
 
 | Componente | Servicio | Región | Coste |
@@ -407,14 +440,21 @@ Located in `psicoapp/src/main/resources/db/`:
 | Videollamadas (Jitsi) | Hetzner VPS | Falkenstein DE | ~5€/mes |
 | Archivos (avatars, docs) | Supabase Storage | eu-central-1 | Incluido |
 
-### Env vars necesarias en Render
+### Env vars necesarias en Render (backend)
 - `DB_PASSWORD`, `DB_URL` — Supabase PostgreSQL connection
 - `JWT_SECRET` — secreto para firmar tokens
 - `PII_ENCRYPTION_KEY` — clave para encriptación PII (32+ chars)
 - `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` — Stripe API
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` — Google OAuth2
-- `MAIL_USERNAME`, `MAIL_PASSWORD` — SMTP (Gmail o servicio)
+- `RESEND_API_KEY` — Resend email API (reemplaza SMTP en prod)
+- `SENTRY_DSN` — Sentry error tracking
+- `BETTERSTACK_SOURCE_TOKEN` — BetterStack/Logtail logging
 - `FRONTEND_URL` — URL del frontend para CORS y redirects
+
+### Env vars necesarias en Vercel (frontend)
+- `VITE_SENTRY_DSN` — Sentry error tracking frontend
+- `VITE_UMAMI_WEBSITE_ID` — Umami analytics website ID
+- `VITE_UMAMI_SRC` — Umami script URL (default: https://cloud.umami.is/script.js)
 
 ### Tareas de deploy (no código)
 - Firmar DPAs con Supabase, Render, Stripe (descargar de sus webs)

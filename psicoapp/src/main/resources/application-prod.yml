@@ -74,8 +74,10 @@ logging:
 # Sentry
 sentry:
   dsn: ${SENTRY_DSN:}
-  traces-sample-rate: 0.2
   environment: production
+  traces-sample-rate: 0.2
+  exception-resolver-order: -2147483647
+  send-default-pii: false
 
 # Actuator (monitoreo)
 management:
