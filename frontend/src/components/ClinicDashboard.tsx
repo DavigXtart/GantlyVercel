@@ -69,6 +69,16 @@ interface Psychologist {
 // ---------------------------------------------------------------------------
 // KPI card
 // ---------------------------------------------------------------------------
+type KpiColor = 'blue' | 'emerald' | 'gold' | 'cyan' | 'violet';
+
+const KPI_STYLES: Record<KpiColor, { gradient: string; iconBg: string; iconText: string; watermark: string }> = {
+  blue:    { gradient: 'from-gantly-blue to-gantly-cyan', iconBg: 'from-gantly-blue/10 to-gantly-cyan/10', iconText: 'text-gantly-blue', watermark: 'text-gantly-blue' },
+  emerald: { gradient: 'from-gantly-emerald to-teal-400', iconBg: 'from-gantly-emerald/10 to-teal-100', iconText: 'text-gantly-emerald', watermark: 'text-gantly-emerald' },
+  gold:    { gradient: 'from-amber-400 to-gantly-gold', iconBg: 'from-amber-50 to-gantly-gold/15', iconText: 'text-amber-500', watermark: 'text-amber-400' },
+  cyan:    { gradient: 'from-gantly-cyan to-sky-400', iconBg: 'from-gantly-cyan/10 to-sky-100', iconText: 'text-gantly-cyan', watermark: 'text-gantly-cyan' },
+  violet:  { gradient: 'from-violet-500 to-purple-400', iconBg: 'from-violet-50 to-purple-50', iconText: 'text-violet-500', watermark: 'text-violet-400' },
+};
+
 function KpiCard({
   icon,
   label,
@@ -76,6 +86,7 @@ function KpiCard({
   subtitle,
   onClick,
   span2,
+  color = 'blue',
 }: {
   icon: string;
   label: string;
@@ -83,19 +94,21 @@ function KpiCard({
   subtitle: string;
   onClick: () => void;
   span2?: boolean;
+  color?: KpiColor;
 }) {
+  const style = KPI_STYLES[color];
   return (
     <button
       type="button"
       onClick={onClick}
       className={`bg-white rounded-xl border border-slate-200 shadow-soft text-left w-full relative overflow-hidden group hover:-translate-y-1 hover:shadow-lg transition-all duration-300 ${span2 ? 'col-span-2' : ''}`}
     >
-      <div className="h-1 bg-gradient-to-r from-gantly-blue to-gantly-cyan rounded-t-xl" />
+      <div className={`h-1 bg-gradient-to-r ${style.gradient} rounded-t-xl`} />
       <div className="p-8">
-        <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform text-gantly-blue">
+        <div className={`absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform ${style.watermark}`}>
           {kpiIconMap[icon]?.(48)}
         </div>
-        <div className="size-12 bg-gradient-to-br from-gantly-blue/10 to-gantly-cyan/10 flex items-center justify-center rounded-xl text-gantly-blue mb-6">
+        <div className={`size-12 bg-gradient-to-br ${style.iconBg} flex items-center justify-center rounded-xl ${style.iconText} mb-6`}>
           {kpiIconMap[icon]?.(24)}
         </div>
         <h3 className="text-3xl font-bold text-gantly-text mb-1">{value}</h3>
@@ -169,6 +182,7 @@ function HomeTab({
           value={String(psychologists.length)}
           subtitle="en la clínica"
           onClick={() => onNavigate('equipo')}
+          color="emerald"
           span2
         />
         <KpiCard
@@ -177,6 +191,7 @@ function HomeTab({
           value={stats ? String(stats.appointmentsThisMonth) : '—'}
           subtitle="programadas"
           onClick={() => onNavigate('agenda')}
+          color="gold"
         />
         <KpiCard
           icon="people"
@@ -184,6 +199,7 @@ function HomeTab({
           value={stats ? String(stats.totalPatients) : '—'}
           subtitle="registrados"
           onClick={() => onNavigate('pacientes')}
+          color="cyan"
         />
         <KpiCard
           icon="receipt_long"
@@ -191,6 +207,7 @@ function HomeTab({
           value={stats ? `${stats.revenueThisMonth.toFixed(0)}€` : '—'}
           subtitle="este mes"
           onClick={() => onNavigate('facturacion')}
+          color="blue"
         />
         <KpiCard
           icon="bar_chart"
@@ -198,6 +215,7 @@ function HomeTab({
           value="Ver datos"
           subtitle="de la clínica"
           onClick={() => onNavigate('estadisticas')}
+          color="violet"
         />
       </div>
     </div>
@@ -597,67 +615,78 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
 
   return (
     <div className="space-y-6">
+      {/* Section header */}
+      <div className="flex items-center gap-3 mb-2">
+        <div className="w-1.5 h-8 rounded-full bg-gradient-to-b from-gantly-blue to-gantly-cyan" />
+        <div>
+          <h2 className="text-lg font-heading font-bold text-slate-900">Configuracion de la clinica</h2>
+          <p className="text-xs text-slate-500 font-body">Personaliza tu espacio de trabajo</p>
+        </div>
+      </div>
+
       {/* Row 1: Datos + Horario side by side */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Card 1 — Clinic data */}
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden flex flex-col">
-          <div className="h-1 bg-gradient-to-r from-gantly-blue to-gantly-cyan" />
+          <div className="h-1.5 bg-gradient-to-r from-gantly-blue to-gantly-cyan" />
           <div className="p-6 flex-1 flex flex-col">
             <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-2.5">
-                <div className="size-9 rounded-xl bg-gradient-to-br from-gantly-blue/10 to-gantly-cyan/10 flex items-center justify-center">
-                  <Building2 size={18} className="text-gantly-blue" />
+              <div className="flex items-center gap-3">
+                <div className="size-10 rounded-xl bg-gradient-to-br from-gantly-blue/10 to-gantly-cyan/10 flex items-center justify-center shadow-sm">
+                  <Building2 size={20} className="text-gantly-blue" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-heading font-bold text-slate-900">Datos de la clínica</h3>
-                  <p className="text-xs text-slate-500">Información general y contacto</p>
+                  <h3 className="text-base font-heading font-bold text-slate-900">Datos de la clinica</h3>
+                  <p className="text-xs text-slate-500">Informacion general y contacto</p>
                 </div>
               </div>
               {infoSaved && (
-                <span className="text-xs text-emerald-600 font-medium bg-emerald-50 px-2.5 py-1 rounded-full animate-pulse">Guardado</span>
+                <span className="text-xs text-gantly-emerald font-semibold bg-gantly-emerald/10 px-3 py-1.5 rounded-full inline-flex items-center gap-1.5">
+                  <Check size={12} /> Guardado
+                </span>
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-3 flex-1">
+            <div className="grid grid-cols-2 gap-4 flex-1">
               <div>
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5 block">Nombre</label>
+                <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1.5 block">Nombre</label>
                 <input type="text" value={infoForm.name} onChange={e => setInfoForm(p => ({ ...p, name: e.target.value }))} className={inputCls} />
               </div>
               <div>
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5 block">Teléfono</label>
+                <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1.5 block">Telefono</label>
                 <input type="tel" value={infoForm.phone} onChange={e => setInfoForm(p => ({ ...p, phone: e.target.value }))} className={inputCls} placeholder="+34 600 000 000" />
               </div>
               <div className="col-span-2">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5 block">Dirección</label>
-                <input type="text" value={infoForm.address} onChange={e => setInfoForm(p => ({ ...p, address: e.target.value }))} className={inputCls} placeholder="Calle, número, ciudad" />
+                <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1.5 block">Direccion</label>
+                <input type="text" value={infoForm.address} onChange={e => setInfoForm(p => ({ ...p, address: e.target.value }))} className={inputCls} placeholder="Calle, numero, ciudad" />
               </div>
               <div>
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5 block">Website</label>
+                <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1.5 block">Website</label>
                 <input type="url" value={infoForm.website} onChange={e => setInfoForm(p => ({ ...p, website: e.target.value }))} className={inputCls} placeholder="https://..." />
               </div>
               <div>
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5 block">Logo URL</label>
+                <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1.5 block">Logo URL</label>
                 <input type="url" value={infoForm.logoUrl} onChange={e => setInfoForm(p => ({ ...p, logoUrl: e.target.value }))} className={inputCls} placeholder="https://..." />
               </div>
             </div>
 
             {/* Referral code + save */}
-            <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
+            <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-2">
-                  <Tag size={14} className="text-slate-500" />
+                <div className="flex items-center gap-2 bg-gantly-gold/8 border border-gantly-gold/20 rounded-xl px-3.5 py-2">
+                  <Tag size={14} className="text-amber-500" />
                   <span className="text-sm font-mono font-bold text-slate-700">{clinicInfo?.referralCode ?? '—'}</span>
                   <button
                     onClick={() => { navigator.clipboard.writeText(clinicInfo?.referralCode ?? ''); setCopiedCode(true); setTimeout(() => setCopiedCode(false), 1500); }}
-                    className="text-gantly-blue hover:text-gantly-blue/70 cursor-pointer bg-transparent border-none p-0.5"
-                    title="Copiar código"
+                    className="text-amber-500 hover:text-amber-600 cursor-pointer bg-transparent border-none p-0.5"
+                    title="Copiar codigo"
                   >
                     {copiedCode ? <Check size={14} /> : <Copy size={14} />}
                   </button>
                 </div>
-                <span className="text-[11px] text-slate-500 hidden sm:inline">Código para invitar psicólogos</span>
+                <span className="text-[11px] text-slate-500 hidden sm:inline">Codigo para invitar psicologos</span>
               </div>
-              <button onClick={handleSaveInfo} disabled={savingInfo} className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-gantly-blue to-gantly-cyan text-white text-sm font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-50 cursor-pointer border-none">
+              <button onClick={handleSaveInfo} disabled={savingInfo} className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-gantly-blue to-gantly-cyan text-white text-sm font-heading font-semibold shadow-md hover:shadow-lg hover:shadow-gantly-blue/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-50 cursor-pointer border-none">
                 {savingInfo ? 'Guardando...' : 'Guardar cambios'}
               </button>
             </div>
@@ -666,52 +695,63 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
 
         {/* Card 2 — Weekly schedule */}
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden flex flex-col">
-          <div className="h-1 bg-gradient-to-r from-gantly-cyan to-emerald-400" />
+          <div className="h-1.5 bg-gradient-to-r from-gantly-emerald to-teal-400" />
           <div className="p-6 flex-1 flex flex-col">
             <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-2.5">
-                <div className="size-9 rounded-xl bg-gradient-to-br from-gantly-cyan/10 to-emerald-100 flex items-center justify-center">
-                  <Clock size={18} className="text-gantly-cyan" />
+              <div className="flex items-center gap-3">
+                <div className="size-10 rounded-xl bg-gradient-to-br from-gantly-emerald/10 to-teal-100 flex items-center justify-center shadow-sm">
+                  <Clock size={20} className="text-gantly-emerald" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-heading font-bold text-slate-900">Horario semanal</h3>
-                  <p className="text-xs text-slate-500">Horario de apertura de la clínica</p>
+                  <h3 className="text-base font-heading font-bold text-slate-900">Horario semanal</h3>
+                  <p className="text-xs text-slate-500">Horario de apertura de la clinica</p>
                 </div>
               </div>
               {scheduleSaved && (
-                <span className="text-xs text-emerald-600 font-medium bg-emerald-50 px-2.5 py-1 rounded-full animate-pulse">Guardado</span>
+                <span className="text-xs text-gantly-emerald font-semibold bg-gantly-emerald/10 px-3 py-1.5 rounded-full inline-flex items-center gap-1.5">
+                  <Check size={12} /> Guardado
+                </span>
               )}
             </div>
 
-            <div className="flex-1 space-y-1">
-              {schedule.map((day, idx) => (
-                <div key={day.day} className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-colors duration-200 ${day.closed ? 'bg-slate-50/50' : 'hover:bg-slate-50/80'}`}>
-                  <span className={`w-20 text-sm font-medium ${day.closed ? 'text-slate-500' : 'text-slate-700'}`}>{day.day}</span>
-                  {/* Toggle switch */}
-                  <button
-                    type="button"
-                    onClick={() => updateDay(idx, 'closed', !day.closed)}
-                    className={`relative w-10 h-[22px] rounded-full transition-colors duration-200 cursor-pointer border-none flex-shrink-0 ${day.closed ? 'bg-slate-200' : 'bg-gantly-blue'}`}
-                  >
-                    <span className={`absolute top-[3px] w-4 h-4 rounded-full bg-white shadow-sm transition-all duration-200 ${day.closed ? 'left-[3px]' : 'left-[21px]'}`} />
-                  </button>
-                  {!day.closed ? (
-                    <div className="flex items-center gap-2 flex-1">
-                      <input type="time" value={day.openTime} onChange={e => updateDay(idx, 'openTime', e.target.value)}
-                        className="h-8 px-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 outline-none focus:border-gantly-blue transition-colors w-[110px]" />
-                      <span className="text-slate-500 text-sm">—</span>
-                      <input type="time" value={day.closeTime} onChange={e => updateDay(idx, 'closeTime', e.target.value)}
-                        className="h-8 px-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 outline-none focus:border-gantly-blue transition-colors w-[110px]" />
-                    </div>
-                  ) : (
-                    <span className="text-xs text-slate-500 italic">Cerrado</span>
-                  )}
-                </div>
-              ))}
+            <div className="flex-1 space-y-1.5">
+              {schedule.map((day, idx) => {
+                const isWeekend = idx >= 5;
+                return (
+                  <div key={day.day} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
+                    day.closed
+                      ? 'bg-slate-50/80'
+                      : isWeekend
+                        ? 'bg-amber-50/40 hover:bg-amber-50/70'
+                        : 'hover:bg-gantly-emerald/5'
+                  }`}>
+                    <span className={`w-20 text-sm font-medium ${day.closed ? 'text-slate-400 line-through' : isWeekend ? 'text-amber-600' : 'text-slate-700'}`}>{day.day}</span>
+                    {/* Toggle switch */}
+                    <button
+                      type="button"
+                      onClick={() => updateDay(idx, 'closed', !day.closed)}
+                      className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer border-none flex-shrink-0 ${day.closed ? 'bg-slate-200' : 'bg-gantly-emerald'}`}
+                    >
+                      <span className={`absolute top-[3px] w-[18px] h-[18px] rounded-full bg-white shadow-sm transition-all duration-200 ${day.closed ? 'left-[3px]' : 'left-[23px]'}`} />
+                    </button>
+                    {!day.closed ? (
+                      <div className="flex items-center gap-2 flex-1">
+                        <input type="time" value={day.openTime} onChange={e => updateDay(idx, 'openTime', e.target.value)}
+                          className="h-9 px-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 outline-none focus:border-gantly-emerald focus:ring-2 focus:ring-gantly-emerald/10 transition-all w-[110px]" />
+                        <span className="text-slate-400 text-xs font-medium">a</span>
+                        <input type="time" value={day.closeTime} onChange={e => updateDay(idx, 'closeTime', e.target.value)}
+                          className="h-9 px-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 outline-none focus:border-gantly-emerald focus:ring-2 focus:ring-gantly-emerald/10 transition-all w-[110px]" />
+                      </div>
+                    ) : (
+                      <span className="text-xs text-slate-400 font-medium">Cerrado</span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             <div className="mt-4 pt-4 border-t border-slate-100 flex justify-end">
-              <button onClick={handleSaveSchedule} disabled={savingSchedule} className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-gantly-cyan to-emerald-400 text-white text-sm font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-50 cursor-pointer border-none">
+              <button onClick={handleSaveSchedule} disabled={savingSchedule} className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-gantly-emerald to-teal-400 text-white text-sm font-heading font-semibold shadow-md hover:shadow-lg hover:shadow-gantly-emerald/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-50 cursor-pointer border-none">
                 {savingSchedule ? 'Guardando...' : 'Guardar horario'}
               </button>
             </div>
@@ -723,20 +763,22 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Card 3 — Services catalog */}
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden flex flex-col">
-          <div className="h-1 bg-gradient-to-r from-amber-400 to-gantly-gold" />
+          <div className="h-1.5 bg-gradient-to-r from-amber-400 to-gantly-gold" />
           <div className="p-6 flex-1 flex flex-col">
             <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-2.5">
-                <div className="size-9 rounded-xl bg-gradient-to-br from-amber-50 to-gantly-gold/10 flex items-center justify-center">
-                  <Stethoscope size={18} className="text-amber-500" />
+              <div className="flex items-center gap-3">
+                <div className="size-10 rounded-xl bg-gradient-to-br from-amber-50 to-gantly-gold/15 flex items-center justify-center shadow-sm">
+                  <Stethoscope size={20} className="text-amber-500" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-heading font-bold text-slate-900">Catalogo de servicios</h3>
-                  <p className="text-xs text-slate-500">{services.length} servicio{services.length !== 1 ? 's' : ''} configurado{services.length !== 1 ? 's' : ''}</p>
+                  <h3 className="text-base font-heading font-bold text-slate-900">Catalogo de servicios</h3>
+                  <p className="text-xs text-slate-500">
+                    {services.length} servicio{services.length !== 1 ? 's' : ''} configurado{services.length !== 1 ? 's' : ''}
+                  </p>
                 </div>
               </div>
               {!showServiceForm && (
-                <button onClick={() => setShowServiceForm(true)} className="flex items-center gap-1.5 text-xs text-gantly-blue font-semibold cursor-pointer bg-gantly-blue/5 hover:bg-gantly-blue/10 border-none px-3 py-2 rounded-lg transition-colors">
+                <button onClick={() => setShowServiceForm(true)} className="flex items-center gap-1.5 text-xs text-amber-600 font-semibold cursor-pointer bg-amber-50 hover:bg-amber-100 border border-amber-200/60 px-3.5 py-2 rounded-xl transition-all hover:shadow-sm">
                   <Plus size={14} />
                   Nuevo
                 </button>
@@ -744,20 +786,20 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
             </div>
 
             {showServiceForm && (
-              <div className="border border-gantly-blue/20 rounded-xl p-4 space-y-3 bg-gantly-blue/[0.02] mb-4">
+              <div className="border border-amber-200/60 rounded-xl p-4 space-y-3 bg-amber-50/30 mb-4">
                 <input type="text" placeholder="Ej: Psicoterapia individual" value={newService.name}
                   onChange={e => setNewService(p => ({ ...p, name: e.target.value }))}
                   onKeyDown={e => { if (e.key === 'Enter' && newService.name.trim()) handleCreateService(); if (e.key === 'Escape') { setShowServiceForm(false); setNewService({ name: '', defaultPrice: '', durationMinutes: '' }); } }}
                   className={inputCls} autoFocus />
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[11px] text-slate-500 font-medium mb-1 block">Precio (EUR)</label>
+                    <label className="text-[11px] text-slate-600 font-semibold mb-1 block uppercase tracking-wider">Precio (EUR)</label>
                     <input type="number" step="0.01" min="0" placeholder="60.00" value={newService.defaultPrice}
                       onChange={e => setNewService(p => ({ ...p, defaultPrice: e.target.value }))}
                       className={inputCls} />
                   </div>
                   <div>
-                    <label className="text-[11px] text-slate-500 font-medium mb-1 block">Duracion (min)</label>
+                    <label className="text-[11px] text-slate-600 font-semibold mb-1 block uppercase tracking-wider">Duracion (min)</label>
                     <input type="number" min="5" step="5" placeholder="50" value={newService.durationMinutes}
                       onChange={e => setNewService(p => ({ ...p, durationMinutes: e.target.value }))}
                       className={inputCls} />
@@ -765,11 +807,11 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                 </div>
                 <div className="flex gap-2 pt-1">
                   <button onClick={handleCreateService} disabled={savingService || !newService.name.trim()}
-                    className="px-4 py-2 rounded-lg bg-gantly-blue text-white text-xs font-semibold hover:bg-gantly-blue/90 transition-colors disabled:opacity-50 cursor-pointer border-none">
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-gantly-gold text-white text-xs font-semibold hover:shadow-md transition-all disabled:opacity-50 cursor-pointer border-none">
                     {savingService ? 'Creando...' : 'Crear servicio'}
                   </button>
                   <button onClick={() => { setShowServiceForm(false); setNewService({ name: '', defaultPrice: '', durationMinutes: '' }); }}
-                    className="px-4 py-2 rounded-lg text-slate-500 text-xs hover:bg-slate-100 transition-colors cursor-pointer bg-transparent border-none">
+                    className="px-4 py-2 rounded-xl text-slate-500 text-xs hover:bg-slate-100 transition-colors cursor-pointer bg-transparent border-none">
                     Cancelar
                   </button>
                 </div>
@@ -779,32 +821,32 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
             <div className="flex-1">
               {loadingServices ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="w-6 h-6 border-2 border-slate-200 border-t-gantly-blue rounded-full animate-spin" />
+                  <div className="w-6 h-6 border-2 border-slate-200 border-t-amber-400 rounded-full animate-spin" />
                 </div>
               ) : services.length === 0 && !showServiceForm ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <div className="size-12 rounded-2xl bg-slate-50 flex items-center justify-center mb-3">
-                    <Package size={24} className="text-slate-500" />
+                  <div className="size-14 rounded-2xl bg-amber-50 flex items-center justify-center mb-3">
+                    <Package size={28} className="text-amber-300" />
                   </div>
-                  <p className="text-sm text-slate-500">Sin servicios configurados</p>
+                  <p className="text-sm font-medium text-slate-600">Sin servicios configurados</p>
                   <p className="text-xs text-slate-500 mt-1">Anade tu primer servicio para empezar</p>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {services.map(svc => (
-                    <div key={svc.id} className="flex items-center justify-between px-3.5 py-3 rounded-xl hover:bg-slate-50 group transition-colors duration-200">
+                <div className="space-y-1.5">
+                  {services.map((svc, i) => (
+                    <div key={svc.id} className="flex items-center justify-between px-4 py-3.5 rounded-xl hover:bg-amber-50/40 group transition-all duration-200 border border-transparent hover:border-amber-100">
                       <div className="flex items-center gap-3">
-                        <div className="size-8 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
-                          <Flower2 size={14} className="text-amber-500" />
+                        <div className="size-9 rounded-xl bg-gradient-to-br from-amber-100 to-gantly-gold/20 flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs font-heading font-bold text-amber-600">{i + 1}</span>
                         </div>
                         <div>
                           <span className="text-sm font-medium text-slate-900">{svc.name}</span>
-                          <div className="flex items-center gap-2 mt-0.5">
+                          <div className="flex items-center gap-3 mt-0.5">
                             {svc.defaultPrice != null && (
-                              <span className="text-xs font-semibold text-emerald-600">{svc.defaultPrice}€</span>
+                              <span className="text-xs font-bold text-gantly-emerald bg-gantly-emerald/8 px-2 py-0.5 rounded-full">{svc.defaultPrice}\u20AC</span>
                             )}
                             {svc.durationMinutes != null && (
-                              <span className="text-[11px] text-slate-500 flex items-center gap-0.5">
+                              <span className="text-[11px] text-slate-500 flex items-center gap-1">
                                 <Timer size={11} />
                                 {svc.durationMinutes} min
                               </span>
@@ -813,7 +855,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                         </div>
                       </div>
                       <button onClick={() => handleDeleteService(svc.id)}
-                        className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 transition-all p-1.5 rounded-lg cursor-pointer bg-transparent border-none hover:bg-red-50">
+                        className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all p-2 rounded-xl cursor-pointer bg-transparent border-none hover:bg-red-50">
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -826,30 +868,30 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
 
         {/* Card 4 — Rooms */}
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden flex flex-col">
-          <div className="h-1 bg-gradient-to-r from-violet-400 to-purple-400" />
+          <div className="h-1.5 bg-gradient-to-r from-violet-500 to-purple-400" />
           <div className="p-6 flex-1 flex flex-col">
-            <div className="flex items-center gap-2.5 mb-5">
-              <div className="size-9 rounded-xl bg-gradient-to-br from-violet-50 to-purple-50 flex items-center justify-center">
-                <DoorOpen size={18} className="text-gantly-blue" />
+            <div className="flex items-center gap-3 mb-5">
+              <div className="size-10 rounded-xl bg-gradient-to-br from-violet-50 to-purple-50 flex items-center justify-center shadow-sm">
+                <DoorOpen size={20} className="text-violet-500" />
               </div>
               <div>
-                <h3 className="text-sm font-heading font-bold text-slate-900">Despachos</h3>
-                <p className="text-xs text-slate-500">Un despacho por psicólogo para citas presenciales</p>
+                <h3 className="text-base font-heading font-bold text-slate-900">Despachos</h3>
+                <p className="text-xs text-slate-500">Un despacho por psicologo para citas presenciales</p>
               </div>
             </div>
 
             <div className="flex-1">
               {loadingRooms ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="w-6 h-6 border-2 border-slate-200 border-t-gantly-blue rounded-full animate-spin" />
+                  <div className="w-6 h-6 border-2 border-slate-200 border-t-violet-500 rounded-full animate-spin" />
                 </div>
               ) : psychologists.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <div className="size-12 rounded-2xl bg-slate-50 flex items-center justify-center mb-3">
-                    <UserX size={24} className="text-slate-500" />
+                  <div className="size-14 rounded-2xl bg-violet-50 flex items-center justify-center mb-3">
+                    <UserX size={28} className="text-violet-300" />
                   </div>
-                  <p className="text-sm text-slate-500">No hay psicólogos en la clínica</p>
-                  <p className="text-xs text-slate-500 mt-1">Invita psicólogos desde la pestaña Equipo</p>
+                  <p className="text-sm font-medium text-slate-600">No hay psicologos en la clinica</p>
+                  <p className="text-xs text-slate-500 mt-1">Invita psicologos desde la pestana Equipo</p>
                 </div>
               ) : (
                 <ul className="space-y-2">
@@ -858,28 +900,30 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                     const isAdding = addingForPsychId === psych.id;
 
                     return (
-                      <li key={psych.id} className="rounded-xl border border-slate-100 overflow-hidden hover:border-slate-200 transition-all duration-200">
-                        <div className="flex items-center gap-3 px-4 py-3">
+                      <li key={psych.id} className="rounded-xl border border-slate-100 overflow-hidden hover:border-violet-200 transition-all duration-200 group/room">
+                        <div className="flex items-center gap-3 px-4 py-3.5">
                           <div
-                            className="size-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm"
+                            className="size-10 rounded-xl flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm"
                             style={{ background: room ? room.color : '#94a3b8' }}
                           >
                             {psych.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
                             <span className="text-sm font-medium text-slate-900 block truncate">{psych.name}</span>
-                            {room && (
-                              <span className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
-                                <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: room.color }} />
+                            {room ? (
+                              <span className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
+                                <span className="w-2.5 h-2.5 rounded-full inline-block shadow-sm" style={{ background: room.color }} />
                                 {room.name}
                               </span>
+                            ) : (
+                              <span className="text-[11px] text-slate-400 mt-0.5 italic">Sin despacho asignado</span>
                             )}
                           </div>
 
                           {room ? (
                             <button
                               onClick={() => handleDeleteRoom(room.id)}
-                              className="text-slate-500 hover:text-red-400 hover:bg-red-50 transition-all p-1.5 rounded-lg cursor-pointer bg-transparent border-none"
+                              className="opacity-0 group-hover/room:opacity-100 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all p-2 rounded-xl cursor-pointer bg-transparent border-none"
                               title="Eliminar despacho"
                             >
                               <Trash2 size={16} />
@@ -887,7 +931,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                           ) : !isAdding ? (
                             <button
                               onClick={() => startAdding(psych.id, `Consulta ${idx + 1}`)}
-                              className="flex items-center gap-1 text-[11px] text-slate-500 hover:text-gantly-blue border border-dashed border-slate-200 hover:border-gantly-blue/40 px-2.5 py-1.5 rounded-lg transition-all cursor-pointer bg-transparent"
+                              className="flex items-center gap-1.5 text-[11px] text-violet-500 hover:text-violet-600 border border-dashed border-violet-200 hover:border-violet-300 hover:bg-violet-50 px-3 py-2 rounded-xl transition-all cursor-pointer bg-transparent"
                             >
                               <Plus size={14} />
                               Asignar
@@ -896,7 +940,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                         </div>
 
                         {isAdding && (
-                          <div className="px-4 py-3 border-t border-slate-100 space-y-3 bg-slate-50/50">
+                          <div className="px-4 py-4 border-t border-slate-100 space-y-3 bg-violet-50/30">
                             <input
                               type="text"
                               placeholder="Nombre del despacho"
@@ -907,13 +951,13 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                               className={inputCls}
                             />
                             <div className="flex items-center gap-4">
-                              <div className="flex gap-1.5">
+                              <div className="flex gap-2">
                                 {ROOM_COLORS.map(c => (
                                   <button
                                     key={c}
                                     type="button"
                                     onClick={() => setNewRoomColor(c)}
-                                    className="w-5 h-5 rounded-full flex-shrink-0 cursor-pointer border-2 p-0 transition-all duration-150"
+                                    className="w-6 h-6 rounded-full flex-shrink-0 cursor-pointer border-2 p-0 transition-all duration-150 hover:scale-110"
                                     style={{ background: c, borderColor: newRoomColor === c ? '#0f172a' : 'transparent', transform: newRoomColor === c ? 'scale(1.15)' : 'scale(1)' }}
                                   />
                                 ))}
@@ -922,13 +966,13 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                                 <button
                                   onClick={() => handleSaveRoom(psych.id)}
                                   disabled={savingRoom || !newRoomName.trim()}
-                                  className="px-3 py-1.5 rounded-lg bg-gantly-blue text-white text-xs font-semibold hover:bg-gantly-blue/90 transition-colors disabled:opacity-50 cursor-pointer border-none"
+                                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-violet-500 to-purple-400 text-white text-xs font-semibold hover:shadow-md transition-all disabled:opacity-50 cursor-pointer border-none"
                                 >
                                   {savingRoom ? 'Guardando...' : 'Guardar'}
                                 </button>
                                 <button
                                   onClick={cancelAdding}
-                                  className="px-3 py-1.5 rounded-lg text-slate-500 text-xs hover:bg-slate-100 transition-colors cursor-pointer bg-transparent border-none"
+                                  className="px-4 py-2 rounded-xl text-slate-500 text-xs hover:bg-slate-100 transition-colors cursor-pointer bg-transparent border-none"
                                 >
                                   Cancelar
                                 </button>

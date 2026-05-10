@@ -70,8 +70,8 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
           setError('Por favor, completa todos los campos');
           return false;
         }
-        if (formData.password.length < 8) {
-          setError('La contraseña debe tener al menos 8 caracteres');
+        if (formData.password.length < 6) {
+          setError('La contraseña debe tener al menos 6 caracteres');
           return false;
         }
         if (formData.password !== formData.confirmPassword) {
@@ -364,12 +364,12 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      placeholder="Mínimo 8 caracteres"
+                      placeholder="Mínimo 6 caracteres"
                       required
                       className="w-full py-3.5 px-[18px] rounded-xl border border-gantly-blue-200 text-base transition-all outline-none focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/20"
                     />
                     <p className="text-xs text-gray-500 mt-1.5">
-                      Debe tener al menos 8 caracteres
+                      Debe tener al menos 6 caracteres
                     </p>
                   </div>
 

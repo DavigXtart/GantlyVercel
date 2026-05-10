@@ -61,7 +61,7 @@ export default function Login({
 
   const validatePassword = (password: string): string | undefined => {
     if (!password) return 'La contraseña es obligatoria';
-    if (password.length < 8) return 'La contraseña debe tener al menos 8 caracteres';
+    if (password.length < 6) return 'La contraseña debe tener al menos 6 caracteres';
     return undefined;
   };
 

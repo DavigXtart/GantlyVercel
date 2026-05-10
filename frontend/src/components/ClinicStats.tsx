@@ -45,11 +45,20 @@ export default function ClinicStats() {
     return (MONTH_NAMES[parts[1]] || parts[1]) + ' ' + parts[0]?.slice(2);
   };
 
-  const kpis: Array<{ icon: ReactNode; label: string; value: string | number; sub: string; featured: boolean }> = [
-    { icon: <Euro size={16} />, label: 'Facturación', value: '\u20AC' + stats.revenueThisMonth.toFixed(0), sub: revenueChange ? revenueChange + ' vs mes anterior' : 'este mes', featured: true },
-    { icon: <Users size={16} />, label: 'Psicólogos', value: stats.totalPsychologists, sub: 'en la clínica', featured: false },
-    { icon: <UsersRound size={16} />, label: 'Pacientes', value: stats.totalPatients, sub: 'activos', featured: false },
-    { icon: <CalendarDays size={16} />, label: 'Citas este mes', value: stats.appointmentsThisMonth, sub: 'confirmadas', featured: false },
+  const kpis: Array<{ icon: ReactNode; label: string; value: string | number; sub: string; featured: boolean; gradient: string; iconBg: string; iconColor: string }> = [
+    { icon: <Euro size={16} />, label: 'Facturación', value: '\u20AC' + stats.revenueThisMonth.toFixed(0), sub: revenueChange ? revenueChange + ' vs mes anterior' : 'este mes', featured: true, gradient: '', iconBg: 'bg-white/10', iconColor: 'text-white' },
+    { icon: <Users size={16} />, label: 'Psicólogos', value: stats.totalPsychologists, sub: 'en la clínica', featured: false, gradient: 'from-gantly-emerald to-teal-400', iconBg: 'from-gantly-emerald/10 to-teal-100', iconColor: 'text-gantly-emerald' },
+    { icon: <UsersRound size={16} />, label: 'Pacientes', value: stats.totalPatients, sub: 'activos', featured: false, gradient: 'from-gantly-cyan to-sky-400', iconBg: 'from-gantly-cyan/10 to-sky-100', iconColor: 'text-gantly-cyan' },
+    { icon: <CalendarDays size={16} />, label: 'Citas este mes', value: stats.appointmentsThisMonth, sub: 'confirmadas', featured: false, gradient: 'from-amber-400 to-gantly-gold', iconBg: 'from-amber-50 to-gantly-gold/15', iconColor: 'text-amber-500' },
+  ];
+
+  const BAR_COLORS = [
+    'from-gantly-blue to-gantly-cyan',
+    'from-gantly-emerald to-teal-400',
+    'from-amber-400 to-gantly-gold',
+    'from-violet-500 to-purple-400',
+    'from-gantly-cyan to-sky-400',
+    'from-rose-400 to-pink-400',
   ];
 
   return (
@@ -66,15 +75,15 @@ export default function ClinicStats() {
             }`}
           >
             {!kpi.featured && (
-              <div className="h-1 bg-gradient-to-r from-gantly-blue to-gantly-cyan rounded-t-xl" />
+              <div className={`h-1.5 bg-gradient-to-r ${kpi.gradient} rounded-t-xl`} />
             )}
             <div className="p-6">
               <div className={`size-10 flex items-center justify-center rounded-xl mb-3 ${
                 kpi.featured
-                  ? 'bg-white/10'
-                  : 'bg-gradient-to-br from-gantly-blue/10 to-gantly-cyan/10'
+                  ? kpi.iconBg
+                  : `bg-gradient-to-br ${kpi.iconBg}`
               }`}>
-                <span className={kpi.featured ? 'text-white' : 'text-gantly-blue'}>{kpi.icon}</span>
+                <span className={kpi.iconColor}>{kpi.icon}</span>
               </div>
               <div className={`text-3xl font-heading font-bold mb-0.5 ${kpi.featured ? '' : 'text-slate-900'}`}>{kpi.value}</div>
               <div className={`text-xs font-heading font-bold uppercase tracking-widest ${kpi.featured ? 'text-white/70' : 'text-slate-500'}`}>{kpi.label}</div>
@@ -86,14 +95,14 @@ export default function ClinicStats() {
 
       {/* Occupancy */}
       <div className="rounded-2xl shadow-sm bg-white overflow-hidden mb-6">
-        <div className="h-1 bg-gradient-to-r from-gantly-blue to-gantly-cyan" />
+        <div className="h-1.5 bg-gradient-to-r from-gantly-emerald to-teal-400" />
         <div className="p-6">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-heading font-bold uppercase tracking-widest text-slate-500">Tasa de ocupación este mes</span>
-            <span className="text-sm font-heading font-bold text-slate-900">{(stats.occupancyRate * 100).toFixed(0)}%</span>
+            <span className="text-xs font-heading font-bold uppercase tracking-widest text-slate-500">Tasa de ocupacion este mes</span>
+            <span className="text-sm font-heading font-bold text-gantly-emerald">{(stats.occupancyRate * 100).toFixed(0)}%</span>
           </div>
           <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-gantly-blue to-gantly-cyan rounded-full transition-all" style={{ width: `${(stats.occupancyRate * 100).toFixed(0)}%` }} />
+            <div className="h-full bg-gradient-to-r from-gantly-emerald to-teal-400 rounded-full transition-all" style={{ width: `${(stats.occupancyRate * 100).toFixed(0)}%` }} />
           </div>
         </div>
       </div>
@@ -101,21 +110,21 @@ export default function ClinicStats() {
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Bar chart by psychologist */}
         <div className="rounded-2xl shadow-sm bg-white overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-gantly-blue to-gantly-cyan" />
+          <div className="h-1.5 bg-gradient-to-r from-violet-500 to-purple-400" />
           <div className="p-6">
-            <div className="text-xs font-heading font-bold uppercase tracking-widest text-slate-500 mb-4">Citas por psicólogo (este mes)</div>
+            <div className="text-xs font-heading font-bold uppercase tracking-widest text-slate-500 mb-4">Citas por psicologo (este mes)</div>
             {stats.appointmentsByPsychologist.length === 0 ? (
               <div className="text-center text-slate-500 text-sm py-4">Sin datos</div>
             ) : (
               <div className="space-y-3">
-                {stats.appointmentsByPsychologist.map(p => (
+                {stats.appointmentsByPsychologist.map((p, i) => (
                   <div key={p.id}>
                     <div className="flex justify-between text-xs text-slate-900 mb-1">
-                      <span className="truncate max-w-[160px] font-heading">{p.name}</span>
+                      <span className="truncate max-w-[160px] font-heading font-medium">{p.name}</span>
                       <span className="text-slate-500">{p.count} citas · \u20AC{p.revenue.toFixed(0)}</span>
                     </div>
-                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-gantly-blue to-gantly-cyan rounded-full" style={{ width: `${(p.count / maxCount) * 100}%` }} />
+                    <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className={`h-full bg-gradient-to-r ${BAR_COLORS[i % BAR_COLORS.length]} rounded-full transition-all`} style={{ width: `${(p.count / maxCount) * 100}%` }} />
                     </div>
                   </div>
                 ))}
@@ -126,15 +135,16 @@ export default function ClinicStats() {
 
         {/* Monthly trend chart */}
         <div className="rounded-2xl shadow-sm bg-white overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-gantly-blue to-gantly-cyan" />
+          <div className="h-1.5 bg-gradient-to-r from-amber-400 to-gantly-gold" />
           <div className="p-6">
             <div className="text-xs font-heading font-bold uppercase tracking-widest text-slate-500 mb-4">Tendencia mensual (6 meses)</div>
             <div className="flex items-end gap-2 h-32">
-              {stats.monthlyTrend.map(m => (
+              {stats.monthlyTrend.map((m, i) => (
                 <div key={m.month} className="flex-1 flex flex-col items-center gap-1">
+                  <span className="text-[10px] font-heading font-bold text-slate-600">{m.appointments}</span>
                   <div
-                    className="w-full bg-gradient-to-r from-gantly-blue/70 to-gantly-cyan/70 rounded-t-lg transition-all"
-                    style={{ height: `${Math.max(4, (m.appointments / maxTrend) * 112)}px` }}
+                    className={`w-full bg-gradient-to-t ${i === stats.monthlyTrend.length - 1 ? 'from-gantly-blue to-gantly-cyan' : 'from-amber-300/70 to-gantly-gold/70'} rounded-t-lg transition-all`}
+                    style={{ height: `${Math.max(4, (m.appointments / maxTrend) * 96)}px` }}
                     title={`${m.appointments} citas`}
                   />
                   <span className="font-heading text-xs text-slate-500 truncate w-full text-center">{monthLabel(m.month)}</span>

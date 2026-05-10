@@ -252,7 +252,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate, onShowOnboardi
                     value={passwordForm.newPassword}
                     onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                     className="w-full h-12 rounded-xl border border-slate-200 px-4 focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue outline-none transition-all duration-200 text-sm bg-slate-50 focus:bg-white"
-                    placeholder={`M\u00ednimo 8 caracteres`}
+                    placeholder={`M\u00ednimo 6 caracteres`}
                   />
                 </div>
                 <div>
@@ -271,8 +271,8 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate, onShowOnboardi
                   type="button"
                   disabled={savingPassword || !passwordForm.currentPassword || !passwordForm.newPassword || passwordForm.newPassword !== passwordForm.confirmPassword}
                   onClick={async () => {
-                    if (passwordForm.newPassword.length < 8) {
-                      toast.error(`La nueva contrase\u00f1a debe tener al menos 8 caracteres`);
+                    if (passwordForm.newPassword.length < 6) {
+                      toast.error(`La nueva contrase\u00f1a debe tener al menos 6 caracteres`);
                       return;
                     }
                     if (passwordForm.newPassword !== passwordForm.confirmPassword) {

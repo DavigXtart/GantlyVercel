@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, Fragment } from 'react';
+import { useMemo, useState, useEffect, useRef, useCallback, Fragment } from 'react';
 import { ChevronLeft, ChevronRight, CalendarCheck, CheckCircle, Clock, CreditCard, Calendar, UserPlus, Pencil, X, PlusCircle, Plus, Info } from 'lucide-react';
 import { toast } from './ui/Toast';
 
@@ -43,6 +43,23 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
   const [weekStart, setWeekStart] = useState(initialWeekStart || startOfWeek(new Date()));
   const [savedWeekStart, setSavedWeekStart] = useState<Date | null>(null); // Guardar semana al abrir modal (solo para cancelar)
 
+  // --- Mobile responsive state ---
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileOffset, setMobileOffset] = useState(0); // 0-based offset within the week for 3-day chunks
+
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 767px)');
+    const handler = (e: MediaQueryListEvent | MediaQueryList) => setIsMobile(e.matches);
+    handler(mql);
+    mql.addEventListener('change', handler as (e: MediaQueryListEvent) => void);
+    return () => mql.removeEventListener('change', handler as (e: MediaQueryListEvent) => void);
+  }, []);
+
+  // Reset mobile offset when week changes
+  useEffect(() => {
+    setMobileOffset(0);
+  }, [weekStart]);
+
   // Sincronizar con prop inicial si cambia
   useEffect(() => {
     if (initialWeekStart) {
@@ -81,6 +98,48 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
   const [patientSearchTerm, setPatientSearchTerm] = useState<string>('');
   const hours = Array.from({ length: 13 }).map((_, i) => 8 + i); // 8:00 - 20:00
   const days = useMemo(() => Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i)), [weekStart]);
+
+  // Visible days: 3 on mobile, 7 on desktop
+  const visibleDays = useMemo(() => {
+    if (!isMobile) return days;
+    const start = mobileOffset;
+    return days.slice(start, Math.min(start + 3, 7));
+  }, [days, isMobile, mobileOffset]);
+
+  // Check if "Hoy" button should show
+  const todayDate = new Date();
+  const todayWeekStart = startOfWeek(todayDate);
+  const showTodayButton = useMemo(() => {
+    if (isMobile) {
+      // On mobile, show if today is not in the current visible 3-day window
+      const todayStr = todayDate.toDateString();
+      return !visibleDays.some(d => d.toDateString() === todayStr);
+    }
+    return todayWeekStart.getTime() !== startOfWeek(weekStart).getTime();
+  }, [weekStart, isMobile, visibleDays, todayWeekStart]);
+
+  // Jump to today
+  const goToToday = useCallback(() => {
+    const tw = startOfWeek(new Date());
+    handleWeekChange(tw);
+    if (isMobile) {
+      // Find which 3-day chunk today falls in
+      const today = new Date();
+      const dayOfWeek = (today.getDay() + 6) % 7; // Monday=0
+      const chunk = Math.floor(dayOfWeek / 3) * 3;
+      setMobileOffset(chunk);
+    }
+  }, [isMobile, onWeekChange]);
+
+  // Refs for touch drag
+  const gridRef = useRef<HTMLDivElement>(null);
+  const touchDragRef = useRef<{ startDay: Date; startHour: number; active: boolean }>({ startDay: new Date(), startHour: 0, active: false });
+
+  // Modal refs for focus trap
+  const priceModalRef = useRef<HTMLDivElement>(null);
+  const editModalRef = useRef<HTMLDivElement>(null);
+  const bookModalRef = useRef<HTMLDivElement>(null);
+  const assignModalRef = useRef<HTMLDivElement>(null);
 
   // Current time indicator - update every minute
   const [now, setNow] = useState(new Date());
@@ -220,6 +279,44 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
       setDragEnd(null);
     }
   };
+
+  // --- Touch handlers for drag-to-create ---
+  const getCellFromTouch = useCallback((touch: React.Touch): { day: Date; hour: number } | null => {
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (!el) return null;
+    const cell = el.closest('[data-day-idx][data-hour]') as HTMLElement | null;
+    if (!cell) return null;
+    const dayIdx = parseInt(cell.dataset.dayIdx || '0', 10);
+    const hour = parseInt(cell.dataset.hour || '0', 10);
+    if (isNaN(dayIdx) || isNaN(hour)) return null;
+    // Use visibleDays for the index mapping
+    if (dayIdx < 0 || dayIdx >= visibleDays.length) return null;
+    return { day: visibleDays[dayIdx], hour };
+  }, [visibleDays]);
+
+  const handleTouchStart = useCallback((day: Date, hour: number) => {
+    if (mode !== 'PSYCHO' || !onCreateSlot || isPast(day, hour)) return;
+    touchDragRef.current = { startDay: day, startHour: hour, active: true };
+    setIsDragging(true);
+    setDragStart({ day, hour });
+    setDragEnd({ day, hour });
+  }, [mode, onCreateSlot]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!touchDragRef.current.active) return;
+    e.preventDefault(); // Prevent scrolling while dragging
+    const touch = e.touches[0];
+    const result = getCellFromTouch(touch);
+    if (result) {
+      setDragEnd(result);
+    }
+  }, [getCellFromTouch]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (!touchDragRef.current.active) return;
+    touchDragRef.current.active = false;
+    handleMouseUp();
+  }, [isDragging, dragStart, dragEnd, mode]);
 
   const handleConfirmPrice = async () => {
     // Determinar precio
@@ -390,6 +487,21 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
     }
   };
 
+  const getStatusDot = (status: string, isMyAppointment: boolean = false, paymentStatus?: string) => {
+    if (isMyAppointment && (status === 'BOOKED' || status === 'CONFIRMED')) {
+      if (paymentStatus === 'PAID') return 'bg-gantly-emerald';
+      return 'bg-gantly-gold';
+    }
+    switch (status) {
+      case 'FREE': return 'bg-gantly-blue';
+      case 'REQUESTED': return 'bg-gantly-gold';
+      case 'CONFIRMED': return paymentStatus === 'PAID' ? 'bg-gantly-emerald' : 'bg-gantly-gold';
+      case 'BOOKED': return 'bg-gantly-emerald';
+      case 'CANCELLED': return 'bg-slate-300';
+      default: return 'bg-slate-300';
+    }
+  };
+
   const isToday = (date: Date) => {
     const today = new Date();
     return date.toDateString() === today.toDateString();
@@ -400,6 +512,14 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
     slotTime.setHours(hour, 0, 0, 0);
     return slotTime < new Date();
   };
+
+  // --- Modal Escape key handler ---
+  const handleModalKeyDown = useCallback((e: React.KeyboardEvent, closeHandler: () => void) => {
+    if (e.key === 'Escape') {
+      e.stopPropagation();
+      closeHandler();
+    }
+  }, []);
 
   // Compute weekly stats for the premium header
   const weekStats = useMemo(() => {
@@ -418,75 +538,161 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
     return { free, booked, revenue, pending, total: free + booked + pending };
   }, [slots, days]);
 
+  // Mobile navigation: move 3 days forward/back within the week, or jump to next/prev week
+  const handleMobilePrev = () => {
+    if (mobileOffset >= 3) {
+      setMobileOffset(mobileOffset - 3);
+    } else {
+      // Go to previous week, last chunk
+      handleWeekChange(addDays(weekStart, -7));
+      setMobileOffset(3); // Show Thu-Sun of prev week
+    }
+  };
+
+  const handleMobileNext = () => {
+    if (mobileOffset + 3 < 7) {
+      setMobileOffset(mobileOffset + 3);
+    } else {
+      // Go to next week, first chunk
+      handleWeekChange(addDays(weekStart, 7));
+      setMobileOffset(0);
+    }
+  };
+
+  // Close handlers for modals
+  const closePriceModal = useCallback(() => {
+    setShowPriceModal(false);
+    setPendingSlot(null);
+    setPendingRange(null);
+    setPriceInput('');
+    setSelectedSessionType('');
+    if (savedWeekStart) {
+      setWeekStart(savedWeekStart);
+      setSavedWeekStart(null);
+    }
+  }, [savedWeekStart]);
+
+  const closeEditModal = useCallback(() => {
+    setShowEditModal(false);
+    setEditingSlot(null);
+    setEditPriceInput('');
+    if (savedWeekStart) {
+      setWeekStart(savedWeekStart);
+      setSavedWeekStart(null);
+    }
+  }, [savedWeekStart]);
+
+  const closeBookModal = useCallback(() => {
+    setShowConfirmBookModal(false);
+    setPendingBookSlot(null);
+  }, []);
+
+  const closeAssignModal = useCallback(() => {
+    setShowAssignModal(false);
+    setSlotToAssign(null);
+    setSelectedPatientId('');
+    setPatientSearchTerm('');
+  }, []);
+
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
       {/* Gradient accent strip */}
       <div className="h-1.5 bg-gradient-to-r from-gantly-blue via-gantly-cyan to-gantly-emerald"></div>
 
       {/* Premium Summary Header */}
-      <div className="px-6 pt-5 pb-4 border-b border-slate-100">
+      <div className="px-4 md:px-6 pt-4 md:pt-5 pb-3 md:pb-4 border-b border-slate-100">
         {/* Top row: navigation + date */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3 md:mb-4">
           <button
             aria-label="Semana anterior"
-            onClick={() => handleWeekChange(addDays(weekStart, -7))}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-gantly-cloud hover:bg-gantly-blue hover:text-white cursor-pointer transition-all duration-200 text-gantly-muted border-none shadow-sm hover:shadow-md focus-visible:ring-2 focus-visible:ring-gantly-blue focus-visible:ring-offset-2 outline-none"
+            onClick={() => {
+              if (isMobile) {
+                handleMobilePrev();
+              } else {
+                handleWeekChange(addDays(weekStart, -7));
+              }
+            }}
+            className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-xl bg-gantly-cloud hover:bg-gantly-blue hover:text-white cursor-pointer transition-all duration-200 text-gantly-muted border-none shadow-sm hover:shadow-md focus-visible:ring-2 focus-visible:ring-gantly-blue focus-visible:ring-offset-2 outline-none"
           >
             <ChevronLeft size={20} />
           </button>
-          <div className="text-center">
-            <span className="font-heading text-xl font-bold text-gantly-text tracking-tight">
-              {days[0].toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })} &ndash; {days[6].toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-            </span>
+
+          <div className="flex items-center gap-2">
+            {showTodayButton && (
+              <button
+                onClick={goToToday}
+                className="px-3 py-1.5 rounded-full bg-gantly-blue/10 text-gantly-blue font-body text-xs font-semibold border-none cursor-pointer transition-all duration-200 hover:bg-gantly-blue hover:text-white focus-visible:ring-2 focus-visible:ring-gantly-blue focus-visible:ring-offset-2 outline-none"
+              >
+                Hoy
+              </button>
+            )}
+            <div className="text-center">
+              {isMobile ? (
+                <span className="font-heading text-base font-bold text-gantly-text tracking-tight">
+                  {visibleDays[0]?.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} &ndash; {visibleDays[visibleDays.length - 1]?.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                </span>
+              ) : (
+                <span className="font-heading text-xl font-bold text-gantly-text tracking-tight">
+                  {days[0].toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })} &ndash; {days[6].toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </span>
+              )}
+            </div>
           </div>
+
           <button
             aria-label="Semana siguiente"
-            onClick={() => handleWeekChange(addDays(weekStart, 7))}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-gantly-cloud hover:bg-gantly-blue hover:text-white cursor-pointer transition-all duration-200 text-gantly-muted border-none shadow-sm hover:shadow-md focus-visible:ring-2 focus-visible:ring-gantly-blue focus-visible:ring-offset-2 outline-none"
+            onClick={() => {
+              if (isMobile) {
+                handleMobileNext();
+              } else {
+                handleWeekChange(addDays(weekStart, 7));
+              }
+            }}
+            className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-xl bg-gantly-cloud hover:bg-gantly-blue hover:text-white cursor-pointer transition-all duration-200 text-gantly-muted border-none shadow-sm hover:shadow-md focus-visible:ring-2 focus-visible:ring-gantly-blue focus-visible:ring-offset-2 outline-none"
           >
             <ChevronRight size={20} />
           </button>
         </div>
 
         {/* Stats strip */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="bg-gantly-cloud/60 rounded-xl px-4 py-3 border border-gantly-blue/10 group hover:border-gantly-blue/30 transition-all duration-200">
-            <div className="flex items-center gap-2 mb-1">
-              <CalendarCheck size={16} className="text-gantly-blue" />
-              <span className="font-body text-[11px] uppercase tracking-wider text-gantly-muted font-medium">Disponibles</span>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3">
+          <div className="bg-gantly-cloud/60 rounded-xl px-3 md:px-4 py-2 md:py-3 border border-gantly-blue/10 group hover:border-gantly-blue/30 transition-all duration-200">
+            <div className="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1">
+              <CalendarCheck size={14} className="text-gantly-blue md:w-4 md:h-4" />
+              <span className="font-body text-[10px] md:text-[11px] uppercase tracking-wider text-gantly-muted font-medium">Disponibles</span>
             </div>
-            <div className="font-heading text-2xl font-bold text-gantly-blue">{weekStats.free}</div>
+            <div className="font-heading text-xl md:text-2xl font-bold text-gantly-blue">{weekStats.free}</div>
           </div>
-          <div className="bg-gantly-emerald/5 rounded-xl px-4 py-3 border border-gantly-emerald/10 group hover:border-gantly-emerald/30 transition-all duration-200">
-            <div className="flex items-center gap-2 mb-1">
-              <CheckCircle size={16} className="text-gantly-emerald" />
-              <span className="font-body text-[11px] uppercase tracking-wider text-gantly-muted font-medium">Reservadas</span>
+          <div className="bg-gantly-emerald/5 rounded-xl px-3 md:px-4 py-2 md:py-3 border border-gantly-emerald/10 group hover:border-gantly-emerald/30 transition-all duration-200">
+            <div className="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1">
+              <CheckCircle size={14} className="text-gantly-emerald md:w-4 md:h-4" />
+              <span className="font-body text-[10px] md:text-[11px] uppercase tracking-wider text-gantly-muted font-medium">Reservadas</span>
             </div>
-            <div className="font-heading text-2xl font-bold text-gantly-emerald">{weekStats.booked}</div>
+            <div className="font-heading text-xl md:text-2xl font-bold text-gantly-emerald">{weekStats.booked}</div>
           </div>
-          <div className="bg-gantly-gold/5 rounded-xl px-4 py-3 border border-gantly-gold/10 group hover:border-gantly-gold/30 transition-all duration-200">
-            <div className="flex items-center gap-2 mb-1">
-              <Clock size={16} className="text-gantly-gold" />
-              <span className="font-body text-[11px] uppercase tracking-wider text-gantly-muted font-medium">Pendientes</span>
+          <div className="bg-gantly-gold/5 rounded-xl px-3 md:px-4 py-2 md:py-3 border border-gantly-gold/10 group hover:border-gantly-gold/30 transition-all duration-200">
+            <div className="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1">
+              <Clock size={14} className="text-gantly-gold md:w-4 md:h-4" />
+              <span className="font-body text-[10px] md:text-[11px] uppercase tracking-wider text-gantly-muted font-medium">Pendientes</span>
             </div>
-            <div className="font-heading text-2xl font-bold text-yellow-700">{weekStats.pending}</div>
+            <div className="font-heading text-xl md:text-2xl font-bold text-yellow-700">{weekStats.pending}</div>
           </div>
           {mode === 'PSYCHO' && (
-            <div className="rounded-xl px-4 py-3 border border-gantly-blue/10 relative overflow-hidden bg-gradient-brand">
-              <div className="flex items-center gap-2 mb-1">
-                <CreditCard size={16} className="text-white/80" />
-                <span className="font-body text-[11px] uppercase tracking-wider text-white/70 font-medium">Ingresos sem.</span>
+            <div className="rounded-xl px-3 md:px-4 py-2 md:py-3 border border-gantly-blue/10 relative overflow-hidden bg-gradient-brand">
+              <div className="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1">
+                <CreditCard size={14} className="text-white/80 md:w-4 md:h-4" />
+                <span className="font-body text-[10px] md:text-[11px] uppercase tracking-wider text-white/70 font-medium">Ingresos sem.</span>
               </div>
-              <div className="font-heading text-2xl font-bold text-white">{weekStats.revenue.toFixed(0)}&euro;</div>
+              <div className="font-heading text-xl md:text-2xl font-bold text-white">{weekStats.revenue.toFixed(0)}&euro;</div>
             </div>
           )}
           {mode === 'USER' && (
-            <div className="bg-slate-50 rounded-xl px-4 py-3 border border-slate-100">
-              <div className="flex items-center gap-2 mb-1">
-                <Calendar size={16} className="text-gantly-muted" />
-                <span className="font-body text-[11px] uppercase tracking-wider text-gantly-muted font-medium">Total</span>
+            <div className="bg-slate-50 rounded-xl px-3 md:px-4 py-2 md:py-3 border border-slate-100">
+              <div className="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1">
+                <Calendar size={14} className="text-gantly-muted md:w-4 md:h-4" />
+                <span className="font-body text-[10px] md:text-[11px] uppercase tracking-wider text-gantly-muted font-medium">Total</span>
               </div>
-              <div className="font-heading text-2xl font-bold text-gantly-text">{weekStats.total}</div>
+              <div className="font-heading text-xl md:text-2xl font-bold text-gantly-text">{weekStats.total}</div>
             </div>
           )}
         </div>
@@ -494,7 +700,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
         {/* Occupancy progress bar (psycho mode) */}
         {mode === 'PSYCHO' && weekStats.total > 0 && (
           <div className="mt-3 flex items-center gap-3">
-            <span className="font-body text-xs text-gantly-muted font-medium">Ocupación:</span>
+            <span className="font-body text-xs text-gantly-muted font-medium">Ocupaci&oacute;n:</span>
             <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-gantly-blue to-gantly-cyan transition-all duration-500"
@@ -509,14 +715,18 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
       </div>
 
       {/* Calendar Grid */}
-      <div className="grid overflow-x-auto" style={{ gridTemplateColumns: '72px repeat(7, 1fr)' }}>
+      <div
+        ref={gridRef}
+        className="grid overflow-x-auto"
+        style={{ gridTemplateColumns: isMobile ? `56px repeat(${visibleDays.length}, 1fr)` : '72px repeat(7, 1fr)' }}
+      >
         {/* Hour header */}
         <div className="bg-slate-50/60 px-2 py-3 border-r border-slate-100/80 flex items-end justify-center">
-          <Clock size={16} className="text-gantly-muted/60" />
+          <Clock size={isMobile ? 14 : 16} className="text-gantly-muted/60" />
         </div>
 
         {/* Day headers */}
-        {days.map((d, i) => {
+        {visibleDays.map((d, i) => {
           const todayCol = isToday(d);
           const isWeekend = d.getDay() === 0 || d.getDay() === 6;
           // Count slots for this day
@@ -527,18 +737,18 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
           return (
             <div
               key={i}
-              className={`px-2 py-3 text-center border-b ${i < 6 ? 'border-r border-slate-100/80' : ''} ${todayCol ? 'bg-gradient-to-b from-gantly-blue/8 to-gantly-blue/3 border-b-2 border-b-gantly-blue' : 'bg-slate-50/50 border-slate-100/80'} transition-colors duration-200`}
+              className={`px-1 md:px-2 py-2 md:py-3 text-center border-b ${i < visibleDays.length - 1 ? 'border-r border-slate-100/80' : ''} ${todayCol ? 'bg-gradient-to-b from-gantly-blue/8 to-gantly-blue/3 border-b-2 border-b-gantly-blue' : 'bg-slate-50/50 border-slate-100/80'} transition-colors duration-200`}
             >
               <div className={`font-body text-[10px] uppercase tracking-widest font-semibold ${isWeekend ? 'text-slate-500' : todayCol ? 'text-gantly-blue' : 'text-gantly-muted'}`}>
                 {d.toLocaleDateString('es-ES', { weekday: 'short' })}
               </div>
               <div className="mt-1 flex items-center justify-center">
                 {todayCol ? (
-                  <span className="w-9 h-9 flex items-center justify-center rounded-full text-white font-heading font-bold text-base shadow-lg shadow-gantly-blue/25 mx-auto bg-gradient-brand-alt">
+                  <span className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center rounded-full text-white font-heading font-bold text-sm md:text-base shadow-lg shadow-gantly-blue/25 mx-auto bg-gradient-brand-alt">
                     {d.toLocaleDateString('es-ES', { day: 'numeric' })}
                   </span>
                 ) : (
-                  <span className={`font-heading font-bold text-lg ${isWeekend ? 'text-slate-500' : 'text-gantly-text'}`}>
+                  <span className={`font-heading font-bold text-base md:text-lg ${isWeekend ? 'text-slate-500' : 'text-gantly-text'}`}>
                     {d.toLocaleDateString('es-ES', { day: 'numeric' })}
                   </span>
                 )}
@@ -571,11 +781,11 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
         {hours.map((h) => (
           <Fragment key={`row-${h}`}>
             <div
-              className="px-2 py-2 border-r border-slate-100/80 border-b border-slate-100/80 bg-slate-50/40 text-[11px] text-gantly-muted/80 font-body font-semibold flex items-center justify-center tabular-nums"
+              className="px-1 md:px-2 py-2 border-r border-slate-100/80 border-b border-slate-100/80 bg-slate-50/40 text-[10px] md:text-[11px] text-gantly-muted/80 font-body font-semibold flex items-center justify-center tabular-nums"
             >
               {String(h).padStart(2, '0')}:00
             </div>
-            {days.map((d, ci) => {
+            {visibleDays.map((d, ci) => {
               const key = `${d.toDateString()}-${h}`;
               const list = slotByDayHour[key] || [];
               const cellKey = `${ci}-${h}`;
@@ -588,7 +798,9 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
               return (
                 <div
                   key={`c-${ci}-${h}`}
-                  className={`border-b border-slate-100/80 ${ci < 6 ? 'border-r border-slate-100/80' : ''} p-1.5 min-h-[68px] relative transition-colors duration-200 ${
+                  data-day-idx={ci}
+                  data-hour={h}
+                  className={`border-b border-slate-100/80 ${ci < visibleDays.length - 1 ? 'border-r border-slate-100/80' : ''} p-1 md:p-1.5 min-h-[56px] md:min-h-[68px] relative transition-colors duration-200 ${
                     isPastTime
                       ? 'bg-slate-50/60'
                       : isTodayCol
@@ -597,6 +809,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                           ? 'bg-gantly-blue/5'
                           : 'bg-white'
                   } ${onCreateSlot && mode === 'PSYCHO' && !isPastTime ? 'cursor-pointer' : ''}`}
+                  style={mode === 'PSYCHO' && onCreateSlot && !isPastTime ? { touchAction: 'none' } : undefined}
                   onMouseEnter={() => {
                     if (mode === 'PSYCHO' && onCreateSlot && !isPastTime) {
                       setHoveredCell(cellKey);
@@ -618,6 +831,17 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                   onMouseUp={() => {
                     if (isDragging) {
                       handleMouseUp();
+                    }
+                  }}
+                  onTouchStart={() => {
+                    if (mode === 'PSYCHO' && onCreateSlot && !isPastTime && list.length === 0) {
+                      handleTouchStart(d, h);
+                    }
+                  }}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={() => {
+                    if (isDragging) {
+                      handleTouchEnd();
                     }
                   }}
                   onClick={(e) => {
@@ -645,147 +869,210 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                         const isMyAppointment = myAppointmentsByDayHour[`${new Date(s.startTime).toDateString()}-${new Date(s.startTime).getHours()}`] && (s.status === 'BOOKED' || s.status === 'CONFIRMED' || s.status === 'REQUESTED');
                         const statusClasses = getStatusClasses(s.status, isMyAppointment, s.paymentStatus);
                         const colors = getStatusColor(s.status, isMyAppointment, s.paymentStatus);
+                        const dotClass = getStatusDot(s.status, isMyAppointment, s.paymentStatus);
                         return (
                           <div
                             key={s.id}
                             onClick={(e) => {
                               e.stopPropagation();
                             }}
-                            className={`${statusClasses} border rounded-xl px-2.5 py-2 text-xs font-medium transition-all duration-200 relative group/slot ${
+                            className={`${statusClasses} border rounded-xl px-1.5 md:px-2.5 py-1.5 md:py-2 text-xs font-medium transition-all duration-200 relative group/slot ${
                               (s.status === 'FREE' || s.status === 'REQUESTED') && mode === 'USER' && onBook ? 'hover:shadow-lg hover:-translate-y-0.5 cursor-pointer' : 'hover:shadow-md'
-                            } ${mode === 'PSYCHO' ? 'pr-8' : ''}`}
+                            } ${mode === 'PSYCHO' ? 'md:pr-8' : ''}`}
                           >
-                            <div className="flex justify-between items-center">
-                              <div>
-                                <div className="font-body font-semibold text-[11px]">
-                                  {new Date(s.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - {new Date(s.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                            {/* Mobile: compact view with dot + time */}
+                            {isMobile ? (
+                              <div className="flex items-center gap-1.5">
+                                <div className={`w-2 h-2 rounded-full shrink-0 ${dotClass}`} />
+                                <div className="font-body font-semibold text-[10px] truncate">
+                                  {new Date(s.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                                 </div>
-                                {s.user?.name && (
-                                  <div className="text-[10px] opacity-80 mt-0.5">
-                                    {s.user.name}
-                                  </div>
+                                {mode === 'PSYCHO' && s.price != null && (
+                                  <span className="text-[9px] opacity-70 ml-auto shrink-0">{s.price.toFixed(0)}&euro;</span>
                                 )}
-                                {!s.user && s.status === 'FREE' && (
-                                  <div className="text-[10px] opacity-80 mt-0.5">
-                                    {mode === 'USER' ? 'Disponible' : 'Libre'}
-                                  </div>
+                                {mode === 'USER' && (s.status === 'FREE' || s.status === 'REQUESTED') && onBook && !isMyAppointment && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      setPendingBookSlot(s);
+                                      setShowConfirmBookModal(true);
+                                    }}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    className="text-white border-none rounded px-1.5 py-0.5 text-[9px] font-semibold cursor-pointer ml-auto shrink-0"
+                                    style={{ background: colors.border }}
+                                  >
+                                    {s.price != null ? `${s.price.toFixed(0)}\u20AC` : 'Res.'}
+                                  </button>
                                 )}
-                                {s.status === 'REQUESTED' && (
-                                  <div className="text-[10px] opacity-80 font-semibold mt-0.5">
-                                    Solicitud pendiente
-                                  </div>
-                                )}
-                                {s.status === 'CONFIRMED' && (
-                                  <div className="text-[10px] opacity-80 font-semibold mt-0.5">
-                                    {s.paymentStatus === 'PAID' ? 'Pagada' : 'Pago pendiente'}
-                                  </div>
-                                )}
-                                {s.status === 'BOOKED' && (
-                                  <div className="text-[10px] opacity-80 font-semibold mt-0.5">
-                                    Pagada
-                                  </div>
-                                )}
-                                {isMyAppointment && (
-                                  <div className="text-[10px] opacity-80 font-semibold mt-0.5">
-                                    Mi cita
+                                {mode === 'PSYCHO' && (
+                                  <div className="flex gap-0.5 ml-auto shrink-0">
+                                    {onAssignToPatient && patients.length > 0 && (s.status === 'FREE' || s.status === 'REQUESTED') && (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          e.preventDefault();
+                                          setSlotToAssign(s);
+                                          setSelectedPatientId('');
+                                          setShowAssignModal(true);
+                                        }}
+                                        onMouseDown={(e) => e.stopPropagation()}
+                                        className="w-[18px] h-[18px] flex items-center justify-center rounded bg-gantly-emerald/10 text-gantly-emerald border-none cursor-pointer"
+                                        title="Asignar a paciente"
+                                      >
+                                        <UserPlus size={10} />
+                                      </button>
+                                    )}
+                                    {onDeleteSlot && (s.status === 'FREE' || s.status === 'REQUESTED') && (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          e.preventDefault();
+                                          if (onDeleteSlot) onDeleteSlot(s.id);
+                                        }}
+                                        onMouseDown={(e) => e.stopPropagation()}
+                                        className="w-[18px] h-[18px] flex items-center justify-center rounded bg-red-500/10 text-red-500 border-none cursor-pointer"
+                                      >
+                                        <X size={10} />
+                                      </button>
+                                    )}
                                   </div>
                                 )}
                               </div>
-                              {mode === 'USER' && (s.status === 'FREE' || s.status === 'REQUESTED') && onBook && !isMyAppointment && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    e.preventDefault();
-                                    setPendingBookSlot(s);
-                                    setShowConfirmBookModal(true);
-                                  }}
-                                  onMouseDown={(e) => {
-                                    e.stopPropagation();
-                                  }}
-                                  className="text-white border-none rounded-md px-2.5 py-1 text-[10px] font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap relative z-10 hover:scale-105 hover:shadow-md"
-                                  style={{ background: colors.border }}
-                                >
-                                  {s.price !== undefined && s.price !== null
-                                    ? `Reservar ${s.price.toFixed(2)}\u20AC`
-                                    : 'Reservar'}
-                                </button>
-                              )}
-                              {mode === 'PSYCHO' && s.price !== undefined && s.price !== null && (
-                                <div className="text-[10px] opacity-80 mt-1 font-semibold">
-                                  {s.price.toFixed(2)}&euro;
-                                </div>
-                              )}
-                              {mode === 'PSYCHO' && (
-                                <div className="absolute top-1 right-1 flex gap-0.5 z-10 flex-wrap">
-                                  {onAssignToPatient && patients.length > 0 && (s.status === 'FREE' || s.status === 'REQUESTED') && (
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        e.preventDefault();
-                                        setSlotToAssign(s);
-                                        setSelectedPatientId('');
-                                        setShowAssignModal(true);
-                                      }}
-                                      onMouseDown={(e) => {
-                                        e.stopPropagation();
-                                      }}
-                                      className="w-[18px] h-[18px] flex items-center justify-center rounded bg-gantly-emerald/10 text-gantly-emerald border-none text-[10px] cursor-pointer transition-all duration-200 hover:bg-gantly-emerald/20 hover:scale-110"
-                                      title="Asignar a paciente"
-                                    >
-                                      <UserPlus size={12} />
-                                    </button>
+                            ) : (
+                              /* Desktop: full view */
+                              <div className="flex justify-between items-center">
+                                <div>
+                                  <div className="font-body font-semibold text-[11px]">
+                                    {new Date(s.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - {new Date(s.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                                  </div>
+                                  {s.user?.name && (
+                                    <div className="text-[10px] opacity-80 mt-0.5">
+                                      {s.user.name}
+                                    </div>
                                   )}
-                                  {onUpdateSlot && (s.status === 'FREE' || s.status === 'REQUESTED') && (
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        e.preventDefault();
-                                        handleEditSlot(s);
-                                      }}
-                                      onMouseDown={(e) => {
-                                        e.stopPropagation();
-                                      }}
-                                      className="w-[18px] h-[18px] flex items-center justify-center rounded bg-gantly-blue/10 text-gantly-blue border-none text-[11px] cursor-pointer transition-all duration-200 hover:bg-gantly-blue/20 hover:scale-110"
-                                    >
-                                      <Pencil size={12} />
-                                    </button>
+                                  {!s.user && s.status === 'FREE' && (
+                                    <div className="text-[10px] opacity-80 mt-0.5">
+                                      {mode === 'USER' ? 'Disponible' : 'Libre'}
+                                    </div>
                                   )}
-                                  {onDeleteSlot && (s.status === 'FREE' || s.status === 'REQUESTED') && (
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        e.preventDefault();
-                                        if (onDeleteSlot) {
-                                          onDeleteSlot(s.id);
-                                        }
-                                      }}
-                                      onMouseDown={(e) => {
-                                        e.stopPropagation();
-                                      }}
-                                      className="w-[18px] h-[18px] flex items-center justify-center rounded bg-red-500/10 text-red-500 border-none text-sm font-bold cursor-pointer transition-all duration-200 hover:bg-red-500/20 hover:scale-110 leading-none"
-                                    >
-                                      <X size={12} />
-                                    </button>
+                                  {s.status === 'REQUESTED' && (
+                                    <div className="text-[10px] opacity-80 font-semibold mt-0.5">
+                                      Solicitud pendiente
+                                    </div>
+                                  )}
+                                  {s.status === 'CONFIRMED' && (
+                                    <div className="text-[10px] opacity-80 font-semibold mt-0.5">
+                                      {s.paymentStatus === 'PAID' ? 'Pagada' : 'Pago pendiente'}
+                                    </div>
+                                  )}
+                                  {s.status === 'BOOKED' && (
+                                    <div className="text-[10px] opacity-80 font-semibold mt-0.5">
+                                      Pagada
+                                    </div>
+                                  )}
+                                  {isMyAppointment && (
+                                    <div className="text-[10px] opacity-80 font-semibold mt-0.5">
+                                      Mi cita
+                                    </div>
                                   )}
                                 </div>
-                              )}
-                            </div>
+                                {mode === 'USER' && (s.status === 'FREE' || s.status === 'REQUESTED') && onBook && !isMyAppointment && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      setPendingBookSlot(s);
+                                      setShowConfirmBookModal(true);
+                                    }}
+                                    onMouseDown={(e) => {
+                                      e.stopPropagation();
+                                    }}
+                                    className="text-white border-none rounded-md px-2.5 py-1 text-[10px] font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap relative z-10 hover:scale-105 hover:shadow-md"
+                                    style={{ background: colors.border }}
+                                  >
+                                    {s.price !== undefined && s.price !== null
+                                      ? `Reservar ${s.price.toFixed(2)}\u20AC`
+                                      : 'Reservar'}
+                                  </button>
+                                )}
+                                {mode === 'PSYCHO' && s.price !== undefined && s.price !== null && (
+                                  <div className="text-[10px] opacity-80 mt-1 font-semibold">
+                                    {s.price.toFixed(2)}&euro;
+                                  </div>
+                                )}
+                                {mode === 'PSYCHO' && (
+                                  <div className="absolute top-1 right-1 flex gap-0.5 z-10 flex-wrap">
+                                    {onAssignToPatient && patients.length > 0 && (s.status === 'FREE' || s.status === 'REQUESTED') && (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          e.preventDefault();
+                                          setSlotToAssign(s);
+                                          setSelectedPatientId('');
+                                          setShowAssignModal(true);
+                                        }}
+                                        onMouseDown={(e) => {
+                                          e.stopPropagation();
+                                        }}
+                                        className="w-[18px] h-[18px] flex items-center justify-center rounded bg-gantly-emerald/10 text-gantly-emerald border-none text-[10px] cursor-pointer transition-all duration-200 hover:bg-gantly-emerald/20 hover:scale-110"
+                                        title="Asignar a paciente"
+                                      >
+                                        <UserPlus size={12} />
+                                      </button>
+                                    )}
+                                    {onUpdateSlot && (s.status === 'FREE' || s.status === 'REQUESTED') && (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          e.preventDefault();
+                                          handleEditSlot(s);
+                                        }}
+                                        onMouseDown={(e) => {
+                                          e.stopPropagation();
+                                        }}
+                                        className="w-[18px] h-[18px] flex items-center justify-center rounded bg-gantly-blue/10 text-gantly-blue border-none text-[11px] cursor-pointer transition-all duration-200 hover:bg-gantly-blue/20 hover:scale-110"
+                                      >
+                                        <Pencil size={12} />
+                                      </button>
+                                    )}
+                                    {onDeleteSlot && (s.status === 'FREE' || s.status === 'REQUESTED') && (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          e.preventDefault();
+                                          if (onDeleteSlot) {
+                                            onDeleteSlot(s.id);
+                                          }
+                                        }}
+                                        onMouseDown={(e) => {
+                                          e.stopPropagation();
+                                        }}
+                                        className="w-[18px] h-[18px] flex items-center justify-center rounded bg-red-500/10 text-red-500 border-none text-sm font-bold cursor-pointer transition-all duration-200 hover:bg-red-500/20 hover:scale-110 leading-none"
+                                      >
+                                        <X size={12} />
+                                      </button>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         );
                       })}
                     </div>
                   ) : (
                     mode === 'PSYCHO' && onCreateSlot && !isPastTime && (
-                      <div className={`flex items-center justify-center h-full min-h-[52px] rounded-xl transition-all duration-200 ${
+                      <div className={`flex items-center justify-center h-full min-h-[44px] md:min-h-[52px] rounded-xl transition-all duration-200 ${
                         isHovered ? 'bg-gradient-to-br from-gantly-blue/10 to-gantly-cyan/5 border border-dashed border-gantly-blue/30 scale-[0.97]' : ''
                       }`}>
                         {isHovered ? (
                           <div className="flex flex-col items-center gap-0.5">
-                            <PlusCircle size={18} className="text-gantly-blue" />
-                            <span className="text-[9px] font-semibold text-gantly-blue/70">Nueva</span>
+                            <PlusCircle size={isMobile ? 16 : 18} className="text-gantly-blue" />
+                            <span className="text-[9px] font-semibold text-gantly-blue/70 hidden md:block">Nueva</span>
                           </div>
                         ) : (
-                          <Plus size={16} className="text-slate-200" />
+                          <Plus size={isMobile ? 14 : 16} className="text-slate-200" />
                         )}
                       </div>
                     )
@@ -798,27 +1085,27 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
       </div>
 
       {/* Legend + quick actions footer */}
-      <div className="px-6 py-4 bg-gradient-to-r from-slate-50/80 to-gantly-cloud/30 border-t border-slate-100 flex items-center justify-between flex-wrap gap-3 rounded-b-2xl">
-        <div className="flex gap-2 flex-wrap items-center">
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gantly-cloud/80 border border-gantly-blue/15">
-            <div className="w-2.5 h-2.5 bg-gantly-blue rounded-full shadow-sm shadow-gantly-blue/30"></div>
-            <span className="font-body text-[11px] text-gantly-muted font-medium">Disponible</span>
+      <div className="px-4 md:px-6 py-3 md:py-4 bg-gradient-to-r from-slate-50/80 to-gantly-cloud/30 border-t border-slate-100 flex items-center justify-between flex-wrap gap-2 md:gap-3 rounded-b-2xl">
+        <div className="flex gap-1.5 md:gap-2 flex-wrap items-center">
+          <div className="flex items-center gap-1 md:gap-1.5 px-2 md:px-2.5 py-1 md:py-1.5 rounded-lg bg-gantly-cloud/80 border border-gantly-blue/15">
+            <div className="w-2 h-2 md:w-2.5 md:h-2.5 bg-gantly-blue rounded-full shadow-sm shadow-gantly-blue/30"></div>
+            <span className="font-body text-[10px] md:text-[11px] text-gantly-muted font-medium">Disponible</span>
           </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gantly-emerald/5 border border-gantly-emerald/15">
-            <div className="w-2.5 h-2.5 bg-gantly-emerald rounded-full shadow-sm shadow-gantly-emerald/30"></div>
-            <span className="font-body text-[11px] text-gantly-muted font-medium">Reservada</span>
+          <div className="flex items-center gap-1 md:gap-1.5 px-2 md:px-2.5 py-1 md:py-1.5 rounded-lg bg-gantly-emerald/5 border border-gantly-emerald/15">
+            <div className="w-2 h-2 md:w-2.5 md:h-2.5 bg-gantly-emerald rounded-full shadow-sm shadow-gantly-emerald/30"></div>
+            <span className="font-body text-[10px] md:text-[11px] text-gantly-muted font-medium">Reservada</span>
           </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gantly-gold/5 border border-gantly-gold/15">
-            <div className="w-2.5 h-2.5 bg-gantly-gold rounded-full shadow-sm shadow-gantly-gold/30"></div>
-            <span className="font-body text-[11px] text-gantly-muted font-medium">{mode === 'USER' ? 'Mi cita' : 'Pendiente'}</span>
+          <div className="flex items-center gap-1 md:gap-1.5 px-2 md:px-2.5 py-1 md:py-1.5 rounded-lg bg-gantly-gold/5 border border-gantly-gold/15">
+            <div className="w-2 h-2 md:w-2.5 md:h-2.5 bg-gantly-gold rounded-full shadow-sm shadow-gantly-gold/30"></div>
+            <span className="font-body text-[10px] md:text-[11px] text-gantly-muted font-medium">{mode === 'USER' ? 'Mi cita' : 'Pendiente'}</span>
           </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200/80">
-            <div className="w-2.5 h-2.5 bg-slate-300 rounded-full"></div>
-            <span className="font-body text-[11px] text-gantly-muted font-medium">Cancelada</span>
+          <div className="flex items-center gap-1 md:gap-1.5 px-2 md:px-2.5 py-1 md:py-1.5 rounded-lg bg-slate-50 border border-slate-200/80">
+            <div className="w-2 h-2 md:w-2.5 md:h-2.5 bg-slate-300 rounded-full"></div>
+            <span className="font-body text-[10px] md:text-[11px] text-gantly-muted font-medium">Cancelada</span>
           </div>
         </div>
         {mode === 'PSYCHO' && (
-          <div className="flex items-center gap-2 text-[11px] text-gantly-muted font-body">
+          <div className="hidden md:flex items-center gap-2 text-[11px] text-gantly-muted font-body">
             <Info size={16} className="text-gantly-blue/60" />
             <span>Arrastra para crear varias citas a la vez</span>
           </div>
@@ -829,20 +1116,15 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
       {showPriceModal && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]"
-          onClick={() => {
-            setShowPriceModal(false);
-            setPendingSlot(null);
-            setPendingRange(null);
-            setPriceInput('');
-            setSelectedSessionType('');
-            if (savedWeekStart) {
-              setWeekStart(savedWeekStart);
-              setSavedWeekStart(null);
-            }
-          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label={pendingRange ? `Crear ${pendingRange.count} citas` : 'Establecer precio de la cita'}
+          onKeyDown={(e) => handleModalKeyDown(e, closePriceModal)}
+          onClick={closePriceModal}
         >
           <div
-            className="bg-white rounded-3xl p-8 max-w-[450px] w-[90%] shadow-2xl border border-slate-100"
+            ref={priceModalRef}
+            className="bg-white rounded-3xl p-6 md:p-8 max-w-[450px] w-[92%] shadow-2xl border border-slate-100"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="m-0 mb-5 font-heading text-xl font-bold text-gantly-text">
@@ -917,28 +1199,14 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                   if (e.key === 'Enter') {
                     handleConfirmPrice();
                   } else if (e.key === 'Escape') {
-                    setShowPriceModal(false);
-                    setPendingSlot(null);
-                    setPendingRange(null);
-                    setPriceInput('');
-                    setSelectedSessionType('');
+                    closePriceModal();
                   }
                 }}
               />
             </div>
             <div className="flex gap-3 justify-end">
               <button
-                onClick={() => {
-                  setShowPriceModal(false);
-                  setPendingSlot(null);
-                  setPendingRange(null);
-                  setPriceInput('');
-                  setSelectedSessionType('');
-                  if (savedWeekStart) {
-                    setWeekStart(savedWeekStart);
-                    setSavedWeekStart(null);
-                  }
-                }}
+                onClick={closePriceModal}
                 className="px-5 h-11 border-none rounded-xl bg-transparent text-gantly-muted font-body text-sm font-medium cursor-pointer transition-all duration-200 hover:text-gantly-text hover:bg-slate-100"
               >
                 Cancelar
@@ -958,18 +1226,15 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
       {showEditModal && editingSlot && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]"
-          onClick={() => {
-            setShowEditModal(false);
-            setEditingSlot(null);
-            setEditPriceInput('');
-            if (savedWeekStart) {
-              setWeekStart(savedWeekStart);
-              setSavedWeekStart(null);
-            }
-          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Editar cita"
+          onKeyDown={(e) => handleModalKeyDown(e, closeEditModal)}
+          onClick={closeEditModal}
         >
           <div
-            className="bg-white rounded-3xl p-8 max-w-[400px] w-[90%] shadow-2xl border border-slate-100"
+            ref={editModalRef}
+            className="bg-white rounded-3xl p-6 md:p-8 max-w-[400px] w-[92%] shadow-2xl border border-slate-100"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="m-0 mb-5 font-heading text-xl font-bold text-gantly-text">
@@ -1001,28 +1266,14 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                   if (e.key === 'Enter') {
                     handleConfirmEdit();
                   } else if (e.key === 'Escape') {
-                    setShowEditModal(false);
-                    setEditingSlot(null);
-                    setEditPriceInput('');
-                    if (savedWeekStart) {
-                      setWeekStart(savedWeekStart);
-                      setSavedWeekStart(null);
-                    }
+                    closeEditModal();
                   }
                 }}
               />
             </div>
             <div className="flex gap-3 justify-end">
               <button
-                onClick={() => {
-                  setShowEditModal(false);
-                  setEditingSlot(null);
-                  setEditPriceInput('');
-                  if (savedWeekStart) {
-                    setWeekStart(savedWeekStart);
-                    setSavedWeekStart(null);
-                  }
-                }}
+                onClick={closeEditModal}
                 className="px-5 h-11 border-none rounded-xl bg-transparent text-gantly-muted font-body text-sm font-medium cursor-pointer transition-all duration-200 hover:text-gantly-text hover:bg-slate-100"
               >
                 Cancelar
@@ -1042,13 +1293,15 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
       {showConfirmBookModal && pendingBookSlot && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]"
-          onClick={() => {
-            setShowConfirmBookModal(false);
-            setPendingBookSlot(null);
-          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Reservar cita"
+          onKeyDown={(e) => handleModalKeyDown(e, closeBookModal)}
+          onClick={closeBookModal}
         >
           <div
-            className="bg-white rounded-3xl p-8 max-w-[450px] w-[90%] shadow-2xl border border-slate-100"
+            ref={bookModalRef}
+            className="bg-white rounded-3xl p-6 md:p-8 max-w-[450px] w-[92%] shadow-2xl border border-slate-100"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="m-0 mb-5 font-heading text-xl font-bold text-gantly-text">
@@ -1093,15 +1346,13 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
             </p>
             <div className="flex gap-3 justify-end">
               <button
-                onClick={() => {
-                  setShowConfirmBookModal(false);
-                  setPendingBookSlot(null);
-                }}
+                onClick={closeBookModal}
                 className="px-5 h-11 border-none rounded-xl bg-transparent text-gantly-muted font-body text-sm font-medium cursor-pointer transition-all duration-200 hover:text-gantly-text hover:bg-slate-100"
               >
                 Cancelar
               </button>
               <button
+                autoFocus
                 onClick={() => {
                   if (onBook && pendingBookSlot) {
                     onBook(pendingBookSlot.id);
@@ -1122,15 +1373,15 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
       {showAssignModal && slotToAssign && mode === 'PSYCHO' && onAssignToPatient && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]"
-          onClick={() => {
-            setShowAssignModal(false);
-            setSlotToAssign(null);
-            setSelectedPatientId('');
-            setPatientSearchTerm('');
-          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Asignar cita a paciente"
+          onKeyDown={(e) => handleModalKeyDown(e, closeAssignModal)}
+          onClick={closeAssignModal}
         >
           <div
-            className="bg-white rounded-3xl p-8 max-w-[450px] w-[90%] shadow-2xl border border-slate-100"
+            ref={assignModalRef}
+            className="bg-white rounded-3xl p-6 md:p-8 max-w-[450px] w-[92%] shadow-2xl border border-slate-100"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="m-0 mb-5 font-heading text-xl font-bold text-gantly-text">
@@ -1181,12 +1432,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
             </div>
             <div className="flex gap-3 justify-end">
               <button
-                onClick={() => {
-                  setShowAssignModal(false);
-                  setSlotToAssign(null);
-                  setSelectedPatientId('');
-                  setPatientSearchTerm('');
-                }}
+                onClick={closeAssignModal}
                 className="px-5 h-11 border-none rounded-xl bg-transparent text-gantly-muted font-body text-sm font-medium cursor-pointer transition-all duration-200 hover:text-gantly-text hover:bg-slate-100"
               >
                 Cancelar

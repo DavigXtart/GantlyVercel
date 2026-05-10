@@ -649,12 +649,12 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                       {/* Mood color accent bar */}
                       {entry && moodColor && (
                         <div
-                          className="absolute top-0 left-4 right-4 h-[3px] rounded-b-full"
+                          className="absolute top-0 left-3 right-3 h-1 rounded-b-full"
                           style={{ backgroundColor: moodColor }}
                         />
                       )}
                       {isToday && !entry && (
-                        <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-gantly-gold" />
+                        <div className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-gantly-gold shadow-sm shadow-gantly-gold/40" />
                       )}
                       <div className={`text-xs font-semibold mb-1.5 ${entry ? 'text-slate-400' : 'opacity-70'}`}>
                         {dayName.toUpperCase()}
@@ -701,20 +701,21 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                   const isClickable = entry || (isValidDate && isCurrentMonth);
                   const dayNumber = date.getDate();
                   const moodColor = entry ? moodColors[entry.moodRating] : undefined;
+                  const isWeekend = date.getDay() === 0 || date.getDay() === 6;
 
                   return (
                     <div
                       key={index}
                       onClick={() => handleDateClick(date)}
-                      className={`relative rounded-xl text-center min-h-[72px] flex flex-col justify-center items-center gap-1.5 transition-all duration-200
+                      className={`relative rounded-xl text-center min-h-[88px] flex flex-col justify-center items-center gap-1 py-2 transition-all duration-200
                         ${entry
-                          ? 'bg-white border border-slate-100 hover:shadow-md hover:-translate-y-px cursor-pointer'
+                          ? 'bg-white border border-slate-100 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer'
                           : isToday
-                            ? 'bg-gantly-gold/5 border-2 border-gantly-gold text-amber-800'
+                            ? 'bg-gantly-gold/8 border-2 border-gantly-gold text-amber-800 cursor-pointer'
                             : isValidDate && isCurrentMonth
                               ? 'bg-white border border-dashed border-slate-200 text-slate-400 hover:border-gantly-blue/40 hover:bg-gantly-blue/[0.02] cursor-pointer'
                               : isCurrentMonth
-                                ? 'bg-white/60 text-slate-300'
+                                ? `${isWeekend ? 'bg-slate-50/40' : 'bg-white/60'} text-slate-300`
                                 : 'text-slate-200'
                         }
                         ${!isClickable ? 'cursor-default' : ''}
@@ -723,21 +724,23 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                       {/* Mood color accent bar */}
                       {entry && moodColor && (
                         <div
-                          className="absolute top-0 left-3 right-3 h-[3px] rounded-b-full"
+                          className="absolute top-0 left-2 right-2 h-1 rounded-b-full"
                           style={{ backgroundColor: moodColor }}
                         />
                       )}
-                      <div className={`text-sm font-semibold ${entry ? 'text-slate-700' : ''}`}>
+                      {isToday && !entry && (
+                        <div className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-gantly-gold" />
+                      )}
+                      <div className={`text-sm font-bold ${entry ? 'text-slate-800' : isToday ? 'text-amber-700' : ''}`}>
                         {dayNumber}
                       </div>
                       {entry ? (
-                        <div
-                          className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: moodColor }}
-                        />
+                        <div className="mt-0.5">
+                          {renderMoodFace(entry.moodRating, 28)}
+                        </div>
                       ) : isValidDate && isCurrentMonth ? (
-                        <div className="w-5 h-5 rounded-full border border-dashed border-slate-300 flex items-center justify-center">
-                          <span className="text-[10px] text-slate-300 leading-none">+</span>
+                        <div className="w-6 h-6 rounded-full border border-dashed border-slate-300 flex items-center justify-center mt-0.5">
+                          <span className="text-xs text-slate-300 leading-none">+</span>
                         </div>
                       ) : null}
                     </div>

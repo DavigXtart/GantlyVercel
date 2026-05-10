@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { companyAuthService } from '../services/api';
-import LogoSvg from '../assets/logo-gantly.svg';
+import FormField from './ui/FormField';
+import { Building2, Users, BarChart3, Mail, Shield, CheckCircle } from 'lucide-react';
 
 interface RegisterCompanyProps {
   onBack: () => void;
@@ -23,8 +24,8 @@ export default function RegisterCompany({ onBack, onLogin, onSuccess }: Register
       setError('Completa todos los campos');
       return;
     }
-    if (password.length < 8) {
-      setError('La contraseña debe tener al menos 8 caracteres');
+    if (password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres');
       return;
     }
     if (!acceptTerms) {
@@ -42,54 +43,102 @@ export default function RegisterCompany({ onBack, onLogin, onSuccess }: Register
     }
   };
 
+  const benefits = [
+    { icon: Building2, text: 'Dashboard centralizado para tu clinica' },
+    { icon: Users, text: 'Gestion completa de psicologos y pacientes' },
+    { icon: BarChart3, text: 'Facturacion y metricas en tiempo real' },
+    { icon: Mail, text: 'Invitaciones por email a profesionales' },
+    { icon: Shield, text: 'Datos protegidos con cifrado de extremo a extremo' },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gantly-navy-700 via-gantly-blue-600 to-gantly-cyan-500 px-6 pt-[100px] pb-20">
-      <div className="max-w-[420px] mx-auto">
-        <div className="rounded-2xl shadow-xl shadow-slate-900/10 overflow-hidden">
-          <div className="h-1.5 bg-gradient-to-r from-gantly-blue to-gantly-cyan rounded-t-2xl" />
-          <div className="bg-white rounded-b-2xl p-10">
-            <img src={LogoSvg} alt="Gantly" className="h-8 mb-6 cursor-pointer" onClick={() => window.location.href = '/'} />
-            <h1 className="font-heading font-bold text-gantly-text text-2xl mb-2">
-              Registrar empresa
-            </h1>
-            <p className="text-slate-500 font-body text-sm mb-6">
-              Crea tu cuenta como empresa. Recibirás un código de referencia para que tus psicólogos se registren.
-            </p>
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              <div>
-                <label className="block font-heading font-semibold text-gantly-text text-sm mb-2">Nombre de la empresa *</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Ej: Clínica Psicológica XYZ"
-                  required
-                  className="w-full h-14 px-4 rounded-xl border-2 border-slate-200 text-base outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
-                />
+    <div className="min-h-screen bg-gradient-to-br from-gantly-navy-700 via-gantly-blue-600 to-gantly-cyan-500 flex justify-center items-center px-6 py-20 relative">
+      <div className="w-full max-w-[1000px] grid grid-cols-1 md:grid-cols-[minmax(300px,1fr)_minmax(320px,1fr)] gap-12 relative z-[1]">
+        {/* Panel izquierdo - Informacion */}
+        <div className="bg-white/90 border border-gantly-blue-100 rounded-2xl p-12 flex flex-col gap-6 shadow-card">
+          <div className="font-heading text-[32px] font-bold text-gantly-blue-500 tracking-tight mb-2">
+            Gantly
+          </div>
+          <h1 className="m-0 text-4xl leading-tight text-gantly-text font-heading font-bold">
+            Gestiona tu clinica
+          </h1>
+          <p className="m-0 text-[17px] leading-relaxed text-gantly-muted mb-2">
+            Centraliza la gestion de tu clinica psicologica con herramientas profesionales diseñadas para equipos de salud mental.
+          </p>
+          <div className="mt-4 flex flex-col gap-4 text-base text-gantly-muted">
+            {benefits.map((benefit, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-gantly-blue-50 flex items-center justify-center flex-shrink-0">
+                  <benefit.icon className="w-4.5 h-4.5 text-gantly-blue-500" size={18} />
+                </div>
+                <span className="text-[15px]">{benefit.text}</span>
               </div>
-              <div>
-                <label className="block font-heading font-semibold text-gantly-text text-sm mb-2">Email *</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="empresa@ejemplo.com"
-                  required
-                  className="w-full h-14 px-4 rounded-xl border-2 border-slate-200 text-base outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
-                />
-              </div>
-              <div>
-                <label className="block font-heading font-semibold text-gantly-text text-sm mb-2">Contraseña *</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Mínimo 8 caracteres"
-                  required
-                  minLength={8}
-                  className="w-full h-14 px-4 rounded-xl border-2 border-slate-200 text-base outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
-                />
-              </div>
+            ))}
+          </div>
+          <div className="mt-auto text-[15px] text-gantly-muted pt-6 border-t border-gantly-blue-100 flex items-center gap-4 flex-wrap">
+            <span>¿Ya tienes cuenta?</span>
+            <button
+              onClick={onLogin}
+              className="border-none bg-transparent text-gantly-blue-600 font-semibold cursor-pointer text-[15px] hover:underline"
+            >
+              Iniciar sesion
+            </button>
+            <button
+              onClick={onBack}
+              className="border-none bg-transparent text-slate-400 cursor-pointer text-[15px] hover:text-slate-600 hover:underline transition-colors"
+            >
+              Volver
+            </button>
+          </div>
+        </div>
+
+        {/* Panel derecho - Formulario */}
+        <div className="bg-white shadow-card border border-gantly-blue-100 rounded-2xl p-12">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-xl bg-gantly-blue-50 flex items-center justify-center">
+              <Building2 className="w-5 h-5 text-gantly-blue-500" />
+            </div>
+            <h2 className="m-0 text-[28px] text-gantly-text font-heading font-bold">
+              Crear cuenta de clinica
+            </h2>
+          </div>
+          <p className="m-0 mb-8 text-base text-gantly-muted">
+            Registra tu clinica y recibe un codigo de referencia para tus profesionales.
+          </p>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6" aria-label="Formulario de registro de clinica">
+            <FormField
+              label="Nombre de la clinica"
+              name="companyName"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              placeholder="Ej: Clinica Psicologica XYZ"
+              ariaLabel="Nombre de la clinica"
+            />
+            <FormField
+              label="Email"
+              name="companyEmail"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="clinica@ejemplo.com"
+              ariaLabel="Correo electronico de la clinica"
+            />
+            <FormField
+              label="Contraseña"
+              name="companyPassword"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="Minimo 6 caracteres"
+              ariaLabel="Contraseña"
+            />
+
+            <div>
               <label className="flex items-start gap-2.5 cursor-pointer">
                 <input
                   type="checkbox"
@@ -105,32 +154,32 @@ export default function RegisterCompany({ onBack, onLogin, onSuccess }: Register
                   {' '}*
                 </span>
               </label>
-              {error && <p className="text-red-500 text-sm font-body">{error}</p>}
-              <button
-                type="submit"
-                disabled={loading || !acceptTerms}
-                className="w-full h-14 rounded-xl border-none bg-gradient-to-r from-gantly-blue to-gantly-cyan text-white text-base font-heading font-bold cursor-pointer shadow-lg hover:shadow-xl hover:shadow-gantly-blue/25 transition-all duration-300 disabled:bg-gray-300 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed disabled:shadow-none"
-              >
-                {loading ? 'Registrando...' : 'Registrarme'}
-              </button>
-            </form>
-            <div className="mt-6 flex gap-4 justify-center flex-wrap">
-              <button
-                type="button"
-                onClick={onBack}
-                className="py-2.5 px-5 rounded-xl border-2 border-slate-200 bg-transparent text-gantly-blue font-heading font-semibold text-sm cursor-pointer hover:border-gantly-blue hover:bg-gantly-blue/5 transition-all duration-200"
-              >
-                Volver
-              </button>
-              <button
-                type="button"
-                onClick={onLogin}
-                className="py-2.5 px-5 rounded-xl border-2 border-slate-200 bg-transparent text-gantly-blue font-heading font-semibold text-sm cursor-pointer hover:border-gantly-blue hover:bg-gantly-blue/5 transition-all duration-200"
-              >
-                Ya tengo cuenta
-              </button>
             </div>
-          </div>
+
+            {error && (
+              <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                <p className="text-red-600 text-sm font-body m-0">{error}</p>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading || !acceptTerms}
+              className="mt-2 py-3.5 px-6 rounded-full border-none bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white text-base font-semibold cursor-pointer shadow-md hover:shadow-lg transition-all disabled:bg-gray-300 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Registrando...
+                </>
+              ) : (
+                <>
+                  <CheckCircle size={18} />
+                  Crear cuenta de clinica
+                </>
+              )}
+            </button>
+          </form>
         </div>
       </div>
     </div>

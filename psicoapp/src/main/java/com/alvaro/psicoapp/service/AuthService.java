@@ -402,8 +402,8 @@ public class AuthService {
 
 	@Transactional
 	public boolean resetPassword(String token, String newPassword) {
-		if (newPassword == null || newPassword.length() < 8) {
-			throw new IllegalArgumentException("La contraseña debe tener al menos 8 caracteres");
+		if (newPassword == null || newPassword.length() < 6) {
+			throw new IllegalArgumentException("La contraseña debe tener al menos 6 caracteres");
 		}
 		var userOpt = userRepository.findByPasswordResetToken(token);
 		if (userOpt.isEmpty()) {
@@ -427,8 +427,8 @@ public class AuthService {
 
 	@Transactional
 	public void changePassword(String email, String currentPassword, String newPassword) {
-		if (newPassword == null || newPassword.length() < 8) {
-			throw new IllegalArgumentException("La nueva contraseña debe tener al menos 8 caracteres");
+		if (newPassword == null || newPassword.length() < 6) {
+			throw new IllegalArgumentException("La nueva contraseña debe tener al menos 6 caracteres");
 		}
 		UserEntity user = userRepository.findByEmail(email)
 			.orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
