@@ -14,18 +14,19 @@
   - `2026-05-05-landing-page.md` — Rediseño completo de la landing page (12 secciones, i18n, animaciones)
   - `2026-05-06-erp-redesign-y-fixes.md` — ERP ConfigTab + rediseño premium + fix notificaciones + fix calendario 500
   - `2026-05-06-ui-unification.md` — Unificacion UI/UX completa (emojis→Lucide, colores→brand tokens, textos, legacy CSS)
+  - `2026-05-10-security-audit.md` — Auditoría de ciberseguridad completa + RGPD + fixes arquitecturales (esta sesión)
 
 ## Project Overview
 Plataforma de salud mental que conecta pacientes con psicólogos.
 - **Backend**: Spring Boot 3.4.7 (Java 21) en `localhost:8080/api`
 - **Frontend**: React 18 + TypeScript + Vite + Tailwind + React Router en `frontend/`
-- **Base de datos**: MySQL 8.0 (UTF8MB4)
-- **Docker**: `docker-compose.yml` levanta MySQL + Backend + Frontend + Jitsi Meet
+- **Base de datos**: PostgreSQL 17 (migrado desde MySQL, Docker en puerto 5433)
+- **Docker**: `docker-compose.yml` levanta PostgreSQL + Backend + Frontend + Jitsi Meet
 
 ## Tech Stack
 - **Backend**: Spring Boot 3.4.7, Spring Security, JWT (JJWT 0.11.5), WebSocket STOMP/SockJS, JPA/Hibernate
 - **Frontend**: React 18.3.1, TypeScript 5.6.3, Vite 5.4.10, Tailwind 3.4.18, React Router 7, Axios, Framer Motion, i18next, Stripe JS, GSAP, Three.js/@react-three
-- **DB**: MySQL 8.0, 26+ entidades JPA, 22+ tablas
+- **DB**: PostgreSQL 17, 26+ entidades JPA, 22+ tablas (migrado de MySQL 8.0)
 - **Infra**: Docker (2-stage build), Nginx reverse proxy, Jitsi Meet self-hosted
 - **PDF Export**: html2canvas + jsPDF (frontend)
 - **Excel Import**: Apache POI 5.2.5 (backend)
@@ -34,20 +35,22 @@ Plataforma de salud mental que conecta pacientes con psicólogos.
 ## Architecture
 - Backend: Controllers → Services → Repositories → JPA Entities
 - Frontend: App.tsx uses `react-router-dom` declarative routing with `useAuth()` hook and `ProtectedRoute`
-- Auth: JWT (15min access + 7d refresh) + Google OAuth2 + email verification (6-digit code)
-- Chat: WebSocket STOMP con AES-256-GCM encryption (PBKDF2 key derivation, per-conversation salt)
+- Auth: JWT (15min access + 7d refresh with rotation) + Google OAuth2 (secure code exchange) + email verification (6-digit code)
+- Chat: WebSocket STOMP con AES-256-GCM encryption (PBKDF2 key derivation, per-conversation salt) — también chat clínica encriptado
+- PII: Field-level encryption at-rest (AES-256-GCM) para email, nombre, TOTP secret
 - Roles: USER, PSYCHOLOGIST, ADMIN, EMPRESA
 
 ## Key Backend Files
 ```
 psicoapp/src/main/java/com/alvaro/psicoapp/
-├── controller/     (20+ controllers: Auth, Admin, Task, Calendar, Chat, Test, Stripe, Jitsi, Matching, Company...)
-├── service/        (30+ services: Auth, Email, JWT, Task, Test, Calendar, Chat, Matching, Audit, Stripe, TestImport...)
+├── controller/     (20+ controllers: Auth, Admin, Task, Calendar, Chat, Test, Stripe, Jitsi, Matching, Gdpr, Company...)
+├── service/        (35+ services: Auth, Email, JWT, Task, Test, Calendar, Chat, Matching, Audit, Stripe, TestImport, Gdpr, PiiEncryption, SecurityBreach, DataRetention, OAuthCodeStore...)
 ├── domain/         (25+ JPA entities)
 ├── repository/     (33+ Spring Data repositories)
 ├── dto/            (23+ DTO classes with validation)
 ├── security/       (SecurityConfig, JwtAuthFilter, RateLimitFilter, OAuth2SuccessHandler)
-└── config/         (JwtConfig, WebSocketConfig)
+├── config/         (JwtConfig, WebSocketConfig, AppTimezone, PiiEncryptConverter, PiiDeterministicConverter)
+└── util/           (InputSanitizer)
 ```
 
 ## Key Frontend Files
@@ -113,8 +116,16 @@ App.tsx uses `react-router-dom` v7 with declarative `<Routes>`:
 - Video calls gated: `JitsiService` blocks if `paymentStatus != PAID`
 
 ### Billing Tab
-- `PsychBillingTab.tsx`: Filterable table of appointments with payment status, monthly totals, CSV export
+- `PsychBillingTab.tsx`: Filterable table with Base/IVA/Total columns, payment status, monthly totals, CSV export
+- `ClinicBilling.tsx`: Same for clinics, PDF invoice with tax data, CSV export with IVA fields
 - `CalendarController.getBillingAppointments()` → all confirmed/booked appointments for psychologist
+
+### IVA/Impuestos
+- Campos en AppointmentEntity: `taxRate`, `taxAmount`, `totalAmount`, `taxExempt`
+- Default: exento IVA (servicio sanitario, Art. 20 LIVA España)
+- Clinic agenda: checkbox "IVA exento" + dropdown tasa (21%/10%/4%)
+- Stripe cobra `totalAmount` (tax-inclusive) cuando está definido
+- BigDecimal para todos los cálculos monetarios
 
 ## Email Verification System
 Two methods: clickable link (token) + 6-digit code:
@@ -145,6 +156,7 @@ Psychologists must be approved by an admin before appearing as active in the pla
 - **Algorithm**: AES-256-GCM with 12-byte random IV per message
 - **Key derivation**: PBKDF2WithHmacSHA256 (100k iterations, random 32-byte salt per conversation)
 - **Salt storage**: `chat_conversations` table with per-conversation salt
+- **Clinic chat**: Same AES-256-GCM, key derived from (companyId, patientId), prefixed "ENC:" for backwards compat
 - **Backwards compatible**: Decryption tries PBKDF2 key first, falls back to legacy SHA-256 for old messages
 
 ## Company / Clinic ERP (en desarrollo — ver ERP_CLINICA.md)
@@ -167,15 +179,37 @@ El módulo de empresa está siendo reemplazado por un ERP completo para clínica
 ## Jitsi Video Calls
 - **Self-hosted**: docker-compose.yml includes full Jitsi stack (web, prosody, jicofo, jvb)
 - **JitsiVideoCall.tsx**: Auto-detects self-hosted vs JaaS (8x8.vc), adjusts script loading and room naming
-- **Payment gating**: `JitsiService` blocks calls if appointment not paid
+- **Payment gating**: `JitsiService` blocks calls if Stripe payment required and not PAID. Clinic-created appointments and non-Stripe payment methods (Efectivo) bypass the gate
+- **Producción**: Usar Jitsi en VPS EU (Hetzner) para cumplir RGPD, NO meet.jit.si (sin DPA)
 
-## Security
+## Security (auditoría Mayo 2026)
 - **CORS**: Explicit allowed origins (not wildcard), explicit headers/methods, `maxAge(3600)`
-- **Rate limiting**: 5 req/min for sensitive endpoints (login, register, verify-code, reset-password), 30/min for general auth
+- **Rate limiting**: 5 req/min sensitive endpoints, 30/min general auth, per-email verification lockout (5 intentos → 15min lock)
+- **Account lockout**: Escalado exponencial (15min → 1h → 4h → 24h), `lockoutCount` en UserEntity
+- **Password policy**: Mínimo 10 caracteres + 1 mayúscula + 1 símbolo especial
+- **OAuth2**: Secure code exchange (UUID 30s one-time code, no token en URL hash). OAuthCodeStoreService
+- **WebSocket**: JWT obligatorio en CONNECT, destination validation (/topic/chat/*, /topic/notifications/*), 10KB max payload, 10 msg/min
+- **CSP Header**: `default-src 'self'; script-src 'self' https://js.stripe.com; ...` en SecurityConfig
+- **CSRF**: Deshabilitado (correcto para JWT en Authorization header, no cookies)
+- **File access**: IDOR fix en FileController — ownership verification antes de servir archivos
+- **Token blacklist**: TokenBlacklistService, refresh token rotation (nuevo par en cada refresh)
+- **PII encryption**: AES-256-GCM field-level en UserEntity (email determinístico, nombre randomizado, TOTP)
+- **InputSanitizer**: Eliminado SQL blacklist (falsos positivos), mantenido XSS + HTML strip
+- **Request limits**: Body 2MB, headers 16KB (application.yml)
+- **Security breach logging**: SecurityBreachService para rate limit violations y account lockouts
+- **Frontend**: safeStorage (localStorage try-catch), Stripe URL whitelist (checkout.stripe.com), form debounce
 - **IP resolution**: Only trusts `X-Forwarded-For`/`X-Real-IP` from localhost proxies
-- **Nginx**: HSTS header, CSP includes Stripe and Jitsi domains, `X-Forwarded-Proto`
-- **Permissions-Policy**: camera, microphone, payment restricted to self
-- **Chat**: XSS fix — `textContent` instead of `innerHTML` for avatar fallback
+- **Nginx**: HSTS header, Permissions-Policy (camera, microphone, payment restricted to self)
+
+## RGPD / GDPR Compliance
+- **Consentimiento dual**: Checkbox privacidad + checkbox explícito datos de salud (Art. 9.2.a)
+- **Política de privacidad**: Página /privacidad con 14 secciones (base legal salud, retención, brechas)
+- **Derecho de acceso**: GET /api/user/export-data — descarga JSON con todos los datos
+- **Derecho de supresión**: DELETE /api/user/delete-account — anonimiza PII + elimina datos personales
+- **Derecho de rectificación**: Todos los campos PII editables en UserSettingsTab
+- **Retención automática**: Job diario 3AM — cuentas no verificadas (30d), notificaciones (90d), cuentas borradas (30d)
+- **Banner storage consent**: CookieBanner global (almacenamiento local, no cookies de seguimiento)
+- **Pendiente (no código)**: DPAs con proveedores, DPIA, registro actividades de tratamiento, DPO, Jitsi en VPS EU
 
 ## Email Templates (Thymeleaf)
 Located in `psicoapp/src/main/resources/templates/email/`:
@@ -222,6 +256,13 @@ Located in `psicoapp/src/main/resources/db/`:
 - `V31__add_test_indexes.sql` - 10 performance indexes on test-related tables
 - `V32__add_bipolar_labels_and_formulas.sql` - Adds min_label, max_label, formula, calculated columns + 16PF seed data
 - `V33__add_question_inverse_flag.sql` - Adds `inverse` boolean to questions for reverse-scored items
+- `V39__add_lockout_count.sql` - Adds `lockout_count` for escalated account lockout
+- `V40__gdpr_consent_fields.sql` - Adds `gdpr_consent_at`, `gdpr_consent_version`
+- `V41__pii_encryption_columns.sql` - Widens email/name columns to VARCHAR(500) for encrypted values
+- `V42__prevent_double_booking.sql` - Partial unique index on appointments(psychologist_id, start_time)
+- `V43__encrypt_totp_secret.sql` - Widens totp_secret to VARCHAR(500) for encryption
+- `V44__add_tax_fields.sql` - Adds tax_rate, tax_amount, total_amount, tax_exempt to appointments
+- `V45__health_data_consent.sql` - Adds `health_data_consent_at` for Art. 9 RGPD
 
 ## Deleted Features
 - **Group Sessions**: Removed entirely (GroupSessionController, GroupSessionService, GroupSessionEntity, GroupSessionParticipantEntity, GroupSessions.tsx)
@@ -232,107 +273,94 @@ Located in `psicoapp/src/main/resources/db/`:
 - **App.css**: Removed (styles in Tailwind/global.css)
 - **CompanyController/CompanyService/CompanyDashboard.tsx**: Replaced by new Clinic ERP (see ERP_CLINICA.md)
 
-## Known Issues — Full Audit (Mayo 2026)
+## Known Issues — Audit (Mayo 2026, actualizado 10 Mayo)
 
 ### CRITICAL (P0 — Production Blockers)
 
-| # | Sistema | Issue | Archivo clave |
-|---|---------|-------|---------------|
-| 1 | **Tests** | Fórmulas de factores NUNCA se aplican en scoring (suma simple en vez de parsear `"A+F+H+Q2(-)"`) → todos los factores 16PF/TCA/Ansiedad MAL calculados | `TestResultService.java:140-172` |
-| 2 | **Tests** | Tablas Valores de TCA no implementadas (porcentaje lineal en vez de transformación no-lineal Delphos) | `TestResultService.java` |
-| 3 | **Auth** | OAuth2 token expuesto en URL hash → visible en historial del navegador | `OAuth2SuccessHandler.java:56` |
-| 4 | **Auth** | Secrets hardcodeados en application-prod.yml (Gmail password, Google OAuth) | `application-prod.yml` |
-| 5 | **Payments** | Stripe Price IDs hardcodeados en código (no en DB) → si cambian en Stripe, cobra mal | `StripeService.java:64-76` |
-| 6 | **Calendar** | Deadline 48h de pago NO se enforcea (no hay scheduled job para expirar citas sin pagar) | `CalendarService.java:245` |
-| 7 | **ERP** | Paciente NO puede responder al chat de clínica (solo unidireccional) | `ClinicPatients.tsx` |
-| 8 | **Payments** | No hay protección contra webhook replay (notificación duplicada si Stripe reenvía) | `StripeService.java:192` |
-| 9 | **Payments** | No hay idempotency token en creación de Stripe session → riesgo de doble cobro | `StripeService.java:109` |
-| 10 | **Payments** | Webhook de suscripción se procesa pero NO se persiste en DB → usuario no marcado como premium | `StripeService.java:309` |
-| 11 | **GDPR** | Sin privacy policy, sin consentimiento para datos de salud, sin endpoints de eliminación de datos | Global |
+| # | Sistema | Issue | Estado |
+|---|---------|-------|--------|
+| 1 | **Tests** | Fórmulas de factores NUNCA se aplican en scoring → factores MAL calculados | **PENDIENTE** |
+| 2 | **Tests** | Tablas Valores TCA no implementadas (transformación no-lineal Delphos) | **PENDIENTE** |
+| 3 | **Auth** | OAuth2 token expuesto en URL hash | **RESUELTO** — code exchange UUID 30s |
+| 4 | **Auth** | Secrets hardcodeados en application-prod.yml | **PENDIENTE** — mover a env vars en deploy |
+| 5 | **Payments** | Stripe Price IDs hardcodeados en código | **PENDIENTE** — requiere config Stripe |
+| 6 | **Calendar** | Deadline 48h no se enforcea | **RESUELTO** — AppointmentSchedulerService cada hora |
+| 7 | **ERP** | Chat clínica solo unidireccional | **RESUELTO** — UserClinicChatTab funcional |
+| 8 | **Payments** | Sin protección webhook replay | **PENDIENTE** — requiere tabla stripe_events |
+| 9 | **Payments** | Sin idempotency en subscription checkout | **PENDIENTE** — requiere config Stripe |
+| 10 | **Payments** | Suscripción webhook no persiste en DB | **PENDIENTE** — requiere config Stripe |
+| 11 | **GDPR** | Sin privacy policy ni consentimiento salud | **RESUELTO** — RGPD completo |
 
 ### HIGH (P1)
 
-| # | Sistema | Issue |
-|---|---------|-------|
-| 12 | **ERP** | No hay notificaciones cuando la clínica envía mensaje al paciente |
-| 13 | **ERP** | Videollamada bloqueada para citas creadas desde ERP (JitsiService requiere PAID) |
-| 14 | **Tasks** | Archivos en `/uploads/tasks/` accesibles sin control de acceso (vulnerabilidad seguridad) |
-| 15 | **Matching** | Psicólogos que no pasan filtros aparecen al 15% en vez de excluirse (riesgo con menores) |
-| 16 | **Dashboard** | `setEditProfileForm`/`setPasswordForm` usados pero nunca declarados en UserDashboard.tsx → runtime error |
-| 17 | **Auth** | Validación password inconsistente: register exige 8 chars, reset acepta 6 |
-| 18 | **Auth** | TOTP secret almacenado en plaintext en DB (sin encriptar) |
-| 19 | **Auth** | No hay logout / token blacklist (JWT válido 15min tras "cerrar sesión") |
-| 20 | **Calendar** | Bug de timezone: servidor usa `ZoneId.systemDefault()` (UTC) vs cliente local |
-| 21 | **Calendar** | Race condition en double-booking (sin lock pesimista ni unique constraint) |
-| 22 | **Payments** | No se valida que el monto del Stripe session coincida con el precio de la cita |
-| 23 | **Chat** | WebSocket sin reconexión con backoff exponencial (usuario debe recargar manualmente) |
-| 24 | **ERP** | Nombre de clínica hardcodeado como "Mi Clínica" en PDF de factura |
+| # | Sistema | Issue | Estado |
+|---|---------|-------|--------|
+| 12 | **ERP** | Sin notificaciones chat clínica→paciente | **RESUELTO** — ya existía + icono Building2 |
+| 13 | **ERP** | Videollamada bloqueada en citas ERP | **RESUELTO** — bypass para clínica/efectivo |
+| 14 | **Tasks** | Archivos sin control de acceso | **RESUELTO** — IDOR fix en FileController |
+| 15 | **Matching** | Psicólogos 15% en vez de excluirse (menores) | **RESUELTO** — hard exclude + zero floor |
+| 17 | **Auth** | Password inconsistente | **RESUELTO** — 10 chars + mayúscula + símbolo |
+| 18 | **Auth** | TOTP secret plaintext | **RESUELTO** — PiiEncryptConverter |
+| 19 | **Auth** | Sin logout / token blacklist | **RESUELTO** — blacklist + refresh rotation |
+| 20 | **Calendar** | Bug timezone UTC vs local | **RESUELTO** — AppTimezone Europe/Madrid |
+| 21 | **Calendar** | Double-booking race condition | **RESUELTO** — unique index + validación |
+| 23 | **Chat** | WebSocket sin reconexión backoff | Parcial — ya tiene backoff |
+| 24 | **ERP** | Clínica hardcodeada en PDF | **PENDIENTE** |
 
-### MEDIUM (P2)
+### MEDIUM (P2) — Pendientes
 
 | # | Sistema | Issue |
 |---|---------|-------|
-| 25 | **Tests** | Preguntas importadas sin subfactor asignado (inutilizables hasta asignación manual) |
-| 26 | **Tests** | TestReport PDF hardcodeado a escala 1-10 (no soporta otros formatos) |
-| 27 | **Tests** | TestEntity y EvaluationTestEntity mezclados en queries (arquitectura confusa) |
-| 28 | **Tests** | Campo `calculated` en factors nunca leído (dead code) |
-| 29 | **Dashboard** | UserDashboard.tsx tiene 1434 líneas y 84+ state variables (necesita refactor) |
-| 30 | **Dashboard** | PsychDashboard: memory leaks en test details, billing sin paginación |
-| 31 | **Admin** | Búsqueda de usuarios filtra client-side sin paginación backend |
-| 32 | **Tasks** | Archivos huérfanos no se limpian al eliminar tareas |
+| 25 | **Tests** | Preguntas importadas sin subfactor asignado |
+| 26 | **Tests** | TestReport PDF solo escala 1-10 |
+| 27 | **Tests** | TestEntity vs EvaluationTestEntity mezclados |
+| 29 | **Dashboard** | UserDashboard.tsx muy grande (parcialmente refactorizado en tabs) |
+| 32 | **Tasks** | Archivos huérfanos no se limpian al eliminar |
 | 33 | **Tasks** | Tarea completada no se puede reabrir |
-| 34 | **Chat** | Mensajes almacenados indefinidamente sin política de retención (GDPR) |
-| 35 | **Chat** | Sin rate limiting en WebSocket SEND |
-| 36 | **Calendar** | Sin cascade delete para AppointmentRequestEntity (registros huérfanos) |
-| 37 | **Calendar** | Sin auditoría de operaciones de calendario |
-| 38 | **Payments** | Sin cálculo de IVA/impuestos por país (ilegal en UE) |
-| 39 | **Payments** | Sin notificación de fallo de pago (solo maneja `checkout.session.completed`) |
-| 40 | **ERP** | Chat de clínica sin encriptación (a diferencia del chat user-psychologist con AES-256-GCM) |
-| 41 | **ERP** | Sin rate limiting en endpoints de clínica |
-| 42 | **ERP** | Sin validación de archivos subidos en backend (solo frontend) |
+| 34 | **Chat** | ~~Sin retención~~ → **RESUELTO** — DataRetentionService diario 3AM |
+| 35 | **Chat** | ~~Sin rate limiting WebSocket~~ → **RESUELTO** — 10 msg/min + 10KB |
+| 36 | **Calendar** | Sin cascade delete AppointmentRequest |
+| 38 | **Payments** | ~~Sin IVA~~ → **RESUELTO** — campos tax en appointment |
+| 39 | **Payments** | Sin notificación de fallo de pago |
+| 40 | **ERP** | ~~Chat sin encriptación~~ → **RESUELTO** — AES-256-GCM |
 
 ### Architectural Debt
 
-- **UserDashboard.tsx**: 1434 líneas, 84 state variables → necesita descomposición en componentes + useReducer/Context
-- **PsychDashboard.tsx**: ~1000 líneas, mismo problema
-- **Appointment status**: strings sueltos ("FREE", "BOOKED", "CONFIRMED"...) sin enum → propenso a errores
+- **Appointment status**: strings sueltos sin enum → propenso a errores
 - **Payment status**: solo "PENDING"/"PAID", faltan "FAILED"/"REFUNDED"/"CANCELLED"
-- **Dos sistemas de tests paralelos**: TestEntity vs EvaluationTestEntity con scoring diferente y queries mezcladas
+- **Dos sistemas de tests paralelos**: TestEntity vs EvaluationTestEntity
 - **Stripe config**: `@ConfigurationProperties` con validación no implementado
-- **File storage**: filesystem local sin backup ni persistencia en Docker
+- **File storage**: filesystem local → migrar a Supabase Storage en deploy
 
 ## Pending Features (por prioridad)
 
-### Alta
-- Implementar parser/evaluador de fórmulas para factores (TestResultService)
+### Alta (bloqueantes para producción)
+- Implementar parser/evaluador de fórmulas para factores (TestResultService) — **tests dan resultados incorrectos**
 - Implementar tablas Valores TCA (transformación no-lineal)
-- Fix OAuth2: usar POST redirect con form auto-submit en vez de token en URL
-- Mover secrets a variables de entorno
-- Scheduled job para expirar citas sin pagar (48h deadline)
-- Chat bidireccional clínica↔paciente (endpoint + UI paciente)
-- Notificaciones de chat clínica→paciente
+- Mover secrets a variables de entorno (al deployar en Render)
+- Stripe: webhook replay protection + idempotency + persistir suscripción
 
 ### Media
 - Error boundary global
 - Auto-asignación de subfactors en import de tests
-- Token blacklist / logout real
-- Encriptar TOTP secrets con AES-256-GCM
 - Mover Stripe Price IDs a DB
-- Persistir estado de suscripción en DB tras webhook
-- Idempotency tokens en Stripe sessions
-- GDPR: privacy policy, consent flow, data export/deletion
-- Validación de acceso a archivos de tareas
+- Nombre de clínica dinámico en PDF factura
+- Notificación de fallo de pago
 
-### Baja
-- Refactor UserDashboard/PsychDashboard (descomponer en componentes)
-- Paginación backend para usuarios y billing
-- Enums para appointment status y payment status
-- Cálculo de IVA por país
-- Política de retención de mensajes
+### Baja (post-launch)
+- Refactor UserDashboard/PsychDashboard
+- Enums para appointment/payment status
 - Auditoría de operaciones de calendario
-- Portal paciente con vista clínica
 - Citas recurrentes
 - Catálogo de servicios con precios
+- Recordatorios automáticos de cita (email 24h antes)
+- Portal paciente — vista clínica
+- Página pública clínica con reserva online
+- Lista de espera
+- Multi-administrador clínica
+- Facturación aseguradoras
+- Firma digital consentimientos
+- Gestión bajas/ausencias psicólogo
 
 ## MCP Servers
 - **Playwright**: Browser automation para testing E2E. Configurado con `claude mcp add playwright -- npx @playwright/mcp@latest`
@@ -349,9 +377,55 @@ Located in `psicoapp/src/main/resources/db/`:
 - **Fuentes**: Outfit (heading), Work Sans (body), Caveat (handwritten)
 - **Legacy CSS eliminado**: .btn, .form-group, .admin-container → Tailwind utilities
 
+## PII Encryption System
+- **PiiEncryptionService**: AES-256-GCM con clave derivada de `PII_ENCRYPTION_KEY` env var
+- **PiiEncryptConverter**: JPA AttributeConverter para encriptación randomizada (nombre). Prefijo "ENC:"
+- **PiiDeterministicConverter**: JPA AttributeConverter para encriptación determinística (email). Prefijo "DENC:" — permite findByEmail y unique constraint
+- **Campos encriptados**: email (determinístico), name (randomizado), totpSecret (randomizado)
+- **Backwards compatible**: Valores sin prefijo se devuelven tal cual (plaintext). Se encriptan automáticamente en el siguiente save
+- **Key config**: `app.pii.encryption-key` en application.yml (default dev key, cambiar en producción)
+
+## Matching System
+- **MatchingService**: Calcula afinidad paciente-psicólogo basado en múltiples criterios
+- **Hard exclusion filters**: Menores (<18 años) NUNCA se asignan a psicólogos sin experiencia con menores
+- **Approved only**: Solo psicólogos con `approved = true` aparecen en resultados
+- **Zero floor**: Sin score mínimo artificial — si no hay match, score = 0 y se excluye
+
+## Appointment System
+- **Double-booking prevention**: Partial unique index en (psychologist_id, start_time) para status BOOKED/CONFIRMED
+- **48h expiration**: AppointmentSchedulerService expira citas sin pagar cada hora (con notificación al paciente)
+- **Timezone**: AppTimezone.APP_ZONE = Europe/Madrid centralizado en todos los servicios
+- **Tax fields**: taxRate, taxAmount, totalAmount, taxExempt — default exento (sanitario)
+
+## Deploy Plan (Supabase + Render)
+
+| Componente | Servicio | Región | Coste |
+|-----------|----------|--------|-------|
+| Frontend (React) | Vercel | Auto | Gratis |
+| Backend (Spring Boot) | Render | Frankfurt EU | ~7$/mes |
+| Base de datos (PostgreSQL) | Supabase | eu-central-1 | Gratis hasta 500MB |
+| Videollamadas (Jitsi) | Hetzner VPS | Falkenstein DE | ~5€/mes |
+| Archivos (avatars, docs) | Supabase Storage | eu-central-1 | Incluido |
+
+### Env vars necesarias en Render
+- `DB_PASSWORD`, `DB_URL` — Supabase PostgreSQL connection
+- `JWT_SECRET` — secreto para firmar tokens
+- `PII_ENCRYPTION_KEY` — clave para encriptación PII (32+ chars)
+- `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` — Stripe API
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` — Google OAuth2
+- `MAIL_USERNAME`, `MAIL_PASSWORD` — SMTP (Gmail o servicio)
+- `FRONTEND_URL` — URL del frontend para CORS y redirects
+
+### Tareas de deploy (no código)
+- Firmar DPAs con Supabase, Render, Stripe (descargar de sus webs)
+- DPIA (Evaluación de Impacto) — documento legal obligatorio para datos de salud
+- Registro de actividades de tratamiento (Art. 30 RGPD)
+- Configurar Jitsi en VPS EU con dominio propio (video.gantly.com)
+
 ## Build & Run
 - **Maven**: Installed globally at `/c/Program Files (x86)/Apache/Maven/bin/mvn` (no `./mvnw` wrapper)
-- **MySQL**: Local at `/c/Program Files/MySQL/MySQL Server 8.4/bin/mysql` (user: root, pass: 1234, db: gantly)
+- **PostgreSQL**: Docker container `postgres_gantly` en puerto 5433 (user: gantly, pass: gantly, db: gantly)
 - **Backend compile**: `cd psicoapp && mvn compile`
 - **Frontend typecheck**: `cd frontend && npx tsc --noEmit`
 - **Frontend dev**: `cd frontend && npm run dev` (Vite on port 5173)
+- **Migration scripts**: `migration/export_mysql.sh` + `migration/import_to_postgres.py`
