@@ -4,8 +4,7 @@ import { toast } from './ui/Toast';
 import LoadingSpinner from './ui/LoadingSpinner';
 import EmptyState from './ui/EmptyState';
 import { LineChart, Smile, Flame, FileEdit, HelpCircle, TrendingUp, LayoutGrid, History, BarChart3 } from 'lucide-react';
-
-const MOOD_EMOJIS = ['', '😢', '😔', '😐', '🙂', '😄'];
+import MoodFace from './ui/MoodFace';
 
 export default function MisEstadisticas() {
   const [loading, setLoading] = useState(true);
@@ -149,9 +148,9 @@ export default function MisEstadisticas() {
               </h4>
               <div className="relative h-48 mt-2">
                 {/* Y-axis labels */}
-                <div className="absolute left-0 top-0 bottom-6 flex flex-col justify-between text-xs text-slate-400 w-8">
+                <div className="absolute left-0 top-0 bottom-6 flex flex-col justify-between w-8">
                   {[5, 4, 3, 2, 1].map(v => (
-                    <span key={v} className="leading-none">{MOOD_EMOJIS[v]}</span>
+                    <span key={v} className="leading-none"><MoodFace value={v} size={18} /></span>
                   ))}
                 </div>
                 {/* Grid + Chart */}

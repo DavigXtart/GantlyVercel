@@ -19,7 +19,8 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [birthDate, setBirthDate] = useState('');
-  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; birthDate?: string }>({});
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; birthDate?: string; terms?: string }>({});
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'form' | 'verify'>('form');
   const [verificationCode, setVerificationCode] = useState('');
@@ -59,7 +60,7 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
 
   const validatePassword = (password: string): string | undefined => {
     if (!password) return 'La contraseña es obligatoria';
-    if (password.length < 6) return 'La contraseña debe tener al menos 6 caracteres';
+    if (password.length < 8) return 'La contraseña debe tener al menos 8 caracteres';
     return undefined;
   };
 
@@ -69,8 +70,10 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
     const emailError = validateEmail(email);
     const passwordError = validatePassword(password);
 
-    if (nameError || emailError || passwordError) {
-      setErrors({ name: nameError, email: emailError, password: passwordError });
+    const termsError = !acceptTerms ? 'Debes aceptar los terminos y la politica de privacidad' : undefined;
+
+    if (nameError || emailError || passwordError || termsError) {
+      setErrors({ name: nameError, email: emailError, password: passwordError, terms: termsError });
       return;
     }
 
@@ -217,13 +220,31 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
                   error={errors.email} required placeholder="tu@email.com" ariaLabel="Correo electrónico" />
                 <FormField label="Contraseña" name="password" type="password" value={password}
                   onChange={(e) => { setPassword(e.target.value); if (errors.password) setErrors({ ...errors, password: validatePassword(e.target.value) }); }}
-                  error={errors.password} required placeholder="Minimo 6 caracteres" ariaLabel="Contraseña" />
+                  error={errors.password} required placeholder="Minimo 8 caracteres" ariaLabel="Contraseña" />
                 <FormField label="Fecha de nacimiento" name="birthDate" type="date" value={birthDate}
                   onChange={(e) => { setBirthDate(e.target.value); if (errors.birthDate) setErrors({ ...errors, birthDate: undefined }); }}
                   error={errors.birthDate} placeholder="" ariaLabel="Fecha de nacimiento" />
+                <div>
+                  <label className="flex items-start gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={acceptTerms}
+                      onChange={(e) => { setAcceptTerms(e.target.checked); if (errors.terms) setErrors({ ...errors, terms: undefined }); }}
+                      className="mt-1 w-4 h-4 accent-gantly-blue cursor-pointer flex-shrink-0"
+                    />
+                    <span className="text-sm text-slate-500 leading-relaxed">
+                      Acepto los{' '}
+                      <a href="/terms" target="_blank" className="text-gantly-blue font-medium hover:underline">terminos y condiciones</a>
+                      {' '}y la{' '}
+                      <a href="/privacy" target="_blank" className="text-gantly-blue font-medium hover:underline">politica de privacidad</a>
+                      {' '}de Gantly *
+                    </span>
+                  </label>
+                  {errors.terms && <p className="text-red-500 text-xs mt-1.5 ml-6">{errors.terms}</p>}
+                </div>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || !acceptTerms}
                   className="mt-2 py-3.5 px-6 rounded-full border-none bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white text-base font-semibold cursor-pointer shadow-md hover:shadow-lg transition-all disabled:bg-gray-300 disabled:cursor-not-allowed disabled:shadow-none"
                 >
                   {loading ? 'Creando cuenta...' : 'Crear cuenta'}

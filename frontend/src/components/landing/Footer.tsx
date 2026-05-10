@@ -41,7 +41,7 @@ export default function Footer() {
         {/* Grid: logo + links */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           <div>
-            <img src={LogoSvg} alt="Gantly" className="h-6 brightness-0 invert mb-4" />
+            <img src={LogoSvg} alt="Gantly" className="h-6 brightness-0 invert mb-4 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
             <p className="font-body text-sm leading-relaxed">{t('landing.footer.tagline')}</p>
           </div>
 

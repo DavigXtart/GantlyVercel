@@ -248,29 +248,6 @@ export const companyAuthService = {
   }
 };
 
-export const companyService = {
-  getMe: async () => {
-    const { data } = await api.get('/company/me');
-    return data as { name: string; email: string; referralCode: string };
-  },
-  getPsychologists: async () => {
-    const { data } = await api.get('/company/psychologists');
-    return data as Array<{ id: number; name: string; email: string; referralCode: string; averageRating: number | null; totalRatings: number; activePatients: number; upcomingAppointments: number }>;
-  },
-  getPsychologistDetail: async (psychologistId: number) => {
-    const { data } = await api.get(`/company/psychologists/${psychologistId}`);
-    return data;
-  },
-  getPsychologistAvailability: async (psychologistId: number, from: string, to: string) => {
-    const { data } = await api.get(`/company/psychologists/${psychologistId}/availability`, { params: { from, to } });
-    return data as Array<{ id: number; startTime: string; endTime: string; price: number | null }>;
-  },
-  bookForPatient: async (psychologistId: number, appointmentId: number, patientId: number) => {
-    const { data } = await api.post(`/company/psychologists/${psychologistId}/book`, { appointmentId, patientId });
-    return data;
-  }
-};
-
 type SubmitAnswerPayload = { questionId: number; answerId?: number; numericValue?: number; textValue?: string };
 
 export const testService = {
@@ -298,10 +275,6 @@ export const initialTestService = {
   },
   submitAnswers: async (sessionId: string, answers: SubmitAnswerPayload[]) => {
     const { data } = await api.post(`/initial-test/submit?sessionId=${sessionId}`, { answers });
-    return data;
-  },
-  getStatus: async (sessionId: string) => {
-    const { data } = await api.get(`/initial-test/status?sessionId=${sessionId}`);
     return data;
   },
 };

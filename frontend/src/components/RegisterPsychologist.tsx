@@ -425,7 +425,7 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
                       className="mt-1 w-5 h-5 cursor-pointer accent-gantly-blue-500"
                     />
                     <span className="text-sm text-gantly-muted leading-relaxed">
-                      Acepto los <a href="#" className="text-gantly-blue-600 underline">términos y condiciones</a> de Gantly *
+                      Acepto los <a href="/terms" target="_blank" className="text-gantly-blue-600 underline">términos y condiciones</a> de Gantly *
                     </span>
                   </label>
 
@@ -438,7 +438,7 @@ export default function RegisterPsychologist({ onBack, onLogin, onSuccess }: Reg
                       className="mt-1 w-5 h-5 cursor-pointer accent-gantly-blue-500"
                     />
                     <span className="text-sm text-gantly-muted leading-relaxed">
-                      Acepto la <a href="#" className="text-gantly-blue-600 underline">política de privacidad</a> y el tratamiento de mis datos *
+                      Acepto la <a href="/privacy" target="_blank" className="text-gantly-blue-600 underline">política de privacidad</a> y el tratamiento de mis datos *
                     </span>
                   </label>
                 </div>

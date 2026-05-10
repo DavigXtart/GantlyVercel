@@ -1,10 +1,18 @@
-import gemini1 from '../assets/Gemini_Generated_Image_gvn6grgvn6grgvn6.png';
-import gemini2 from '../assets/Gemini_Generated_Image_9ho60t9ho60t9ho6.png';
-import gemini3 from '../assets/Gemini_Generated_Image_pg3gfvpg3gfvpg3g.png';
-import gemini4 from '../assets/Gemini_Generated_Image_kng45nkng45nkng4.png';
-import gemini5 from '../assets/Gemini_Generated_Image_xta9abxta9abxta9.png';
-import gemini6 from '../assets/Gemini_Generated_Image_wqpn45wqpn45wqpn.png';
-import imagenProfesional from '../assets/imagenProfesional.jpg';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import {
+  ArrowRight, ChevronDown, Menu, X,
+  Calendar, ClipboardCheck, Users, Shield,
+  Brain, Video, Receipt, Sparkles,
+  BadgeCheck, Laptop, HeartPulse, CheckCircle2,
+} from 'lucide-react';
+import LogoSvg from '../assets/logo-gantly.svg';
+import LogoIcon from '../assets/logo-gantly-icon.svg';
+import SectionWrapper from './landing/shared/SectionWrapper';
+import ScrollReveal from './landing/shared/ScrollReveal';
+import GlowCard from './landing/shared/GlowCard';
+import TiltCard from './landing/shared/TiltCard';
+import Footer from './landing/Footer';
 
 interface SoyProfesionalProps {
   onBack: () => void;
@@ -13,238 +21,453 @@ interface SoyProfesionalProps {
   onRegisterCompany?: () => void;
 }
 
-export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegisterCompany }: SoyProfesionalProps) {
-  return (
-    <div className="overflow-x-hidden bg-gantly-cloud min-h-screen font-body">
-      <style>{`
-        .fade-in {
-          opacity: 0;
-          transform: translateY(30px);
-          transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-        }
-        .fade-in.visible {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      `}</style>
+/* ─── Stats data ─── */
+const stats = [
+  { value: '100%', label: 'Psicologos titulados, colegiados y habilitados' },
+  { value: '+300K', label: 'Sesiones realizadas de forma segura' },
+  { value: '+92%', label: 'Profesionales que recomiendan Gantly' },
+  { value: '+8', label: 'Anos de experiencia en telepsicologia' },
+];
 
-      {/* Navigation bar */}
-      <nav className="fixed top-0 left-0 right-0 z-[1000] bg-white/95 backdrop-blur-md border-b border-gantly-blue/10 px-6 md:px-10 py-5 flex justify-between items-center">
-        <div
-          onClick={onBack}
-          className="font-heading text-[28px] font-bold text-gantly-blue tracking-tight cursor-pointer hover:opacity-70 transition-opacity"
-        >
-          Gantly
-        </div>
-        <div className="flex items-center gap-6">
-          <button
+/* ─── Advantage cards ─── */
+const advantages = [
+  { icon: Users, color: '#2E93CC', title: 'Amplia tu cartera', desc: 'Accede a pacientes que buscan exactamente tu especialidad gracias a nuestro matching inteligente.' },
+  { icon: Calendar, color: '#22D3EE', title: 'Horario flexible', desc: 'Trabaja cuando quieras, desde donde quieras. Tu agenda, tus reglas.' },
+  { icon: Sparkles, color: '#F0C930', title: 'Asistente IA', desc: 'Resumenes automatizados de sesiones, sugerencias de seguimiento y notas clinicas asistidas.' },
+  { icon: Receipt, color: '#059669', title: 'Cobro automatico', desc: 'Olvida perseguir pagos. Stripe gestiona todo automaticamente antes de cada sesion.' },
+  { icon: Video, color: '#2E93CC', title: 'Videollamada integrada', desc: 'Jitsi Meet privado, sin descargas, con encriptacion de extremo a extremo.' },
+  { icon: ClipboardCheck, color: '#22D3EE', title: 'Tests y evaluacion', desc: 'Baterias de tests clinicos integradas. Asigna, recoge resultados y genera informes en un clic.' },
+];
+
+/* ─── Steps ─── */
+const steps = [
+  { number: '01', title: 'Crea tu perfil', desc: 'Rellena tus datos, sube tu titulo y numero de colegiado. Solo te llevara unos minutos.', icon: ClipboardCheck },
+  { number: '02', title: 'Verificacion', desc: 'Nuestro equipo revisara tus credenciales y habilitara tu cuenta en menos de 48 horas.', icon: BadgeCheck },
+  { number: '03', title: 'Empieza a crecer', desc: 'Configura tu agenda, define tus tarifas y comienza a recibir pacientes compatibles contigo.', icon: HeartPulse },
+];
+
+/* ─── Requirements ─── */
+const requirements = [
+  'Titulo oficial en Psicologia',
+  'Habilitacion sanitaria vigente',
+  'Colegiacion activa',
+  'Ordenador con webcam y buena conexion',
+];
+
+export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegisterCompany }: SoyProfesionalProps) {
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    setMobileOpen(false);
+  };
+
+  return (
+    <div className="overflow-x-hidden bg-gantly-cloud min-h-screen">
+      {/* ─── Floating Navbar ─── */}
+      <nav
+        className={`fixed top-4 left-4 right-4 z-50 rounded-2xl transition-all duration-300 ${
+          scrolled
+            ? 'bg-white/90 shadow-lg shadow-slate-200/50 border border-slate-200/60'
+            : 'bg-white/15 border border-white/20'
+        }`}
+        style={{ backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
+      >
+        <div className="flex items-center justify-between px-5 py-3">
+          <img
+            src={LogoSvg}
+            alt="Gantly"
+            className={`h-7 cursor-pointer transition-all duration-300 ${scrolled ? '' : 'brightness-0 invert'}`}
             onClick={onBack}
-            className="bg-transparent border-none text-gantly-muted text-[15px] font-medium cursor-pointer hover:text-gantly-blue transition-colors"
-          >
-            Volver
-          </button>
+          />
+
+          <ul className="hidden lg:flex items-center gap-7">
+            {[
+              { label: 'Ventajas', id: 'ventajas' },
+              { label: 'Como funciona', id: 'pasos' },
+              { label: 'Requisitos', id: 'requisitos' },
+            ].map((link) => (
+              <li key={link.id}>
+                <button
+                  onClick={() => scrollToSection(link.id)}
+                  className={`text-[15px] font-medium font-body transition-colors cursor-pointer ${
+                    scrolled ? 'text-slate-600 hover:text-gantly-blue' : 'text-white/90 hover:text-white'
+                  }`}
+                >
+                  {link.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          <div className="hidden lg:flex items-center gap-3">
+            <button
+              onClick={onLogin}
+              className={`text-[15px] font-semibold font-body transition-colors px-5 py-2 rounded-xl border cursor-pointer ${
+                scrolled
+                  ? 'text-slate-700 hover:text-slate-900 border-slate-300 hover:border-slate-400 bg-slate-50 hover:bg-slate-100'
+                  : 'text-white hover:text-white border-white/40 hover:border-white/60 bg-white/10 hover:bg-white/20'
+              }`}
+            >
+              Iniciar sesion
+            </button>
+            <button
+              onClick={onGetStarted}
+              className={`text-sm font-heading font-semibold transition-colors px-5 py-2 rounded-xl cursor-pointer ${
+                scrolled
+                  ? 'text-white bg-gantly-blue hover:bg-sky-600 shadow-sm shadow-gantly-blue/20'
+                  : 'text-gantly-text bg-white hover:bg-white/90'
+              }`}
+            >
+              Registrarme
+            </button>
+          </div>
+
           <button
-            onClick={onLogin}
-            className="px-6 py-2.5 text-[15px] font-semibold bg-gantly-blue text-white border-none rounded-full cursor-pointer shadow-glow-blue hover:bg-gantly-blue-600 hover:shadow-elevated transition-all"
+            className={`lg:hidden transition-colors p-1 cursor-pointer ${
+              scrolled ? 'text-slate-600 hover:text-slate-800' : 'text-white/80 hover:text-white'
+            }`}
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label="Toggle menu"
           >
-            Iniciar sesion
+            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
+
+        {mobileOpen && (
+          <div className={`lg:hidden border-t px-5 py-4 flex flex-col gap-3 ${scrolled ? 'border-slate-200/60' : 'border-white/20'}`}>
+            {[
+              { label: 'Ventajas', id: 'ventajas' },
+              { label: 'Como funciona', id: 'pasos' },
+              { label: 'Requisitos', id: 'requisitos' },
+            ].map((link) => (
+              <button
+                key={link.id}
+                onClick={() => scrollToSection(link.id)}
+                className={`text-sm font-body transition-colors text-left cursor-pointer ${
+                  scrolled ? 'text-slate-600 hover:text-gantly-blue' : 'text-white/80 hover:text-white'
+                }`}
+              >
+                {link.label}
+              </button>
+            ))}
+            <div className={`flex flex-col gap-2 pt-2 border-t ${scrolled ? 'border-slate-200/60' : 'border-white/20'}`}>
+              <button
+                onClick={() => { onLogin(); setMobileOpen(false); }}
+                className={`text-sm font-body transition-colors text-left py-2 cursor-pointer ${
+                  scrolled ? 'text-slate-600 hover:text-slate-800' : 'text-white/80 hover:text-white'
+                }`}
+              >
+                Iniciar sesion
+              </button>
+              <button
+                onClick={() => { onGetStarted(); setMobileOpen(false); }}
+                className={`text-sm font-heading font-semibold transition-colors px-5 py-2 rounded-xl text-center cursor-pointer ${
+                  scrolled
+                    ? 'text-white bg-gantly-blue hover:bg-sky-600'
+                    : 'text-gantly-text bg-white hover:bg-white/90'
+                }`}
+              >
+                Registrarme
+              </button>
+            </div>
+          </div>
+        )}
       </nav>
 
-      {/* Hero Section */}
-      <section className="min-h-screen flex flex-col justify-center items-center px-6 pt-[120px] pb-20 max-w-[1200px] mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center w-full mb-20">
-          {/* Left Side - Text */}
-          <div>
-            <div className="text-[13px] font-semibold text-gantly-blue uppercase tracking-[0.12em] mb-4">
-              Para profesionales
-            </div>
-            <h1 className="text-[clamp(40px,6vw,64px)] font-heading font-light text-gantly-navy leading-[0.9] mb-6">
-              Quieres ser psicologo online con Gantly?
-            </h1>
-            <p className="text-lg leading-relaxed text-gantly-muted mb-8">
-              Enriquece tu practica sanitaria dedicandote a lo mas importante, nosotros nos encargamos del resto. Con Gantly podras ofrecer terapia online de forma facil, segura y confidencial.
+      {/* ─── Hero Section ─── */}
+      <section
+        className="relative min-h-screen overflow-hidden flex flex-col"
+        style={{
+          background: 'linear-gradient(135deg, #1B6FA0 0%, #2E93CC 20%, #48C6D4 42%, #78D4B0 60%, #B8CC68 80%, #D8C850 100%)',
+        }}
+      >
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 lg:px-12 pt-28">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/15 border border-white/20 mb-8"
+          >
+            <Brain size={14} className="text-white/80" />
+            <span className="text-xs font-semibold font-body text-white/80 tracking-wide uppercase">
+              Para profesionales de la salud mental
+            </span>
+          </motion.div>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.4, ease: 'easeOut' }}
+            className="font-heading text-center text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.1] max-w-4xl mb-6"
+          >
+            Haz crecer tu{' '}
+            <em className="italic font-extrabold">practica clinica</em>{' '}
+            con Gantly
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            className="font-body text-lg sm:text-xl text-white/80 text-center max-w-xl mb-10"
+          >
+            Dedicarte a lo que importa: tus pacientes. Nosotros nos encargamos de la agenda, los pagos, la tecnologia y la seguridad.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1 }}
+            className="flex flex-col sm:flex-row items-center gap-4"
+          >
+            <button
+              onClick={onGetStarted}
+              className="font-heading font-semibold text-base text-gantly-text bg-white hover:bg-white/90 transition-colors px-8 py-3.5 rounded-xl cursor-pointer shadow-lg shadow-black/10 min-w-[220px]"
+            >
+              Registrarme como psicologo
+            </button>
+            {onRegisterCompany && (
+              <button
+                onClick={onRegisterCompany}
+                className="font-heading font-semibold text-base text-white border-2 border-white/40 hover:border-white/80 hover:bg-white/10 transition-all px-8 py-3.5 rounded-xl cursor-pointer min-w-[220px] flex items-center justify-center gap-2"
+              >
+                Soy empresa / clinica
+                <ArrowRight size={18} />
+              </button>
+            )}
+          </motion.div>
+        </div>
+
+        {/* Logo watermark */}
+        <motion.img
+          src={LogoIcon}
+          alt=""
+          aria-hidden="true"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 0.15, scale: 1 }}
+          transition={{ duration: 1, delay: 1.2 }}
+          className="absolute bottom-8 right-8 lg:bottom-12 lg:right-16 w-24 h-24 lg:w-40 lg:h-40 select-none pointer-events-none"
+          style={{ filter: 'brightness(0) invert(1)' }}
+        />
+
+        {/* Scroll indicator */}
+        <motion.div
+          className="relative z-10 flex justify-center pb-8"
+          animate={{ y: [0, 8, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          <ChevronDown size={24} className="text-white/50" />
+        </motion.div>
+      </section>
+
+      {/* ─── Advantages (light) ─── */}
+      <SectionWrapper id="ventajas">
+        <div className="text-center mb-16">
+          <ScrollReveal>
+            <h2 className="font-heading text-3xl lg:text-5xl font-bold text-gantly-text mb-4">
+              Todo lo que necesitas, en un solo lugar
+            </h2>
+            <p className="font-body text-lg text-slate-500 max-w-2xl mx-auto">
+              Herramientas disenadas para que te centres en la terapia mientras Gantly gestiona el resto.
             </p>
-            <div className="flex flex-col gap-3 items-start">
+          </ScrollReveal>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          {advantages.map((card, i) => {
+            const Icon = card.icon;
+            return (
+              <ScrollReveal key={card.title} delay={i * 0.08}>
+                <div className="bg-white rounded-2xl border border-slate-100 p-6 lg:p-8 hover:border-slate-200 hover:shadow-lg transition-all duration-300 h-full cursor-pointer">
+                  <div
+                    className="w-11 h-11 rounded-xl flex items-center justify-center mb-5"
+                    style={{ backgroundColor: card.color + '15' }}
+                  >
+                    <Icon size={22} style={{ color: card.color }} />
+                  </div>
+                  <h3 className="font-heading text-lg font-semibold text-gantly-text mb-2">
+                    {card.title}
+                  </h3>
+                  <p className="font-body text-sm text-slate-500 leading-relaxed">
+                    {card.desc}
+                  </p>
+                </div>
+              </ScrollReveal>
+            );
+          })}
+        </div>
+      </SectionWrapper>
+
+      {/* ─── How it works (dark) ─── */}
+      <SectionWrapper id="pasos" dark className="bg-[#0F172A]">
+        {/* Subtle grid pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+            backgroundSize: '60px 60px',
+          }}
+        />
+
+        <div className="relative">
+          <div className="text-center mb-16">
+            <ScrollReveal>
+              <h2 className="font-heading text-3xl lg:text-5xl font-bold text-white mb-4">
+                Empieza en tres pasos
+              </h2>
+              <p className="font-body text-lg text-white/50">
+                El proceso es rapido, seguro y 100% online.
+              </p>
+            </ScrollReveal>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {steps.map((step, i) => {
+              const Icon = step.icon;
+              return (
+                <ScrollReveal key={step.number} delay={i * 0.15}>
+                  <TiltCard>
+                    <GlowCard glowColor={i === 0 ? '#2E93CC' : i === 1 ? '#F0C930' : '#059669'}>
+                      <div className="font-heading text-3xl font-bold text-white/20 mb-4">
+                        {step.number}
+                      </div>
+                      <Icon size={28} style={{ color: i === 0 ? '#2E93CC' : i === 1 ? '#F0C930' : '#059669' }} className="mb-4" />
+                      <h3 className="font-heading text-lg font-semibold text-white mb-2">
+                        {step.title}
+                      </h3>
+                      <p className="font-body text-sm text-white/60 leading-relaxed">
+                        {step.desc}
+                      </p>
+                    </GlowCard>
+                  </TiltCard>
+                </ScrollReveal>
+              );
+            })}
+          </div>
+        </div>
+      </SectionWrapper>
+
+      {/* ─── Requirements (light) ─── */}
+      <SectionWrapper id="requisitos">
+        <div className="grid md:grid-cols-2 gap-16 items-center max-w-5xl mx-auto">
+          <ScrollReveal direction="left">
+            <h2 className="font-heading text-3xl lg:text-5xl font-bold text-gantly-text mb-4">
+              Que necesitas para unirte?
+            </h2>
+            <p className="font-body text-lg text-slate-500 mb-8 leading-relaxed">
+              Verificaremos que cumples los requisitos esenciales para ejercer legalmente como psicologo sanitario online.
+            </p>
+            <div className="flex flex-col gap-4">
+              {requirements.map((req, i) => (
+                <motion.div
+                  key={req}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2 + i * 0.1, duration: 0.4 }}
+                  className="flex items-center gap-3"
+                >
+                  <CheckCircle2 size={20} className="text-gantly-emerald flex-shrink-0" />
+                  <span className="font-body text-base text-gantly-text">{req}</span>
+                </motion.div>
+              ))}
+            </div>
+          </ScrollReveal>
+
+          <ScrollReveal direction="right">
+            <div className="bg-white rounded-2xl border border-slate-100 p-8 lg:p-10 shadow-sm">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-gantly-blue/10 flex items-center justify-center">
+                  <Laptop size={20} className="text-gantly-blue" />
+                </div>
+                <h3 className="font-heading text-lg font-semibold text-gantly-text">
+                  Ademas necesitaras
+                </h3>
+              </div>
+              <ul className="flex flex-col gap-3">
+                {[
+                  'Ordenador o tablet con webcam',
+                  'Smartphone con conexion estable',
+                  'Espacio privado para las sesiones',
+                  'Ganas de hacer crecer tu practica',
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-3">
+                    <div className="w-1.5 h-1.5 rounded-full bg-gantly-blue mt-2 flex-shrink-0" />
+                    <span className="font-body text-sm text-slate-500">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </ScrollReveal>
+        </div>
+      </SectionWrapper>
+
+      {/* ─── COP Badge + CTA (dark section) ─── */}
+      <SectionWrapper dark className="bg-[#0F172A] !py-20 lg:!py-24">
+        <ScrollReveal>
+          <div className="flex items-center justify-center gap-4 px-6 py-5 bg-white/5 rounded-2xl border border-white/10 max-w-3xl mx-auto mb-12">
+            <Shield size={28} className="text-gantly-emerald flex-shrink-0" />
+            <p className="font-body text-sm text-white/70 leading-relaxed">
+              Gantly se adhiere al Codigo de Conducta de Buenas Practicas en Telepsicologia del Colegio Oficial de Psicologos de Madrid.
+            </p>
+          </div>
+        </ScrollReveal>
+      </SectionWrapper>
+
+      {/* ─── Final CTA (gradient) ─── */}
+      <section
+        className="relative py-28 lg:py-36 overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, #1B6FA0 0%, #2E93CC 25%, #48C6D4 50%, #78D4B0 75%, #B8CC68 100%)',
+        }}
+      >
+        <img
+          src={LogoIcon}
+          alt=""
+          aria-hidden="true"
+          className="absolute bottom-6 right-8 lg:bottom-10 lg:right-16 w-20 h-20 lg:w-32 lg:h-32 opacity-10 select-none pointer-events-none"
+          style={{ filter: 'brightness(0) invert(1)' }}
+        />
+
+        <div className="relative z-10 mx-auto max-w-3xl px-6 text-center">
+          <ScrollReveal>
+            <h2 className="font-heading text-4xl lg:text-6xl font-bold text-white mb-4">
+              Tu consultorio, sin limites
+            </h2>
+            <p className="font-body text-lg text-white/70 mb-10">
+              Unete a la comunidad de profesionales que ya confian en Gantly para transformar su practica clinica.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
                 onClick={onGetStarted}
-                className="px-8 py-4 text-base font-semibold bg-gantly-blue text-white border-none rounded-[28px] cursor-pointer shadow-glow-blue hover:bg-gantly-blue-600 hover:shadow-elevated hover:-translate-y-0.5 transition-all"
+                className="px-8 py-4 rounded-xl bg-white text-gantly-text font-heading font-semibold text-lg hover:bg-white/90 transition-all duration-200 cursor-pointer min-w-[250px] shadow-lg shadow-black/10"
               >
                 Registrarme como psicologo
               </button>
               {onRegisterCompany && (
                 <button
                   onClick={onRegisterCompany}
-                  className="px-6 py-3 text-[15px] font-semibold bg-transparent text-gantly-blue border-2 border-gantly-blue rounded-full cursor-pointer hover:bg-gantly-blue/10 transition-all"
+                  className="px-8 py-4 rounded-xl border-2 border-white/40 text-white font-heading font-semibold text-lg hover:border-white/80 hover:bg-white/10 transition-all duration-200 cursor-pointer min-w-[250px] flex items-center justify-center gap-2"
                 >
-                  Soy empresa
+                  Registrar clinica
+                  <ArrowRight size={20} />
                 </button>
               )}
             </div>
-          </div>
-
-          {/* Right Side - Images Grid */}
-          <div className="grid grid-cols-2 gap-6">
-            {[gemini1, gemini2, gemini6, gemini5, gemini3, gemini4].map((imgSrc, idx) => (
-              <div
-                key={idx}
-                className="aspect-square rounded-full bg-gradient-to-br from-gantly-cloud to-gantly-blue-100 border-2 border-gantly-blue/15 flex items-center justify-center overflow-hidden relative"
-              >
-                <img
-                  src={imgSrc}
-                  alt={`Imagen ${idx + 1}`}
-                  className="w-full h-full object-cover rounded-full"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Statistics Section */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 w-full py-12 border-t border-b border-gantly-blue/10">
-          <div className="text-center">
-            <div className="text-5xl font-bold text-gantly-blue mb-2 font-heading">
-              100%
-            </div>
-            <p className="text-[15px] text-gantly-muted leading-relaxed">
-              psicologos estan titulados, colegiados y habilitados para ejercer
-            </p>
-          </div>
-          <div className="text-center">
-            <div className="text-5xl font-bold text-gantly-blue mb-2 font-heading">
-              +300 mil
-            </div>
-            <p className="text-[15px] text-gantly-muted leading-relaxed">
-              sesiones realizadas a traves de Gantly de forma segura
-            </p>
-          </div>
-          <div className="text-center">
-            <div className="text-5xl font-bold text-gantly-blue mb-2 font-heading">
-              +92%
-            </div>
-            <p className="text-[15px] text-gantly-muted leading-relaxed">
-              de los psicologos recomiendan Gantly a otros companeros
-            </p>
-          </div>
-          <div className="text-center">
-            <div className="text-5xl font-bold text-gantly-blue mb-2 font-heading">
-              +8
-            </div>
-            <p className="text-[15px] text-gantly-muted leading-relaxed">
-              anos de experiencia encriptado y confidencial, asegurando el mayor nivel de seguridad
-            </p>
-          </div>
+          </ScrollReveal>
         </div>
       </section>
 
-      {/* How it works Section */}
-      <section className="py-20 px-6 bg-gantly-blue-50/50">
-        <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-          {/* Left Side - Requirements */}
-          <div>
-            <div className="text-sm font-semibold text-gantly-blue uppercase tracking-[0.1em] mb-4">
-              Como funciona
-            </div>
-            <h2 className="text-[clamp(32px,4vw,48px)] font-heading font-bold text-gantly-navy leading-tight mb-6">
-              Me interesa, que necesito?
-            </h2>
-            <p className="text-lg leading-relaxed text-gantly-muted mb-8">
-              Verificaremos que tienes los requisitos esenciales para ejercer legalmente como Psicologo Sanitario. Ademas necesitaras un ordenador y smartphone con buena conexion a internet.
-            </p>
-            <button
-              onClick={onGetStarted}
-              className="px-8 py-4 text-base font-semibold bg-gantly-blue text-white border-none rounded-[28px] cursor-pointer shadow-glow-blue hover:bg-gantly-blue-600 hover:shadow-elevated hover:-translate-y-0.5 transition-all"
-            >
-              Comenzar registro
-            </button>
-          </div>
-
-          {/* Right Side - Steps */}
-          <div className="relative py-10">
-            <div className="absolute left-10 top-0 bottom-0 w-[3px] bg-gantly-blue/20 rounded-full" />
-            {[
-              { number: 1, text: 'Rellena tus datos' },
-              { number: 2, text: 'Completa la verificacion' },
-              { number: 3, text: 'Haz crecer tu practica profesional' },
-            ].map((step, idx) => (
-              <div
-                key={step.number}
-                className={`flex items-center relative ${idx < 2 ? 'mb-12' : ''}`}
-              >
-                <div className="w-20 h-20 rounded-full bg-gantly-cloud border-[3px] border-gantly-blue flex items-center justify-center text-[32px] font-bold text-gantly-blue font-heading z-[2] mr-6 shrink-0">
-                  {step.number}
-                </div>
-                <div className="text-xl font-semibold text-gantly-navy">
-                  {step.text}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Advantages Section */}
-      <section className="py-20 px-6 bg-gantly-cloud">
-        <div className="max-w-[1200px] mx-auto">
-          <div className="text-center mb-16">
-            <div className="text-sm font-semibold text-gantly-blue uppercase tracking-[0.1em] mb-4">
-              Ventajas
-            </div>
-            <h2 className="text-[clamp(32px,4vw,48px)] font-heading font-bold text-gantly-navy leading-tight">
-              Descubre todas las ventajas de Gantly
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-            {/* Left Side - Advantages List */}
-            <div className="grid gap-5">
-              {[
-                'Aumenta tu cartera de pacientes',
-                'Sesiones cuando quieras, desde donde quieras',
-                'Resumenes automatizados de las sesiones',
-                'Proceso automatizado de pago',
-                'Asistente de IA personalizado',
-                'Comprometidos con las buenas practicas de Telepsicologia del COP de Madrid',
-              ].map((title, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-start gap-5 p-6 bg-white rounded-2xl border border-gantly-blue/15 shadow-soft"
-                >
-                  <div className="w-6 h-6 rounded-full bg-gantly-blue shrink-0 mt-0.5 flex items-center justify-center">
-                    <div className="w-2 h-2 rounded-full bg-white" />
-                  </div>
-                  <div className="text-lg font-medium text-gantly-navy leading-relaxed">
-                    {title}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Right Side - Image */}
-            <div className="bg-gantly-blue-50 rounded-3xl aspect-[4/5] flex items-center justify-center border-2 border-gantly-blue/15 overflow-hidden">
-              <img
-                src={imagenProfesional}
-                alt="Imagen profesional"
-                className="w-full h-full object-cover block"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-
-      {/* Footer - Adherence Statement */}
-      <section className="py-12 px-6 bg-gantly-blue-50/70 border-t border-gantly-blue/10">
-        <div className="max-w-[1200px] mx-auto flex items-center justify-center gap-4 px-8 py-6 bg-white rounded-2xl border border-gantly-blue/15 shadow-soft">
-          <div className="w-12 h-12 rounded-xl bg-gantly-blue flex items-center justify-center shrink-0">
-            <div className="w-5 h-5 border-[3px] border-white border-t-0 border-r-0 -rotate-45 -mt-1" />
-          </div>
-          <p className="m-0 text-base text-gantly-navy leading-relaxed">
-            Gantly se adhiere al Codigo de Conducta de Buenas Practicas en Telepsicologia del Colegio Oficial de Psicologos de Madrid.
-          </p>
-        </div>
-      </section>
+      <Footer />
     </div>
   );
 }

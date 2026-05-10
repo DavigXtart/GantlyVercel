@@ -12,6 +12,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -178,8 +183,36 @@ public class CalendarController {
 
     @GetMapping("/psychologist/billing-appointments")
     @Transactional(readOnly = true)
-    public ResponseEntity<List<CalendarDtos.PsychologistPastAppointmentDto>> getBillingAppointments(Principal principal) {
-        return ResponseEntity.ok(calendarService.getBillingAppointments(currentUser(principal)));
+    @Operation(summary = "Obtener citas de facturación", description = "Obtiene las citas de facturación del psicólogo con paginación opcional. " +
+            "Si no se envían parámetros page/size, devuelve todos los resultados (backwards compatible).")
+    @ApiResponse(responseCode = "200", description = "Citas de facturación obtenidas exitosamente")
+    public ResponseEntity<?> getBillingAppointments(Principal principal,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false, defaultValue = "startTime") String sortBy,
+            @RequestParam(required = false, defaultValue = "desc") String sortDir) {
+        UserEntity psychologist = currentUser(principal);
+        if (page == null && size == null) {
+            // Backwards compatible: return plain list when no pagination params
+            return ResponseEntity.ok(calendarService.getBillingAppointments(psychologist));
+        }
+        int pageNum = page != null ? page : 0;
+        int pageSize = size != null ? size : 10000;
+        Sort sort = "desc".equalsIgnoreCase(sortDir)
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+        Pageable pageable = PageRequest.of(pageNum, pageSize, sort);
+        Page<CalendarDtos.PsychologistPastAppointmentDto> result =
+                calendarService.getBillingAppointmentsPaged(psychologist, pageable);
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", result.getContent());
+        response.put("totalElements", result.getTotalElements());
+        response.put("totalPages", result.getTotalPages());
+        response.put("currentPage", result.getNumber());
+        response.put("pageSize", result.getSize());
+        response.put("first", result.isFirst());
+        response.put("last", result.isLast());
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/appointments/{appointmentId}/notes")

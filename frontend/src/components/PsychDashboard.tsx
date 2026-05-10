@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User, BarChart3, ChevronUp, ChevronDown, LogOut, Camera, Clock, CalendarDays, FileDown, X, Home, UsersRound, CheckSquare, Brain, Calendar, MessageCircle, History, Receipt, type LucideIcon } from 'lucide-react';
 import api, { profileService, psychService, calendarService, tasksService, assignedTestsService, testService, resultsService, matchingService, calendarNotesService, jitsiService, API_BASE_URL } from '../services/api';
 import NotificationBell from './ui/NotificationBell';
@@ -79,6 +80,7 @@ function SessionNotesSection({ appointmentId, existingNotes }: { appointmentId: 
 }
 
 export default function PsychDashboard() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('perfil');
   const [me, setMe] = useState<any>(null);
   const [patients, setPatients] = useState<any[]>([]);
@@ -530,7 +532,7 @@ export default function PsychDashboard() {
       <aside className="w-64 bg-gradient-to-b from-gantly-navy to-[#0d1f3c] flex-shrink-0 fixed inset-y-0 left-0 z-50 flex flex-col">
         {/* Logo */}
         <div className="px-6 py-5 border-b border-white/5">
-          <img src={LogoSvg} alt="Gantly" className="h-7 brightness-0 invert" />
+          <img src={LogoSvg} alt="Gantly" className="h-7 brightness-0 invert cursor-pointer" onClick={() => navigate('/')} />
         </div>
 
         {/* Nav items */}
@@ -1817,6 +1819,7 @@ export default function PsychDashboard() {
           </div>
         </div>
       )}
+
     </div>
   );
 }

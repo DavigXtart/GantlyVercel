@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { personalAgendaService } from '../services/api';
 import { toast } from './ui/Toast';
 import LoadingSpinner from './ui/LoadingSpinner';
+import MoodFace, { moodColors } from './ui/MoodFace';
+import { Check } from 'lucide-react';
 
 /** Formatea una fecha a YYYY-MM-DD usando hora local (evita el bug de toISOString en UTC) */
 function formatDateLocal(d: Date): string {
@@ -116,11 +118,11 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
   };
 
   const moods = [
-    { value: 1, emoji: '😢', label: 'Muy triste', color: '#667eea' },
-    { value: 2, emoji: '😔', label: 'Triste', color: '#7c8fd4' },
-    { value: 3, emoji: '😐', label: 'Neutral', color: '#4fd1c7' },
-    { value: 4, emoji: '🙂', label: 'Feliz', color: '#48bb78' },
-    { value: 5, emoji: '😄', label: 'Muy feliz', color: '#f6ad55' }
+    { value: 1, label: 'Muy triste', color: moodColors[1] },
+    { value: 2, label: 'Triste', color: moodColors[2] },
+    { value: 3, label: 'Neutral', color: moodColors[3] },
+    { value: 4, label: 'Feliz', color: moodColors[4] },
+    { value: 5, label: 'Muy feliz', color: moodColors[5] },
   ];
 
   const getEmotions = (moodRating: number): string[] => {
@@ -345,10 +347,9 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
     }
   };
 
-  const getMoodEmoji = (rating: number) => {
-    const mood = moods.find(m => m.value === rating);
-    return mood ? mood.emoji : '😐';
-  };
+  const renderMoodFace = (rating: number, size = 48) => (
+    <MoodFace value={rating} size={size} />
+  );
 
   if (loading) {
     return (
@@ -529,8 +530,8 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                 <div className="text-lg font-semibold text-gantly-muted mb-3">
                   Estado de Animo
                 </div>
-                <div className="text-5xl mb-2">
-                  {getMoodEmoji(selectedEntry.moodRating)}
+                <div className="mb-2">
+                  {renderMoodFace(selectedEntry.moodRating, 56)}
                 </div>
                 <div className="text-base text-gantly-text">
                   {moods.find(m => m.value === selectedEntry.moodRating)?.label || 'N/A'}
@@ -539,14 +540,14 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
 
               {selectedEntry.emotions && (
                 <div className="mb-6">
-                  <div className="text-lg font-semibold text-gantly-muted mb-3">
+                  <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
                     Emociones
-                  </div>
+                  </h4>
                   <div className="flex flex-wrap gap-2">
                     {JSON.parse(selectedEntry.emotions).map((emotion: string, idx: number) => (
                       <span
                         key={idx}
-                        className="px-4 py-2 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-full text-sm font-semibold"
+                        className="px-3.5 py-1.5 bg-gantly-blue text-white rounded-full text-[13px] font-semibold"
                       >
                         {emotion}
                       </span>
@@ -557,14 +558,14 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
 
               {selectedEntry.activities && (
                 <div className="mb-6">
-                  <div className="text-lg font-semibold text-gantly-muted mb-3">
+                  <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
                     Actividades
-                  </div>
+                  </h4>
                   <div className="flex flex-wrap gap-2">
                     {JSON.parse(selectedEntry.activities).map((activity: string, idx: number) => (
                       <span
                         key={idx}
-                        className="px-4 py-2 bg-gradient-to-br from-amber-500 to-orange-500 text-white rounded-full text-sm font-semibold"
+                        className="px-3.5 py-1.5 bg-gantly-blue/10 text-gantly-blue rounded-full text-[13px] font-semibold"
                       >
                         {activity}
                       </span>
@@ -575,14 +576,14 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
 
               {selectedEntry.companions && (
                 <div className="mb-6">
-                  <div className="text-lg font-semibold text-gantly-muted mb-3">
-                    Con quien
-                  </div>
+                  <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+                    Con quién
+                  </h4>
                   <div className="flex flex-wrap gap-2">
                     {JSON.parse(selectedEntry.companions).map((companion: string, idx: number) => (
                       <span
                         key={idx}
-                        className="px-4 py-2 bg-gantly-blue text-white rounded-full text-sm font-semibold"
+                        className="px-3.5 py-1.5 bg-gantly-blue/10 text-gantly-blue rounded-full text-[13px] font-semibold"
                       >
                         {companion}
                       </span>
@@ -593,10 +594,10 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
 
               {selectedEntry.location && (
                 <div className="mb-6">
-                  <div className="text-lg font-semibold text-gantly-muted mb-3">
-                    Ubicacion
-                  </div>
-                  <div className="text-base text-gantly-text">
+                  <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+                    Ubicación
+                  </h4>
+                  <div className="inline-flex px-3.5 py-1.5 bg-gantly-blue/10 text-gantly-blue rounded-full text-[13px] font-semibold">
                     {selectedEntry.location}
                   </div>
                 </div>
@@ -604,10 +605,10 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
 
               {selectedEntry.notes && (
                 <div>
-                  <div className="text-lg font-semibold text-gantly-muted mb-3">
+                  <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
                     Notas
-                  </div>
-                  <div className="text-base text-gantly-text leading-relaxed p-4 bg-white rounded-xl border border-gray-200">
+                  </h4>
+                  <div className="text-sm text-slate-600 leading-relaxed p-4 bg-white rounded-xl border border-slate-200">
                     {selectedEntry.notes}
                   </div>
                 </div>
@@ -617,7 +618,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
         ) : (
           <div className="animate-fade-in-up">
             {viewMode === 'week' ? (
-              <div className="grid grid-cols-7 gap-4 mb-6">
+              <div className="grid grid-cols-7 gap-3 mb-6">
                 {weekDates.map((date, index) => {
                   const entry = getEntryForDate(date);
                   const dateStr = date.toDateString();
@@ -627,45 +628,51 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                   const isClickable = entry || isValidDate;
                   const dayName = date.toLocaleDateString('es-ES', { weekday: 'short' });
                   const dayNumber = date.getDate();
+                  const moodColor = entry ? moodColors[entry.moodRating] : undefined;
 
                   return (
                     <div
                       key={index}
                       onClick={() => handleDateClick(date)}
-                      className={`p-5 rounded-xl text-center min-h-[120px] flex flex-col justify-center items-center relative overflow-hidden transition-all duration-200
+                      className={`relative p-4 rounded-xl text-center min-h-[120px] flex flex-col justify-center items-center overflow-hidden transition-all duration-200
                         ${entry
-                          ? 'bg-gantly-blue border-2 border-gantly-blue-600 text-white hover:-translate-y-0.5 hover:shadow-glow-blue cursor-pointer'
+                          ? 'bg-white border border-slate-100 hover:shadow-md hover:-translate-y-0.5 cursor-pointer'
                           : isToday
-                            ? 'bg-gantly-gold-100 border-2 border-gantly-gold-500 text-amber-800 hover:-translate-y-0.5 hover:shadow-md cursor-pointer'
+                            ? 'bg-gantly-gold/5 border-2 border-gantly-gold text-amber-800 hover:-translate-y-0.5 cursor-pointer'
                             : isValidDate
-                              ? 'bg-green-50 border border-dashed border-slate-400 text-gantly-muted hover:-translate-y-0.5 hover:shadow-soft hover:bg-green-100 cursor-pointer'
-                              : 'bg-slate-50 border border-slate-200 text-gantly-muted'
+                              ? 'bg-white border border-dashed border-slate-200 text-slate-400 hover:border-gantly-blue/40 hover:bg-gantly-blue/[0.02] hover:-translate-y-0.5 cursor-pointer'
+                              : 'bg-slate-50/50 border border-slate-100 text-slate-300'
                         }
                         ${!isClickable ? 'cursor-default' : ''}
                       `}
                     >
-                      {isToday && !entry && (
-                        <div className="absolute top-2 right-2 bg-amber-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
-                          !
-                        </div>
+                      {/* Mood color accent bar */}
+                      {entry && moodColor && (
+                        <div
+                          className="absolute top-0 left-4 right-4 h-[3px] rounded-b-full"
+                          style={{ backgroundColor: moodColor }}
+                        />
                       )}
-                      <div className="text-xs font-semibold mb-2 opacity-90">
+                      {isToday && !entry && (
+                        <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-gantly-gold" />
+                      )}
+                      <div className={`text-xs font-semibold mb-1.5 ${entry ? 'text-slate-400' : 'opacity-70'}`}>
                         {dayName.toUpperCase()}
                       </div>
-                      <div className="text-[28px] font-bold mb-3">
+                      <div className={`text-2xl font-bold mb-2 ${entry ? 'text-slate-800' : ''}`}>
                         {dayNumber}
                       </div>
                       {entry ? (
-                        <div className="text-[40px] animate-fade-in">
-                          {getMoodEmoji(entry.moodRating)}
+                        <div className="animate-fade-in">
+                          {renderMoodFace(entry.moodRating, 30)}
                         </div>
                       ) : isValidDate ? (
-                        <div className="text-sm opacity-80 font-semibold">
-                          Clic para crear
+                        <div className="w-6 h-6 rounded-full border border-dashed border-slate-300 flex items-center justify-center">
+                          <span className="text-xs text-slate-300 leading-none">+</span>
                         </div>
                       ) : (
-                        <div className="text-sm opacity-60">
-                          Sin registro
+                        <div className="text-[10px] text-slate-300">
+                          —
                         </div>
                       )}
                     </div>
@@ -673,10 +680,10 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                 })}
               </div>
             ) : (
-              <div className="grid grid-cols-7 gap-2 mb-6">
+              <div className="grid grid-cols-7 gap-1.5 mb-6">
                 {/* Dias de la semana */}
                 {['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'].map((day, idx) => (
-                  <div key={idx} className="p-3 text-center font-semibold text-slate-500 text-xs uppercase tracking-wide bg-slate-50 rounded-lg">
+                  <div key={idx} className="py-2 text-center font-semibold text-slate-400 text-[11px] uppercase tracking-wider">
                     {day}
                   </div>
                 ))}
@@ -687,42 +694,50 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                   const dateStr = date.toDateString();
                   const todayStr = today.toDateString();
                   const isToday = dateStr === todayStr;
-                  // Determinar si el día pertenece al mes que estamos mostrando
                   const monthDatesFirstDay = monthDates.find(d => d.getDate() === 1);
                   const targetMonth = monthDatesFirstDay ? monthDatesFirstDay.getMonth() : currentWeekStart.getMonth();
                   const isCurrentMonth = date.getMonth() === targetMonth;
                   const isValidDate = isDateValidForEntry(date);
                   const isClickable = entry || (isValidDate && isCurrentMonth);
                   const dayNumber = date.getDate();
+                  const moodColor = entry ? moodColors[entry.moodRating] : undefined;
 
                   return (
                     <div
                       key={index}
                       onClick={() => handleDateClick(date)}
-                      className={`py-3 px-2 rounded-[10px] text-center min-h-[80px] flex flex-col justify-start items-center gap-1 relative transition-all duration-200
+                      className={`relative rounded-xl text-center min-h-[72px] flex flex-col justify-center items-center gap-1.5 transition-all duration-200
                         ${entry
-                          ? 'bg-gantly-blue border-2 border-gantly-blue-600 text-white hover:-translate-y-px hover:z-10 cursor-pointer'
+                          ? 'bg-white border border-slate-100 hover:shadow-md hover:-translate-y-px cursor-pointer'
                           : isToday
-                            ? 'bg-gantly-gold-100 border-2 border-gantly-gold-500 text-amber-800'
+                            ? 'bg-gantly-gold/5 border-2 border-gantly-gold text-amber-800'
                             : isValidDate && isCurrentMonth
-                              ? 'bg-green-50 border border-dashed border-slate-400 text-gantly-muted hover:-translate-y-px hover:z-10 hover:bg-green-100 cursor-pointer'
+                              ? 'bg-white border border-dashed border-slate-200 text-slate-400 hover:border-gantly-blue/40 hover:bg-gantly-blue/[0.02] cursor-pointer'
                               : isCurrentMonth
-                                ? 'bg-slate-50 border border-slate-200 text-gantly-muted'
-                                : 'bg-slate-100 border border-slate-200 text-gray-400'
+                                ? 'bg-white/60 text-slate-300'
+                                : 'text-slate-200'
                         }
                         ${!isClickable ? 'cursor-default' : ''}
                       `}
                     >
-                      <div className="text-sm font-bold">
+                      {/* Mood color accent bar */}
+                      {entry && moodColor && (
+                        <div
+                          className="absolute top-0 left-3 right-3 h-[3px] rounded-b-full"
+                          style={{ backgroundColor: moodColor }}
+                        />
+                      )}
+                      <div className={`text-sm font-semibold ${entry ? 'text-slate-700' : ''}`}>
                         {dayNumber}
                       </div>
                       {entry ? (
-                        <div className="text-2xl">
-                          {getMoodEmoji(entry.moodRating)}
-                        </div>
+                        <div
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: moodColor }}
+                        />
                       ) : isValidDate && isCurrentMonth ? (
-                        <div className="text-[10px] opacity-70 font-semibold">
-                          +
+                        <div className="w-5 h-5 rounded-full border border-dashed border-slate-300 flex items-center justify-center">
+                          <span className="text-[10px] text-slate-300 leading-none">+</span>
                         </div>
                       ) : null}
                     </div>
@@ -741,11 +756,15 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
       {/* Paso 1: Estado de animo */}
       {step === 1 && (
         <div>
+          {/* Step dots */}
+          <div className="flex justify-center gap-1.5 mb-8">
+            {[1, 2, 3, 4].map(s => (
+              <div key={s} className={`h-1 rounded-full transition-all duration-300 ${s === step ? 'w-6 bg-gantly-blue' : 'w-3 bg-slate-200'}`} />
+            ))}
+          </div>
+
           {/* Selector de fecha */}
           <div className="mb-8">
-            <label className="block text-base font-semibold text-gantly-muted mb-3 text-center">
-              Selecciona la fecha
-            </label>
             <div className="flex justify-center">
               <input
                 type="date"
@@ -758,44 +777,40 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                   twoDaysAgo.setDate(today.getDate() - 2);
                   return formatDateLocal(twoDaysAgo);
                 })()}
-                className="px-4 py-3 rounded-xl border-2 border-gantly-blue text-base text-gantly-muted font-semibold bg-white cursor-pointer min-w-[200px]"
+                className="px-4 py-2.5 rounded-full border border-slate-200 text-sm text-slate-600 font-medium bg-white cursor-pointer min-w-[180px] focus:border-gantly-blue focus:outline-none transition-colors"
               />
             </div>
-            <p className="text-xs text-slate-500 text-center mt-2">
-              Solo puedes crear entradas para hoy o maximo 2 dias atras
-            </p>
           </div>
 
-          <h2 className="text-[28px] font-bold text-gantly-text mb-10 text-center font-heading">
-            ¿Como te sientes esta tarde?
+          <h2 className="text-2xl font-bold text-gantly-text mb-2 text-center font-heading">
+            ¿Cómo te sientes?
           </h2>
-          <div className="flex justify-center gap-5 flex-nowrap">
-            {moods.map(mood => (
-              <button
-                key={mood.value}
-                onClick={() => {
-                  setEntryData({ ...entryData, moodRating: mood.value });
-                  setTimeout(() => setStep(2), 300);
-                }}
-                className={`flex flex-col items-center gap-3 px-5 py-6 rounded-2xl cursor-pointer transition-all duration-300 text-[64px] min-w-[120px] flex-1 border-2
-                  ${entryData.moodRating === mood.value
-                    ? 'text-white'
-                    : 'bg-slate-50 border-transparent hover:scale-105'
-                  }
-                `}
-                style={entryData.moodRating === mood.value
-                  ? { background: `linear-gradient(135deg, ${mood.color} 0%, ${mood.color}dd 100%)`, borderColor: mood.color }
-                  : undefined
-                }
-              >
-                <span>{mood.emoji}</span>
-                <span className={`text-sm font-semibold ${
-                  entryData.moodRating === mood.value ? 'text-white' : 'text-gantly-muted'
-                }`}>
-                  {mood.label}
-                </span>
-              </button>
-            ))}
+          <p className="text-sm text-slate-400 text-center mb-10">Elige el estado que mejor te represente</p>
+
+          <div className="flex justify-center gap-4 flex-wrap">
+            {moods.map(mood => {
+              const selected = entryData.moodRating === mood.value;
+              return (
+                <button
+                  key={mood.value}
+                  onClick={() => {
+                    setEntryData({ ...entryData, moodRating: mood.value });
+                    setTimeout(() => setStep(2), 300);
+                  }}
+                  className={`flex flex-col items-center gap-3 px-4 py-5 rounded-2xl cursor-pointer transition-all duration-200 min-w-[100px] border
+                    ${selected
+                      ? 'bg-gantly-blue/10 border-gantly-blue shadow-sm shadow-gantly-blue/15 scale-105'
+                      : 'bg-white border-slate-200 hover:border-gantly-blue/30 hover:bg-gantly-blue/5 hover:scale-[1.03]'
+                    }
+                  `}
+                >
+                  <MoodFace value={mood.value} size={52} />
+                  <span className={`text-xs font-semibold ${selected ? 'text-gantly-blue' : 'text-slate-500'}`}>
+                    {mood.label}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -803,36 +818,58 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
       {/* Paso 2: Emociones */}
       {step === 2 && (
         <div>
-          <h2 className="text-2xl font-bold text-gantly-text mb-6 text-center font-heading">
-            ¿Que emociones estas experimentando?
-          </h2>
-          <div className="grid grid-cols-3 gap-3 mb-6">
-            {emotions.map(emotion => (
-              <button
-                key={emotion}
-                onClick={() => toggleSelection(entryData.emotions, emotion, (arr) =>
-                  setEntryData({ ...entryData, emotions: arr }))}
-                className={`p-4 rounded-xl cursor-pointer transition-all duration-300 font-semibold text-sm border-2
-                  ${entryData.emotions.includes(emotion)
-                    ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white border-indigo-500'
-                    : 'bg-slate-50 text-gantly-muted border-gray-200 hover:bg-slate-100'
-                  }
-                `}
-              >
-                {emotion}
-              </button>
+          {/* Context: selected mood */}
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <MoodFace value={entryData.moodRating} size={28} />
+            <span className="text-sm font-medium text-slate-400">
+              {moods.find(m => m.value === entryData.moodRating)?.label}
+            </span>
+          </div>
+
+          {/* Step dots */}
+          <div className="flex justify-center gap-1.5 mb-6">
+            {[1, 2, 3, 4].map(s => (
+              <div key={s} className={`h-1 rounded-full transition-all duration-300 ${s === step ? 'w-6 bg-gantly-blue' : s < step ? 'w-3 bg-gantly-blue/40' : 'w-3 bg-slate-200'}`} />
             ))}
           </div>
+
+          <h2 className="text-2xl font-bold text-gantly-text mb-2 text-center font-heading">
+            ¿Qué emociones sientes?
+          </h2>
+          <p className="text-sm text-slate-400 text-center mb-8">Selecciona todas las que apliquen</p>
+
+          <div className="flex flex-wrap gap-2.5 justify-center mb-10">
+            {emotions.map(emotion => {
+              const selected = entryData.emotions.includes(emotion);
+              return (
+                <button
+                  key={emotion}
+                  onClick={() => toggleSelection(entryData.emotions, emotion, (arr) =>
+                    setEntryData({ ...entryData, emotions: arr }))}
+                  className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full cursor-pointer transition-all duration-200 text-[13px] font-semibold border
+                    ${selected
+                      ? 'bg-gantly-blue text-white border-gantly-blue shadow-sm shadow-gantly-blue/25'
+                      : 'bg-white text-slate-600 border-slate-200 hover:border-gantly-blue/40 hover:bg-gantly-blue/5'
+                    }
+                  `}
+                >
+                  {selected && <Check size={14} strokeWidth={2.5} />}
+                  {emotion}
+                </button>
+              );
+            })}
+          </div>
+
           <div className="flex gap-3 justify-center">
             <button
               onClick={() => setStep(1)}
-              className="px-6 py-3 bg-gray-200 text-gantly-muted border-none rounded-xl cursor-pointer font-semibold hover:bg-gray-300"
+              className="px-5 py-2.5 bg-transparent text-slate-500 border border-slate-200 rounded-full cursor-pointer font-medium text-sm hover:bg-slate-50 transition-colors duration-200"
             >
-              Atras
+              Atrás
             </button>
             <button
               onClick={() => setStep(3)}
-              className="px-6 py-3 bg-gradient-to-br from-indigo-500 to-purple-600 text-white border-none rounded-xl cursor-pointer font-semibold hover:from-indigo-600 hover:to-purple-700"
+              className="px-6 py-2.5 bg-gantly-gold text-gantly-navy border-none rounded-full cursor-pointer font-semibold text-sm hover:bg-gantly-gold/90 transition-colors duration-200"
             >
               Siguiente
             </button>
@@ -843,78 +880,119 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
       {/* Paso 3: Actividades, companeros y ubicacion */}
       {step === 3 && (
         <div>
-          <h2 className="text-2xl font-bold text-gantly-text mb-6 text-center font-heading">
-            ¿Que estas haciendo?
+          {/* Context: selected mood */}
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <MoodFace value={entryData.moodRating} size={28} />
+            <span className="text-sm font-medium text-slate-400">
+              {moods.find(m => m.value === entryData.moodRating)?.label}
+            </span>
+          </div>
+
+          {/* Step dots */}
+          <div className="flex justify-center gap-1.5 mb-6">
+            {[1, 2, 3, 4].map(s => (
+              <div key={s} className={`h-1 rounded-full transition-all duration-300 ${s === step ? 'w-6 bg-gantly-blue' : s < step ? 'w-3 bg-gantly-blue/40' : 'w-3 bg-slate-200'}`} />
+            ))}
+          </div>
+
+          <h2 className="text-2xl font-bold text-gantly-text mb-2 text-center font-heading">
+            ¿Qué estás haciendo?
           </h2>
-          <div className="flex flex-wrap gap-3 mb-8 justify-center">
-            {activities.map(activity => (
-              <button
-                key={activity}
-                onClick={() => toggleSelection(entryData.activities, activity, (arr) =>
-                  setEntryData({ ...entryData, activities: arr }))}
-                className={`px-5 py-3 rounded-xl cursor-pointer transition-all duration-300 font-semibold text-sm border-2
-                  ${entryData.activities.includes(activity)
-                    ? 'bg-gradient-to-br from-amber-500 to-orange-500 text-white border-amber-500'
-                    : 'bg-slate-50 text-gantly-muted border-gray-200 hover:bg-slate-100'
-                  }
-                `}
-              >
-                {activity}
-              </button>
-            ))}
+          <p className="text-sm text-slate-400 text-center mb-6">Selecciona actividades, compañía y lugar</p>
+
+          {/* Activities */}
+          <div className="mb-8">
+            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 text-center">
+              Actividades
+            </h3>
+            <div className="flex flex-wrap gap-2.5 justify-center">
+              {activities.map(activity => {
+                const selected = entryData.activities.includes(activity);
+                return (
+                  <button
+                    key={activity}
+                    onClick={() => toggleSelection(entryData.activities, activity, (arr) =>
+                      setEntryData({ ...entryData, activities: arr }))}
+                    className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full cursor-pointer transition-all duration-200 text-[13px] font-semibold border
+                      ${selected
+                        ? 'bg-gantly-blue text-white border-gantly-blue shadow-sm shadow-gantly-blue/25'
+                        : 'bg-white text-slate-600 border-slate-200 hover:border-gantly-blue/40 hover:bg-gantly-blue/5'
+                      }
+                    `}
+                  >
+                    {selected && <Check size={14} strokeWidth={2.5} />}
+                    {activity}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          <h3 className="text-xl font-semibold text-gantly-text mb-4 font-heading">
-            ¿Con quien estas?
-          </h3>
-          <div className="flex flex-wrap gap-3 mb-8 justify-center">
-            {companions.map(companion => (
-              <button
-                key={companion}
-                onClick={() => toggleSelection(entryData.companions, companion, (arr) =>
-                  setEntryData({ ...entryData, companions: arr }))}
-                className={`px-5 py-3 rounded-xl cursor-pointer transition-all duration-300 font-semibold text-sm border-2
-                  ${entryData.companions.includes(companion)
-                    ? 'bg-gradient-to-br from-amber-500 to-orange-500 text-white border-amber-500'
-                    : 'bg-slate-50 text-gantly-muted border-gray-200 hover:bg-slate-100'
-                  }
-                `}
-              >
-                {companion}
-              </button>
-            ))}
+          {/* Companions */}
+          <div className="mb-8">
+            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 text-center">
+              ¿Con quién?
+            </h3>
+            <div className="flex flex-wrap gap-2.5 justify-center">
+              {companions.map(companion => {
+                const selected = entryData.companions.includes(companion);
+                return (
+                  <button
+                    key={companion}
+                    onClick={() => toggleSelection(entryData.companions, companion, (arr) =>
+                      setEntryData({ ...entryData, companions: arr }))}
+                    className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full cursor-pointer transition-all duration-200 text-[13px] font-semibold border
+                      ${selected
+                        ? 'bg-gantly-blue text-white border-gantly-blue shadow-sm shadow-gantly-blue/25'
+                        : 'bg-white text-slate-600 border-slate-200 hover:border-gantly-blue/40 hover:bg-gantly-blue/5'
+                      }
+                    `}
+                  >
+                    {selected && <Check size={14} strokeWidth={2.5} />}
+                    {companion}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          <h3 className="text-xl font-semibold text-gantly-text mb-4 font-heading">
-            ¿Donde estas?
-          </h3>
-          <div className="flex flex-wrap gap-3 mb-8 justify-center">
-            {locations.map(location => (
-              <button
-                key={location}
-                onClick={() => setEntryData({ ...entryData, location })}
-                className={`px-5 py-3 rounded-xl cursor-pointer transition-all duration-300 font-semibold text-sm border-2
-                  ${entryData.location === location
-                    ? 'bg-gradient-to-br from-amber-500 to-orange-500 text-white border-amber-500'
-                    : 'bg-slate-50 text-gantly-muted border-gray-200 hover:bg-slate-100'
-                  }
-                `}
-              >
-                {location}
-              </button>
-            ))}
+          {/* Location */}
+          <div className="mb-10">
+            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 text-center">
+              ¿Dónde?
+            </h3>
+            <div className="flex flex-wrap gap-2.5 justify-center">
+              {locations.map(loc => {
+                const selected = entryData.location === loc;
+                return (
+                  <button
+                    key={loc}
+                    onClick={() => setEntryData({ ...entryData, location: loc })}
+                    className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full cursor-pointer transition-all duration-200 text-[13px] font-semibold border
+                      ${selected
+                        ? 'bg-gantly-blue text-white border-gantly-blue shadow-sm shadow-gantly-blue/25'
+                        : 'bg-white text-slate-600 border-slate-200 hover:border-gantly-blue/40 hover:bg-gantly-blue/5'
+                      }
+                    `}
+                  >
+                    {selected && <Check size={14} strokeWidth={2.5} />}
+                    {loc}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="flex gap-3 justify-center">
             <button
               onClick={() => setStep(2)}
-              className="px-6 py-3 bg-gray-200 text-gantly-muted border-none rounded-xl cursor-pointer font-semibold hover:bg-gray-300"
+              className="px-5 py-2.5 bg-transparent text-slate-500 border border-slate-200 rounded-full cursor-pointer font-medium text-sm hover:bg-slate-50 transition-colors duration-200"
             >
-              Atras
+              Atrás
             </button>
             <button
               onClick={() => setStep(4)}
-              className="px-6 py-3 bg-gradient-to-br from-amber-500 to-orange-500 text-white border-none rounded-xl cursor-pointer font-semibold hover:from-amber-600 hover:to-orange-600"
+              className="px-6 py-2.5 bg-gantly-gold text-gantly-navy border-none rounded-full cursor-pointer font-semibold text-sm hover:bg-gantly-gold/90 transition-colors duration-200"
             >
               Siguiente
             </button>
@@ -925,33 +1003,51 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
       {/* Paso 4: Notas */}
       {step === 4 && (
         <div>
-          <h2 className="text-2xl font-bold text-gantly-text mb-6 text-center font-heading">
-            ¿Que esta haciendo que tu tarde sea {entryData.moodRating <= 2 ? 'dificil' : entryData.moodRating >= 4 ? 'genial' : 'asi'}?
+          {/* Context: selected mood */}
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <MoodFace value={entryData.moodRating} size={28} />
+            <span className="text-sm font-medium text-slate-400">
+              {moods.find(m => m.value === entryData.moodRating)?.label}
+            </span>
+          </div>
+
+          {/* Step dots */}
+          <div className="flex justify-center gap-1.5 mb-6">
+            {[1, 2, 3, 4].map(s => (
+              <div key={s} className={`h-1 rounded-full transition-all duration-300 ${s === step ? 'w-6 bg-gantly-blue' : s < step ? 'w-3 bg-gantly-blue/40' : 'w-3 bg-slate-200'}`} />
+            ))}
+          </div>
+
+          <h2 className="text-2xl font-bold text-gantly-text mb-2 text-center font-heading">
+            ¿Qué está haciendo que tu tarde sea {entryData.moodRating <= 2 ? 'difícil' : entryData.moodRating >= 4 ? 'genial' : 'así'}?
           </h2>
+          <p className="text-sm text-slate-400 text-center mb-6">Opcional — escribe lo que quieras</p>
+
           <textarea
             value={entryData.notes}
             onChange={(e) => setEntryData({ ...entryData, notes: e.target.value })}
-            placeholder="Escribe aqui..."
-            className="w-full min-h-[200px] p-4 rounded-xl border-2 border-gray-200 text-base resize-y mb-6 focus:border-gantly-blue focus:outline-none"
+            placeholder="Escribe aquí..."
+            className="w-full min-h-[160px] p-5 rounded-2xl border border-slate-200 text-sm text-slate-700 resize-y mb-8 focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 focus:outline-none transition-all duration-200 placeholder:text-slate-300"
           />
+
           <div className="flex gap-3 justify-center">
             <button
               onClick={() => setStep(3)}
-              className="px-6 py-3 bg-gray-200 text-gantly-muted border-none rounded-xl cursor-pointer font-semibold hover:bg-gray-300"
+              className="px-5 py-2.5 bg-transparent text-slate-500 border border-slate-200 rounded-full cursor-pointer font-medium text-sm hover:bg-slate-50 transition-colors duration-200"
             >
-              Atras
+              Atrás
             </button>
             <button
               onClick={handleSave}
               disabled={saving}
-              className={`px-6 py-3 text-white border-none rounded-xl font-semibold
+              className={`px-6 py-2.5 text-white border-none rounded-full font-semibold text-sm transition-colors duration-200
                 ${saving
-                  ? 'bg-gray-400 cursor-not-allowed opacity-70'
-                  : 'bg-gradient-to-br from-indigo-500 to-purple-600 cursor-pointer hover:from-indigo-600 hover:to-purple-700'
+                  ? 'bg-slate-300 cursor-not-allowed'
+                  : 'bg-gantly-blue cursor-pointer hover:bg-gantly-blue-600'
                 }
               `}
             >
-              {saving ? 'Guardando...' : 'Guardar'}
+              {saving ? 'Guardando...' : 'Guardar entrada'}
             </button>
           </div>
         </div>

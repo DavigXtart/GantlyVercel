@@ -12,6 +12,7 @@ export default function RegisterCompany({ onBack, onLogin, onSuccess }: Register
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -22,8 +23,12 @@ export default function RegisterCompany({ onBack, onLogin, onSuccess }: Register
       setError('Completa todos los campos');
       return;
     }
-    if (password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
+    if (password.length < 8) {
+      setError('La contraseña debe tener al menos 8 caracteres');
+      return;
+    }
+    if (!acceptTerms) {
+      setError('Debes aceptar los terminos y la politica de privacidad');
       return;
     }
     setLoading(true);
@@ -43,7 +48,7 @@ export default function RegisterCompany({ onBack, onLogin, onSuccess }: Register
         <div className="rounded-2xl shadow-xl shadow-slate-900/10 overflow-hidden">
           <div className="h-1.5 bg-gradient-to-r from-gantly-blue to-gantly-cyan rounded-t-2xl" />
           <div className="bg-white rounded-b-2xl p-10">
-            <img src={LogoSvg} alt="Gantly" className="h-8 mb-6" />
+            <img src={LogoSvg} alt="Gantly" className="h-8 mb-6 cursor-pointer" onClick={() => window.location.href = '/'} />
             <h1 className="font-heading font-bold text-gantly-text text-2xl mb-2">
               Registrar empresa
             </h1>
@@ -79,16 +84,31 @@ export default function RegisterCompany({ onBack, onLogin, onSuccess }: Register
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder="Mínimo 8 caracteres"
                   required
-                  minLength={6}
+                  minLength={8}
                   className="w-full h-14 px-4 rounded-xl border-2 border-slate-200 text-base outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
                 />
               </div>
+              <label className="flex items-start gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={acceptTerms}
+                  onChange={(e) => setAcceptTerms(e.target.checked)}
+                  className="mt-1 w-4 h-4 accent-gantly-blue cursor-pointer flex-shrink-0"
+                />
+                <span className="text-sm text-slate-500 leading-relaxed">
+                  Acepto los{' '}
+                  <a href="/terms" target="_blank" className="text-gantly-blue font-medium hover:underline">terminos y condiciones</a>
+                  {' '}y la{' '}
+                  <a href="/privacy" target="_blank" className="text-gantly-blue font-medium hover:underline">politica de privacidad</a>
+                  {' '}*
+                </span>
+              </label>
               {error && <p className="text-red-500 text-sm font-body">{error}</p>}
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !acceptTerms}
                 className="w-full h-14 rounded-xl border-none bg-gradient-to-r from-gantly-blue to-gantly-cyan text-white text-base font-heading font-bold cursor-pointer shadow-lg hover:shadow-xl hover:shadow-gantly-blue/25 transition-all duration-300 disabled:bg-gray-300 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed disabled:shadow-none"
               >
                 {loading ? 'Registrando...' : 'Registrarme'}

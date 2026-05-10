@@ -14,6 +14,8 @@ import com.alvaro.psicoapp.repository.UserPsychologistRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -451,6 +453,16 @@ public class CalendarService {
                         && apt.getUser() != null)
                 .map(this::toPsychologistPastAppointmentDto)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CalendarDtos.PsychologistPastAppointmentDto> getBillingAppointmentsPaged(UserEntity psychologist, Pageable pageable) {
+        requirePsychologist(psychologist);
+        Instant fromTime = Instant.ofEpochMilli(0);
+        Instant toTime = Instant.now().plusSeconds(365L * 24 * 3600);
+        Page<AppointmentEntity> page = appointmentRepository.findBillingAppointments(
+                psychologist.getId(), fromTime, toTime, pageable);
+        return page.map(this::toPsychologistPastAppointmentDto);
     }
 
     @Transactional

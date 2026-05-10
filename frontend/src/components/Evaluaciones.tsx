@@ -4,8 +4,17 @@ import { toast } from './ui/Toast';
 import LoadingSpinner from './ui/LoadingSpinner';
 import EmptyState from './ui/EmptyState';
 import EvaluationTestFlow from './EvaluationTestFlow';
+import EvaluationResultsView from './EvaluationResultsView';
 import { hasTestDefinition, getTestDefinition } from '../data/evaluationTestDefinitions';
-import { ClipboardList, Brain, Frown, Zap, Heart, Users, ArrowRight, CheckCircle, type LucideIcon } from 'lucide-react';
+import { ClipboardList, Brain, Frown, Zap, Heart, Users, ArrowRight, CheckCircle, Eye, type LucideIcon } from 'lucide-react';
+
+interface EvalResult {
+  id: number;
+  score: number;
+  level: string;
+  completedAt: string;
+  test: { id: number; code: string; title: string; topic?: string };
+}
 
 export default function Evaluaciones() {
   const [loading, setLoading] = useState(true);
@@ -13,6 +22,8 @@ export default function Evaluaciones() {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [activeTest, setActiveTest] = useState<any | null>(null);
   const [completedTests, setCompletedTests] = useState<Set<number>>(new Set());
+  const [allResults, setAllResults] = useState<EvalResult[]>([]);
+  const [viewingResults, setViewingResults] = useState<{ testId: number; code: string; title: string } | null>(null);
 
   useEffect(() => {
     loadTests();
@@ -36,22 +47,36 @@ export default function Evaluaciones() {
 
   const loadCompletedTests = async () => {
     try {
-      const results = await evaluationTestService.getUserResults();
-      if (Array.isArray(results)) {
-        const ids = new Set<number>(results.map((r: any) => r.testId || r.test?.id).filter(Boolean));
-        setCompletedTests(ids);
-      }
+      const data = await evaluationTestService.getUserResults();
+      const results: EvalResult[] = Array.isArray(data) ? data : (data?.results || []);
+      setAllResults(results);
+      const ids = new Set<number>(results.map((r: any) => r.testId || r.test?.id).filter(Boolean));
+      setCompletedTests(ids);
     } catch {
       // silently ignore
     }
   };
 
   const handleTestClick = (test: any) => {
-    if (test.code && hasTestDefinition(test.code)) {
-      setActiveTest(test);
-    } else {
+    if (!test.code || !hasTestDefinition(test.code)) {
       toast.info('Este test estará disponible próximamente');
+      return;
     }
+    const isCompleted = completedTests.has(test.id);
+    if (isCompleted) {
+      const testResults = allResults.filter(r => (r.test?.id || (r as any).testId) === test.id);
+      if (testResults.length > 0) {
+        setViewingResults({ testId: test.id, code: test.code, title: test.title });
+        return;
+      }
+    }
+    setActiveTest(test);
+  };
+
+  const handleRetake = (testId: number) => {
+    setViewingResults(null);
+    const test = tests.find(t => t.id === testId);
+    if (test) setActiveTest(test);
   };
 
   const topics = Array.from(new Set(tests.map(t => t.topic)));
@@ -134,7 +159,6 @@ export default function Evaluaciones() {
         </div>
       )}
 
-      {/* Test cards grid */}
       {/* EvaluationTestFlow modal */}
       {activeTest && activeTest.code && getTestDefinition(activeTest.code) && (
         <EvaluationTestFlow
@@ -147,6 +171,18 @@ export default function Evaluaciones() {
         />
       )}
 
+      {/* Results viewer modal */}
+      {viewingResults && (
+        <EvaluationResultsView
+          results={allResults.filter(r => (r.test?.id || (r as any).testId) === viewingResults.testId)}
+          testCode={viewingResults.code}
+          testTitle={viewingResults.title}
+          onClose={() => setViewingResults(null)}
+          onRetake={() => handleRetake(viewingResults.testId)}
+        />
+      )}
+
+      {/* Test cards grid */}
       {filteredTests.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredTests.map(test => {
@@ -189,7 +225,11 @@ export default function Evaluaciones() {
                       Próximamente
                     </span>
                   )}
-                  <ArrowRight size={18} className="text-slate-500 group-hover:text-gantly-blue transition-colors" />
+                  {isCompleted ? (
+                    <Eye size={18} className="text-emerald-500 group-hover:text-gantly-blue transition-colors" />
+                  ) : (
+                    <ArrowRight size={18} className="text-slate-500 group-hover:text-gantly-blue transition-colors" />
+                  )}
                 </div>
               </div>
             );

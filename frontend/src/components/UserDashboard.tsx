@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Home, Brain, CheckSquare, ClipboardList, CalendarDays, BookOpen,
   BarChart3, FileText, Compass, MessageCircle, Building2, LogOut,
-  Menu, Video, Plus, ArrowRight, ChevronRight, Settings, TrendingUp,
-  History, Clock, HelpCircle, Send, CalendarCheck, CalendarX, MoreHorizontal, X,
+  Menu, MoreHorizontal, X,
 } from 'lucide-react';
 import NotificationBell from './ui/NotificationBell';
 import api, {
@@ -12,15 +11,9 @@ import api, {
   tasksService,
   calendarService,
   assignedTestsService,
-  resultsService,
-  jitsiService,
-  consentService,
   stripeService,
-  patientClinicChatService,
 } from '../services/api';
-import CalendarWeek from './CalendarWeek';
 import ChatWidget from './ChatWidget';
-import EmptyState from './ui/EmptyState';
 import AgendaPersonal from './AgendaPersonal';
 import MisEstadisticas from './MisEstadisticas';
 import Evaluaciones from './Evaluaciones';
@@ -29,14 +22,16 @@ import LoadingSpinner from './ui/LoadingSpinner';
 import UserTasksTab from './UserTasksTab';
 import UserPsychProfileTab from './UserPsychProfileTab';
 import UserSettingsTab from './UserSettingsTab';
+import UserHomeTab from './UserHomeTab';
+import UserPsychologistTab from './UserPsychologistTab';
+import UserTestsTab from './UserTestsTab';
+import UserCalendarTab from './UserCalendarTab';
+import UserAppointmentsTab from './UserAppointmentsTab';
+import UserClinicChatTab from './UserClinicChatTab';
 import { toast } from './ui/Toast';
-import PatientMatchingTest from './PatientMatchingTest';
-import MatchingPsychologists from './MatchingPsychologists';
 import JitsiVideoCall from './JitsiVideoCall';
-
 import OnboardingWizard from './OnboardingWizard';
 import LogoSvg from '../assets/logo-gantly.svg';
-
 
 type Tab =
   | 'perfil'
@@ -69,128 +64,20 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
   const [assignedTests, setAssignedTests] = useState<any[]>([]);
   const [myAppointments, setMyAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [slots, setSlots] = useState<any[]>([]);
-  const [loadingSlots, setLoadingSlots] = useState(false);
-  const [pastAppointments, setPastAppointments] = useState<any[]>([]);
-  const [loadingPastAppointments, setLoadingPastAppointments] = useState(false);
-  const [showMatchingTest, setShowMatchingTest] = useState(false);
-  const [showMatchingResults, setShowMatchingResults] = useState(false);
-  const [matchingTestCompleted, setMatchingTestCompleted] = useState(false);
   const [psychologistProfile, setPsychologistProfile] = useState<any>(null);
-  const [loadingPsychologistProfile, setLoadingPsychologistProfile] =
-    useState(false);
-  const [ratingAppointment, setRatingAppointment] = useState<number | null>(
-    null,
-  );
-  const [ratingComment, setRatingComment] = useState<string>('');
-  const [submittingRating, setSubmittingRating] = useState(false);
+  const [loadingPsychologistProfile, setLoadingPsychologistProfile] = useState(false);
   const [showVideoCall, setShowVideoCall] = useState(false);
   const [videoCallRoom, setVideoCallRoom] = useState<string | null>(null);
   const [videoCallOtherUser, setVideoCallOtherUser] = useState<{ email: string; name: string } | null>(null);
-  const [referralCodeInput, setReferralCodeInput] = useState<string>('');
-  const [usingReferralCode, setUsingReferralCode] = useState(false);
-  // Consentimientos (menores)
-  const [pendingConsents, setPendingConsents] = useState<any[]>([]);
-  const [loadingConsents, setLoadingConsents] = useState(false);
-  const [signerNameForConsent, setSignerNameForConsent] = useState('');
-  const [signingConsentId, setSigningConsentId] = useState<number | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('onboarding-completed'));
-  // Clinic chat state
-  const [clinicChatMessages, setClinicChatMessages] = useState<Array<{ id: number; sender: string; content: string; createdAt: string }>>([]);
-  const [clinicChatInput, setClinicChatInput] = useState('');
-  const [clinicChatSending, setClinicChatSending] = useState(false);
-  const [clinicChatLoading, setClinicChatLoading] = useState(false);
   // Mobile sidebar
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   // Unread chat indicator
   const [hasUnreadChat, setHasUnreadChat] = useState(false);
-  const [expandedTestId, setExpandedTestId] = useState<number | null>(null);
-  const [testResults, setTestResults] = useState<Record<number, any>>({}); // cached results by assignedTestId
-  const [loadingTestResult, setLoadingTestResult] = useState(false);
+  const nav = useNavigate();
 
   const hasPsychologist = psych?.status === 'ASSIGNED';
   const hasClinic = !!me?.companyId;
-
-  // Load clinic chat messages
-  const loadClinicChat = async () => {
-    if (!hasClinic) return;
-    try {
-      const msgs = await patientClinicChatService.getMessages();
-      setClinicChatMessages(msgs);
-    } catch {
-      // silently ignore
-    }
-  };
-
-  // Poll clinic chat every 5 seconds
-  useEffect(() => {
-    if (tab !== 'mensajes-clinica' || !hasClinic) return;
-    setClinicChatLoading(true);
-    loadClinicChat().finally(() => setClinicChatLoading(false));
-    const interval = setInterval(() => {
-      if (clinicChatMessages.length > 0) {
-        const lastTime = clinicChatMessages[clinicChatMessages.length - 1].createdAt;
-        patientClinicChatService.getMessages(lastTime)
-          .then((newMsgs) => {
-            if (newMsgs.length > 0) {
-              setClinicChatMessages((prev) => [...prev, ...newMsgs]);
-            }
-          })
-          .catch(() => {});
-      } else {
-        loadClinicChat();
-      }
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [tab, hasClinic]);
-
-  const handleSendClinicChat = async () => {
-    if (!clinicChatInput.trim() || clinicChatSending) return;
-    setClinicChatSending(true);
-    try {
-      const msg = await patientClinicChatService.sendMessage(clinicChatInput.trim());
-      setClinicChatMessages((prev) => [...prev, msg]);
-      setClinicChatInput('');
-    } catch {
-      toast.error('Error al enviar el mensaje');
-    } finally {
-      setClinicChatSending(false);
-    }
-  };
-
-  const isMinor = useMemo(() => {
-    if (!me) return false;
-    if (me.birthDate) {
-      const birth = new Date(me.birthDate);
-      const age = (Date.now() - birth.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
-      return age < 18;
-    }
-    const age = me.age;
-    return typeof age === 'number' && age < 18;
-  }, [me]);
-
-  useEffect(() => {
-    if (!me || !isMinor) {
-      setPendingConsents([]);
-      return;
-    }
-    let cancelled = false;
-    setLoadingConsents(true);
-    consentService
-      .myPending()
-      .then((list) => {
-        if (!cancelled) setPendingConsents(Array.isArray(list) ? list : []);
-      })
-      .catch(() => {
-        if (!cancelled) setPendingConsents([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingConsents(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [me?.id, isMinor]);
 
   const loadData = async () => {
     try {
@@ -232,32 +119,12 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
     }
   };
 
-  const handleUseReferralCode = async () => {
-    if (!referralCodeInput.trim()) {
-      toast.error('Por favor ingresa un codigo de referencia');
-      return;
-    }
-
-    try {
-      setUsingReferralCode(true);
-      const result = await profileService.useReferralCode(referralCodeInput.trim());
-      toast.success(result.message || 'Te has unido correctamente a la consulta');
-      setReferralCodeInput('');
-      // Recargar datos para actualizar el estado del psicologo
-      await loadData();
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Error al usar el codigo de referencia');
-    } finally {
-      setUsingReferralCode(false);
-    }
-  };
-
-  // Carga inicial
+  // Initial load
   useEffect(() => {
     loadData();
   }, []);
 
-  // Gestionar parametros de retorno de Stripe
+  // Handle Stripe return params
   useEffect(() => {
     const payment = searchParams.get('payment');
     const appointmentId = searchParams.get('appointment');
@@ -287,102 +154,21 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
     }
   }, []);
 
-  // Cargar historial cuando se entra en Mi Psicologo
-  useEffect(() => {
-    if (tab === 'mi-psicologo' && hasPsychologist) {
-      loadPastAppointments();
-    }
-  }, [tab, hasPsychologist]);
-
   const loadPsychologistProfile = async (psychologistId: number) => {
     try {
       setLoadingPsychologistProfile(true);
-      const profile = await profileService.getPsychologistProfile(
-        psychologistId,
-      );
+      const profile = await profileService.getPsychologistProfile(psychologistId);
       setPsychologistProfile(profile);
       setTab('perfil-psicologo');
     } catch (err: any) {
       toast.error(
-        'Error al cargar el perfil del psicólogo:' +
+        'Error al cargar el perfil del psicologo:' +
           (err.response?.data?.error || err.message),
       );
     } finally {
       setLoadingPsychologistProfile(false);
     }
   };
-
-  const loadAvailability = async () => {
-    try {
-      setLoadingSlots(true);
-      const from = new Date();
-      const to = new Date();
-      to.setDate(to.getDate() + 14);
-      const list = await calendarService.availability(
-        from.toISOString(),
-        to.toISOString(),
-      );
-      setSlots(list);
-      try {
-        const appointments = await calendarService.myAppointments();
-        const validAppointments = appointments.filter(
-          (apt: any) => apt.startTime && apt.endTime,
-        );
-        setMyAppointments(validAppointments);
-      } catch (error) {
-        // error handled silently
-      }
-    } catch (error: any) {
-      toast.error('Error al cargar el calendario');
-    } finally {
-      setLoadingSlots(false);
-    }
-  };
-
-  const loadPastAppointments = async () => {
-    try {
-      setLoadingPastAppointments(true);
-      const appointments = await calendarService.getPastAppointments();
-      setPastAppointments(appointments || []);
-    } catch (err: any) {
-      toast.error(
-        'Error al cargar las citas pasadas: ' +
-          (err.response?.data?.error || err.message),
-      );
-    } finally {
-      setLoadingPastAppointments(false);
-    }
-  };
-
-  const handleRateAppointment = async (appointmentId: number) => {
-    if (!ratingAppointment || ratingAppointment < 1 || ratingAppointment > 5) {
-      toast.error('Por favor selecciona una valoracion entre 1 y 5 estrellas');
-      return;
-    }
-    try {
-      setSubmittingRating(true);
-      await calendarService.rateAppointment(
-        appointmentId,
-        ratingAppointment,
-        ratingComment || undefined,
-      );
-      toast.success('Valoracion guardada exitosamente');
-      setRatingAppointment(null);
-      setRatingComment('');
-      await loadPastAppointments();
-    } catch (err: any) {
-      toast.error(
-        'Error al guardar la valoracion: ' +
-          (err.response?.data?.error || err.message),
-      );
-    } finally {
-      setSubmittingRating(false);
-    }
-  };
-
-
-
-
 
   const upcomingAppointment = useMemo(() => {
     const now = new Date();
@@ -407,37 +193,6 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
     return () => document.removeEventListener('keydown', handler);
   }, [mobileMoreOpen]);
 
-  // Cargar disponibilidad cuando se entra en la pestana de calendario
-  useEffect(() => {
-    if (tab === 'calendario' && hasPsychologist) {
-      loadAvailability();
-    }
-  }, [tab, hasPsychologist]);
-
-  // Cargar historial cuando se entra en la pestana mis-citas
-  useEffect(() => {
-    if (tab === 'mis-citas' && hasPsychologist) {
-      loadPastAppointments();
-    }
-  }, [tab, hasPsychologist]);
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
-  const getGreeting = () => {
-    const h = new Date().getHours();
-    if (h < 12) return 'Buenos días';
-    if (h < 20) return 'Buenas tardes';
-    return 'Buenas noches';
-  };
-
   if (loading && !me) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
@@ -448,16 +203,16 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
 
   const sidebarItems: { id: string; icon: ReactNode; label: string; requiresPsych: boolean }[] = [
     { id: 'perfil', icon: <Home size={20} />, label: 'Inicio', requiresPsych: false },
-    { id: 'mi-psicologo', icon: <Brain size={20} />, label: 'Psicólogo', requiresPsych: false },
+    { id: 'mi-psicologo', icon: <Brain size={20} />, label: 'Psicologo', requiresPsych: false },
     { id: 'tareas', icon: <CheckSquare size={20} />, label: 'Tareas', requiresPsych: true },
     { id: 'tests-pendientes', icon: <ClipboardList size={20} />, label: 'Tests', requiresPsych: true },
     { id: 'calendario', icon: <CalendarDays size={20} />, label: 'Calendario', requiresPsych: true },
     { id: 'agenda-personal', icon: <BookOpen size={20} />, label: 'Agenda', requiresPsych: false },
-    { id: 'mis-estadisticas', icon: <BarChart3 size={20} />, label: 'Estadísticas', requiresPsych: false },
+    { id: 'mis-estadisticas', icon: <BarChart3 size={20} />, label: 'Estadisticas', requiresPsych: false },
     { id: 'evaluaciones', icon: <FileText size={20} />, label: 'Evaluaciones', requiresPsych: false },
     { id: 'descubrimiento', icon: <Compass size={20} />, label: 'Descubrir', requiresPsych: false },
     { id: 'chat', icon: <div className="relative"><MessageCircle size={20} />{hasUnreadChat && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-gantly-navy" />}</div>, label: 'Chat', requiresPsych: true },
-    ...(me?.companyId ? [{ id: 'mensajes-clinica', icon: <Building2 size={20} /> as ReactNode, label: 'Clínica', requiresPsych: false }] : []),
+    ...(me?.companyId ? [{ id: 'mensajes-clinica', icon: <Building2 size={20} /> as ReactNode, label: 'Clinica', requiresPsych: false }] : []),
   ];
 
   return (
@@ -466,7 +221,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       <aside className="hidden md:flex w-60 bg-gradient-to-b from-gantly-navy to-gantly-navy-600 flex-col fixed top-0 left-0 h-screen z-40">
         {/* Logo */}
         <div className="px-6 py-6 border-b border-white/10">
-          <img src={LogoSvg} alt="Gantly" className="h-7 brightness-0 invert" />
+          <img src={LogoSvg} alt="Gantly" className="h-7 brightness-0 invert cursor-pointer" onClick={() => nav('/')} />
         </div>
 
         {/* Nav items */}
@@ -482,7 +237,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                 onClick={() => {
                   if (isDisabled) {
                     toast.error(
-                      'Necesitas tener un psicólogo asignado para acceder a esta sección',
+                      'Necesitas tener un psicologo asignado para acceder a esta seccion',
                     );
                     setTab('mi-psicologo');
                     return;
@@ -496,7 +251,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     ? 'text-slate-600 cursor-not-allowed opacity-50'
                     : 'text-white hover:bg-white/10'
                 }`}
-                title={isDisabled ? 'Requiere psicólogo asignado' : undefined}
+                title={isDisabled ? 'Requiere psicologo asignado' : undefined}
               >
                 {item.icon}
                 <span>{item.label}</span>
@@ -532,7 +287,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             className="flex items-center gap-2 text-xs text-slate-500 hover:text-white cursor-pointer transition-colors duration-200 w-full px-1"
           >
             <LogOut size={14} />
-            Cerrar sesión
+            Cerrar sesion
           </button>
         </div>
       </aside>
@@ -543,7 +298,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
           <aside className="absolute left-0 top-0 bottom-0 w-64 bg-gradient-to-b from-gantly-navy to-gantly-navy-600 flex flex-col">
             <div className="px-6 py-6 border-b border-white/10">
-              <img src={LogoSvg} alt="Gantly" className="h-7 brightness-0 invert" />
+              <img src={LogoSvg} alt="Gantly" className="h-7 brightness-0 invert cursor-pointer" onClick={() => nav('/')} />
             </div>
             <nav className="flex-1 flex flex-col gap-1 px-3 py-4 overflow-y-auto">
               {sidebarItems.map((item) => {
@@ -557,7 +312,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     onClick={() => {
                       if (isDisabled) {
                         toast.error(
-                          'Necesitas tener un psicólogo asignado para acceder a esta sección',
+                          'Necesitas tener un psicologo asignado para acceder a esta seccion',
                         );
                         setTab('mi-psicologo');
                         setMobileMenuOpen(false);
@@ -591,7 +346,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                 className="flex items-center gap-2 text-xs text-slate-500 hover:text-white cursor-pointer transition-colors duration-200"
               >
                 <LogOut size={14} />
-                Cerrar sesión
+                Cerrar sesion
               </button>
             </div>
           </aside>
@@ -638,7 +393,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="flex items-center justify-between px-2 pb-2 mb-1 border-b border-slate-100">
-                      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Más opciones</span>
+                      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Mas opciones</span>
                       <button type="button" aria-label="Cerrar menu" onClick={() => setMobileMoreOpen(false)} className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer focus-visible:ring-2 focus-visible:ring-gantly-blue rounded outline-none">
                         <X size={16} />
                       </button>
@@ -654,7 +409,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                             disabled={isDisabled}
                             onClick={() => {
                               if (isDisabled) {
-                                toast.error('Necesitas psicólogo asignado');
+                                toast.error('Necesitas psicologo asignado');
                                 setTab('mi-psicologo');
                               } else {
                                 setTab(item.id as Tab);
@@ -686,7 +441,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                       disabled={isDisabled}
                       onClick={() => {
                         if (isDisabled) {
-                          toast.error('Necesitas psicólogo asignado');
+                          toast.error('Necesitas psicologo asignado');
                           setTab('mi-psicologo');
                           return;
                         }
@@ -705,7 +460,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                 {/* More button */}
                 <button
                   type="button"
-                  aria-label="Ver más opciones"
+                  aria-label="Ver mas opciones"
                   aria-expanded={mobileMoreOpen}
                   onClick={() => setMobileMoreOpen(prev => !prev)}
                   className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg cursor-pointer transition-colors duration-200 ${
@@ -713,7 +468,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                   }`}
                 >
                   <MoreHorizontal size={20} />
-                  <span className="text-[10px] font-medium">Más</span>
+                  <span className="text-[10px] font-medium">Mas</span>
                 </button>
               </div>
             </>
@@ -722,269 +477,22 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
 
         {/* Content area */}
         <main className="flex-1 p-6 md:p-8 pb-20 md:pb-8 overflow-x-hidden">
-          {/* Vista PERFIL */}
+          {/* Home / Profile overview */}
           {tab === 'perfil' && (
-            <div className="space-y-6">
-              {/* Hero welcome — compact asymmetric */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-                {/* Main greeting — spans 7 cols */}
-                <div className="lg:col-span-7 relative overflow-hidden rounded-3xl p-7 md:p-9 shadow-2xl shadow-gantly-blue/15 bg-gradient-brand">
-                  <div className="absolute -top-16 -right-16 w-56 h-56 bg-white/5 rounded-full blur-2xl" />
-                  <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-gantly-cyan/10 rounded-full blur-xl" />
-                  <div className="relative z-10 flex items-center gap-5">
-                    <div className="w-16 h-16 rounded-2xl overflow-hidden ring-4 ring-white/20 shadow-xl shadow-black/20 flex-shrink-0 bg-white/10 flex items-center justify-center">
-                      {me?.avatarUrl ? (
-                        <img src={me.avatarUrl} alt={me.name || 'Usuario'} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-2xl text-white font-heading font-bold">{me?.name ? me.name.charAt(0).toUpperCase() : 'U'}</span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h1 className="text-2xl md:text-3xl font-heading font-bold text-white truncate">
-                        {getGreeting()}, {me?.name?.split(' ')[0] || 'usuario'}
-                      </h1>
-                      <p className="text-white/70 mt-1 text-sm font-body truncate">
-                        {upcomingAppointment
-                          ? `Próxima cita: ${new Date(upcomingAppointment.startTime).toLocaleDateString('es-ES', { weekday: 'long' })} ${new Date(upcomingAppointment.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`
-                          : ''}
-                      </p>
-                      <div className="flex flex-wrap gap-2.5 mt-4">
-                        <button
-                          type="button"
-                          onClick={() => setTab('calendario')}
-                          className="bg-white text-gantly-text hover:bg-white/90 rounded-xl px-4 py-2 text-sm font-heading font-semibold cursor-pointer transition-all duration-200 shadow-lg shadow-black/10 flex items-center gap-2"
-                        >
-                          <CalendarDays size={16} />
-                          Calendario
-                        </button>
-                        {hasPsychologist && (
-                          <button
-                            type="button"
-                            onClick={() => setTab('chat')}
-                            className="bg-white/15 hover:bg-white/25 text-white backdrop-blur-sm rounded-xl px-4 py-2 text-sm font-heading font-semibold cursor-pointer transition-all duration-200 border border-white/20 flex items-center gap-2"
-                          >
-                            <MessageCircle size={16} />
-                            Chat
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Appointment spotlight — spans 5 cols */}
-                <div className="lg:col-span-5 relative bg-white rounded-3xl p-6 shadow-sm border border-gray-100 overflow-hidden flex flex-col justify-between">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-gantly-emerald/5 to-transparent rounded-bl-full" />
-                  <div className="relative">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-8 h-8 rounded-lg bg-gantly-emerald/10 flex items-center justify-center">
-                        <CalendarCheck size={18} className="text-gantly-emerald" />
-                      </div>
-                      <span className="text-xs font-body font-semibold text-gantly-emerald uppercase tracking-wider">Próxima cita</span>
-                    </div>
-                    {upcomingAppointment ? (
-                      <>
-                        <p className="text-2xl font-heading font-bold text-gantly-text">
-                          {new Date(upcomingAppointment.startTime).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })}
-                        </p>
-                        <p className="text-sm text-gantly-muted mt-1 font-body">
-                          {new Date(upcomingAppointment.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-                          {upcomingAppointment.psychologist && <span className="ml-1">· {upcomingAppointment.psychologist.name}</span>}
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-base font-heading font-semibold text-gantly-text">Sin citas programadas</p>
-                        <p className="text-sm text-gantly-muted mt-1 font-body">Agenda una sesión cuando lo necesites</p>
-                      </>
-                    )}
-                  </div>
-                  <div className="relative mt-4">
-                    {upcomingAppointment?.paymentStatus === 'PAID' ? (
-                      <button
-                        type="button"
-                        className="w-full px-4 py-2.5 bg-gantly-emerald text-white text-sm font-heading font-semibold rounded-xl cursor-pointer hover:shadow-lg hover:shadow-gantly-emerald/25 transition-all duration-300 flex items-center justify-center gap-2"
-                        onClick={async () => {
-                          const apt = upcomingAppointment;
-                          if (me && apt?.psychologist) {
-                            try {
-                              const roomInfo = await jitsiService.getRoomInfo(apt.psychologist.email);
-                              setVideoCallRoom(roomInfo.roomName);
-                              setVideoCallOtherUser({ email: roomInfo.otherUser.email, name: roomInfo.otherUser.name });
-                              setShowVideoCall(true);
-                            } catch (error: any) {
-                              toast.error(error.response?.data?.error || 'No tienes permiso para iniciar esta videollamada');
-                            }
-                          }
-                        }}
-                      >
-                        <Video size={16} />
-                        Unirse a la llamada
-                      </button>
-                    ) : upcomingAppointment ? (
-                      <div className="w-full px-4 py-2.5 bg-gantly-gold/10 text-gantly-gold-700 text-sm font-body font-medium rounded-xl text-center border border-gantly-gold/20">
-                        Pago pendiente
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setTab('calendario')}
-                        className="w-full px-4 py-2.5 bg-gantly-cloud text-gantly-blue text-sm font-heading font-semibold rounded-xl cursor-pointer hover:bg-gantly-blue hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
-                      >
-                        <Plus size={16} />
-                        Agendar cita
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Asymmetric bento — varied card sizes */}
-              <div className="grid grid-cols-6 lg:grid-cols-12 gap-5">
-                {/* Tasks — large horizontal card spanning 7 cols */}
-                <button
-                  type="button"
-                  onClick={() => setTab('tareas')}
-                  className="col-span-6 lg:col-span-7 group relative bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl hover:shadow-gantly-blue/10 transition-all duration-300 cursor-pointer border border-gray-100 hover:border-gantly-blue/30 text-left overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-gantly-blue/[0.02] to-transparent" />
-                  <div className="absolute -bottom-8 -right-8 w-36 h-36 bg-gantly-blue/5 rounded-full group-hover:scale-150 transition-transform duration-700" />
-                  <div className="relative flex items-center gap-5">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-gantly-blue to-gantly-cyan flex items-center justify-center shadow-lg shadow-gantly-blue/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 flex-shrink-0">
-                      <CheckSquare size={24} className="text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline gap-3">
-                        <span className="text-4xl font-heading font-extrabold text-gantly-text">{tasks.filter((t) => !t.completedAt).length}</span>
-                        <span className="text-sm font-body text-gantly-muted">tareas pendientes</span>
-                      </div>
-                      <div className="flex items-center gap-2 mt-2">
-                        <div className="flex-1 h-1.5 bg-gantly-cloud rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-gradient-to-r from-gantly-blue to-gantly-cyan rounded-full transition-all duration-500"
-                            style={{ width: `${tasks.length > 0 ? (tasks.filter((t) => t.completedAt).length / tasks.length) * 100 : 0}%` }}
-                          />
-                        </div>
-                        <span className="text-[11px] font-body text-gantly-muted whitespace-nowrap">
-                          {tasks.filter((t) => t.completedAt).length}/{tasks.length} completadas
-                        </span>
-                      </div>
-                    </div>
-                    <ArrowRight size={24} className="text-gantly-muted/40 group-hover:text-gantly-blue group-hover:translate-x-1 transition-all duration-300" />
-                  </div>
-                </button>
-
-                {/* Tests + Settings stacked — 5 cols */}
-                <div className="col-span-6 lg:col-span-5 grid grid-rows-2 gap-5">
-                  <button
-                    type="button"
-                    onClick={() => setTab('tests-pendientes')}
-                    className="group relative bg-white rounded-2xl p-5 shadow-sm hover:shadow-xl hover:shadow-gantly-gold/10 transition-all duration-300 cursor-pointer border border-gray-100 hover:border-gantly-gold/30 text-left overflow-hidden"
-                  >
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-gantly-gold/5 rounded-bl-[2rem] group-hover:scale-150 transition-transform duration-500" />
-                    <div className="relative flex items-center gap-4">
-                      <div className="w-11 h-11 rounded-xl bg-gantly-gold flex items-center justify-center shadow-md shadow-gantly-gold/20 group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
-                        <ClipboardList size={18} className="text-gantly-navy" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <span className="text-2xl font-heading font-extrabold text-gantly-text">{assignedTests.filter((t) => !t.completedAt).length}</span>
-                        <p className="text-xs text-gantly-muted font-body font-medium">Tests pendientes</p>
-                      </div>
-                      <ChevronRight size={24} className="text-gantly-muted/30 group-hover:text-gantly-gold-600 transition-colors" />
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setTab('configuracion')}
-                    className="group relative bg-white rounded-2xl p-5 shadow-sm hover:shadow-xl hover:shadow-gantly-navy/5 transition-all duration-300 cursor-pointer border border-gray-100 hover:border-gantly-navy/20 text-left overflow-hidden"
-                  >
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-gantly-navy/[0.03] rounded-bl-[2rem] group-hover:scale-150 transition-transform duration-500" />
-                    <div className="relative flex items-center gap-4">
-                      <div className="w-11 h-11 rounded-xl bg-gantly-navy flex items-center justify-center shadow-md shadow-gantly-navy/20 group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
-                        <Settings size={18} className="text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <span className="text-sm font-heading font-bold text-gantly-text">Configuración</span>
-                        <p className="text-xs text-gantly-muted font-body font-medium">Ajustes de cuenta</p>
-                      </div>
-                      <ChevronRight size={24} className="text-gantly-muted/30 group-hover:text-gantly-navy transition-colors" />
-                    </div>
-                  </button>
-                </div>
-              </div>
-
-              {/* Explore section — asymmetric 3-card layout */}
-              <div>
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="w-1.5 h-6 rounded-full bg-gradient-to-b from-gantly-blue to-gantly-cyan" />
-                  <h3 className="text-lg font-heading font-bold text-gantly-text">Explora</h3>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
-                  {/* Featured card — statistics (wider) */}
-                  <button
-                    type="button"
-                    onClick={() => setTab('mis-estadisticas')}
-                    className="md:col-span-5 group relative rounded-2xl p-7 border border-gantly-blue/10 hover:border-gantly-blue/30 hover:shadow-xl hover:shadow-gantly-blue/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer text-left overflow-hidden"
-                    style={{ background: 'linear-gradient(160deg, #F0F8FF 0%, #ffffff 40%, #ECFEFF 100%)' }}
-                  >
-                    <div className="absolute -bottom-6 -right-6 w-28 h-28 bg-gantly-blue/5 rounded-full group-hover:scale-[2] transition-transform duration-700" />
-                    <div className="absolute top-4 right-4 w-20 h-20 border border-gantly-blue/10 rounded-full group-hover:scale-125 group-hover:rotate-45 transition-all duration-700" />
-                    <div className="relative">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-gantly-blue to-gantly-cyan flex items-center justify-center shadow-lg shadow-gantly-blue/20 group-hover:rotate-6 transition-transform duration-300">
-                        <BarChart3 size={20} className="text-white" />
-                      </div>
-                      <h3 className="text-lg font-heading font-bold text-gantly-text mt-4 group-hover:text-gantly-blue transition-colors">Mis estadísticas</h3>
-                      <p className="text-sm text-gantly-muted mt-1 font-body leading-relaxed">Visualiza tu progreso y bienestar a lo largo del tiempo</p>
-                      <span className="inline-flex items-center gap-1.5 text-xs text-gantly-blue font-heading font-semibold mt-4 group-hover:gap-3 transition-all">
-                        Ver progreso <TrendingUp size={14} />
-                      </span>
-                    </div>
-                  </button>
-
-                  {/* Evaluaciones — medium */}
-                  <button
-                    type="button"
-                    onClick={() => setTab('evaluaciones')}
-                    className="md:col-span-4 group relative bg-white rounded-2xl p-7 border border-gantly-gold/10 hover:border-gantly-gold/30 hover:shadow-xl hover:shadow-gantly-gold/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer text-left overflow-hidden"
-                  >
-                    <div className="absolute -top-4 -right-4 w-20 h-20 bg-gantly-gold/5 rounded-full group-hover:scale-[2.5] transition-transform duration-700" />
-                    <div className="relative">
-                      <div className="w-12 h-12 rounded-2xl bg-gantly-gold flex items-center justify-center shadow-lg shadow-gantly-gold/20 group-hover:rotate-6 transition-transform duration-300">
-                        <FileText size={20} className="text-gantly-navy" />
-                      </div>
-                      <h3 className="text-base font-heading font-bold text-gantly-text mt-4 group-hover:text-gantly-gold-700 transition-colors">Evaluaciones</h3>
-                      <p className="text-sm text-gantly-muted mt-1 font-body">Tests clínicos y resultados</p>
-                      <span className="inline-flex items-center gap-1.5 text-xs text-gantly-gold-700 font-heading font-semibold mt-4 group-hover:gap-3 transition-all">
-                        Completar <ArrowRight size={14} />
-                      </span>
-                    </div>
-                  </button>
-
-                  {/* Descubrimiento — narrow, taller feel */}
-                  <button
-                    type="button"
-                    onClick={() => setTab('descubrimiento')}
-                    className="md:col-span-3 group relative bg-white rounded-2xl p-7 border border-gantly-emerald/10 hover:border-gantly-emerald/30 hover:shadow-xl hover:shadow-gantly-emerald/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer text-left overflow-hidden"
-                  >
-                    <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-gantly-emerald/[0.03] to-transparent rounded-b-2xl" />
-                    <div className="relative">
-                      <div className="w-12 h-12 rounded-2xl bg-gantly-emerald flex items-center justify-center shadow-lg shadow-gantly-emerald/20 group-hover:rotate-6 transition-transform duration-300">
-                        <Compass size={20} className="text-white" />
-                      </div>
-                      <h3 className="text-base font-heading font-bold text-gantly-text mt-4 group-hover:text-gantly-emerald transition-colors">Descubrir</h3>
-                      <p className="text-sm text-gantly-muted mt-1 font-body">Insights personalizados</p>
-                      <span className="inline-flex items-center gap-1.5 text-xs text-gantly-emerald font-heading font-semibold mt-4 group-hover:gap-3 transition-all">
-                        Explorar <ArrowRight size={14} />
-                      </span>
-                    </div>
-                  </button>
-                </div>
-              </div>
-            </div>
+            <UserHomeTab
+              me={me}
+              tasks={tasks}
+              assignedTests={assignedTests}
+              upcomingAppointment={upcomingAppointment}
+              hasPsychologist={hasPsychologist}
+              setTab={(t) => setTab(t as Tab)}
+              setShowVideoCall={setShowVideoCall}
+              setVideoCallRoom={setVideoCallRoom}
+              setVideoCallOtherUser={setVideoCallOtherUser}
+            />
           )}
 
-          {/* Configuracion */}
+          {/* Settings */}
           {tab === 'configuracion' && (
             <UserSettingsTab
               me={me}
@@ -994,16 +502,16 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             />
           )}
 
-          {/* Mis estadisticas */}
+          {/* Statistics */}
           {tab === 'mis-estadisticas' && <MisEstadisticas />}
 
-          {/* Evaluaciones */}
+          {/* Evaluations */}
           {tab === 'evaluaciones' && <Evaluaciones />}
 
-          {/* Descubrimiento */}
+          {/* Discovery */}
           {tab === 'descubrimiento' && <Descubrimiento />}
 
-          {/* Agenda personal */}
+          {/* Personal agenda */}
           {tab === 'agenda-personal' && <AgendaPersonal />}
 
           {/* Chat */}
@@ -1013,322 +521,19 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             </div>
           )}
 
-          {/* Mi Psicologo */}
-          {tab === 'mi-psicologo' && !showMatchingTest && !showMatchingResults && (
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8">
-              {psych?.status === 'ASSIGNED' ? (
-                <>
-                  {/* Menor con consentimiento pendiente */}
-                  {hasPsychologist && isMinor && (loadingConsents || pendingConsents.length > 0) ? (
-                    <div className="space-y-6">
-                      {loadingConsents ? (
-                        <LoadingSpinner text="Cargando consentimiento..." />
-                      ) : (
-                        <>
-                          <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200">
-                            <h3 className="text-lg font-semibold text-amber-800 mb-2">
-                              Consentimiento requerido (menores de 18 anos)
-                            </h3>
-                            <p className="text-sm text-amber-700">
-                              Tu psicólogo te ha enviado un documento de consentimiento. Debes leerlo y firmarlo para continuar.
-                            </p>
-                          </div>
-                          {pendingConsents.map((c: any) => (
-                            <div key={c.id} className="rounded-2xl border border-slate-200 overflow-hidden">
-                              <div className="p-4 bg-slate-50 border-b border-slate-200">
-                                <span className="font-medium text-slate-800">{c.documentTitle || 'Consentimiento'}</span>
-                              </div>
-                              <div className="p-6 max-h-[400px] overflow-y-auto whitespace-pre-wrap text-sm text-slate-700">
-                                {c.renderedContent || 'Sin contenido.'}
-                              </div>
-                              <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row gap-3">
-                                <input
-                                  type="text"
-                                  value={signingConsentId === c.id ? signerNameForConsent : ''}
-                                  onChange={(e) => setSignerNameForConsent(e.target.value)}
-                                  placeholder="Nombre del firmante (ej. padre/madre/tutor o el menor)"
-                                  className="flex-1 h-12 rounded-xl border border-slate-200 px-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200"
-                                />
-                                <button
-                                  type="button"
-                                  disabled={!signerNameForConsent.trim() || signingConsentId !== null}
-                                  onClick={async () => {
-                                    if (!signerNameForConsent.trim()) return;
-                                    setSigningConsentId(c.id);
-                                    try {
-                                      await consentService.sign(c.id, signerNameForConsent.trim());
-                                      toast.success('Consentimiento firmado');
-                                      setSignerNameForConsent('');
-                                      const list = await consentService.myPending();
-                                      setPendingConsents(Array.isArray(list) ? list : []);
-                                    } catch (err: any) {
-                                      toast.error(err.response?.data?.error || 'Error al firmar');
-                                    } finally {
-                                      setSigningConsentId(null);
-                                    }
-                                  }}
-                                  className="bg-gantly-blue hover:shadow-lg hover:shadow-gantly-blue/25 text-white px-6 py-3 rounded-xl font-medium cursor-pointer transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                  {signingConsentId === c.id ? 'Firmando...' : 'Firmar consentimiento'}
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </>
-                      )}
-                    </div>
-                  ) : (
-                  <>
-                  {/* Psychologist profile hero */}
-                  <div className="rounded-2xl overflow-hidden mb-6 border border-slate-100">
-                    <div className="h-1.5 bg-gradient-to-r from-gantly-blue via-gantly-cyan to-gantly-emerald"></div>
-                    <div className="p-6 md:p-8 bg-gradient-brand">
-                      <div className="flex flex-col md:flex-row items-center gap-5">
-                        <div className="w-20 h-20 rounded-2xl overflow-hidden bg-white/20 flex items-center justify-center flex-shrink-0 ring-4 ring-white/20 shadow-lg">
-                          {psych.psychologist?.avatarUrl ? (
-                            <img
-                              src={psych.psychologist.avatarUrl}
-                              alt={psych.psychologist.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <span className="text-2xl text-white font-heading font-bold">
-                              {(psych.psychologist?.name || 'P')[0]}
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-center md:text-left flex-1">
-                          <h2 className="text-2xl font-heading font-bold text-white mb-1">
-                            {psych.psychologist?.name}
-                          </h2>
-                          <p className="text-sm font-body text-white/70 mb-3">
-                            {psych.psychologist?.email}
-                          </p>
-                          <button
-                            type="button"
-                            className="text-sm bg-white/20 backdrop-blur-sm text-white px-5 py-2.5 rounded-xl font-heading font-semibold cursor-pointer hover:bg-white/30 transition-all duration-200 border border-white/20"
-                            onClick={() =>
-                              loadPsychologistProfile(psych.psychologist.id)
-                            }
-                          >
-                            Ver perfil completo
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Past appointments — Premium */}
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-sm font-heading font-semibold text-gantly-text uppercase tracking-wide flex items-center gap-2">
-                        <span className="w-7 h-7 rounded-lg bg-gantly-blue/10 flex items-center justify-center">
-                          <History size={14} className="text-gantly-blue" />
-                        </span>
-                        Mis citas pasadas
-                      </h3>
-                      {!loadingPastAppointments && pastAppointments.length > 0 && (
-                        <span className="text-xs font-heading font-bold text-gantly-blue bg-gantly-blue/10 px-2.5 py-1 rounded-full">
-                          {pastAppointments.length} {pastAppointments.length === 1 ? 'cita' : 'citas'}
-                        </span>
-                      )}
-                    </div>
-                    {loadingPastAppointments ? (
-                      <LoadingSpinner text="Cargando citas pasadas..." />
-                    ) : pastAppointments.length === 0 ? (
-                      <div className="text-center py-10 bg-gantly-cloud/30 rounded-xl border-2 border-dashed border-slate-200">
-                        <CalendarX size={28} className="text-gantly-muted/40 mb-2 mx-auto block" />
-                        <p className="text-sm font-body text-gantly-muted">
-                          Aún no tienes citas pasadas con tu psicólogo.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {pastAppointments.map((apt: any) => {
-                          const hasRating = !!apt.rating;
-                          const comment = apt.rating?.comment || '';
-                          return (
-                            <div
-                              key={apt.id}
-                              className="bg-gantly-cloud/40 rounded-xl p-4 border border-slate-100 hover:border-gantly-blue/20 hover:shadow-sm transition-all duration-200 group"
-                            >
-                              <div className="flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 rounded-xl bg-gantly-blue/10 flex items-center justify-center flex-shrink-0 group-hover:bg-gantly-blue/15 transition-all duration-200">
-                                    <CalendarDays size={18} className="text-gantly-blue" />
-                                  </div>
-                                  <div>
-                                    <p className="text-sm font-body font-semibold text-gantly-text">
-                                      {new Date(apt.startTime).toLocaleDateString(
-                                        'es-ES',
-                                        {
-                                          weekday: 'long',
-                                          day: 'numeric',
-                                          month: 'long',
-                                          year: 'numeric',
-                                        },
-                                      )}
-                                    </p>
-                                    <p className="text-xs font-body text-gantly-muted mt-0.5 flex items-center gap-1">
-                                      <Clock size={12} />
-                                      {new Date(apt.startTime).toLocaleTimeString(
-                                        'es-ES',
-                                        { hour: '2-digit', minute: '2-digit' },
-                                      )}{' '}
-                                      -{' '}
-                                      {new Date(apt.endTime).toLocaleTimeString(
-                                        'es-ES',
-                                        { hour: '2-digit', minute: '2-digit' },
-                                      )}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="flex flex-col items-end gap-1">
-                                  <div className="flex gap-0.5">
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                      <span
-                                        key={star}
-                                        className={`text-sm ${
-                                          hasRating && star <= apt.rating.rating
-                                            ? 'text-gantly-gold'
-                                            : 'text-slate-200'
-                                        }`}
-                                      >
-                                        ★
-                                      </span>
-                                    ))}
-                                  </div>
-                                  {hasRating && comment && (
-                                    <p className="text-[11px] font-body text-gantly-muted italic max-w-[160px] truncate">
-                                      &ldquo;{comment}&rdquo;
-                                    </p>
-                                  )}
-                                  {!hasRating && (
-                                    <span className="text-[10px] font-body text-gantly-muted/60">Sin valorar</span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </>
-                  )}
-                </>
-              ) : (
-                <div className="text-center py-12">
-                  <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 bg-gradient-brand-sm">
-                    <Brain size={28} className="text-white" />
-                  </div>
-                  <h3 className="text-xl font-heading font-bold text-gantly-text mb-2">
-                    {matchingTestCompleted ? 'No se encontraron psicólogos compatibles' : 'Encuentra tu psicólogo ideal'}
-                  </h3>
-                  <p className="text-sm font-body text-gantly-muted mb-8 max-w-md mx-auto">
-                    {matchingTestCompleted
-                      ? 'En este momento no hay psicólogos disponibles que coincidan con tu perfil. Puedes intentarlo más adelante, repetir el test o usar un código de referencia.'
-                      : 'Completa el test de matching para encontrar psicólogos que se adapten a tus necesidades, o usa un código de referencia si ya tienes un psicólogo.'}
-                  </p>
-
-                  {/* Referral code form */}
-                  <div className="max-w-md mx-auto mb-8">
-                    <div className="bg-gantly-cloud/50 rounded-2xl p-6 border border-slate-100">
-                      <h4 className="text-base font-heading font-semibold text-gantly-text mb-2">
-                        ¿Tienes un código de referencia?
-                      </h4>
-                      <p className="text-sm font-body text-gantly-muted mb-4">
-                        Si un psicólogo te ha compartido un código o enlace, úsalo aquí para unirte directamente a su consulta.
-                      </p>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={referralCodeInput}
-                          onChange={(e) => setReferralCodeInput(e.target.value)}
-                          placeholder="Código de referencia (ej: juan-garcia)"
-                          className="flex-1 h-12 rounded-xl border-2 border-slate-200 px-4 focus:ring-2 focus:ring-gantly-blue/10 focus:border-gantly-blue outline-none transition-all duration-200 text-sm font-body"
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter' && referralCodeInput.trim()) {
-                              handleUseReferralCode();
-                            }
-                          }}
-                        />
-                        <button
-                          onClick={handleUseReferralCode}
-                          disabled={!referralCodeInput.trim() || usingReferralCode}
-                          className="bg-gantly-blue text-white px-5 py-3 rounded-xl font-heading font-semibold cursor-pointer hover:bg-gantly-blue/90 shadow-lg shadow-gantly-blue/20 hover:shadow-xl hover:shadow-gantly-blue/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                        >
-                          {usingReferralCode ? 'Uniendo...' : 'Usar código'}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="text-center">
-                    <p className="text-sm font-body text-gantly-muted mb-4 max-w-md mx-auto">
-                      {matchingTestCompleted
-                        ? 'Puedes repetir el test de matching o ver los resultados actuales.'
-                        : 'O completa nuestro test de matching para encontrar el profesional que mejor se adapte a tus necesidades.'}
-                    </p>
-                    <div className="flex gap-3 justify-center">
-                      <button
-                        type="button"
-                        className="bg-gantly-blue text-white px-6 py-3 rounded-xl font-heading font-semibold cursor-pointer hover:bg-gantly-blue/90 shadow-lg shadow-gantly-blue/20 hover:shadow-xl hover:shadow-gantly-blue/25 transition-all duration-200"
-                        onClick={() => setShowMatchingTest(true)}
-                      >
-                        {matchingTestCompleted ? 'Repetir test de matching' : 'Comenzar test de matching'}
-                      </button>
-                      {matchingTestCompleted && (
-                        <button
-                          type="button"
-                          className="bg-slate-100 text-slate-700 px-6 py-3 rounded-xl font-heading font-semibold cursor-pointer hover:bg-slate-200 transition-all duration-200"
-                          onClick={() => setShowMatchingResults(true)}
-                        >
-                          Ver resultados
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+          {/* My Psychologist */}
+          {tab === 'mi-psicologo' && (
+            <UserPsychologistTab
+              me={me}
+              psych={psych}
+              setPsych={setPsych}
+              hasPsychologist={hasPsychologist}
+              setTab={(t) => setTab(t as Tab)}
+              loadPsychologistProfile={loadPsychologistProfile}
+            />
           )}
 
-          {/* Test de Matching del Paciente */}
-          {tab === 'mi-psicologo' && showMatchingTest && !showMatchingResults && (
-            <div>
-              <PatientMatchingTest
-                onComplete={() => {
-                  setShowMatchingTest(false);
-                  setShowMatchingResults(true);
-                  setMatchingTestCompleted(true);
-                }}
-                onBack={() => setShowMatchingTest(false)}
-              />
-            </div>
-          )}
-
-          {/* Resultados del Matching */}
-          {tab === 'mi-psicologo' && showMatchingResults && (
-            <div>
-              <MatchingPsychologists
-                onSelect={async () => {
-                  setShowMatchingResults(false);
-                  try {
-                    const psychData = await profileService.myPsychologist();
-                    setPsych(psychData);
-                  } catch (e) {
-                    window.location.reload();
-                  }
-                }}
-                onBack={() => {
-                  setShowMatchingResults(false);
-                }}
-              />
-            </div>
-          )}
-
-          {/* Perfil completo del psicologo */}
+          {/* Psychologist full profile */}
           {tab === 'perfil-psicologo' && psychologistProfile && (
             <UserPsychProfileTab
               psychologistProfile={psychologistProfile}
@@ -1337,585 +542,37 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             />
           )}
 
+          {/* Tasks */}
           {tab === 'tareas' && hasPsychologist && (
             <UserTasksTab tasks={tasks} onRefresh={loadData} />
           )}
 
+          {/* Assigned Tests */}
           {tab === 'tests-pendientes' && hasPsychologist && (
-            <div>
-              {/* Header with summary */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gantly-gold/10 flex items-center justify-center">
-                    <ClipboardList size={20} className="text-gantly-gold" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-heading font-bold text-gantly-text">Tests asignados</h2>
-                    {assignedTests.length > 0 && (
-                      <p className="text-sm font-body text-gantly-muted mt-0.5">
-                        {assignedTests.filter((t: any) => !t.completedAt).length} pendientes · {assignedTests.filter((t: any) => t.completedAt).length} completados
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {assignedTests.length === 0 ? (
-                <EmptyState
-                  icon={<ClipboardList className="w-12 h-12 text-gantly-blue/40" />}
-                  title="No hay tests pendientes"
-                  description="Tu psicólogo te asignará tests aquí. Mientras tanto, puedes explorar las evaluaciones clínicas disponibles."
-                  action={
-                    <button
-                      type="button"
-                      onClick={() => setTab('evaluaciones')}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gantly-blue text-white font-heading font-semibold text-sm cursor-pointer transition-all duration-200 hover:bg-gantly-blue/90 shadow-lg shadow-gantly-blue/20"
-                    >
-                      <Compass size={16} />
-                      Explorar evaluaciones
-                    </button>
-                  }
-                />
-              ) : (
-                <div className="space-y-3">
-                  {/* Pending tests first */}
-                  {assignedTests.filter((t: any) => !t.completedAt).length > 0 && (
-                    <div className="mb-6">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-1.5 h-5 rounded-full bg-gantly-gold" />
-                        <span className="text-xs font-body font-semibold text-gantly-muted uppercase tracking-widest">Pendientes</span>
-                      </div>
-                      <div className="space-y-3">
-                        {assignedTests.filter((t: any) => !t.completedAt).map((at: any) => (
-                          <div
-                            key={at.id}
-                            className="group bg-white rounded-2xl p-5 shadow-sm border border-slate-100 border-l-[3px] border-l-gantly-gold hover:shadow-lg hover:shadow-gantly-blue/10 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
-                            onClick={async () => {
-                              if (at.testId || at.test?.id) {
-                                const testId = at.testId || at.test?.id;
-                                try {
-                                  if (onStartTest) {
-                                    onStartTest(testId);
-                                  }
-                                } catch (error) {
-                                  toast.error('Error al iniciar el test. Por favor intenta de nuevo.');
-                                }
-                              }
-                            }}
-                          >
-                            <div className="flex items-center justify-between gap-4">
-                              <div className="flex items-center gap-4 flex-1 min-w-0">
-                                <div className="w-11 h-11 rounded-xl bg-gantly-gold/10 flex items-center justify-center flex-shrink-0 group-hover:bg-gantly-gold/20 transition-colors duration-300">
-                                  <HelpCircle size={18} className="text-gantly-gold" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-base font-heading font-semibold text-gantly-text group-hover:text-gantly-blue transition-colors truncate">
-                                    {at.testTitle || at.test?.title || 'Test'}
-                                  </p>
-                                  {at.assignedAt && (
-                                    <p className="text-xs font-body text-gantly-muted mt-0.5">
-                                      Asignado el {new Date(at.assignedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2 flex-shrink-0">
-                                <span className="text-xs font-heading font-semibold bg-gantly-gold/10 text-gantly-gold px-2.5 py-1 rounded-full">Pendiente</span>
-                                <span className="bg-gantly-blue text-white px-4 py-2 rounded-xl font-heading font-semibold text-sm hover:shadow-lg hover:shadow-gantly-blue/25 transition-all duration-300 flex items-center gap-1.5">
-                                  Comenzar
-                                  <ArrowRight size={14} />
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Completed tests */}
-                  {assignedTests.filter((t: any) => t.completedAt).length > 0 && (
-                    <div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-1.5 h-5 rounded-full bg-gantly-emerald" />
-                        <span className="text-xs font-body font-semibold text-gantly-muted uppercase tracking-widest">Completados</span>
-                      </div>
-                      <div className="space-y-2">
-                        {assignedTests.filter((t: any) => t.completedAt).map((at: any) => {
-                          const isExpanded = expandedTestId === at.id;
-                          const result = testResults[at.id];
-                          return (
-                            <div
-                              key={at.id}
-                              className="bg-white rounded-2xl shadow-sm border border-slate-100 border-l-[3px] border-l-gantly-emerald transition-all duration-300"
-                            >
-                              <div
-                                className="p-5 flex items-center justify-between gap-4 cursor-pointer hover:bg-slate-50/50 transition-colors rounded-t-2xl"
-                                onClick={async () => {
-                                  if (isExpanded) {
-                                    setExpandedTestId(null);
-                                    return;
-                                  }
-                                  setExpandedTestId(at.id);
-                                  if (!testResults[at.id]) {
-                                    setLoadingTestResult(true);
-                                    try {
-                                      const res = await resultsService.getMyResults();
-                                      // Find result matching this test
-                                      const matchingResult = Array.isArray(res)
-                                        ? res.find((r: any) => r.testId === (at.testId || at.test?.id))
-                                        : null;
-                                      setTestResults(prev => ({ ...prev, [at.id]: matchingResult || null }));
-                                    } catch {
-                                      setTestResults(prev => ({ ...prev, [at.id]: null }));
-                                    } finally {
-                                      setLoadingTestResult(false);
-                                    }
-                                  }
-                                }}
-                              >
-                                <div className="flex items-center gap-4 flex-1 min-w-0">
-                                  <div className="w-11 h-11 rounded-xl bg-gantly-emerald/10 flex items-center justify-center flex-shrink-0">
-                                    <CheckSquare size={18} className="text-gantly-emerald" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-base font-heading font-semibold text-gantly-text truncate">
-                                      {at.testTitle || at.test?.title || 'Test'}
-                                    </p>
-                                    {at.completedAt && (
-                                      <p className="text-xs font-body text-gantly-muted mt-0.5">
-                                        Completado el {new Date(at.completedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2 flex-shrink-0">
-                                  <span className="text-xs font-heading font-semibold bg-gantly-emerald/10 text-gantly-emerald px-2.5 py-1 rounded-full">Completado</span>
-                                  <ChevronRight size={16} className={`text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
-                                </div>
-                              </div>
-                              {/* Expanded results */}
-                              {isExpanded && (
-                                <div className="px-5 pb-5 border-t border-slate-100">
-                                  {loadingTestResult && !result ? (
-                                    <div className="py-6 flex justify-center">
-                                      <div className="w-6 h-6 border-2 border-slate-200 border-t-gantly-blue rounded-full animate-spin" />
-                                    </div>
-                                  ) : result && result.subfactorResults ? (
-                                    <div className="pt-4 space-y-3">
-                                      <p className="text-sm font-heading font-semibold text-gantly-text">Resultados por subfactor</p>
-                                      {result.subfactorResults.map((sf: any, idx: number) => (
-                                        <div key={idx}>
-                                          <div className="flex items-center justify-between mb-1">
-                                            <span className="text-xs font-body text-gantly-muted">{sf.subfactorName || sf.code}</span>
-                                            <span className="text-xs font-heading font-semibold text-gantly-text">{sf.percentage != null ? `${Math.round(sf.percentage)}%` : `${sf.score}`}</span>
-                                          </div>
-                                          <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                                            <div
-                                              className="h-full rounded-full bg-gradient-to-r from-gantly-blue to-gantly-cyan transition-all duration-500"
-                                              style={{ width: `${sf.percentage != null ? Math.min(sf.percentage, 100) : Math.min((sf.score / (sf.maxScore || 1)) * 100, 100)}%` }}
-                                            />
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <p className="py-4 text-sm text-gantly-muted text-center">
-                                      Los resultados detallados no están disponibles. Consulta con tu psicólogo.
-                                    </p>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            <UserTestsTab
+              me={me}
+              assignedTests={assignedTests}
+              onStartTest={onStartTest}
+              setTab={(t) => setTab(t as Tab)}
+            />
           )}
 
+          {/* Calendar */}
           {tab === 'calendario' && hasPsychologist && (
-            <div>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-gantly-blue/10 flex items-center justify-center">
-                  <CalendarDays size={20} className="text-gantly-blue" />
-                </div>
-                <h2 className="text-2xl font-heading font-bold text-gantly-text">Calendario</h2>
-              </div>
-              {loadingSlots ? (
-                <LoadingSpinner text="Cargando calendario..." />
-              ) : (
-                <CalendarWeek
-                  mode="USER"
-                  slots={slots}
-                  myAppointments={myAppointments}
-                  onBook={async (id) => {
-                    try {
-                      const result = await calendarService.book(id);
-                      if ((result as any).error) {
-                        toast.error((result as any).error);
-                        return;
-                      }
-                      await loadAvailability();
-                      toast.success(
-                        'Cita reservada exitosamente. Espera la confirmación del psicólogo.',
-                      );
-                    } catch (e: any) {
-                      const errorMsg =
-                        e.response?.data?.error || 'Error al reservar la cita';
-                      toast.error(errorMsg);
-                    }
-                  }}
-                />
-              )}
-
-              {!loadingSlots && myAppointments.length > 0 && (
-                <div className="mt-8 border-t border-slate-100 pt-6" data-section="mis-citas">
-                  <h3 className="text-sm font-heading font-semibold text-gantly-text uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <div className="w-1.5 h-5 rounded-full bg-gantly-blue" />
-                    Mis citas
-                  </h3>
-
-                  <div className="space-y-3">
-                    {myAppointments.map((apt) => {
-                      const status = apt.status as string | undefined;
-                      const isBooked = status === 'BOOKED';
-                      const isConfirmed = status === 'CONFIRMED';
-                      const isPaid = apt.paymentStatus === 'PAID';
-                      const isPending = status === 'REQUESTED';
-                      const isCancelled =
-                        status === 'CANCELLED' || status === 'CANCELED';
-
-                      const statusLabel = isBooked || isPaid
-                        ? 'Pagada'
-                        : isConfirmed
-                        ? 'Pago pendiente'
-                        : isPending
-                        ? 'Por confirmar'
-                        : isCancelled
-                        ? 'Cancelada'
-                        : status || 'Programada';
-
-                      const statusClasses = isBooked || isPaid
-                        ? 'bg-gantly-emerald/10 text-gantly-emerald'
-                        : isConfirmed
-                        ? 'bg-gantly-gold/10 text-gantly-gold'
-                        : isPending
-                        ? 'bg-slate-100 text-slate-600'
-                        : isCancelled
-                        ? 'bg-slate-100 text-slate-500'
-                        : 'bg-gantly-blue/10 text-gantly-blue';
-
-                      return (
-                        <div
-                          key={apt.id}
-                          className="p-4 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-4 hover:shadow-sm transition-all duration-200"
-                        >
-                          <div>
-                            <p className="text-sm font-medium text-slate-800">
-                              {new Date(apt.startTime).toLocaleDateString('es-ES', {
-                                weekday: 'short',
-                                day: '2-digit',
-                                month: 'short',
-                              })}
-                              {' - '}
-                              {new Date(apt.startTime).toLocaleTimeString('es-ES', {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                              {' - '}
-                              {apt.endTime &&
-                                new Date(apt.endTime).toLocaleTimeString('es-ES', {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })}
-                            </p>
-                            <p className="text-xs text-slate-500 mt-0.5">
-                              {apt.psychologist?.name || 'Terapia online'}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {isConfirmed && apt.paymentStatus === 'PENDING' && (
-                              <button
-                                className="text-xs px-4 py-2 rounded-xl font-medium bg-gantly-blue text-white hover:shadow-lg hover:shadow-gantly-blue/25 cursor-pointer transition-all duration-300"
-                                onClick={async (e) => {
-                                  e.stopPropagation();
-                                  try {
-                                    const { url } = await stripeService.createAppointmentCheckout(apt.id);
-                                    window.location.href = url;
-                                  } catch (err: any) {
-                                    alert(err.response?.data?.error || 'Error al iniciar el pago');
-                                  }
-                                }}
-                              >
-                                Pagar {apt.price ? `${apt.price}\u20AC` : ''}
-                              </button>
-                            )}
-                            <span
-                              className={`text-xs px-3 py-1 rounded-full font-semibold ${statusClasses}`}
-                            >
-                              {statusLabel}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="mt-6 pt-4 border-t border-slate-100">
-                    <button
-                      type="button"
-                      className="text-sm text-gantly-blue hover:text-gantly-blue/80 font-heading font-semibold cursor-pointer transition-colors duration-200"
-                      onClick={() => {
-                        setTab('mis-citas');
-                      }}
-                    >
-                      Ver historial completo
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {!loadingSlots && slots.length === 0 && myAppointments.length === 0 && (
-                <EmptyState
-                  icon={<CalendarDays className="w-12 h-12 text-gantly-blue/40" />}
-                  title="Sin disponibilidad"
-                  description="Tu psicólogo aún no ha publicado horarios disponibles. Contacta por chat para coordinar tu primera cita."
-                  action={hasPsychologist ? (
-                    <button
-                      type="button"
-                      onClick={() => setTab('chat')}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gantly-blue text-white font-heading font-semibold text-sm cursor-pointer transition-all duration-200 hover:bg-gantly-blue/90 shadow-lg shadow-gantly-blue/20"
-                    >
-                      <MessageCircle size={16} />
-                      Ir al chat
-                    </button>
-                  ) : undefined}
-                />
-              )}
-            </div>
+            <UserCalendarTab
+              hasPsychologist={hasPsychologist}
+              setTab={(t) => setTab(t as Tab)}
+            />
           )}
 
-          {/* Historial completo de citas */}
+          {/* Appointment history */}
           {tab === 'mis-citas' && hasPsychologist && (
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8">
-              <h2 className="text-2xl font-bold text-slate-800 mb-6">
-                Historial de citas
-              </h2>
-
-              {loadingPastAppointments ? (
-                <LoadingSpinner text="Cargando historial de citas..." />
-              ) : pastAppointments.length === 0 ? (
-                <EmptyState
-                  icon={<History className="w-12 h-12 text-slate-300" />}
-                  title="Sin historial de citas"
-                  description="Cuando tengas citas completadas, aparecerán aquí con opción de valorar."
-                  action={
-                    <button
-                      type="button"
-                      onClick={() => setTab('calendario')}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gantly-blue text-white font-heading font-semibold text-sm cursor-pointer transition-all duration-200 hover:bg-gantly-blue/90 shadow-lg shadow-gantly-blue/20"
-                    >
-                      <CalendarDays size={16} />
-                      Ver calendario
-                    </button>
-                  }
-                />
-              ) : (
-                <div className="space-y-3">
-                  {pastAppointments
-                    .slice()
-                    .sort(
-                      (a, b) =>
-                        new Date(b.startTime).getTime() -
-                        new Date(a.startTime).getTime(),
-                    )
-                    .map((apt) => {
-                      const status = apt.status as string | undefined;
-                      const isBooked = status === 'BOOKED';
-                      const isConfirmed = status === 'CONFIRMED';
-                      const isPaid = apt.paymentStatus === 'PAID';
-                      const isPending = status === 'REQUESTED';
-                      const isCancelled =
-                        status === 'CANCELLED' || status === 'CANCELED';
-
-                      const statusLabel = isBooked || isPaid
-                        ? 'Pagada'
-                        : isConfirmed
-                        ? 'Pago pendiente'
-                        : isPending
-                        ? 'Por confirmar'
-                        : isCancelled
-                        ? 'Cancelada'
-                        : status || 'Programada';
-
-                      const statusClasses = isBooked || isPaid
-                        ? 'bg-gantly-emerald/10 text-gantly-emerald'
-                        : isConfirmed
-                        ? 'bg-gantly-gold/10 text-gantly-gold'
-                        : isPending
-                        ? 'bg-slate-100 text-slate-600'
-                        : isCancelled
-                        ? 'bg-slate-100 text-slate-500'
-                        : 'bg-gantly-blue/10 text-gantly-blue';
-
-                      return (
-                        <div
-                          key={apt.id}
-                          className="p-4 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-4"
-                        >
-                          <div>
-                            <p className="text-sm font-medium text-slate-800">
-                              {new Date(apt.startTime).toLocaleDateString('es-ES', {
-                                weekday: 'short',
-                                day: '2-digit',
-                                month: 'short',
-                                year: 'numeric',
-                              })}
-                              {' - '}
-                              {new Date(apt.startTime).toLocaleTimeString('es-ES', {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                              {' - '}
-                              {apt.endTime &&
-                                new Date(apt.endTime).toLocaleTimeString('es-ES', {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })}
-                            </p>
-                            <p className="text-xs text-slate-500 mt-0.5">
-                              {apt.psychologist?.name || 'Terapia online'}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`text-xs px-3 py-1 rounded-full font-semibold ${statusClasses}`}
-                            >
-                              {statusLabel}
-                            </span>
-                            {/* Cancel button for upcoming, non-cancelled appointments */}
-                            {!isCancelled && new Date(apt.startTime) > new Date() && (
-                              <button
-                                onClick={async () => {
-                                  if (!confirm('¿Seguro que quieres cancelar esta cita?')) return;
-                                  try {
-                                    await calendarService.cancelAppointment(apt.id);
-                                    toast.success('Cita cancelada correctamente');
-                                    const updated = await calendarService.getPastAppointments();
-                                    setPastAppointments(updated);
-                                    const appointments = await calendarService.myAppointments();
-                                    setMyAppointments(appointments);
-                                  } catch (err: any) {
-                                    toast.error(err.response?.data?.error || 'Error al cancelar la cita');
-                                  }
-                                }}
-                                className="text-xs px-3 py-1 rounded-full font-medium bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors cursor-pointer"
-                              >
-                                Cancelar
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-              )}
-            </div>
+            <UserAppointmentsTab setTab={(t) => setTab(t as Tab)} />
           )}
 
-          {/* Mensajes Clinica */}
+          {/* Clinic chat */}
           {tab === 'mensajes-clinica' && hasClinic && (
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-              {/* Header with gradient accent */}
-              <div className="h-1 bg-gradient-to-r from-gantly-blue to-gantly-cyan" />
-              <div className="px-6 md:px-8 pt-6 pb-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gantly-blue/10 to-gantly-cyan/10 flex items-center justify-center">
-                  <Building2 size={20} className="text-gantly-blue" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-heading font-bold text-gantly-text">
-                    Mensajes de tu clinica
-                  </h2>
-                  <p className="text-xs text-slate-500 font-body">Chat directo con tu clinica</p>
-                </div>
-              </div>
-
-              <div className="px-6 md:px-8 pb-6">
-                {clinicChatLoading ? (
-                  <div className="flex justify-center py-12">
-                    <div className="w-8 h-8 border-[3px] border-slate-200 border-t-gantly-blue rounded-full animate-spin" />
-                  </div>
-                ) : (
-                  <>
-                    {/* Messages list */}
-                    <div className="space-y-3 max-h-[500px] overflow-y-auto mb-6 pr-2">
-                      {clinicChatMessages.length === 0 ? (
-                        <div className="text-center py-12">
-                          <MessageCircle size={32} className="text-slate-200 mb-3 mx-auto block" />
-                          <p className="text-slate-500 text-sm font-body">
-                            No hay mensajes todavia. Escribe el primer mensaje a tu clinica.
-                          </p>
-                        </div>
-                      ) : (
-                        clinicChatMessages.map((msg) => (
-                          <div
-                            key={msg.id}
-                            className={`flex ${msg.sender === 'PATIENT' ? 'justify-end' : 'justify-start'}`}
-                          >
-                            <div
-                              className={`max-w-[75%] px-4 py-3 ${
-                                msg.sender === 'PATIENT'
-                                  ? 'bg-gradient-to-r from-gantly-blue to-gantly-blue/90 text-white rounded-2xl rounded-br-sm shadow-sm'
-                                  : 'bg-slate-50 text-gantly-text rounded-2xl rounded-bl-sm border border-slate-100'
-                              }`}
-                            >
-                              <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
-                              <p className={`text-[10px] mt-1.5 text-right ${msg.sender === 'PATIENT' ? 'text-white/60' : 'text-slate-500'}`}>
-                                {new Date(msg.createdAt).toLocaleString('es-ES', {
-                                  day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
-                                })}
-                              </p>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-
-                    {/* Input */}
-                    <div className="flex gap-3 items-end">
-                      <textarea
-                        value={clinicChatInput}
-                        onChange={(e) => setClinicChatInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSendClinicChat();
-                          }
-                        }}
-                        placeholder="Escribe un mensaje..."
-                        rows={2}
-                        className="flex-1 px-4 py-3 rounded-xl border-2 border-slate-200 text-gantly-text placeholder-slate-400 focus:ring-2 focus:ring-gantly-blue/10 focus:border-gantly-blue outline-none transition-all duration-200 resize-none font-body text-sm"
-                      />
-                      <button
-                        onClick={handleSendClinicChat}
-                        disabled={!clinicChatInput.trim() || clinicChatSending}
-                        className="px-5 py-3 bg-gradient-to-r from-gantly-blue to-gantly-cyan text-white rounded-xl font-heading font-bold shadow-md hover:shadow-lg hover:shadow-gantly-blue/25 cursor-pointer transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed border-none"
-                      >
-                        {clinicChatSending ? (
-                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        ) : (
-                          <Send size={18} />
-                        )}
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
+            <UserClinicChatTab hasClinic={hasClinic} />
           )}
         </main>
       </div>
@@ -1926,7 +583,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
           userName={me.name || 'Usuario'}
           onComplete={() => setShowOnboarding(false)}
           onGoToProfile={() => { setShowOnboarding(false); setTab('configuracion'); }}
-          onGoToMatching={() => { setShowOnboarding(false); setTab('mi-psicologo'); setShowMatchingTest(true); }}
+          onGoToMatching={() => { setShowOnboarding(false); setTab('mi-psicologo'); }}
         />
       )}
 
@@ -1945,6 +602,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
           }}
         />
       )}
+
     </div>
   );
 }

@@ -32,6 +32,7 @@ const ResetPassword = lazy(() => import('./components/ResetPassword'));
 const PrivacyPolicy = lazy(() => import('./components/legal/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./components/legal/TermsOfService'));
 const PricingPage = lazy(() => import('./components/PricingPage'));
+const TestResultsView = lazy(() => import('./components/TestResultsView'));
 
 const LazyFallback = () => (
   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -305,7 +306,7 @@ function App() {
   const handleLogin = () => {
     login();
     setInitialTestSessionId(null);
-    navigate('/dashboard');
+    navigate('/dashboard', { replace: true });
   };
 
   const handleStartTest = (testId: number) => {
@@ -430,6 +431,11 @@ function App() {
         } />
 
         {/* Authenticated routes */}
+        <Route path="/test-results" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <Suspense fallback={<LazyFallback />}><TestResultsView /></Suspense>
+          </ProtectedRoute>
+        } />
         <Route path="/dashboard/test/:testId" element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <TestPage onBack={() => {}} />
@@ -504,12 +510,20 @@ function RegisterRoute({ initialTestSessionId, onRegister }: { initialTestSessio
 function AppWithErrorBoundary() {
   return (
     <Sentry.ErrorBoundary fallback={
-      <div style={{ padding: '40px', textAlign: 'center', fontFamily: "'Inter', sans-serif" }}>
-        <h2 style={{ color: '#dc2626', marginBottom: '16px' }}>Ha ocurrido un error inesperado</h2>
-        <p style={{ color: '#6b7280', marginBottom: '24px' }}>Lo sentimos, algo salió mal. Por favor, recarga la página.</p>
-        <button onClick={() => window.location.reload()} style={{ background: '#5a9270', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '8px', cursor: 'pointer', fontSize: '16px' }}>
-          Recargar página
-        </button>
+      <div className="min-h-screen flex items-center justify-center bg-gantly-cloud px-6">
+        <div className="text-center max-w-md">
+          <img src={LogoSvg} alt="Gantly" className="h-8 mx-auto mb-8 opacity-40" />
+          <h2 className="font-heading text-2xl font-bold text-slate-800 mb-3">Ha ocurrido un error inesperado</h2>
+          <p className="font-body text-slate-500 mb-8">Lo sentimos, algo salio mal. Por favor, recarga la pagina o vuelve al inicio.</p>
+          <div className="flex items-center justify-center gap-3">
+            <button onClick={() => window.location.reload()} className="px-6 py-2.5 rounded-xl bg-gantly-blue text-white font-heading font-semibold text-sm cursor-pointer hover:bg-gantly-blue/90 transition-colors">
+              Recargar pagina
+            </button>
+            <button onClick={() => { window.location.href = '/'; }} className="px-6 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-heading font-semibold text-sm cursor-pointer hover:bg-slate-50 transition-colors">
+              Ir al inicio
+            </button>
+          </div>
+        </div>
       </div>
     }>
       <App />

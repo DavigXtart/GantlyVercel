@@ -13,12 +13,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class AssignedTestService {
+    private static final Logger log = LoggerFactory.getLogger(AssignedTestService.class);
     private final AssignedTestRepository assignedTestRepository;
     private final UserRepository userRepository;
     private final TestRepository testRepository;
@@ -34,9 +38,9 @@ public class AssignedTestService {
         if (user == null) return Collections.emptyList();
         List<AssignedTestEntity> assignedTests;
         if (RoleConstants.PSYCHOLOGIST.equals(user.getRole())) {
-            assignedTests = assignedTestRepository.findByPsychologist_IdOrderByAssignedAtDesc(user.getId());
+            assignedTests = assignedTestRepository.findByPsychologistIdWithRelations(user.getId());
         } else {
-            assignedTests = assignedTestRepository.findByUser_IdOrderByAssignedAtDesc(user.getId());
+            assignedTests = assignedTestRepository.findByUserIdWithRelations(user.getId());
         }
         if (assignedTests == null || assignedTests.isEmpty()) return Collections.emptyList();
         return assignedTests.stream().map(this::toDto).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
@@ -110,6 +114,7 @@ public class AssignedTestService {
                     at.getCompletedAt() != null ? at.getCompletedAt().toString() : null
             ));
         } catch (Exception e) {
+            log.error("Error mapping AssignedTestEntity id={} to DTO: {}", at.getId(), e.getMessage(), e);
             return Optional.empty();
         }
     }

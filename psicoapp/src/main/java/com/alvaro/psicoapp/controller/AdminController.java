@@ -13,10 +13,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -210,10 +216,36 @@ public class AdminController {
 
     @GetMapping("/users")
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
-    @Operation(summary = "Listar usuarios", description = "Obtiene la lista de todos los usuarios del sistema")
+    @Operation(summary = "Listar usuarios", description = "Obtiene la lista de usuarios del sistema con paginación opcional. " +
+            "Si no se envían parámetros page/size, devuelve todos los resultados (backwards compatible).")
     @ApiResponse(responseCode = "200", description = "Lista de usuarios obtenida exitosamente")
-    public List<AdminDtos.UserListDto> listUsers() {
-        return adminService.listUsers();
+    public ResponseEntity<?> listUsers(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false, defaultValue = "id") String sortBy,
+            @RequestParam(required = false, defaultValue = "asc") String sortDir) {
+        if (page == null && size == null && search == null && role == null) {
+            // Backwards compatible: return plain list when no pagination params
+            return ResponseEntity.ok(adminService.listUsers());
+        }
+        int pageNum = page != null ? page : 0;
+        int pageSize = size != null ? size : 10000;
+        Sort sort = "desc".equalsIgnoreCase(sortDir)
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+        Pageable pageable = PageRequest.of(pageNum, pageSize, sort);
+        Page<AdminDtos.UserListDto> result = adminService.listUsersPaged(search, role, pageable);
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", result.getContent());
+        response.put("totalElements", result.getTotalElements());
+        response.put("totalPages", result.getTotalPages());
+        response.put("currentPage", result.getNumber());
+        response.put("pageSize", result.getSize());
+        response.put("first", result.isFirst());
+        response.put("last", result.isLast());
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/users/{userId}")

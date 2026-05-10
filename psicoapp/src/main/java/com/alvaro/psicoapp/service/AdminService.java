@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.io.File;
 import java.time.Instant;
 import java.util.*;
@@ -344,19 +347,27 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public List<AdminDtos.UserListDto> listUsers() {
-        return userRepository.findAll().stream().map(user -> {
-            List<UserAnswerEntity> answers = userAnswerRepository.findByUser(user);
-            Set<Long> testIds = answers.stream()
-                    .map(ua -> ua.getQuestion().getTest().getId())
-                    .collect(Collectors.toSet());
-            var rel = userPsychologistRepository.findByUserId(user.getId());
-            Long psychId = rel.map(r -> r.getPsychologist().getId()).orElse(null);
-            String psychName = rel.map(r -> r.getPsychologist().getName()).orElse(null);
-            return new AdminDtos.UserListDto(
-                    user.getId(), user.getName(), user.getEmail(), user.getRole(), user.getCreatedAt(),
-                    testIds.size(), psychId, psychName
-            );
-        }).collect(Collectors.toList());
+        return userRepository.findAll().stream().map(this::toUserListDto).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AdminDtos.UserListDto> listUsersPaged(String search, String role, Pageable pageable) {
+        Page<UserEntity> usersPage = userRepository.findAllWithFilters(search, role, pageable);
+        return usersPage.map(this::toUserListDto);
+    }
+
+    private AdminDtos.UserListDto toUserListDto(UserEntity user) {
+        List<UserAnswerEntity> answers = userAnswerRepository.findByUser(user);
+        Set<Long> testIds = answers.stream()
+                .map(ua -> ua.getQuestion().getTest().getId())
+                .collect(Collectors.toSet());
+        var rel = userPsychologistRepository.findByUserId(user.getId());
+        Long psychId = rel.map(r -> r.getPsychologist().getId()).orElse(null);
+        String psychName = rel.map(r -> r.getPsychologist().getName()).orElse(null);
+        return new AdminDtos.UserListDto(
+                user.getId(), user.getName(), user.getEmail(), user.getRole(), user.getCreatedAt(),
+                testIds.size(), psychId, psychName
+        );
     }
 
     @Transactional(readOnly = true)

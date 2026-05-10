@@ -2,6 +2,8 @@ package com.alvaro.psicoapp.repository;
 
 import com.alvaro.psicoapp.domain.AppointmentEntity;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -68,4 +70,14 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM AppointmentEntity a WHERE a.id = :id")
     Optional<AppointmentEntity> findByIdForUpdate(@Param("id") Long id);
+
+    @Query("SELECT a FROM AppointmentEntity a WHERE a.psychologist.id = :psychologistId " +
+           "AND a.user IS NOT NULL " +
+           "AND (a.status = 'CONFIRMED' OR a.status = 'BOOKED') " +
+           "AND a.startTime BETWEEN :fromTime AND :toTime")
+    Page<AppointmentEntity> findBillingAppointments(
+        @Param("psychologistId") Long psychologistId,
+        @Param("fromTime") Instant fromTime,
+        @Param("toTime") Instant toTime,
+        Pageable pageable);
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { clinicService } from '../services/api';
 import ClinicAgenda from './ClinicAgenda';
 import ClinicPatients from './ClinicPatients';
@@ -952,6 +953,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
 // Main dashboard
 // ---------------------------------------------------------------------------
 export default function ClinicDashboard() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<NavTab>('inicio');
   const [clinicInfo, setClinicInfo] = useState<ClinicInfo | null>(null);
   const [psychologists, setPsychologists] = useState<Psychologist[]>([]);
@@ -1013,7 +1015,7 @@ export default function ClinicDashboard() {
       <aside className={`w-64 bg-gradient-to-b from-gantly-navy to-[#0d1f3c] flex-shrink-0 fixed inset-y-0 left-0 z-[60] flex flex-col transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Logo + close on mobile */}
         <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between">
-          <img src={LogoSvg} alt="Gantly" className="h-7 brightness-0 invert" />
+          <img src={LogoSvg} alt="Gantly" className="h-7 brightness-0 invert cursor-pointer" onClick={() => navigate('/')} />
           <button
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors cursor-pointer"

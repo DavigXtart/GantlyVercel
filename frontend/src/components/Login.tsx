@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { authService, companyAuthService, twoFactorService } from '../services/api';
 import FormField from './ui/FormField';
 import { toast } from './ui/Toast';
+import LogoSvg from '../assets/logo-gantly.svg';
 
 interface LoginProps {
   onLogin: () => void;
@@ -27,6 +29,7 @@ export default function Login({
   onSwitchToCompanyLogin,
   onSwitchToUserLogin,
 }: LoginProps) {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   // En modo empresa forzado, siempre usamos login de empresa; en modo usuario se puede cambiar internamente
@@ -58,7 +61,7 @@ export default function Login({
 
   const validatePassword = (password: string): string | undefined => {
     if (!password) return 'La contraseña es obligatoria';
-    if (password.length < 6) return 'La contraseña debe tener al menos 6 caracteres';
+    if (password.length < 8) return 'La contraseña debe tener al menos 8 caracteres';
     return undefined;
   };
 
@@ -260,9 +263,12 @@ export default function Login({
       <div className="w-full max-w-[1000px] grid grid-cols-1 md:grid-cols-[minmax(300px,1fr)_minmax(320px,1fr)] gap-12 relative z-[1]">
         {/* Panel izquierdo - Información */}
         <div className="bg-white/90 border border-gantly-blue-100 rounded-2xl p-12 flex flex-col gap-6 shadow-card">
-          <div className="font-heading text-[32px] font-bold text-gantly-blue-500 tracking-tight mb-2">
-            Gantly
-          </div>
+          <img
+            src={LogoSvg}
+            alt="Gantly"
+            className="h-8 cursor-pointer mb-2"
+            onClick={() => navigate('/')}
+          />
           <h1 className="m-0 text-4xl leading-tight text-gantly-text font-heading font-bold">
             {isCompanyMode ? 'Acceso empresas' : 'Bienvenido de nuevo'}
           </h1>
