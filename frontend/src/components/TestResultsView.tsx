@@ -30,14 +30,41 @@ interface RadarItem {
   value: number; // 0-100
 }
 
-function RadarChart({ items, size = 300 }: { items: RadarItem[]; size?: number }) {
+function smartLabel(label: string, maxLen: number): string {
+  if (label.length <= maxLen) return label;
+  // Strip common prefixes that don't add info
+  const stripped = label
+    .replace(/^Competencias\s+de\s+/i, '')
+    .replace(/^Competencias\s+/i, '');
+  if (stripped.length <= maxLen) return stripped.charAt(0).toUpperCase() + stripped.slice(1);
+  return stripped.charAt(0).toUpperCase() + stripped.slice(1, maxLen - 1) + '…';
+}
+
+function wrapLabel(text: string, maxChars: number): string[] {
+  if (text.length <= maxChars) return [text];
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let current = '';
+  for (const word of words) {
+    if (current && (current + ' ' + word).length > maxChars) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = current ? current + ' ' + word : word;
+    }
+  }
+  if (current) lines.push(current);
+  return lines.slice(0, 2); // max 2 lines
+}
+
+function RadarChart({ items, size = 400 }: { items: RadarItem[]; size?: number }) {
   const n = items.length;
   if (n < 3) return null;
 
   const cx = size / 2;
   const cy = size / 2;
-  const r = size * 0.36;
-  const labelR = r + 24;
+  const r = size * 0.30;
+  const labelR = r + 32;
   const rings = [20, 40, 60, 80, 100];
 
   const angleStep = (2 * Math.PI) / n;
@@ -66,12 +93,14 @@ function RadarChart({ items, size = 300 }: { items: RadarItem[]; size?: number }
     let textAnchor: 'start' | 'middle' | 'end' = 'middle';
     if (Math.cos(angle) > 0.3) textAnchor = 'start';
     else if (Math.cos(angle) < -0.3) textAnchor = 'end';
-    return { ...pos, textAnchor, label: item.label };
+    const cleaned = smartLabel(item.label, 22);
+    const lines = wrapLabel(cleaned, 16);
+    return { ...pos, textAnchor, lines };
   });
 
   return (
     <div className="flex justify-center" aria-label={`Gráfico radar con ${n} dimensiones`}>
-      <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[320px]">
+      <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[400px]">
         {/* Rings */}
         {ringPaths.map((d, i) => (
           <path key={i} d={d} fill="none" stroke="#e2e8f0" strokeWidth={i === rings.length - 1 ? 1.5 : 0.8} />
@@ -113,7 +142,7 @@ function RadarChart({ items, size = 300 }: { items: RadarItem[]; size?: number }
           />
         ))}
 
-        {/* Labels */}
+        {/* Labels (multi-line with smart truncation) */}
         {labelPositions.map((lp, i) => (
           <text
             key={i}
@@ -123,7 +152,15 @@ function RadarChart({ items, size = 300 }: { items: RadarItem[]; size?: number }
             dominantBaseline="central"
             className="fill-slate-600 text-[10px] font-body"
           >
-            {lp.label.length > 14 ? lp.label.slice(0, 12) + '...' : lp.label}
+            {lp.lines.map((line, li) => (
+              <tspan
+                key={li}
+                x={lp.x}
+                dy={li === 0 ? `${-(lp.lines.length - 1) * 6}px` : '12px'}
+              >
+                {line}
+              </tspan>
+            ))}
           </text>
         ))}
       </svg>
@@ -155,7 +192,7 @@ function ScoreCard({ item, index, isSelected, onClick }: ScoreCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04, duration: 0.3 }}
       className={`
-        relative p-4 rounded-xl border cursor-pointer transition-all duration-200
+        relative p-4 rounded-xl border cursor-pointer transition-all duration-200 flex flex-col
         ${isSelected
           ? 'border-gantly-blue bg-blue-50/50 shadow-md shadow-gantly-blue/10 ring-1 ring-gantly-blue/30'
           : 'border-slate-100 bg-white hover:border-slate-200 hover:shadow-sm'
@@ -191,7 +228,7 @@ function ScoreCard({ item, index, isSelected, onClick }: ScoreCardProps) {
           transition={{ duration: 0.6, delay: index * 0.04 + 0.2 }}
         />
       </div>
-      <p className="text-xs font-heading font-semibold text-gantly-text leading-tight mt-2">{item.name || item.code}</p>
+      <p className="text-xs font-heading font-semibold text-gantly-text leading-tight mt-auto pt-2">{item.name || item.code}</p>
     </motion.div>
   );
 }
@@ -460,7 +497,7 @@ export default function TestResultsView() {
           <h2 className="text-lg font-heading font-bold text-gantly-text mb-4">
             {data.factors.length > 0 ? 'Factores' : 'Subfactores'}
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-stretch">
             {displayItems.map((item, i) => (
               <ScoreCard
                 key={item.code || i}
@@ -488,23 +525,28 @@ export default function TestResultsView() {
           )}
         </section>
 
-        {/* ── Radar Chart ──────────────────────────────────── */}
-        {radarItems.length >= 3 && (
-          <section className="mb-8">
-            <h2 className="text-lg font-heading font-bold text-gantly-text mb-4">Perfil</h2>
-            <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-sm">
-              <RadarChart items={radarItems} />
-              <p className="text-center text-[11px] text-slate-400 font-body mt-2">
-                Linea punteada = referencia 50%
-              </p>
-            </div>
-          </section>
-        )}
+        {/* ── Radar + Strengths side-by-side on desktop ──── */}
+        {(radarItems.length >= 3 || strengths.length > 0 || weaknesses.length > 0) && (
+          <section className="mb-8 pb-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Radar Chart */}
+              {radarItems.length >= 3 && (
+                <div>
+                  <h2 className="text-lg font-heading font-bold text-gantly-text mb-4">Perfil</h2>
+                  <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-sm h-full flex flex-col justify-center">
+                    <RadarChart items={radarItems} />
+                    <p className="text-center text-[11px] text-slate-400 font-body mt-2">
+                      Línea punteada = referencia 50%
+                    </p>
+                  </div>
+                </div>
+              )}
 
-        {/* ── Strengths / Weaknesses ───────────────────────── */}
-        {(strengths.length > 0 || weaknesses.length > 0) && (
-          <section className="pb-10">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Strengths / Weaknesses */}
+              {(strengths.length > 0 || weaknesses.length > 0) && (
+                <div>
+                  <h2 className="text-lg font-heading font-bold text-gantly-text mb-4">Resumen</h2>
+                  <div className="flex flex-col gap-4">
               {strengths.length > 0 && (
                 <div className="p-5 bg-emerald-50 rounded-xl border border-emerald-100">
                   <div className="flex items-center gap-2 mb-3">
@@ -525,7 +567,7 @@ export default function TestResultsView() {
                 <div className="p-5 bg-orange-50 rounded-xl border border-orange-100">
                   <div className="flex items-center gap-2 mb-3">
                     <AlertTriangle size={18} className="text-orange-600" />
-                    <h3 className="text-sm font-heading font-bold text-orange-700">Areas de mejora</h3>
+                    <h3 className="text-sm font-heading font-bold text-orange-700">Áreas de mejora</h3>
                   </div>
                   <ul className="space-y-2">
                     {weaknesses.slice(0, 5).map((w) => (
@@ -535,6 +577,9 @@ export default function TestResultsView() {
                       </li>
                     ))}
                   </ul>
+                </div>
+              )}
+                  </div>
                 </div>
               )}
             </div>

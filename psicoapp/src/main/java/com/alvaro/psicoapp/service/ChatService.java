@@ -40,7 +40,7 @@ public class ChatService {
         this.auditService = auditService;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<ChatDtos.MessageDto> getChatHistory(UserEntity me, Long userId) {
         List<ChatMessageEntity> messages;
         Long psychologistId;

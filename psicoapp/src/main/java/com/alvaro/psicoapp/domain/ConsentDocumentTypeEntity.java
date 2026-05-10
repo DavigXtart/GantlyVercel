@@ -17,7 +17,6 @@ public class ConsentDocumentTypeEntity {
     @Column(name = "title", nullable = false, length = 200)
     private String title;
 
-    @Lob
     @Column(name = "template", nullable = false, columnDefinition = "TEXT")
     private String template;
 

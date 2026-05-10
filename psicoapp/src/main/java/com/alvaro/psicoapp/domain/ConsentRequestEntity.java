@@ -39,7 +39,6 @@ public class ConsentRequestEntity {
     @Column(name = "signer_name", length = 200)
     private String signerName;
 
-    @Lob
     @Column(name = "rendered_content", columnDefinition = "TEXT")
     private String renderedContent;
 

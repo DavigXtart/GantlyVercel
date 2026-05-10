@@ -23,7 +23,6 @@ public class ChatRestController {
     }
 
     @GetMapping("/history")
-    @Transactional(readOnly = true)
     public ResponseEntity<List<ChatDtos.MessageDto>> myHistory(Principal principal, @RequestParam(required = false) Long userId) {
         return ResponseEntity.ok(chatService.getChatHistory(currentUserService.getCurrentUser(principal), userId));
     }
