@@ -21,6 +21,10 @@ spring:
 app:
   pii:
     encryption-key: ${PII_ENCRYPTION_KEY:dev-pii-key-change-in-production-32chars}
+  email:
+    resend-api-key: ${RESEND_API_KEY:}
+    from: ${EMAIL_FROM:noreply@gantly.com}
+    from-name: ${EMAIL_FROM_NAME:Gantly}
 server:
   port: 8080
   max-http-request-header-size: 16KB

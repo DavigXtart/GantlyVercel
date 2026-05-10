@@ -1,5 +1,10 @@
 package com.alvaro.psicoapp.service;
 
+import com.resend.Resend;
+import com.resend.core.exception.ResendException;
+import com.resend.services.emails.model.CreateEmailOptions;
+
+import jakarta.annotation.PostConstruct;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
@@ -14,7 +19,6 @@ import org.thymeleaf.context.Context;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 @Service
@@ -22,20 +26,41 @@ public class EmailService {
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
+    private final Resend resend;
 
     @Value("${app.base.url:http://localhost:5173}")
     private String baseUrl;
 
-    @Value("${spring.mail.username}")
-    private String fromEmail;
+    @Value("${spring.mail.username:}")
+    private String smtpFromEmail;
+
+    @Value("${app.email.from:noreply@gantly.com}")
+    private String resendFromEmail;
+
+    @Value("${app.email.from-name:Gantly}")
+    private String resendFromName;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter
         .ofPattern("dd/MM/yyyy 'a las' HH:mm")
         .withZone(com.alvaro.psicoapp.config.AppTimezone.APP_ZONE);
 
-    public EmailService(JavaMailSender mailSender, TemplateEngine templateEngine) {
+    public EmailService(JavaMailSender mailSender,
+                        TemplateEngine templateEngine,
+                        @Value("${app.email.resend-api-key:}") String resendApiKey) {
         this.mailSender = mailSender;
         this.templateEngine = templateEngine;
+        this.resend = (resendApiKey != null && !resendApiKey.isBlank())
+                ? new Resend(resendApiKey)
+                : null;
+    }
+
+    @PostConstruct
+    private void logProvider() {
+        if (resend != null) {
+            logger.info("EmailService: using Resend API (from: {} <{}>)", resendFromName, resendFromEmail);
+        } else {
+            logger.info("EmailService: using SMTP (from: {})", smtpFromEmail);
+        }
     }
 
     public void sendVerificationEmail(String toEmail, String name, String verificationToken, String verificationCode, boolean isPsychologist) {
@@ -191,7 +216,6 @@ public class EmailService {
         }
     }
 
-
     public void sendClinicInvitationEmail(String toEmail, String companyName, String inviteUrl) {
         try {
             Context ctx = new Context();
@@ -205,12 +229,37 @@ public class EmailService {
     }
 
     private void sendHtmlEmail(String to, String subject, String htmlContent) throws MessagingException {
+        if (resend != null) {
+            sendViaResend(to, subject, htmlContent);
+        } else {
+            sendViaSmtp(to, subject, htmlContent);
+        }
+    }
+
+    private void sendViaResend(String to, String subject, String htmlContent) {
+        try {
+            CreateEmailOptions params = CreateEmailOptions.builder()
+                    .from(resendFromName + " <" + resendFromEmail + ">")
+                    .to(to)
+                    .subject(subject)
+                    .html(htmlContent)
+                    .build();
+            resend.emails().send(params);
+            logger.debug("Email sent via Resend to {}", to);
+        } catch (ResendException e) {
+            logger.error("Error sending email via Resend to {}: {}", to, e.getMessage());
+            throw new RuntimeException("Error enviando email via Resend", e);
+        }
+    }
+
+    private void sendViaSmtp(String to, String subject, String htmlContent) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-        helper.setFrom(fromEmail);
+        helper.setFrom(smtpFromEmail);
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(htmlContent, true);
         mailSender.send(message);
+        logger.debug("Email sent via SMTP to {}", to);
     }
 }

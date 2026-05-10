@@ -56,3 +56,7 @@ app:
     url: ${APP_BASE_URL:http://localhost:5173}
   cors:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:4200}
+  email:
+    resend-api-key: ${RESEND_API_KEY:}
+    from: ${EMAIL_FROM:noreply@gantly.com}
+    from-name: ${EMAIL_FROM_NAME:Gantly}

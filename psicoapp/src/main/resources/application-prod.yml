@@ -130,4 +130,8 @@ app:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS}
   maintenance:
     enabled: ${APP_MAINTENANCE_ENABLED:false}
+  email:
+    resend-api-key: ${RESEND_API_KEY:}
+    from: ${EMAIL_FROM:noreply@gantly.com}
+    from-name: ${EMAIL_FROM_NAME:Gantly}
 
