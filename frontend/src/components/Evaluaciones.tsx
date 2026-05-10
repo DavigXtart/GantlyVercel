@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { evaluationTestService } from '../services/api';
 import { toast } from './ui/Toast';
 import LoadingSpinner from './ui/LoadingSpinner';
@@ -6,7 +7,11 @@ import EmptyState from './ui/EmptyState';
 import EvaluationTestFlow from './EvaluationTestFlow';
 import EvaluationResultsView from './EvaluationResultsView';
 import { hasTestDefinition, getTestDefinition } from '../data/evaluationTestDefinitions';
-import { ClipboardList, Brain, Frown, Zap, Heart, Users, ArrowRight, CheckCircle, Eye, type LucideIcon } from 'lucide-react';
+import {
+  ClipboardList, Brain, Frown, Zap, Heart, Users, ArrowRight, CheckCircle, Eye,
+  Moon, Wine, Flame, Activity, Sparkles, ShieldAlert, Puzzle, Stethoscope,
+  SmilePlus, Lightbulb, type LucideIcon,
+} from 'lucide-react';
 
 interface EvalResult {
   id: number;
@@ -16,7 +21,12 @@ interface EvalResult {
   test: { id: number; code: string; title: string; topic?: string };
 }
 
-export default function Evaluaciones() {
+interface EvaluacionesProps {
+  onStartTest?: (testId: number) => void;
+}
+
+export default function Evaluaciones({ onStartTest }: EvaluacionesProps) {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [tests, setTests] = useState<any[]>([]);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
@@ -58,28 +68,37 @@ export default function Evaluaciones() {
   };
 
   const handleTestClick = (test: any) => {
-    if (!test.code || !hasTestDefinition(test.code)) {
-      toast.info('Este test estará disponible próximamente');
+    // Tests with frontend definitions (GAD7, PHQ9, etc.) use EvaluationTestFlow
+    if (test.code && hasTestDefinition(test.code)) {
+      const isCompleted = completedTests.has(test.id);
+      if (isCompleted) {
+        const testResults = allResults.filter(r => (r.test?.id || (r as any).testId) === test.id);
+        if (testResults.length > 0) {
+          setViewingResults({ testId: test.id, code: test.code, title: test.title });
+          return;
+        }
+      }
+      setActiveTest(test);
       return;
     }
-    const isCompleted = completedTests.has(test.id);
-    if (isCompleted) {
-      const testResults = allResults.filter(r => (r.test?.id || (r as any).testId) === test.id);
-      if (testResults.length > 0) {
-        setViewingResults({ testId: test.id, code: test.code, title: test.title });
-        return;
-      }
-    }
-    setActiveTest(test);
+
+    // Tests with DB questions (imported clinical tests) use TestFlow with preview
+    navigate(`/dashboard/test/${test.id}`, { state: { previewOnly: true } });
   };
 
   const handleRetake = (testId: number) => {
     setViewingResults(null);
     const test = tests.find(t => t.id === testId);
-    if (test) setActiveTest(test);
+    if (test) {
+      if (hasTestDefinition(test.code)) {
+        setActiveTest(test);
+      } else {
+        navigate(`/dashboard/test/${test.id}`, { state: { previewOnly: true } });
+      }
+    }
   };
 
-  const topics = Array.from(new Set(tests.map(t => t.topic)));
+  const topics = Array.from(new Set(tests.map((t: any) => t.topic).filter(Boolean))).sort();
 
   if (loading) {
     return (
@@ -96,17 +115,45 @@ export default function Evaluaciones() {
   const topicIcons: Record<string, LucideIcon> = {
     'Ansiedad': Brain,
     'Depresion': Frown,
-    'Estres': Zap,
+    'Depresion, Ansiedad y Estres': Zap,
+    'Estres': Flame,
     'Autoestima': Heart,
     'Relaciones': Users,
+    'Sueno': Moon,
+    'Sustancias': Wine,
+    'Trauma y TEPT': ShieldAlert,
+    'Cognitivo': Puzzle,
+    'Funcionalidad': Activity,
+    'Calidad de Vida': Sparkles,
+    'Sintomas Somaticos': Stethoscope,
+    'Personalidad': Lightbulb,
+    'Dolor': Activity,
+    'Bienestar': SmilePlus,
+    'Afecto': SmilePlus,
+    'Burnout': Flame,
+    'Esquemas Cognitivos': Puzzle,
   };
 
   const topicGradients: Record<string, string> = {
     'Ansiedad': 'from-amber-500 to-orange-500',
     'Depresion': 'from-gantly-blue to-gantly-blue-600',
+    'Depresion, Ansiedad y Estres': 'from-violet-500 to-purple-600',
     'Estres': 'from-red-500 to-rose-500',
     'Autoestima': 'from-pink-500 to-fuchsia-500',
     'Relaciones': 'from-emerald-500 to-teal-500',
+    'Sueno': 'from-indigo-500 to-blue-600',
+    'Sustancias': 'from-orange-600 to-red-600',
+    'Trauma y TEPT': 'from-slate-600 to-slate-800',
+    'Cognitivo': 'from-cyan-500 to-blue-500',
+    'Funcionalidad': 'from-teal-500 to-emerald-600',
+    'Calidad de Vida': 'from-green-500 to-emerald-500',
+    'Sintomas Somaticos': 'from-rose-500 to-pink-600',
+    'Personalidad': 'from-fuchsia-500 to-violet-600',
+    'Dolor': 'from-red-600 to-rose-700',
+    'Bienestar': 'from-emerald-400 to-green-500',
+    'Afecto': 'from-amber-400 to-yellow-500',
+    'Burnout': 'from-orange-500 to-red-500',
+    'Esquemas Cognitivos': 'from-blue-600 to-indigo-600',
   };
 
   return (
@@ -159,7 +206,7 @@ export default function Evaluaciones() {
         </div>
       )}
 
-      {/* EvaluationTestFlow modal */}
+      {/* EvaluationTestFlow modal (for hardcoded clinical instruments) */}
       {activeTest && activeTest.code && getTestDefinition(activeTest.code) && (
         <EvaluationTestFlow
           test={activeTest}
@@ -188,7 +235,6 @@ export default function Evaluaciones() {
           {filteredTests.map(test => {
             const gradient = topicGradients[test.topic] || 'from-gantly-blue to-gantly-blue-600';
             const Icon = topicIcons[test.topic] || Brain;
-            const isAvailable = test.code && hasTestDefinition(test.code);
             const isCompleted = completedTests.has(test.id);
             return (
               <div
@@ -216,13 +262,9 @@ export default function Evaluaciones() {
                       <CheckCircle size={12} />
                       Completado
                     </span>
-                  ) : isAvailable ? (
+                  ) : (
                     <span className="text-xs px-3 py-1 rounded-full font-medium bg-gantly-blue/10 text-gantly-blue border border-gantly-blue/20">
                       Disponible
-                    </span>
-                  ) : (
-                    <span className="text-xs px-3 py-1 rounded-full font-medium bg-gradient-to-r from-slate-50 to-slate-100 text-slate-500 border border-slate-200">
-                      Próximamente
                     </span>
                   )}
                   {isCompleted ? (

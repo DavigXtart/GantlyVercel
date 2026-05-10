@@ -11,6 +11,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
+import com.alvaro.psicoapp.service.SecurityBreachService;
+
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,12 +26,15 @@ class RateLimitFilterTest {
     @Mock
     private FilterChain filterChain;
 
+    @Mock
+    private SecurityBreachService securityBreachService;
+
     private MockHttpServletRequest request;
     private MockHttpServletResponse response;
 
     @BeforeEach
     void setUp() {
-        rateLimitFilter = new RateLimitFilter();
+        rateLimitFilter = new RateLimitFilter(securityBreachService);
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
     }

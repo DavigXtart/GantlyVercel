@@ -61,13 +61,13 @@ class AuthServiceTest {
     private TotpService totpService;
 
     @Mock
-    private TotpEncryptionService totpEncryptionService;
-
-    @Mock
     private PsychologistProfileRepository psychologistProfileRepository;
 
     @Mock
     private ClinicInvitationRepository clinicInvitationRepository;
+
+    @Mock
+    private SecurityBreachService securityBreachService;
 
     private AuthService authService;
 
@@ -88,8 +88,8 @@ class AuthServiceTest {
                 testRepository,
                 emailService,
                 totpService,
-                totpEncryptionService,
-                clinicInvitationRepository
+                clinicInvitationRepository,
+                securityBreachService
         );
 
         testUser = new UserEntity();

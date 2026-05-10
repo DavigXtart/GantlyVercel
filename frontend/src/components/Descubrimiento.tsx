@@ -1,18 +1,38 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { evaluationTestService } from '../services/api';
 import { toast } from './ui/Toast';
 import LoadingSpinner from './ui/LoadingSpinner';
 import EmptyState from './ui/EmptyState';
 import EvaluationTestFlow from './EvaluationTestFlow';
+import EvaluationResultsView from './EvaluationResultsView';
 import { hasTestDefinition, getTestDefinition } from '../data/evaluationTestDefinitions';
-import { Compass, Fingerprint, Lightbulb, Star, Palette, MessageSquare, ArrowRight, CheckCircle, type LucideIcon } from 'lucide-react';
+import {
+  Compass, Fingerprint, Lightbulb, Star, Heart, SmilePlus, Sparkles,
+  Flame, Puzzle, ArrowRight, CheckCircle, Eye, type LucideIcon,
+} from 'lucide-react';
 
-export default function Descubrimiento() {
+interface EvalResult {
+  id: number;
+  score: number;
+  level: string;
+  completedAt: string;
+  test: { id: number; code: string; title: string; topic?: string };
+}
+
+interface DescubrimientoProps {
+  onStartTest?: (testId: number) => void;
+}
+
+export default function Descubrimiento({ onStartTest }: DescubrimientoProps) {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [tests, setTests] = useState<any[]>([]);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [activeTest, setActiveTest] = useState<any | null>(null);
   const [completedTests, setCompletedTests] = useState<Set<number>>(new Set());
+  const [allResults, setAllResults] = useState<EvalResult[]>([]);
+  const [viewingResults, setViewingResults] = useState<{ testId: number; code: string; title: string } | null>(null);
 
   useEffect(() => {
     loadTests();
@@ -36,11 +56,11 @@ export default function Descubrimiento() {
 
   const loadCompletedTests = async () => {
     try {
-      const results = await evaluationTestService.getUserResults();
-      if (Array.isArray(results)) {
-        const ids = new Set<number>(results.map((r: any) => r.testId || r.test?.id).filter(Boolean));
-        setCompletedTests(ids);
-      }
+      const data = await evaluationTestService.getUserResults();
+      const results: EvalResult[] = Array.isArray(data) ? data : (data?.results || []);
+      setAllResults(results);
+      const ids = new Set<number>(results.map((r: any) => r.testId || r.test?.id).filter(Boolean));
+      setCompletedTests(ids);
     } catch {
       // silently ignore
     }
@@ -48,13 +68,34 @@ export default function Descubrimiento() {
 
   const handleTestClick = (test: any) => {
     if (test.code && hasTestDefinition(test.code)) {
+      const isCompleted = completedTests.has(test.id);
+      if (isCompleted) {
+        const testResults = allResults.filter(r => (r.test?.id || (r as any).testId) === test.id);
+        if (testResults.length > 0) {
+          setViewingResults({ testId: test.id, code: test.code, title: test.title });
+          return;
+        }
+      }
       setActiveTest(test);
-    } else {
-      toast.info('Este test estará disponible próximamente');
+      return;
+    }
+
+    navigate(`/dashboard/test/${test.id}`, { state: { previewOnly: true } });
+  };
+
+  const handleRetake = (testId: number) => {
+    setViewingResults(null);
+    const test = tests.find(t => t.id === testId);
+    if (test) {
+      if (hasTestDefinition(test.code)) {
+        setActiveTest(test);
+      } else {
+        navigate(`/dashboard/test/${test.id}`, { state: { previewOnly: true } });
+      }
     }
   };
 
-  const topics = Array.from(new Set(tests.map(t => t.topic)));
+  const topics = Array.from(new Set(tests.map((t: any) => t.topic).filter(Boolean))).sort();
 
   if (loading) {
     return (
@@ -70,18 +111,24 @@ export default function Descubrimiento() {
 
   const topicIconMap: Record<string, LucideIcon> = {
     'Personalidad': Fingerprint,
+    'Autoestima': Heart,
+    'Bienestar': SmilePlus,
+    'Afecto': Star,
+    'Calidad de Vida': Sparkles,
+    'Burnout': Flame,
+    'Esquemas Cognitivos': Puzzle,
     'Inteligencia': Lightbulb,
-    'Habilidades': Star,
-    'Creatividad': Palette,
-    'Comunicacion': MessageSquare,
   };
 
   const topicGradients: Record<string, string> = {
-    'Personalidad': 'from-gantly-blue to-gantly-cyan',
+    'Personalidad': 'from-fuchsia-500 to-violet-600',
+    'Autoestima': 'from-pink-500 to-fuchsia-500',
+    'Bienestar': 'from-emerald-400 to-green-500',
+    'Afecto': 'from-amber-400 to-yellow-500',
+    'Calidad de Vida': 'from-green-500 to-emerald-500',
+    'Burnout': 'from-orange-500 to-red-500',
+    'Esquemas Cognitivos': 'from-blue-600 to-indigo-600',
     'Inteligencia': 'from-amber-500 to-orange-500',
-    'Habilidades': 'from-emerald-500 to-teal-500',
-    'Creatividad': 'from-pink-500 to-rose-500',
-    'Comunicacion': 'from-blue-500 to-cyan-500',
   };
 
   return (
@@ -134,8 +181,7 @@ export default function Descubrimiento() {
         </div>
       )}
 
-      {/* Test cards grid */}
-      {/* EvaluationTestFlow modal */}
+      {/* EvaluationTestFlow modal (for hardcoded clinical instruments) */}
       {activeTest && activeTest.code && getTestDefinition(activeTest.code) && (
         <EvaluationTestFlow
           test={activeTest}
@@ -147,12 +193,23 @@ export default function Descubrimiento() {
         />
       )}
 
+      {/* Results viewer modal */}
+      {viewingResults && (
+        <EvaluationResultsView
+          results={allResults.filter(r => (r.test?.id || (r as any).testId) === viewingResults.testId)}
+          testCode={viewingResults.code}
+          testTitle={viewingResults.title}
+          onClose={() => setViewingResults(null)}
+          onRetake={() => handleRetake(viewingResults.testId)}
+        />
+      )}
+
+      {/* Test cards grid */}
       {filteredTests.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredTests.map(test => {
             const gradient = topicGradients[test.topic] || 'from-gantly-blue to-gantly-cyan';
             const TopicIcon = topicIconMap[test.topic] || Compass;
-            const isAvailable = test.code && hasTestDefinition(test.code);
             const isCompleted = completedTests.has(test.id);
             return (
               <div
@@ -160,37 +217,37 @@ export default function Descubrimiento() {
                 className="bg-white rounded-2xl p-6 border border-slate-100 hover:shadow-lg hover:shadow-gantly-blue/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
                 onClick={() => handleTestClick(test)}
               >
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300`}>
-                    <TopicIcon size={24} />
-                  </div>
-                  <p className="text-xs font-semibold text-gantly-blue uppercase tracking-wide mb-2">
-                    {test.topic}
+                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300`}>
+                  <TopicIcon size={24} />
+                </div>
+                <p className="text-xs font-semibold text-gantly-blue uppercase tracking-wide mb-2">
+                  {test.topic}
+                </p>
+                <h3 className="text-lg font-semibold text-slate-800 group-hover:text-gantly-blue transition-colors mb-2">
+                  {test.title}
+                </h3>
+                {test.description && (
+                  <p className="text-sm text-slate-500 mb-4 line-clamp-2 leading-relaxed">
+                    {test.description}
                   </p>
-                  <h3 className="text-lg font-semibold text-slate-800 group-hover:text-gantly-blue transition-colors mb-2">
-                    {test.title}
-                  </h3>
-                  {test.description && (
-                    <p className="text-sm text-slate-500 mb-4 line-clamp-2 leading-relaxed">
-                      {test.description}
-                    </p>
+                )}
+                <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
+                  {isCompleted ? (
+                    <span className="text-xs px-3 py-1 rounded-full font-medium bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center gap-1">
+                      <CheckCircle size={12} />
+                      Completado
+                    </span>
+                  ) : (
+                    <span className="text-xs px-3 py-1 rounded-full font-medium bg-gantly-blue/10 text-gantly-blue border border-gantly-blue/20">
+                      Disponible
+                    </span>
                   )}
-                  <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
-                    {isCompleted ? (
-                      <span className="text-xs px-3 py-1 rounded-full font-medium bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center gap-1">
-                        <CheckCircle size={12} />
-                        Completado
-                      </span>
-                    ) : isAvailable ? (
-                      <span className="text-xs px-3 py-1 rounded-full font-medium bg-gantly-blue/10 text-gantly-blue border border-gantly-blue/20">
-                        Disponible
-                      </span>
-                    ) : (
-                      <span className="text-xs px-3 py-1 rounded-full font-medium bg-gradient-to-r from-slate-50 to-slate-100 text-slate-500 border border-slate-200">
-                        Próximamente
-                      </span>
-                    )}
+                  {isCompleted ? (
+                    <Eye size={18} className="text-emerald-500 group-hover:text-gantly-blue transition-colors" />
+                  ) : (
                     <ArrowRight className="text-slate-500 group-hover:text-gantly-blue transition-colors" size={18} />
-                  </div>
+                  )}
+                </div>
               </div>
             );
           })}

@@ -506,10 +506,10 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
           {tab === 'mis-estadisticas' && <MisEstadisticas />}
 
           {/* Evaluations */}
-          {tab === 'evaluaciones' && <Evaluaciones />}
+          {tab === 'evaluaciones' && <Evaluaciones onStartTest={onStartTest} />}
 
           {/* Discovery */}
-          {tab === 'descubrimiento' && <Descubrimiento />}
+          {tab === 'descubrimiento' && <Descubrimiento onStartTest={onStartTest} />}
 
           {/* Personal agenda */}
           {tab === 'agenda-personal' && <AgendaPersonal />}

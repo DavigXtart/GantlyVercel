@@ -285,6 +285,7 @@ function TestPage({ onBack }: { onBack: () => void }) {
   const location = useLocation();
   const testIdStr = location.pathname.split('/test/')[1];
   const testId = testIdStr ? parseInt(testIdStr) : null;
+  const previewOnly = (location.state as any)?.previewOnly === true;
 
   if (!testId || isNaN(testId)) {
     return <Navigate to="/dashboard" replace />;
@@ -304,7 +305,7 @@ function TestPage({ onBack }: { onBack: () => void }) {
         </div>
       </nav>
       <Suspense fallback={<LazyFallback />}>
-        <TestFlow testId={testId} onBack={handleBack} onComplete={handleBack} />
+        <TestFlow testId={testId} onBack={handleBack} onComplete={handleBack} previewOnly={previewOnly} />
       </Suspense>
     </div>
   );
