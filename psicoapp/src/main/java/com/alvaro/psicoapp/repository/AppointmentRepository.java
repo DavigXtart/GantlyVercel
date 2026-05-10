@@ -71,6 +71,15 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
     @Query("SELECT a FROM AppointmentEntity a WHERE a.id = :id")
     Optional<AppointmentEntity> findByIdForUpdate(@Param("id") Long id);
 
+    @Query("SELECT COUNT(a) > 0 FROM AppointmentEntity a WHERE a.psychologist.id = :psychologistId " +
+           "AND a.startTime = :startTime AND a.status IN ('BOOKED', 'CONFIRMED')")
+    boolean existsActiveAppointment(@Param("psychologistId") Long psychologistId,
+                                    @Param("startTime") Instant startTime);
+
+    @Query("SELECT a FROM AppointmentEntity a WHERE a.status IN ('CONFIRMED', 'BOOKED') " +
+           "AND a.paymentStatus = 'PENDING' AND a.paymentDeadline IS NULL AND a.createdAt < :cutoff")
+    List<AppointmentEntity> findExpiredUnpaidWithoutDeadline(@Param("cutoff") Instant cutoff);
+
     @Query("SELECT a FROM AppointmentEntity a WHERE a.psychologist.id = :psychologistId " +
            "AND a.user IS NOT NULL " +
            "AND (a.status = 'CONFIRMED' OR a.status = 'BOOKED') " +

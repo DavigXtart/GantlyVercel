@@ -31,7 +31,7 @@ public class EmailService {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter
         .ofPattern("dd/MM/yyyy 'a las' HH:mm")
-        .withZone(ZoneId.systemDefault());
+        .withZone(com.alvaro.psicoapp.config.AppTimezone.APP_ZONE);
 
     public EmailService(JavaMailSender mailSender, TemplateEngine templateEngine) {
         this.mailSender = mailSender;

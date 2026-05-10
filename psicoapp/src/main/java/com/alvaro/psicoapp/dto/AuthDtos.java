@@ -29,6 +29,7 @@ public class AuthDtos {
 
 		public LocalDate birthDate;
 		public String inviteToken;
+		public Boolean gdprConsent;
 	}
 
 	public static class LoginRequest {

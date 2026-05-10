@@ -206,7 +206,7 @@ public class ConsentService {
 
     private String renderTemplate(String template, UserEntity psychologist, UserEntity patient, ConsentRequestEntity consent) {
         String t = template != null ? template : "";
-        ZoneId tz = ZoneId.systemDefault();
+        ZoneId tz = com.alvaro.psicoapp.config.AppTimezone.APP_ZONE;
         Instant sentAt = consent.getSentAt() != null ? consent.getSentAt() : Instant.now();
         var dt = sentAt.atZone(tz);
         String date = dt.toLocalDate().format(DATE_FMT);

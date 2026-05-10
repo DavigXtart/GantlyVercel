@@ -3,6 +3,7 @@ package com.alvaro.psicoapp.controller;
 import com.alvaro.psicoapp.domain.ClinicChatMessageEntity;
 import com.alvaro.psicoapp.repository.ClinicChatMessageRepository;
 import com.alvaro.psicoapp.repository.CompanyRepository;
+import com.alvaro.psicoapp.service.ChatEncryptionService;
 import com.alvaro.psicoapp.service.ClinicService;
 import com.alvaro.psicoapp.service.NotificationService;
 import org.springframework.http.HttpStatus;
@@ -13,7 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.security.Principal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
+import com.alvaro.psicoapp.config.AppTimezone;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -27,15 +28,18 @@ public class ClinicController {
     private final ClinicChatMessageRepository chatRepo;
     private final CompanyRepository companyRepository;
     private final NotificationService notificationService;
+    private final ChatEncryptionService chatEncryptionService;
 
     public ClinicController(ClinicService clinicService,
                              ClinicChatMessageRepository chatRepo,
                              CompanyRepository companyRepository,
-                             NotificationService notificationService) {
+                             NotificationService notificationService,
+                             ChatEncryptionService chatEncryptionService) {
         this.clinicService = clinicService;
         this.chatRepo = chatRepo;
         this.companyRepository = companyRepository;
         this.notificationService = notificationService;
+        this.chatEncryptionService = chatEncryptionService;
     }
 
     private String getCompanyEmail(Principal principal) {
@@ -169,8 +173,8 @@ public class ClinicController {
                                          @RequestParam(required = false) Long psychologistId) {
         String email = getCompanyEmail(principal);
         if (email == null) return unauthorized();
-        Instant fromI = from != null ? LocalDate.parse(from).atStartOfDay(ZoneOffset.UTC).toInstant() : Instant.now().minusSeconds(30L * 24 * 3600);
-        Instant toI = to != null ? LocalDate.parse(to).plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant() : Instant.now().plusSeconds(365L * 24 * 3600);
+        Instant fromI = from != null ? LocalDate.parse(from).atStartOfDay(AppTimezone.APP_ZONE).toInstant() : Instant.now().minusSeconds(30L * 24 * 3600);
+        Instant toI = to != null ? LocalDate.parse(to).plusDays(1).atStartOfDay(AppTimezone.APP_ZONE).toInstant() : Instant.now().plusSeconds(365L * 24 * 3600);
         return ResponseEntity.ok(clinicService.getBilling(email, fromI, toI, psychologistId));
     }
 
@@ -304,7 +308,9 @@ public class ClinicController {
                         companyId, patientId, Instant.parse(after))
                 : chatRepo.findByCompanyIdAndPatientIdOrderByCreatedAtAsc(companyId, patientId);
         return ResponseEntity.ok(messages.stream()
-                .map(m -> new ChatMessageDto(m.getId(), m.getSender(), m.getContent(), m.getCreatedAt().toString()))
+                .map(m -> new ChatMessageDto(m.getId(), m.getSender(),
+                        chatEncryptionService.decryptClinic(m.getContent(), companyId, patientId),
+                        m.getCreatedAt().toString()))
                 .collect(Collectors.toList()));
     }
 
@@ -314,11 +320,14 @@ public class ClinicController {
         String email = getCompanyEmail(principal);
         if (email == null) return unauthorized();
         Long companyId = resolveCompanyId(email);
+
+        String encryptedContent = chatEncryptionService.encryptClinic(req.content(), companyId, patientId);
+
         ClinicChatMessageEntity msg = new ClinicChatMessageEntity();
         msg.setCompanyId(companyId);
         msg.setPatientId(patientId);
         msg.setSender("CLINIC");
-        msg.setContent(req.content());
+        msg.setContent(encryptedContent);
         chatRepo.save(msg);
 
         // Create notification for the patient
@@ -329,7 +338,7 @@ public class ClinicController {
                 "Tu clinica te ha enviado un mensaje"
         );
 
-        return ResponseEntity.ok(new ChatMessageDto(msg.getId(), msg.getSender(), msg.getContent(), msg.getCreatedAt().toString()));
+        return ResponseEntity.ok(new ChatMessageDto(msg.getId(), msg.getSender(), req.content(), msg.getCreatedAt().toString()));
     }
 
 }

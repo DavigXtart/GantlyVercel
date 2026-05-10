@@ -1,5 +1,7 @@
 package com.alvaro.psicoapp.domain;
 
+import com.alvaro.psicoapp.config.PiiDeterministicConverter;
+import com.alvaro.psicoapp.config.PiiEncryptConverter;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -11,10 +13,12 @@ public class UserEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(nullable = false, length = 100)
+	@Convert(converter = PiiEncryptConverter.class)
+	@Column(nullable = false, length = 500)
 	private String name;
 
-	@Column(nullable = false, unique = true, length = 255)
+	@Convert(converter = PiiDeterministicConverter.class)
+	@Column(nullable = false, unique = true, length = 500)
 	private String email;
 
 	@Column(name = "password_hash", length = 255)
@@ -88,6 +92,12 @@ public class UserEntity {
 	@Column(name = "totp_enabled", nullable = false)
 	private Boolean totpEnabled = false;
 
+	@Column(name = "gdpr_consent_at")
+	private Instant gdprConsentAt;
+
+	@Column(name = "gdpr_consent_version", length = 20)
+	private String gdprConsentVersion;
+
 	public Long getId() { return id; }
 	public void setId(Long id) { this.id = id; }
 	public String getName() { return name; }
@@ -142,4 +152,8 @@ public class UserEntity {
 	public void setTotpSecret(String totpSecret) { this.totpSecret = totpSecret; }
 	public Boolean getTotpEnabled() { return totpEnabled; }
 	public void setTotpEnabled(Boolean totpEnabled) { this.totpEnabled = totpEnabled; }
+	public Instant getGdprConsentAt() { return gdprConsentAt; }
+	public void setGdprConsentAt(Instant gdprConsentAt) { this.gdprConsentAt = gdprConsentAt; }
+	public String getGdprConsentVersion() { return gdprConsentVersion; }
+	public void setGdprConsentVersion(String gdprConsentVersion) { this.gdprConsentVersion = gdprConsentVersion; }
 }

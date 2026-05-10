@@ -3,6 +3,7 @@ package com.alvaro.psicoapp.controller;
 import com.alvaro.psicoapp.domain.ClinicChatMessageEntity;
 import com.alvaro.psicoapp.domain.UserEntity;
 import com.alvaro.psicoapp.repository.ClinicChatMessageRepository;
+import com.alvaro.psicoapp.service.ChatEncryptionService;
 import com.alvaro.psicoapp.service.CurrentUserService;
 import com.alvaro.psicoapp.service.NotificationService;
 import com.alvaro.psicoapp.repository.CompanyRepository;
@@ -25,15 +26,18 @@ public class PatientClinicChatController {
     private final ClinicChatMessageRepository chatRepo;
     private final CompanyRepository companyRepository;
     private final NotificationService notificationService;
+    private final ChatEncryptionService chatEncryptionService;
 
     public PatientClinicChatController(CurrentUserService currentUserService,
                                         ClinicChatMessageRepository chatRepo,
                                         CompanyRepository companyRepository,
-                                        NotificationService notificationService) {
+                                        NotificationService notificationService,
+                                        ChatEncryptionService chatEncryptionService) {
         this.currentUserService = currentUserService;
         this.chatRepo = chatRepo;
         this.companyRepository = companyRepository;
         this.notificationService = notificationService;
+        this.chatEncryptionService = chatEncryptionService;
     }
 
     public record ChatMessageDto(Long id, String sender, String content, String createdAt) {}
@@ -54,7 +58,9 @@ public class PatientClinicChatController {
                 : chatRepo.findByCompanyIdAndPatientIdOrderByCreatedAtAsc(companyId, user.getId());
 
         return ResponseEntity.ok(messages.stream()
-                .map(m -> new ChatMessageDto(m.getId(), m.getSender(), m.getContent(), m.getCreatedAt().toString()))
+                .map(m -> new ChatMessageDto(m.getId(), m.getSender(),
+                        chatEncryptionService.decryptClinic(m.getContent(), companyId, user.getId()),
+                        m.getCreatedAt().toString()))
                 .collect(Collectors.toList()));
     }
 
@@ -70,13 +76,15 @@ public class PatientClinicChatController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El mensaje no puede estar vacío");
         }
 
+        String encryptedContent = chatEncryptionService.encryptClinic(req.content(), companyId, user.getId());
+
         ClinicChatMessageEntity msg = new ClinicChatMessageEntity();
         msg.setCompanyId(companyId);
         msg.setPatientId(user.getId());
         msg.setSender("PATIENT");
-        msg.setContent(req.content());
+        msg.setContent(encryptedContent);
         chatRepo.save(msg);
 
-        return ResponseEntity.ok(new ChatMessageDto(msg.getId(), msg.getSender(), msg.getContent(), msg.getCreatedAt().toString()));
+        return ResponseEntity.ok(new ChatMessageDto(msg.getId(), msg.getSender(), req.content(), msg.getCreatedAt().toString()));
     }
 }

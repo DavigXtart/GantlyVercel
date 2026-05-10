@@ -153,7 +153,8 @@ export const authService = {
     companyReferralCode?: string,
     psychologistReferralCode?: string,
     birthDate?: string,
-    inviteToken?: string
+    inviteToken?: string,
+    gdprConsent?: boolean
   ) => {
     const { data } = await api.post<{ token?: string; accessToken?: string; refreshToken?: string; expiresIn?: number }>('/auth/register', {
       name,
@@ -164,7 +165,8 @@ export const authService = {
       companyReferralCode,
       psychologistReferralCode,
       birthDate: birthDate || undefined,
-      inviteToken: inviteToken || undefined
+      inviteToken: inviteToken || undefined,
+      gdprConsent: gdprConsent ?? true
     });
     // Compatibilidad: usar accessToken si existe, sino token (legacy)
     const token = data.accessToken;
@@ -605,6 +607,18 @@ export const profileService = {
     const { data } = await api.delete('/profile/delete-account');
     return data as { message: string };
   }
+};
+
+// GDPR (Art. 17 + Art. 20)
+export const gdprService = {
+  exportData: async () => {
+    const { data } = await api.get('/user/export-data');
+    return data;
+  },
+  deleteAccount: async (password: string) => {
+    const { data } = await api.delete('/user/delete-account', { data: { password } });
+    return data as { message: string };
+  },
 };
 
 // Tareas

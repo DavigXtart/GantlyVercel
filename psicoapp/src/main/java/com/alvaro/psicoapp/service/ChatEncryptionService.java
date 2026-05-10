@@ -153,6 +153,91 @@ public class ChatEncryptionService {
         return new String(plaintext, StandardCharsets.UTF_8);
     }
 
+    // ---- Clinic chat encryption (uses same AES-256-GCM but different key namespace) ----
+
+    @Transactional
+    public String encryptClinic(String plaintext, Long companyId, Long patientId) {
+        if (plaintext == null || plaintext.isEmpty()) {
+            return plaintext;
+        }
+
+        try {
+            SecretKey key = getOrCreateClinicKey(companyId, patientId);
+            Cipher cipher = Cipher.getInstance(TRANSFORMATION);
+
+            byte[] iv = new byte[GCM_IV_LENGTH];
+            secureRandom.nextBytes(iv);
+
+            GCMParameterSpec parameterSpec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, iv);
+            cipher.init(Cipher.ENCRYPT_MODE, key, parameterSpec);
+
+            byte[] ciphertext = cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8));
+
+            ByteBuffer byteBuffer = ByteBuffer.allocate(iv.length + ciphertext.length);
+            byteBuffer.put(iv);
+            byteBuffer.put(ciphertext);
+
+            return "ENC:" + Base64.getEncoder().encodeToString(byteBuffer.array());
+        } catch (Exception e) {
+            logger.error("Error cifrando mensaje de clínica", e);
+            throw new RuntimeException("Error cifrando mensaje de clínica", e);
+        }
+    }
+
+    @Transactional
+    public String decryptClinic(String message, Long companyId, Long patientId) {
+        if (message == null || message.isEmpty()) {
+            return message;
+        }
+
+        // Backwards compatibility: plaintext messages don't have the "ENC:" prefix
+        if (!message.startsWith("ENC:")) {
+            return message;
+        }
+
+        String encryptedPayload = message.substring(4); // strip "ENC:" prefix
+        try {
+            return decryptWithKey(encryptedPayload, getOrCreateClinicKey(companyId, patientId));
+        } catch (Exception e) {
+            logger.error("Error descifrando mensaje de clínica", e);
+            throw new RuntimeException("Error descifrando mensaje de clínica", e);
+        }
+    }
+
+    @Transactional
+    SecretKey getOrCreateClinicKey(Long companyId, Long patientId) {
+        String keyId = "clinic:" + companyId + ":" + patientId;
+
+        return keyCache.computeIfAbsent(keyId, k -> {
+            try {
+                // Reuse chat_conversations table with a negative companyId to avoid collisions
+                // with psychologist-user conversations (psychologist IDs are always positive user IDs)
+                Long syntheticPsychId = -companyId; // negative to avoid collision
+                ChatConversationEntity conv = conversationRepository
+                    .findByPsychologistIdAndUserId(syntheticPsychId, patientId)
+                    .orElseGet(() -> {
+                        byte[] salt = new byte[SALT_LENGTH];
+                        secureRandom.nextBytes(salt);
+                        String saltBase64 = Base64.getEncoder().encodeToString(salt);
+                        ChatConversationEntity newConv = new ChatConversationEntity(syntheticPsychId, patientId, saltBase64);
+                        return conversationRepository.save(newConv);
+                    });
+
+                byte[] salt = Base64.getDecoder().decode(conv.getEncryptionSalt());
+                String seed = "CLINIC_CHAT_" + companyId + "_PATIENT_" + patientId;
+
+                SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+                KeySpec spec = new PBEKeySpec(seed.toCharArray(), salt, PBKDF2_ITERATIONS, 256);
+                byte[] keyBytes = factory.generateSecret(spec).getEncoded();
+
+                return new SecretKeySpec(keyBytes, ALGORITHM);
+            } catch (Exception e) {
+                logger.error("Error generando clave de conversación de clínica", e);
+                throw new RuntimeException("Error generando clave de cifrado de clínica", e);
+            }
+        });
+    }
+
     public void clearKeyCache() {
         keyCache.clear();
         legacyKeyCache.clear();

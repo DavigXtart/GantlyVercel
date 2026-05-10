@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
-import { profileService, authService } from '../services/api';
+import { profileService, authService, gdprService } from '../services/api';
 import { toast } from './ui/Toast';
 import LoadingSpinner from './ui/LoadingSpinner';
 import { ArrowLeft, Settings, User, Lock, Receipt, Shield, Upload, Download, Info, AlertTriangle, Trash2, RotateCcw, type LucideIcon } from 'lucide-react';
@@ -347,12 +347,12 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate, onShowOnboardi
             <button
               onClick={async () => {
                 try {
-                  const data = await profileService.exportMyData();
+                  const data = await gdprService.exportData();
                   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement('a');
                   a.href = url;
-                  a.download = `mis-datos-psymatch-${new Date().toISOString().split('T')[0]}.json`;
+                  a.download = `mis-datos-gantly-${new Date().toISOString().split('T')[0]}.json`;
                   a.click();
                   URL.revokeObjectURL(url);
                   toast.success('Datos exportados correctamente');
@@ -394,21 +394,24 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate, onShowOnboardi
             <button
               onClick={async () => {
                 const confirmed = window.confirm(
-                  `\u00bfEst\u00e1s seguro de que quieres eliminar tu cuenta? Esta acci\u00f3n es IRREVERSIBLE y todos tus datos ser\u00e1n eliminados permanentemente.`
+                  '\u00bfEst\u00e1s seguro de que quieres eliminar tu cuenta? Esta acci\u00f3n es IRREVERSIBLE y todos tus datos ser\u00e1n eliminados permanentemente.'
                 );
                 if (!confirmed) return;
-                const doubleConfirmed = window.confirm(
-                  `\u00daltima confirmaci\u00f3n: \u00bfRealmente deseas eliminar tu cuenta y todos tus datos?`
-                );
-                if (!doubleConfirmed) return;
+                const password = window.prompt('Introduce tu contrase\u00f1a para confirmar la eliminaci\u00f3n:');
+                if (password === null) return;
+                if (!password.trim()) {
+                  toast.error('Debes introducir tu contrase\u00f1a');
+                  return;
+                }
                 try {
-                  await profileService.deleteMyAccount();
+                  await gdprService.deleteAccount(password);
                   toast.success('Cuenta eliminada correctamente');
                   localStorage.removeItem('token');
                   localStorage.removeItem('refreshToken');
                   window.location.reload();
-                } catch {
-                  toast.error('Error al eliminar la cuenta');
+                } catch (err: any) {
+                  const msg = err.response?.data?.message || 'Error al eliminar la cuenta';
+                  toast.error(msg);
                 }
               }}
               className="px-6 py-3 rounded-xl border-2 border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 hover:border-red-300 cursor-pointer transition-all duration-200 flex items-center gap-2"

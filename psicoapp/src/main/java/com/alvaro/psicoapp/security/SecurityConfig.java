@@ -124,6 +124,7 @@ public class SecurityConfig {
                     boolean isCompany = authn != null && authn.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_EMPRESA"));
                     return new AuthorizationDecision(isCompany);
                 })
+                .requestMatchers("/api/user/**").authenticated()
                 .requestMatchers("/api/patient/**").authenticated()
                 .requestMatchers("/error", "/favicon.ico").permitAll()
                 .anyRequest().authenticated()

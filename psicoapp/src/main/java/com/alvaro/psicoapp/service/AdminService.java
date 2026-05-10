@@ -352,7 +352,31 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public Page<AdminDtos.UserListDto> listUsersPaged(String search, String role, Pageable pageable) {
-        Page<UserEntity> usersPage = userRepository.findAllWithFilters(search, role, pageable);
+        if (search != null && !search.isBlank()) {
+            // PII fields (name, email) are encrypted at rest, so LIKE queries at DB
+            // level won't match. Load all users filtered by role, then apply text
+            // search in memory on the decrypted values.
+            String lowerSearch = search.toLowerCase(java.util.Locale.ROOT);
+            List<UserEntity> allByRole;
+            if (role == null || role.isBlank()) {
+                allByRole = userRepository.findAll();
+            } else {
+                allByRole = userRepository.findByRole(role);
+            }
+            List<AdminDtos.UserListDto> filtered = allByRole.stream()
+                    .filter(u -> (u.getName() != null && u.getName().toLowerCase(java.util.Locale.ROOT).contains(lowerSearch))
+                              || (u.getEmail() != null && u.getEmail().toLowerCase(java.util.Locale.ROOT).contains(lowerSearch)))
+                    .map(this::toUserListDto)
+                    .collect(Collectors.toList());
+            int start = (int) pageable.getOffset();
+            int end = Math.min(start + pageable.getPageSize(), filtered.size());
+            List<AdminDtos.UserListDto> pageContent = start < filtered.size()
+                    ? filtered.subList(start, end)
+                    : Collections.emptyList();
+            return new org.springframework.data.domain.PageImpl<>(pageContent, pageable, filtered.size());
+        }
+        // No text search — filter by role at DB level with pagination
+        Page<UserEntity> usersPage = userRepository.findAllByRole(role, pageable);
         return usersPage.map(this::toUserListDto);
     }
 

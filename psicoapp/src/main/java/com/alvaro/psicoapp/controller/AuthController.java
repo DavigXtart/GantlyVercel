@@ -59,7 +59,7 @@ public class AuthController {
 	})
 	public ResponseEntity<AuthDtos.TokenResponse> register(@Valid @RequestBody AuthDtos.RegisterRequest req) {
 		var tokenPair = authService.registerWithRefresh(req.name, req.email, req.password, req.sessionId, req.role,
-				req.companyReferralCode, req.psychologistReferralCode, req.birthDate, req.inviteToken);
+				req.companyReferralCode, req.psychologistReferralCode, req.birthDate, req.inviteToken, req.gdprConsent);
 		return ResponseEntity.ok(new AuthDtos.TokenResponse(tokenPair.accessToken, tokenPair.refreshToken, 900));
 	}
 
@@ -89,8 +89,14 @@ public class AuthController {
 		@ApiResponse(responseCode = "401", description = "Refresh token inválido o expirado")
 	})
 	public ResponseEntity<AuthDtos.TokenResponse> refreshToken(@Valid @RequestBody AuthDtos.RefreshTokenRequest req) {
-		String newAccessToken = authService.refreshAccessToken(req.refreshToken);
-		return ResponseEntity.ok(new AuthDtos.TokenResponse(newAccessToken, req.refreshToken, 900));
+		// Reject already-used (blacklisted) refresh tokens
+		if (tokenBlacklistService.isBlacklisted(req.refreshToken)) {
+			return ResponseEntity.status(401).build();
+		}
+		// Token rotation: generate new access + refresh tokens, blacklist the old refresh token
+		var tokenPair = authService.refreshTokenPair(req.refreshToken);
+		tokenBlacklistService.blacklist(req.refreshToken);
+		return ResponseEntity.ok(new AuthDtos.TokenResponse(tokenPair.accessToken, tokenPair.refreshToken, 900));
 	}
 
 	@PostMapping("/logout")

@@ -15,23 +15,28 @@ import java.util.List;
 @Service
 public class AppointmentSchedulerService {
     private static final Logger logger = LoggerFactory.getLogger(AppointmentSchedulerService.class);
+    private static final long PAYMENT_DEADLINE_HOURS = 48;
 
     private final AppointmentRepository appointmentRepository;
     private final EmailService emailService;
+    private final NotificationService notificationService;
 
-    public AppointmentSchedulerService(AppointmentRepository appointmentRepository, EmailService emailService) {
+    public AppointmentSchedulerService(AppointmentRepository appointmentRepository,
+                                       EmailService emailService,
+                                       NotificationService notificationService) {
         this.appointmentRepository = appointmentRepository;
         this.emailService = emailService;
+        this.notificationService = notificationService;
     }
 
-    @Scheduled(fixedRate = 900000)
+    @Scheduled(fixedRate = 900000) // Every 15 minutes
     @Transactional
     public void expireUnpaidAppointments() {
         logger.info("Iniciando verificación de pagos expirados...");
 
         Instant now = Instant.now();
 
-        // Check both CONFIRMED and BOOKED appointments with expired payment deadlines
+        // 1. Appointments with explicit paymentDeadline that has passed
         List<AppointmentEntity> expiredConfirmed = appointmentRepository
             .findByStatusAndPaymentStatusAndPaymentDeadlineBefore("CONFIRMED", "PENDING", now);
         List<AppointmentEntity> expiredBooked = appointmentRepository
@@ -39,6 +44,11 @@ public class AppointmentSchedulerService {
 
         List<AppointmentEntity> expiredAppointments = new java.util.ArrayList<>(expiredConfirmed);
         expiredAppointments.addAll(expiredBooked);
+
+        // 2. Fallback: appointments without paymentDeadline but created > 48h ago and still unpaid
+        Instant cutoff48h = now.minus(Duration.ofHours(PAYMENT_DEADLINE_HOURS));
+        List<AppointmentEntity> expiredWithoutDeadline = appointmentRepository.findExpiredUnpaidWithoutDeadline(cutoff48h);
+        expiredAppointments.addAll(expiredWithoutDeadline);
 
         if (expiredAppointments.isEmpty()) {
             logger.info("No se encontraron citas con pagos expirados");
@@ -50,10 +60,21 @@ public class AppointmentSchedulerService {
         int expiredCount = 0;
         for (AppointmentEntity appointment : expiredAppointments) {
             try {
+                // Notify patient before releasing the slot
+                if (appointment.getUser() != null) {
+                    notificationService.createNotification(appointment.getUser().getId(), "PAYMENT",
+                        "Cita expirada por falta de pago",
+                        "Tu cita con " + (appointment.getPsychologist() != null ? appointment.getPsychologist().getName() : "tu psicólogo")
+                            + " ha sido liberada por no completar el pago a tiempo.");
+                }
+
                 appointment.setStatus("FREE");
                 appointment.setPaymentStatus(null);
                 appointment.setUser(null);
                 appointment.setStripeSessionId(null);
+                appointment.setConfirmedAt(null);
+                appointment.setConfirmedByUser(null);
+                appointment.setPaymentDeadline(null);
                 appointmentRepository.save(appointment);
                 expiredCount++;
 

@@ -93,6 +93,16 @@ public class AuthService {
 	@Transactional
 	public com.alvaro.psicoapp.security.JwtService.TokenPair registerWithRefresh(String name, String email, String password, String sessionId, String role,
 			String companyReferralCode, String psychologistReferralCode, LocalDate birthDate, String inviteToken) {
+		return registerWithRefresh(name, email, password, sessionId, role, companyReferralCode, psychologistReferralCode, birthDate, inviteToken, null);
+	}
+
+	@Transactional
+	public com.alvaro.psicoapp.security.JwtService.TokenPair registerWithRefresh(String name, String email, String password, String sessionId, String role,
+			String companyReferralCode, String psychologistReferralCode, LocalDate birthDate, String inviteToken, Boolean gdprConsent) {
+		if (!Boolean.TRUE.equals(gdprConsent)) {
+			throw new IllegalArgumentException("Debes aceptar la politica de privacidad");
+		}
+
 		String sanitizedEmail = InputSanitizer.sanitizeEmail(email);
 		String sanitizedName = InputSanitizer.sanitizeAndValidate(name != null ? name : "", 100);
 		if (sanitizedName.isEmpty()) throw new IllegalArgumentException("El nombre es requerido");
@@ -158,6 +168,9 @@ public class AuthService {
 			String slug = ReferralCodeUtil.nameToSlug(sanitizedName);
 			u.setReferralCode(ensureUniqueReferralCode(slug));
 		}
+
+		u.setGdprConsentAt(Instant.now());
+		u.setGdprConsentVersion("1.0");
 
 		String verificationToken = UUID.randomUUID().toString();
 		String verificationCode = String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
@@ -388,6 +401,20 @@ public class AuthService {
 			return jwtService.generateAccessToken(email);
 		} catch (Exception e) {
 			logger.warn("Error refrescando token: {}", e.getMessage());
+			throw new IllegalArgumentException("Refresh token inválido o expirado");
+		}
+	}
+
+	/**
+	 * Refresh token rotation: generates a new access+refresh token pair.
+	 * The caller is responsible for blacklisting the old refresh token.
+	 */
+	public com.alvaro.psicoapp.security.JwtService.TokenPair refreshTokenPair(String refreshToken) {
+		try {
+			String email = jwtService.parseRefreshToken(refreshToken);
+			return jwtService.generateTokenPair(email);
+		} catch (Exception e) {
+			logger.warn("Error rotando refresh token: {}", e.getMessage());
 			throw new IllegalArgumentException("Refresh token inválido o expirado");
 		}
 	}

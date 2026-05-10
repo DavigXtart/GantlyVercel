@@ -248,10 +248,16 @@ public class ClinicService {
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Paciente no encontrado"));
         }
 
+        // Prevent double-booking: check no active appointment exists for the same psychologist/time
+        Instant parsedStart = Instant.parse(req.startTime());
+        if (appointmentRepository.existsActiveAppointment(psych.getId(), parsedStart)) {
+            throw new IllegalArgumentException("Este horario ya está reservado");
+        }
+
         AppointmentEntity appt = new AppointmentEntity();
         appt.setPsychologist(psych);
         appt.setUser(patient);
-        appt.setStartTime(Instant.parse(req.startTime()));
+        appt.setStartTime(parsedStart);
         appt.setEndTime(Instant.parse(req.endTime()));
         appt.setStatus("CONFIRMED");
         appt.setService(req.service());
@@ -565,9 +571,9 @@ public class ClinicService {
 
         Instant now = Instant.now();
         java.time.YearMonth thisYM = java.time.YearMonth.now();
-        Instant startThis = thisYM.atDay(1).atStartOfDay(java.time.ZoneOffset.UTC).toInstant();
-        Instant endThis   = thisYM.plusMonths(1).atDay(1).atStartOfDay(java.time.ZoneOffset.UTC).toInstant();
-        Instant startPrev = thisYM.minusMonths(1).atDay(1).atStartOfDay(java.time.ZoneOffset.UTC).toInstant();
+        Instant startThis = thisYM.atDay(1).atStartOfDay(com.alvaro.psicoapp.config.AppTimezone.APP_ZONE).toInstant();
+        Instant endThis   = thisYM.plusMonths(1).atDay(1).atStartOfDay(com.alvaro.psicoapp.config.AppTimezone.APP_ZONE).toInstant();
+        Instant startPrev = thisYM.minusMonths(1).atDay(1).atStartOfDay(com.alvaro.psicoapp.config.AppTimezone.APP_ZONE).toInstant();
 
         long totalThisMonth = 0;
         BigDecimal revThis = BigDecimal.ZERO, revPrev = BigDecimal.ZERO;
@@ -594,8 +600,8 @@ public class ClinicService {
         List<MonthlyTrendDto> trend = new ArrayList<>();
         for (int i = 5; i >= 0; i--) {
             java.time.YearMonth ym = thisYM.minusMonths(i);
-            Instant s = ym.atDay(1).atStartOfDay(java.time.ZoneOffset.UTC).toInstant();
-            Instant e = ym.plusMonths(1).atDay(1).atStartOfDay(java.time.ZoneOffset.UTC).toInstant();
+            Instant s = ym.atDay(1).atStartOfDay(com.alvaro.psicoapp.config.AppTimezone.APP_ZONE).toInstant();
+            Instant e = ym.plusMonths(1).atDay(1).atStartOfDay(com.alvaro.psicoapp.config.AppTimezone.APP_ZONE).toInstant();
             long c = 0; BigDecimal rv = BigDecimal.ZERO;
             for (UserEntity psych : psychs) {
                 List<AppointmentEntity> ap = appointmentRepository

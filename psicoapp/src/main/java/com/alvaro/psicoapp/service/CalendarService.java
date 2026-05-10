@@ -1,5 +1,6 @@
 package com.alvaro.psicoapp.service;
 
+import com.alvaro.psicoapp.config.AppTimezone;
 import com.alvaro.psicoapp.domain.AppointmentEntity;
 import com.alvaro.psicoapp.domain.AppointmentRatingEntity;
 import com.alvaro.psicoapp.domain.AppointmentRequestEntity;
@@ -24,7 +25,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -238,6 +238,11 @@ public class CalendarService {
             throw new IllegalArgumentException("Esta solicitud ya fue procesada");
         }
 
+        // Prevent double-booking: check no active appointment exists for the same psychologist/time
+        if (appointmentRepository.existsActiveAppointment(appointment.getPsychologist().getId(), appointment.getStartTime())) {
+            throw new IllegalArgumentException("Este horario ya está reservado");
+        }
+
         appointmentRequestRepository.findByAppointment_Id(appointment.getId()).forEach(req -> {
             if (req.getId().equals(requestId)) {
                 req.setStatus("CONFIRMED");
@@ -321,6 +326,11 @@ public class CalendarService {
 
         var user = userRepository.findById(req.userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+
+        // Prevent double-booking: check no active appointment exists for the same psychologist/time
+        if (appointmentRepository.existsActiveAppointment(psychologist.getId(), req.start)) {
+            throw new IllegalArgumentException("Este horario ya está reservado");
+        }
 
         AppointmentEntity appointment = new AppointmentEntity();
         appointment.setPsychologist(psychologist);
@@ -528,8 +538,8 @@ public class CalendarService {
     }
 
     private boolean isTodayOrFuture(Instant instant, Instant now) {
-        return instant.isAfter(now) || instant.atZone(ZoneOffset.UTC).toLocalDate()
-                .equals(now.atZone(ZoneOffset.UTC).toLocalDate());
+        return instant.isAfter(now) || instant.atZone(AppTimezone.APP_ZONE).toLocalDate()
+                .equals(now.atZone(AppTimezone.APP_ZONE).toLocalDate());
     }
 
     private boolean isVisibleToUser(AppointmentEntity s, UserEntity user) {

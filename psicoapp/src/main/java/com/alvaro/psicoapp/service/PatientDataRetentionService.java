@@ -182,5 +182,14 @@ public class PatientDataRetentionService {
         user.setCompanyId(null);
         user.setReferralCode(null);
         user.setIsFull(false);
+        user.setBirthDate(null);
+        user.setTotpSecret(null);
+        user.setTotpEnabled(false);
+        user.setVerificationCode(null);
+        user.setFailedLoginAttempts(0);
+        user.setAccountLockedUntil(null);
+        user.setLockoutCount(0);
+        user.setGdprConsentAt(null);
+        user.setGdprConsentVersion(null);
     }
 }

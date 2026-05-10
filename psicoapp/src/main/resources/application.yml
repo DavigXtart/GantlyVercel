@@ -3,6 +3,8 @@ spring:
     name: psicoapp
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
+  jackson:
+    time-zone: Europe/Madrid
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
@@ -16,6 +18,9 @@ spring:
     scheduling:
       pool:
         size: 2
+app:
+  pii:
+    encryption-key: ${PII_ENCRYPTION_KEY:dev-pii-key-change-in-production-32chars}
 server:
   port: 8080
   max-http-request-header-size: 16KB

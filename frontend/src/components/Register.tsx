@@ -92,7 +92,8 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
         undefined,
         psychologistReferralCode || undefined,
         birthDate.trim() || undefined,
-        inviteToken || undefined
+        inviteToken || undefined,
+        acceptTerms
       );
       toast.success('Te hemos enviado un codigo de verificacion a tu email');
       setStep('verify');
@@ -238,7 +239,7 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
                       Acepto los{' '}
                       <a href="/terms" target="_blank" className="text-gantly-blue font-medium hover:underline">terminos y condiciones</a>
                       {' '}y la{' '}
-                      <a href="/privacy" target="_blank" className="text-gantly-blue font-medium hover:underline">politica de privacidad</a>
+                      <a href="/privacidad" target="_blank" className="text-gantly-blue font-medium hover:underline">politica de privacidad</a>
                       {' '}de Gantly *
                     </span>
                   </label>
