@@ -2,7 +2,9 @@ package com.alvaro.psicoapp.service;
 
 import com.alvaro.psicoapp.domain.TemporarySessionEntity;
 import com.alvaro.psicoapp.domain.UserEntity;
+import com.alvaro.psicoapp.repository.ClinicInvitationRepository;
 import com.alvaro.psicoapp.repository.CompanyRepository;
+import com.alvaro.psicoapp.repository.PsychologistProfileRepository;
 import com.alvaro.psicoapp.repository.TestRepository;
 import com.alvaro.psicoapp.repository.UserPsychologistRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
@@ -58,6 +60,15 @@ class AuthServiceTest {
     @Mock
     private TotpService totpService;
 
+    @Mock
+    private TotpEncryptionService totpEncryptionService;
+
+    @Mock
+    private PsychologistProfileRepository psychologistProfileRepository;
+
+    @Mock
+    private ClinicInvitationRepository clinicInvitationRepository;
+
     private AuthService authService;
 
     private UserEntity testUser;
@@ -69,13 +80,16 @@ class AuthServiceTest {
                 userRepository,
                 companyRepository,
                 userPsychologistRepository,
+                psychologistProfileRepository,
                 passwordEncoder,
                 jwtService,
                 sessionService,
                 testResultService,
                 testRepository,
                 emailService,
-                totpService
+                totpService,
+                totpEncryptionService,
+                clinicInvitationRepository
         );
 
         testUser = new UserEntity();
@@ -109,7 +123,7 @@ class AuthServiceTest {
 
         JwtService.TokenPair result = authService.registerWithRefresh(
                 "Test User", "test@example.com", "password123",
-                "session-1", "USER", null, null, null
+                "session-1", "USER", null, null, null, null
         );
 
         assertNotNull(result);
@@ -143,7 +157,7 @@ class AuthServiceTest {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
                 authService.registerWithRefresh(
                         "Test User", "test@example.com", "password123",
-                        null, "USER", null, null, null
+                        null, "USER", null, null, null, null
                 )
         );
 
@@ -157,7 +171,7 @@ class AuthServiceTest {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
                 authService.registerWithRefresh(
                         null, "test@example.com", "password123",
-                        null, "USER", null, null, null
+                        null, "USER", null, null, null, null
                 )
         );
 
@@ -171,7 +185,7 @@ class AuthServiceTest {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
                 authService.registerWithRefresh(
                         "", "test@example.com", "password123",
-                        null, "USER", null, null, null
+                        null, "USER", null, null, null, null
                 )
         );
 

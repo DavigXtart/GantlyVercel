@@ -56,6 +56,9 @@ class CalendarServiceTest {
     @Mock
     private NotificationService notificationService;
 
+    @Mock
+    private AuditService auditService;
+
     private CalendarService calendarService;
 
     private UserEntity psychologist;
@@ -70,7 +73,8 @@ class CalendarServiceTest {
                 userRepository,
                 userPsychologistRepository,
                 emailService,
-                notificationService
+                notificationService,
+                auditService
         );
 
         psychologist = new UserEntity();
