@@ -1,9 +1,10 @@
 CREATE TABLE IF NOT EXISTS clinic_chat_messages (
-    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     company_id BIGINT NOT NULL,
     patient_id BIGINT NOT NULL,
-    sender VARCHAR(10) NOT NULL COMMENT 'CLINIC or PATIENT',
+    sender VARCHAR(10) NOT NULL,
     content TEXT NOT NULL,
-    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    INDEX idx_clinic_chat (company_id, patient_id, created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_clinic_chat ON clinic_chat_messages(company_id, patient_id, created_at);

@@ -1,9 +1,9 @@
 spring:
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3306/gantly?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
-    username: ${DB_USERNAME:root}
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/gantly}
+    username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:1234}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
@@ -25,14 +25,6 @@ spring:
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: ${GOOGLE_CLIENT_ID:}
-            client-secret: ${GOOGLE_CLIENT_SECRET:}
-            scope: email, profile, openid
 
 springdoc:
   api-docs:
@@ -51,6 +43,16 @@ logging:
     org.hibernate.SQL: debug
     org.hibernate.orm.jdbc.bind: trace
 
+stripe:
+  secret:
+    key: ${STRIPE_SECRET_KEY:}
+  public:
+    key: ${STRIPE_PUBLIC_KEY:}
+  webhook:
+    secret: ${STRIPE_WEBHOOK_SECRET:}
+
 app:
   base:
-    url: http://localhost:5173
+    url: ${APP_BASE_URL:http://localhost:5173}
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:4200}

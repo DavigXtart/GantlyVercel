@@ -2,16 +2,16 @@
 
 -- Tabla de despachos
 CREATE TABLE IF NOT EXISTS clinic_rooms (
-    id BIGINT NOT NULL AUTO_INCREMENT,
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     company_id BIGINT NOT NULL,
     name VARCHAR(100) NOT NULL,
     color VARCHAR(20) NOT NULL DEFAULT '#5a9270',
     assigned_psychologist_id BIGINT NULL,
-    active TINYINT(1) NOT NULL DEFAULT 1,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    INDEX idx_clinic_rooms_company (company_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_clinic_rooms_company ON clinic_rooms(company_id);
 
 -- Modalidad de la cita: ONLINE | PRESENCIAL
 ALTER TABLE appointments

@@ -3,18 +3,18 @@
 
 -- Tipo de documento de consentimiento (plantilla con placeholders)
 CREATE TABLE IF NOT EXISTS consent_document_types (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   code VARCHAR(80) NOT NULL UNIQUE,
   title VARCHAR(200) NOT NULL,
   template TEXT NOT NULL,
-  active TINYINT(1) NOT NULL DEFAULT 1,
+  active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMP(6) NOT NULL,
   updated_at TIMESTAMP(6) NULL
 );
 
 -- Solicitudes de consentimiento (envío y firma)
 CREATE TABLE IF NOT EXISTS consent_requests (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   user_id BIGINT NOT NULL,
   psychologist_id BIGINT NOT NULL,
   document_type_id BIGINT NOT NULL,
