@@ -56,7 +56,7 @@ public class AuthController {
 	})
 	public ResponseEntity<AuthDtos.TokenResponse> register(@Valid @RequestBody AuthDtos.RegisterRequest req) {
 		var tokenPair = authService.registerWithRefresh(req.name, req.email, req.password, req.sessionId, req.role,
-				req.companyReferralCode, req.psychologistReferralCode, req.birthDate, req.inviteToken, req.gdprConsent);
+				req.companyReferralCode, req.psychologistReferralCode, req.birthDate, req.inviteToken, req.gdprConsent, req.healthDataConsent);
 		return ResponseEntity.ok(new AuthDtos.TokenResponse(tokenPair.accessToken, tokenPair.refreshToken, 900));
 	}
 

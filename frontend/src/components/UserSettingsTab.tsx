@@ -153,7 +153,18 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate, onShowOnboardi
           {/* Personal info card */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-lg transition-all duration-300">
             <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-5">{`Informaci\u00f3n personal`}</h3>
+            <p className="text-xs text-slate-500 mb-4">Puedes corregir tus datos personales en cualquier momento (Art. 16 RGPD).</p>
             <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-slate-700 block mb-1.5">Email</label>
+                <input
+                  type="email"
+                  value={me?.email ?? ''}
+                  disabled
+                  className="w-full h-12 rounded-xl border border-slate-200 px-4 text-sm bg-slate-100 text-slate-500 cursor-not-allowed"
+                />
+                <p className="text-xs text-slate-400 mt-1">El email no se puede cambiar directamente. Contacta a soporte si necesitas modificarlo.</p>
+              </div>
               <div>
                 <label className="text-sm font-medium text-slate-700 block mb-1.5">Nombre</label>
                 <input
@@ -377,6 +388,10 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate, onShowOnboardi
             </h3>
             <p className="text-sm text-slate-500 leading-relaxed">
               {`Tus datos se conservan durante un m\u00e1ximo de 5 a\u00f1os desde tu registro, conforme a la legislaci\u00f3n sanitaria. Tras ese periodo, tus datos son anonimizados autom\u00e1ticamente.`}
+            </p>
+            <p className="text-xs text-slate-500 mt-2">
+              Tus datos se conservan mientras tu cuenta est&eacute; activa. Las cuentas no verificadas se eliminan tras 30 d&iacute;as.
+              Las notificaciones antiguas se eliminan tras 90 d&iacute;as. Tras eliminar tu cuenta, tus datos se anonimizan en un plazo de 30 d&iacute;as.
             </p>
           </div>
 

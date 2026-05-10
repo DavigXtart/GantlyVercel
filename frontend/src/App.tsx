@@ -260,7 +260,6 @@ function Dashboard({ role, logout, onStartTest }: {
 
         <GlobalLoader />
         <ToastContainer />
-        <CookieBanner onPrivacyClick={() => navigate('/privacidad')} />
       </div>
     );
   }
@@ -350,13 +349,11 @@ function App() {
         <Route path="/privacidad" element={
           <Suspense fallback={<LazyFallback />}>
             <PrivacyPolicy onBack={() => navigate('/')} />
-            <CookieBanner onPrivacyClick={() => {}} />
           </Suspense>
         } />
         <Route path="/terminos" element={
           <Suspense fallback={<LazyFallback />}>
             <TermsOfService onBack={() => navigate('/')} />
-            <CookieBanner />
           </Suspense>
         } />
         <Route path="/privacy" element={<Navigate to="/privacidad" replace />} />
@@ -494,6 +491,7 @@ function App() {
         {/* Catch-all: detect referral slugs or redirect to landing */}
         <Route path="*" element={<ReferralRedirect />} />
       </Routes>
+      <CookieBanner onPrivacyClick={() => navigate('/privacidad')} />
     </>
   );
 }

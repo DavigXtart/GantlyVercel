@@ -20,7 +20,8 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
   const [password, setPassword] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; birthDate?: string; terms?: string }>({});
+  const [healthConsent, setHealthConsent] = useState(false);
+  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; birthDate?: string; terms?: string; healthConsent?: string }>({});
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'form' | 'verify'>('form');
   const [verificationCode, setVerificationCode] = useState('');
@@ -73,9 +74,10 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
     const passwordError = validatePassword(password);
 
     const termsError = !acceptTerms ? 'Debes aceptar los terminos y la politica de privacidad' : undefined;
+    const healthConsentError = !healthConsent ? 'Debes consentir el tratamiento de datos de salud' : undefined;
 
-    if (nameError || emailError || passwordError || termsError) {
-      setErrors({ name: nameError, email: emailError, password: passwordError, terms: termsError });
+    if (nameError || emailError || passwordError || termsError || healthConsentError) {
+      setErrors({ name: nameError, email: emailError, password: passwordError, terms: termsError, healthConsent: healthConsentError });
       return;
     }
 
@@ -93,7 +95,8 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
         psychologistReferralCode || undefined,
         birthDate.trim() || undefined,
         inviteToken || undefined,
-        acceptTerms
+        acceptTerms,
+        healthConsent
       );
       toast.success('Te hemos enviado un codigo de verificacion a tu email');
       setStep('verify');
@@ -245,9 +248,23 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
                   </label>
                   {errors.terms && <p className="text-red-500 text-xs mt-1.5 ml-6">{errors.terms}</p>}
                 </div>
+                <div>
+                  <label className="flex items-start gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={healthConsent}
+                      onChange={(e) => { setHealthConsent(e.target.checked); if (errors.healthConsent) setErrors({ ...errors, healthConsent: undefined }); }}
+                      className="mt-1 w-4 h-4 accent-gantly-blue cursor-pointer flex-shrink-0"
+                    />
+                    <span className="text-sm text-slate-500 leading-relaxed">
+                      Consiento el tratamiento de mis <strong>datos de salud mental</strong> (resultados de tests, diario emocional, historial de sesiones) para la prestacion del servicio terapeutico conforme al Art. 9.2.a del RGPD *
+                    </span>
+                  </label>
+                  {errors.healthConsent && <p className="text-red-500 text-xs mt-1.5 ml-6">{errors.healthConsent}</p>}
+                </div>
                 <button
                   type="submit"
-                  disabled={loading || !acceptTerms}
+                  disabled={loading || !acceptTerms || !healthConsent}
                   className="mt-2 py-3.5 px-6 rounded-full border-none bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white text-base font-semibold cursor-pointer shadow-md hover:shadow-lg transition-all disabled:bg-gray-300 disabled:cursor-not-allowed disabled:shadow-none"
                 >
                   {loading ? 'Creando cuenta...' : 'Crear cuenta'}

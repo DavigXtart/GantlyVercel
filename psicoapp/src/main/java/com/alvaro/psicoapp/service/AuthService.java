@@ -46,6 +46,7 @@ public class AuthService {
 	private final EmailService emailService;
 	private final TotpService totpService;
 	private final ClinicInvitationRepository clinicInvitationRepository;
+	private final SecurityBreachService securityBreachService;
 	private static final String INITIAL_TEST_CODE = "INITIAL";
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -72,7 +73,8 @@ public class AuthService {
 			PasswordEncoder passwordEncoder,
 			JwtService jwtService, TemporarySessionService sessionService, TestResultService testResultService,
 			TestRepository testRepository, EmailService emailService, TotpService totpService,
-			ClinicInvitationRepository clinicInvitationRepository) {
+			ClinicInvitationRepository clinicInvitationRepository,
+			SecurityBreachService securityBreachService) {
 		this.userRepository = userRepository;
 		this.companyRepository = companyRepository;
 		this.userPsychologistRepository = userPsychologistRepository;
@@ -85,6 +87,7 @@ public class AuthService {
 		this.emailService = emailService;
 		this.totpService = totpService;
 		this.clinicInvitationRepository = clinicInvitationRepository;
+		this.securityBreachService = securityBreachService;
 	}
 
 	@Transactional
@@ -96,8 +99,17 @@ public class AuthService {
 	@Transactional
 	public com.alvaro.psicoapp.security.JwtService.TokenPair registerWithRefresh(String name, String email, String password, String sessionId, String role,
 			String companyReferralCode, String psychologistReferralCode, LocalDate birthDate, String inviteToken, Boolean gdprConsent) {
+		return registerWithRefresh(name, email, password, sessionId, role, companyReferralCode, psychologistReferralCode, birthDate, inviteToken, gdprConsent, null);
+	}
+
+	@Transactional
+	public com.alvaro.psicoapp.security.JwtService.TokenPair registerWithRefresh(String name, String email, String password, String sessionId, String role,
+			String companyReferralCode, String psychologistReferralCode, LocalDate birthDate, String inviteToken, Boolean gdprConsent, Boolean healthDataConsent) {
 		if (!Boolean.TRUE.equals(gdprConsent)) {
 			throw new IllegalArgumentException("Debes aceptar la politica de privacidad");
+		}
+		if (!Boolean.TRUE.equals(healthDataConsent)) {
+			throw new IllegalArgumentException("Debes consentir el tratamiento de datos de salud");
 		}
 
 		String sanitizedEmail = InputSanitizer.sanitizeEmail(email);
@@ -168,6 +180,7 @@ public class AuthService {
 
 		u.setGdprConsentAt(Instant.now());
 		u.setGdprConsentVersion("1.0");
+		u.setHealthDataConsentAt(Instant.now());
 
 		String verificationToken = UUID.randomUUID().toString();
 		String verificationCode = String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
@@ -327,6 +340,8 @@ public class AuthService {
 				u.setAccountLockedUntil(Instant.now().plusSeconds(lockoutSeconds));
 				u.setFailedLoginAttempts(0); // Reset attempts for next lockout cycle
 				userRepository.save(u);
+				securityBreachService.logPotentialBreach("ACCOUNT_LOCKOUT",
+					"Account locked for user (lockout #" + lockoutCount + "): " + sanitizedEmail, "N/A");
 				long lockoutMinutes = lockoutSeconds / 60;
 				String timeMsg = lockoutMinutes >= 60
 					? (lockoutMinutes / 60) + " hora" + (lockoutMinutes / 60 > 1 ? "s" : "")

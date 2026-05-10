@@ -154,7 +154,8 @@ export const authService = {
     psychologistReferralCode?: string,
     birthDate?: string,
     inviteToken?: string,
-    gdprConsent?: boolean
+    gdprConsent?: boolean,
+    healthDataConsent?: boolean
   ) => {
     const { data } = await api.post<{ token?: string; accessToken?: string; refreshToken?: string; expiresIn?: number }>('/auth/register', {
       name,
@@ -166,7 +167,8 @@ export const authService = {
       psychologistReferralCode,
       birthDate: birthDate || undefined,
       inviteToken: inviteToken || undefined,
-      gdprConsent: gdprConsent ?? true
+      gdprConsent: gdprConsent ?? true,
+      healthDataConsent: healthDataConsent ?? true
     });
     // Compatibilidad: usar accessToken si existe, sino token (legacy)
     const token = data.accessToken;

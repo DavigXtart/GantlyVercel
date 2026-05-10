@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import com.alvaro.psicoapp.service.SecurityBreachService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
@@ -27,8 +28,14 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private static final int MAX_REQUESTS_PER_MINUTE_GLOBAL = 300;
     private static final long TIME_WINDOW_MS = 60_000;
 
+    private final SecurityBreachService securityBreachService;
+
     private final Map<String, RequestCounter> requestCounters = new ConcurrentHashMap<>();
     private final Map<String, RequestCounter> globalIpCounters = new ConcurrentHashMap<>();
+
+    public RateLimitFilter(SecurityBreachService securityBreachService) {
+        this.securityBreachService = securityBreachService;
+    }
 
     private final AtomicLong lastCleanup = new AtomicLong(System.currentTimeMillis());
     private static final long CLEANUP_INTERVAL_MS = 300_000;
@@ -58,6 +65,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
         int globalCount = globalCounter.incrementAndGet();
         if (globalCount > MAX_REQUESTS_PER_MINUTE_GLOBAL) {
             logger.warn("Global rate limit excedido para IP: {} ({} requests)", ipAddress, globalCount);
+            securityBreachService.logPotentialBreach("RATE_LIMIT_EXCEEDED",
+                "Global rate limit exceeded: " + globalCount + " requests/min", ipAddress);
             response.setStatus(429);
             response.setContentType("application/json");
             response.getWriter().write("{\"error\":\"Demasiadas peticiones. Por favor intenta mas tarde.\"}");
@@ -74,6 +83,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
         if (currentCount > maxRequests) {
             logger.warn("Rate limit excedido para IP: {} en endpoint: {} ({} requests)",
                        ipAddress, endpoint, currentCount);
+            securityBreachService.logPotentialBreach("RATE_LIMIT_EXCEEDED",
+                "Endpoint rate limit exceeded on " + endpoint + ": " + currentCount + " requests/min", ipAddress);
             response.setStatus(429);
             response.setContentType("application/json");
             response.getWriter().write("{\"error\":\"Demasiadas peticiones. Por favor intenta mas tarde.\"}");

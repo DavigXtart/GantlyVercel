@@ -30,6 +30,7 @@ public class AuthDtos {
 		public LocalDate birthDate;
 		public String inviteToken;
 		public Boolean gdprConsent;
+		public Boolean healthDataConsent;
 	}
 
 	public static class LoginRequest {

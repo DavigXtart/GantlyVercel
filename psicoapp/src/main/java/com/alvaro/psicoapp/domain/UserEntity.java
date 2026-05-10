@@ -99,6 +99,9 @@ public class UserEntity {
 	@Column(name = "gdpr_consent_version", length = 20)
 	private String gdprConsentVersion;
 
+	@Column(name = "health_data_consent_at")
+	private Instant healthDataConsentAt;
+
 	public Long getId() { return id; }
 	public void setId(Long id) { this.id = id; }
 	public String getName() { return name; }
@@ -157,4 +160,6 @@ public class UserEntity {
 	public void setGdprConsentAt(Instant gdprConsentAt) { this.gdprConsentAt = gdprConsentAt; }
 	public String getGdprConsentVersion() { return gdprConsentVersion; }
 	public void setGdprConsentVersion(String gdprConsentVersion) { this.gdprConsentVersion = gdprConsentVersion; }
+	public Instant getHealthDataConsentAt() { return healthDataConsentAt; }
+	public void setHealthDataConsentAt(Instant healthDataConsentAt) { this.healthDataConsentAt = healthDataConsentAt; }
 }

@@ -24,6 +24,7 @@ import com.alvaro.psicoapp.repository.ChatMessageRepository;
 import com.alvaro.psicoapp.repository.DailyMoodEntryRepository;
 import com.alvaro.psicoapp.repository.EvaluationTestResultRepository;
 import com.alvaro.psicoapp.repository.FactorResultRepository;
+import com.alvaro.psicoapp.repository.NotificationRepository;
 import com.alvaro.psicoapp.repository.TaskCommentRepository;
 import com.alvaro.psicoapp.repository.TaskFileRepository;
 import com.alvaro.psicoapp.repository.TaskRepository;
@@ -53,6 +54,7 @@ public class PatientDataRetentionService {
     private final AppointmentRatingRepository appointmentRatingRepository;
     private final AppointmentRequestRepository appointmentRequestRepository;
     private final AppointmentRepository appointmentRepository;
+    private final NotificationRepository notificationRepository;
     private final AuditService auditService;
 
     public PatientDataRetentionService(
@@ -71,6 +73,7 @@ public class PatientDataRetentionService {
         AppointmentRatingRepository appointmentRatingRepository,
         AppointmentRequestRepository appointmentRequestRepository,
         AppointmentRepository appointmentRepository,
+        NotificationRepository notificationRepository,
         AuditService auditService
     ) {
         this.userRepository = userRepository;
@@ -88,6 +91,7 @@ public class PatientDataRetentionService {
         this.appointmentRatingRepository = appointmentRatingRepository;
         this.appointmentRequestRepository = appointmentRequestRepository;
         this.appointmentRepository = appointmentRepository;
+        this.notificationRepository = notificationRepository;
         this.auditService = auditService;
     }
 
@@ -106,6 +110,69 @@ public class PatientDataRetentionService {
                 eraseOneUserInNewTx(u.getId());
             } catch (Exception e) {
                 logger.error("RGPD retention: error procesando userId={}", u.getId(), e);
+            }
+        }
+    }
+
+    /**
+     * Daily cleanup: unverified accounts (30 days), old notifications (90 days),
+     * anonymized/deleted accounts residual data (30 days).
+     */
+    @Scheduled(cron = "0 0 3 * * *")
+    @Transactional
+    public void enforceRetentionPolicies() {
+        deleteUnverifiedAccounts();
+        deleteOldNotifications();
+        cleanupDeletedAccounts();
+        logger.info("RGPD retention policies job completed");
+    }
+
+    private void deleteUnverifiedAccounts() {
+        Instant cutoff = Instant.now().minus(30, ChronoUnit.DAYS);
+        List<UserEntity> unverified = userRepository.findAll().stream()
+            .filter(u -> !Boolean.TRUE.equals(u.getEmailVerified()))
+            .filter(u -> u.getCreatedAt() != null && u.getCreatedAt().isBefore(cutoff))
+            .toList();
+
+        if (!unverified.isEmpty()) {
+            logger.info("RGPD retention: eliminando {} cuentas no verificadas (>30 dias)", unverified.size());
+            for (UserEntity u : unverified) {
+                try {
+                    userRepository.delete(u);
+                } catch (Exception e) {
+                    logger.error("RGPD retention: error eliminando cuenta no verificada userId={}", u.getId(), e);
+                }
+            }
+        }
+    }
+
+    private void deleteOldNotifications() {
+        Instant cutoff = Instant.now().minus(90, ChronoUnit.DAYS);
+        List<com.alvaro.psicoapp.domain.NotificationEntity> old = notificationRepository.findAll().stream()
+            .filter(n -> n.getCreatedAt() != null && n.getCreatedAt().isBefore(cutoff))
+            .toList();
+
+        if (!old.isEmpty()) {
+            logger.info("RGPD retention: eliminando {} notificaciones antiguas (>90 dias)", old.size());
+            notificationRepository.deleteAll(old);
+        }
+    }
+
+    private void cleanupDeletedAccounts() {
+        Instant cutoff = Instant.now().minus(30, ChronoUnit.DAYS);
+        List<UserEntity> deleted = userRepository.findAll().stream()
+            .filter(u -> u.getEmail() != null && u.getEmail().endsWith("@deleted.local"))
+            .filter(u -> u.getCreatedAt() != null && u.getCreatedAt().isBefore(cutoff))
+            .toList();
+
+        if (!deleted.isEmpty()) {
+            logger.info("RGPD retention: limpiando {} cuentas anonimizadas (>30 dias)", deleted.size());
+            for (UserEntity u : deleted) {
+                try {
+                    userRepository.delete(u);
+                } catch (Exception e) {
+                    logger.error("RGPD retention: error limpiando cuenta anonimizada userId={}", u.getId(), e);
+                }
             }
         }
     }
@@ -191,5 +258,6 @@ public class PatientDataRetentionService {
         user.setLockoutCount(0);
         user.setGdprConsentAt(null);
         user.setGdprConsentVersion(null);
+        user.setHealthDataConsentAt(null);
     }
 }

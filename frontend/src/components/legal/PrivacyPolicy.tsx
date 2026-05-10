@@ -28,7 +28,7 @@ export default function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
               Politica de Privacidad
             </h1>
             <p className="text-[15px] text-gantly-blue font-medium font-body m-0">
-              Ultima actualizacion: 1 de marzo de 2026
+              Ultima actualizacion: 10 de mayo de 2026
             </p>
           </div>
 
@@ -130,6 +130,21 @@ export default function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
                 'Interes legitimo (art. 6.1.f RGPD): para la seguridad de la plataforma, prevencion de fraude y mejora del servicio.',
               ]}
             />
+
+            <SubSection title="5.1. Base legal para datos de salud (Art. 9.2.a RGPD)">
+              <p>
+                El tratamiento de datos de salud mental (resultados de tests psicologicos,
+                diario emocional, historial de sesiones terapeuticas) se realiza exclusivamente
+                sobre la base de su <strong>consentimiento explicito</strong>, prestado de forma
+                separada durante el proceso de registro. Este consentimiento es libre,
+                especifico, informado e inequivoco, conforme al Art. 9.2.a del RGPD.
+              </p>
+              <HighlightBox>
+                Puede retirar su consentimiento para el tratamiento de datos de salud en
+                cualquier momento desde la seccion de Privacidad de su configuracion de
+                cuenta, sin que ello afecte a la licitud del tratamiento previo.
+              </HighlightBox>
+            </SubSection>
           </Section>
 
           <Section title="6. Politica de cookies">
@@ -160,15 +175,18 @@ export default function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
             </HighlightBox>
           </Section>
 
-          <Section title="7. Conservacion de datos">
+          <Section title="7. Conservacion de datos (periodo de retencion)">
             <p>
               Los datos personales se conservan durante los siguientes periodos:
             </p>
             <BulletList
               items={[
                 'Datos de cuenta: mientras la cuenta este activa y hasta 30 dias tras la solicitud de eliminacion.',
+                'Cuentas no verificadas: se eliminan automaticamente tras 30 dias sin verificar el email.',
                 'Datos de salud: durante la relacion terapeutica y hasta 5 anos despues de su finalizacion, conforme a la normativa sanitaria espanola (Ley 41/2002).',
                 'Datos de facturacion: 5 anos conforme a la normativa fiscal.',
+                'Notificaciones: se eliminan automaticamente tras 90 dias.',
+                'Post-eliminacion de cuenta: los datos se anonimizan y se eliminan completamente en un plazo de 30 dias.',
                 'Registros de auditoria: 2 anos desde su generacion.',
                 'Datos anonimizados: pueden conservarse de forma indefinida al no constituir datos personales.',
               ]}
@@ -254,7 +272,26 @@ export default function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
             />
           </Section>
 
-          <Section title="12. Reclamaciones">
+          <Section title="12. Brechas de seguridad (Art. 33 y 34 RGPD)">
+            <p>
+              En caso de producirse una brecha de seguridad que afecte a sus datos
+              personales, Gantly se compromete a:
+            </p>
+            <BulletList
+              items={[
+                'Notificar a la Agencia Espanola de Proteccion de Datos (AEPD) en un plazo maximo de 72 horas desde su deteccion, conforme al Art. 33 del RGPD.',
+                'Informar a los usuarios afectados sin dilacion indebida cuando la brecha suponga un alto riesgo para sus derechos y libertades, conforme al Art. 34 del RGPD.',
+                'Documentar internamente todas las brechas de seguridad, sus efectos y las medidas correctivas adoptadas.',
+              ]}
+            />
+            <HighlightBox>
+              Gantly dispone de sistemas automatizados de deteccion de anomalias de seguridad
+              (rate limiting, monitorizacion de accesos, logs de auditoria) para minimizar el
+              impacto de posibles incidentes.
+            </HighlightBox>
+          </Section>
+
+          <Section title="13. Reclamaciones">
             <p>
               Si considera que el tratamiento de sus datos personales vulnera la
               normativa vigente, tiene derecho a presentar una reclamacion ante la
@@ -269,7 +306,7 @@ export default function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
             />
           </Section>
 
-          <Section title="13. Modificaciones de esta politica">
+          <Section title="14. Modificaciones de esta politica">
             <p>
               Nos reservamos el derecho de modificar esta Politica de Privacidad en
               cualquier momento. Las modificaciones seran notificadas a traves de la

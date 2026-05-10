@@ -8,19 +8,23 @@ export default function CookieBanner({ onPrivacyClick }: CookieBannerProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const consent = localStorage.getItem('cookie-consent');
-    if (consent === null) {
-      setVisible(true);
+    try {
+      const consent = localStorage.getItem('storage-consent');
+      if (consent === null) {
+        setVisible(true);
+      }
+    } catch {
+      // localStorage not available
     }
   }, []);
 
   const handleAccept = () => {
-    localStorage.setItem('cookie-consent', 'accepted');
+    try { localStorage.setItem('storage-consent', 'true'); } catch { /* silent */ }
     setVisible(false);
   };
 
   const handleReject = () => {
-    localStorage.setItem('cookie-consent', 'rejected');
+    try { localStorage.setItem('storage-consent', 'rejected'); } catch { /* silent */ }
     setVisible(false);
   };
 
@@ -31,22 +35,28 @@ export default function CookieBanner({ onPrivacyClick }: CookieBannerProps) {
       <div className="max-w-[1200px] mx-auto px-6 py-5 flex items-center justify-between gap-5 flex-wrap">
         <div className="flex-1 min-w-[280px]">
           <p className="m-0 text-sm leading-relaxed text-slate-700">
-            Usamos cookies esenciales para el funcionamiento de la app.
+            Utilizamos almacenamiento local para mantener tu sesion iniciada. No usamos cookies de seguimiento.
             {' '}
-            <span
-              onClick={onPrivacyClick}
-              role="link"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  onPrivacyClick?.();
-                }
-              }}
-              className="text-gantly-blue-500 underline cursor-pointer font-medium hover:text-gantly-blue-700"
-            >
-              Política de privacidad
-            </span>
+            {onPrivacyClick ? (
+              <span
+                onClick={onPrivacyClick}
+                role="link"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onPrivacyClick?.();
+                  }
+                }}
+                className="text-gantly-blue-500 underline cursor-pointer font-medium hover:text-gantly-blue-700"
+              >
+                Mas informacion
+              </span>
+            ) : (
+              <a href="/privacidad" className="text-gantly-blue-500 underline font-medium hover:text-gantly-blue-700">
+                Mas informacion
+              </a>
+            )}
           </p>
         </div>
 
