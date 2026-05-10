@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { notificationService } from '../../services/api';
-import { Bell, CheckSquare, CalendarDays, MessageCircle, Siren, AlarmClock, CreditCard, ShieldCheck, AlertTriangle, BellDot, type LucideIcon } from 'lucide-react';
+import { Bell, CheckSquare, CalendarDays, MessageCircle, Siren, AlarmClock, CreditCard, ShieldCheck, AlertTriangle, BellDot, Building2, type LucideIcon } from 'lucide-react';
 
 interface Notification {
   id: number;
@@ -90,6 +90,7 @@ export default function NotificationBell() {
     PAYMENT: CreditCard,
     APPROVAL: ShieldCheck,
     WARNING: AlertTriangle,
+    CLINIC_CHAT: Building2,
   };
 
   return (

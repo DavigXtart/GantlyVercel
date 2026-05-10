@@ -1071,6 +1071,10 @@ export interface ClinicAppointment {
   paymentMethod?: string;
   roomId?: number;
   roomName?: string;
+  taxExempt?: boolean;
+  taxRate?: number;
+  taxAmount?: number;
+  totalAmount?: number;
 }
 
 export interface ClinicPatientSummary {
@@ -1117,6 +1121,10 @@ export interface ClinicBillingItem {
   paymentStatus?: string;
   modality?: string;
   paymentMethod?: string;
+  taxRate?: number;
+  taxAmount?: number;
+  totalAmount?: number;
+  taxExempt?: boolean;
 }
 
 export interface CreateAppointmentReq {
@@ -1133,6 +1141,8 @@ export interface CreateAppointmentReq {
   modality?: string;
   paymentMethod?: string;
   roomId?: number | null;
+  taxExempt?: boolean;
+  taxRate?: number;
 }
 
 export interface UpdatePatientReq {

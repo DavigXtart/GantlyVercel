@@ -29,6 +29,10 @@ interface Appointment {
   paymentMethod?: string;
   roomId?: number;
   roomName?: string;
+  taxExempt?: boolean;
+  taxRate?: number;
+  taxAmount?: number;
+  totalAmount?: number;
 }
 
 interface Room {
@@ -314,6 +318,8 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
   const [formModality, setFormModality] = useState<'ONLINE' | 'PRESENCIAL'>('ONLINE');
   const [formRoomId, setFormRoomId] = useState<number | null>(null);
   const [formPaymentMethod, setFormPaymentMethod] = useState<'STRIPE' | 'CASH'>('STRIPE');
+  const [formTaxExempt, setFormTaxExempt] = useState(true);
+  const [formTaxRate, setFormTaxRate] = useState('0.21');
 
   // -- Patient search --
   const [patientSearch, setPatientSearch] = useState('');
@@ -443,6 +449,8 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
     setFormModality('ONLINE');
     setFormRoomId(null);
     setFormPaymentMethod('STRIPE');
+    setFormTaxExempt(true);
+    setFormTaxRate('0.21');
     setActiveTab('cita');
     setShowCancelConfirm(false);
     setPanelOpen(true);
@@ -467,6 +475,8 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
     setFormModality((appt.modality as 'ONLINE' | 'PRESENCIAL') ?? 'ONLINE');
     setFormRoomId(appt.roomId ?? null);
     setFormPaymentMethod((appt.paymentMethod as 'STRIPE' | 'CASH') ?? 'STRIPE');
+    setFormTaxExempt(appt.taxExempt !== false);
+    setFormTaxRate(appt.taxRate != null ? String(appt.taxRate) : '0.21');
     setActiveTab('cita');
     setShowCancelConfirm(false);
     setPanelOpen(true);
@@ -501,6 +511,8 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
         modality: formModality,
         paymentMethod: formModality === 'PRESENCIAL' ? formPaymentMethod : 'STRIPE',
         roomId: formModality === 'PRESENCIAL' ? formRoomId : null,
+        taxExempt: formTaxExempt,
+        taxRate: !formTaxExempt ? Number(formTaxRate) : undefined,
       };
       if (formPatientId) body.patientId = formPatientId;
 
@@ -1373,6 +1385,33 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                       </div>
                     </div>
                   )}
+
+                  {/* IVA / Tax */}
+                  <div className="mt-2.5">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formTaxExempt}
+                        onChange={(e) => setFormTaxExempt(e.target.checked)}
+                        className="w-4 h-4 rounded border-slate-300 text-gantly-blue focus:ring-gantly-blue/20 cursor-pointer"
+                      />
+                      <span className="text-xs font-heading font-semibold text-slate-600">IVA exento (servicio sanitario)</span>
+                    </label>
+                    {!formTaxExempt && (
+                      <div className="mt-2">
+                        <label className="text-xs font-heading font-semibold text-slate-500 uppercase tracking-wide block mb-1">Tipo de IVA</label>
+                        <select
+                          value={formTaxRate}
+                          onChange={(e) => setFormTaxRate(e.target.value)}
+                          className="w-full h-10 px-2 rounded-xl border-2 border-slate-200 text-sm text-slate-700 outline-none bg-white focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
+                        >
+                          <option value="0.21">21% (General)</option>
+                          <option value="0.10">10% (Reducido)</option>
+                          <option value="0.04">4% (Superreducido)</option>
+                        </select>
+                      </div>
+                    )}
+                  </div>
                 </fieldset>
 
                 {/* -- Notas -- */}

@@ -104,6 +104,9 @@ public class MatchingService {
             results.add(result);
         }
 
+        // Remove psychologists with zero or near-zero affinity (safety net)
+        results.removeIf(r -> r.getAffinityScore() <= 0.0);
+
         results.sort((a, b) -> Double.compare(b.getAffinityScore(), a.getAffinityScore()));
 
         return results;
@@ -193,6 +196,31 @@ public class MatchingService {
                 if (!worksInModality) {
                     return false;
                 }
+            }
+        }
+
+        // Age group / population filter: if patient is a minor, psychologist MUST work with minors
+        QuestionEntity psychPopulationFilterQuestion = psychQuestions.stream()
+            .filter(q -> q.getPosition() == 9).findFirst().orElse(null);
+
+        if (psychPopulationFilterQuestion != null && patient.getAge() != null && patient.getAge() < 18) {
+            List<UserAnswerEntity> psychPopulationList = psychologistAnswersByQuestion.getOrDefault(
+                psychPopulationFilterQuestion.getId(), Collections.emptyList());
+
+            if (psychPopulationList.isEmpty()) {
+                return false; // No population answer — cannot verify minor compatibility
+            }
+
+            boolean coversMinors = psychPopulationList.stream()
+                .anyMatch(ua -> ua.getAnswer() != null &&
+                    (ua.getAnswer().getText().contains("Todas") ||
+                     ua.getAnswer().getText().contains("niños") ||
+                     ua.getAnswer().getText().contains("adolescentes") ||
+                     ua.getAnswer().getText().contains("menores") ||
+                     ua.getAnswer().getText().contains("infantojuvenil")));
+
+            if (!coversMinors) {
+                return false; // Psychologist does not work with minors — hard exclude
             }
         }
 
@@ -522,9 +550,8 @@ public class MatchingService {
                     totalScore += weight;
                 } else if (patient.getAge() > 50 && population.contains("+50")) {
                     totalScore += weight;
-                } else {
-                    totalScore += weight * 0.3;
                 }
+                // Age group mismatch: no score contribution (was 0.3 — too generous)
             }
         }
 

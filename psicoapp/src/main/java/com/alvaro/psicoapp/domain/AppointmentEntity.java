@@ -2,6 +2,7 @@ package com.alvaro.psicoapp.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +35,19 @@ public class AppointmentEntity {
     private String notes;
 
     @Column(name = "price", precision = 10, scale = 2)
-    private java.math.BigDecimal price;
+    private BigDecimal price;
+
+    @Column(name = "tax_rate", precision = 5, scale = 4)
+    private BigDecimal taxRate;
+
+    @Column(name = "tax_amount", precision = 10, scale = 2)
+    private BigDecimal taxAmount;
+
+    @Column(name = "total_amount", precision = 10, scale = 2)
+    private BigDecimal totalAmount;
+
+    @Column(name = "tax_exempt")
+    private Boolean taxExempt = true;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
@@ -88,8 +101,16 @@ public class AppointmentEntity {
     public void setStatus(String status) { this.status = status; }
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
-    public java.math.BigDecimal getPrice() { return price; }
-    public void setPrice(java.math.BigDecimal price) { this.price = price; }
+    public BigDecimal getPrice() { return price; }
+    public void setPrice(BigDecimal price) { this.price = price; }
+    public BigDecimal getTaxRate() { return taxRate; }
+    public void setTaxRate(BigDecimal taxRate) { this.taxRate = taxRate; }
+    public BigDecimal getTaxAmount() { return taxAmount; }
+    public void setTaxAmount(BigDecimal taxAmount) { this.taxAmount = taxAmount; }
+    public BigDecimal getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
+    public Boolean getTaxExempt() { return taxExempt; }
+    public void setTaxExempt(Boolean taxExempt) { this.taxExempt = taxExempt; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public Instant getConfirmedAt() { return confirmedAt; }

@@ -45,7 +45,6 @@ public class AuthService {
 	private final TestRepository testRepository;
 	private final EmailService emailService;
 	private final TotpService totpService;
-	private final TotpEncryptionService totpEncryptionService;
 	private final ClinicInvitationRepository clinicInvitationRepository;
 	private static final String INITIAL_TEST_CODE = "INITIAL";
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
@@ -73,7 +72,6 @@ public class AuthService {
 			PasswordEncoder passwordEncoder,
 			JwtService jwtService, TemporarySessionService sessionService, TestResultService testResultService,
 			TestRepository testRepository, EmailService emailService, TotpService totpService,
-			TotpEncryptionService totpEncryptionService,
 			ClinicInvitationRepository clinicInvitationRepository) {
 		this.userRepository = userRepository;
 		this.companyRepository = companyRepository;
@@ -86,7 +84,6 @@ public class AuthService {
 		this.testRepository = testRepository;
 		this.emailService = emailService;
 		this.totpService = totpService;
-		this.totpEncryptionService = totpEncryptionService;
 		this.clinicInvitationRepository = clinicInvitationRepository;
 	}
 
@@ -372,8 +369,8 @@ public class AuthService {
 			if (!Boolean.TRUE.equals(u.getTotpEnabled()) || u.getTotpSecret() == null) {
 				throw new IllegalArgumentException("2FA no está habilitado para esta cuenta");
 			}
-			String decryptedSecret = totpEncryptionService.decrypt(u.getTotpSecret());
-			if (!totpService.verifyCode(decryptedSecret, totpCode)) {
+			// PiiEncryptConverter on the entity handles decryption transparently
+			if (!totpService.verifyCode(u.getTotpSecret(), totpCode)) {
 				throw new IllegalArgumentException("Código 2FA inválido");
 			}
 			return jwtService.generateTokenPair(u.getEmail());

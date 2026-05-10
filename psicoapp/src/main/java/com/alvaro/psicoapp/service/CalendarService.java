@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -77,6 +78,7 @@ public class CalendarService {
         a.setEndTime(req.end);
         a.setStatus(AppointmentStatus.FREE);
         a.setPrice(req.price);
+        calculateTax(a);
         var saved = appointmentRepository.save(a);
         auditService.logCalendarAction("APPOINTMENT_CREATED", saved.getId(), psychologist.getId(), null);
         return saved;
@@ -120,6 +122,7 @@ public class CalendarService {
         if (req.price != null) {
             validatePrice(req.price);
             appointment.setPrice(req.price);
+            calculateTax(appointment);
         }
 
         if (req.startTime != null && req.endTime != null) {
@@ -339,6 +342,7 @@ public class CalendarService {
         appointment.setEndTime(req.end);
         appointment.setStatus("CONFIRMED");
         appointment.setPrice(req.price);
+        calculateTax(appointment);
         Instant now = Instant.now();
         appointment.setConfirmedAt(now);
         appointment.setConfirmedByUser(user);
@@ -500,6 +504,21 @@ public class CalendarService {
         return appointment.getNotes();
     }
 
+    private void calculateTax(AppointmentEntity appointment) {
+        if (appointment.getPrice() == null) return;
+
+        if (Boolean.TRUE.equals(appointment.getTaxExempt())) {
+            appointment.setTaxRate(BigDecimal.ZERO);
+            appointment.setTaxAmount(BigDecimal.ZERO);
+            appointment.setTotalAmount(appointment.getPrice());
+        } else {
+            BigDecimal rate = appointment.getTaxRate() != null ? appointment.getTaxRate() : new BigDecimal("0.21");
+            appointment.setTaxRate(rate);
+            appointment.setTaxAmount(appointment.getPrice().multiply(rate).setScale(2, RoundingMode.HALF_UP));
+            appointment.setTotalAmount(appointment.getPrice().add(appointment.getTaxAmount()));
+        }
+    }
+
     private void requirePsychologist(UserEntity user) {
         if (!RoleConstants.PSYCHOLOGIST.equals(user.getRole())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
@@ -599,6 +618,7 @@ public class CalendarService {
         var rating = appointmentRatingRepository.findByAppointment_IdAndUser_Id(apt.getId(), apt.getUser().getId())
                 .map(r -> new CalendarDtos.RatingDto(r.getId(), r.getRating(), r.getComment() != null ? r.getComment() : "", r.getCreatedAt() != null ? r.getCreatedAt().toString() : null))
                 .orElse(null);
-        return new CalendarDtos.PsychologistPastAppointmentDto(apt.getId(), apt.getStartTime(), apt.getEndTime(), apt.getStatus(), apt.getPrice(), apt.getPaymentStatus(), apt.getConfirmedAt(), user, rating);
+        return new CalendarDtos.PsychologistPastAppointmentDto(apt.getId(), apt.getStartTime(), apt.getEndTime(), apt.getStatus(), apt.getPrice(), apt.getPaymentStatus(), apt.getConfirmedAt(), user, rating,
+                apt.getTaxRate(), apt.getTaxAmount(), apt.getTotalAmount(), apt.getTaxExempt());
     }
 }

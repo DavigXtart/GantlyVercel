@@ -86,7 +86,8 @@ public class UserEntity {
 	@Column(name = "lockout_count", nullable = false)
 	private Integer lockoutCount = 0;
 
-	@Column(name = "totp_secret", length = 255)
+	@Convert(converter = PiiEncryptConverter.class)
+	@Column(name = "totp_secret", length = 500)
 	private String totpSecret;
 
 	@Column(name = "totp_enabled", nullable = false)

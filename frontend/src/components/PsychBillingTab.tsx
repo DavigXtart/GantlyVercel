@@ -10,6 +10,10 @@ interface Appointment {
   paymentStatus: string | null;
   confirmedAt: string | null;
   user: { id: number; name: string; email: string } | null;
+  taxRate?: number | null;
+  taxAmount?: number | null;
+  totalAmount?: number | null;
+  taxExempt?: boolean | null;
 }
 
 interface Props {
@@ -256,9 +260,11 @@ export default function PsychBillingTab({ appointments, loading, onRefresh }: Pr
         {/* Table header */}
         <div className="px-6 py-3.5 border-b border-slate-100 bg-slate-50/50">
           <div className="grid grid-cols-12 gap-4 items-center">
-            <span className="col-span-4 text-[11px] font-heading font-semibold text-gantly-muted uppercase tracking-widest">Paciente</span>
-            <span className="col-span-3 text-[11px] font-heading font-semibold text-gantly-muted uppercase tracking-widest">Fecha y hora</span>
-            <span className="col-span-2 text-[11px] font-heading font-semibold text-gantly-muted uppercase tracking-widest text-right">Importe</span>
+            <span className="col-span-3 text-[11px] font-heading font-semibold text-gantly-muted uppercase tracking-widest">Paciente</span>
+            <span className="col-span-2 text-[11px] font-heading font-semibold text-gantly-muted uppercase tracking-widest">Fecha y hora</span>
+            <span className="col-span-1 text-[11px] font-heading font-semibold text-gantly-muted uppercase tracking-widest text-right">Base</span>
+            <span className="col-span-2 text-[11px] font-heading font-semibold text-gantly-muted uppercase tracking-widest text-right">IVA</span>
+            <span className="col-span-1 text-[11px] font-heading font-semibold text-gantly-muted uppercase tracking-widest text-right">Total</span>
             <span className="col-span-3 text-[11px] font-heading font-semibold text-gantly-muted uppercase tracking-widest text-right">Estado</span>
           </div>
         </div>
@@ -267,12 +273,14 @@ export default function PsychBillingTab({ appointments, loading, onRefresh }: Pr
           <div className="py-6 px-4 space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="grid grid-cols-12 gap-4 items-center py-3">
-                <div className="col-span-4 flex items-center gap-3">
+                <div className="col-span-3 flex items-center gap-3">
                   <div className="animate-pulse bg-slate-200 rounded-full w-8 h-8 shrink-0" />
                   <div className="animate-pulse bg-slate-200 rounded h-3.5 w-24" />
                 </div>
-                <div className="col-span-3"><div className="animate-pulse bg-slate-100 rounded h-3 w-20" /></div>
+                <div className="col-span-2"><div className="animate-pulse bg-slate-100 rounded h-3 w-20" /></div>
+                <div className="col-span-1"><div className="animate-pulse bg-slate-100 rounded h-3 w-10 ml-auto" /></div>
                 <div className="col-span-2"><div className="animate-pulse bg-slate-100 rounded h-3 w-12 ml-auto" /></div>
+                <div className="col-span-1"><div className="animate-pulse bg-slate-100 rounded h-3 w-10 ml-auto" /></div>
                 <div className="col-span-3"><div className="animate-pulse bg-slate-200 rounded-full h-6 w-16 ml-auto" /></div>
               </div>
             ))}
@@ -298,7 +306,7 @@ export default function PsychBillingTab({ appointments, loading, onRefresh }: Pr
                   onClick={() => setExpandedId(expandedId === a.id ? null : a.id)}
                 >
                   {/* Patient */}
-                  <div className="col-span-4 flex items-center gap-3">
+                  <div className="col-span-3 flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-gantly-blue/10 flex items-center justify-center flex-shrink-0 group-hover:bg-gantly-blue/20 transition-colors">
                       <User className="text-gantly-blue" size={16} />
                     </div>
@@ -313,17 +321,38 @@ export default function PsychBillingTab({ appointments, loading, onRefresh }: Pr
                   </div>
 
                   {/* Date/Time */}
-                  <div className="col-span-3">
+                  <div className="col-span-2">
                     <span className="text-sm font-body text-gantly-text block">{formatDate(a.startTime)}</span>
                     <span className="text-xs font-body text-gantly-muted">
                       {formatTime(a.startTime)} - {formatTime(a.endTime)}
                     </span>
                   </div>
 
-                  {/* Price */}
-                  <div className="col-span-2 text-right">
-                    <span className="font-heading font-bold text-sm text-gantly-text">
+                  {/* Base (price) */}
+                  <div className="col-span-1 text-right">
+                    <span className="font-heading font-semibold text-sm text-gantly-text">
                       {a.price != null ? `${Number(a.price).toFixed(2)} \u20AC` : '--'}
+                    </span>
+                  </div>
+
+                  {/* IVA */}
+                  <div className="col-span-2 text-right">
+                    {a.taxExempt ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-heading font-semibold bg-slate-100 text-slate-500">Exento</span>
+                    ) : (
+                      <span className="font-heading font-semibold text-sm text-gantly-text">
+                        {a.taxAmount != null ? `${Number(a.taxAmount).toFixed(2)} \u20AC` : '--'}
+                        {a.taxRate != null && a.taxRate > 0 && (
+                          <span className="text-[10px] text-gantly-muted ml-1">({(Number(a.taxRate) * 100).toFixed(0)}%)</span>
+                        )}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Total */}
+                  <div className="col-span-1 text-right">
+                    <span className="font-heading font-bold text-sm text-gantly-text">
+                      {(a.totalAmount != null ? Number(a.totalAmount).toFixed(2) : a.price != null ? Number(a.price).toFixed(2) : '--') + (a.totalAmount != null || a.price != null ? ' \u20AC' : '')}
                     </span>
                   </div>
 

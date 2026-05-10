@@ -6,7 +6,6 @@ import com.alvaro.psicoapp.service.ClinicService;
 import com.alvaro.psicoapp.service.CompanyAuthService;
 import com.alvaro.psicoapp.service.OAuthCodeStoreService;
 import com.alvaro.psicoapp.service.TokenBlacklistService;
-import com.alvaro.psicoapp.service.TotpEncryptionService;
 import com.alvaro.psicoapp.service.TotpService;
 import com.alvaro.psicoapp.domain.UserEntity;
 import com.alvaro.psicoapp.repository.UserRepository;
@@ -32,20 +31,18 @@ public class AuthController {
 	private final OAuthCodeStoreService oauthCodeStore;
 	private final TokenBlacklistService tokenBlacklistService;
 	private final TotpService totpService;
-	private final TotpEncryptionService totpEncryptionService;
 	private final UserRepository userRepository;
 	private final ClinicService clinicService;
 
 	public AuthController(AuthService authService, CompanyAuthService companyAuthService,
 			OAuthCodeStoreService oauthCodeStore, TokenBlacklistService tokenBlacklistService,
-			TotpService totpService, TotpEncryptionService totpEncryptionService,
+			TotpService totpService,
 			UserRepository userRepository, ClinicService clinicService) {
 		this.authService = authService;
 		this.companyAuthService = companyAuthService;
 		this.oauthCodeStore = oauthCodeStore;
 		this.tokenBlacklistService = tokenBlacklistService;
 		this.totpService = totpService;
-		this.totpEncryptionService = totpEncryptionService;
 		this.userRepository = userRepository;
 		this.clinicService = clinicService;
 	}
@@ -300,8 +297,8 @@ public class AuthController {
         if (user == null) return ResponseEntity.status(401).build();
         String secret = totpService.generateSecret();
         String qrCode = totpService.getQrCodeDataUri(secret, user.getEmail());
-        // Encrypt the secret before storing
-        user.setTotpSecret(totpEncryptionService.encrypt(secret));
+        // PiiEncryptConverter on the entity handles encryption transparently
+        user.setTotpSecret(secret);
         userRepository.save(user);
         return ResponseEntity.ok(java.util.Map.of("secret", secret, "qrCode", qrCode));
     }
@@ -315,9 +312,8 @@ public class AuthController {
         if (user.getTotpSecret() == null) {
             return ResponseEntity.badRequest().body(new AuthDtos.MessageStatusResponse("Primero debes configurar 2FA", "error"));
         }
-        // Decrypt the stored secret before verification
-        String decryptedSecret = totpEncryptionService.decrypt(user.getTotpSecret());
-        if (!totpService.verifyCode(decryptedSecret, code)) {
+        // PiiEncryptConverter on the entity handles decryption transparently
+        if (!totpService.verifyCode(user.getTotpSecret(), code)) {
             return ResponseEntity.badRequest().body(new AuthDtos.MessageStatusResponse("Código inválido", "error"));
         }
         user.setTotpEnabled(true);

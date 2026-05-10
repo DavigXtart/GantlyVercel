@@ -146,7 +146,8 @@ public class StripeService {
         }
 
         try {
-            long amountCents = appointment.getPrice().multiply(java.math.BigDecimal.valueOf(100)).longValue();
+            java.math.BigDecimal chargeAmount = appointment.getTotalAmount() != null ? appointment.getTotalAmount() : appointment.getPrice();
+            long amountCents = chargeAmount.multiply(java.math.BigDecimal.valueOf(100)).longValue();
 
             SessionCreateParams params = SessionCreateParams.builder()
                     .setMode(SessionCreateParams.Mode.PAYMENT)

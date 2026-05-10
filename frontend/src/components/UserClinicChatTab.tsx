@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Building2, MessageCircle, Send } from 'lucide-react';
 import { patientClinicChatService } from '../services/api';
 import { toast } from './ui/Toast';
@@ -7,42 +7,73 @@ interface UserClinicChatTabProps {
   hasClinic: boolean;
 }
 
+type ChatMessage = { id: number; sender: string; content: string; createdAt: string };
+
 export default function UserClinicChatTab({ hasClinic }: UserClinicChatTabProps) {
-  const [clinicChatMessages, setClinicChatMessages] = useState<Array<{ id: number; sender: string; content: string; createdAt: string }>>([]);
+  const [clinicChatMessages, setClinicChatMessages] = useState<ChatMessage[]>([]);
   const [clinicChatInput, setClinicChatInput] = useState('');
   const [clinicChatSending, setClinicChatSending] = useState(false);
   const [clinicChatLoading, setClinicChatLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  // Track latest message timestamp in a ref to avoid stale closure
+  const lastTimestampRef = useRef<string | null>(null);
 
-  const loadClinicChat = async () => {
-    if (!hasClinic) return;
-    try {
-      const msgs = await patientClinicChatService.getMessages();
-      setClinicChatMessages(msgs);
-    } catch {
-      // silently ignore
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+  // Update ref whenever messages change
+  useEffect(() => {
+    if (clinicChatMessages.length > 0) {
+      lastTimestampRef.current = clinicChatMessages[clinicChatMessages.length - 1].createdAt;
     }
-  };
+  }, [clinicChatMessages]);
 
-  // Poll clinic chat every 5 seconds
+  // Auto-scroll when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [clinicChatMessages, scrollToBottom]);
+
+  // Initial load + polling every 5 seconds
   useEffect(() => {
     if (!hasClinic) return;
-    setClinicChatLoading(true);
-    loadClinicChat().finally(() => setClinicChatLoading(false));
-    const interval = setInterval(() => {
-      if (clinicChatMessages.length > 0) {
-        const lastTime = clinicChatMessages[clinicChatMessages.length - 1].createdAt;
-        patientClinicChatService.getMessages(lastTime)
-          .then((newMsgs) => {
-            if (newMsgs.length > 0) {
-              setClinicChatMessages((prev) => [...prev, ...newMsgs]);
-            }
-          })
-          .catch(() => {});
-      } else {
-        loadClinicChat();
+
+    let cancelled = false;
+
+    const loadAll = async () => {
+      try {
+        const msgs = await patientClinicChatService.getMessages();
+        if (!cancelled) setClinicChatMessages(msgs);
+      } catch {
+        // silently ignore
       }
-    }, 5000);
-    return () => clearInterval(interval);
+    };
+
+    const pollNew = async () => {
+      try {
+        const after = lastTimestampRef.current;
+        if (after) {
+          const newMsgs = await patientClinicChatService.getMessages(after);
+          if (!cancelled && newMsgs.length > 0) {
+            setClinicChatMessages((prev) => [...prev, ...newMsgs]);
+          }
+        } else {
+          await loadAll();
+        }
+      } catch {
+        // silently ignore
+      }
+    };
+
+    setClinicChatLoading(true);
+    loadAll().finally(() => { if (!cancelled) setClinicChatLoading(false); });
+
+    const interval = setInterval(pollNew, 5000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, [hasClinic]);
 
   const handleSendClinicChat = async () => {
@@ -83,7 +114,10 @@ export default function UserClinicChatTab({ hasClinic }: UserClinicChatTabProps)
         ) : (
           <>
             {/* Messages list */}
-            <div className="space-y-3 max-h-[500px] overflow-y-auto mb-6 pr-2">
+            <div
+              ref={messagesContainerRef}
+              className="space-y-3 max-h-[500px] overflow-y-auto mb-6 pr-2"
+            >
               {clinicChatMessages.length === 0 ? (
                 <div className="text-center py-12">
                   <MessageCircle size={32} className="text-slate-200 mb-3 mx-auto block" />
@@ -114,6 +148,7 @@ export default function UserClinicChatTab({ hasClinic }: UserClinicChatTabProps)
                   </div>
                 ))
               )}
+              <div ref={messagesEndRef} />
             </div>
 
             {/* Input */}

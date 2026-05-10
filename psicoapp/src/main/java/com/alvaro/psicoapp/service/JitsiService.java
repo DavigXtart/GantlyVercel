@@ -79,10 +79,12 @@ public class JitsiService {
                     .orElse(null);
 
             if (validAppointment != null) {
-                // Skip payment check for cash/in-person payments (clinic ERP appointments)
+                // Skip payment check for non-Stripe payments (clinic ERP: CASH/EFECTIVO/etc.)
+                // and for appointments where the psychologist belongs to a clinic
                 String paymentMethod = validAppointment.getPaymentMethod();
-                boolean isCashPayment = "CASH".equalsIgnoreCase(paymentMethod) || "EFECTIVO".equalsIgnoreCase(paymentMethod);
-                if (!isCashPayment && !"PAID".equals(validAppointment.getPaymentStatus())) {
+                boolean requiresStripePayment = "STRIPE".equalsIgnoreCase(paymentMethod);
+                boolean psychBelongsToClinic = validAppointment.getPsychologist().getCompanyId() != null;
+                if (requiresStripePayment && !psychBelongsToClinic && !"PAID".equals(validAppointment.getPaymentStatus())) {
                     throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                             "Debes completar el pago de tu cita antes de iniciar la videollamada.");
                 }

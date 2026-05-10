@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -76,7 +77,8 @@ public class ClinicService {
                                         String psychologistAvatarUrl, Long patientId, String patientName,
                                         String startTime, String endTime, String status, String service,
                                         BigDecimal price, String paymentStatus, String notes, String clinicNotes,
-                                        String modality, String paymentMethod, Long roomId, String roomName) {}
+                                        String modality, String paymentMethod, Long roomId, String roomName,
+                                        Boolean taxExempt, BigDecimal taxRate, BigDecimal taxAmount, BigDecimal totalAmount) {}
     public record ClinicPatientSummaryDto(Long id, String name, String email, String phone,
                                            Integer patientNumber, String status,
                                            String assignedPsychologistName, long totalAppointments) {}
@@ -89,12 +91,13 @@ public class ClinicService {
     public record ClinicBillingDto(Long appointmentId, String startTime, String endTime, Long psychologistId,
                                     String psychologistName, Long patientId, String patientName,
                                     String service, BigDecimal price, String paymentStatus,
-                                    String modality, String paymentMethod) {}
+                                    String modality, String paymentMethod,
+                                    BigDecimal taxRate, BigDecimal taxAmount, BigDecimal totalAmount, Boolean taxExempt) {}
     public record CreateAppointmentRequest(Long psychologistId, Long patientId, String patientName,
                                             String startTime, String endTime, String service,
                                             BigDecimal price, String notes, String clinicNotes,
                                             String paymentStatus, String modality, String paymentMethod,
-                                            Long roomId) {}
+                                            Long roomId, Boolean taxExempt, BigDecimal taxRate) {}
     public record UpdateAppointmentRequest(Long patientId, String patientName, String startTime, String endTime,
                                             String service, BigDecimal price, String notes, String clinicNotes,
                                             String paymentStatus, String modality, String paymentMethod,
@@ -136,7 +139,8 @@ public class ClinicService {
                 a.getNotes(), a.getClinicNotes(),
                 a.getModality() != null ? a.getModality() : "ONLINE",
                 a.getPaymentMethod() != null ? a.getPaymentMethod() : "STRIPE",
-                a.getRoomId(), roomName);
+                a.getRoomId(), roomName,
+                a.getTaxExempt(), a.getTaxRate(), a.getTaxAmount(), a.getTotalAmount());
     }
 
     @Transactional(readOnly = true)
@@ -274,6 +278,9 @@ public class ClinicService {
             appt.setPaymentStatus(req.paymentStatus() != null ? req.paymentStatus() : "PENDING");
         }
         appt.setRoomId(req.roomId());
+        appt.setTaxExempt(req.taxExempt() != null ? req.taxExempt() : true);
+        if (req.taxRate() != null) appt.setTaxRate(req.taxRate());
+        calculateTax(appt);
         appt.setConfirmedAt(Instant.now());
         appointmentRepository.save(appt);
 
@@ -308,6 +315,10 @@ public class ClinicService {
         if (req.patientId() != null) {
             UserEntity patient = userRepository.findById(req.patientId()).orElse(null);
             appt.setUser(patient);
+        }
+        // Recalculate tax if price changed
+        if (req.price() != null) {
+            calculateTax(appt);
         }
         appointmentRepository.save(appt);
 
@@ -477,7 +488,8 @@ public class ClinicService {
                         psych.getId(), psych.getName(), pid, patientName,
                         a.getService(), a.getPrice(), a.getPaymentStatus(),
                         a.getModality() != null ? a.getModality() : "ONLINE",
-                        a.getPaymentMethod() != null ? a.getPaymentMethod() : "STRIPE"));
+                        a.getPaymentMethod() != null ? a.getPaymentMethod() : "STRIPE",
+                        a.getTaxRate(), a.getTaxAmount(), a.getTotalAmount(), a.getTaxExempt()));
             }
         }
         result.sort(Comparator.comparing(ClinicBillingDto::startTime).reversed());
@@ -616,6 +628,21 @@ public class ClinicService {
         double occ = psychs.isEmpty() ? 0.0 : Math.min(1.0, totalThisMonth / (psychs.size() * 80.0));
         return new StatsDto(psychs.size(), (long) patientIds.size(), totalThisMonth,
                 revThis, revPrev, occ, psychStats, trend);
+    }
+
+    private void calculateTax(AppointmentEntity appointment) {
+        if (appointment.getPrice() == null) return;
+
+        if (Boolean.TRUE.equals(appointment.getTaxExempt())) {
+            appointment.setTaxRate(BigDecimal.ZERO);
+            appointment.setTaxAmount(BigDecimal.ZERO);
+            appointment.setTotalAmount(appointment.getPrice());
+        } else {
+            BigDecimal rate = appointment.getTaxRate() != null ? appointment.getTaxRate() : new BigDecimal("0.21");
+            appointment.setTaxRate(rate);
+            appointment.setTaxAmount(appointment.getPrice().multiply(rate).setScale(2, RoundingMode.HALF_UP));
+            appointment.setTotalAmount(appointment.getPrice().add(appointment.getTaxAmount()));
+        }
     }
 
     private static boolean isFreeOrCancelled(AppointmentEntity a) {

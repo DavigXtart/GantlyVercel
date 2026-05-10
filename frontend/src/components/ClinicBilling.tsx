@@ -93,6 +93,10 @@ function generateInvoicePdf(item: {
   service?: string | null;
   price?: number | null;
   paymentStatus?: string | null;
+  taxRate?: number | null;
+  taxAmount?: number | null;
+  totalAmount?: number | null;
+  taxExempt?: boolean | null;
 }, clinicName: string) {
   import('jspdf').then(({ jsPDF }) => {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
@@ -148,18 +152,19 @@ function generateInvoicePdf(item: {
     doc.setFontSize(9);
     doc.setTextColor(46, 147, 204);
     doc.text('BASE IMPONIBLE', margin + 6, y + 10);
-    doc.text('IVA (21%)', pageW / 2, y + 10);
+    const ivaLabel = item.taxExempt ? 'IVA (Exento)' : `IVA (${item.taxRate != null ? (item.taxRate * 100).toFixed(0) : '21'}%)`;
+    doc.text(ivaLabel, pageW / 2, y + 10);
     doc.text('TOTAL', pageW - margin - 6, y + 10, { align: 'right' });
 
-    const price = item.price ?? 0;
-    const base = price / 1.21;
-    const iva = price - base;
+    const base = item.price ?? 0;
+    const iva = item.taxExempt ? 0 : (item.taxAmount ?? 0);
+    const total = item.totalAmount ?? base;
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(15, 23, 42);
     doc.text(`\u20AC${base.toFixed(2)}`, margin + 6, y + 22);
-    doc.text(`\u20AC${iva.toFixed(2)}`, pageW / 2, y + 22);
-    doc.text(`\u20AC${price.toFixed(2)}`, pageW - margin - 6, y + 22, { align: 'right' });
+    doc.text(item.taxExempt ? 'Exento' : `\u20AC${iva.toFixed(2)}`, pageW / 2, y + 22);
+    doc.text(`\u20AC${total.toFixed(2)}`, pageW - margin - 6, y + 22, { align: 'right' });
 
     y += 38;
     doc.setFontSize(9);
@@ -181,7 +186,7 @@ function generateInvoicePdf(item: {
 // CSV export
 // ---------------------------------------------------------------------------
 function exportCsv(items: ClinicBillingItem[]): void {
-  const headers = ['Fecha', 'Hora inicio', 'Hora fin', 'Psicologo', 'Paciente', 'Servicio', 'Precio', 'Estado pago'];
+  const headers = ['Fecha', 'Hora inicio', 'Hora fin', 'Psicologo', 'Paciente', 'Servicio', 'Base', 'IVA exento', 'Tipo IVA', 'IVA', 'Total', 'Estado pago'];
   const rows = items.map((item) => [
     fmtDate(item.startTime),
     fmtTime(item.startTime),
@@ -190,6 +195,10 @@ function exportCsv(items: ClinicBillingItem[]): void {
     item.patientName ?? '',
     item.service ?? '',
     item.price != null ? item.price.toFixed(2) : '',
+    item.taxExempt ? 'Si' : 'No',
+    item.taxExempt ? 'Exento' : (item.taxRate != null ? `${(item.taxRate * 100).toFixed(0)}%` : ''),
+    item.taxAmount != null ? item.taxAmount.toFixed(2) : '0.00',
+    (item.totalAmount ?? item.price ?? 0).toFixed(2),
     item.paymentStatus ?? '',
   ]);
   const csv = [headers, ...rows].map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
@@ -353,7 +362,9 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
                   <th className="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Psicólogo</th>
                   <th className="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Paciente</th>
                   <th className="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Servicio</th>
-                  <th className="text-right px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Importe</th>
+                  <th className="text-right px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Base</th>
+                  <th className="text-right px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">IVA</th>
+                  <th className="text-right px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Total</th>
                   <th className="text-center px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Estado</th>
                   <th className="w-10 px-3 py-3" />
                 </tr>
@@ -366,7 +377,22 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
                     <td className="px-3 py-3 text-sm font-medium text-slate-900 whitespace-nowrap">{item.psychologistName}</td>
                     <td className="px-3 py-3 text-sm text-slate-700">{item.patientName ?? '—'}</td>
                     <td className="px-3 py-3 text-sm text-slate-500">{item.service ?? '—'}</td>
-                    <td className="px-3 py-3 text-sm font-semibold text-slate-900 text-right whitespace-nowrap">{fmtEuro(item.price)}</td>
+                    <td className="px-3 py-3 text-sm text-slate-900 text-right whitespace-nowrap">{fmtEuro(item.price)}</td>
+                    <td className="px-3 py-3 text-sm text-right whitespace-nowrap">
+                      {item.taxExempt ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-500">Exento</span>
+                      ) : (
+                        <span className="text-slate-700">
+                          {fmtEuro(item.taxAmount)}
+                          {item.taxRate != null && item.taxRate > 0 && (
+                            <span className="text-[10px] text-slate-500 ml-1">({(item.taxRate * 100).toFixed(0)}%)</span>
+                          )}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-3 py-3 text-sm font-semibold text-slate-900 text-right whitespace-nowrap">
+                      {fmtEuro(item.totalAmount ?? item.price)}
+                    </td>
                     <td className="px-3 py-3 text-center"><PaymentBadge status={item.paymentStatus} /></td>
                     <td className="px-3 py-3">
                       <button

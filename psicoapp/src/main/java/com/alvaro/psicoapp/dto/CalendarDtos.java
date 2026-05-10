@@ -29,7 +29,8 @@ public class CalendarDtos {
     public record PastUserDto(Long id, String name, String email) {}
     public record PsychologistPastAppointmentDto(Long id, Instant startTime, Instant endTime, String status, BigDecimal price,
                                                  String paymentStatus, Instant confirmedAt,
-                                                 PastUserDto user, RatingDto rating) {}
+                                                 PastUserDto user, RatingDto rating,
+                                                 BigDecimal taxRate, BigDecimal taxAmount, BigDecimal totalAmount, Boolean taxExempt) {}
     public record CreateForPatientResponse(Long id, String startTime, String endTime, String status, Long userId, Long psychologistId) {}
     public record RateAppointmentResponse(String message, RatingDto rating) {}
     public record PsychologistRatingResponse(Double averageRating, long totalRatings) {}
