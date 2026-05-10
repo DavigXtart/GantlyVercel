@@ -4,6 +4,7 @@ import com.alvaro.psicoapp.dto.AuthDtos;
 import com.alvaro.psicoapp.service.AuthService;
 import com.alvaro.psicoapp.service.ClinicService;
 import com.alvaro.psicoapp.service.CompanyAuthService;
+import com.alvaro.psicoapp.service.OAuthCodeStoreService;
 import com.alvaro.psicoapp.service.TokenBlacklistService;
 import com.alvaro.psicoapp.service.TotpEncryptionService;
 import com.alvaro.psicoapp.service.TotpService;
@@ -28,6 +29,7 @@ public class AuthController {
 
 	private final AuthService authService;
 	private final CompanyAuthService companyAuthService;
+	private final OAuthCodeStoreService oauthCodeStore;
 	private final TokenBlacklistService tokenBlacklistService;
 	private final TotpService totpService;
 	private final TotpEncryptionService totpEncryptionService;
@@ -35,11 +37,12 @@ public class AuthController {
 	private final ClinicService clinicService;
 
 	public AuthController(AuthService authService, CompanyAuthService companyAuthService,
-			TokenBlacklistService tokenBlacklistService,
+			OAuthCodeStoreService oauthCodeStore, TokenBlacklistService tokenBlacklistService,
 			TotpService totpService, TotpEncryptionService totpEncryptionService,
 			UserRepository userRepository, ClinicService clinicService) {
 		this.authService = authService;
 		this.companyAuthService = companyAuthService;
+		this.oauthCodeStore = oauthCodeStore;
 		this.tokenBlacklistService = tokenBlacklistService;
 		this.totpService = totpService;
 		this.totpEncryptionService = totpEncryptionService;
@@ -341,6 +344,26 @@ public class AuthController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(new AuthDtos.MessageStatusResponse(e.getMessage(), "error"));
         }
+    }
+
+    @PostMapping("/exchange-oauth-code")
+    @Operation(summary = "Intercambiar codigo OAuth por tokens",
+            description = "Intercambia un codigo de autorizacion OAuth2 de un solo uso por access y refresh tokens. El codigo expira en 30 segundos.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Tokens generados exitosamente",
+            content = @Content(schema = @Schema(implementation = AuthDtos.TokenResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Codigo invalido o expirado")
+    })
+    public ResponseEntity<?> exchangeOAuthCode(@RequestBody java.util.Map<String, String> body) {
+        String code = body.get("code");
+        if (code == null || code.isBlank()) {
+            return ResponseEntity.badRequest().body(new AuthDtos.MessageStatusResponse("Codigo requerido", "error"));
+        }
+        var tokenPair = oauthCodeStore.exchangeCode(code);
+        if (tokenPair == null) {
+            return ResponseEntity.badRequest().body(new AuthDtos.MessageStatusResponse("Codigo invalido o expirado", "error"));
+        }
+        return ResponseEntity.ok(new AuthDtos.TokenResponse(tokenPair.accessToken, tokenPair.refreshToken, 900));
     }
 
     @GetMapping("/invite-info")

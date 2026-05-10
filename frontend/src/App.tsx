@@ -4,7 +4,7 @@ import * as Sentry from '@sentry/react';
 import Login from './components/Login';
 import Register from './components/Register';
 import Landing from './components/landing/Landing';
-import { authService } from './services/api';
+import { authService, safeStorage } from './services/api';
 import { ToastContainer, toast } from './components/ui/Toast';
 import GlobalLoader from './components/ui/GlobalLoader';
 import Maintenance from './components/Maintenance';
@@ -44,7 +44,7 @@ const LazyFallback = () => (
 
 // Auth context shared across routes
 function useAuth() {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem('token'));
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!safeStorage.get('token'));
   const [role, setRole] = useState<'USER' | 'ADMIN' | 'PSYCHOLOGIST' | 'EMPRESA' | null>(null);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const roleCheckInProgress = useRef(false);
@@ -57,7 +57,7 @@ function useAuth() {
       setRole(userData?.role || null);
     } catch (err: any) {
       if (err.response?.status === 401 || err.response?.status === 403) {
-        localStorage.removeItem('token');
+        safeStorage.remove('token');
         setIsAuthenticated(false);
       }
       setRole(null);
@@ -73,16 +73,16 @@ function useAuth() {
 
   const logout = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
-      const refreshToken = localStorage.getItem('refreshToken');
+      const token = safeStorage.get('token');
+      const refreshToken = safeStorage.get('refreshToken');
       if (token) {
         await authService.logout(refreshToken || undefined);
       }
     } catch {
       // Ignore errors — we clear local state regardless
     }
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
+    safeStorage.remove('token');
+    safeStorage.remove('refreshToken');
     setIsAuthenticated(false);
     setRole(null);
   }, []);
@@ -110,33 +110,62 @@ function useAuth() {
   return { isAuthenticated, role, maintenanceMode, login, logout, checkRole };
 }
 
-// Component to handle OAuth callback (token in URL hash or query)
+// Component to handle OAuth callback via one-time code exchange (secure: no tokens in URL)
 function OAuthHandler({ onLogin }: { onLogin: () => void }) {
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const errorFromUrl = urlParams.get('error');
+
+    // Sanitize OAuth error messages — never display raw backend strings
+    const safeErrors: Record<string, string> = {
+      'access_denied': 'Acceso denegado',
+      'invalid_request': 'Solicitud invalida',
+      'server_error': 'Error del servidor',
+      'temporarily_unavailable': 'Servicio no disponible temporalmente',
+    };
+
+    // New flow: exchange one-time code for token (no tokens in URL)
+    if (code && code.length > 10) {
+      authService.exchangeOAuthCode(code)
+        .then(() => {
+          // Clear query params from URL
+          window.history.replaceState({}, '', location.pathname);
+          onLogin();
+          toast.success('Sesion iniciada correctamente!');
+          navigate('/dashboard', { replace: true });
+        })
+        .catch(() => {
+          navigate('/login', { replace: true, state: { oauthError: 'Error al iniciar sesion con Google' } });
+        });
+      return;
+    }
+
+    // Legacy fallback: token in URL hash (backwards compat — will be removed)
     const hash = window.location.hash.substring(1);
     const hashParams = new URLSearchParams(hash);
-    const urlParams = new URLSearchParams(window.location.search);
     const tokenFromUrl = hashParams.get('token') || urlParams.get('token');
-    const errorFromUrl = hashParams.get('error') || urlParams.get('error');
 
     if (tokenFromUrl && location.pathname.includes('reset-password')) {
       return; // Let ResetPassword route handle it
     }
 
     if (tokenFromUrl && tokenFromUrl.length > 10) {
-      localStorage.setItem('token', tokenFromUrl);
+      console.warn('[OAuth] Token found in URL — this flow is deprecated. Migrate backend to use code exchange.');
+      safeStorage.set('token', tokenFromUrl);
       window.location.hash = '';
       onLogin();
-      toast.success('¡Sesión iniciada correctamente!');
+      toast.success('Sesion iniciada correctamente!');
       navigate('/dashboard', { replace: true });
       return;
     }
 
     if (errorFromUrl) {
-      navigate('/login', { replace: true, state: { oauthError: decodeURIComponent(errorFromUrl) } });
+      const safeError = safeErrors[errorFromUrl] || 'Error de autenticacion';
+      navigate('/login', { replace: true, state: { oauthError: safeError } });
     }
   }, []);
 
@@ -147,7 +176,7 @@ function OAuthHandler({ onLogin }: { onLogin: () => void }) {
 function ReferralRedirect() {
   const location = useLocation();
   const pathSlug = location.pathname.replace(/^\//, '').toLowerCase().replace(/[^a-z0-9-]/g, '');
-  const KNOWN_PATHS = ['', 'about', 'login', 'register', 'initial-test', 'reset-password', 'soy-profesional', 'privacidad', 'terminos', 'login-empresa', 'register-psicologo', 'register-empresa', 'forgot-password', 'dashboard', 'test'];
+  const KNOWN_PATHS = ['', 'about', 'login', 'register', 'initial-test', 'reset-password', 'soy-profesional', 'privacidad', 'terminos', 'login-empresa', 'register-psicologo', 'register-empresa', 'forgot-password', 'dashboard', 'test', 'oauth-callback'];
 
   if (pathSlug && pathSlug.length > 2 && !KNOWN_PATHS.includes(pathSlug)) {
     return <Navigate to={`/register?referral=${pathSlug}`} replace />;
@@ -457,6 +486,9 @@ function App() {
               onShowSoyProfesional={() => navigate('/soy-profesional')}
             />
         } />
+
+        {/* OAuth callback route: shows loading while code is exchanged for tokens */}
+        <Route path="/oauth-callback" element={<GlobalLoader />} />
 
         {/* Catch-all: detect referral slugs or redirect to landing */}
         <Route path="*" element={<ReferralRedirect />} />

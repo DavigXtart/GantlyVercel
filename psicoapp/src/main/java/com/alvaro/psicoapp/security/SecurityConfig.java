@@ -45,6 +45,9 @@ public class SecurityConfig {
 
 		http
             .cors(Customizer.withDefaults())
+			// CSRF disabled: safe because auth uses JWT in Authorization header (not cookies).
+			// Tokens are never sent automatically by the browser, so CSRF attacks cannot forge requests.
+			// If we ever move to httpOnly cookie-based auth, CSRF protection MUST be re-enabled.
 			.csrf(csrf -> csrf.disable())
 			.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.addFilterBefore(maintenanceFilter, UsernamePasswordAuthenticationFilter.class)
@@ -63,6 +66,14 @@ public class SecurityConfig {
                     org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN));
                 headers.permissionsPolicy(pp -> pp.policy(
                     "camera=(self), microphone=(self), geolocation=(), payment=(self)"));
+                headers.contentSecurityPolicy(csp -> csp.policyDirectives(
+                    "default-src 'self'; " +
+                    "script-src 'self' https://js.stripe.com https://checkout.stripe.com; " +
+                    "style-src 'self' 'unsafe-inline'; " +
+                    "img-src 'self' data: https:; " +
+                    "connect-src 'self' https://api.stripe.com wss:; " +
+                    "frame-src https://checkout.stripe.com https://js.stripe.com;"
+                ));
                 if (isProd) {
                     headers.httpStrictTransportSecurity(hsts -> hsts
                         .includeSubDomains(true)

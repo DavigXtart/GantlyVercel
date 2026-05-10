@@ -10,6 +10,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 import com.alvaro.psicoapp.service.AuthService;
+import com.alvaro.psicoapp.service.OAuthCodeStoreService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,11 +20,13 @@ import jakarta.servlet.http.HttpServletResponse;
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
 	private final AuthService authService;
+	private final OAuthCodeStoreService oauthCodeStore;
 	private final String frontendBaseUrl;
 
-	public OAuth2SuccessHandler(AuthService authService,
+	public OAuth2SuccessHandler(AuthService authService, OAuthCodeStoreService oauthCodeStore,
 			@Value("${app.base.url:http://localhost:5173}") String frontendBaseUrl) {
 		this.authService = authService;
+		this.oauthCodeStore = oauthCodeStore;
 		this.frontendBaseUrl = frontendBaseUrl.replaceAll("/$", "");
 	}
 
@@ -47,15 +50,21 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 		}
 
 		if (providerId == null || email == null || email.isEmpty()) {
-			response.sendRedirect(frontendBaseUrl + "/#error=oauth_missing_data");
+			response.sendRedirect(frontendBaseUrl + "/login?error=" +
+				java.net.URLEncoder.encode("oauth_missing_data", "UTF-8"));
 			return;
 		}
 
 		try {
 			var tokenPair = authService.processOAuth2UserWithRefresh(provider, providerId, email, name, picture);
-			response.sendRedirect(frontendBaseUrl + "/#token=" + java.net.URLEncoder.encode(tokenPair.accessToken, "UTF-8"));
+			// Store token pair and redirect with short-lived one-time code instead of real JWT.
+			// The frontend exchanges this code for the real tokens via POST /api/auth/exchange-oauth-code.
+			String code = oauthCodeStore.storeTokenPair(tokenPair);
+			response.sendRedirect(frontendBaseUrl + "/oauth-callback?code=" +
+				java.net.URLEncoder.encode(code, "UTF-8"));
 		} catch (Exception e) {
-			response.sendRedirect(frontendBaseUrl + "/#error=" + java.net.URLEncoder.encode(e.getMessage(), "UTF-8"));
+			response.sendRedirect(frontendBaseUrl + "/login?error=" +
+				java.net.URLEncoder.encode(e.getMessage(), "UTF-8"));
 		}
 	}
 

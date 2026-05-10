@@ -19,7 +19,9 @@ export default function ResetPassword({ token, onSuccess, onBack }: ResetPasswor
 
   const validatePassword = (password: string): string | undefined => {
     if (!password) return 'La contraseña es obligatoria';
-    if (password.length < 6) return 'La contraseña debe tener al menos 6 caracteres';
+    if (password.length < 10) return 'La contraseña debe tener al menos 10 caracteres';
+    if (!/[A-Z]/.test(password)) return 'Debe contener al menos una letra mayuscula';
+    if (!/[!@#$%^&*()_+\-=\[\]{}|;:'",.<>?/\\]/.test(password)) return 'Debe contener al menos un simbolo especial';
     return undefined;
   };
 

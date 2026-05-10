@@ -1,5 +1,18 @@
 import axios from 'axios';
 
+// Safe localStorage wrapper — handles SecurityError in private browsing / disabled storage
+export const safeStorage = {
+  get: (key: string): string | null => {
+    try { return localStorage.getItem(key); } catch { return null; }
+  },
+  set: (key: string, value: string): void => {
+    try { localStorage.setItem(key, value); } catch { /* silent */ }
+  },
+  remove: (key: string): void => {
+    try { localStorage.removeItem(key); } catch { /* silent */ }
+  }
+};
+
 // Usar variable de entorno en producción, localhost en desarrollo
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 const API_BASE_URL = API_URL.replace(/\/$/, '').replace(/\/api$/, '');
@@ -29,7 +42,7 @@ function updateLoadingState(delta: number) {
 // Interceptor para añadir token a las peticiones
 api.interceptors.request.use(config => {
   updateLoadingState(1);
-  const token = localStorage.getItem('token');
+  const token = safeStorage.get('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -71,7 +84,7 @@ api.interceptors.response.use(
 
     // Si es 401 y tenemos refresh token, intentar refrescar
     if (error.response?.status === 401 && !originalRequest._retry) {
-      const refreshToken = localStorage.getItem('refreshToken');
+      const refreshToken = safeStorage.get('refreshToken');
       
       if (refreshToken && !isRefreshing) {
         isRefreshing = true;
@@ -82,9 +95,9 @@ api.interceptors.response.use(
           const newToken = data.accessToken;
           
           if (newToken) {
-            localStorage.setItem('token', newToken);
+            safeStorage.set('token', newToken);
             if (data.refreshToken) {
-              localStorage.setItem('refreshToken', data.refreshToken);
+              safeStorage.set('refreshToken', data.refreshToken);
             }
             
             // Actualizar header de la request original
@@ -98,8 +111,8 @@ api.interceptors.response.use(
           }
         } catch (refreshError) {
           // Refresh falló, limpiar tokens y procesar cola con error
-          localStorage.removeItem('token');
-          localStorage.removeItem('refreshToken');
+          safeStorage.remove('token');
+          safeStorage.remove('refreshToken');
           processQueue(refreshError);
           window.dispatchEvent(new CustomEvent('session-expired'));
           return Promise.reject(refreshError);
@@ -120,8 +133,8 @@ api.interceptors.response.use(
           });
       } else {
         // No hay refresh token, limpiar y rechazar
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
+        safeStorage.remove('token');
+        safeStorage.remove('refreshToken');
         window.dispatchEvent(new CustomEvent('session-expired'));
       }
     }
@@ -156,9 +169,9 @@ export const authService = {
     // Compatibilidad: usar accessToken si existe, sino token (legacy)
     const token = data.accessToken;
     if (token) {
-      localStorage.setItem('token', token);
+      safeStorage.set('token', token);
       if (data.refreshToken) {
-        localStorage.setItem('refreshToken', data.refreshToken);
+        safeStorage.set('refreshToken', data.refreshToken);
       }
     }
     return token || '';
@@ -172,9 +185,9 @@ export const authService = {
     // Compatibilidad: usar accessToken si existe, sino token (legacy)
     const token = data.accessToken;
     if (token) {
-      localStorage.setItem('token', token);
+      safeStorage.set('token', token);
       if (data.refreshToken) {
-        localStorage.setItem('refreshToken', data.refreshToken);
+        safeStorage.set('refreshToken', data.refreshToken);
       }
     }
     return token || '';
@@ -210,6 +223,17 @@ export const authService = {
   getOAuth2LoginUrl: (provider: 'google' = 'google') => {
     return `${API_BASE_URL}/oauth2/authorization/${provider}`;
   },
+  exchangeOAuthCode: async (code: string) => {
+    const { data } = await api.post<{ accessToken?: string; refreshToken?: string; expiresIn?: number }>('/auth/exchange-oauth-code', { code });
+    const token = data.accessToken;
+    if (token) {
+      safeStorage.set('token', token);
+      if (data.refreshToken) {
+        safeStorage.set('refreshToken', data.refreshToken);
+      }
+    }
+    return token || '';
+  },
   getInviteInfo: async (token: string) => {
     const { data } = await api.get(`/auth/invite-info?token=${token}`);
     return data as { companyName: string; email: string; companyId: string };
@@ -228,9 +252,9 @@ export const companyAuthService = {
     const { data } = await api.post<{ token?: string; accessToken?: string; refreshToken?: string }>('/auth/company/register', { name, email, password });
     const token = data.accessToken;
     if (token) {
-      localStorage.setItem('token', token);
+      safeStorage.set('token', token);
       if (data.refreshToken) {
-        localStorage.setItem('refreshToken', data.refreshToken);
+        safeStorage.set('refreshToken', data.refreshToken);
       }
     }
     return token || '';
@@ -239,9 +263,9 @@ export const companyAuthService = {
     const { data } = await api.post<{ token?: string; accessToken?: string; refreshToken?: string }>('/auth/company/login', { email, password });
     const token = data.accessToken;
     if (token) {
-      localStorage.setItem('token', token);
+      safeStorage.set('token', token);
       if (data.refreshToken) {
-        localStorage.setItem('refreshToken', data.refreshToken);
+        safeStorage.set('refreshToken', data.refreshToken);
       }
     }
     return token || '';
@@ -978,9 +1002,9 @@ export const twoFactorService = {
     const { data } = await api.post<{ accessToken?: string; refreshToken?: string }>('/auth/2fa/login', { tempToken, code });
     const token = data.accessToken;
     if (token) {
-      localStorage.setItem('token', token);
+      safeStorage.set('token', token);
       if (data.refreshToken) {
-        localStorage.setItem('refreshToken', data.refreshToken);
+        safeStorage.set('refreshToken', data.refreshToken);
       }
     }
     return token || '';

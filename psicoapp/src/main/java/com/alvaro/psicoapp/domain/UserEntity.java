@@ -79,6 +79,9 @@ public class UserEntity {
 	@Column(name = "account_locked_until")
 	private Instant accountLockedUntil;
 
+	@Column(name = "lockout_count", nullable = false)
+	private Integer lockoutCount = 0;
+
 	@Column(name = "totp_secret", length = 255)
 	private String totpSecret;
 
@@ -133,6 +136,8 @@ public class UserEntity {
 	public void setFailedLoginAttempts(Integer failedLoginAttempts) { this.failedLoginAttempts = failedLoginAttempts; }
 	public Instant getAccountLockedUntil() { return accountLockedUntil; }
 	public void setAccountLockedUntil(Instant accountLockedUntil) { this.accountLockedUntil = accountLockedUntil; }
+	public Integer getLockoutCount() { return lockoutCount; }
+	public void setLockoutCount(Integer lockoutCount) { this.lockoutCount = lockoutCount; }
 	public String getTotpSecret() { return totpSecret; }
 	public void setTotpSecret(String totpSecret) { this.totpSecret = totpSecret; }
 	public Boolean getTotpEnabled() { return totpEnabled; }

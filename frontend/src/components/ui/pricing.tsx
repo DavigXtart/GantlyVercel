@@ -52,7 +52,13 @@ export function Pricing({
         plan.planId,
         !isMonthly
       );
-      // Redirigir a Stripe Checkout
+      // Validate Stripe URL before redirecting
+      if (!response.url || !response.url.startsWith('https://checkout.stripe.com')) {
+        console.error('Invalid Stripe URL:', response.url);
+        alert('Error: URL de pago no valida');
+        setLoading(null);
+        return;
+      }
       window.location.href = response.url;
     } catch (error) {
       alert("Error al procesar el pago. Por favor, intenta de nuevo.");

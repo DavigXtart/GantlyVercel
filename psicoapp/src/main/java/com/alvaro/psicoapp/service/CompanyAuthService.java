@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 @Service
 public class CompanyAuthService {
@@ -17,6 +18,8 @@ public class CompanyAuthService {
     private final JwtService jwtService;
 
     private static final String COMPANY_PREFIX = "company:";
+    private static final Pattern UPPERCASE_PATTERN = Pattern.compile("[A-Z]");
+    private static final Pattern SPECIAL_CHAR_PATTERN = Pattern.compile("[!@#$%^&*()_+\\-=\\[\\]{}|;:',.<>?/]");
 
     public CompanyAuthService(CompanyRepository companyRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
         this.companyRepository = companyRepository;
@@ -24,11 +27,24 @@ public class CompanyAuthService {
         this.jwtService = jwtService;
     }
 
+    private void validatePassword(String password) {
+        if (password == null || password.length() < 10) {
+            throw new IllegalArgumentException("La contraseña debe tener al menos 10 caracteres");
+        }
+        if (!UPPERCASE_PATTERN.matcher(password).find()) {
+            throw new IllegalArgumentException("La contraseña debe contener al menos una letra mayúscula");
+        }
+        if (!SPECIAL_CHAR_PATTERN.matcher(password).find()) {
+            throw new IllegalArgumentException("La contraseña debe contener al menos un símbolo especial (!@#$%^&*()_+-=[]{}|;:',.<>?/)");
+        }
+    }
+
     @Transactional
     public com.alvaro.psicoapp.security.JwtService.TokenPair registerWithRefresh(String name, String email, String password) {
         String sanitizedEmail = InputSanitizer.sanitizeEmail(email);
         String sanitizedName = InputSanitizer.sanitizeAndValidate(name != null ? name : "", 200);
         if (sanitizedName.isEmpty()) throw new IllegalArgumentException("El nombre es requerido");
+        validatePassword(password);
 
         if (companyRepository.existsByEmail(sanitizedEmail)) {
             throw new IllegalArgumentException("Este email ya está registrado como empresa");

@@ -58,22 +58,31 @@ public class FileController {
 
         // Find the task file by matching the filename in the stored path
         String expectedPath = "/uploads/tasks/" + filename;
-        List<TaskFileEntity> allFiles;
-        if (RoleConstants.PSYCHOLOGIST.equals(user.getRole())) {
-            // Get all files for tasks where user is the psychologist
-            List<TaskEntity> tasks = taskRepository.findByPsychologist_IdOrderByCreatedAtDesc(user.getId());
-            allFiles = tasks.stream()
-                    .flatMap(t -> taskFileRepository.findByTask_Id(t.getId()).stream())
-                    .toList();
+
+        // Admins have access to all task files
+        if (RoleConstants.ADMIN.equals(user.getRole())) {
+            if (!taskFileRepository.existsByFilePath(expectedPath)) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Archivo no encontrado");
+            }
         } else {
-            allFiles = taskFileRepository.findByTask_User_Id(user.getId());
-        }
+            List<TaskFileEntity> allFiles;
+            if (RoleConstants.PSYCHOLOGIST.equals(user.getRole())) {
+                // Get all files for tasks where user is the psychologist
+                List<TaskEntity> tasks = taskRepository.findByPsychologist_IdOrderByCreatedAtDesc(user.getId());
+                allFiles = tasks.stream()
+                        .flatMap(t -> taskFileRepository.findByTask_Id(t.getId()).stream())
+                        .toList();
+            } else {
+                // Regular user: only files from tasks assigned to them
+                allFiles = taskFileRepository.findByTask_User_Id(user.getId());
+            }
 
-        boolean hasAccess = allFiles.stream()
-                .anyMatch(f -> expectedPath.equals(f.getFilePath()));
+            boolean hasAccess = allFiles.stream()
+                    .anyMatch(f -> expectedPath.equals(f.getFilePath()));
 
-        if (!hasAccess) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes acceso a este archivo");
+            if (!hasAccess) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes acceso a este archivo");
+            }
         }
 
         return serveFile("uploads/tasks", filename);

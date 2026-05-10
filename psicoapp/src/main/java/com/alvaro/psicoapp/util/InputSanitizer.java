@@ -8,9 +8,7 @@ public class InputSanitizer {
         "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
     );
 
-    private static final Pattern SQL_INJECTION_PATTERN = Pattern.compile(
-        "(?i)(union|select|insert|update|delete|drop|create|alter|exec|execute|script|javascript|onerror|onload)"
-    );
+    private static final Pattern HTML_TAG_PATTERN = Pattern.compile("<[^>]*>");
 
     private static final Pattern XSS_PATTERN = Pattern.compile(
         "(?i)(<script|</script>|javascript:|onerror=|onload=|onclick=|onmouseover=)"
@@ -42,12 +40,6 @@ public class InputSanitizer {
         return sanitized;
     }
 
-    public static void validateNoSqlInjection(String input) {
-        if (input != null && SQL_INJECTION_PATTERN.matcher(input).find()) {
-            throw new IllegalArgumentException("Input contiene caracteres no permitidos");
-        }
-    }
-
     public static void validateNoXss(String input) {
         if (input != null && XSS_PATTERN.matcher(input).find()) {
             throw new IllegalArgumentException("Input contiene caracteres no permitidos");
@@ -61,11 +53,16 @@ public class InputSanitizer {
 
         String sanitized = sanitize(input);
 
+        // Strip HTML tags (XSS prevention)
+        sanitized = HTML_TAG_PATTERN.matcher(sanitized).replaceAll("");
+
+        // Normalize whitespace
+        sanitized = sanitized.replaceAll("\\s+", " ").trim();
+
         if (sanitized.length() > maxLength) {
             throw new IllegalArgumentException("Input excede la longitud máxima de " + maxLength + " caracteres");
         }
 
-        validateNoSqlInjection(sanitized);
         validateNoXss(sanitized);
 
         return sanitized;

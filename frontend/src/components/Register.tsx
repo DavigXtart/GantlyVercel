@@ -60,7 +60,9 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
 
   const validatePassword = (password: string): string | undefined => {
     if (!password) return 'La contraseña es obligatoria';
-    if (password.length < 6) return 'La contraseña debe tener al menos 6 caracteres';
+    if (password.length < 10) return 'La contraseña debe tener al menos 10 caracteres';
+    if (!/[A-Z]/.test(password)) return 'Debe contener al menos una letra mayuscula';
+    if (!/[!@#$%^&*()_+\-=\[\]{}|;:'",.<>?/\\]/.test(password)) return 'Debe contener al menos un simbolo especial';
     return undefined;
   };
 
@@ -220,7 +222,7 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
                   error={errors.email} required placeholder="tu@email.com" ariaLabel="Correo electrónico" />
                 <FormField label="Contraseña" name="password" type="password" value={password}
                   onChange={(e) => { setPassword(e.target.value); if (errors.password) setErrors({ ...errors, password: validatePassword(e.target.value) }); }}
-                  error={errors.password} required placeholder="Minimo 6 caracteres" ariaLabel="Contraseña" />
+                  error={errors.password} required placeholder="Minimo 10 caracteres, mayuscula y simbolo" ariaLabel="Contraseña" />
                 <FormField label="Fecha de nacimiento" name="birthDate" type="date" value={birthDate}
                   onChange={(e) => { setBirthDate(e.target.value); if (errors.birthDate) setErrors({ ...errors, birthDate: undefined }); }}
                   error={errors.birthDate} placeholder="" ariaLabel="Fecha de nacimiento" />

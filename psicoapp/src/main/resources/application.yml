@@ -18,3 +18,7 @@ spring:
         size: 2
 server:
   port: 8080
+  max-http-request-header-size: 16KB
+  tomcat:
+    max-http-form-post-size: 2MB
+    max-swallow-size: 2MB

@@ -4,7 +4,11 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +50,23 @@ public class AuthService {
 	private static final String INITIAL_TEST_CODE = "INITIAL";
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
+	// Password validation
+	private static final Pattern UPPERCASE_PATTERN = Pattern.compile("[A-Z]");
+	private static final Pattern SPECIAL_CHAR_PATTERN = Pattern.compile("[!@#$%^&*()_+\\-=\\[\\]{}|;:',.<>?/]");
+
+	// Verification code rate limiting per email
+	private static final int MAX_VERIFICATION_ATTEMPTS = 5;
+	private static final long VERIFICATION_LOCKOUT_MS = 15 * 60 * 1000; // 15 minutes
+	private final Map<String, VerificationAttemptTracker> verificationAttempts = new ConcurrentHashMap<>();
+
+	// Lockout escalation durations in seconds
+	private static final long[] LOCKOUT_DURATIONS = {
+		15 * 60,      // 1st lockout: 15 minutes
+		60 * 60,      // 2nd lockout: 1 hour
+		4 * 60 * 60,  // 3rd lockout: 4 hours
+		24 * 60 * 60  // 4th+: 24 hours
+	};
+
 	public AuthService(UserRepository userRepository, CompanyRepository companyRepository,
 			UserPsychologistRepository userPsychologistRepository,
 			PsychologistProfileRepository psychologistProfileRepository,
@@ -75,6 +96,7 @@ public class AuthService {
 		String sanitizedEmail = InputSanitizer.sanitizeEmail(email);
 		String sanitizedName = InputSanitizer.sanitizeAndValidate(name != null ? name : "", 100);
 		if (sanitizedName.isEmpty()) throw new IllegalArgumentException("El nombre es requerido");
+		validatePassword(password);
 
 		if (userRepository.existsByEmail(sanitizedEmail)) throw new IllegalArgumentException("Email ya registrado");
 
@@ -223,7 +245,16 @@ public class AuthService {
 	@Transactional
 	public boolean verifyEmailByCode(String email, String code) {
 		if (code == null || code.trim().isEmpty()) return false;
-		var userOpt = userRepository.findByEmail(InputSanitizer.sanitizeEmail(email));
+		String sanitizedEmail = InputSanitizer.sanitizeEmail(email);
+
+		// Per-email rate limiting for verification attempts
+		VerificationAttemptTracker tracker = verificationAttempts.computeIfAbsent(
+			sanitizedEmail, k -> new VerificationAttemptTracker());
+		if (tracker.isLocked()) {
+			throw new IllegalArgumentException("Demasiados intentos de verificación. Intenta en 15 minutos.");
+		}
+
+		var userOpt = userRepository.findByEmail(sanitizedEmail);
 		if (userOpt.isEmpty()) return false;
 
 		UserEntity user = userOpt.get();
@@ -236,8 +267,17 @@ public class AuthService {
 		}
 
 		if (!user.getVerificationCode().equals(code.trim())) {
+			int attempts = tracker.incrementAndGet();
+			if (attempts >= MAX_VERIFICATION_ATTEMPTS) {
+				tracker.lock(VERIFICATION_LOCKOUT_MS);
+				logger.warn("Verificación bloqueada para email: {} tras {} intentos fallidos", sanitizedEmail, attempts);
+			}
 			return false;
 		}
+
+		// Successful verification - reset tracker
+		tracker.reset();
+		verificationAttempts.remove(sanitizedEmail);
 
 		user.setEmailVerified(true);
 		user.setVerificationToken(null);
@@ -260,8 +300,8 @@ public class AuthService {
 		if (u.getPasswordHash() == null) throw new IllegalArgumentException("Esta cuenta usa inicio de sesión con Google. Usa el botón \"Continuar con Google\".");
 
 		// Account lockout check
-		if (u.getAccountLockedUntil() != null && u.getAccountLockedUntil().isAfter(java.time.Instant.now())) {
-			long minutesLeft = java.time.Duration.between(java.time.Instant.now(), u.getAccountLockedUntil()).toMinutes() + 1;
+		if (u.getAccountLockedUntil() != null && u.getAccountLockedUntil().isAfter(Instant.now())) {
+			long minutesLeft = java.time.Duration.between(Instant.now(), u.getAccountLockedUntil()).toMinutes() + 1;
 			throw new IllegalArgumentException("Cuenta bloqueada temporalmente. Intenta en " + minutesLeft + " minutos.");
 		}
 
@@ -270,17 +310,28 @@ public class AuthService {
 			int attempts = (u.getFailedLoginAttempts() != null ? u.getFailedLoginAttempts() : 0) + 1;
 			u.setFailedLoginAttempts(attempts);
 			if (attempts >= 5) {
-				u.setAccountLockedUntil(java.time.Instant.now().plusSeconds(15 * 60));
+				// Escalating lockout: 15min -> 1h -> 4h -> 24h
+				int lockoutCount = (u.getLockoutCount() != null ? u.getLockoutCount() : 0) + 1;
+				u.setLockoutCount(lockoutCount);
+				long lockoutSeconds = getLockoutDuration(lockoutCount - 1);
+				u.setAccountLockedUntil(Instant.now().plusSeconds(lockoutSeconds));
+				u.setFailedLoginAttempts(0); // Reset attempts for next lockout cycle
 				userRepository.save(u);
-				throw new IllegalArgumentException("Cuenta bloqueada temporalmente por demasiados intentos fallidos. Intenta en 15 minutos.");
+				long lockoutMinutes = lockoutSeconds / 60;
+				String timeMsg = lockoutMinutes >= 60
+					? (lockoutMinutes / 60) + " hora" + (lockoutMinutes / 60 > 1 ? "s" : "")
+					: lockoutMinutes + " minutos";
+				throw new IllegalArgumentException("Cuenta bloqueada temporalmente por demasiados intentos fallidos. Intenta en " + timeMsg + ".");
 			}
 			userRepository.save(u);
 			throw new IllegalArgumentException("Credenciales inválidas");
 		}
 
-		// Reset failed attempts on successful login
-		if (u.getFailedLoginAttempts() != null && u.getFailedLoginAttempts() > 0) {
+		// Reset failed attempts and lockout count on successful login
+		if ((u.getFailedLoginAttempts() != null && u.getFailedLoginAttempts() > 0) ||
+		    (u.getLockoutCount() != null && u.getLockoutCount() > 0)) {
 			u.setFailedLoginAttempts(0);
+			u.setLockoutCount(0);
 			u.setAccountLockedUntil(null);
 			userRepository.save(u);
 		}
@@ -402,9 +453,7 @@ public class AuthService {
 
 	@Transactional
 	public boolean resetPassword(String token, String newPassword) {
-		if (newPassword == null || newPassword.length() < 6) {
-			throw new IllegalArgumentException("La contraseña debe tener al menos 6 caracteres");
-		}
+		validatePassword(newPassword);
 		var userOpt = userRepository.findByPasswordResetToken(token);
 		if (userOpt.isEmpty()) {
 			return false;
@@ -427,9 +476,7 @@ public class AuthService {
 
 	@Transactional
 	public void changePassword(String email, String currentPassword, String newPassword) {
-		if (newPassword == null || newPassword.length() < 6) {
-			throw new IllegalArgumentException("La nueva contraseña debe tener al menos 6 caracteres");
-		}
+		validatePassword(newPassword);
 		UserEntity user = userRepository.findByEmail(email)
 			.orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
@@ -439,6 +486,45 @@ public class AuthService {
 
 		user.setPasswordHash(passwordEncoder.encode(newPassword));
 		userRepository.save(user);
+	}
+
+	private void validatePassword(String password) {
+		if (password == null || password.length() < 10) {
+			throw new IllegalArgumentException("La contraseña debe tener al menos 10 caracteres");
+		}
+		if (!UPPERCASE_PATTERN.matcher(password).find()) {
+			throw new IllegalArgumentException("La contraseña debe contener al menos una letra mayúscula");
+		}
+		if (!SPECIAL_CHAR_PATTERN.matcher(password).find()) {
+			throw new IllegalArgumentException("La contraseña debe contener al menos un símbolo especial (!@#$%^&*()_+-=[]{}|;:',.<>?/)");
+		}
+	}
+
+	private long getLockoutDuration(int lockoutCount) {
+		int index = Math.min(lockoutCount, LOCKOUT_DURATIONS.length - 1);
+		return LOCKOUT_DURATIONS[Math.max(0, index)];
+	}
+
+	private static class VerificationAttemptTracker {
+		private final AtomicInteger attempts = new AtomicInteger(0);
+		private volatile long lockedUntil = 0;
+
+		boolean isLocked() {
+			return lockedUntil > System.currentTimeMillis();
+		}
+
+		int incrementAndGet() {
+			return attempts.incrementAndGet();
+		}
+
+		void lock(long durationMs) {
+			lockedUntil = System.currentTimeMillis() + durationMs;
+		}
+
+		void reset() {
+			attempts.set(0);
+			lockedUntil = 0;
+		}
 	}
 
 	@Transactional

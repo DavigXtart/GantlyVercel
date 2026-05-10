@@ -160,6 +160,11 @@ export default function UserCalendarTab({
                           e.stopPropagation();
                           try {
                             const { url } = await stripeService.createAppointmentCheckout(apt.id);
+                            if (!url || !url.startsWith('https://checkout.stripe.com')) {
+                              console.error('Invalid Stripe URL:', url);
+                              alert('Error: URL de pago no valida');
+                              return;
+                            }
                             window.location.href = url;
                           } catch (err: any) {
                             alert(err.response?.data?.error || 'Error al iniciar el pago');

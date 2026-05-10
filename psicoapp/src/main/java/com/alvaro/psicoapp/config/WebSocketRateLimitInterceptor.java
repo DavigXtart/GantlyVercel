@@ -16,13 +16,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Rate limits WebSocket SEND messages to prevent abuse.
- * Allows a maximum of 10 messages per user per minute.
+ * Rate limits WebSocket SEND messages and enforces max payload size.
+ * - Max 10 messages per user per minute
+ * - Max 10KB payload per message (prevents abuse with oversized chat messages)
  */
 @Component
 public class WebSocketRateLimitInterceptor implements ChannelInterceptor {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketRateLimitInterceptor.class);
     private static final int MAX_MESSAGES_PER_MINUTE = 10;
+    private static final int MAX_PAYLOAD_BYTES = 10 * 1024; // 10KB
 
     // Maps user principal name -> rate limit tracker
     private final ConcurrentHashMap<String, RateLimitEntry> rateLimits = new ConcurrentHashMap<>();
@@ -35,6 +37,21 @@ public class WebSocketRateLimitInterceptor implements ChannelInterceptor {
         StompCommand command = accessor.getCommand();
         if (!StompCommand.SEND.equals(command)) {
             return message;
+        }
+
+        // Check message payload size
+        Object payload = message.getPayload();
+        int payloadSize = 0;
+        if (payload instanceof byte[]) {
+            payloadSize = ((byte[]) payload).length;
+        } else if (payload instanceof String) {
+            payloadSize = ((String) payload).getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
+        }
+        if (payloadSize > MAX_PAYLOAD_BYTES) {
+            logger.warn("WebSocket message rejected: payload size {} exceeds limit of {} bytes",
+                    payloadSize, MAX_PAYLOAD_BYTES);
+            throw new org.springframework.messaging.MessageDeliveryException(
+                    "Message too large: maximum " + MAX_PAYLOAD_BYTES + " bytes allowed");
         }
 
         java.security.Principal user = accessor.getUser();

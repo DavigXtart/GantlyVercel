@@ -252,7 +252,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate, onShowOnboardi
                     value={passwordForm.newPassword}
                     onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                     className="w-full h-12 rounded-xl border border-slate-200 px-4 focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue outline-none transition-all duration-200 text-sm bg-slate-50 focus:bg-white"
-                    placeholder={`M\u00ednimo 6 caracteres`}
+                    placeholder="Min 10 chars, mayuscula y simbolo"
                   />
                 </div>
                 <div>
@@ -271,8 +271,16 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate, onShowOnboardi
                   type="button"
                   disabled={savingPassword || !passwordForm.currentPassword || !passwordForm.newPassword || passwordForm.newPassword !== passwordForm.confirmPassword}
                   onClick={async () => {
-                    if (passwordForm.newPassword.length < 6) {
-                      toast.error(`La nueva contrase\u00f1a debe tener al menos 6 caracteres`);
+                    if (passwordForm.newPassword.length < 10) {
+                      toast.error('La nueva contrase\u00f1a debe tener al menos 10 caracteres');
+                      return;
+                    }
+                    if (!/[A-Z]/.test(passwordForm.newPassword)) {
+                      toast.error('Debe contener al menos una letra mayuscula');
+                      return;
+                    }
+                    if (!/[!@#$%^&*()_+\-=\[\]{}|;:\'",.<>?/\\]/.test(passwordForm.newPassword)) {
+                      toast.error('Debe contener al menos un simbolo especial');
                       return;
                     }
                     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
