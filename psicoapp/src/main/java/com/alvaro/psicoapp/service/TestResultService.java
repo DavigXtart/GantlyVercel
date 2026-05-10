@@ -210,7 +210,8 @@ public class TestResultService {
 			subfactorsByTest.get(testId).add(new TestResultDtos.SubfactorResultDto(
 					result.getSubfactor().getCode(), result.getSubfactor().getName(),
 					result.getScore(), result.getMaxScore(), result.getPercentage(),
-					result.getSubfactor().getMinLabel(), result.getSubfactor().getMaxLabel()));
+					result.getSubfactor().getMinLabel(), result.getSubfactor().getMaxLabel(),
+					result.getSubfactor().getCutoffs()));
 			testTitles.put(testId, result.getTest().getTitle());
 		}
 		for (FactorResultEntity result : factorResults) {
@@ -240,7 +241,8 @@ public class TestResultService {
 		var subfactors = subfactorResults.stream()
 				.map(r -> new TestResultDtos.SubfactorResultDto(r.getSubfactor().getCode(), r.getSubfactor().getName(),
 						r.getScore(), r.getMaxScore(), r.getPercentage(),
-						r.getSubfactor().getMinLabel(), r.getSubfactor().getMaxLabel()))
+						r.getSubfactor().getMinLabel(), r.getSubfactor().getMaxLabel(),
+						r.getSubfactor().getCutoffs()))
 				.collect(Collectors.toList());
 		var factors = factorResults.stream()
 				.map(r -> new TestResultDtos.FactorResultDto(r.getFactor().getCode(), r.getFactor().getName(),
@@ -279,7 +281,8 @@ public class TestResultService {
 		var subfactors = subfactorResults.stream().map(r -> new TestResultDtos.SubfactorResultDetailDto(
 				r.getSubfactor().getId(), r.getSubfactor().getCode(), r.getSubfactor().getName(),
 				r.getScore(), r.getMaxScore(), r.getPercentage(),
-				r.getSubfactor().getMinLabel(), r.getSubfactor().getMaxLabel())).collect(Collectors.toList());
+				r.getSubfactor().getMinLabel(), r.getSubfactor().getMaxLabel(),
+				r.getSubfactor().getCutoffs())).collect(Collectors.toList());
 		var factors = factorResults.stream().map(r -> new TestResultDtos.FactorResultDetailDto(
 				r.getFactor().getId(), r.getFactor().getCode(), r.getFactor().getName(),
 				r.getScore(), r.getMaxScore(), r.getPercentage(),

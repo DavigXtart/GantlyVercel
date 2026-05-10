@@ -15,7 +15,7 @@ public class SubfactorEntity {
 	@JoinColumn(name = "test_id")
 	private TestEntity test;
 
-	@Column(nullable = false, length = 10)
+	@Column(nullable = false, length = 30)
 	private String code;
 
 	@Column(nullable = false, length = 100)
@@ -36,6 +36,9 @@ public class SubfactorEntity {
 
 	@Column(name = "max_label", length = 100)
 	private String maxLabel;
+
+	@Column(columnDefinition = "TEXT")
+	private String cutoffs;
 
 	@OneToMany(mappedBy = "subfactor", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<QuestionEntity> questions = new ArrayList<>();
@@ -58,6 +61,8 @@ public class SubfactorEntity {
 	public void setMinLabel(String minLabel) { this.minLabel = minLabel; }
 	public String getMaxLabel() { return maxLabel; }
 	public void setMaxLabel(String maxLabel) { this.maxLabel = maxLabel; }
+	public String getCutoffs() { return cutoffs; }
+	public void setCutoffs(String cutoffs) { this.cutoffs = cutoffs; }
 	public List<QuestionEntity> getQuestions() { return questions; }
 	public void setQuestions(List<QuestionEntity> questions) { this.questions = questions; }
 }

@@ -6,7 +6,7 @@ public final class TestResultDtos {
     private TestResultDtos() {}
 
     public record SubfactorResultDto(String code, String name, double score, double maxScore, double percentage,
-                                    String minLabel, String maxLabel) {}
+                                    String minLabel, String maxLabel, String cutoffs) {}
     public record FactorResultDto(String code, String name, double score, double maxScore, double percentage,
                                  String minLabel, String maxLabel) {}
     public record TestResultItemDto(Long testId, String testTitle, List<SubfactorResultDto> subfactors, List<FactorResultDto> factors) {}
@@ -16,7 +16,7 @@ public final class TestResultDtos {
 
     public record SubfactorResultDetailDto(Long subfactorId, String subfactorCode, String subfactorName,
                                           double score, double maxScore, double percentage,
-                                          String minLabel, String maxLabel) {}
+                                          String minLabel, String maxLabel, String cutoffs) {}
     public record FactorResultDetailDto(Long factorId, String factorCode, String factorName,
                                        double score, double maxScore, double percentage,
                                        String minLabel, String maxLabel) {}
