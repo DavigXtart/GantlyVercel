@@ -48,13 +48,13 @@ export default function Navbar({ onLogin, onStart }: NavbarProps) {
         WebkitBackdropFilter: 'blur(24px)',
       }}
     >
-      <div className="flex items-center justify-between px-5 py-3">
+      <div className="flex items-center justify-between px-6 py-4">
         {/* Logo */}
         <div className="flex-shrink-0">
           <img
             src={LogoSvg}
             alt="Gantly"
-            className={`h-7 cursor-pointer transition-all duration-300 ${scrolled ? '' : 'brightness-0 invert'}`}
+            className={`h-8 cursor-pointer transition-all duration-300 ${scrolled ? '' : 'brightness-0 invert'}`}
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           />
         </div>
@@ -65,7 +65,7 @@ export default function Navbar({ onLogin, onStart }: NavbarProps) {
             <li key={key}>
               <button
                 onClick={() => handleNavLink(href)}
-                className={`text-[15px] font-medium font-body transition-colors cursor-pointer ${
+                className={`text-lg font-medium font-body transition-colors cursor-pointer ${
                   scrolled
                     ? 'text-slate-600 hover:text-gantly-blue'
                     : 'text-white/90 hover:text-white'
