@@ -432,6 +432,8 @@ public class TestImportService {
 
 	private void initTcaStructure(TestEntity test) {
 		FactorEntity fIG  = saveFactor(test, "IG",  "Competencia Intelectual General", 1, null, null, "INV+IV");
+		fIG.setCalculated(true);
+		fIG = factorRepository.save(fIG);
 		FactorEntity fINV = saveFactor(test, "INV", "Inteligencia no Verbal",          2, null, null, "RA+APE");
 		FactorEntity fIV  = saveFactor(test, "IV",  "Inteligencia Verbal",             3, null, null, "RV+APN");
 

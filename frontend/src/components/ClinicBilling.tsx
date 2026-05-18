@@ -396,7 +396,7 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
                     <td className="px-3 py-3 text-center"><PaymentBadge status={item.paymentStatus} /></td>
                     <td className="px-3 py-3">
                       <button
-                        onClick={() => generateInvoicePdf(item, clinicName || 'Mi Clínica')}
+                        onClick={() => generateInvoicePdf(item, clinicName || 'Clínica')}
                         title="Descargar factura"
                         className="text-slate-500 hover:text-gantly-blue hover:bg-gantly-blue/5 rounded-lg p-1.5 transition-colors cursor-pointer bg-transparent border-none"
                       >

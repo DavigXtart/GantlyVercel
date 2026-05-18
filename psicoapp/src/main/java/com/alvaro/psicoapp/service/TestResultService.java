@@ -5,6 +5,7 @@ import com.alvaro.psicoapp.dto.TestResultDtos;
 import com.alvaro.psicoapp.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.alvaro.psicoapp.util.FormulaEvaluator;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -137,39 +138,87 @@ public class TestResultService {
 			}
 		}
 
-		List<FactorEntity> factors = factorRepository.findByTestOrderByPositionAsc(test);
-		for (FactorEntity factor : factors) {
-
-			List<SubfactorEntity> factorSubfactors = subfactorRepository.findByFactorId(factor.getId());
-
-			double totalFactorScore = 0.0;
-			double totalFactorMaxScore = 0.0;
-
-			for (SubfactorEntity subfactor : factorSubfactors) {
-				TestResultEntity subfactorResult = subfactorResults.get(subfactor.getId());
-				if (subfactorResult != null) {
-					totalFactorScore += subfactorResult.getScore();
-					totalFactorMaxScore += subfactorResult.getMaxScore();
-				}
-			}
-
-			if (totalFactorMaxScore > 0) {
-				double percentage = (totalFactorScore / totalFactorMaxScore) * 100.0;
-
-				factorResultRepository.findByUserAndTest(user, test).stream()
-						.filter(fr -> fr.getFactor().getId().equals(factor.getId()))
-						.forEach(factorResultRepository::delete);
-
-				FactorResultEntity factorResult = new FactorResultEntity();
-				factorResult.setUser(user);
-				factorResult.setTest(test);
-				factorResult.setFactor(factor);
-				factorResult.setScore(totalFactorScore);
-				factorResult.setMaxScore(totalFactorMaxScore);
-				factorResult.setPercentage(percentage);
-				factorResultRepository.save(factorResult);
+		// Build subfactor scores by code for formula evaluation
+		Map<String, double[]> subfactorScoresByCode = new HashMap<>();
+		for (SubfactorEntity sf : subfactors) {
+			TestResultEntity r = subfactorResults.get(sf.getId());
+			if (r != null) {
+				subfactorScoresByCode.put(sf.getCode(), new double[]{r.getScore(), r.getMaxScore()});
 			}
 		}
+		Set<String> allSubfactorCodes = subfactors.stream()
+				.map(SubfactorEntity::getCode).collect(Collectors.toSet());
+
+		// Two-pass factor evaluation:
+		// Pass 1: factors whose formulas only reference subfactors
+		// Pass 2: factors whose formulas reference other factors (e.g. IG = INV + IV)
+		List<FactorEntity> factors = factorRepository.findByTestOrderByPositionAsc(test);
+		Map<String, double[]> factorScoresByCode = new HashMap<>();
+
+		List<FactorEntity> pass1 = new ArrayList<>();
+		List<FactorEntity> pass2 = new ArrayList<>();
+		for (FactorEntity factor : factors) {
+			String formula = factor.getFormula();
+			if (formula != null && !formula.isBlank()
+					&& FormulaEvaluator.referencesFactors(formula, allSubfactorCodes)) {
+				pass2.add(factor);
+			} else {
+				pass1.add(factor);
+			}
+		}
+
+		// Delete existing factor results once
+		factorResultRepository.findByUserAndTest(user, test).forEach(factorResultRepository::delete);
+		factorResultRepository.flush();
+
+		for (FactorEntity factor : pass1) {
+			evaluateAndSaveFactor(factor, user, test, subfactorScoresByCode, factorScoresByCode, allSubfactorCodes);
+		}
+		for (FactorEntity factor : pass2) {
+			evaluateAndSaveFactor(factor, user, test, subfactorScoresByCode, factorScoresByCode, allSubfactorCodes);
+		}
+	}
+
+	private void evaluateAndSaveFactor(FactorEntity factor, UserEntity user, TestEntity test,
+									   Map<String, double[]> subfactorScoresByCode,
+									   Map<String, double[]> factorScoresByCode,
+									   Set<String> allSubfactorCodes) {
+		double totalScore;
+		double totalMax;
+		String formula = factor.getFormula();
+
+		if (formula != null && !formula.isBlank()) {
+			// Formula-based evaluation
+			double[] result = FormulaEvaluator.evaluate(formula, subfactorScoresByCode, factorScoresByCode, factor.getCode());
+			if (result == null) return;
+			totalScore = result[0];
+			totalMax = result[1];
+		} else {
+			// Fallback: simple sum of child subfactors (backwards compat for factors without formula)
+			List<SubfactorEntity> factorSubfactors = subfactorRepository.findByFactorId(factor.getId());
+			totalScore = 0.0;
+			totalMax = 0.0;
+			for (SubfactorEntity sf : factorSubfactors) {
+				double[] scores = subfactorScoresByCode.get(sf.getCode());
+				if (scores != null) {
+					totalScore += scores[0];
+					totalMax += scores[1];
+				}
+			}
+			if (totalMax <= 0) return;
+		}
+
+		double percentage = (totalScore / totalMax) * 100.0;
+		factorScoresByCode.put(factor.getCode(), new double[]{totalScore, totalMax});
+
+		FactorResultEntity factorResult = new FactorResultEntity();
+		factorResult.setUser(user);
+		factorResult.setTest(test);
+		factorResult.setFactor(factor);
+		factorResult.setScore(totalScore);
+		factorResult.setMaxScore(totalMax);
+		factorResult.setPercentage(percentage);
+		factorResultRepository.save(factorResult);
 	}
 
 	@Transactional
