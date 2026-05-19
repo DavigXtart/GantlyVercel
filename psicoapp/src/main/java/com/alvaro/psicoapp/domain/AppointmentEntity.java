@@ -28,8 +28,9 @@ public class AppointmentEntity {
     @Column(name = "end_time", nullable = false)
     private Instant endTime;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 20, nullable = false)
-    private String status = "FREE";
+    private AppointmentStatusEnum status = AppointmentStatusEnum.FREE;
 
     @Column(length = 500)
     private String notes;
@@ -58,8 +59,9 @@ public class AppointmentEntity {
     @Column(name = "payment_deadline")
     private Instant paymentDeadline;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "payment_status", length = 20)
-    private String paymentStatus = "PENDING";
+    private PaymentStatusEnum paymentStatus = PaymentStatusEnum.PENDING;
 
     @ManyToOne
     @JoinColumn(name = "confirmed_by_user_id")
@@ -97,8 +99,8 @@ public class AppointmentEntity {
     public void setStartTime(Instant startTime) { this.startTime = startTime; }
     public Instant getEndTime() { return endTime; }
     public void setEndTime(Instant endTime) { this.endTime = endTime; }
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public AppointmentStatusEnum getStatus() { return status; }
+    public void setStatus(AppointmentStatusEnum status) { this.status = status; }
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
     public BigDecimal getPrice() { return price; }
@@ -117,8 +119,8 @@ public class AppointmentEntity {
     public void setConfirmedAt(Instant confirmedAt) { this.confirmedAt = confirmedAt; }
     public Instant getPaymentDeadline() { return paymentDeadline; }
     public void setPaymentDeadline(Instant paymentDeadline) { this.paymentDeadline = paymentDeadline; }
-    public String getPaymentStatus() { return paymentStatus; }
-    public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
+    public PaymentStatusEnum getPaymentStatus() { return paymentStatus; }
+    public void setPaymentStatus(PaymentStatusEnum paymentStatus) { this.paymentStatus = paymentStatus; }
     public UserEntity getConfirmedByUser() { return confirmedByUser; }
     public void setConfirmedByUser(UserEntity confirmedByUser) { this.confirmedByUser = confirmedByUser; }
     public String getStripeSessionId() { return stripeSessionId; }

@@ -2,6 +2,8 @@ package com.alvaro.psicoapp.service;
 
 import com.alvaro.psicoapp.domain.*;
 import com.alvaro.psicoapp.repository.*;
+import com.alvaro.psicoapp.domain.AppointmentStatusEnum;
+import com.alvaro.psicoapp.domain.PaymentStatusEnum;
 import com.alvaro.psicoapp.domain.ClinicRoomEntity;
 import com.alvaro.psicoapp.domain.ClinicServiceEntity;
 import org.springframework.http.HttpStatus;
@@ -135,7 +137,8 @@ public class ClinicService {
                 patientId, patientName,
                 a.getStartTime() != null ? a.getStartTime().toString() : null,
                 a.getEndTime() != null ? a.getEndTime().toString() : null,
-                a.getStatus(), a.getService(), a.getPrice(), a.getPaymentStatus(),
+                a.getStatus() != null ? a.getStatus().name() : null, a.getService(), a.getPrice(),
+                a.getPaymentStatus() != null ? a.getPaymentStatus().name() : null,
                 a.getNotes(), a.getClinicNotes(),
                 a.getModality() != null ? a.getModality() : "ONLINE",
                 a.getPaymentMethod() != null ? a.getPaymentMethod() : "STRIPE",
@@ -263,7 +266,7 @@ public class ClinicService {
         appt.setUser(patient);
         appt.setStartTime(parsedStart);
         appt.setEndTime(Instant.parse(req.endTime()));
-        appt.setStatus("CONFIRMED");
+        appt.setStatus(AppointmentStatusEnum.CONFIRMED);
         appt.setService(req.service());
         appt.setPrice(req.price());
         appt.setNotes(req.notes());
@@ -273,9 +276,9 @@ public class ClinicService {
         appt.setModality(req.modality() != null ? req.modality() : "ONLINE");
         // CASH appointments are pre-paid by definition — auto-set to PAID so Jitsi won't block
         if ("CASH".equalsIgnoreCase(paymentMethod)) {
-            appt.setPaymentStatus("PAID");
+            appt.setPaymentStatus(PaymentStatusEnum.PAID);
         } else {
-            appt.setPaymentStatus(req.paymentStatus() != null ? req.paymentStatus() : "PENDING");
+            appt.setPaymentStatus(req.paymentStatus() != null ? PaymentStatusEnum.valueOf(req.paymentStatus()) : PaymentStatusEnum.PENDING);
         }
         appt.setRoomId(req.roomId());
         appt.setTaxExempt(req.taxExempt() != null ? req.taxExempt() : true);
@@ -305,11 +308,11 @@ public class ClinicService {
             appt.setPaymentMethod(req.paymentMethod());
             // CASH appointments are pre-paid by definition — auto-set to PAID so Jitsi won't block
             if ("CASH".equalsIgnoreCase(req.paymentMethod())) {
-                appt.setPaymentStatus("PAID");
+                appt.setPaymentStatus(PaymentStatusEnum.PAID);
             }
         }
         if (req.paymentStatus() != null && !"CASH".equalsIgnoreCase(appt.getPaymentMethod())) {
-            appt.setPaymentStatus(req.paymentStatus());
+            appt.setPaymentStatus(PaymentStatusEnum.valueOf(req.paymentStatus()));
         }
         appt.setRoomId(req.roomId()); // null = quitar despacho
         if (req.patientId() != null) {
@@ -331,7 +334,7 @@ public class ClinicService {
         AppointmentEntity appt = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cita no encontrada"));
         assertPsychBelongsToCompany(appt.getPsychologist(), company.getId());
-        appt.setStatus("CANCELLED");
+        appt.setStatus(AppointmentStatusEnum.CANCELLED);
         appointmentRepository.save(appt);
     }
 
@@ -480,13 +483,14 @@ public class ClinicService {
             List<AppointmentEntity> appts = appointmentRepository
                     .findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(psych.getId(), from, to);
             for (AppointmentEntity a : appts) {
-                if ("FREE".equals(a.getStatus())) continue;
+                if (a.getStatus() == AppointmentStatusEnum.FREE) continue;
                 String patientName = a.getUser() != null ? a.getUser().getName() : null;
                 Long pid = a.getUser() != null ? a.getUser().getId() : null;
                 result.add(new ClinicBillingDto(
                         a.getId(), a.getStartTime().toString(), a.getEndTime().toString(),
                         psych.getId(), psych.getName(), pid, patientName,
-                        a.getService(), a.getPrice(), a.getPaymentStatus(),
+                        a.getService(), a.getPrice(),
+                        a.getPaymentStatus() != null ? a.getPaymentStatus().name() : null,
                         a.getModality() != null ? a.getModality() : "ONLINE",
                         a.getPaymentMethod() != null ? a.getPaymentMethod() : "STRIPE",
                         a.getTaxRate(), a.getTaxAmount(), a.getTotalAmount(), a.getTaxExempt()));
@@ -646,7 +650,7 @@ public class ClinicService {
     }
 
     private static boolean isFreeOrCancelled(AppointmentEntity a) {
-        return "FREE".equals(a.getStatus()) || "CANCELLED".equals(a.getStatus());
+        return a.getStatus() == AppointmentStatusEnum.FREE || a.getStatus() == AppointmentStatusEnum.CANCELLED;
     }
     private static boolean inRange(AppointmentEntity a, Instant from, Instant to) {
         return a.getStartTime() != null && !a.getStartTime().isBefore(from) && a.getStartTime().isBefore(to);

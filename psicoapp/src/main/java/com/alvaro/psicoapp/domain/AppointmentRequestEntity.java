@@ -23,8 +23,9 @@ public class AppointmentRequestEntity {
     @Column(name = "requested_at", nullable = false, updatable = false)
     private Instant requestedAt = Instant.now();
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 20, nullable = false)
-    private String status = "PENDING";
+    private RequestStatusEnum status = RequestStatusEnum.PENDING;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -34,6 +35,6 @@ public class AppointmentRequestEntity {
     public void setUser(UserEntity user) { this.user = user; }
     public Instant getRequestedAt() { return requestedAt; }
     public void setRequestedAt(Instant requestedAt) { this.requestedAt = requestedAt; }
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public RequestStatusEnum getStatus() { return status; }
+    public void setStatus(RequestStatusEnum status) { this.status = status; }
 }

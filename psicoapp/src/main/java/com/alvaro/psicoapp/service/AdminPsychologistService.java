@@ -116,7 +116,7 @@ public class AdminPsychologistService {
                 a.getId(),
                 a.getStartTime() != null ? a.getStartTime().toString() : null,
                 a.getEndTime() != null ? a.getEndTime().toString() : null,
-                a.getStatus(),
+                a.getStatus() != null ? a.getStatus().name() : null,
                 a.getPrice(),
                 patientName,
                 patientEmail

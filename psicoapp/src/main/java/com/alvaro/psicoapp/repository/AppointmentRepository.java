@@ -1,6 +1,8 @@
 package com.alvaro.psicoapp.repository;
 
 import com.alvaro.psicoapp.domain.AppointmentEntity;
+import com.alvaro.psicoapp.domain.AppointmentStatusEnum;
+import com.alvaro.psicoapp.domain.PaymentStatusEnum;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,7 +30,7 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
         @Param("psychologistId") Long psychologistId,
         @Param("userId") Long userId,
         @Param("startTime") Instant startTime,
-        @Param("status") String status
+        @Param("status") AppointmentStatusEnum status
     );
 
     @Query("SELECT a FROM AppointmentEntity a WHERE a.psychologist.id = :psychologistId AND a.user.id = :userId AND a.startTime >= :startTime AND (a.status = 'BOOKED' OR a.status = 'CONFIRMED') ORDER BY a.startTime ASC")
@@ -40,22 +42,22 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
 
     @Query("SELECT a FROM AppointmentEntity a WHERE a.status = :status AND a.paymentStatus = :paymentStatus AND a.paymentDeadline < :deadline")
     List<AppointmentEntity> findByStatusAndPaymentStatusAndPaymentDeadlineBefore(
-        @Param("status") String status,
-        @Param("paymentStatus") String paymentStatus,
+        @Param("status") AppointmentStatusEnum status,
+        @Param("paymentStatus") PaymentStatusEnum paymentStatus,
         @Param("deadline") Instant deadline
     );
 
     @Query("SELECT a FROM AppointmentEntity a WHERE a.status = :status AND a.startTime >= :startTime AND a.startTime <= :endTime ORDER BY a.startTime ASC")
     List<AppointmentEntity> findByStatusAndStartTimeBetween(
-        @Param("status") String status,
+        @Param("status") AppointmentStatusEnum status,
         @Param("startTime") Instant startTime,
         @Param("endTime") Instant endTime
     );
 
     @Query("SELECT a FROM AppointmentEntity a WHERE a.status = :status AND a.paymentStatus = :paymentStatus ORDER BY a.startTime ASC")
     List<AppointmentEntity> findByStatusAndPaymentStatus(
-        @Param("status") String status,
-        @Param("paymentStatus") String paymentStatus
+        @Param("status") AppointmentStatusEnum status,
+        @Param("paymentStatus") PaymentStatusEnum paymentStatus
     );
 
     @Query("SELECT a FROM AppointmentEntity a WHERE a.psychologist.id = :psychologistId AND a.user.id = :userId AND a.endTime < :now AND (a.status = 'CONFIRMED' OR a.status = 'BOOKED') ORDER BY a.endTime DESC")
@@ -65,7 +67,7 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
         @Param("now") Instant now
     );
 
-    List<AppointmentEntity> findByStartTimeBetweenAndStatus(Instant from, Instant to, String status);
+    List<AppointmentEntity> findByStartTimeBetweenAndStatus(Instant from, Instant to, AppointmentStatusEnum status);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM AppointmentEntity a WHERE a.id = :id")

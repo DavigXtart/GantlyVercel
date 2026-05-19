@@ -1,6 +1,8 @@
 package com.alvaro.psicoapp.service;
 
 import com.alvaro.psicoapp.domain.AppointmentEntity;
+import com.alvaro.psicoapp.domain.AppointmentStatusEnum;
+import com.alvaro.psicoapp.domain.PaymentStatusEnum;
 import com.alvaro.psicoapp.repository.AppointmentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,9 +40,9 @@ public class AppointmentSchedulerService {
 
         // 1. Appointments with explicit paymentDeadline that has passed
         List<AppointmentEntity> expiredConfirmed = appointmentRepository
-            .findByStatusAndPaymentStatusAndPaymentDeadlineBefore("CONFIRMED", "PENDING", now);
+            .findByStatusAndPaymentStatusAndPaymentDeadlineBefore(AppointmentStatusEnum.CONFIRMED, PaymentStatusEnum.PENDING, now);
         List<AppointmentEntity> expiredBooked = appointmentRepository
-            .findByStatusAndPaymentStatusAndPaymentDeadlineBefore("BOOKED", "PENDING", now);
+            .findByStatusAndPaymentStatusAndPaymentDeadlineBefore(AppointmentStatusEnum.BOOKED, PaymentStatusEnum.PENDING, now);
 
         List<AppointmentEntity> expiredAppointments = new java.util.ArrayList<>(expiredConfirmed);
         expiredAppointments.addAll(expiredBooked);
@@ -68,7 +70,7 @@ public class AppointmentSchedulerService {
                             + " ha sido liberada por no completar el pago a tiempo.");
                 }
 
-                appointment.setStatus("FREE");
+                appointment.setStatus(AppointmentStatusEnum.FREE);
                 appointment.setPaymentStatus(null);
                 appointment.setUser(null);
                 appointment.setStripeSessionId(null);
@@ -100,7 +102,7 @@ public class AppointmentSchedulerService {
         Instant in1Hour = now.plusSeconds(60 * 60);
 
         List<AppointmentEntity> upcomingAppointments = appointmentRepository
-            .findByStatusAndStartTimeBetween("CONFIRMED", now, in24Hours);
+            .findByStatusAndStartTimeBetween(AppointmentStatusEnum.CONFIRMED, now, in24Hours);
 
         int remindersSent = 0;
         for (AppointmentEntity appointment : upcomingAppointments) {
@@ -159,7 +161,7 @@ public class AppointmentSchedulerService {
         Instant in2Hours = now.plusSeconds(2 * 60 * 60);
 
         List<AppointmentEntity> unpaidAppointments = appointmentRepository
-            .findByStatusAndPaymentStatus("CONFIRMED", "PENDING");
+            .findByStatusAndPaymentStatus(AppointmentStatusEnum.CONFIRMED, PaymentStatusEnum.PENDING);
 
         int remindersSent = 0;
         for (AppointmentEntity appointment : unpaidAppointments) {

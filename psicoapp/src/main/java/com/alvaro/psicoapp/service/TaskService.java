@@ -218,6 +218,33 @@ public class TaskService {
         return new TaskDtos.ReopenTaskResponse("Tarea reabierta exitosamente");
     }
 
+    @Transactional
+    public void deleteTask(UserEntity user, Long taskId) {
+        TaskEntity task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarea no encontrada"));
+        if (!RoleConstants.PSYCHOLOGIST.equals(user.getRole())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo el psicólogo puede eliminar tareas");
+        }
+        if (!task.getPsychologist().getId().equals(user.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes acceso a esta tarea");
+        }
+        // Delete physical files
+        List<TaskFileEntity> files = taskFileRepository.findByTask_Id(taskId);
+        for (TaskFileEntity file : files) {
+            try {
+                java.nio.file.Path filePath = java.nio.file.Path.of(file.getFilePath().startsWith("/")
+                        ? file.getFilePath().substring(1) : file.getFilePath());
+                java.nio.file.Files.deleteIfExists(filePath);
+            } catch (Exception e) {
+                logger.warn("No se pudo eliminar archivo: {}", file.getFilePath(), e);
+            }
+        }
+        // Delete DB records (comments, files, then task)
+        taskCommentRepository.deleteAll(taskCommentRepository.findByTask_IdOrderByCreatedAtAsc(taskId));
+        taskFileRepository.deleteAll(files);
+        taskRepository.delete(task);
+    }
+
     @Transactional(readOnly = true)
     public List<TaskDtos.TaskCommentDto> getTaskComments(UserEntity user, Long taskId) {
         TaskEntity task = taskRepository.findById(taskId).orElseThrow();

@@ -4,7 +4,9 @@ import com.alvaro.psicoapp.config.AppTimezone;
 import com.alvaro.psicoapp.domain.AppointmentEntity;
 import com.alvaro.psicoapp.domain.AppointmentRatingEntity;
 import com.alvaro.psicoapp.domain.AppointmentRequestEntity;
-import com.alvaro.psicoapp.domain.AppointmentStatus;
+import com.alvaro.psicoapp.domain.AppointmentStatusEnum;
+import com.alvaro.psicoapp.domain.PaymentStatusEnum;
+import com.alvaro.psicoapp.domain.RequestStatusEnum;
 import com.alvaro.psicoapp.domain.RoleConstants;
 import com.alvaro.psicoapp.domain.UserEntity;
 import com.alvaro.psicoapp.dto.CalendarDtos;
@@ -76,7 +78,7 @@ public class CalendarService {
         a.setPsychologist(psychologist);
         a.setStartTime(req.start);
         a.setEndTime(req.end);
-        a.setStatus(AppointmentStatus.FREE);
+        a.setStatus(AppointmentStatusEnum.FREE);
         a.setPrice(req.price);
         calculateTax(a);
         var saved = appointmentRepository.save(a);
@@ -92,13 +94,13 @@ public class CalendarService {
 
         requireOwnership(appointment.getPsychologist().getId(), psychologist.getId(), "eliminar");
 
-        if (AppointmentStatus.CONFIRMED.equals(appointment.getStatus()) || AppointmentStatus.BOOKED.equals(appointment.getStatus())) {
+        if (AppointmentStatusEnum.CONFIRMED == appointment.getStatus() || AppointmentStatusEnum.BOOKED == appointment.getStatus()) {
             throw new IllegalArgumentException("No puedes eliminar citas confirmadas o reservadas. Usa la opción de cancelar en su lugar.");
         }
 
-        appointmentRequestRepository.findByAppointment_IdAndStatus(appointmentId, AppointmentStatus.REQUEST_PENDING)
+        appointmentRequestRepository.findByAppointment_IdAndStatus(appointmentId, RequestStatusEnum.PENDING)
                 .forEach(req -> {
-                    req.setStatus(AppointmentStatus.REQUEST_REJECTED);
+                    req.setStatus(RequestStatusEnum.REJECTED);
                     appointmentRequestRepository.save(req);
                     notificationService.createNotification(req.getUser().getId(), "APPOINTMENT",
                         "Horario eliminado", "El horario que solicitaste con " + psychologist.getName() + " ya no está disponible.");
@@ -126,11 +128,11 @@ public class CalendarService {
         }
 
         if (req.startTime != null && req.endTime != null) {
-            if (!AppointmentStatus.FREE.equals(appointment.getStatus())) {
+            if (AppointmentStatusEnum.FREE != appointment.getStatus()) {
                 throw new IllegalArgumentException("No se puede cambiar la hora de una cita que ya tiene solicitudes.");
             }
             boolean hasActiveRequests = appointmentRequestRepository.findByAppointment_Id(appointmentId).stream()
-                    .anyMatch(r -> AppointmentStatus.REQUEST_PENDING.equals(r.getStatus()) || AppointmentStatus.REQUEST_CONFIRMED.equals(r.getStatus()));
+                    .anyMatch(r -> RequestStatusEnum.PENDING == r.getStatus() || RequestStatusEnum.CONFIRMED == r.getStatus());
             if (hasActiveRequests) {
                 throw new IllegalArgumentException("No se puede cambiar la hora de una cita que tiene solicitudes pendientes o confirmadas.");
             }
@@ -174,13 +176,13 @@ public class CalendarService {
         List<CalendarDtos.AppointmentListItemDto> result = new ArrayList<>();
         var confirmed = appointmentRepository.findByUser_IdOrderByStartTimeAsc(user.getId())
                 .stream()
-                .filter(apt -> ("CONFIRMED".equals(apt.getStatus()) || "BOOKED".equals(apt.getStatus()))
+                .filter(apt -> (AppointmentStatusEnum.CONFIRMED == apt.getStatus() || AppointmentStatusEnum.BOOKED == apt.getStatus())
                         && isTodayOrFuture(apt.getStartTime(), now))
                 .map(this::toAppointmentListItemDto)
                 .collect(Collectors.toList());
         var pending = appointmentRequestRepository.findByUser_IdOrderByRequestedAtDesc(user.getId())
                 .stream()
-                .filter(req -> "PENDING".equals(req.getStatus()))
+                .filter(req -> RequestStatusEnum.PENDING == req.getStatus())
                 .map(this::toRequestedAppointmentListItemDto)
                 .collect(Collectors.toList());
         result.addAll(confirmed);
@@ -194,7 +196,7 @@ public class CalendarService {
         var appt = appointmentRepository.findByIdForUpdate(appointmentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cita no encontrada"));
 
-        if (!"FREE".equals(appt.getStatus()) && !"REQUESTED".equals(appt.getStatus())) {
+        if (AppointmentStatusEnum.FREE != appt.getStatus() && AppointmentStatusEnum.REQUESTED != appt.getStatus()) {
             throw new IllegalArgumentException("Esta cita ya no está disponible");
         }
 
@@ -205,11 +207,11 @@ public class CalendarService {
         var request = new AppointmentRequestEntity();
         request.setAppointment(appt);
         request.setUser(user);
-        request.setStatus("PENDING");
+        request.setStatus(RequestStatusEnum.PENDING);
         appointmentRequestRepository.save(request);
 
-        if ("FREE".equals(appt.getStatus())) {
-            appt.setStatus("REQUESTED");
+        if (AppointmentStatusEnum.FREE == appt.getStatus()) {
+            appt.setStatus(AppointmentStatusEnum.REQUESTED);
             appointmentRepository.save(appt);
         }
 
@@ -237,7 +239,7 @@ public class CalendarService {
 
         requireOwnership(appointment.getPsychologist().getId(), psychologist.getId(), "confirmar");
 
-        if (!"PENDING".equals(request.getStatus())) {
+        if (RequestStatusEnum.PENDING != request.getStatus()) {
             throw new IllegalArgumentException("Esta solicitud ya fue procesada");
         }
 
@@ -248,9 +250,9 @@ public class CalendarService {
 
         appointmentRequestRepository.findByAppointment_Id(appointment.getId()).forEach(req -> {
             if (req.getId().equals(requestId)) {
-                req.setStatus("CONFIRMED");
+                req.setStatus(RequestStatusEnum.CONFIRMED);
             } else {
-                req.setStatus("REJECTED");
+                req.setStatus(RequestStatusEnum.REJECTED);
                 notificationService.createNotification(req.getUser().getId(), "APPOINTMENT",
                     "Solicitud rechazada", "Tu solicitud de cita con " + psychologist.getName() + " no ha sido aceptada.");
             }
@@ -258,12 +260,12 @@ public class CalendarService {
         });
 
         Instant now = Instant.now();
-        appointment.setStatus("CONFIRMED");
+        appointment.setStatus(AppointmentStatusEnum.CONFIRMED);
         appointment.setUser(request.getUser());
         appointment.setConfirmedAt(now);
         appointment.setConfirmedByUser(request.getUser());
         appointment.setPaymentDeadline(now.plusSeconds(48 * 60 * 60));
-        appointment.setPaymentStatus("PENDING");
+        appointment.setPaymentStatus(PaymentStatusEnum.PENDING);
         appointmentRepository.save(appointment);
 
         try {
@@ -288,16 +290,16 @@ public class CalendarService {
 
         requireOwnership(appointment.getPsychologist().getId(), psychologist.getId(), "cancelar");
 
-        if ("CANCELLED".equals(appointment.getStatus())) {
+        if (AppointmentStatusEnum.CANCELLED == appointment.getStatus()) {
             throw new IllegalArgumentException("Esta cita ya está cancelada");
         }
 
-        appointmentRequestRepository.findByAppointment_IdAndStatus(appointmentId, "PENDING")
+        appointmentRequestRepository.findByAppointment_IdAndStatus(appointmentId, RequestStatusEnum.PENDING)
                 .forEach(req -> {
-                    req.setStatus("REJECTED");
+                    req.setStatus(RequestStatusEnum.REJECTED);
                     appointmentRequestRepository.save(req);
                 });
-        appointment.setStatus("CANCELLED");
+        appointment.setStatus(AppointmentStatusEnum.CANCELLED);
         appointmentRepository.save(appointment);
         auditService.logCalendarAction("APPOINTMENT_CANCELLED", appointmentId, psychologist.getId(),
                 appointment.getUser() != null ? appointment.getUser().getId() : null);
@@ -340,14 +342,14 @@ public class CalendarService {
         appointment.setUser(user);
         appointment.setStartTime(req.start);
         appointment.setEndTime(req.end);
-        appointment.setStatus("CONFIRMED");
+        appointment.setStatus(AppointmentStatusEnum.CONFIRMED);
         appointment.setPrice(req.price);
         calculateTax(appointment);
         Instant now = Instant.now();
         appointment.setConfirmedAt(now);
         appointment.setConfirmedByUser(user);
         appointment.setPaymentDeadline(null);
-        appointment.setPaymentStatus("PENDING");
+        appointment.setPaymentStatus(PaymentStatusEnum.PENDING);
 
         var saved = appointmentRepository.save(appointment);
         auditService.logCalendarAction("APPOINTMENT_CREATED", saved.getId(), psychologist.getId(), user.getId());
@@ -365,7 +367,7 @@ public class CalendarService {
 
         return new CalendarDtos.CreateForPatientResponse(
                 saved.getId(), saved.getStartTime().toString(), saved.getEndTime().toString(),
-                saved.getStatus(), user.getId(), psychologist.getId()
+                saved.getStatus().name(), user.getId(), psychologist.getId()
         );
     }
 
@@ -374,7 +376,7 @@ public class CalendarService {
         Instant now = Instant.now();
         return appointmentRepository.findByUser_IdOrderByStartTimeAsc(user.getId())
                 .stream()
-                .filter(apt -> ("CONFIRMED".equals(apt.getStatus()) || "BOOKED".equals(apt.getStatus())) && apt.getEndTime().isBefore(now))
+                .filter(apt -> (AppointmentStatusEnum.CONFIRMED == apt.getStatus() || AppointmentStatusEnum.BOOKED == apt.getStatus()) && apt.getEndTime().isBefore(now))
                 .map(apt -> toPastAppointmentDto(apt, user.getId()))
                 .collect(Collectors.toList());
     }
@@ -451,7 +453,7 @@ public class CalendarService {
         return appointmentRepository.findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(
                         psychologist.getId(), Instant.ofEpochMilli(0), now)
                 .stream()
-                .filter(apt -> ("CONFIRMED".equals(apt.getStatus()) || "BOOKED".equals(apt.getStatus()))
+                .filter(apt -> (AppointmentStatusEnum.CONFIRMED == apt.getStatus() || AppointmentStatusEnum.BOOKED == apt.getStatus())
                         && apt.getEndTime().isBefore(now) && apt.getUser() != null)
                 .map(this::toPsychologistPastAppointmentDto)
                 .collect(Collectors.toList());
@@ -463,7 +465,7 @@ public class CalendarService {
         return appointmentRepository.findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(
                         psychologist.getId(), Instant.ofEpochMilli(0), Instant.now().plusSeconds(365L * 24 * 3600))
                 .stream()
-                .filter(apt -> ("CONFIRMED".equals(apt.getStatus()) || "BOOKED".equals(apt.getStatus()))
+                .filter(apt -> (AppointmentStatusEnum.CONFIRMED == apt.getStatus() || AppointmentStatusEnum.BOOKED == apt.getStatus())
                         && apt.getUser() != null)
                 .map(this::toPsychologistPastAppointmentDto)
                 .collect(Collectors.toList());
@@ -545,7 +547,7 @@ public class CalendarService {
                 psychologistId, start.minusSeconds(1), end.plusSeconds(1));
         boolean overlap = existing.stream()
                 .filter(apt -> excludeAppointmentId == null || !apt.getId().equals(excludeAppointmentId))
-                .anyMatch(apt -> !"CANCELLED".equals(apt.getStatus())
+                .anyMatch(apt -> AppointmentStatusEnum.CANCELLED != apt.getStatus()
                         && start.isBefore(apt.getEndTime()) && end.isAfter(apt.getStartTime()));
         if (overlap) throw new IllegalArgumentException("Ya existe una cita en este horario");
     }
@@ -562,8 +564,8 @@ public class CalendarService {
     }
 
     private boolean isVisibleToUser(AppointmentEntity s, UserEntity user) {
-        if ("FREE".equals(s.getStatus()) || "REQUESTED".equals(s.getStatus())) return true;
-        if (("CONFIRMED".equals(s.getStatus()) || "BOOKED".equals(s.getStatus()))
+        if (AppointmentStatusEnum.FREE == s.getStatus() || AppointmentStatusEnum.REQUESTED == s.getStatus()) return true;
+        if ((AppointmentStatusEnum.CONFIRMED == s.getStatus() || AppointmentStatusEnum.BOOKED == s.getStatus())
                 && s.getUser() != null && s.getUser().getId().equals(user.getId())) return true;
         return false;
     }
@@ -576,8 +578,8 @@ public class CalendarService {
                 apt.getId(), null,
                 apt.getStartTime() != null ? apt.getStartTime().toString() : null,
                 apt.getEndTime() != null ? apt.getEndTime().toString() : null,
-                apt.getStatus(), apt.getPrice(),
-                apt.getPaymentStatus(),
+                apt.getStatus() != null ? apt.getStatus().name() : null, apt.getPrice(),
+                apt.getPaymentStatus() != null ? apt.getPaymentStatus().name() : null,
                 apt.getPaymentDeadline() != null ? apt.getPaymentDeadline().toString() : null,
                 apt.getConfirmedAt() != null ? apt.getConfirmedAt().toString() : null,
                 null, psych);
@@ -592,7 +594,7 @@ public class CalendarService {
                 apt.getId(), req.getId(),
                 apt.getStartTime() != null ? apt.getStartTime().toString() : null,
                 apt.getEndTime() != null ? apt.getEndTime().toString() : null,
-                "REQUESTED", apt.getPrice(),
+                AppointmentStatusEnum.REQUESTED.name(), apt.getPrice(),
                 null, null, null, req.getRequestedAt().toString(), psych);
     }
 
@@ -602,7 +604,7 @@ public class CalendarService {
         var appointment = new CalendarDtos.PendingAppointmentDto(apt.getId(),
                 apt.getStartTime().toString(), apt.getEndTime().toString(), apt.getPrice());
         return new CalendarDtos.PendingRequestDto(req.getId(), apt.getId(), req.getRequestedAt().toString(),
-                req.getStatus(), user, appointment);
+                req.getStatus() != null ? req.getStatus().name() : null, user, appointment);
     }
 
     private CalendarDtos.PastAppointmentDto toPastAppointmentDto(AppointmentEntity apt, Long userId) {
@@ -610,7 +612,7 @@ public class CalendarService {
         var rating = appointmentRatingRepository.findByAppointment_IdAndUser_Id(apt.getId(), userId)
                 .map(r -> new CalendarDtos.RatingDto(r.getId(), r.getRating(), r.getComment() != null ? r.getComment() : "", r.getCreatedAt() != null ? r.getCreatedAt().toString() : null))
                 .orElse(null);
-        return new CalendarDtos.PastAppointmentDto(apt.getId(), apt.getStartTime(), apt.getEndTime(), apt.getStatus(), apt.getPrice(), psych, rating);
+        return new CalendarDtos.PastAppointmentDto(apt.getId(), apt.getStartTime(), apt.getEndTime(), apt.getStatus() != null ? apt.getStatus().name() : null, apt.getPrice(), psych, rating);
     }
 
     private CalendarDtos.PsychologistPastAppointmentDto toPsychologistPastAppointmentDto(AppointmentEntity apt) {
@@ -618,7 +620,7 @@ public class CalendarService {
         var rating = appointmentRatingRepository.findByAppointment_IdAndUser_Id(apt.getId(), apt.getUser().getId())
                 .map(r -> new CalendarDtos.RatingDto(r.getId(), r.getRating(), r.getComment() != null ? r.getComment() : "", r.getCreatedAt() != null ? r.getCreatedAt().toString() : null))
                 .orElse(null);
-        return new CalendarDtos.PsychologistPastAppointmentDto(apt.getId(), apt.getStartTime(), apt.getEndTime(), apt.getStatus(), apt.getPrice(), apt.getPaymentStatus(), apt.getConfirmedAt(), user, rating,
+        return new CalendarDtos.PsychologistPastAppointmentDto(apt.getId(), apt.getStartTime(), apt.getEndTime(), apt.getStatus() != null ? apt.getStatus().name() : null, apt.getPrice(), apt.getPaymentStatus() != null ? apt.getPaymentStatus().name() : null, apt.getConfirmedAt(), user, rating,
                 apt.getTaxRate(), apt.getTaxAmount(), apt.getTotalAmount(), apt.getTaxExempt());
     }
 }

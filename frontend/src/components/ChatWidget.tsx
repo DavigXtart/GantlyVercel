@@ -28,7 +28,7 @@ type Message = {
 };
 
 const INITIAL_RECONNECT_DELAY = 3000;
-const MAX_RECONNECT_DELAY = 30000;
+const MAX_RECONNECT_DELAY = 60000;
 
 export default function ChatWidget({ mode, otherId }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -219,19 +219,31 @@ export default function ChatWidget({ mode, otherId }: Props) {
     client.onDisconnect = () => {
       setConnected(false);
       setReconnecting(true);
-      // Exponential backoff: double the delay, cap at MAX_RECONNECT_DELAY
-      reconnectDelayRef.current = Math.min(reconnectDelayRef.current * 2, MAX_RECONNECT_DELAY);
+      // Exponential backoff with jitter to prevent thundering herd
+      const jitter = Math.random() * 1000;
+      reconnectDelayRef.current = Math.min(
+          reconnectDelayRef.current * 2 + jitter,
+          MAX_RECONNECT_DELAY
+      );
     };
 
     client.onStompError = () => {
       setConnected(false);
       setReconnecting(true);
-      reconnectDelayRef.current = Math.min(reconnectDelayRef.current * 2, MAX_RECONNECT_DELAY);
+      const jitter = Math.random() * 1000;
+      reconnectDelayRef.current = Math.min(
+          reconnectDelayRef.current * 2 + jitter,
+          MAX_RECONNECT_DELAY
+      );
     };
 
     client.onWebSocketError = () => {
       setReconnecting(true);
-      reconnectDelayRef.current = Math.min(reconnectDelayRef.current * 2, MAX_RECONNECT_DELAY);
+      const jitter = Math.random() * 1000;
+      reconnectDelayRef.current = Math.min(
+          reconnectDelayRef.current * 2 + jitter,
+          MAX_RECONNECT_DELAY
+      );
     };
 
     client.onWebSocketClose = () => {

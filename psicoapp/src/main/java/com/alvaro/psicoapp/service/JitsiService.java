@@ -1,6 +1,7 @@
 package com.alvaro.psicoapp.service;
 
 import com.alvaro.psicoapp.domain.AppointmentEntity;
+import com.alvaro.psicoapp.domain.PaymentStatusEnum;
 import com.alvaro.psicoapp.domain.RoleConstants;
 import com.alvaro.psicoapp.domain.UserEntity;
 import com.alvaro.psicoapp.dto.JitsiDtos;
@@ -84,7 +85,7 @@ public class JitsiService {
                 String paymentMethod = validAppointment.getPaymentMethod();
                 boolean requiresStripePayment = "STRIPE".equalsIgnoreCase(paymentMethod);
                 boolean psychBelongsToClinic = validAppointment.getPsychologist().getCompanyId() != null;
-                if (requiresStripePayment && !psychBelongsToClinic && !"PAID".equals(validAppointment.getPaymentStatus())) {
+                if (requiresStripePayment && !psychBelongsToClinic && validAppointment.getPaymentStatus() != PaymentStatusEnum.PAID) {
                     throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                             "Debes completar el pago de tu cita antes de iniciar la videollamada.");
                 }

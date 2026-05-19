@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.alvaro.psicoapp.domain.AppointmentEntity;
+import com.alvaro.psicoapp.domain.AppointmentStatusEnum;
+import com.alvaro.psicoapp.domain.PaymentStatusEnum;
 import com.alvaro.psicoapp.domain.UserSubscriptionEntity;
 import com.alvaro.psicoapp.repository.AppointmentRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
@@ -138,10 +140,10 @@ public class StripeService {
         AppointmentEntity appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Cita no encontrada"));
 
-        if (!"CONFIRMED".equals(appointment.getStatus()) && !"BOOKED".equals(appointment.getStatus())) {
+        if (appointment.getStatus() != AppointmentStatusEnum.CONFIRMED && appointment.getStatus() != AppointmentStatusEnum.BOOKED) {
             throw new RuntimeException("La cita debe estar confirmada para poder pagarla");
         }
-        if ("PAID".equals(appointment.getPaymentStatus())) {
+        if (appointment.getPaymentStatus() == PaymentStatusEnum.PAID) {
             throw new RuntimeException("Esta cita ya está pagada");
         }
 
@@ -268,7 +270,7 @@ public class StripeService {
 
         Map<String, String> result = new HashMap<>();
 
-        if ("PAID".equals(appointment.getPaymentStatus())) {
+        if (appointment.getPaymentStatus() == PaymentStatusEnum.PAID) {
             result.put("status", "PAID");
             return result;
         }
@@ -282,8 +284,8 @@ public class StripeService {
         try {
             Session session = Session.retrieve(sessionId);
             if ("complete".equals(session.getStatus()) && "paid".equals(session.getPaymentStatus())) {
-                appointment.setPaymentStatus("PAID");
-                appointment.setStatus("BOOKED");
+                appointment.setPaymentStatus(PaymentStatusEnum.PAID);
+                appointment.setStatus(AppointmentStatusEnum.BOOKED);
                 appointmentRepository.save(appointment);
                 logger.info("Pago verificado para cita {} via polling", appointmentId);
 
@@ -316,13 +318,13 @@ public class StripeService {
             Long appointmentId = Long.parseLong(appointmentIdStr);
             appointmentRepository.findById(appointmentId).ifPresent(appointment -> {
                 // Deduplication: skip if already processed
-                if ("PAID".equals(appointment.getPaymentStatus())) {
+                if (appointment.getPaymentStatus() == PaymentStatusEnum.PAID) {
                     logger.info("Webhook duplicado ignorado para cita {} (ya pagada)", appointmentId);
                     return;
                 }
 
-                appointment.setPaymentStatus("PAID");
-                appointment.setStatus("BOOKED");
+                appointment.setPaymentStatus(PaymentStatusEnum.PAID);
+                appointment.setStatus(AppointmentStatusEnum.BOOKED);
                 appointment.setStripeSessionId(session.getId());
                 appointmentRepository.save(appointment);
                 logger.info("Pago completado para cita {}", appointmentId);

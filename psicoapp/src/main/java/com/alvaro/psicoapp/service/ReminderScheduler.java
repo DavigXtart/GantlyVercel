@@ -1,6 +1,7 @@
 package com.alvaro.psicoapp.service;
 
 import com.alvaro.psicoapp.domain.AppointmentEntity;
+import com.alvaro.psicoapp.domain.AppointmentStatusEnum;
 import com.alvaro.psicoapp.repository.AppointmentRepository;
 import com.alvaro.psicoapp.repository.DailyMoodEntryRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
@@ -43,7 +44,7 @@ public class ReminderScheduler {
         Instant in23h = now.plus(23, ChronoUnit.HOURS);
 
         List<AppointmentEntity> upcoming = appointmentRepository
-                .findByStartTimeBetweenAndStatus(in23h, in24h, "CONFIRMED");
+                .findByStartTimeBetweenAndStatus(in23h, in24h, AppointmentStatusEnum.CONFIRMED);
 
         for (AppointmentEntity apt : upcoming) {
             if (apt.getUser() != null) {

@@ -1,6 +1,7 @@
 package com.alvaro.psicoapp.repository;
 
 import com.alvaro.psicoapp.domain.AppointmentRequestEntity;
+import com.alvaro.psicoapp.domain.RequestStatusEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,7 +13,7 @@ import java.util.Optional;
 @Repository
 public interface AppointmentRequestRepository extends JpaRepository<AppointmentRequestEntity, Long> {
     List<AppointmentRequestEntity> findByAppointment_Id(Long appointmentId);
-    List<AppointmentRequestEntity> findByAppointment_IdAndStatus(Long appointmentId, String status);
+    List<AppointmentRequestEntity> findByAppointment_IdAndStatus(Long appointmentId, RequestStatusEnum status);
     List<AppointmentRequestEntity> findByUser_IdOrderByRequestedAtDesc(Long userId);
     long deleteByUser_Id(Long userId);
 

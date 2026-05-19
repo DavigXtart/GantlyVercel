@@ -245,17 +245,21 @@ const TestReport = forwardRef<TestReportHandle, TestReportProps>(({ data }, ref)
         <PercentageScaleTable items={data.subfactors} />
       )}
 
-      {/* Global factors summary if we have factors with labels */}
-      {data.factors.length > 0 && data.subfactors.length > 0 && (
+      {/* Global factors summary — bipolar scale if labels exist, percentage scale otherwise */}
+      {data.factors.length > 0 && (
         <div style={{ marginTop: '32px' }}>
           <div style={{ fontSize: '15px', fontWeight: 'bold', marginBottom: '8px', borderBottom: '1px solid #000', paddingBottom: '4px' }}>
             FACTORES GLOBALES
           </div>
-          <FactorScaleTable items={data.factors.map(f => ({
-            ...f,
-            minLabel: f.minLabel || f.name,
-            maxLabel: f.maxLabel || '',
-          }))} />
+          {data.factors.some(f => f.minLabel || f.maxLabel) ? (
+            <FactorScaleTable items={data.factors.map(f => ({
+              ...f,
+              minLabel: f.minLabel || f.name,
+              maxLabel: f.maxLabel || '',
+            }))} />
+          ) : (
+            <PercentageScaleTable items={data.factors} />
+          )}
         </div>
       )}
 

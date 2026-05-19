@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -80,6 +81,15 @@ public class TaskController {
     @ApiResponse(responseCode = "200", description = "Tarea reabierta exitosamente")
     public ResponseEntity<TaskDtos.ReopenTaskResponse> reopenTask(Principal principal, @PathVariable Long taskId) {
         return ResponseEntity.ok(taskService.reopenTask(currentUserService.getCurrentUser(principal), taskId));
+    }
+
+    @DeleteMapping("/{taskId}")
+    @Transactional
+    @Operation(summary = "Eliminar tarea", description = "Elimina una tarea y sus archivos asociados (solo el psicólogo asignado)")
+    @ApiResponse(responseCode = "200", description = "Tarea eliminada exitosamente")
+    public ResponseEntity<Map<String, String>> deleteTask(Principal principal, @PathVariable Long taskId) {
+        taskService.deleteTask(currentUserService.getCurrentUser(principal), taskId);
+        return ResponseEntity.ok(Map.of("message", "Tarea eliminada exitosamente"));
     }
 
     @GetMapping("/{taskId}/comments")
