@@ -459,6 +459,13 @@ public class ClinicController {
         return ResponseEntity.ok(Map.of("message", "Aseguradora desactivada"));
     }
 
+    @GetMapping("/insurance-policies")
+    public ResponseEntity<?> getAllInsurancePolicies(Principal principal) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(insuranceService.getAllPolicies(email));
+    }
+
     @GetMapping("/patients/{patientId}/insurance-policies")
     public ResponseEntity<?> getPatientInsurancePolicies(Principal principal, @PathVariable Long patientId) {
         String email = getCompanyEmail(principal);

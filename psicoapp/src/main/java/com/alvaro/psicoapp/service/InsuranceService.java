@@ -117,6 +117,15 @@ public class InsuranceService {
     // --- Patient Policies CRUD ---
 
     @Transactional(readOnly = true)
+    public List<InsurancePatientPolicyDto> getAllPolicies(String email) {
+        Long companyId = resolveCompanyId(email);
+        return policyRepository.findByInsuranceCompanyCompanyIdOrderByCreatedAtDesc(companyId)
+                .stream()
+                .map(this::toPolicyDto)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public List<InsurancePatientPolicyDto> getPatientPolicies(String email, Long patientId) {
         Long companyId = resolveCompanyId(email);
         return policyRepository.findByInsuranceCompanyCompanyIdAndPatientIdOrderByCreatedAtDesc(companyId, patientId)

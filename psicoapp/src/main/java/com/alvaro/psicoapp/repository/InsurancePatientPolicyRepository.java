@@ -7,4 +7,5 @@ import java.util.List;
 public interface InsurancePatientPolicyRepository extends JpaRepository<InsurancePatientPolicyEntity, Long> {
     List<InsurancePatientPolicyEntity> findByPatientIdOrderByCreatedAtDesc(Long patientId);
     List<InsurancePatientPolicyEntity> findByInsuranceCompanyCompanyIdAndPatientIdOrderByCreatedAtDesc(Long companyId, Long patientId);
+    List<InsurancePatientPolicyEntity> findByInsuranceCompanyCompanyIdOrderByCreatedAtDesc(Long companyId);
 }

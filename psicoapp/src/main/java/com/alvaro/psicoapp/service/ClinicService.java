@@ -82,9 +82,11 @@ public class ClinicService {
     // --- DTOs ---
     public record ClinicMeDto(Long id, String name, String email, String referralCode,
                               String address, String phone, String website, String logoUrl,
-                              String weeklySchedule, String nif) {}
+                              String weeklySchedule, String nif,
+                              String slug, String description, Boolean publicVisible) {}
     public record UpdateClinicInfoRequest(String name, String address, String phone, String website,
-                                           String logoUrl, String weeklySchedule, String nif) {}
+                                           String logoUrl, String weeklySchedule, String nif,
+                                           String slug, String description, Boolean publicVisible) {}
     public record ClinicServiceDto(Long id, String name, BigDecimal defaultPrice, Integer durationMinutes, Boolean active) {}
     public record CreateClinicServiceRequest(String name, BigDecimal defaultPrice, Integer durationMinutes) {}
     public record UpdateClinicServiceRequest(String name, BigDecimal defaultPrice, Integer durationMinutes, Boolean active) {}
@@ -191,7 +193,8 @@ public class ClinicService {
         var company = getCompany(email);
         return new ClinicMeDto(company.getId(), company.getName(), company.getEmail(), company.getReferralCode(),
                 company.getAddress(), company.getPhone(), company.getWebsite(), company.getLogoUrl(),
-                company.getWeeklySchedule(), company.getNif());
+                company.getWeeklySchedule(), company.getNif(),
+                company.getSlug(), company.getDescription(), company.getPublicVisible());
     }
 
     @Transactional
@@ -204,6 +207,9 @@ public class ClinicService {
         if (req.logoUrl() != null) company.setLogoUrl(req.logoUrl().trim());
         if (req.weeklySchedule() != null) company.setWeeklySchedule(req.weeklySchedule());
         if (req.nif() != null) company.setNif(req.nif().trim());
+        if (req.slug() != null) company.setSlug(req.slug().trim());
+        if (req.description() != null) company.setDescription(req.description().trim());
+        if (req.publicVisible() != null) company.setPublicVisible(req.publicVisible());
         companyRepository.save(company);
         return getMe(email);
     }
