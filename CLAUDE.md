@@ -320,7 +320,7 @@ Located in `psicoapp/src/main/resources/db/`:
 | 19 | **Auth** | Sin logout / token blacklist | **RESUELTO** — blacklist + refresh rotation |
 | 20 | **Calendar** | Bug timezone UTC vs local | **RESUELTO** — AppTimezone Europe/Madrid |
 | 21 | **Calendar** | Double-booking race condition | **RESUELTO** — unique index + validación |
-| 23 | **Chat** | WebSocket sin reconexión backoff | Parcial — ya tiene backoff |
+| 23 | **Chat** | WebSocket sin reconexión backoff | **RESUELTO** — exponential backoff 3→60s + random jitter |
 | 24 | **ERP** | Clínica hardcodeada en PDF | **PENDIENTE** |
 
 ### MEDIUM (P2) — Pendientes
@@ -328,22 +328,23 @@ Located in `psicoapp/src/main/resources/db/`:
 | # | Sistema | Issue |
 |---|---------|-------|
 | 25 | **Tests** | Preguntas importadas sin subfactor asignado |
-| 26 | **Tests** | TestReport PDF solo escala 1-10 |
+| 26 | **Tests** | ~~TestReport PDF solo escala 1-10~~ → **RESUELTO** — PercentageScaleTable para factors sin bipolar labels |
 | 27 | **Tests** | TestEntity vs EvaluationTestEntity mezclados |
-| 29 | **Dashboard** | UserDashboard.tsx muy grande (parcialmente refactorizado en tabs) |
-| 32 | **Tasks** | Archivos huérfanos no se limpian al eliminar |
-| 33 | **Tasks** | Tarea completada no se puede reabrir |
+| 29 | **Dashboard** | ~~UserDashboard.tsx muy grande~~ → **RESUELTO** — 14 tabs extraídos, 609 líneas shell |
+| 32 | **Tasks** | ~~Archivos huérfanos no se limpian al eliminar~~ → **RESUELTO** — DELETE endpoint + file cleanup |
+| 33 | **Tasks** | ~~Tarea completada no se puede reabrir~~ → **RESUELTO** — PUT /tasks/{id}/reopen |
 | 34 | **Chat** | ~~Sin retención~~ → **RESUELTO** — DataRetentionService diario 3AM |
 | 35 | **Chat** | ~~Sin rate limiting WebSocket~~ → **RESUELTO** — 10 msg/min + 10KB |
-| 36 | **Calendar** | Sin cascade delete AppointmentRequest |
+| 36 | **Calendar** | ~~Sin cascade delete AppointmentRequest~~ → **RESUELTO** — CascadeType.REMOVE + orphanRemoval |
 | 38 | **Payments** | ~~Sin IVA~~ → **RESUELTO** — campos tax en appointment |
-| 39 | **Payments** | Sin notificación de fallo de pago |
+| 39 | **Payments** | ~~Sin notificación de fallo de pago~~ → **RESUELTO** — StripeService.handlePaymentFailed() + NotificationService |
 | 40 | **ERP** | ~~Chat sin encriptación~~ → **RESUELTO** — AES-256-GCM |
 
 ### Architectural Debt
 
-- **Appointment status**: strings sueltos sin enum → propenso a errores
-- **Payment status**: solo "PENDING"/"PAID", faltan "FAILED"/"REFUNDED"/"CANCELLED"
+- ~~**Appointment status**: strings sueltos sin enum~~ → **RESUELTO** — `AppointmentStatusEnum` (FREE/REQUESTED/CONFIRMED/BOOKED/CANCELLED)
+- ~~**Payment status**: solo "PENDING"/"PAID"~~ → **RESUELTO** — `PaymentStatusEnum` (PENDING/PAID/EXPIRED/FAILED/REFUNDED/CANCELLED)
+- ~~**Request status**: strings sueltos~~ → **RESUELTO** — `RequestStatusEnum` (PENDING/CONFIRMED/REJECTED)
 - **Dos sistemas de tests paralelos**: TestEntity vs EvaluationTestEntity
 - **Stripe config**: `@ConfigurationProperties` con validación no implementado
 - **File storage**: filesystem local → migrar a Supabase Storage en deploy
