@@ -121,7 +121,7 @@ export default function UserClinicPortalTab({ hasClinic }: UserClinicPortalTabPr
   return (
     <div className="space-y-4">
       {/* Clinic header card */}
-      <div className="bg-white rounded-xl border border-slate-200/80">
+      <div className="bg-white rounded-2xl border border-slate-200/80">
         <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-3">
           {clinic?.logoUrl ? (
             <img src={clinic.logoUrl} alt="" className="w-10 h-10 rounded-lg object-cover" />
@@ -157,10 +157,14 @@ export default function UserClinicPortalTab({ hasClinic }: UserClinicPortalTabPr
       </div>
 
       {/* Sub-tab navigation */}
-      <div className="flex gap-1 border-b border-slate-200/80">
+      <div className="flex gap-1 border-b border-slate-200/80" role="tablist">
         {subTabs.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
+            id={`tab-${id}`}
+            role="tab"
+            aria-selected={subTab === id}
+            aria-controls={`panel-${id}`}
             onClick={() => setSubTab(id)}
             className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 transition-all cursor-pointer bg-transparent ${
               subTab === id
@@ -176,7 +180,7 @@ export default function UserClinicPortalTab({ hasClinic }: UserClinicPortalTabPr
 
       {/* Sub-tab content */}
       {subTab === 'info' && (
-        <div className="bg-white rounded-xl border border-slate-200/80">
+        <div id="panel-info" role="tabpanel" aria-labelledby="tab-info" className="bg-white rounded-2xl border border-slate-200/80">
           <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
             <Building2 size={15} className="text-slate-400" />
             <h3 className="text-sm font-semibold text-slate-700">Datos de la clinica</h3>
@@ -210,7 +214,7 @@ export default function UserClinicPortalTab({ hasClinic }: UserClinicPortalTabPr
       )}
 
       {subTab === 'citas' && (
-        <div className="bg-white rounded-xl border border-slate-200/80">
+        <div id="panel-citas" role="tabpanel" aria-labelledby="tab-citas" className="bg-white rounded-2xl border border-slate-200/80">
           <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
             <Calendar size={15} className="text-slate-400" />
             <h3 className="text-sm font-semibold text-slate-700">Mis citas en la clinica</h3>
@@ -280,7 +284,7 @@ export default function UserClinicPortalTab({ hasClinic }: UserClinicPortalTabPr
       )}
 
       {subTab === 'documentos' && (
-        <div className="bg-white rounded-xl border border-slate-200/80">
+        <div id="panel-documentos" role="tabpanel" aria-labelledby="tab-documentos" className="bg-white rounded-2xl border border-slate-200/80">
           <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
             <FileText size={15} className="text-slate-400" />
             <h3 className="text-sm font-semibold text-slate-700">Documentos compartidos</h3>
@@ -325,7 +329,9 @@ export default function UserClinicPortalTab({ hasClinic }: UserClinicPortalTabPr
       )}
 
       {subTab === 'chat' && (
-        <UserClinicChatTab hasClinic={hasClinic} />
+        <div id="panel-chat" role="tabpanel" aria-labelledby="tab-chat">
+          <UserClinicChatTab hasClinic={hasClinic} />
+        </div>
       )}
     </div>
   );

@@ -4,6 +4,8 @@ import { calendarService } from '../services/api';
 import CalendarWeek from './CalendarWeek';
 import LoadingSpinner from './ui/LoadingSpinner';
 import { toast } from './ui/Toast';
+import ConfirmDialog from './ui/ConfirmDialog';
+import Modal from './ui/Modal';
 
 interface PsychCalendarTabProps {
   slots: any[];
@@ -37,6 +39,9 @@ export default function PsychCalendarTab({
   const [absenceEndDate, setAbsenceEndDate] = useState('');
   const [absenceReason, setAbsenceReason] = useState('');
   const [savingAbsence, setSavingAbsence] = useState(false);
+  const [confirmAppointmentId, setConfirmAppointmentId] = useState<number | null>(null);
+  const [cancelAppointmentId, setCancelAppointmentId] = useState<number | null>(null);
+  const [deleteAbsenceId, setDeleteAbsenceId] = useState<number | null>(null);
 
   if (loadingSlots) {
     return <LoadingSpinner text="Cargando calendario..." />;
@@ -106,7 +111,7 @@ export default function PsychCalendarTab({
             await onReloadSlots();
             await onReloadPendingRequests();
           } catch {
-            // error handled silently
+            toast.error('Error al eliminar la ausencia');
           }
         }}
         onUpdateSlot={async (appointmentId, updates) => {
@@ -161,35 +166,13 @@ export default function PsychCalendarTab({
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={async () => {
-                      if (confirm('Confirmar esta cita para ' + (req.user.name || req.user.email) + '?')) {
-                        try {
-                          await calendarService.confirmAppointment(req.id);
-                          toast.success('Cita confirmada exitosamente. Se ha enviado un correo al paciente.');
-                          await onReloadSlots();
-                          await onReloadPendingRequests();
-                        } catch (e: any) {
-                          toast.error(e?.response?.data?.error || 'Error al confirmar la cita');
-                        }
-                      }
-                    }}
+                    onClick={() => setConfirmAppointmentId(req.id)}
                     className="flex-1 px-3 py-2 bg-gantly-blue text-white rounded-md hover:bg-gantly-blue/90 transition-colors duration-200 text-sm font-medium cursor-pointer border-none"
                   >
                     Confirmar
                   </button>
                   <button
-                    onClick={async () => {
-                      if (confirm('Cancelar esta cita?')) {
-                        try {
-                          await calendarService.cancelAppointment(req.appointment.id);
-                          toast.success('Cita cancelada exitosamente');
-                          await onReloadSlots();
-                          await onReloadPendingRequests();
-                        } catch (e: any) {
-                          toast.error(e?.response?.data?.error || 'Error al cancelar la cita');
-                        }
-                      }
-                    }}
+                    onClick={() => setCancelAppointmentId(req.appointment.id)}
                     className="flex-1 px-3 py-2 bg-white text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-colors duration-200 text-sm font-medium cursor-pointer"
                   >
                     Cancelar
@@ -298,17 +281,7 @@ export default function PsychCalendarTab({
                     )}
                   </div>
                   <button
-                    onClick={async () => {
-                      if (confirm('Eliminar esta ausencia?')) {
-                        try {
-                          await calendarService.deleteAbsence(ab.id);
-                          toast.success('Ausencia eliminada');
-                          await onReloadAbsences();
-                        } catch (e: any) {
-                          toast.error(e?.response?.data?.error || 'Error al eliminar la ausencia');
-                        }
-                      }
-                    }}
+                    onClick={() => setDeleteAbsenceId(ab.id)}
                     className="ml-3 w-8 h-8 flex items-center justify-center rounded-md bg-red-50 text-red-500 border border-red-100 cursor-pointer hover:bg-red-100 transition-colors duration-200"
                     title="Eliminar ausencia"
                   >
@@ -322,101 +295,156 @@ export default function PsychCalendarTab({
       </div>
 
       {/* Modal nueva ausencia */}
-      {showAbsenceModal && (
-        <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-[1000]"
-          onClick={() => setShowAbsenceModal(false)}
-        >
-          <div
-            className="bg-white rounded-xl p-6 max-w-[450px] w-[92%] border border-slate-200/80"
-            onClick={e => e.stopPropagation()}
-          >
-            <h3 className="m-0 mb-4 font-heading text-base font-bold text-slate-800">
-              Registrar ausencia
-            </h3>
-            <p className="m-0 mb-4 text-sm text-slate-500 leading-relaxed">
-              Los slots libres dentro del periodo se eliminaran automaticamente.
-            </p>
-            <div className="mb-3">
-              <label className="block mb-1 text-[11px] text-slate-500 font-medium">
-                Fecha y hora de inicio <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="datetime-local"
-                value={absenceStartDate}
-                onChange={e => setAbsenceStartDate(e.target.value)}
-                className="w-full h-9 px-3 border border-slate-200 rounded-md text-sm outline-none transition-colors duration-200 focus:border-gantly-blue focus:ring-1 focus:ring-gantly-blue/20"
-                autoFocus
-              />
-            </div>
-            <div className="mb-3">
-              <label className="block mb-1 text-[11px] text-slate-500 font-medium">
-                Fecha y hora de fin <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="datetime-local"
-                value={absenceEndDate}
-                onChange={e => setAbsenceEndDate(e.target.value)}
-                className="w-full h-9 px-3 border border-slate-200 rounded-md text-sm outline-none transition-colors duration-200 focus:border-gantly-blue focus:ring-1 focus:ring-gantly-blue/20"
-              />
-            </div>
-            <div className="mb-5">
-              <label className="block mb-1 text-[11px] text-slate-500 font-medium">
-                Motivo (opcional)
-              </label>
-              <input
-                type="text"
-                value={absenceReason}
-                onChange={e => setAbsenceReason(e.target.value)}
-                maxLength={500}
-                placeholder="Ej: Vacaciones, formacion..."
-                className="w-full h-9 px-3 border border-slate-200 rounded-md text-sm outline-none transition-colors duration-200 focus:border-gantly-blue focus:ring-1 focus:ring-gantly-blue/20"
-                onKeyDown={e => {
-                  if (e.key === 'Escape') setShowAbsenceModal(false);
-                }}
-              />
-            </div>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setShowAbsenceModal(false)}
-                className="px-4 py-2 border border-slate-200 text-slate-600 rounded-md text-sm font-medium hover:bg-slate-50 transition-colors duration-200 cursor-pointer bg-white"
-              >
-                Cancelar
-              </button>
-              <button
-                disabled={savingAbsence}
-                onClick={async () => {
-                  if (!absenceStartDate || !absenceEndDate) {
-                    toast.warning('Completa las fechas de inicio y fin');
-                    return;
-                  }
-                  const startIso = new Date(absenceStartDate).toISOString();
-                  const endIso = new Date(absenceEndDate).toISOString();
-                  if (new Date(endIso) <= new Date(startIso)) {
-                    toast.warning('La fecha de fin debe ser posterior a la de inicio');
-                    return;
-                  }
-                  setSavingAbsence(true);
-                  try {
-                    await calendarService.createAbsence(startIso, endIso, absenceReason || undefined);
-                    toast.success('Ausencia registrada exitosamente');
-                    setShowAbsenceModal(false);
-                    await onReloadAbsences();
-                    await onReloadSlots();
-                  } catch (e: any) {
-                    toast.error(e?.response?.data?.error || 'Error al registrar la ausencia');
-                  } finally {
-                    setSavingAbsence(false);
-                  }
-                }}
-                className="px-4 py-2 bg-gantly-blue text-white rounded-md text-sm font-medium cursor-pointer border-none hover:bg-gantly-blue/90 transition-colors duration-200 disabled:opacity-60"
-              >
-                {savingAbsence ? 'Guardando...' : 'Registrar ausencia'}
-              </button>
-            </div>
-          </div>
+      <Modal
+        open={showAbsenceModal}
+        onClose={() => setShowAbsenceModal(false)}
+        title="Registrar ausencia"
+        maxWidth="max-w-[450px]"
+      >
+        <p className="m-0 mb-4 text-sm text-slate-500 leading-relaxed">
+          Los slots libres dentro del periodo se eliminaran automaticamente.
+        </p>
+        <div className="mb-3">
+          <label htmlFor="absence-start" className="block mb-1 text-[11px] text-slate-500 font-medium">
+            Fecha y hora de inicio <span className="text-red-500">*</span>
+          </label>
+          <input
+            id="absence-start"
+            type="datetime-local"
+            value={absenceStartDate}
+            onChange={e => setAbsenceStartDate(e.target.value)}
+            className="w-full h-9 px-3 border border-slate-200 rounded-md text-sm outline-none transition-colors duration-200 focus:border-gantly-blue focus:ring-1 focus:ring-gantly-blue/20"
+            autoFocus
+          />
         </div>
-      )}
+        <div className="mb-3">
+          <label htmlFor="absence-end" className="block mb-1 text-[11px] text-slate-500 font-medium">
+            Fecha y hora de fin <span className="text-red-500">*</span>
+          </label>
+          <input
+            id="absence-end"
+            type="datetime-local"
+            value={absenceEndDate}
+            onChange={e => setAbsenceEndDate(e.target.value)}
+            className="w-full h-9 px-3 border border-slate-200 rounded-md text-sm outline-none transition-colors duration-200 focus:border-gantly-blue focus:ring-1 focus:ring-gantly-blue/20"
+          />
+        </div>
+        <div className="mb-5">
+          <label htmlFor="absence-reason" className="block mb-1 text-[11px] text-slate-500 font-medium">
+            Motivo (opcional)
+          </label>
+          <input
+            id="absence-reason"
+            type="text"
+            value={absenceReason}
+            onChange={e => setAbsenceReason(e.target.value)}
+            maxLength={500}
+            placeholder="Ej: Vacaciones, formacion..."
+            className="w-full h-9 px-3 border border-slate-200 rounded-md text-sm outline-none transition-colors duration-200 focus:border-gantly-blue focus:ring-1 focus:ring-gantly-blue/20"
+          />
+        </div>
+        <div className="flex gap-3 justify-end">
+          <button
+            onClick={() => setShowAbsenceModal(false)}
+            className="px-4 py-2 border border-slate-200 text-slate-600 rounded-md text-sm font-medium hover:bg-slate-50 transition-colors duration-200 cursor-pointer bg-white"
+          >
+            Cancelar
+          </button>
+          <button
+            disabled={savingAbsence}
+            onClick={async () => {
+              if (!absenceStartDate || !absenceEndDate) {
+                toast.warning('Completa las fechas de inicio y fin');
+                return;
+              }
+              const startIso = new Date(absenceStartDate).toISOString();
+              const endIso = new Date(absenceEndDate).toISOString();
+              if (new Date(endIso) <= new Date(startIso)) {
+                toast.warning('La fecha de fin debe ser posterior a la de inicio');
+                return;
+              }
+              setSavingAbsence(true);
+              try {
+                await calendarService.createAbsence(startIso, endIso, absenceReason || undefined);
+                toast.success('Ausencia registrada exitosamente');
+                setShowAbsenceModal(false);
+                await onReloadAbsences();
+                await onReloadSlots();
+              } catch (e: any) {
+                toast.error(e?.response?.data?.error || 'Error al registrar la ausencia');
+              } finally {
+                setSavingAbsence(false);
+              }
+            }}
+            className="px-4 py-2 bg-gantly-blue text-white rounded-md text-sm font-medium cursor-pointer border-none hover:bg-gantly-blue/90 transition-colors duration-200 disabled:opacity-60"
+          >
+            {savingAbsence ? 'Guardando...' : 'Registrar ausencia'}
+          </button>
+        </div>
+      </Modal>
+
+      {/* Confirm Dialogs */}
+      <ConfirmDialog
+        open={confirmAppointmentId !== null}
+        onClose={() => setConfirmAppointmentId(null)}
+        onConfirm={async () => {
+          const reqId = confirmAppointmentId!;
+          try {
+            await calendarService.confirmAppointment(reqId);
+            toast.success('Cita confirmada exitosamente. Se ha enviado un correo al paciente.');
+            await onReloadSlots();
+            await onReloadPendingRequests();
+          } catch (e: any) {
+            toast.error(e?.response?.data?.error || 'Error al confirmar la cita');
+            throw e;
+          }
+        }}
+        title="Confirmar cita"
+        message={`Confirmar esta cita para ${pendingRequests.find(r => r.id === confirmAppointmentId)?.user?.name || pendingRequests.find(r => r.id === confirmAppointmentId)?.user?.email || 'el paciente'}?`}
+        variant="info"
+        confirmLabel="Confirmar"
+      />
+
+      <ConfirmDialog
+        open={cancelAppointmentId !== null}
+        onClose={() => setCancelAppointmentId(null)}
+        onConfirm={async () => {
+          const aptId = cancelAppointmentId!;
+          try {
+            await calendarService.cancelAppointment(aptId);
+            toast.success('Cita cancelada exitosamente');
+            await onReloadSlots();
+            await onReloadPendingRequests();
+          } catch (e: any) {
+            toast.error(e?.response?.data?.error || 'Error al cancelar la cita');
+            throw e;
+          }
+        }}
+        title="Cancelar cita"
+        message="¿Estás seguro de que quieres cancelar esta cita?"
+        variant="danger"
+        confirmLabel="Cancelar cita"
+      />
+
+      <ConfirmDialog
+        open={deleteAbsenceId !== null}
+        onClose={() => setDeleteAbsenceId(null)}
+        onConfirm={async () => {
+          const absId = deleteAbsenceId!;
+          try {
+            await calendarService.deleteAbsence(absId);
+            toast.success('Ausencia eliminada');
+            await onReloadAbsences();
+          } catch (e: any) {
+            toast.error(e?.response?.data?.error || 'Error al eliminar la ausencia');
+            throw e;
+          }
+        }}
+        title="Eliminar ausencia"
+        message="¿Estás seguro de que quieres eliminar esta ausencia?"
+        variant="danger"
+        confirmLabel="Eliminar"
+      />
     </div>
   );
 }

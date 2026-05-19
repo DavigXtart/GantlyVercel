@@ -17,10 +17,10 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
   const [submitting, setSubmitting] = useState(false);
 
   const loadTaskFiles = async (taskId: number) => {
-    try { const files = await tasksService.getFiles(taskId); setTaskFiles(prev => ({ ...prev, [taskId]: files })); } catch {}
+    try { const files = await tasksService.getFiles(taskId); setTaskFiles(prev => ({ ...prev, [taskId]: files })); } catch { toast.error('Error al cargar los archivos'); }
   };
   const loadTaskComments = async (taskId: number) => {
-    try { const comments = await tasksService.getComments(taskId); setTaskComments(prev => ({ ...prev, [taskId]: comments })); } catch {}
+    try { const comments = await tasksService.getComments(taskId); setTaskComments(prev => ({ ...prev, [taskId]: comments })); } catch { toast.error('Error al cargar los comentarios'); }
   };
   const loadTaskDetails = async (taskId: number) => {
     try {
@@ -321,8 +321,8 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
                 {pendingTasks.map(t => {
                   const overdue = t.dueDate && new Date(t.dueDate) < new Date();
                   return (
-                    <div key={t.id} onClick={() => { setSelectedTaskId(t.id); loadTaskDetails(t.id); }}
-                      className="bg-white rounded-xl px-5 py-4 border border-slate-200/80 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group flex items-center gap-4">
+                    <button type="button" key={t.id} onClick={() => { setSelectedTaskId(t.id); loadTaskDetails(t.id); }}
+                      className="w-full text-left focus:outline-none focus:ring-2 focus:ring-gantly-blue/20 bg-white rounded-xl px-5 py-4 border border-slate-200/80 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group flex items-center gap-4">
                       <div className={`size-9 rounded-lg flex items-center justify-center flex-shrink-0 ${overdue ? 'bg-red-50' : 'bg-amber-50'}`}>
                         {overdue ? <AlertTriangle className="text-red-500" size={16} /> : <Clock className="text-amber-600" size={16} />}
                       </div>
@@ -337,7 +337,7 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
                         )}
                       </div>
                       <ChevronRight className="text-slate-500 group-hover:text-gantly-blue transition-colors" size={18} />
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -354,8 +354,8 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
               </div>
               <div className="space-y-2">
                 {completedTasks.map(t => (
-                  <div key={t.id} onClick={() => { setSelectedTaskId(t.id); loadTaskDetails(t.id); }}
-                    className="bg-white rounded-xl px-5 py-4 border border-slate-200/80 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group flex items-center gap-4 opacity-80 hover:opacity-100">
+                  <button type="button" key={t.id} onClick={() => { setSelectedTaskId(t.id); loadTaskDetails(t.id); }}
+                    className="w-full text-left focus:outline-none focus:ring-2 focus:ring-gantly-blue/20 bg-white rounded-xl px-5 py-4 border border-slate-200/80 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group flex items-center gap-4 opacity-80 hover:opacity-100">
                     <div className="size-9 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
                       <CheckSquare className="text-emerald-600" size={16} />
                     </div>
@@ -364,7 +364,7 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
                       {t.description && <p className="text-sm text-slate-500 truncate mt-0.5">{t.description}</p>}
                     </div>
                     <ChevronRight className="text-slate-500 group-hover:text-gantly-blue transition-colors" size={18} />
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>

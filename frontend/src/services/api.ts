@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { trackEvent } from '../utils/analytics';
+import type { ConsentRequest, ConsentDocumentType } from './types/consent';
 
 // Safe localStorage wrapper — handles SecurityError in private browsing / disabled storage
 export const safeStorage = {
@@ -855,27 +856,27 @@ export const psychService = {
 export const consentService = {
   getDocumentTypes: async () => {
     const { data } = await api.get('/consent/document-types');
-    return data as Array<{ id: number; code: string; title: string; active: boolean }>;
+    return data as ConsentDocumentType[];
   },
   createRequest: async (reqData: { userId: number; documentTypeId: number; place?: string }) => {
     const { data } = await api.post('/consent/requests', reqData);
-    return data as any;
+    return data as ConsentRequest;
   },
   getMyRequests: async () => {
     const { data } = await api.get('/consent/requests/my');
-    return data as Array<any>;
+    return data as ConsentRequest[];
   },
   getSentRequests: async () => {
     const { data } = await api.get('/consent/requests/sent');
-    return data as Array<any>;
+    return data as ConsentRequest[];
   },
   getRequest: async (id: number) => {
     const { data } = await api.get(`/consent/requests/${id}`);
-    return data as any;
+    return data as ConsentRequest;
   },
   signRequest: async (id: number, signData: { signerName: string; signatureData?: string }) => {
     const { data } = await api.post(`/consent/requests/${id}/sign`, signData);
-    return data as any;
+    return data as ConsentRequest;
   },
 };
 

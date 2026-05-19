@@ -9,10 +9,11 @@ export interface SignaturePadHandle {
 interface SignaturePadProps {
   width?: number;
   height?: number;
+  label?: string;
 }
 
 const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
-  ({ height = 150 }, ref) => {
+  ({ height = 150, label }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const isDrawing = useRef(false);
     const hasDrawn = useRef(false);
@@ -149,10 +150,16 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
 
     return (
       <div className="space-y-2">
+        {label && (
+          <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
+        )}
+        <p id="signature-instructions" className="sr-only">Dibuja tu firma en el área de abajo usando el ratón o la pantalla táctil. Usa el botón Limpiar para borrar y empezar de nuevo.</p>
         <canvas
           ref={canvasRef}
           width={600}
           height={height}
+          aria-label={label || 'Área de firma digital'}
+          aria-describedby="signature-instructions"
           className="w-full border border-slate-200 rounded-md cursor-crosshair bg-white"
           style={{ height: `${height}px`, touchAction: 'none' }}
         />
@@ -164,6 +171,7 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
           <Eraser size={14} />
           Limpiar
         </button>
+        <p className="text-xs text-slate-500 mt-1">Si no puedes firmar, escribe tu nombre completo en el campo de abajo</p>
       </div>
     );
   },

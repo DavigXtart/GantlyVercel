@@ -18,7 +18,7 @@ function SessionNotesSection({ appointmentId, existingNotes }: { appointmentId: 
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch {
-      // silent fail
+      toast.error('Error al guardar las notas');
     } finally {
       setSaving(false);
     }
@@ -28,6 +28,7 @@ function SessionNotesSection({ appointmentId, existingNotes }: { appointmentId: 
     <div className="mt-3 border-t border-slate-100 pt-3">
       <button
         onClick={() => setExpanded(!expanded)}
+        aria-expanded={expanded}
         className="bg-transparent border-none cursor-pointer text-sm text-gantly-blue font-medium flex items-center gap-1 p-0 transition-colors duration-200 hover:text-gantly-blue/80"
       >
         {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -81,9 +82,10 @@ export default function PsychPastAppointmentsTab({
         </div>
         <div className="px-5 py-3">
           {myRating && myRating.averageRating !== null && (
-            <div
+            <button
+              type="button"
               onClick={onShowRatingsModal}
-              className="flex items-center gap-2 cursor-pointer"
+              className="flex items-center gap-2 cursor-pointer bg-transparent border-none p-0 focus:outline-none focus:ring-2 focus:ring-gantly-blue/20 rounded"
               title={myRating.totalRatings > 0 ? 'Click para ver todas las resenas' : undefined}
             >
               <span className="text-gantly-gold">
@@ -92,7 +94,7 @@ export default function PsychPastAppointmentsTab({
               <span className="text-sm font-medium text-slate-500">
                 {myRating.averageRating.toFixed(1)} de 5.0 ({myRating.totalRatings} valoraciones)
               </span>
-            </div>
+            </button>
           )}
         </div>
       </div>

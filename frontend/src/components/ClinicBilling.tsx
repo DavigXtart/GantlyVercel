@@ -470,7 +470,7 @@ export default function ClinicBilling({ psychologists, clinicName, clinicNif, cl
       {/* ─── Metrics row ─── */}
       <div className="grid grid-cols-12 gap-4">
         {/* Revenue summary - wide card */}
-        <div className="col-span-12 lg:col-span-5 bg-white rounded-xl border border-slate-200/80 p-5">
+        <div className="col-span-12 lg:col-span-5 bg-white rounded-2xl border border-slate-200/80 p-5">
           <div className="flex items-start justify-between mb-4">
             <div>
               <p className="text-xs font-medium text-slate-500 mb-1">Ingresos periodo</p>
@@ -498,7 +498,7 @@ export default function ClinicBilling({ psychologists, clinicName, clinicNif, cl
         </div>
 
         {/* 3 compact metric cards */}
-        <div className="col-span-4 lg:col-span-2 bg-white rounded-xl border border-slate-200/80 p-4 flex flex-col justify-between">
+        <div className="col-span-4 lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <Wallet size={15} className="text-amber-500" />
             {totals.pendingCount > 0 && (
@@ -514,7 +514,7 @@ export default function ClinicBilling({ psychologists, clinicName, clinicNif, cl
           </div>
         </div>
 
-        <div className="col-span-4 lg:col-span-2 bg-white rounded-xl border border-slate-200/80 p-4 flex flex-col justify-between">
+        <div className="col-span-4 lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <Calendar size={15} className="text-gantly-blue" />
             <span className="text-[10px] font-medium text-slate-400">{items.length} total</span>
@@ -525,7 +525,7 @@ export default function ClinicBilling({ psychologists, clinicName, clinicNif, cl
           </div>
         </div>
 
-        <div className="col-span-4 lg:col-span-3 bg-white rounded-xl border border-slate-200/80 p-4 flex flex-col justify-between">
+        <div className="col-span-4 lg:col-span-3 bg-white rounded-2xl border border-slate-200/80 p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <ArrowDownRight size={15} className="text-slate-400" />
             <span className="text-[10px] font-medium text-slate-400">{fmtCompact(totals.cancelled)}</span>
@@ -545,7 +545,7 @@ export default function ClinicBilling({ psychologists, clinicName, clinicNif, cl
       {/* ─── Billing type breakdown ─── */}
       {(billingTypeTotals.privateCount > 0 || billingTypeTotals.insuranceCount > 0) && (
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white rounded-xl border border-slate-200/80 p-4 flex items-center gap-3">
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-4 flex items-center gap-3">
             <div className="size-9 rounded-lg bg-slate-50 flex items-center justify-center flex-shrink-0">
               <CreditCard size={16} className="text-slate-500" />
             </div>
@@ -555,7 +555,7 @@ export default function ClinicBilling({ psychologists, clinicName, clinicNif, cl
             </div>
             <span className="text-xs text-slate-400">{billingTypeTotals.privateCount} sesiones</span>
           </div>
-          <div className="bg-white rounded-xl border border-slate-200/80 p-4 flex items-center gap-3">
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-4 flex items-center gap-3">
             <div className="size-9 rounded-lg bg-violet-50 flex items-center justify-center flex-shrink-0">
               <Shield size={16} className="text-violet-500" />
             </div>
@@ -569,7 +569,7 @@ export default function ClinicBilling({ psychologists, clinicName, clinicNif, cl
       )}
 
       {/* ─── Transactions table ─── */}
-      <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden">
         {/* Table header */}
         <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-3">
           <h3 className="text-sm font-semibold text-slate-900">Transacciones</h3>

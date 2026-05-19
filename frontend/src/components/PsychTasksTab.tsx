@@ -23,10 +23,10 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
   const [expandedTasks, setExpandedTasks] = useState<Set<number>>(new Set());
 
   const loadTaskFiles = async (taskId: number) => {
-    try { const files = await tasksService.getFiles(taskId); setTaskFiles(prev => ({ ...prev, [taskId]: files })); } catch {}
+    try { const files = await tasksService.getFiles(taskId); setTaskFiles(prev => ({ ...prev, [taskId]: files })); } catch { toast.error('Error al cargar los archivos'); }
   };
   const loadTaskComments = async (taskId: number) => {
-    try { const comments = await tasksService.getComments(taskId); setTaskComments(prev => ({ ...prev, [taskId]: comments })); } catch {}
+    try { const comments = await tasksService.getComments(taskId); setTaskComments(prev => ({ ...prev, [taskId]: comments })); } catch { toast.error('Error al cargar los comentarios'); }
   };
   const loadTaskDetails = async (taskId: number) => {
     try {
@@ -327,8 +327,8 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
               const done = !!t.completedAt;
               const overdue = t.dueDate && new Date(t.dueDate) < new Date() && !done;
               return (
-                <div key={t.id} onClick={() => { setSelectedTaskId(t.id); loadTaskDetails(t.id); }}
-                  className="bg-white rounded-xl px-5 py-4 border border-slate-200/80 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group flex items-center gap-4">
+                <button type="button" key={t.id} onClick={() => { setSelectedTaskId(t.id); loadTaskDetails(t.id); }}
+                  className="w-full text-left focus:outline-none focus:ring-2 focus:ring-gantly-blue/20 bg-white rounded-xl px-5 py-4 border border-slate-200/80 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group flex items-center gap-4">
                   <div className={`size-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
                     done ? 'bg-emerald-50' : overdue ? 'bg-red-50' : 'bg-amber-50'}`}>
                     {done ? <CheckSquare className="text-emerald-600" size={16} /> : overdue ? <AlertTriangle className="text-red-500" size={16} /> : <ClockIcon className="text-amber-600" size={16} />}
@@ -360,7 +360,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                     </button>
                   )}
                   <ChevronRight className="text-slate-500 group-hover:text-gantly-blue transition-colors" size={18} />
-                </div>
+                </button>
               );
             })}
           </div>
@@ -454,8 +454,8 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
             const pt = tasksByPatient[p.id] || [];
             const done = pt.filter((t: any) => t.completedAt).length;
             return (
-              <div key={p.id} onClick={() => setSelectedPatientForTasks(p.id)}
-                className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group overflow-hidden">
+              <button type="button" key={p.id} onClick={() => setSelectedPatientForTasks(p.id)}
+                className="w-full text-left focus:outline-none focus:ring-2 focus:ring-gantly-blue/20 bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group overflow-hidden">
                 <div className="p-5">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="size-10 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 bg-gradient-to-br from-gantly-blue to-gantly-cyan">
@@ -475,7 +475,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                     <span className="text-[10px] font-semibold text-slate-500">{done}/{pt.length}</span>
                   </div>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>

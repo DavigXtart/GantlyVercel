@@ -1,17 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import {
   ChevronLeft, ChevronRight, Plus, X, Search, RefreshCw,
   Clock, User, CreditCard, FileText, Calendar, MapPin,
   Video, Building2, Trash2, Check, AlertTriangle, Repeat, CalendarOff, Shield,
 } from 'lucide-react';
-
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
-
-function authHeaders() {
-  const token = localStorage.getItem('token');
-  return { Authorization: `Bearer ${token}` };
-}
 
 // --- Types ---
 
@@ -342,9 +335,8 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
         from = startOfWeek(currentDate);
         to = addDays(from, 6); to.setHours(23, 59, 59, 999);
       }
-      const res = await axios.get<Appointment[]>(`${BASE}/clinic/agenda`, {
+      const res = await api.get<Appointment[]>('/clinic/agenda', {
         params: { from: from.toISOString(), to: to.toISOString() },
-        headers: authHeaders(),
       });
       setAppointments(res.data || []);
     } catch (err: any) {
@@ -357,16 +349,16 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
   useEffect(() => { loadAppointments(); }, [loadAppointments]);
 
   useEffect(() => {
-    axios.get<Room[]>(`${BASE}/clinic/rooms`, { headers: authHeaders() })
+    api.get<Room[]>('/clinic/rooms')
       .then(res => setRooms(res.data || []))
       .catch(() => setRooms([]));
-    axios.get<ClinicServiceItem[]>(`${BASE}/clinic/services`, { headers: authHeaders() })
+    api.get<ClinicServiceItem[]>('/clinic/services')
       .then(res => setClinicServices((res.data || []).filter(s => s.active)))
       .catch(() => setClinicServices([]));
-    axios.get<InsuranceCompanyBrief[]>(`${BASE}/clinic/insurance-companies`, { headers: authHeaders() })
+    api.get<InsuranceCompanyBrief[]>('/clinic/insurance-companies')
       .then(res => setInsuranceCompanies((res.data || []).filter(c => c.active)))
       .catch(() => setInsuranceCompanies([]));
-    axios.get<InsurancePolicyBrief[]>(`${BASE}/clinic/insurance-policies`, { headers: authHeaders() })
+    api.get<InsurancePolicyBrief[]>('/clinic/insurance-policies')
       .then(res => setInsurancePolicies(res.data || []))
       .catch(() => setInsurancePolicies([]));
   }, []);
@@ -377,7 +369,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
     if (ids.length === 0) { setAbsences([]); return; }
     Promise.all(
       ids.map(id =>
-        axios.get<Absence[]>(`${BASE}/clinic/psychologists/${id}/absences`, { headers: authHeaders() })
+        api.get<Absence[]>(`/clinic/psychologists/${id}/absences`)
           .then(res => (res.data || []).map(a => ({ ...a, psychologistId: id })))
           .catch(() => [] as Absence[])
       )
@@ -398,7 +390,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
     searchDebounceRef.current = setTimeout(async () => {
       setSearchLoading(true);
       try {
-        const res = await axios.get<PatientSummary[]>(`${BASE}/clinic/patients`, { params: { search: patientSearch }, headers: authHeaders() });
+        const res = await api.get<PatientSummary[]>('/clinic/patients', { params: { search: patientSearch } });
         setPatientResults(res.data || []);
         setShowPatientDropdown(true);
       } catch { setPatientResults([]); }
@@ -480,9 +472,9 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
         body.recurrenceCount = formRecurrenceCount;
       }
       if (editingAppointment) {
-        await axios.put(`${BASE}/clinic/appointments/${editingAppointment.id}`, body, { headers: authHeaders() });
+        await api.put(`/clinic/appointments/${editingAppointment.id}`, body);
       } else {
-        await axios.post(`${BASE}/clinic/appointments`, body, { headers: authHeaders() });
+        await api.post('/clinic/appointments', body);
       }
       closePanel(); await loadAppointments(); onAppointmentChange();
     } catch (err: any) {
@@ -494,7 +486,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
     if (!editingAppointment) return;
     setCancelling(true);
     try {
-      await axios.delete(`${BASE}/clinic/appointments/${editingAppointment.id}`, { headers: authHeaders() });
+      await api.delete(`/clinic/appointments/${editingAppointment.id}`);
       closePanel(); await loadAppointments(); onAppointmentChange();
     } catch (err: any) {
       alert(err?.response?.data?.message || 'Error al cancelar la cita');
@@ -622,11 +614,12 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
           const topPx = Math.max(0, topMin * PX_PER_MINUTE);
           const heightPx = Math.max(22, durMin * PX_PER_MINUTE);
           return (
-            <div
+            <button
+              type="button"
               key={appt.id}
               data-appt="1"
               onClick={(e) => { e.stopPropagation(); openEdit(appt); }}
-              className={`absolute left-1 right-1 ${cfg.bg} rounded-md overflow-hidden cursor-pointer z-[2] hover:ring-2 hover:ring-gantly-blue/30 transition-all group`}
+              className={`absolute left-1 right-1 w-full text-left focus:outline-none focus:ring-2 focus:ring-gantly-blue/20 cursor-pointer ${cfg.bg} rounded-md overflow-hidden z-[2] hover:ring-2 hover:ring-gantly-blue/30 transition-all group`}
               style={{ top: topPx, height: heightPx }}
             >
               {/* Left accent bar */}
@@ -649,7 +642,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                   </div>
                 )}
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
@@ -934,18 +927,19 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                             const durMin = Math.max(20, durationMinutes(appt.startTime, appt.endTime));
                             const cfg = getStatusConfig(appt.status);
                             return (
-                              <div
+                              <button
+                                type="button"
                                 key={appt.id}
                                 data-appt="1"
                                 onClick={(e) => { e.stopPropagation(); openEdit(appt); }}
-                                className={`absolute left-1 right-1 ${cfg.bg} rounded-md overflow-hidden cursor-pointer z-[2] hover:ring-2 hover:ring-gantly-blue/30 transition-all`}
+                                className={`absolute left-1 right-1 w-full text-left focus:outline-none focus:ring-2 focus:ring-gantly-blue/20 cursor-pointer ${cfg.bg} rounded-md overflow-hidden z-[2] hover:ring-2 hover:ring-gantly-blue/30 transition-all`}
                                 style={{ top: Math.max(0, topMin * PX_PER_MINUTE), height: Math.max(20, durMin * PX_PER_MINUTE) }}
                               >
                                 <div className={`absolute left-0 top-0 bottom-0 w-[3px] ${cfg.accent} rounded-l-md`} />
                                 <div className="pl-2 pr-1 py-0.5">
                                   <div className={`text-[10px] font-semibold ${cfg.text} truncate`}>{appt.patientName || 'Libre'}</div>
                                 </div>
-                              </div>
+                              </button>
                             );
                           })}
                         </div>
@@ -1002,10 +996,10 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                     {showPatientDropdown && patientResults.length > 0 && (
                       <div ref={dropdownRef} className="absolute top-full left-0 right-0 bg-white rounded-md shadow-lg border border-slate-200 z-[100] max-h-[160px] overflow-y-auto mt-0.5">
                         {patientResults.map((pt) => (
-                          <div key={pt.id} onClick={() => { setFormPatientId(pt.id); setFormPatientName(pt.name); setPatientSearch(pt.name); setShowPatientDropdown(false); }} className="px-2.5 py-2 cursor-pointer hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0">
+                          <button type="button" key={pt.id} onClick={() => { setFormPatientId(pt.id); setFormPatientName(pt.name); setPatientSearch(pt.name); setShowPatientDropdown(false); }} className="w-full text-left focus:outline-none focus:ring-2 focus:ring-gantly-blue/20 cursor-pointer px-2.5 py-2 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 bg-transparent border-x-0 border-t-0">
                             <div className="text-[12px] font-semibold text-slate-700">{pt.name}</div>
                             <div className="text-[10px] text-slate-400">{pt.patientNumber != null ? `#${pt.patientNumber} · ` : ''}{pt.phone || pt.email}</div>
-                          </div>
+                          </button>
                         ))}
                       </div>
                     )}

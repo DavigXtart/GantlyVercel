@@ -1,26 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
-import { FileCheck, Pen, Eye, X, Clock, CheckCircle, XCircle, FileText, Check } from 'lucide-react';
+import { FileCheck, Pen, Eye, Clock, CheckCircle, XCircle, FileText, Check } from 'lucide-react';
 import { consentService } from '../services/api';
 import { toast } from './ui/Toast';
 import EmptyState from './ui/EmptyState';
 import { SkeletonList } from './ui/SkeletonLoader';
 import SignaturePad, { type SignaturePadHandle } from './ui/SignaturePad';
+import Modal from './ui/Modal';
+import type { ConsentRequest } from '../services/types/consent';
 
 interface UserConsentTabProps {
   userName?: string;
-}
-
-interface ConsentRequest {
-  id: number;
-  documentTypeTitle?: string;
-  documentTypeCode?: string;
-  status: string;
-  renderedContent?: string;
-  signatureData?: string;
-  signerName?: string;
-  createdAt?: string;
-  signedAt?: string;
-  psychologistName?: string;
 }
 
 export default function UserConsentTab({ userName }: UserConsentTabProps) {
@@ -247,71 +236,54 @@ export default function UserConsentTab({ userName }: UserConsentTabProps) {
       </div>
 
       {/* Signing modal */}
-      {showSigningModal && selectedRequest && (
-        <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-[1000] p-4"
-          onClick={closeSigningModal}
-        >
-          <div
-            className="bg-white rounded-xl max-w-[640px] w-full max-h-[90vh] overflow-hidden flex flex-col border border-slate-200/80"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
-              <div className="flex items-center gap-2">
-                <Pen size={16} className="text-gantly-blue" />
-                <h3 className="text-sm font-heading font-semibold text-slate-800 m-0">Firmar consentimiento</h3>
-              </div>
-              <button
-                type="button"
-                onClick={closeSigningModal}
-                className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer transition-colors duration-200 rounded-md hover:bg-slate-100"
-              >
-                <X size={18} />
-              </button>
+      <Modal
+        open={showSigningModal && !!selectedRequest}
+        onClose={closeSigningModal}
+        title="Firmar consentimiento"
+        maxWidth="max-w-[640px]"
+      >
+        {selectedRequest && (
+          <div className="space-y-4">
+            {/* Rendered content */}
+            {selectedRequest.renderedContent ? (
+              <div
+                className="prose prose-sm max-w-none text-slate-700 border border-slate-100 rounded-md p-4 bg-slate-50/50 max-h-[300px] overflow-y-auto"
+                dangerouslySetInnerHTML={{ __html: selectedRequest.renderedContent }}
+              />
+            ) : (
+              <p className="text-sm text-slate-500">Sin contenido disponible</p>
+            )}
+
+            {/* Acceptance checkbox */}
+            <label className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={accepted}
+                onChange={(e) => setAccepted(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-slate-300 text-gantly-blue focus:ring-gantly-blue cursor-pointer"
+              />
+              <span className="text-sm text-slate-700">He leido y acepto el contenido del documento</span>
+            </label>
+
+            {/* Signer name */}
+            <div>
+              <label className="block text-[11px] text-slate-500 font-medium mb-1 uppercase tracking-wider">Nombre completo</label>
+              <input
+                type="text"
+                value={signerName}
+                onChange={(e) => setSignerName(e.target.value)}
+                placeholder="Tu nombre completo"
+                className={inputCls}
+              />
             </div>
 
-            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-              {/* Rendered content */}
-              {selectedRequest.renderedContent ? (
-                <div
-                  className="prose prose-sm max-w-none text-slate-700 border border-slate-100 rounded-md p-4 bg-slate-50/50 max-h-[300px] overflow-y-auto"
-                  dangerouslySetInnerHTML={{ __html: selectedRequest.renderedContent }}
-                />
-              ) : (
-                <p className="text-sm text-slate-500">Sin contenido disponible</p>
-              )}
-
-              {/* Acceptance checkbox */}
-              <label className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={accepted}
-                  onChange={(e) => setAccepted(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-gantly-blue focus:ring-gantly-blue cursor-pointer"
-                />
-                <span className="text-sm text-slate-700">He leido y acepto el contenido del documento</span>
-              </label>
-
-              {/* Signer name */}
-              <div>
-                <label className="block text-[11px] text-slate-500 font-medium mb-1 uppercase tracking-wider">Nombre completo</label>
-                <input
-                  type="text"
-                  value={signerName}
-                  onChange={(e) => setSignerName(e.target.value)}
-                  placeholder="Tu nombre completo"
-                  className={inputCls}
-                />
-              </div>
-
-              {/* Signature pad */}
-              <div>
-                <label className="block text-[11px] text-slate-500 font-medium mb-1 uppercase tracking-wider">Firma</label>
-                <SignaturePad ref={signaturePadRef} height={150} />
-              </div>
+            {/* Signature pad */}
+            <div>
+              <label className="block text-[11px] text-slate-500 font-medium mb-1 uppercase tracking-wider">Firma</label>
+              <SignaturePad ref={signaturePadRef} height={150} />
             </div>
 
-            <div className="px-5 py-3 border-t border-slate-100 flex justify-end gap-2 flex-shrink-0">
+            <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={closeSigningModal}
@@ -330,37 +302,23 @@ export default function UserConsentTab({ userName }: UserConsentTabProps) {
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
       {/* View signed modal */}
-      {showViewModal && selectedRequest && (
-        <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-[1000] p-6"
-          onClick={closeViewModal}
-        >
-          <div
-            className="bg-white rounded-xl max-w-[640px] w-full max-h-[85vh] overflow-hidden flex flex-col border border-slate-200/80"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
-              <div className="flex items-center gap-2">
-                <FileCheck size={16} className="text-gantly-blue" />
-                <h3 className="text-sm font-heading font-semibold text-slate-800 m-0">
-                  {selectedRequest.documentTypeTitle || 'Consentimiento'}
-                </h3>
-                <span className="ml-2">{statusBadge(selectedRequest.status)}</span>
-              </div>
-              <button
-                type="button"
-                onClick={closeViewModal}
-                className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer transition-colors duration-200 rounded-md hover:bg-slate-100"
-              >
-                <X size={18} />
-              </button>
+      <Modal
+        open={showViewModal && !!selectedRequest}
+        onClose={closeViewModal}
+        title={selectedRequest?.documentTypeTitle || 'Consentimiento'}
+        maxWidth="max-w-[640px]"
+      >
+        {selectedRequest && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 -mt-2 mb-3">
+              {statusBadge(selectedRequest.status)}
             </div>
 
-            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+            <div className="max-h-[50vh] overflow-y-auto">
               {selectedRequest.renderedContent ? (
                 <div
                   className="prose prose-sm max-w-none text-slate-700 border border-slate-100 rounded-md p-4 bg-slate-50/50"
@@ -369,30 +327,30 @@ export default function UserConsentTab({ userName }: UserConsentTabProps) {
               ) : (
                 <p className="text-sm text-slate-500">Sin contenido disponible</p>
               )}
-
-              {selectedRequest.status === 'SIGNED' && (
-                <div className="border-t border-slate-100 pt-4 space-y-2">
-                  <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">Firma</p>
-                  {selectedRequest.signerName && (
-                    <p className="text-sm text-slate-700">Firmado por: <span className="font-medium">{selectedRequest.signerName}</span></p>
-                  )}
-                  {selectedRequest.signedAt && (
-                    <p className="text-sm text-slate-500">Fecha: {formatDate(selectedRequest.signedAt)}</p>
-                  )}
-                  {selectedRequest.signatureData && (
-                    <div className="border border-slate-200 rounded-md p-2 bg-white inline-block">
-                      <img
-                        src={selectedRequest.signatureData}
-                        alt="Firma"
-                        className="max-h-[120px] w-auto"
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
 
-            <div className="px-5 py-3 border-t border-slate-100 flex justify-end flex-shrink-0">
+            {selectedRequest.status === 'SIGNED' && (
+              <div className="border-t border-slate-100 pt-4 space-y-2">
+                <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">Firma</p>
+                {selectedRequest.signerName && (
+                  <p className="text-sm text-slate-700">Firmado por: <span className="font-medium">{selectedRequest.signerName}</span></p>
+                )}
+                {selectedRequest.signedAt && (
+                  <p className="text-sm text-slate-500">Fecha: {formatDate(selectedRequest.signedAt)}</p>
+                )}
+                {selectedRequest.signatureData && (
+                  <div className="border border-slate-200 rounded-md p-2 bg-white inline-block">
+                    <img
+                      src={selectedRequest.signatureData}
+                      alt="Firma"
+                      className="max-h-[120px] w-auto"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex justify-end pt-2">
               <button
                 type="button"
                 onClick={closeViewModal}
@@ -402,8 +360,8 @@ export default function UserConsentTab({ userName }: UserConsentTabProps) {
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 }

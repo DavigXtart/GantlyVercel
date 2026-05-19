@@ -2,8 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { clinicService } from '../services/api';
 import type { InsuranceCompany, InsurancePolicy } from '../services/api';
 import {
-  Shield, FileText, Plus, X, Pencil, Trash2, Search, Building2, Check,
+  Shield, FileText, Plus, Pencil, Trash2, Search, Building2, Check, X,
 } from 'lucide-react';
+import { toast } from './ui/Toast';
+import Modal from './ui/Modal';
+import ConfirmDialog from './ui/ConfirmDialog';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -20,15 +23,13 @@ function fmtDate(iso?: string): string {
 // ---------------------------------------------------------------------------
 // Add / Edit Insurance Company Modal
 // ---------------------------------------------------------------------------
-function CompanyModal({
+function CompanyModalContent({
   initial,
   onSave,
-  onClose,
   saving,
 }: {
   initial?: Partial<InsuranceCompany>;
   onSave: (data: Partial<InsuranceCompany>) => void;
-  onClose: () => void;
   saving: boolean;
 }) {
   const [form, setForm] = useState({
@@ -40,60 +41,47 @@ function CompanyModal({
     contactPerson: initial?.contactPerson || '',
   });
 
-  const inputCls = "w-full h-9 px-3 rounded-md border border-slate-200 bg-white text-sm text-slate-900 outline-none focus:border-gantly-blue/50 transition-all placeholder:text-slate-400";
+  const inputCls = "w-full h-9 px-3 rounded-md border border-slate-200 bg-white text-sm text-slate-900 outline-none focus:border-gantly-blue/50 focus:ring-1 focus:ring-gantly-blue/20 transition-all placeholder:text-slate-400";
   const labelCls = "text-[11px] font-medium text-slate-500 mb-1 block";
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30" onClick={onClose}>
-      <div className="bg-white rounded-xl border border-slate-200 shadow-lg w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
-        <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-slate-900">{initial?.id ? 'Editar aseguradora' : 'Nueva aseguradora'}</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 cursor-pointer bg-transparent border-none p-1 rounded-md hover:bg-slate-100 transition-colors">
-            <X size={16} />
-          </button>
+    <div className="space-y-3">
+      <div>
+        <label htmlFor="company-name" className={labelCls}>Nombre *</label>
+        <input id="company-name" type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} className={inputCls} placeholder="Ej: Adeslas" autoFocus />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label htmlFor="company-nif" className={labelCls}>NIF</label>
+          <input id="company-nif" type="text" value={form.nif} onChange={e => setForm(p => ({ ...p, nif: e.target.value }))} className={inputCls} placeholder="A12345678" />
         </div>
-        <div className="p-5 space-y-3">
-          <div>
-            <label className={labelCls}>Nombre *</label>
-            <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} className={inputCls} placeholder="Ej: Adeslas" autoFocus />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={labelCls}>NIF</label>
-              <input type="text" value={form.nif} onChange={e => setForm(p => ({ ...p, nif: e.target.value }))} className={inputCls} placeholder="A12345678" />
-            </div>
-            <div>
-              <label className={labelCls}>Telefono</label>
-              <input type="tel" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} className={inputCls} placeholder="+34 900 000 000" />
-            </div>
-          </div>
-          <div>
-            <label className={labelCls}>Direccion</label>
-            <input type="text" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} className={inputCls} placeholder="Calle, numero, ciudad" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={labelCls}>Email</label>
-              <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} className={inputCls} placeholder="contacto@aseguradora.com" />
-            </div>
-            <div>
-              <label className={labelCls}>Persona de contacto</label>
-              <input type="text" value={form.contactPerson} onChange={e => setForm(p => ({ ...p, contactPerson: e.target.value }))} className={inputCls} />
-            </div>
-          </div>
+        <div>
+          <label htmlFor="company-phone" className={labelCls}>Telefono</label>
+          <input id="company-phone" type="tel" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} className={inputCls} placeholder="+34 900 000 000" />
         </div>
-        <div className="px-5 py-3 border-t border-slate-100 flex justify-end gap-2">
-          <button onClick={onClose} className="h-8 px-4 rounded-md border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-50 transition-colors cursor-pointer bg-white">
-            Cancelar
-          </button>
-          <button
-            onClick={() => onSave(form)}
-            disabled={saving || !form.name.trim()}
-            className="h-8 px-4 rounded-md bg-gantly-blue text-white text-xs font-semibold hover:bg-gantly-blue/90 transition-colors disabled:opacity-50 cursor-pointer border-none"
-          >
-            {saving ? 'Guardando...' : 'Guardar'}
-          </button>
+      </div>
+      <div>
+        <label htmlFor="company-address" className={labelCls}>Direccion</label>
+        <input id="company-address" type="text" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} className={inputCls} placeholder="Calle, numero, ciudad" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label htmlFor="company-email" className={labelCls}>Email</label>
+          <input id="company-email" type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} className={inputCls} placeholder="contacto@aseguradora.com" />
         </div>
+        <div>
+          <label htmlFor="company-contact" className={labelCls}>Persona de contacto</label>
+          <input id="company-contact" type="text" value={form.contactPerson} onChange={e => setForm(p => ({ ...p, contactPerson: e.target.value }))} className={inputCls} />
+        </div>
+      </div>
+      <div className="flex justify-end gap-2 pt-2">
+        <button
+          onClick={() => onSave(form)}
+          disabled={saving || !form.name.trim()}
+          className="h-8 px-4 rounded-md bg-gantly-blue text-white text-xs font-semibold hover:bg-gantly-blue/90 transition-colors disabled:opacity-50 cursor-pointer border-none"
+        >
+          {saving ? 'Guardando...' : 'Guardar'}
+        </button>
       </div>
     </div>
   );
@@ -102,17 +90,15 @@ function CompanyModal({
 // ---------------------------------------------------------------------------
 // Add Policy Modal
 // ---------------------------------------------------------------------------
-function PolicyModal({
+function PolicyModalContent({
   companies,
   patients,
   onSave,
-  onClose,
   saving,
 }: {
   companies: InsuranceCompany[];
   patients: Array<{ id: number; name: string }>;
   onSave: (patientId: number, data: Partial<InsurancePolicy>) => void;
-  onClose: () => void;
   saving: boolean;
 }) {
   const [form, setForm] = useState({
@@ -123,76 +109,65 @@ function PolicyModal({
     expirationDate: '',
   });
 
-  const inputCls = "w-full h-9 px-3 rounded-md border border-slate-200 bg-white text-sm text-slate-900 outline-none focus:border-gantly-blue/50 transition-all placeholder:text-slate-400";
+  const inputCls = "w-full h-9 px-3 rounded-md border border-slate-200 bg-white text-sm text-slate-900 outline-none focus:border-gantly-blue/50 focus:ring-1 focus:ring-gantly-blue/20 transition-all placeholder:text-slate-400";
   const labelCls = "text-[11px] font-medium text-slate-500 mb-1 block";
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30" onClick={onClose}>
-      <div className="bg-white rounded-xl border border-slate-200 shadow-lg w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
-        <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-slate-900">Nueva poliza</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 cursor-pointer bg-transparent border-none p-1 rounded-md hover:bg-slate-100 transition-colors">
-            <X size={16} />
-          </button>
+    <div className="space-y-3">
+      <div>
+        <label htmlFor="policy-patient" className={labelCls}>Paciente *</label>
+        <select
+          id="policy-patient"
+          value={form.patientId}
+          onChange={e => setForm(p => ({ ...p, patientId: Number(e.target.value) }))}
+          className={`${inputCls} cursor-pointer`}
+        >
+          <option value="">Seleccionar paciente</option>
+          {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+      </div>
+      <div>
+        <label htmlFor="policy-company" className={labelCls}>Aseguradora *</label>
+        <select
+          id="policy-company"
+          value={form.insuranceCompanyId}
+          onChange={e => setForm(p => ({ ...p, insuranceCompanyId: Number(e.target.value) }))}
+          className={`${inputCls} cursor-pointer`}
+        >
+          <option value="">Seleccionar aseguradora</option>
+          {companies.filter(c => c.active).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+      </div>
+      <div>
+        <label htmlFor="policy-number" className={labelCls}>Numero de poliza *</label>
+        <input id="policy-number" type="text" value={form.policyNumber} onChange={e => setForm(p => ({ ...p, policyNumber: e.target.value }))} className={inputCls} placeholder="POL-123456" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label htmlFor="policy-holder" className={labelCls}>Nombre del titular</label>
+          <input id="policy-holder" type="text" value={form.holderName} onChange={e => setForm(p => ({ ...p, holderName: e.target.value }))} className={inputCls} />
         </div>
-        <div className="p-5 space-y-3">
-          <div>
-            <label className={labelCls}>Paciente *</label>
-            <select
-              value={form.patientId}
-              onChange={e => setForm(p => ({ ...p, patientId: Number(e.target.value) }))}
-              className={`${inputCls} cursor-pointer`}
-            >
-              <option value="">Seleccionar paciente</option>
-              {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className={labelCls}>Aseguradora *</label>
-            <select
-              value={form.insuranceCompanyId}
-              onChange={e => setForm(p => ({ ...p, insuranceCompanyId: Number(e.target.value) }))}
-              className={`${inputCls} cursor-pointer`}
-            >
-              <option value="">Seleccionar aseguradora</option>
-              {companies.filter(c => c.active).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className={labelCls}>Numero de poliza *</label>
-            <input type="text" value={form.policyNumber} onChange={e => setForm(p => ({ ...p, policyNumber: e.target.value }))} className={inputCls} placeholder="POL-123456" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={labelCls}>Nombre del titular</label>
-              <input type="text" value={form.holderName} onChange={e => setForm(p => ({ ...p, holderName: e.target.value }))} className={inputCls} />
-            </div>
-            <div>
-              <label className={labelCls}>Fecha de vencimiento</label>
-              <input type="date" value={form.expirationDate} onChange={e => setForm(p => ({ ...p, expirationDate: e.target.value }))} className={inputCls} />
-            </div>
-          </div>
+        <div>
+          <label htmlFor="policy-expiration" className={labelCls}>Fecha de vencimiento</label>
+          <input id="policy-expiration" type="date" value={form.expirationDate} onChange={e => setForm(p => ({ ...p, expirationDate: e.target.value }))} className={inputCls} />
         </div>
-        <div className="px-5 py-3 border-t border-slate-100 flex justify-end gap-2">
-          <button onClick={onClose} className="h-8 px-4 rounded-md border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-50 transition-colors cursor-pointer bg-white">
-            Cancelar
-          </button>
-          <button
-            onClick={() => {
-              if (!form.patientId || !form.insuranceCompanyId || !form.policyNumber.trim()) return;
-              onSave(Number(form.patientId), {
-                insuranceCompanyId: Number(form.insuranceCompanyId),
-                policyNumber: form.policyNumber,
-                holderName: form.holderName || undefined,
-                expirationDate: form.expirationDate || undefined,
-              });
-            }}
-            disabled={saving || !form.patientId || !form.insuranceCompanyId || !form.policyNumber.trim()}
-            className="h-8 px-4 rounded-md bg-gantly-blue text-white text-xs font-semibold hover:bg-gantly-blue/90 transition-colors disabled:opacity-50 cursor-pointer border-none"
-          >
-            {saving ? 'Creando...' : 'Crear poliza'}
-          </button>
-        </div>
+      </div>
+      <div className="flex justify-end gap-2 pt-2">
+        <button
+          onClick={() => {
+            if (!form.patientId || !form.insuranceCompanyId || !form.policyNumber.trim()) return;
+            onSave(Number(form.patientId), {
+              insuranceCompanyId: Number(form.insuranceCompanyId),
+              policyNumber: form.policyNumber,
+              holderName: form.holderName || undefined,
+              expirationDate: form.expirationDate || undefined,
+            });
+          }}
+          disabled={saving || !form.patientId || !form.insuranceCompanyId || !form.policyNumber.trim()}
+          className="h-8 px-4 rounded-md bg-gantly-blue text-white text-xs font-semibold hover:bg-gantly-blue/90 transition-colors disabled:opacity-50 cursor-pointer border-none"
+        >
+          {saving ? 'Creando...' : 'Crear poliza'}
+        </button>
       </div>
     </div>
   );
@@ -219,13 +194,20 @@ export default function ClinicInsuranceTab() {
   // Patients (for policy modal)
   const [patients, setPatients] = useState<Array<{ id: number; name: string }>>([]);
 
+  // ConfirmDialog state
+  const [deleteCompanyId, setDeleteCompanyId] = useState<number | null>(null);
+  const [deletePolicyId, setDeletePolicyId] = useState<number | null>(null);
+
   // Load data
   const loadCompanies = useCallback(async () => {
     setLoadingCompanies(true);
     try {
       const data = await clinicService.getInsuranceCompanies();
       setCompanies(data);
-    } catch { setCompanies([]); }
+    } catch {
+      setCompanies([]);
+      toast.error('Error al cargar las aseguradoras');
+    }
     finally { setLoadingCompanies(false); }
   }, []);
 
@@ -234,14 +216,19 @@ export default function ClinicInsuranceTab() {
     try {
       const data = await clinicService.getAllPolicies();
       setPolicies(data);
-    } catch { setPolicies([]); }
+    } catch {
+      setPolicies([]);
+      toast.error('Error al cargar las polizas');
+    }
     finally { setLoadingPolicies(false); }
   }, []);
 
   useEffect(() => {
     loadCompanies();
     loadPolicies();
-    clinicService.getPatients().then(data => setPatients(data.map(p => ({ id: p.id, name: p.name })))).catch(() => {});
+    clinicService.getPatients().then(data => setPatients(data.map(p => ({ id: p.id, name: p.name })))).catch(() => {
+      toast.error('Error al cargar los pacientes');
+    });
   }, [loadCompanies, loadPolicies]);
 
   // --- Company CRUD ---
@@ -257,7 +244,9 @@ export default function ClinicInsuranceTab() {
       }
       setShowCompanyModal(false);
       setEditingCompany(null);
-    } catch { /* ignore */ }
+    } catch {
+      toast.error('Error al guardar la aseguradora');
+    }
     finally { setSavingCompany(false); }
   }
 
@@ -265,15 +254,18 @@ export default function ClinicInsuranceTab() {
     try {
       const updated = await clinicService.updateInsuranceCompany(company.id, { active: !company.active });
       setCompanies(prev => prev.map(c => c.id === company.id ? updated : c));
-    } catch { /* ignore */ }
+    } catch {
+      toast.error('Error al cambiar el estado de la aseguradora');
+    }
   }
 
   async function handleDeleteCompany(id: number) {
-    if (!confirm('Eliminar esta aseguradora?')) return;
     try {
       await clinicService.deleteInsuranceCompany(id);
       setCompanies(prev => prev.filter(c => c.id !== id));
-    } catch { /* ignore */ }
+    } catch {
+      toast.error('Error al eliminar la aseguradora');
+    }
   }
 
   // --- Policy CRUD ---
@@ -283,16 +275,19 @@ export default function ClinicInsuranceTab() {
       const created = await clinicService.createPatientPolicy(patientId, data);
       setPolicies(prev => [...prev, created]);
       setShowPolicyModal(false);
-    } catch { /* ignore */ }
+    } catch {
+      toast.error('Error al crear la poliza');
+    }
     finally { setSavingPolicy(false); }
   }
 
   async function handleDeletePolicy(id: number) {
-    if (!confirm('Eliminar esta poliza?')) return;
     try {
       await clinicService.deletePatientPolicy(id);
       setPolicies(prev => prev.filter(p => p.id !== id));
-    } catch { /* ignore */ }
+    } catch {
+      toast.error('Error al eliminar la poliza');
+    }
   }
 
   // Filtered policies
@@ -308,7 +303,7 @@ export default function ClinicInsuranceTab() {
     <div className="space-y-5">
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-5">
         {/* Left: Aseguradoras (wider) */}
-        <div className="xl:col-span-3 bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+        <div className="xl:col-span-3 bg-white rounded-2xl border border-slate-200/80 overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Shield size={15} className="text-gantly-blue" />
@@ -385,8 +380,8 @@ export default function ClinicInsuranceTab() {
                             {company.active ? <X size={13} /> : <Check size={13} />}
                           </button>
                           <button
-                            onClick={() => handleDeleteCompany(company.id)}
-                            className="text-slate-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-md transition-all cursor-pointer bg-transparent border-none"
+                            onClick={() => setDeleteCompanyId(company.id)}
+                            className="text-slate-300 hover:text-red-500 p-1.5 rounded-md transition-colors cursor-pointer bg-transparent border-none"
                             title="Eliminar"
                           >
                             <Trash2 size={13} />
@@ -402,7 +397,7 @@ export default function ClinicInsuranceTab() {
         </div>
 
         {/* Right: Polizas de pacientes */}
-        <div className="xl:col-span-2 bg-white rounded-xl border border-slate-200/80 overflow-hidden flex flex-col">
+        <div className="xl:col-span-2 bg-white rounded-2xl border border-slate-200/80 overflow-hidden flex flex-col">
           <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <FileText size={15} className="text-slate-400" />
@@ -424,11 +419,12 @@ export default function ClinicInsuranceTab() {
             <div className="relative">
               <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
+                id="policy-search"
                 type="text"
                 value={policySearch}
                 onChange={e => setPolicySearch(e.target.value)}
                 placeholder="Buscar por paciente, aseguradora..."
-                className="w-full h-8 pl-8 pr-3 rounded-md border border-slate-200 bg-slate-50 text-xs text-slate-700 outline-none focus:bg-white focus:border-gantly-blue/50 transition-all placeholder:text-slate-400"
+                className="w-full h-8 pl-8 pr-3 rounded-md border border-slate-200 bg-slate-50 text-xs text-slate-700 outline-none focus:bg-white focus:border-gantly-blue/50 focus:ring-1 focus:ring-gantly-blue/20 transition-all placeholder:text-slate-400"
               />
               {policySearch && (
                 <button onClick={() => setPolicySearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer bg-transparent border-none p-0">
@@ -483,8 +479,8 @@ export default function ClinicInsuranceTab() {
                       </div>
                       <div className="flex justify-end mt-1">
                         <button
-                          onClick={() => handleDeletePolicy(policy.id)}
-                          className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 hover:bg-red-50 p-1 rounded-md transition-all cursor-pointer bg-transparent border-none"
+                          onClick={() => setDeletePolicyId(policy.id)}
+                          className="text-slate-300 hover:text-red-500 transition-colors p-1 rounded-md cursor-pointer bg-transparent border-none"
                           title="Eliminar poliza"
                         >
                           <Trash2 size={12} />
@@ -499,24 +495,60 @@ export default function ClinicInsuranceTab() {
         </div>
       </div>
 
-      {/* Modals */}
-      {showCompanyModal && (
-        <CompanyModal
+      {/* Company Modal */}
+      <Modal
+        open={showCompanyModal}
+        onClose={() => { setShowCompanyModal(false); setEditingCompany(null); }}
+        title={editingCompany?.id ? 'Editar aseguradora' : 'Nueva aseguradora'}
+        maxWidth="max-w-md"
+      >
+        <CompanyModalContent
           initial={editingCompany ?? undefined}
           onSave={handleSaveCompany}
-          onClose={() => { setShowCompanyModal(false); setEditingCompany(null); }}
           saving={savingCompany}
         />
-      )}
-      {showPolicyModal && (
-        <PolicyModal
+      </Modal>
+
+      {/* Policy Modal */}
+      <Modal
+        open={showPolicyModal}
+        onClose={() => setShowPolicyModal(false)}
+        title="Nueva poliza"
+        maxWidth="max-w-md"
+      >
+        <PolicyModalContent
           companies={companies}
           patients={patients}
           onSave={handleSavePolicy}
-          onClose={() => setShowPolicyModal(false)}
           saving={savingPolicy}
         />
-      )}
+      </Modal>
+
+      {/* Confirm delete company */}
+      <ConfirmDialog
+        open={deleteCompanyId !== null}
+        onClose={() => setDeleteCompanyId(null)}
+        onConfirm={async () => {
+          if (deleteCompanyId !== null) await handleDeleteCompany(deleteCompanyId);
+        }}
+        title="Eliminar aseguradora"
+        message="Esta accion eliminara la aseguradora de forma permanente. ¿Estas seguro?"
+        confirmLabel="Eliminar"
+        variant="danger"
+      />
+
+      {/* Confirm delete policy */}
+      <ConfirmDialog
+        open={deletePolicyId !== null}
+        onClose={() => setDeletePolicyId(null)}
+        onConfirm={async () => {
+          if (deletePolicyId !== null) await handleDeletePolicy(deletePolicyId);
+        }}
+        title="Eliminar poliza"
+        message="Esta accion eliminara la poliza de forma permanente. ¿Estas seguro?"
+        confirmLabel="Eliminar"
+        variant="danger"
+      />
     </div>
   );
 }

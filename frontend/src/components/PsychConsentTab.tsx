@@ -1,39 +1,19 @@
 import { useState, useEffect } from 'react';
-import { FileCheck, Send, Eye, X, Plus, Clock, CheckCircle, XCircle, FileText } from 'lucide-react';
+import { FileCheck, Send, Eye, Plus, Clock, CheckCircle, XCircle, FileText } from 'lucide-react';
 import { consentService } from '../services/api';
 import { toast } from './ui/Toast';
 import EmptyState from './ui/EmptyState';
 import { SkeletonList } from './ui/SkeletonLoader';
+import Modal from './ui/Modal';
+import type { ConsentRequest, ConsentDocumentType } from '../services/types/consent';
 
 interface PsychConsentTabProps {
   patients: Array<{ id: number; name: string }>;
 }
 
-interface ConsentRequest {
-  id: number;
-  userId: number;
-  userName?: string;
-  documentTypeTitle?: string;
-  documentTypeCode?: string;
-  status: string;
-  renderedContent?: string;
-  signatureData?: string;
-  signerName?: string;
-  createdAt?: string;
-  signedAt?: string;
-  place?: string;
-}
-
-interface DocumentType {
-  id: number;
-  code: string;
-  title: string;
-  active: boolean;
-}
-
 export default function PsychConsentTab({ patients }: PsychConsentTabProps) {
   const [requests, setRequests] = useState<ConsentRequest[]>([]);
-  const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
+  const [documentTypes, setDocumentTypes] = useState<ConsentDocumentType[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSendModal, setShowSendModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
@@ -60,7 +40,7 @@ export default function PsychConsentTab({ patients }: PsychConsentTabProps) {
   const loadDocumentTypes = async () => {
     try {
       const data = await consentService.getDocumentTypes();
-      setDocumentTypes((data || []).filter((d: DocumentType) => d.active));
+      setDocumentTypes((data || []).filter((d: ConsentDocumentType) => d.active));
     } catch {
       // silent
     }
@@ -198,121 +178,88 @@ export default function PsychConsentTab({ patients }: PsychConsentTabProps) {
       </div>
 
       {/* Send consent modal */}
-      {showSendModal && (
-        <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-[1000] p-6"
-          onClick={() => setShowSendModal(false)}
-        >
-          <div
-            className="bg-white rounded-xl max-w-[480px] w-full border border-slate-200/80 overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Send size={16} className="text-gantly-blue" />
-                <h3 className="text-sm font-heading font-semibold text-slate-800 m-0">Enviar consentimiento</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowSendModal(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer transition-colors duration-200 rounded-md hover:bg-slate-100"
-              >
-                <X size={18} />
-              </button>
-            </div>
+      <Modal
+        open={showSendModal}
+        onClose={() => setShowSendModal(false)}
+        title="Enviar consentimiento"
+        maxWidth="max-w-[480px]"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-[11px] text-slate-500 font-medium mb-1 uppercase tracking-wider">Paciente</label>
+            <select
+              value={selectedPatientId}
+              onChange={(e) => setSelectedPatientId(e.target.value)}
+              className={`${inputCls} cursor-pointer`}
+            >
+              <option value="">Seleccionar paciente</option>
+              {patients.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
 
-            <div className="p-5 space-y-4">
-              <div>
-                <label className="block text-[11px] text-slate-500 font-medium mb-1 uppercase tracking-wider">Paciente</label>
-                <select
-                  value={selectedPatientId}
-                  onChange={(e) => setSelectedPatientId(e.target.value)}
-                  className={`${inputCls} cursor-pointer`}
-                >
-                  <option value="">Seleccionar paciente</option>
-                  {patients.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
-              </div>
+          <div>
+            <label className="block text-[11px] text-slate-500 font-medium mb-1 uppercase tracking-wider">Tipo de documento</label>
+            <select
+              value={selectedDocTypeId}
+              onChange={(e) => setSelectedDocTypeId(e.target.value)}
+              className={`${inputCls} cursor-pointer`}
+            >
+              <option value="">Seleccionar tipo</option>
+              {documentTypes.map((dt) => (
+                <option key={dt.id} value={dt.id}>{dt.title}</option>
+              ))}
+            </select>
+          </div>
 
-              <div>
-                <label className="block text-[11px] text-slate-500 font-medium mb-1 uppercase tracking-wider">Tipo de documento</label>
-                <select
-                  value={selectedDocTypeId}
-                  onChange={(e) => setSelectedDocTypeId(e.target.value)}
-                  className={`${inputCls} cursor-pointer`}
-                >
-                  <option value="">Seleccionar tipo</option>
-                  {documentTypes.map((dt) => (
-                    <option key={dt.id} value={dt.id}>{dt.title}</option>
-                  ))}
-                </select>
-              </div>
+          <div>
+            <label className="block text-[11px] text-slate-500 font-medium mb-1 uppercase tracking-wider">Lugar (opcional)</label>
+            <input
+              type="text"
+              value={place}
+              onChange={(e) => setPlace(e.target.value)}
+              placeholder="Ej: Madrid"
+              className={inputCls}
+            />
+          </div>
 
-              <div>
-                <label className="block text-[11px] text-slate-500 font-medium mb-1 uppercase tracking-wider">Lugar (opcional)</label>
-                <input
-                  type="text"
-                  value={place}
-                  onChange={(e) => setPlace(e.target.value)}
-                  placeholder="Ej: Madrid"
-                  className={inputCls}
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowSendModal(false)}
-                  className="px-4 py-2 border border-slate-200 text-slate-600 rounded-md text-sm font-medium hover:bg-slate-50 cursor-pointer transition-colors duration-200"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSend}
-                  disabled={sending || !selectedPatientId || !selectedDocTypeId}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-gantly-blue text-white rounded-md text-sm font-medium cursor-pointer hover:bg-gantly-blue/90 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Send size={14} />
-                  {sending ? 'Enviando...' : 'Enviar'}
-                </button>
-              </div>
-            </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => setShowSendModal(false)}
+              className="px-4 py-2 border border-slate-200 text-slate-600 rounded-md text-sm font-medium hover:bg-slate-50 cursor-pointer transition-colors duration-200"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleSend}
+              disabled={sending || !selectedPatientId || !selectedDocTypeId}
+              className="flex items-center gap-1.5 px-4 py-2 bg-gantly-blue text-white rounded-md text-sm font-medium cursor-pointer hover:bg-gantly-blue/90 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Send size={14} />
+              {sending ? 'Enviando...' : 'Enviar'}
+            </button>
           </div>
         </div>
-      )}
+      </Modal>
 
       {/* View content modal */}
-      {showViewModal && viewingRequest && (
-        <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-[1000] p-6"
-          onClick={() => { setShowViewModal(false); setViewingRequest(null); }}
-        >
-          <div
-            className="bg-white rounded-xl max-w-[640px] w-full max-h-[85vh] overflow-hidden flex flex-col border border-slate-200/80"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
-              <div className="flex items-center gap-2">
-                <FileCheck size={16} className="text-gantly-blue" />
-                <h3 className="text-sm font-heading font-semibold text-slate-800 m-0">
-                  {viewingRequest.documentTypeTitle || 'Consentimiento'}
-                </h3>
-                <span className="ml-2">{statusBadge(viewingRequest.status)}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => { setShowViewModal(false); setViewingRequest(null); }}
-                className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer transition-colors duration-200 rounded-md hover:bg-slate-100"
-              >
-                <X size={18} />
-              </button>
+      <Modal
+        open={showViewModal && !!viewingRequest}
+        onClose={() => { setShowViewModal(false); setViewingRequest(null); }}
+        title={viewingRequest?.documentTypeTitle || 'Consentimiento'}
+        maxWidth="max-w-[640px]"
+      >
+        {viewingRequest && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 -mt-2 mb-3">
+              {statusBadge(viewingRequest.status)}
             </div>
 
-            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-              {/* Rendered content */}
+            {/* Rendered content */}
+            <div className="max-h-[50vh] overflow-y-auto">
               {viewingRequest.renderedContent ? (
                 <div
                   className="prose prose-sm max-w-none text-slate-700 border border-slate-100 rounded-md p-4 bg-slate-50/50"
@@ -321,31 +268,31 @@ export default function PsychConsentTab({ patients }: PsychConsentTabProps) {
               ) : (
                 <p className="text-sm text-slate-500">Sin contenido disponible</p>
               )}
-
-              {/* Signature if signed */}
-              {viewingRequest.status === 'SIGNED' && (
-                <div className="border-t border-slate-100 pt-4 space-y-2">
-                  <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">Firma</p>
-                  {viewingRequest.signerName && (
-                    <p className="text-sm text-slate-700">Firmado por: <span className="font-medium">{viewingRequest.signerName}</span></p>
-                  )}
-                  {viewingRequest.signedAt && (
-                    <p className="text-sm text-slate-500">Fecha: {formatDate(viewingRequest.signedAt)}</p>
-                  )}
-                  {viewingRequest.signatureData && (
-                    <div className="border border-slate-200 rounded-md p-2 bg-white inline-block">
-                      <img
-                        src={viewingRequest.signatureData}
-                        alt="Firma"
-                        className="max-h-[120px] w-auto"
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
 
-            <div className="px-5 py-3 border-t border-slate-100 flex justify-end flex-shrink-0">
+            {/* Signature if signed */}
+            {viewingRequest.status === 'SIGNED' && (
+              <div className="border-t border-slate-100 pt-4 space-y-2">
+                <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">Firma</p>
+                {viewingRequest.signerName && (
+                  <p className="text-sm text-slate-700">Firmado por: <span className="font-medium">{viewingRequest.signerName}</span></p>
+                )}
+                {viewingRequest.signedAt && (
+                  <p className="text-sm text-slate-500">Fecha: {formatDate(viewingRequest.signedAt)}</p>
+                )}
+                {viewingRequest.signatureData && (
+                  <div className="border border-slate-200 rounded-md p-2 bg-white inline-block">
+                    <img
+                      src={viewingRequest.signatureData}
+                      alt="Firma"
+                      className="max-h-[120px] w-auto"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex justify-end pt-2">
               <button
                 type="button"
                 onClick={() => { setShowViewModal(false); setViewingRequest(null); }}
@@ -355,8 +302,8 @@ export default function PsychConsentTab({ patients }: PsychConsentTabProps) {
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 }

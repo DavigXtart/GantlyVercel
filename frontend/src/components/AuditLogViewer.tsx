@@ -113,14 +113,14 @@ export default function AuditLogViewer() {
   return (
     <div className="space-y-4">
       {/* Card */}
-      <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden">
         {/* Header */}
         <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Shield size={15} className="text-slate-400" />
             <h2 className="text-sm font-semibold text-slate-800">Registro de actividad</h2>
             {totalElements > 0 && (
-              <span className="text-[11px] text-slate-400 ml-1">{totalElements} registros</span>
+              <span className="text-[11px] text-slate-500 ml-1">{totalElements} registros</span>
             )}
           </div>
         </div>
@@ -163,7 +163,7 @@ export default function AuditLogViewer() {
             <div className="w-6 h-6 border-2 border-slate-200 border-t-gantly-blue rounded-full animate-spin" />
           </div>
         ) : logs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+          <div className="flex flex-col items-center justify-center py-16 text-slate-500">
             <FileText size={28} strokeWidth={1.5} />
             <p className="text-sm mt-2">No hay registros de actividad</p>
             <p className="text-xs mt-0.5">Ajusta las fechas del filtro para ver resultados</p>
@@ -194,7 +194,7 @@ export default function AuditLogViewer() {
                     <td className="px-5 py-3 text-xs text-slate-600">
                       <span className="text-slate-500">{log.entityType}</span>
                       {log.entityId != null && (
-                        <span className="text-slate-400 ml-1">#{log.entityId}</span>
+                        <span className="text-slate-500 ml-1">#{log.entityId}</span>
                       )}
                     </td>
                     <td className="px-5 py-3">
@@ -204,7 +204,7 @@ export default function AuditLogViewer() {
                           {log.performedByName || `ID ${log.performedById}`}
                         </span>
                         {log.performedByRole && (
-                          <span className="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                          <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
                             {log.performedByRole}
                           </span>
                         )}
@@ -230,7 +230,7 @@ export default function AuditLogViewer() {
               <button
                 onClick={() => fetchLogs(page - 1)}
                 disabled={page === 0}
-                className="h-8 px-3 rounded-md border border-slate-200 text-xs text-slate-600 hover:bg-slate-50 transition disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-1 cursor-pointer bg-white"
+                className="h-8 px-3 rounded-md border border-slate-200 text-xs text-slate-600 hover:bg-slate-50 transition disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-1 cursor-pointer bg-white focus:outline-none focus:ring-2 focus:ring-gantly-blue/20"
               >
                 <ChevronLeft size={14} />
                 Anterior
@@ -238,7 +238,7 @@ export default function AuditLogViewer() {
               <button
                 onClick={() => fetchLogs(page + 1)}
                 disabled={page >= totalPages - 1}
-                className="h-8 px-3 rounded-md border border-slate-200 text-xs text-slate-600 hover:bg-slate-50 transition disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-1 cursor-pointer bg-white"
+                className="h-8 px-3 rounded-md border border-slate-200 text-xs text-slate-600 hover:bg-slate-50 transition disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-1 cursor-pointer bg-white focus:outline-none focus:ring-2 focus:ring-gantly-blue/20"
               >
                 Siguiente
                 <ChevronRight size={14} />

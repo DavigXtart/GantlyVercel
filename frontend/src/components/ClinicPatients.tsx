@@ -147,7 +147,7 @@ function ListView({
           <span className="text-sm">No hay pacientes{search ? ' que coincidan con la búsqueda' : ' registrados aún'}.</span>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden">
           {/* Table header */}
           <div className="grid grid-cols-[60px_1fr_1fr_120px_1fr_100px_100px] bg-slate-50/80 px-4 py-3 text-[11px] font-medium text-slate-500">
             <span>N.º</span>
@@ -430,7 +430,7 @@ function DetailView({
                 <span className="text-sm">No hay citas para este paciente.</span>
               </div>
             ) : (
-              <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+              <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden">
                 {/* Table header */}
                 <div className="grid grid-cols-[1fr_1fr_120px_120px_40px] gap-3 px-5 py-2.5 bg-slate-50/80 border-b border-slate-100">
                   <span className="text-[11px] font-medium text-slate-500">Fecha y hora</span>
@@ -543,7 +543,7 @@ function DetailView({
                 <span className="text-sm">Sin documentos para este paciente.</span>
               </div>
             ) : (
-              <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+              <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden">
                 {documents.map((doc, i) => (
                   <div
                     key={doc.id}
@@ -625,7 +625,7 @@ function DetailView({
           <div className="space-y-5">
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
               {/* Card 1: Datos generales */}
-              <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+              <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden">
                 <div className="px-5 py-3 border-b border-slate-100">
                   <h3 className="text-sm font-semibold text-slate-900">Datos generales</h3>
                 </div>
@@ -663,7 +663,7 @@ function DetailView({
               </div>
 
               {/* Card 2: Administrativo */}
-              <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+              <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden">
                 <div className="px-5 py-3 border-b border-slate-100">
                   <h3 className="text-sm font-semibold text-slate-900">Administrativo</h3>
                 </div>
@@ -684,7 +684,7 @@ function DetailView({
               </div>
 
               {/* Card 3: Notas clínicas */}
-              <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+              <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden">
                 <div className="px-5 py-3 border-b border-slate-100">
                   <h3 className="text-sm font-semibold text-slate-900">Notas clínicas</h3>
                 </div>
@@ -700,7 +700,7 @@ function DetailView({
               </div>
 
               {/* Card 4: Información médica */}
-              <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+              <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden">
                 <div className="px-5 py-3 border-b border-slate-100">
                   <h3 className="text-sm font-semibold text-slate-900">Información médica</h3>
                 </div>

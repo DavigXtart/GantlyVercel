@@ -3,9 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { publicClinicService } from '../services/api';
 import {
   Building2, User, Clock, MapPin, Phone, Globe, ChevronLeft, ChevronRight,
-  Calendar, ArrowRight, X, Send, Users, Stethoscope, CheckCircle2, Loader2,
+  Calendar, ArrowRight, Send, Users, Stethoscope, CheckCircle2, Loader2,
 } from 'lucide-react';
 import LogoSvg from '../assets/logo-gantly.svg';
+import Modal from './ui/Modal';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -52,8 +53,6 @@ function weekRange(base: Date): { from: string; to: string; days: Date[] } {
   to.setDate(to.getDate() + 1);
   return { from: fmtDate(days[0]), to: fmtDate(to), days };
 }
-
-const HOURS = Array.from({ length: 13 }, (_, i) => 8 + i); // 8..20
 
 const DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
 
@@ -236,7 +235,7 @@ export default function ClinicPublicPage() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8 space-y-10">
         {/* Hero */}
-        <section className="bg-white rounded-xl border border-slate-200/80 p-6 sm:p-8">
+        <section className="bg-white rounded-2xl border border-slate-200/80 p-6 sm:p-8">
           <div className="flex flex-col sm:flex-row items-start gap-5">
             <div className="flex-shrink-0">
               {clinic.logoUrl ? (
@@ -294,7 +293,7 @@ export default function ClinicPublicPage() {
             </SectionTitle>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {clinic.services.map(svc => (
-                <div key={svc.id} className="bg-white rounded-xl border border-slate-200/80 p-5">
+                <div key={svc.id} className="bg-white rounded-2xl border border-slate-200/80 p-5">
                   <h3 className="text-sm font-semibold text-slate-900 mb-2">{svc.name}</h3>
                   <div className="flex items-center gap-3 text-xs text-slate-500">
                     {svc.durationMinutes != null && (
@@ -335,7 +334,7 @@ export default function ClinicPublicPage() {
                     key={p.id}
                     type="button"
                     onClick={() => { setFilterPsychId(prev => prev === p.id ? undefined : p.id); scrollToAvailability(); }}
-                    className={`bg-white rounded-xl border p-5 text-left transition-all cursor-pointer ${
+                    className={`bg-white rounded-2xl border p-5 text-left transition-all cursor-pointer ${
                       filterPsychId === p.id
                         ? 'border-gantly-blue ring-1 ring-gantly-blue/20'
                         : 'border-slate-200/80 hover:border-slate-300 hover:shadow-sm'
@@ -385,7 +384,7 @@ export default function ClinicPublicPage() {
             </span>
           </SectionTitle>
 
-          <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden">
             {/* Calendar header */}
             <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-3 flex-wrap">
               <div className="flex items-center gap-2">
@@ -417,8 +416,8 @@ export default function ClinicPublicPage() {
               )}
             </div>
 
-            {/* Day grid */}
-            <div className="grid grid-cols-7 divide-x divide-slate-100">
+            {/* Day grid — desktop (md+) */}
+            <div className="hidden md:grid grid-cols-7 divide-x divide-slate-100">
               {week.days.map(day => {
                 const dayKey = fmtDate(day);
                 const daySlots = slotsByDay.get(dayKey) || [];
@@ -449,7 +448,7 @@ export default function ClinicPublicPage() {
                                 key={slot.id}
                                 onClick={() => { if (!isPast) setSelectedSlot(slot); }}
                                 disabled={isPast}
-                                className="w-full text-left px-2 py-1.5 rounded-md bg-gantly-blue/5 border border-gantly-blue/10 hover:bg-gantly-blue/10 hover:border-gantly-blue/20 transition-colors cursor-pointer text-[11px] disabled:cursor-not-allowed disabled:hover:bg-gantly-blue/5"
+                                className="w-full text-left min-h-[44px] px-4 py-2 rounded-md bg-gantly-blue/5 border border-gantly-blue/10 hover:bg-gantly-blue/10 hover:border-gantly-blue/20 transition-colors cursor-pointer text-[11px] disabled:cursor-not-allowed disabled:hover:bg-gantly-blue/5"
                               >
                                 <p className="font-medium text-gantly-blue tabular-nums">
                                   {start.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
@@ -462,6 +461,55 @@ export default function ClinicPublicPage() {
                           })
                       )}
                     </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Day list — mobile (<md) */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {week.days.map(day => {
+                const dayKey = fmtDate(day);
+                const daySlots = slotsByDay.get(dayKey) || [];
+                const today = isToday(day);
+                const isPast = day < new Date(new Date().toDateString());
+
+                return (
+                  <div key={dayKey} className={`px-4 py-3 ${isPast ? 'opacity-40' : ''}`}>
+                    <div className={`flex items-center gap-2 mb-2 ${today ? 'text-gantly-blue' : 'text-slate-700'}`}>
+                      <span className="text-xs text-slate-400 uppercase w-8">{DAY_NAMES[day.getDay()]}</span>
+                      <span className={`text-sm font-semibold ${today ? 'text-gantly-blue' : 'text-slate-700'}`}>
+                        {day.getDate()}
+                      </span>
+                      {today && <span className="text-[10px] bg-gantly-blue/10 text-gantly-blue px-1.5 py-0.5 rounded-full font-medium">Hoy</span>}
+                    </div>
+                    {daySlots.length === 0 ? (
+                      <p className="text-xs text-slate-300 pl-10">Sin huecos</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2 pl-10">
+                        {daySlots
+                          .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                          .map(slot => {
+                            const start = new Date(slot.startTime);
+                            const end = new Date(slot.endTime);
+                            return (
+                              <button
+                                key={slot.id}
+                                onClick={() => { if (!isPast) setSelectedSlot(slot); }}
+                                disabled={isPast}
+                                className="min-h-[44px] px-4 py-2 rounded-md bg-gantly-blue/5 border border-gantly-blue/10 hover:bg-gantly-blue/10 hover:border-gantly-blue/20 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:hover:bg-gantly-blue/5"
+                              >
+                                <p className="text-xs font-medium text-gantly-blue tabular-nums">
+                                  {start.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                                  {' - '}
+                                  {end.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                                <p className="text-[10px] text-slate-500 truncate">{slot.psychologistName}</p>
+                              </button>
+                            );
+                          })}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -509,119 +557,106 @@ export default function ClinicPublicPage() {
       </div>
 
       {/* Booking modal */}
-      {selectedSlot && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={closeBookingModal} />
-          <div className="relative bg-white rounded-xl border border-slate-200 shadow-lg w-full max-w-md">
-            {/* Modal header */}
-            <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-slate-900">Solicitar cita</h3>
-              <button onClick={closeBookingModal} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer bg-transparent border-none p-1">
-                <X size={16} />
-              </button>
+      <Modal open={!!selectedSlot} onClose={closeBookingModal} title="Solicitar cita" maxWidth="max-w-md">
+        {bookingSuccess ? (
+          <div className="text-center py-4">
+            <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 size={24} className="text-emerald-500" />
+            </div>
+            <h4 className="text-base font-semibold text-slate-900 mb-2">Solicitud enviada</h4>
+            <p className="text-sm text-slate-500 mb-6">
+              La clinica se pondra en contacto contigo para confirmar la cita.
+            </p>
+            <button
+              onClick={closeBookingModal}
+              className="h-9 px-5 bg-gantly-blue text-white rounded-md text-sm font-medium hover:bg-gantly-blue/90 transition-colors cursor-pointer border-none"
+            >
+              Cerrar
+            </button>
+          </div>
+        ) : selectedSlot && (
+          <div className="space-y-4">
+            {/* Slot info */}
+            <div className="bg-slate-50 rounded-lg p-3 flex items-center gap-3">
+              <div className="h-9 w-9 rounded-lg bg-gantly-blue/10 flex items-center justify-center flex-shrink-0">
+                <Calendar size={16} className="text-gantly-blue" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-900">
+                  {new Date(selectedSlot.startTime).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                </p>
+                <p className="text-xs text-slate-500">
+                  {new Date(selectedSlot.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                  {' - '}
+                  {new Date(selectedSlot.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                  {' con '}{selectedSlot.psychologistName}
+                </p>
+              </div>
             </div>
 
-            {bookingSuccess ? (
-              <div className="p-8 text-center">
-                <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle2 size={24} className="text-emerald-500" />
-                </div>
-                <h4 className="text-base font-semibold text-slate-900 mb-2">Solicitud enviada</h4>
-                <p className="text-sm text-slate-500 mb-6">
-                  La clinica se pondra en contacto contigo para confirmar la cita.
-                </p>
-                <button
-                  onClick={closeBookingModal}
-                  className="h-9 px-5 bg-gantly-blue text-white rounded-md text-sm font-medium hover:bg-gantly-blue/90 transition-colors cursor-pointer border-none"
-                >
-                  Cerrar
-                </button>
+            {/* Form */}
+            <div className="space-y-3">
+              <div>
+                <label className="text-[11px] font-medium text-slate-500 mb-1 block">Nombre completo *</label>
+                <input
+                  type="text"
+                  value={bookingForm.patientName}
+                  onChange={e => setBookingForm(p => ({ ...p, patientName: e.target.value }))}
+                  className="w-full h-9 px-3 rounded-md border border-slate-200 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-gantly-blue/50 focus:ring-1 focus:ring-gantly-blue/20 transition"
+                  placeholder="Tu nombre"
+                  required
+                />
               </div>
-            ) : (
-              <div className="p-5 space-y-4">
-                {/* Slot info */}
-                <div className="bg-slate-50 rounded-lg p-3 flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-lg bg-gantly-blue/10 flex items-center justify-center flex-shrink-0">
-                    <Calendar size={16} className="text-gantly-blue" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">
-                      {new Date(selectedSlot.startTime).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      {new Date(selectedSlot.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-                      {' - '}
-                      {new Date(selectedSlot.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-                      {' con '}{selectedSlot.psychologistName}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Form */}
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-[11px] font-medium text-slate-500 mb-1 block">Nombre completo *</label>
-                    <input
-                      type="text"
-                      value={bookingForm.patientName}
-                      onChange={e => setBookingForm(p => ({ ...p, patientName: e.target.value }))}
-                      className="w-full h-9 px-3 rounded-md border border-slate-200 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-gantly-blue/50 focus:ring-1 focus:ring-gantly-blue/20 transition"
-                      placeholder="Tu nombre"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-medium text-slate-500 mb-1 block">Email *</label>
-                    <input
-                      type="email"
-                      value={bookingForm.email}
-                      onChange={e => setBookingForm(p => ({ ...p, email: e.target.value }))}
-                      className="w-full h-9 px-3 rounded-md border border-slate-200 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-gantly-blue/50 focus:ring-1 focus:ring-gantly-blue/20 transition"
-                      placeholder="tu@email.com"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-medium text-slate-500 mb-1 block">Telefono</label>
-                    <input
-                      type="tel"
-                      value={bookingForm.phone}
-                      onChange={e => setBookingForm(p => ({ ...p, phone: e.target.value }))}
-                      className="w-full h-9 px-3 rounded-md border border-slate-200 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-gantly-blue/50 focus:ring-1 focus:ring-gantly-blue/20 transition"
-                      placeholder="+34 600 000 000"
-                    />
-                  </div>
-                </div>
-
-                {bookingError && (
-                  <p className="text-xs text-red-500">{bookingError}</p>
-                )}
-
-                <div className="flex gap-2 pt-1">
-                  <button
-                    onClick={handleBooking}
-                    disabled={bookingSubmitting || !bookingForm.patientName.trim() || !bookingForm.email.trim()}
-                    className="flex-1 h-9 bg-gantly-blue text-white rounded-md text-sm font-medium hover:bg-gantly-blue/90 transition-colors disabled:opacity-50 cursor-pointer border-none inline-flex items-center justify-center gap-2"
-                  >
-                    {bookingSubmitting ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      <Send size={14} />
-                    )}
-                    {bookingSubmitting ? 'Enviando...' : 'Solicitar cita'}
-                  </button>
-                  <button
-                    onClick={closeBookingModal}
-                    className="h-9 px-4 border border-slate-200 text-slate-600 rounded-md text-sm hover:bg-slate-50 transition-colors cursor-pointer bg-white"
-                  >
-                    Cancelar
-                  </button>
-                </div>
+              <div>
+                <label className="text-[11px] font-medium text-slate-500 mb-1 block">Email *</label>
+                <input
+                  type="email"
+                  value={bookingForm.email}
+                  onChange={e => setBookingForm(p => ({ ...p, email: e.target.value }))}
+                  className="w-full h-9 px-3 rounded-md border border-slate-200 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-gantly-blue/50 focus:ring-1 focus:ring-gantly-blue/20 transition"
+                  placeholder="tu@email.com"
+                  required
+                />
               </div>
+              <div>
+                <label className="text-[11px] font-medium text-slate-500 mb-1 block">Telefono</label>
+                <input
+                  type="tel"
+                  value={bookingForm.phone}
+                  onChange={e => setBookingForm(p => ({ ...p, phone: e.target.value }))}
+                  className="w-full h-9 px-3 rounded-md border border-slate-200 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-gantly-blue/50 focus:ring-1 focus:ring-gantly-blue/20 transition"
+                  placeholder="+34 600 000 000"
+                />
+              </div>
+            </div>
+
+            {bookingError && (
+              <p className="text-xs text-red-500">{bookingError}</p>
             )}
+
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={handleBooking}
+                disabled={bookingSubmitting || !bookingForm.patientName.trim() || !bookingForm.email.trim()}
+                className="flex-1 h-9 bg-gantly-blue text-white rounded-md text-sm font-medium hover:bg-gantly-blue/90 transition-colors disabled:opacity-50 cursor-pointer border-none inline-flex items-center justify-center gap-2"
+              >
+                {bookingSubmitting ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <Send size={14} />
+                )}
+                {bookingSubmitting ? 'Enviando...' : 'Solicitar cita'}
+              </button>
+              <button
+                onClick={closeBookingModal}
+                className="h-9 px-4 border border-slate-200 text-slate-600 rounded-md text-sm hover:bg-slate-50 transition-colors cursor-pointer bg-white"
+              >
+                Cancelar
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 }

@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import {
   Camera, CalendarDays, Calendar, Users, CheckSquare, Clock, AlertCircle,
   ArrowRight, ChevronRight, CalendarCheck, Video, UserPlus, Settings,
-  Star, FileText, BarChart3, TrendingUp,
+  Star, FileText, BarChart3, TrendingUp, X,
 } from 'lucide-react';
 import { psychService, jitsiService } from '../services/api';
 import { toast } from './ui/Toast';
@@ -436,7 +436,7 @@ export default function PsychHomeTab({
                 onClick={() => setShowReferralModal(false)}
                 className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer bg-transparent border-none text-lg"
               >
-                ×
+                <X size={16} />
               </button>
             </div>
 
