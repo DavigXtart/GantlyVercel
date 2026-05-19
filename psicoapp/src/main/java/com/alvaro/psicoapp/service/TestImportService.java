@@ -94,9 +94,9 @@ public class TestImportService {
 		test.setTitle(req.title);
 		test.setDescription(req.description);
 		test.setActive(true);
-		test = testRepository.save(test);
-
 		String testType = req.testType != null ? req.testType.toLowerCase() : "generic";
+		test.setCategory(testType);
+		test = testRepository.save(test);
 		switch (testType) {
 			case "tcp" -> initTcpStructure(test);
 			case "tca" -> initTcaStructure(test);

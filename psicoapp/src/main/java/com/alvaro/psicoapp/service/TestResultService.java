@@ -72,6 +72,8 @@ public class TestResultService {
 			return;
 		}
 
+		boolean useGaussian = "tca".equalsIgnoreCase(test.getCategory());
+
 		List<SubfactorEntity> subfactors = subfactorRepository.findByTestOrderByPositionAsc(test);
 
 		Map<Long, TestResultEntity> subfactorResults = new HashMap<>();
@@ -115,7 +117,9 @@ public class TestResultService {
 			}
 
 			if (maxScore > 0) {
-				double percentage = (totalScore / maxScore) * 100.0;
+				double percentage = useGaussian
+						? FormulaEvaluator.gaussianPercentile(totalScore, maxScore)
+						: (totalScore / maxScore) * 100.0;
 
 				List<TestResultEntity> existingResults = testResultRepository.findByUserAndTest(user, test);
 				for (TestResultEntity existing : existingResults) {
@@ -172,17 +176,18 @@ public class TestResultService {
 		factorResultRepository.flush();
 
 		for (FactorEntity factor : pass1) {
-			evaluateAndSaveFactor(factor, user, test, subfactorScoresByCode, factorScoresByCode, allSubfactorCodes);
+			evaluateAndSaveFactor(factor, user, test, subfactorScoresByCode, factorScoresByCode, allSubfactorCodes, useGaussian);
 		}
 		for (FactorEntity factor : pass2) {
-			evaluateAndSaveFactor(factor, user, test, subfactorScoresByCode, factorScoresByCode, allSubfactorCodes);
+			evaluateAndSaveFactor(factor, user, test, subfactorScoresByCode, factorScoresByCode, allSubfactorCodes, useGaussian);
 		}
 	}
 
 	private void evaluateAndSaveFactor(FactorEntity factor, UserEntity user, TestEntity test,
 									   Map<String, double[]> subfactorScoresByCode,
 									   Map<String, double[]> factorScoresByCode,
-									   Set<String> allSubfactorCodes) {
+									   Set<String> allSubfactorCodes,
+									   boolean useGaussian) {
 		double totalScore;
 		double totalMax;
 		String formula = factor.getFormula();
@@ -208,7 +213,9 @@ public class TestResultService {
 			if (totalMax <= 0) return;
 		}
 
-		double percentage = (totalScore / totalMax) * 100.0;
+		double percentage = useGaussian
+				? FormulaEvaluator.gaussianPercentile(totalScore, totalMax)
+				: (totalScore / totalMax) * 100.0;
 		factorScoresByCode.put(factor.getCode(), new double[]{totalScore, totalMax});
 
 		FactorResultEntity factorResult = new FactorResultEntity();

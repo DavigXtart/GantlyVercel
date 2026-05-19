@@ -106,4 +106,41 @@ public final class FormulaEvaluator {
 		}
 		return new double[]{totalScore, totalMax};
 	}
+
+	/**
+	 * Converts a raw score to a Gaussian percentile (0-100).
+	 * Assumes normal distribution with mean = maxScore/2, stddev = maxScore/6.
+	 * This places ~99.7% of scores within [0, maxScore].
+	 */
+	public static double gaussianPercentile(double score, double maxScore) {
+		if (maxScore <= 0) return 50.0;
+		double mean = maxScore / 2.0;
+		double stddev = maxScore / 6.0;
+		double z = (score - mean) / stddev;
+		double p = cdfApprox(z) * 100.0;
+		return Math.max(1.0, Math.min(99.0, p));
+	}
+
+	/**
+	 * Approximation of the standard normal CDF using Abramowitz & Stegun formula 26.2.17.
+	 * Accuracy: |error| < 7.5e-8.
+	 */
+	private static double cdfApprox(double z) {
+		if (z < -8.0) return 0.0;
+		if (z > 8.0) return 1.0;
+		double sign = 1.0;
+		if (z < 0) {
+			sign = -1.0;
+			z = -z;
+		}
+		double t = 1.0 / (1.0 + 0.2316419 * z);
+		double t2 = t * t;
+		double t3 = t2 * t;
+		double t4 = t3 * t;
+		double t5 = t4 * t;
+		double pdf = Math.exp(-0.5 * z * z) / Math.sqrt(2.0 * Math.PI);
+		double cdf = 1.0 - pdf * (0.319381530 * t - 0.356563782 * t2
+				+ 1.781477937 * t3 - 1.821255978 * t4 + 1.330274429 * t5);
+		return 0.5 + sign * (cdf - 0.5);
+	}
 }
