@@ -17,6 +17,7 @@
   - `2026-05-10-security-audit.md` — Auditoría de ciberseguridad completa + RGPD + fixes arquitecturales
   - `2026-05-19-formula-scoring.md` — Fix scoring fórmulas factores + percentil Gaussiano TCA
   - `2026-05-19-clinic-erp-redesign.md` — Rediseño completo ERP clínica (7 tabs) a estilo SaaS flat
+  - `2026-05-19-12-features-plan.md` — Plan 12 features post-launch (4 waves, pendiente implementar)
 
 ## Project Overview
 Plataforma de salud mental que conecta pacientes con psicólogos.
