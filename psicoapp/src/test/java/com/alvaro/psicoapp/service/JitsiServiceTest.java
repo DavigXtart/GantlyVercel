@@ -1,6 +1,8 @@
 package com.alvaro.psicoapp.service;
 
 import com.alvaro.psicoapp.domain.AppointmentEntity;
+import com.alvaro.psicoapp.domain.AppointmentStatusEnum;
+import com.alvaro.psicoapp.domain.PaymentStatusEnum;
 import com.alvaro.psicoapp.domain.RoleConstants;
 import com.alvaro.psicoapp.domain.UserEntity;
 import com.alvaro.psicoapp.domain.UserPsychologistEntity;
@@ -61,7 +63,7 @@ class JitsiServiceTest {
         psychologistUser.setRole(RoleConstants.PSYCHOLOGIST);
     }
 
-    // ── Valid appointment returns room info ──────────────────────────────
+    // -- Valid appointment returns room info --------------------------------
 
     @Test
     @DisplayName("getRoomInfo - patient calling psychologist with valid appointment returns room info")
@@ -80,7 +82,8 @@ class JitsiServiceTest {
         appointment.setId(100L);
         appointment.setStartTime(now.minus(30, ChronoUnit.MINUTES));
         appointment.setEndTime(now.plus(30, ChronoUnit.MINUTES));
-        appointment.setStatus("BOOKED");
+        appointment.setStatus(AppointmentStatusEnum.BOOKED);
+        appointment.setPaymentStatus(PaymentStatusEnum.PAID);
         appointment.setPsychologist(psychologistUser);
         appointment.setUser(patientUser);
 
@@ -115,7 +118,8 @@ class JitsiServiceTest {
         appointment.setId(200L);
         appointment.setStartTime(now.minus(10, ChronoUnit.MINUTES));
         appointment.setEndTime(now.plus(50, ChronoUnit.MINUTES));
-        appointment.setStatus("CONFIRMED");
+        appointment.setStatus(AppointmentStatusEnum.CONFIRMED);
+        appointment.setPaymentStatus(PaymentStatusEnum.PAID);
         appointment.setPsychologist(psychologistUser);
         appointment.setUser(patientUser);
 
@@ -131,7 +135,7 @@ class JitsiServiceTest {
         assertEquals("psych@example.com", result.currentUser().email());
     }
 
-    // ── No appointment throws forbidden ─────────────────────────────────
+    // -- No appointment throws forbidden -----------------------------------
 
     @Test
     @DisplayName("getRoomInfo - no valid relation throws 403 Forbidden")
@@ -191,7 +195,7 @@ class JitsiServiceTest {
         assertEquals(404, ex.getStatusCode().value());
     }
 
-    // ── Time window validation ──────────────────────────────────────────
+    // -- Time window validation --------------------------------------------
 
     @Test
     @DisplayName("getRoomInfo - appointment too far in the future throws 403 with time message")
@@ -210,7 +214,8 @@ class JitsiServiceTest {
         futureAppointment.setId(300L);
         futureAppointment.setStartTime(now.plus(3, ChronoUnit.HOURS));
         futureAppointment.setEndTime(now.plus(4, ChronoUnit.HOURS));
-        futureAppointment.setStatus("BOOKED");
+        futureAppointment.setStatus(AppointmentStatusEnum.BOOKED);
+        futureAppointment.setPaymentStatus(PaymentStatusEnum.PAID);
         futureAppointment.setPsychologist(psychologistUser);
         futureAppointment.setUser(patientUser);
 
@@ -242,7 +247,8 @@ class JitsiServiceTest {
         soonAppointment.setId(400L);
         soonAppointment.setStartTime(now.plus(45, ChronoUnit.MINUTES));
         soonAppointment.setEndTime(now.plus(105, ChronoUnit.MINUTES));
-        soonAppointment.setStatus("BOOKED");
+        soonAppointment.setStatus(AppointmentStatusEnum.BOOKED);
+        soonAppointment.setPaymentStatus(PaymentStatusEnum.PAID);
         soonAppointment.setPsychologist(psychologistUser);
         soonAppointment.setUser(patientUser);
 
@@ -274,7 +280,8 @@ class JitsiServiceTest {
         recentAppointment.setId(500L);
         recentAppointment.setStartTime(now.minus(90, ChronoUnit.MINUTES));
         recentAppointment.setEndTime(now.minus(30, ChronoUnit.MINUTES));
-        recentAppointment.setStatus("CONFIRMED");
+        recentAppointment.setStatus(AppointmentStatusEnum.CONFIRMED);
+        recentAppointment.setPaymentStatus(PaymentStatusEnum.PAID);
         recentAppointment.setPsychologist(psychologistUser);
         recentAppointment.setUser(patientUser);
 

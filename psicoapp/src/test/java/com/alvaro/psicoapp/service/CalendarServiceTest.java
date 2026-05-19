@@ -2,13 +2,16 @@ package com.alvaro.psicoapp.service;
 
 import com.alvaro.psicoapp.domain.AppointmentEntity;
 import com.alvaro.psicoapp.domain.AppointmentRequestEntity;
-import com.alvaro.psicoapp.domain.AppointmentStatus;
+import com.alvaro.psicoapp.domain.AppointmentStatusEnum;
+import com.alvaro.psicoapp.domain.PaymentStatusEnum;
+import com.alvaro.psicoapp.domain.RequestStatusEnum;
 import com.alvaro.psicoapp.domain.RoleConstants;
 import com.alvaro.psicoapp.domain.UserEntity;
 import com.alvaro.psicoapp.dto.CalendarDtos;
 import com.alvaro.psicoapp.repository.AppointmentRatingRepository;
 import com.alvaro.psicoapp.repository.AppointmentRepository;
 import com.alvaro.psicoapp.repository.AppointmentRequestRepository;
+import com.alvaro.psicoapp.repository.PsychAbsenceRepository;
 import com.alvaro.psicoapp.repository.UserPsychologistRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +54,9 @@ class CalendarServiceTest {
     private UserPsychologistRepository userPsychologistRepository;
 
     @Mock
+    private PsychAbsenceRepository psychAbsenceRepository;
+
+    @Mock
     private EmailService emailService;
 
     @Mock
@@ -72,6 +78,7 @@ class CalendarServiceTest {
                 appointmentRatingRepository,
                 userRepository,
                 userPsychologistRepository,
+                psychAbsenceRepository,
                 emailService,
                 notificationService,
                 auditService
@@ -90,7 +97,7 @@ class CalendarServiceTest {
         patient.setRole(RoleConstants.USER);
     }
 
-    // ── createSlot ──────────────────────────────────────────────────────
+    // -- createSlot --------------------------------------------------------
 
     @Test
     @DisplayName("createSlot - successful creation sets status FREE and saves")
@@ -106,16 +113,19 @@ class CalendarServiceTest {
         when(appointmentRepository.findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(
                 eq(1L), any(Instant.class), any(Instant.class)))
                 .thenReturn(Collections.emptyList());
+        when(psychAbsenceRepository.findOverlapping(eq(1L), any(Instant.class), any(Instant.class)))
+                .thenReturn(Collections.emptyList());
         when(appointmentRepository.save(any(AppointmentEntity.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        AppointmentEntity result = calendarService.createSlot(psychologist, req);
+        List<AppointmentEntity> results = calendarService.createSlot(psychologist, req);
 
-        assertNotNull(result);
+        assertFalse(results.isEmpty());
+        AppointmentEntity result = results.get(0);
         assertEquals(psychologist, result.getPsychologist());
         assertEquals(start, result.getStartTime());
         assertEquals(end, result.getEndTime());
-        assertEquals(AppointmentStatus.FREE, result.getStatus());
+        assertEquals(AppointmentStatusEnum.FREE, result.getStatus());
         assertEquals(new BigDecimal("50.00"), result.getPrice());
 
         verify(appointmentRepository).save(any(AppointmentEntity.class));
@@ -167,7 +177,7 @@ class CalendarServiceTest {
         existingSlot.setId(99L);
         existingSlot.setStartTime(start.minus(30, ChronoUnit.MINUTES));
         existingSlot.setEndTime(start.plus(30, ChronoUnit.MINUTES));
-        existingSlot.setStatus(AppointmentStatus.FREE);
+        existingSlot.setStatus(AppointmentStatusEnum.FREE);
 
         CalendarDtos.CreateSlotRequest req = new CalendarDtos.CreateSlotRequest();
         req.start = start;
@@ -203,7 +213,7 @@ class CalendarServiceTest {
         verify(appointmentRepository, never()).save(any());
     }
 
-    // ── bookAppointment ─────────────────────────────────────────────────
+    // -- bookAppointment ---------------------------------------------------
 
     @Test
     @DisplayName("bookAppointment - successful booking creates request and updates status to REQUESTED")
@@ -211,9 +221,9 @@ class CalendarServiceTest {
         AppointmentEntity appointment = new AppointmentEntity();
         appointment.setId(10L);
         appointment.setPsychologist(psychologist);
-        appointment.setStatus(AppointmentStatus.FREE);
+        appointment.setStatus(AppointmentStatusEnum.FREE);
 
-        when(appointmentRepository.findById(10L)).thenReturn(Optional.of(appointment));
+        when(appointmentRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(appointment));
         when(appointmentRequestRepository.findByAppointment_IdAndUser_Id(10L, 2L))
                 .thenReturn(Optional.empty());
 
@@ -226,9 +236,9 @@ class CalendarServiceTest {
         AppointmentRequestEntity savedRequest = requestCaptor.getValue();
         assertEquals(appointment, savedRequest.getAppointment());
         assertEquals(patient, savedRequest.getUser());
-        assertEquals(AppointmentStatus.REQUEST_PENDING, savedRequest.getStatus());
+        assertEquals(RequestStatusEnum.PENDING, savedRequest.getStatus());
 
-        assertEquals(AppointmentStatus.REQUESTED, appointment.getStatus());
+        assertEquals(AppointmentStatusEnum.REQUESTED, appointment.getStatus());
         verify(appointmentRepository).save(appointment);
 
         verify(notificationService).createNotification(eq(1L), eq("APPOINTMENT"),
@@ -241,9 +251,9 @@ class CalendarServiceTest {
         AppointmentEntity appointment = new AppointmentEntity();
         appointment.setId(10L);
         appointment.setPsychologist(psychologist);
-        appointment.setStatus(AppointmentStatus.CONFIRMED);
+        appointment.setStatus(AppointmentStatusEnum.CONFIRMED);
 
-        when(appointmentRepository.findById(10L)).thenReturn(Optional.of(appointment));
+        when(appointmentRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(appointment));
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> calendarService.bookAppointment(patient, 10L));
@@ -258,12 +268,12 @@ class CalendarServiceTest {
         AppointmentEntity appointment = new AppointmentEntity();
         appointment.setId(10L);
         appointment.setPsychologist(psychologist);
-        appointment.setStatus(AppointmentStatus.FREE);
+        appointment.setStatus(AppointmentStatusEnum.FREE);
 
         AppointmentRequestEntity existingRequest = new AppointmentRequestEntity();
         existingRequest.setId(5L);
 
-        when(appointmentRepository.findById(10L)).thenReturn(Optional.of(appointment));
+        when(appointmentRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(appointment));
         when(appointmentRequestRepository.findByAppointment_IdAndUser_Id(10L, 2L))
                 .thenReturn(Optional.of(existingRequest));
 
@@ -274,7 +284,7 @@ class CalendarServiceTest {
         verify(appointmentRequestRepository, never()).save(any());
     }
 
-    // ── confirmAppointment ──────────────────────────────────────────────
+    // -- confirmAppointment ------------------------------------------------
 
     @Test
     @DisplayName("confirmAppointment - successful confirmation rejects others, sends email, creates notification, sets payment")
@@ -290,7 +300,7 @@ class CalendarServiceTest {
         confirmedRequest.setId(20L);
         confirmedRequest.setAppointment(appointment);
         confirmedRequest.setUser(patient);
-        confirmedRequest.setStatus(AppointmentStatus.REQUEST_PENDING);
+        confirmedRequest.setStatus(RequestStatusEnum.PENDING);
 
         UserEntity otherPatient = new UserEntity();
         otherPatient.setId(3L);
@@ -302,7 +312,7 @@ class CalendarServiceTest {
         rejectedRequest.setId(21L);
         rejectedRequest.setAppointment(appointment);
         rejectedRequest.setUser(otherPatient);
-        rejectedRequest.setStatus(AppointmentStatus.REQUEST_PENDING);
+        rejectedRequest.setStatus(RequestStatusEnum.PENDING);
 
         when(appointmentRequestRepository.findById(20L)).thenReturn(Optional.of(confirmedRequest));
         when(appointmentRequestRepository.findByAppointment_Id(10L))
@@ -311,17 +321,17 @@ class CalendarServiceTest {
         calendarService.confirmAppointment(psychologist, 20L);
 
         // Verified confirmed request is set to CONFIRMED
-        assertEquals(AppointmentStatus.REQUEST_CONFIRMED, confirmedRequest.getStatus());
+        assertEquals(RequestStatusEnum.CONFIRMED, confirmedRequest.getStatus());
 
         // Verified rejected request is set to REJECTED
-        assertEquals(AppointmentStatus.REQUEST_REJECTED, rejectedRequest.getStatus());
+        assertEquals(RequestStatusEnum.REJECTED, rejectedRequest.getStatus());
 
         // Verified appointment is set to CONFIRMED with payment fields
-        assertEquals(AppointmentStatus.CONFIRMED, appointment.getStatus());
+        assertEquals(AppointmentStatusEnum.CONFIRMED, appointment.getStatus());
         assertEquals(patient, appointment.getUser());
         assertNotNull(appointment.getConfirmedAt());
         assertEquals(patient, appointment.getConfirmedByUser());
-        assertEquals("PENDING", appointment.getPaymentStatus());
+        assertEquals(PaymentStatusEnum.PENDING, appointment.getPaymentStatus());
         assertNotNull(appointment.getPaymentDeadline());
         // Payment deadline should be ~48 hours from confirmation
         assertTrue(appointment.getPaymentDeadline().isAfter(Instant.now().plusSeconds(47 * 60 * 60)));
@@ -344,7 +354,7 @@ class CalendarServiceTest {
                 eq("Cita confirmada"), contains("Dr. Garcia"));
     }
 
-    // ── cancelAppointment ───────────────────────────────────────────────
+    // -- cancelAppointment -------------------------------------------------
 
     @Test
     @DisplayName("cancelAppointment - successful cancellation sets status and notifies patient")
@@ -353,15 +363,15 @@ class CalendarServiceTest {
         appointment.setId(10L);
         appointment.setPsychologist(psychologist);
         appointment.setUser(patient);
-        appointment.setStatus(AppointmentStatus.CONFIRMED);
+        appointment.setStatus(AppointmentStatusEnum.CONFIRMED);
 
         when(appointmentRepository.findById(10L)).thenReturn(Optional.of(appointment));
-        lenient().when(appointmentRequestRepository.findByAppointment_IdAndStatus(10L, "PENDING"))
+        lenient().when(appointmentRequestRepository.findByAppointment_IdAndStatus(10L, RequestStatusEnum.PENDING))
                 .thenReturn(Collections.emptyList());
 
         calendarService.cancelAppointment(psychologist, 10L);
 
-        assertEquals(AppointmentStatus.CANCELLED, appointment.getStatus());
+        assertEquals(AppointmentStatusEnum.CANCELLED, appointment.getStatus());
         verify(appointmentRepository).save(appointment);
 
         // Verify notification sent to patient
@@ -375,7 +385,7 @@ class CalendarServiceTest {
         AppointmentEntity appointment = new AppointmentEntity();
         appointment.setId(10L);
         appointment.setPsychologist(psychologist);
-        appointment.setStatus(AppointmentStatus.CANCELLED);
+        appointment.setStatus(AppointmentStatusEnum.CANCELLED);
 
         when(appointmentRepository.findById(10L)).thenReturn(Optional.of(appointment));
 
@@ -393,20 +403,20 @@ class CalendarServiceTest {
         appointment.setId(10L);
         appointment.setPsychologist(psychologist);
         appointment.setUser(null);
-        appointment.setStatus(AppointmentStatus.FREE);
+        appointment.setStatus(AppointmentStatusEnum.FREE);
 
         when(appointmentRepository.findById(10L)).thenReturn(Optional.of(appointment));
-        lenient().when(appointmentRequestRepository.findByAppointment_IdAndStatus(10L, "PENDING"))
+        lenient().when(appointmentRequestRepository.findByAppointment_IdAndStatus(10L, RequestStatusEnum.PENDING))
                 .thenReturn(Collections.emptyList());
 
         calendarService.cancelAppointment(psychologist, 10L);
 
-        assertEquals(AppointmentStatus.CANCELLED, appointment.getStatus());
+        assertEquals(AppointmentStatusEnum.CANCELLED, appointment.getStatus());
         verify(appointmentRepository).save(appointment);
         verify(notificationService, never()).createNotification(anyLong(), anyString(), anyString(), anyString());
     }
 
-    // ── deleteSlot ──────────────────────────────────────────────────────
+    // -- deleteSlot --------------------------------------------------------
 
     @Test
     @DisplayName("deleteSlot - successful deletion of FREE slot")
@@ -414,10 +424,10 @@ class CalendarServiceTest {
         AppointmentEntity appointment = new AppointmentEntity();
         appointment.setId(10L);
         appointment.setPsychologist(psychologist);
-        appointment.setStatus(AppointmentStatus.FREE);
+        appointment.setStatus(AppointmentStatusEnum.FREE);
 
         when(appointmentRepository.findById(10L)).thenReturn(Optional.of(appointment));
-        when(appointmentRequestRepository.findByAppointment_IdAndStatus(10L, AppointmentStatus.REQUEST_PENDING))
+        when(appointmentRequestRepository.findByAppointment_IdAndStatus(10L, RequestStatusEnum.PENDING))
                 .thenReturn(Collections.emptyList());
 
         calendarService.deleteSlot(psychologist, 10L);
@@ -431,7 +441,7 @@ class CalendarServiceTest {
         AppointmentEntity appointment = new AppointmentEntity();
         appointment.setId(10L);
         appointment.setPsychologist(psychologist);
-        appointment.setStatus(AppointmentStatus.CONFIRMED);
+        appointment.setStatus(AppointmentStatusEnum.CONFIRMED);
 
         when(appointmentRepository.findById(10L)).thenReturn(Optional.of(appointment));
 
@@ -449,7 +459,7 @@ class CalendarServiceTest {
         AppointmentEntity appointment = new AppointmentEntity();
         appointment.setId(10L);
         appointment.setPsychologist(psychologist);
-        appointment.setStatus(AppointmentStatus.BOOKED);
+        appointment.setStatus(AppointmentStatusEnum.BOOKED);
 
         when(appointmentRepository.findById(10L)).thenReturn(Optional.of(appointment));
 
@@ -467,22 +477,22 @@ class CalendarServiceTest {
         AppointmentEntity appointment = new AppointmentEntity();
         appointment.setId(10L);
         appointment.setPsychologist(psychologist);
-        appointment.setStatus(AppointmentStatus.REQUESTED);
+        appointment.setStatus(AppointmentStatusEnum.REQUESTED);
 
         AppointmentRequestEntity pendingRequest = new AppointmentRequestEntity();
         pendingRequest.setId(30L);
         pendingRequest.setAppointment(appointment);
         pendingRequest.setUser(patient);
-        pendingRequest.setStatus(AppointmentStatus.REQUEST_PENDING);
+        pendingRequest.setStatus(RequestStatusEnum.PENDING);
 
         when(appointmentRepository.findById(10L)).thenReturn(Optional.of(appointment));
-        when(appointmentRequestRepository.findByAppointment_IdAndStatus(10L, AppointmentStatus.REQUEST_PENDING))
+        when(appointmentRequestRepository.findByAppointment_IdAndStatus(10L, RequestStatusEnum.PENDING))
                 .thenReturn(List.of(pendingRequest));
 
         calendarService.deleteSlot(psychologist, 10L);
 
         // Verify pending request was rejected
-        assertEquals(AppointmentStatus.REQUEST_REJECTED, pendingRequest.getStatus());
+        assertEquals(RequestStatusEnum.REJECTED, pendingRequest.getStatus());
         verify(appointmentRequestRepository).save(pendingRequest);
 
         // Verify notification sent to the requesting user

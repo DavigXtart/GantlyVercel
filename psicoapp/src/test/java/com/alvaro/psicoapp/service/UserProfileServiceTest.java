@@ -86,7 +86,7 @@ class UserProfileServiceTest {
         testUser.setCreatedAt(Instant.now().minus(365, ChronoUnit.DAYS));
     }
 
-    // ── exportUserData ──────────────────────────────────────────────────
+    // -- exportUserData ----------------------------------------------------
 
     @Test
     @DisplayName("exportUserData - returns all data categories")
@@ -107,7 +107,7 @@ class UserProfileServiceTest {
         AppointmentEntity appointment = new AppointmentEntity();
         appointment.setStartTime(Instant.now());
         appointment.setEndTime(Instant.now().plus(1, ChronoUnit.HOURS));
-        appointment.setStatus("BOOKED");
+        appointment.setStatus(AppointmentStatusEnum.BOOKED);
         when(appointmentRepository.findByUser_IdOrderByStartTimeAsc(1L))
                 .thenReturn(List.of(appointment));
 
@@ -179,7 +179,7 @@ class UserProfileServiceTest {
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> apptList = (List<Map<String, Object>>) result.get("appointments");
         assertEquals(1, apptList.size());
-        assertEquals("BOOKED", apptList.get(0).get("status"));
+        assertEquals(AppointmentStatusEnum.BOOKED, apptList.get(0).get("status"));
 
         // Verify tasks
         @SuppressWarnings("unchecked")
@@ -286,7 +286,7 @@ class UserProfileServiceTest {
         assertEquals("free text", answerList.get(0).get("textValue"));
     }
 
-    // ── deleteAccount ───────────────────────────────────────────────────
+    // -- deleteAccount -----------------------------------------------------
 
     @Test
     @DisplayName("deleteAccount - delegates to patientDataRetentionService for USER role")
