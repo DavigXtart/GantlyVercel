@@ -72,12 +72,12 @@ interface Psychologist {
 // ---------------------------------------------------------------------------
 type KpiColor = 'blue' | 'emerald' | 'gold' | 'cyan' | 'violet';
 
-const KPI_STYLES: Record<KpiColor, { gradient: string; iconBg: string; iconText: string; watermark: string }> = {
-  blue:    { gradient: 'from-gantly-blue to-gantly-cyan', iconBg: 'from-gantly-blue/10 to-gantly-cyan/10', iconText: 'text-gantly-blue', watermark: 'text-gantly-blue' },
-  emerald: { gradient: 'from-gantly-emerald to-teal-400', iconBg: 'from-gantly-emerald/10 to-teal-100', iconText: 'text-gantly-emerald', watermark: 'text-gantly-emerald' },
-  gold:    { gradient: 'from-amber-400 to-gantly-gold', iconBg: 'from-amber-50 to-gantly-gold/15', iconText: 'text-amber-500', watermark: 'text-amber-400' },
-  cyan:    { gradient: 'from-gantly-cyan to-sky-400', iconBg: 'from-gantly-cyan/10 to-sky-100', iconText: 'text-gantly-cyan', watermark: 'text-gantly-cyan' },
-  violet:  { gradient: 'from-violet-500 to-purple-400', iconBg: 'from-violet-50 to-purple-50', iconText: 'text-violet-500', watermark: 'text-violet-400' },
+const KPI_ICON_COLOR: Record<KpiColor, string> = {
+  blue: 'text-gantly-blue',
+  emerald: 'text-emerald-500',
+  gold: 'text-amber-500',
+  cyan: 'text-cyan-500',
+  violet: 'text-violet-500',
 };
 
 function KpiCard({
@@ -86,7 +86,6 @@ function KpiCard({
   value,
   subtitle,
   onClick,
-  span2,
   color = 'blue',
 }: {
   icon: string;
@@ -94,27 +93,20 @@ function KpiCard({
   value: string;
   subtitle: string;
   onClick: () => void;
-  span2?: boolean;
   color?: KpiColor;
 }) {
-  const style = KPI_STYLES[color];
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`bg-white rounded-xl border border-slate-200 shadow-soft text-left w-full relative overflow-hidden group hover:-translate-y-1 hover:shadow-lg transition-all duration-300 ${span2 ? 'col-span-2' : ''}`}
+      className="bg-white rounded-xl border border-slate-200/80 text-left w-full p-5 flex flex-col justify-between hover:border-slate-300 hover:shadow-sm transition-all duration-200 cursor-pointer"
     >
-      <div className={`h-1 bg-gradient-to-r ${style.gradient} rounded-t-xl`} />
-      <div className="p-8">
-        <div className={`absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform ${style.watermark}`}>
-          {kpiIconMap[icon]?.(48)}
-        </div>
-        <div className={`size-12 bg-gradient-to-br ${style.iconBg} flex items-center justify-center rounded-xl ${style.iconText} mb-6`}>
-          {kpiIconMap[icon]?.(24)}
-        </div>
-        <h3 className="text-3xl font-bold text-gantly-text mb-1">{value}</h3>
-        <p className="text-base font-medium text-slate-700 mb-0.5">{label}</p>
-        <p className="text-sm text-slate-500 font-light">{subtitle}</p>
+      <div className={`${KPI_ICON_COLOR[color]} mb-3`}>
+        {kpiIconMap[icon]?.(16)}
+      </div>
+      <div>
+        <p className="text-2xl font-bold text-slate-900 tabular-nums">{value}</p>
+        <p className="text-xs text-slate-500 mt-0.5">{label} · {subtitle}</p>
       </div>
     </button>
   );
@@ -143,40 +135,40 @@ function HomeTab({
       .catch(() => {});
   }, []);
 
-  return (
-    <div className="space-y-8">
-      {/* Hero banner */}
-      <header className="bg-gradient-to-br from-gantly-navy via-gantly-blue to-gantly-cyan rounded-2xl p-8 lg:p-10 relative overflow-hidden">
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-          <div className="size-20 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-            <Building2 size={32} className="text-white" />
-          </div>
-          <div>
-            <h1 className="text-4xl md:text-5xl font-heading font-bold mb-2 text-white">
-              {clinicInfo?.name ?? 'Tu clínica'}
-            </h1>
-            <p className="text-white/70 font-light mb-4">{clinicInfo?.email}</p>
-            {clinicInfo?.referralCode && (
-              <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-xs text-white/60 uppercase tracking-widest">Código de empresa</span>
-                <span className="font-mono text-sm font-bold text-white bg-white/15 backdrop-blur-sm px-3 py-1 rounded-xl">
-                  {clinicInfo.referralCode}
-                </span>
-                <button
-                  onClick={onCopyReferral}
-                  className="px-4 py-1.5 rounded-full border border-white/30 text-sm text-white hover:bg-white/20 transition inline-flex items-center gap-1.5 bg-transparent cursor-pointer"
-                >
-                  {copied ? <Check size={16} /> : <Copy size={16} />}
-                  {copied ? 'Copiado' : 'Copiar'}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
+  const fmtEuro = (n: number) => n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-      {/* KPI grid — bento-style asymmetric */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+  return (
+    <div className="space-y-5">
+      {/* Clinic header card */}
+      <div className="bg-white rounded-xl border border-slate-200/80 p-5">
+        <div className="flex items-center gap-4">
+          <div className="size-11 rounded-lg bg-gantly-blue/10 flex items-center justify-center flex-shrink-0">
+            <Building2 size={20} className="text-gantly-blue" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg font-semibold text-slate-900 truncate">{clinicInfo?.name ?? 'Tu clínica'}</h2>
+            <p className="text-xs text-slate-500">{clinicInfo?.email}</p>
+          </div>
+          {clinicInfo?.referralCode && (
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="text-[11px] text-slate-400">Código</span>
+              <span className="font-mono text-xs font-semibold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md">
+                {clinicInfo.referralCode}
+              </span>
+              <button
+                onClick={onCopyReferral}
+                className="h-7 px-2.5 rounded-md border border-slate-200 text-xs text-slate-600 hover:bg-slate-50 transition inline-flex items-center gap-1 bg-white cursor-pointer"
+              >
+                {copied ? <Check size={12} /> : <Copy size={12} />}
+                {copied ? 'Copiado' : 'Copiar'}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* KPI grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <KpiCard
           icon="groups"
           label="Psicólogos"
@@ -184,13 +176,12 @@ function HomeTab({
           subtitle="en la clínica"
           onClick={() => onNavigate('equipo')}
           color="emerald"
-          span2
         />
         <KpiCard
           icon="calendar_month"
-          label="Citas este mes"
+          label="Citas"
           value={stats ? String(stats.appointmentsThisMonth) : '—'}
-          subtitle="programadas"
+          subtitle="este mes"
           onClick={() => onNavigate('agenda')}
           color="gold"
         />
@@ -205,7 +196,7 @@ function HomeTab({
         <KpiCard
           icon="receipt_long"
           label="Facturación"
-          value={stats ? `${stats.revenueThisMonth.toFixed(0)}€` : '—'}
+          value={stats ? fmtEuro(stats.revenueThisMonth) : '—'}
           subtitle="este mes"
           onClick={() => onNavigate('facturacion')}
           color="blue"
@@ -213,11 +204,51 @@ function HomeTab({
         <KpiCard
           icon="bar_chart"
           label="Estadísticas"
-          value="Ver datos"
+          value="Ver"
           subtitle="de la clínica"
           onClick={() => onNavigate('estadisticas')}
           color="violet"
         />
+      </div>
+
+      {/* Quick actions row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <button
+          onClick={() => onNavigate('agenda')}
+          className="bg-white rounded-xl border border-slate-200/80 p-4 text-left hover:border-slate-300 hover:shadow-sm transition-all cursor-pointer flex items-center gap-3"
+        >
+          <div className="size-9 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
+            <Calendar size={16} className="text-amber-500" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-900">Agenda</p>
+            <p className="text-[11px] text-slate-500">Gestionar citas y horarios</p>
+          </div>
+        </button>
+        <button
+          onClick={() => onNavigate('equipo')}
+          className="bg-white rounded-xl border border-slate-200/80 p-4 text-left hover:border-slate-300 hover:shadow-sm transition-all cursor-pointer flex items-center gap-3"
+        >
+          <div className="size-9 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
+            <UsersRound size={16} className="text-emerald-500" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-900">Equipo</p>
+            <p className="text-[11px] text-slate-500">Invitar y gestionar psicólogos</p>
+          </div>
+        </button>
+        <button
+          onClick={() => onNavigate('configuracion')}
+          className="bg-white rounded-xl border border-slate-200/80 p-4 text-left hover:border-slate-300 hover:shadow-sm transition-all cursor-pointer flex items-center gap-3"
+        >
+          <div className="size-9 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+            <Settings size={16} className="text-slate-500" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-900">Configuración</p>
+            <p className="text-[11px] text-slate-500">Horarios, servicios y datos fiscales</p>
+          </div>
+        </button>
       </div>
     </div>
   );
@@ -286,65 +317,69 @@ function EquipoTab({ psychologists, onRefresh }: { psychologists: Psychologist[]
   void onRefresh;
 
   return (
-    <div className="space-y-8">
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Current psychologists */}
-        <div>
-          <h2 className="text-xs font-heading font-bold text-slate-500 uppercase tracking-widest mb-4">
-            Psicólogos del equipo
-          </h2>
-          <div className="space-y-3">
-            {psychologists.length === 0 && (
-              <div className="bg-white rounded-xl border border-slate-200 shadow-soft p-6 text-center text-slate-500 text-sm">
-                Aún no hay psicólogos en tu clínica
-              </div>
-            )}
-            {psychologists.map(p => (
+    <div className="grid lg:grid-cols-2 gap-6">
+      {/* Left column — Psychologist list card */}
+      <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+        <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
+          <Users size={15} className="text-slate-400" />
+          <h2 className="text-sm font-semibold text-slate-800">Psicologos del equipo</h2>
+        </div>
+        <div className="p-4 space-y-2">
+          {psychologists.length === 0 ? (
+            <div className="py-10 flex flex-col items-center gap-2 text-slate-400">
+              <Users size={28} strokeWidth={1.5} />
+              <p className="text-sm">Aun no hay psicologos en tu clinica</p>
+            </div>
+          ) : (
+            psychologists.map(p => (
               <div key={p.id}>
                 <button
                   onClick={() => handleSelectPsych(p.id)}
-                  className={`w-full bg-white rounded-xl border shadow-soft p-4 flex items-center gap-4 hover:bg-slate-50 transition text-left cursor-pointer ${selectedPsychId === p.id ? 'border-gantly-blue ring-2 ring-gantly-blue/20' : 'border-slate-200'}`}
+                  className={`w-full rounded-lg border p-3 flex items-center gap-3 hover:bg-slate-50 transition text-left cursor-pointer ${selectedPsychId === p.id ? 'border-gantly-blue ring-1 ring-gantly-blue/20 bg-gantly-blue/[0.02]' : 'border-slate-200 bg-white'}`}
                 >
-                  <div className="size-10 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <div className="size-9 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {p.avatarUrl
-                      ? <img src={p.avatarUrl} className="size-10 rounded-full object-cover" alt={p.name} />
-                      : <div className="size-10 rounded-full bg-gradient-to-br from-gantly-blue to-gantly-cyan flex items-center justify-center">
-                          <span className="text-white text-sm font-semibold">{p.name.charAt(0).toUpperCase()}</span>
+                      ? <img src={p.avatarUrl} className="size-9 rounded-full object-cover" alt={p.name} />
+                      : <div className="size-9 rounded-full bg-gantly-blue flex items-center justify-center">
+                          <span className="text-white text-xs font-semibold">{p.name.charAt(0).toUpperCase()}</span>
                         </div>}
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">{p.name}</p>
-                    <p className="text-xs text-slate-500">{p.email}</p>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-slate-900 truncate">{p.name}</p>
+                    <p className="text-xs text-slate-500 truncate">{p.email}</p>
                   </div>
-                  <div className="ml-auto flex items-center gap-2">
-                    <span className="px-2 py-1 rounded-full bg-gantly-emerald-50 text-[10px] font-medium text-gantly-emerald-700 uppercase tracking-wider">
+                  <div className="ml-auto flex items-center gap-2 flex-shrink-0">
+                    <span className="px-2 py-0.5 rounded-full bg-gantly-emerald-50 text-[10px] font-medium text-gantly-emerald-700">
                       Activo
                     </span>
-                    {selectedPsychId === p.id ? <ChevronUp size={16} className="text-slate-500" /> : <ChevronDown size={16} className="text-slate-500" />}
+                    {selectedPsychId === p.id ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}
                   </div>
                 </button>
                 {/* Schedule panel */}
                 {selectedPsychId === p.id && (
-                  <div className="bg-white rounded-b-xl border border-t-0 border-slate-200 shadow-soft px-4 pb-4">
-                    <p className="text-xs font-heading font-bold text-slate-500 uppercase tracking-widest py-3">
-                      Agenda próximos 30 días
+                  <div className="border border-t-0 border-slate-200 rounded-b-lg px-3 pb-3 bg-slate-50/50">
+                    <p className="text-xs font-semibold text-slate-500 py-2.5">
+                      Agenda proximos 30 dias
                     </p>
                     {loadingSchedule ? (
-                      <div className="py-4 text-center"><div className="w-5 h-5 border-2 border-slate-200 border-t-gantly-blue rounded-full animate-spin mx-auto" /></div>
+                      <div className="py-4 text-center"><div className="w-4 h-4 border-2 border-slate-200 border-t-gantly-blue rounded-full animate-spin mx-auto" /></div>
                     ) : schedule.length === 0 ? (
-                      <p className="text-sm text-slate-500 text-center py-3">Sin citas programadas</p>
+                      <div className="py-4 flex flex-col items-center gap-1 text-slate-400">
+                        <Calendar size={20} strokeWidth={1.5} />
+                        <p className="text-xs">Sin citas programadas</p>
+                      </div>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-1">
                         {schedule.map(slot => {
                           const isFree = slot.status === 'FREE';
                           const isConfirmed = slot.status === 'CONFIRMED' || slot.status === 'BOOKED';
                           return (
                             <div
                               key={slot.id}
-                              className={`flex items-center gap-3 text-sm px-2 py-1.5 rounded-xl ${isFree ? 'bg-gantly-blue-50' : isConfirmed ? 'bg-gantly-emerald-50' : 'bg-gantly-gold-50'}`}
+                              className={`flex items-center gap-2.5 text-sm px-2.5 py-1.5 rounded-md ${isFree ? 'bg-gantly-blue-50' : isConfirmed ? 'bg-gantly-emerald-50' : 'bg-gantly-gold-50'}`}
                             >
                               <span
-                                className={`w-2 h-2 rounded-full flex-shrink-0 ${isFree ? 'bg-gantly-blue' : isConfirmed ? 'bg-gantly-emerald' : 'bg-gantly-gold'}`}
+                                className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isFree ? 'bg-gantly-blue' : isConfirmed ? 'bg-gantly-emerald' : 'bg-gantly-gold'}`}
                               />
                               <span className="text-slate-700 text-xs">
                                 {new Date(slot.startTime).toLocaleDateString('es-ES', { weekday: 'short', day: '2-digit', month: 'short' })}
@@ -367,68 +402,75 @@ function EquipoTab({ psychologists, onRefresh }: { psychologists: Psychologist[]
                   </div>
                 )}
               </div>
-            ))}
-          </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Right column — Invite + Pending invitations card */}
+      <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden self-start">
+        <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
+          <Send size={15} className="text-slate-400" />
+          <h2 className="text-sm font-semibold text-slate-800">Invitar psicologo</h2>
+        </div>
+        <div className="p-4">
+          <form onSubmit={handleSend} className="flex gap-2">
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="correo@ejemplo.com"
+              className="flex-1 h-9 px-3 rounded-md border border-slate-200 bg-white text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-gantly-blue focus:ring-1 focus:ring-gantly-blue/20 transition"
+              required
+            />
+            <button
+              type="submit"
+              disabled={sending}
+              className="h-8 px-4 bg-gantly-blue text-white rounded-md text-xs font-semibold hover:bg-gantly-blue-600 transition disabled:opacity-50 inline-flex items-center gap-1.5 cursor-pointer border-none self-center"
+            >
+              <Send size={13} />
+              {sending ? 'Enviando...' : 'Invitar'}
+            </button>
+          </form>
+          {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
+          {success && <p className="text-gantly-blue text-xs mt-2">{success}</p>}
         </div>
 
-        {/* Invite section */}
-        <div>
-          <h2 className="text-xs font-heading font-bold text-slate-500 uppercase tracking-widest mb-4">
-            Invitar psicólogo
-          </h2>
-          <div className="bg-white rounded-xl border border-slate-200 shadow-soft p-6 mb-4">
-            <form onSubmit={handleSend} className="flex gap-3">
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="correo@ejemplo.com"
-                className="flex-1 h-12 border-2 border-slate-200 rounded-xl px-4 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
-                required
-              />
-              <button
-                type="submit"
-                disabled={sending}
-                className="px-5 h-12 bg-gantly-blue text-white rounded-xl text-sm font-medium hover:bg-gantly-blue-600 transition disabled:opacity-50 inline-flex items-center gap-1.5 cursor-pointer border-none"
-              >
-                <Send size={16} />
-                {sending ? 'Enviando...' : 'Invitar'}
-              </button>
-            </form>
-            {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
-            {success && <p className="text-gantly-blue text-xs mt-2">{success}</p>}
+        {/* Pending invitations */}
+        <div className="border-t border-slate-100">
+          <div className="px-5 py-3 flex items-center gap-2">
+            <Mail size={15} className="text-slate-400" />
+            <h3 className="text-sm font-semibold text-slate-800">Invitaciones pendientes</h3>
           </div>
-
-          {/* Pending invitations */}
-          <h3 className="text-xs font-heading font-bold text-slate-500 uppercase tracking-widest mb-3">
-            Invitaciones pendientes
-          </h3>
-          {loadingInvites ? (
-            <div className="text-center py-4"><div className="w-6 h-6 border-2 border-slate-200 border-t-gantly-blue rounded-full animate-spin mx-auto" /></div>
-          ) : invitations.length === 0 ? (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-soft p-4 text-center text-slate-500 text-sm">
-              No hay invitaciones pendientes
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {invitations.map(inv => (
-                <div key={inv.id} className="bg-gantly-gold/5 rounded-xl border border-gantly-gold/20 shadow-soft px-4 py-3 flex items-center gap-3">
-                  <Mail size={16} className="text-gantly-gold" />
-                  <span className="text-sm text-slate-900 flex-1">{inv.email}</span>
-                  <span className="text-[10px] text-slate-500 bg-gantly-gold/10 px-2 py-0.5 rounded-full">
-                    Expira {new Date(inv.expiresAt).toLocaleDateString('es-ES')}
-                  </span>
-                  <button
-                    onClick={() => handleCancel(inv.id)}
-                    className="text-slate-500 hover:text-red-400 transition cursor-pointer bg-transparent border-none"
-                    title="Cancelar invitacion"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="px-4 pb-4">
+            {loadingInvites ? (
+              <div className="text-center py-4"><div className="w-4 h-4 border-2 border-slate-200 border-t-gantly-blue rounded-full animate-spin mx-auto" /></div>
+            ) : invitations.length === 0 ? (
+              <div className="py-6 flex flex-col items-center gap-2 text-slate-400">
+                <Mail size={24} strokeWidth={1.5} />
+                <p className="text-xs">No hay invitaciones pendientes</p>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {invitations.map(inv => (
+                  <div key={inv.id} className="rounded-md border border-gantly-gold/20 bg-gantly-gold/5 px-3 py-2 flex items-center gap-2.5">
+                    <Mail size={14} className="text-gantly-gold flex-shrink-0" />
+                    <span className="text-sm text-slate-900 flex-1 truncate">{inv.email}</span>
+                    <span className="text-[10px] text-slate-500 bg-gantly-gold/10 px-2 py-0.5 rounded-full flex-shrink-0">
+                      Expira {new Date(inv.expiresAt).toLocaleDateString('es-ES')}
+                    </span>
+                    <button
+                      onClick={() => handleCancel(inv.id)}
+                      className="text-slate-400 hover:text-red-400 transition cursor-pointer bg-transparent border-none flex-shrink-0"
+                      title="Cancelar invitacion"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -614,86 +656,71 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
   }
 
   const [copiedCode, setCopiedCode] = useState(false);
-  const inputCls = "w-full h-11 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-900 outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 focus:bg-white transition-all duration-200 placeholder:text-slate-500";
+  const inputCls = "w-full h-9 px-3 rounded-md border border-slate-200 bg-white text-sm text-slate-900 outline-none focus:border-gantly-blue/50 focus:bg-white transition-all placeholder:text-slate-400";
+  const timeCls = "h-8 px-2.5 rounded-md border border-slate-200 bg-white text-xs text-slate-700 outline-none focus:border-gantly-blue/50 transition-all w-[100px]";
 
   return (
-    <div className="space-y-6">
-      {/* Section header */}
-      <div className="flex items-center gap-3 mb-2">
-        <div className="w-1.5 h-8 rounded-full bg-gradient-to-b from-gantly-blue to-gantly-cyan" />
-        <div>
-          <h2 className="text-lg font-heading font-bold text-slate-900">Configuracion de la clinica</h2>
-          <p className="text-xs text-slate-500 font-body">Personaliza tu espacio de trabajo</p>
-        </div>
-      </div>
-
+    <div className="space-y-5">
       {/* Row 1: Datos + Horario side by side */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         {/* Card 1 — Clinic data */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden flex flex-col">
-          <div className="h-1.5 bg-gradient-to-r from-gantly-blue to-gantly-cyan" />
-          <div className="p-6 flex-1 flex flex-col">
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-3">
-                <div className="size-10 rounded-xl bg-gradient-to-br from-gantly-blue/10 to-gantly-cyan/10 flex items-center justify-center shadow-sm">
-                  <Building2 size={20} className="text-gantly-blue" />
-                </div>
-                <div>
-                  <h3 className="text-base font-heading font-bold text-slate-900">Datos de la clinica</h3>
-                  <p className="text-xs text-slate-500">Informacion general y contacto</p>
-                </div>
-              </div>
-              {infoSaved && (
-                <span className="text-xs text-gantly-emerald font-semibold bg-gantly-emerald/10 px-3 py-1.5 rounded-full inline-flex items-center gap-1.5">
-                  <Check size={12} /> Guardado
-                </span>
-              )}
+        <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden flex flex-col">
+          <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <Building2 size={16} className="text-gantly-blue" />
+              <h3 className="text-sm font-semibold text-slate-900">Datos de la clínica</h3>
             </div>
-
-            <div className="grid grid-cols-2 gap-4 flex-1">
+            {infoSaved && (
+              <span className="text-[11px] text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                <Check size={10} /> Guardado
+              </span>
+            )}
+          </div>
+          <div className="p-5 flex-1 flex flex-col">
+            <div className="grid grid-cols-2 gap-3 flex-1">
               <div>
-                <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1.5 block">Nombre</label>
+                <label className="text-[11px] font-medium text-slate-500 mb-1 block">Nombre</label>
                 <input type="text" value={infoForm.name} onChange={e => setInfoForm(p => ({ ...p, name: e.target.value }))} className={inputCls} />
               </div>
               <div>
-                <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1.5 block">Telefono</label>
+                <label className="text-[11px] font-medium text-slate-500 mb-1 block">Teléfono</label>
                 <input type="tel" value={infoForm.phone} onChange={e => setInfoForm(p => ({ ...p, phone: e.target.value }))} className={inputCls} placeholder="+34 600 000 000" />
               </div>
               <div className="col-span-2">
-                <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1.5 block">Direccion</label>
-                <input type="text" value={infoForm.address} onChange={e => setInfoForm(p => ({ ...p, address: e.target.value }))} className={inputCls} placeholder="Calle, numero, ciudad" />
+                <label className="text-[11px] font-medium text-slate-500 mb-1 block">Dirección</label>
+                <input type="text" value={infoForm.address} onChange={e => setInfoForm(p => ({ ...p, address: e.target.value }))} className={inputCls} placeholder="Calle, número, ciudad" />
               </div>
               <div>
-                <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1.5 block">Website</label>
+                <label className="text-[11px] font-medium text-slate-500 mb-1 block">Website</label>
                 <input type="url" value={infoForm.website} onChange={e => setInfoForm(p => ({ ...p, website: e.target.value }))} className={inputCls} placeholder="https://..." />
               </div>
               <div>
-                <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1.5 block">Logo URL</label>
+                <label className="text-[11px] font-medium text-slate-500 mb-1 block">Logo URL</label>
                 <input type="url" value={infoForm.logoUrl} onChange={e => setInfoForm(p => ({ ...p, logoUrl: e.target.value }))} className={inputCls} placeholder="https://..." />
               </div>
               <div>
-                <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1.5 block">NIF / CIF</label>
+                <label className="text-[11px] font-medium text-slate-500 mb-1 block">NIF / CIF</label>
                 <input type="text" value={infoForm.nif} onChange={e => setInfoForm(p => ({ ...p, nif: e.target.value }))} className={inputCls} placeholder="B12345678" />
               </div>
             </div>
 
             {/* Referral code + save */}
-            <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between flex-wrap gap-3">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 bg-gantly-gold/8 border border-gantly-gold/20 rounded-xl px-3.5 py-2">
-                  <Tag size={14} className="text-amber-500" />
-                  <span className="text-sm font-mono font-bold text-slate-700">{clinicInfo?.referralCode ?? '—'}</span>
+            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5">
+                  <Tag size={12} className="text-slate-400" />
+                  <span className="text-xs font-mono font-semibold text-slate-700">{clinicInfo?.referralCode ?? '—'}</span>
                   <button
                     onClick={() => { navigator.clipboard.writeText(clinicInfo?.referralCode ?? ''); setCopiedCode(true); setTimeout(() => setCopiedCode(false), 1500); }}
-                    className="text-amber-500 hover:text-amber-600 cursor-pointer bg-transparent border-none p-0.5"
-                    title="Copiar codigo"
+                    className="text-slate-400 hover:text-slate-600 cursor-pointer bg-transparent border-none p-0"
+                    title="Copiar código"
                   >
-                    {copiedCode ? <Check size={14} /> : <Copy size={14} />}
+                    {copiedCode ? <Check size={12} /> : <Copy size={12} />}
                   </button>
                 </div>
-                <span className="text-[11px] text-slate-500 hidden sm:inline">Codigo para invitar psicologos</span>
+                <span className="text-[11px] text-slate-400 hidden sm:inline">Código de invitación</span>
               </div>
-              <button onClick={handleSaveInfo} disabled={savingInfo} className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-gantly-blue to-gantly-cyan text-white text-sm font-heading font-semibold shadow-md hover:shadow-lg hover:shadow-gantly-blue/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-50 cursor-pointer border-none">
+              <button onClick={handleSaveInfo} disabled={savingInfo} className="h-8 px-4 rounded-md bg-gantly-blue text-white text-xs font-semibold hover:bg-gantly-blue/90 transition-colors disabled:opacity-50 cursor-pointer border-none">
                 {savingInfo ? 'Guardando...' : 'Guardar cambios'}
               </button>
             </div>
@@ -701,64 +728,47 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
         </div>
 
         {/* Card 2 — Weekly schedule */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden flex flex-col">
-          <div className="h-1.5 bg-gradient-to-r from-gantly-emerald to-teal-400" />
-          <div className="p-6 flex-1 flex flex-col">
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-3">
-                <div className="size-10 rounded-xl bg-gradient-to-br from-gantly-emerald/10 to-teal-100 flex items-center justify-center shadow-sm">
-                  <Clock size={20} className="text-gantly-emerald" />
+        <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden flex flex-col">
+          <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <Clock size={16} className="text-emerald-500" />
+              <h3 className="text-sm font-semibold text-slate-900">Horario semanal</h3>
+            </div>
+            {scheduleSaved && (
+              <span className="text-[11px] text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                <Check size={10} /> Guardado
+              </span>
+            )}
+          </div>
+          <div className="p-5 flex-1 flex flex-col">
+            <div className="flex-1 space-y-1">
+              {schedule.map((day, idx) => (
+                <div key={day.day} className={`flex items-center gap-3 px-2.5 py-2 rounded-lg transition-colors ${
+                  day.closed ? 'bg-slate-50/60' : 'hover:bg-slate-50/60'
+                }`}>
+                  <span className={`w-[72px] text-xs font-medium ${day.closed ? 'text-slate-400' : 'text-slate-700'}`}>{day.day}</span>
+                  <button
+                    type="button"
+                    onClick={() => updateDay(idx, 'closed', !day.closed)}
+                    className={`relative w-9 h-5 rounded-full transition-colors duration-200 cursor-pointer border-none flex-shrink-0 ${day.closed ? 'bg-slate-200' : 'bg-emerald-500'}`}
+                  >
+                    <span className={`absolute top-[2px] w-4 h-4 rounded-full bg-white shadow-sm transition-all duration-200 ${day.closed ? 'left-[2px]' : 'left-[18px]'}`} />
+                  </button>
+                  {!day.closed ? (
+                    <div className="flex items-center gap-1.5 flex-1">
+                      <input type="time" value={day.openTime} onChange={e => updateDay(idx, 'openTime', e.target.value)} className={timeCls} />
+                      <span className="text-slate-400 text-[10px]">a</span>
+                      <input type="time" value={day.closeTime} onChange={e => updateDay(idx, 'closeTime', e.target.value)} className={timeCls} />
+                    </div>
+                  ) : (
+                    <span className="text-[11px] text-slate-400">Cerrado</span>
+                  )}
                 </div>
-                <div>
-                  <h3 className="text-base font-heading font-bold text-slate-900">Horario semanal</h3>
-                  <p className="text-xs text-slate-500">Horario de apertura de la clinica</p>
-                </div>
-              </div>
-              {scheduleSaved && (
-                <span className="text-xs text-gantly-emerald font-semibold bg-gantly-emerald/10 px-3 py-1.5 rounded-full inline-flex items-center gap-1.5">
-                  <Check size={12} /> Guardado
-                </span>
-              )}
+              ))}
             </div>
 
-            <div className="flex-1 space-y-1.5">
-              {schedule.map((day, idx) => {
-                const isWeekend = idx >= 5;
-                return (
-                  <div key={day.day} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
-                    day.closed
-                      ? 'bg-slate-50/80'
-                      : isWeekend
-                        ? 'bg-amber-50/40 hover:bg-amber-50/70'
-                        : 'hover:bg-gantly-emerald/5'
-                  }`}>
-                    <span className={`w-20 text-sm font-medium ${day.closed ? 'text-slate-400 line-through' : isWeekend ? 'text-amber-600' : 'text-slate-700'}`}>{day.day}</span>
-                    {/* Toggle switch */}
-                    <button
-                      type="button"
-                      onClick={() => updateDay(idx, 'closed', !day.closed)}
-                      className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer border-none flex-shrink-0 ${day.closed ? 'bg-slate-200' : 'bg-gantly-emerald'}`}
-                    >
-                      <span className={`absolute top-[3px] w-[18px] h-[18px] rounded-full bg-white shadow-sm transition-all duration-200 ${day.closed ? 'left-[3px]' : 'left-[23px]'}`} />
-                    </button>
-                    {!day.closed ? (
-                      <div className="flex items-center gap-2 flex-1">
-                        <input type="time" value={day.openTime} onChange={e => updateDay(idx, 'openTime', e.target.value)}
-                          className="h-9 px-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 outline-none focus:border-gantly-emerald focus:ring-2 focus:ring-gantly-emerald/10 transition-all w-[110px]" />
-                        <span className="text-slate-400 text-xs font-medium">a</span>
-                        <input type="time" value={day.closeTime} onChange={e => updateDay(idx, 'closeTime', e.target.value)}
-                          className="h-9 px-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 outline-none focus:border-gantly-emerald focus:ring-2 focus:ring-gantly-emerald/10 transition-all w-[110px]" />
-                      </div>
-                    ) : (
-                      <span className="text-xs text-slate-400 font-medium">Cerrado</span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="mt-4 pt-4 border-t border-slate-100 flex justify-end">
-              <button onClick={handleSaveSchedule} disabled={savingSchedule} className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-gantly-emerald to-teal-400 text-white text-sm font-heading font-semibold shadow-md hover:shadow-lg hover:shadow-gantly-emerald/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-50 cursor-pointer border-none">
+            <div className="mt-3 pt-3 border-t border-slate-100 flex justify-end">
+              <button onClick={handleSaveSchedule} disabled={savingSchedule} className="h-8 px-4 rounded-md bg-emerald-500 text-white text-xs font-semibold hover:bg-emerald-600 transition-colors disabled:opacity-50 cursor-pointer border-none">
                 {savingSchedule ? 'Guardando...' : 'Guardar horario'}
               </button>
             </div>
@@ -767,46 +777,38 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
       </div>
 
       {/* Row 2: Services + Rooms side by side */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         {/* Card 3 — Services catalog */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden flex flex-col">
-          <div className="h-1.5 bg-gradient-to-r from-amber-400 to-gantly-gold" />
-          <div className="p-6 flex-1 flex flex-col">
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-3">
-                <div className="size-10 rounded-xl bg-gradient-to-br from-amber-50 to-gantly-gold/15 flex items-center justify-center shadow-sm">
-                  <Stethoscope size={20} className="text-amber-500" />
-                </div>
-                <div>
-                  <h3 className="text-base font-heading font-bold text-slate-900">Catalogo de servicios</h3>
-                  <p className="text-xs text-slate-500">
-                    {services.length} servicio{services.length !== 1 ? 's' : ''} configurado{services.length !== 1 ? 's' : ''}
-                  </p>
-                </div>
-              </div>
-              {!showServiceForm && (
-                <button onClick={() => setShowServiceForm(true)} className="flex items-center gap-1.5 text-xs text-amber-600 font-semibold cursor-pointer bg-amber-50 hover:bg-amber-100 border border-amber-200/60 px-3.5 py-2 rounded-xl transition-all hover:shadow-sm">
-                  <Plus size={14} />
-                  Nuevo
-                </button>
-              )}
+        <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden flex flex-col">
+          <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <Stethoscope size={16} className="text-amber-500" />
+              <h3 className="text-sm font-semibold text-slate-900">Catálogo de servicios</h3>
+              <span className="text-[11px] text-slate-400">{services.length} configurados</span>
             </div>
-
+            {!showServiceForm && (
+              <button onClick={() => setShowServiceForm(true)} className="flex items-center gap-1 text-[11px] text-gantly-blue font-medium cursor-pointer bg-transparent hover:bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-md transition-colors">
+                <Plus size={12} />
+                Nuevo
+              </button>
+            )}
+          </div>
+          <div className="p-5 flex-1 flex flex-col">
             {showServiceForm && (
-              <div className="border border-amber-200/60 rounded-xl p-4 space-y-3 bg-amber-50/30 mb-4">
+              <div className="border border-slate-200 rounded-lg p-3.5 space-y-2.5 bg-slate-50/50 mb-4">
                 <input type="text" placeholder="Ej: Psicoterapia individual" value={newService.name}
                   onChange={e => setNewService(p => ({ ...p, name: e.target.value }))}
                   onKeyDown={e => { if (e.key === 'Enter' && newService.name.trim()) handleCreateService(); if (e.key === 'Escape') { setShowServiceForm(false); setNewService({ name: '', defaultPrice: '', durationMinutes: '' }); } }}
                   className={inputCls} autoFocus />
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2.5">
                   <div>
-                    <label className="text-[11px] text-slate-600 font-semibold mb-1 block uppercase tracking-wider">Precio (EUR)</label>
+                    <label className="text-[11px] text-slate-500 font-medium mb-1 block">Precio (EUR)</label>
                     <input type="number" step="0.01" min="0" placeholder="60.00" value={newService.defaultPrice}
                       onChange={e => setNewService(p => ({ ...p, defaultPrice: e.target.value }))}
                       className={inputCls} />
                   </div>
                   <div>
-                    <label className="text-[11px] text-slate-600 font-semibold mb-1 block uppercase tracking-wider">Duracion (min)</label>
+                    <label className="text-[11px] text-slate-500 font-medium mb-1 block">Duración (min)</label>
                     <input type="number" min="5" step="5" placeholder="50" value={newService.durationMinutes}
                       onChange={e => setNewService(p => ({ ...p, durationMinutes: e.target.value }))}
                       className={inputCls} />
@@ -814,11 +816,11 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                 </div>
                 <div className="flex gap-2 pt-1">
                   <button onClick={handleCreateService} disabled={savingService || !newService.name.trim()}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-gantly-gold text-white text-xs font-semibold hover:shadow-md transition-all disabled:opacity-50 cursor-pointer border-none">
+                    className="h-8 px-3.5 rounded-md bg-gantly-blue text-white text-xs font-semibold hover:bg-gantly-blue/90 transition-colors disabled:opacity-50 cursor-pointer border-none">
                     {savingService ? 'Creando...' : 'Crear servicio'}
                   </button>
                   <button onClick={() => { setShowServiceForm(false); setNewService({ name: '', defaultPrice: '', durationMinutes: '' }); }}
-                    className="px-4 py-2 rounded-xl text-slate-500 text-xs hover:bg-slate-100 transition-colors cursor-pointer bg-transparent border-none">
+                    className="h-8 px-3.5 rounded-md text-slate-500 text-xs hover:bg-slate-100 transition-colors cursor-pointer bg-transparent border-none">
                     Cancelar
                   </button>
                 </div>
@@ -828,42 +830,36 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
             <div className="flex-1">
               {loadingServices ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="w-6 h-6 border-2 border-slate-200 border-t-amber-400 rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-slate-200 border-t-gantly-blue rounded-full animate-spin" />
                 </div>
               ) : services.length === 0 && !showServiceForm ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <div className="size-14 rounded-2xl bg-amber-50 flex items-center justify-center mb-3">
-                    <Package size={28} className="text-amber-300" />
-                  </div>
-                  <p className="text-sm font-medium text-slate-600">Sin servicios configurados</p>
-                  <p className="text-xs text-slate-500 mt-1">Anade tu primer servicio para empezar</p>
+                  <Package size={24} className="text-slate-300 mb-2" />
+                  <p className="text-sm font-medium text-slate-400">Sin servicios</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Añade tu primer servicio</p>
                 </div>
               ) : (
-                <div className="space-y-1.5">
-                  {services.map((svc, i) => (
-                    <div key={svc.id} className="flex items-center justify-between px-4 py-3.5 rounded-xl hover:bg-amber-50/40 group transition-all duration-200 border border-transparent hover:border-amber-100">
-                      <div className="flex items-center gap-3">
-                        <div className="size-9 rounded-xl bg-gradient-to-br from-amber-100 to-gantly-gold/20 flex items-center justify-center flex-shrink-0">
-                          <span className="text-xs font-heading font-bold text-amber-600">{i + 1}</span>
-                        </div>
-                        <div>
-                          <span className="text-sm font-medium text-slate-900">{svc.name}</span>
-                          <div className="flex items-center gap-3 mt-0.5">
-                            {svc.defaultPrice != null && (
-                              <span className="text-xs font-bold text-gantly-emerald bg-gantly-emerald/8 px-2 py-0.5 rounded-full">{svc.defaultPrice}\u20AC</span>
-                            )}
-                            {svc.durationMinutes != null && (
-                              <span className="text-[11px] text-slate-500 flex items-center gap-1">
-                                <Timer size={11} />
-                                {svc.durationMinutes} min
-                              </span>
-                            )}
-                          </div>
+                <div className="space-y-0.5">
+                  {services.map((svc) => (
+                    <div key={svc.id} className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-50 group transition-colors">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
+                        <span className="text-sm font-medium text-slate-800 truncate">{svc.name}</span>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {svc.defaultPrice != null && (
+                            <span className="text-xs tabular-nums font-medium text-emerald-600">{svc.defaultPrice} €</span>
+                          )}
+                          {svc.durationMinutes != null && (
+                            <span className="text-[11px] text-slate-400 flex items-center gap-0.5">
+                              <Timer size={10} />
+                              {svc.durationMinutes}min
+                            </span>
+                          )}
                         </div>
                       </div>
                       <button onClick={() => handleDeleteService(svc.id)}
-                        className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all p-2 rounded-xl cursor-pointer bg-transparent border-none hover:bg-red-50">
-                        <Trash2 size={16} />
+                        className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all p-1.5 rounded-md cursor-pointer bg-transparent border-none hover:bg-red-50">
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   ))}
@@ -874,80 +870,72 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
         </div>
 
         {/* Card 4 — Rooms */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden flex flex-col">
-          <div className="h-1.5 bg-gradient-to-r from-violet-500 to-purple-400" />
-          <div className="p-6 flex-1 flex flex-col">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="size-10 rounded-xl bg-gradient-to-br from-violet-50 to-purple-50 flex items-center justify-center shadow-sm">
-                <DoorOpen size={20} className="text-violet-500" />
-              </div>
-              <div>
-                <h3 className="text-base font-heading font-bold text-slate-900">Despachos</h3>
-                <p className="text-xs text-slate-500">Un despacho por psicologo para citas presenciales</p>
-              </div>
-            </div>
-
+        <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden flex flex-col">
+          <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2.5">
+            <DoorOpen size={16} className="text-violet-500" />
+            <h3 className="text-sm font-semibold text-slate-900">Despachos</h3>
+            <span className="text-[11px] text-slate-400">Un despacho por profesional</span>
+          </div>
+          <div className="p-5 flex-1 flex flex-col">
             <div className="flex-1">
               {loadingRooms ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="w-6 h-6 border-2 border-slate-200 border-t-violet-500 rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-slate-200 border-t-gantly-blue rounded-full animate-spin" />
                 </div>
               ) : psychologists.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <div className="size-14 rounded-2xl bg-violet-50 flex items-center justify-center mb-3">
-                    <UserX size={28} className="text-violet-300" />
-                  </div>
-                  <p className="text-sm font-medium text-slate-600">No hay psicologos en la clinica</p>
-                  <p className="text-xs text-slate-500 mt-1">Invita psicologos desde la pestana Equipo</p>
+                  <UserX size={24} className="text-slate-300 mb-2" />
+                  <p className="text-sm font-medium text-slate-400">Sin profesionales</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Invita desde la pestaña Equipo</p>
                 </div>
               ) : (
-                <ul className="space-y-2">
+                <div className="space-y-1.5">
                   {psychologists.map((psych, idx) => {
                     const room = rooms.find(r => r.assignedPsychologistId === psych.id);
                     const isAdding = addingForPsychId === psych.id;
 
                     return (
-                      <li key={psych.id} className="rounded-xl border border-slate-100 overflow-hidden hover:border-violet-200 transition-all duration-200 group/room">
-                        <div className="flex items-center gap-3 px-4 py-3.5">
+                      <div key={psych.id} className="rounded-lg border border-slate-100 overflow-hidden hover:border-slate-200 transition-colors group/room">
+                        <div className="flex items-center gap-3 px-3.5 py-2.5">
                           <div
-                            className="size-10 rounded-xl flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm"
+                            className="size-8 rounded-lg flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0"
                             style={{ background: room ? room.color : '#94a3b8' }}
                           >
                             {psych.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <span className="text-sm font-medium text-slate-900 block truncate">{psych.name}</span>
+                            <span className="text-xs font-medium text-slate-800 block truncate">{psych.name}</span>
                             {room ? (
-                              <span className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
-                                <span className="w-2.5 h-2.5 rounded-full inline-block shadow-sm" style={{ background: room.color }} />
+                              <span className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
+                                <span className="w-2 h-2 rounded-full inline-block" style={{ background: room.color }} />
                                 {room.name}
                               </span>
                             ) : (
-                              <span className="text-[11px] text-slate-400 mt-0.5 italic">Sin despacho asignado</span>
+                              <span className="text-[10px] text-slate-400 mt-0.5">Sin despacho</span>
                             )}
                           </div>
 
                           {room ? (
                             <button
                               onClick={() => handleDeleteRoom(room.id)}
-                              className="opacity-0 group-hover/room:opacity-100 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all p-2 rounded-xl cursor-pointer bg-transparent border-none"
+                              className="opacity-0 group-hover/room:opacity-100 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all p-1.5 rounded-md cursor-pointer bg-transparent border-none"
                               title="Eliminar despacho"
                             >
-                              <Trash2 size={16} />
+                              <Trash2 size={14} />
                             </button>
                           ) : !isAdding ? (
                             <button
                               onClick={() => startAdding(psych.id, `Consulta ${idx + 1}`)}
-                              className="flex items-center gap-1.5 text-[11px] text-violet-500 hover:text-violet-600 border border-dashed border-violet-200 hover:border-violet-300 hover:bg-violet-50 px-3 py-2 rounded-xl transition-all cursor-pointer bg-transparent"
+                              className="flex items-center gap-1 text-[10px] text-gantly-blue border border-dashed border-slate-200 hover:border-gantly-blue/40 hover:bg-gantly-blue/5 px-2 py-1 rounded-md transition-colors cursor-pointer bg-transparent"
                             >
-                              <Plus size={14} />
+                              <Plus size={12} />
                               Asignar
                             </button>
                           ) : null}
                         </div>
 
                         {isAdding && (
-                          <div className="px-4 py-4 border-t border-slate-100 space-y-3 bg-violet-50/30">
+                          <div className="px-3.5 py-3 border-t border-slate-100 space-y-2.5 bg-slate-50/50">
                             <input
                               type="text"
                               placeholder="Nombre del despacho"
@@ -957,29 +945,29 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                               autoFocus
                               className={inputCls}
                             />
-                            <div className="flex items-center gap-4">
-                              <div className="flex gap-2">
+                            <div className="flex items-center gap-3">
+                              <div className="flex gap-1.5">
                                 {ROOM_COLORS.map(c => (
                                   <button
                                     key={c}
                                     type="button"
                                     onClick={() => setNewRoomColor(c)}
-                                    className="w-6 h-6 rounded-full flex-shrink-0 cursor-pointer border-2 p-0 transition-all duration-150 hover:scale-110"
-                                    style={{ background: c, borderColor: newRoomColor === c ? '#0f172a' : 'transparent', transform: newRoomColor === c ? 'scale(1.15)' : 'scale(1)' }}
+                                    className="w-5 h-5 rounded-full flex-shrink-0 cursor-pointer border-2 p-0 transition-all duration-150"
+                                    style={{ background: c, borderColor: newRoomColor === c ? '#0f172a' : 'transparent' }}
                                   />
                                 ))}
                               </div>
-                              <div className="flex gap-2 flex-1 justify-end">
+                              <div className="flex gap-1.5 flex-1 justify-end">
                                 <button
                                   onClick={() => handleSaveRoom(psych.id)}
                                   disabled={savingRoom || !newRoomName.trim()}
-                                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-violet-500 to-purple-400 text-white text-xs font-semibold hover:shadow-md transition-all disabled:opacity-50 cursor-pointer border-none"
+                                  className="h-7 px-3 rounded-md bg-gantly-blue text-white text-[11px] font-semibold hover:bg-gantly-blue/90 transition-colors disabled:opacity-50 cursor-pointer border-none"
                                 >
                                   {savingRoom ? 'Guardando...' : 'Guardar'}
                                 </button>
                                 <button
                                   onClick={cancelAdding}
-                                  className="px-4 py-2 rounded-xl text-slate-500 text-xs hover:bg-slate-100 transition-colors cursor-pointer bg-transparent border-none"
+                                  className="h-7 px-3 rounded-md text-slate-500 text-[11px] hover:bg-slate-100 transition-colors cursor-pointer bg-transparent border-none"
                                 >
                                   Cancelar
                                 </button>
@@ -987,10 +975,10 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                             </div>
                           </div>
                         )}
-                      </li>
+                      </div>
                     );
                   })}
-                </ul>
+                </div>
               )}
             </div>
           </div>
@@ -1123,7 +1111,7 @@ export default function ClinicDashboard() {
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 lg:ml-64">
+      <div className="flex-1 lg:ml-64 flex flex-col h-screen">
         {/* Top bar */}
         <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/50 px-4 sm:px-8 py-4 flex items-center justify-between gap-3">
           <button
@@ -1139,7 +1127,14 @@ export default function ClinicDashboard() {
           <div className="flex-1" />
         </header>
 
-        <div className="px-4 sm:px-8 py-6">
+        {/* Pacientes renders full-bleed (no padding wrapper) */}
+        {!loading && activeTab === 'pacientes' && (
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <ClinicPatients />
+          </div>
+        )}
+
+        <div className={`px-4 sm:px-8 py-6 flex-1 overflow-y-auto ${activeTab === 'pacientes' ? 'hidden' : ''}`}>
           {loading ? (
             <div className="flex items-center justify-center py-32">
               <div className="w-9 h-9 border-[3px] border-slate-200 border-t-gantly-blue rounded-full animate-spin" />
@@ -1165,11 +1160,6 @@ export default function ClinicDashboard() {
               )}
               {activeTab === 'equipo' && (
                 <EquipoTab psychologists={psychologists} onRefresh={loadData} />
-              )}
-              {activeTab === 'pacientes' && (
-                <div className="flex-1 overflow-hidden flex flex-col">
-                  <ClinicPatients />
-                </div>
               )}
               {activeTab === 'facturacion' && (
                 <div className="flex-1 overflow-y-auto">

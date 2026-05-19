@@ -1,7 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { clinicService } from '../services/api';
 import type { ClinicBillingItem } from '../services/api';
-import { CreditCard, Clock, Ban, Receipt, ListFilter, Download, FileText } from 'lucide-react';
+import {
+  ArrowUpRight, ArrowDownRight, Calendar, ChevronDown, Download,
+  FileText, Search, TrendingUp, Wallet, X,
+} from 'lucide-react';
 
 interface Props {
   psychologists: Array<{ id: number; name: string }>;
@@ -18,19 +21,29 @@ function today(): string {
   return new Date().toISOString().split('T')[0];
 }
 
-function daysAgo(n: number): string {
+function startOfMonth(offset = 0): string {
   const d = new Date();
-  d.setDate(d.getDate() - n);
+  d.setDate(1);
+  d.setMonth(d.getMonth() + offset);
   return d.toISOString().split('T')[0];
 }
 
-function daysFromNow(n: number): string {
+function endOfMonth(offset = 0): string {
   const d = new Date();
-  d.setDate(d.getDate() + n);
+  d.setMonth(d.getMonth() + 1 + offset, 0);
   return d.toISOString().split('T')[0];
 }
 
 function fmtDate(iso?: string): string {
+  if (!iso) return '—';
+  try {
+    return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+  } catch {
+    return iso;
+  }
+}
+
+function fmtDateFull(iso?: string): string {
   if (!iso) return '—';
   try {
     return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -49,44 +62,84 @@ function fmtTime(iso?: string): string {
 }
 
 function fmtEuro(amount?: number): string {
-  if (amount == null) return '—';
+  if (amount == null) return '0,00 \u20AC';
   return amount.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
 }
 
-// ---------------------------------------------------------------------------
-// Payment status badge
-// ---------------------------------------------------------------------------
-function PaymentBadge({ status }: { status?: string }) {
-  if (!status) return <span className="text-slate-500 text-xs">—</span>;
-  const lc = status.toLowerCase();
-  let cls = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold ';
-  let label = status;
-  let dot = '';
-  if (lc === 'paid' || lc === 'pagada' || lc === 'pagado') {
-    cls += 'bg-emerald-50 text-emerald-700';
-    label = 'Pagada';
-    dot = 'bg-emerald-500';
-  } else if (lc === 'pending' || lc === 'pendiente') {
-    cls += 'bg-amber-50 text-amber-700';
-    label = 'Pendiente';
-    dot = 'bg-amber-500';
-  } else if (lc === 'fractional' || lc === 'fraccionada') {
-    cls += 'bg-orange-50 text-orange-700';
-    label = 'Fraccionada';
-    dot = 'bg-orange-500';
-  } else if (lc === 'cancelled' || lc === 'cancelada' || lc === 'cancelado') {
-    cls += 'bg-red-50 text-red-600';
-    label = 'Cancelada';
-    dot = 'bg-red-400';
-  } else {
-    cls += 'bg-slate-50 text-slate-600';
-    dot = 'bg-slate-400';
+function fmtCompact(amount: number): string {
+  if (amount >= 1000) return `${(amount / 1000).toFixed(1).replace('.0', '')}k \u20AC`;
+  return `${amount.toFixed(0)} \u20AC`;
+}
+
+type PeriodKey = 'this_month' | 'last_month' | '3_months' | '6_months' | 'custom';
+
+const PERIODS: { key: PeriodKey; label: string }[] = [
+  { key: 'this_month', label: 'Este mes' },
+  { key: 'last_month', label: 'Mes anterior' },
+  { key: '3_months', label: '3 meses' },
+  { key: '6_months', label: '6 meses' },
+  { key: 'custom', label: 'Personalizado' },
+];
+
+function periodDates(key: PeriodKey): { from: string; to: string } {
+  switch (key) {
+    case 'this_month': return { from: startOfMonth(), to: endOfMonth() };
+    case 'last_month': return { from: startOfMonth(-1), to: endOfMonth(-1) };
+    case '3_months': return { from: startOfMonth(-2), to: endOfMonth() };
+    case '6_months': return { from: startOfMonth(-5), to: endOfMonth() };
+    case 'custom': return { from: startOfMonth(-2), to: today() };
   }
-  return <span className={cls}><span className={`w-1.5 h-1.5 rounded-full ${dot}`} />{label}</span>;
 }
 
 // ---------------------------------------------------------------------------
-// PDF invoice generator
+// Payment status helpers
+// ---------------------------------------------------------------------------
+function paymentCategory(status?: string | null): 'paid' | 'pending' | 'cancelled' | 'other' {
+  const lc = (status ?? '').toLowerCase();
+  if (lc === 'paid' || lc === 'pagada' || lc === 'pagado') return 'paid';
+  if (lc === 'pending' || lc === 'pendiente') return 'pending';
+  if (lc === 'cancelled' || lc === 'cancelada' || lc === 'cancelado') return 'cancelled';
+  return 'other';
+}
+
+const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string; label: string }> = {
+  paid:      { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500', label: 'Cobrada' },
+  pending:   { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500', label: 'Pendiente' },
+  cancelled: { bg: 'bg-slate-100', text: 'text-slate-500', dot: 'bg-slate-400', label: 'Cancelada' },
+  other:     { bg: 'bg-slate-50', text: 'text-slate-500', dot: 'bg-slate-400', label: 'Otro' },
+};
+
+function PaymentBadge({ status }: { status?: string }) {
+  const cat = paymentCategory(status);
+  const s = STATUS_STYLES[cat];
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium ${s.bg} ${s.text}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+      {s.label}
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Revenue mini-bar (proportional horizontal bar)
+// ---------------------------------------------------------------------------
+function RevenueBar({ paid, pending, cancelled }: { paid: number; pending: number; cancelled: number }) {
+  const total = paid + pending + cancelled;
+  if (total === 0) return <div className="h-1.5 rounded-full bg-slate-100 w-full" />;
+  const pPaid = (paid / total) * 100;
+  const pPending = (pending / total) * 100;
+  const pCancelled = (cancelled / total) * 100;
+  return (
+    <div className="flex h-1.5 rounded-full overflow-hidden bg-slate-100 w-full">
+      {pPaid > 0 && <div className="bg-emerald-500 transition-all duration-500" style={{ width: `${pPaid}%` }} />}
+      {pPending > 0 && <div className="bg-amber-400 transition-all duration-500" style={{ width: `${pPending}%` }} />}
+      {pCancelled > 0 && <div className="bg-slate-300 transition-all duration-500" style={{ width: `${pCancelled}%` }} />}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PDF invoice generator (unchanged logic)
 // ---------------------------------------------------------------------------
 function generateInvoicePdf(item: {
   appointmentId: number;
@@ -206,7 +259,7 @@ function generateInvoicePdf(item: {
 function exportCsv(items: ClinicBillingItem[]): void {
   const headers = ['Fecha', 'Hora inicio', 'Hora fin', 'Psicologo', 'Paciente', 'Servicio', 'Base', 'IVA exento', 'Tipo IVA', 'IVA', 'Total', 'Estado pago'];
   const rows = items.map((item) => [
-    fmtDate(item.startTime),
+    fmtDateFull(item.startTime),
     fmtTime(item.startTime),
     fmtTime(item.endTime),
     item.psychologistName,
@@ -233,13 +286,28 @@ function exportCsv(items: ClinicBillingItem[]): void {
 // Main component
 // ---------------------------------------------------------------------------
 export default function ClinicBilling({ psychologists, clinicName, clinicNif, clinicAddress, clinicPhone }: Props) {
-  const [from, setFrom] = useState(daysAgo(30));
-  const [to, setTo] = useState(daysFromNow(365));
+  const [period, setPeriod] = useState<PeriodKey>('this_month');
+  const [from, setFrom] = useState(startOfMonth());
+  const [to, setTo] = useState(endOfMonth());
   const [psychologistId, setPsychologistId] = useState<number | undefined>(undefined);
+  const [showCustom, setShowCustom] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const [items, setItems] = useState<ClinicBillingItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const selectPeriod = (key: PeriodKey) => {
+    setPeriod(key);
+    if (key === 'custom') {
+      setShowCustom(true);
+    } else {
+      setShowCustom(false);
+      const d = periodDates(key);
+      setFrom(d.from);
+      setTo(d.to);
+    }
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -258,172 +326,306 @@ export default function ClinicBilling({ psychologists, clinicName, clinicNif, cl
     load();
   }, [load]);
 
-  const totalPaid = items
-    .filter((i) => { const lc = (i.paymentStatus ?? '').toLowerCase(); return lc === 'paid' || lc === 'pagada' || lc === 'pagado'; })
-    .reduce((sum, i) => sum + (i.price ?? 0), 0);
-  const totalPending = items
-    .filter((i) => { const lc = (i.paymentStatus ?? '').toLowerCase(); return lc === 'pending' || lc === 'pendiente'; })
-    .reduce((sum, i) => sum + (i.price ?? 0), 0);
-  const totalCancelled = items
-    .filter((i) => { const lc = (i.paymentStatus ?? '').toLowerCase(); return lc === 'cancelled' || lc === 'cancelada' || lc === 'cancelado'; })
-    .reduce((sum, i) => sum + (i.price ?? 0), 0);
+  // Computed totals
+  const totals = useMemo(() => {
+    let paid = 0, pending = 0, cancelled = 0, paidCount = 0, pendingCount = 0;
+    for (const i of items) {
+      const cat = paymentCategory(i.paymentStatus);
+      const amount = i.totalAmount ?? i.price ?? 0;
+      if (cat === 'paid') { paid += amount; paidCount++; }
+      else if (cat === 'pending') { pending += amount; pendingCount++; }
+      else if (cat === 'cancelled') { cancelled += amount; }
+    }
+    return { paid, pending, cancelled, paidCount, pendingCount, total: paid + pending };
+  }, [items]);
 
-  const inputCls = "h-9 px-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 outline-none focus:border-gantly-blue transition-colors";
+  // Filtered items by search
+  const filteredItems = useMemo(() => {
+    if (!searchQuery.trim()) return items;
+    const q = searchQuery.toLowerCase();
+    return items.filter(i =>
+      (i.psychologistName ?? '').toLowerCase().includes(q) ||
+      (i.patientName ?? '').toLowerCase().includes(q) ||
+      (i.service ?? '').toLowerCase().includes(q)
+    );
+  }, [items, searchQuery]);
+
+  // Totals for the footer
+  const tableFooter = useMemo(() => {
+    let base = 0, tax = 0, total = 0;
+    for (const i of filteredItems) {
+      base += i.price ?? 0;
+      tax += i.taxExempt ? 0 : (i.taxAmount ?? 0);
+      total += i.totalAmount ?? i.price ?? 0;
+    }
+    return { base, tax, total };
+  }, [filteredItems]);
 
   return (
-    <div className="space-y-6">
-      {/* KPI row */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-        {/* Hero: total paid */}
-        <div className="col-span-2 xl:col-span-1 bg-gradient-to-br from-gantly-navy via-gantly-blue to-gantly-cyan rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
-          <div className="p-5">
-            <div className="size-9 rounded-xl bg-white/10 flex items-center justify-center mb-3">
-              <CreditCard className="text-white" size={18} />
-            </div>
-            <div className="text-2xl font-heading font-bold text-white">{fmtEuro(totalPaid)}</div>
-            <div className="text-[11px] font-heading font-bold uppercase tracking-widest text-white/60 mt-1">Cobrado</div>
-          </div>
+    <div className="space-y-5">
+      {/* ─── Top bar: period pills + psychologist + exports ─── */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex bg-slate-100 rounded-lg p-0.5 gap-0.5">
+          {PERIODS.map(p => (
+            <button
+              key={p.key}
+              onClick={() => selectPeriod(p.key)}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer border-none ${
+                period === p.key
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'bg-transparent text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
         </div>
-        {/* Pending */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-amber-300 to-amber-400" />
-          <div className="p-5">
-            <div className="size-9 rounded-xl bg-amber-50 flex items-center justify-center mb-3">
-              <Clock className="text-amber-500" size={18} />
-            </div>
-            <div className="text-2xl font-heading font-bold text-slate-900">{fmtEuro(totalPending)}</div>
-            <div className="text-xs font-heading font-bold uppercase tracking-widest text-slate-500 mt-1">Pendiente</div>
-          </div>
-        </div>
-        {/* Cancelled */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-red-300 to-red-400" />
-          <div className="p-5">
-            <div className="size-9 rounded-xl bg-red-50 flex items-center justify-center mb-3">
-              <Ban className="text-red-400" size={18} />
-            </div>
-            <div className="text-2xl font-heading font-bold text-slate-900">{fmtEuro(totalCancelled)}</div>
-            <div className="text-xs font-heading font-bold uppercase tracking-widest text-slate-500 mt-1">Cancelado</div>
-          </div>
-        </div>
-        {/* Count */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-gantly-blue to-gantly-cyan" />
-          <div className="p-5">
-            <div className="size-9 rounded-xl bg-gradient-to-br from-gantly-blue/10 to-gantly-cyan/10 flex items-center justify-center mb-3">
-              <Receipt className="text-gantly-blue" size={18} />
-            </div>
-            <div className="text-2xl font-heading font-bold text-slate-900">{items.length}</div>
-            <div className="text-xs font-heading font-bold uppercase tracking-widest text-slate-500 mt-1">Citas</div>
-          </div>
-        </div>
-      </div>
 
-      {/* Filters + table in one card */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-        {/* Filter bar */}
-        <div className="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <ListFilter className="text-slate-500" size={18} />
-            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className={inputCls} />
-            <span className="text-slate-500 text-sm">—</span>
-            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className={inputCls} />
+        {/* Custom date range (collapsible) */}
+        {showCustom && (
+          <div className="flex items-center gap-2 ml-1">
+            <input
+              type="date"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              className="h-8 px-2.5 rounded-md border border-slate-200 bg-white text-xs text-slate-700 outline-none focus:border-gantly-blue/50 transition-colors"
+            />
+            <span className="text-slate-400 text-xs">a</span>
+            <input
+              type="date"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              className="h-8 px-2.5 rounded-md border border-slate-200 bg-white text-xs text-slate-700 outline-none focus:border-gantly-blue/50 transition-colors"
+            />
+          </div>
+        )}
+
+        <div className="flex items-center gap-2 ml-auto">
+          {/* Psychologist filter */}
+          <div className="relative">
             <select
               value={psychologistId ?? ''}
               onChange={(e) => setPsychologistId(e.target.value ? Number(e.target.value) : undefined)}
-              className={`${inputCls} cursor-pointer min-w-[160px]`}
+              className="h-8 pl-3 pr-7 rounded-md border border-slate-200 bg-white text-xs text-slate-700 outline-none focus:border-gantly-blue/50 transition-colors cursor-pointer appearance-none"
             >
-              <option value="">Todos los psicólogos</option>
+              <option value="">Todos</option>
               {psychologists.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
             </select>
-            <button onClick={load} className="h-9 px-4 bg-gantly-blue text-white rounded-lg text-sm font-semibold hover:bg-gantly-blue/90 transition-colors cursor-pointer border-none">
-              Filtrar
-            </button>
+            <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           </div>
+
+          {/* CSV */}
           <button
             onClick={() => exportCsv(items)}
             disabled={items.length === 0}
-            className="flex items-center gap-1.5 h-9 px-4 text-sm font-semibold rounded-lg transition-colors cursor-pointer border-none disabled:opacity-40 disabled:cursor-not-allowed bg-slate-100 text-slate-600 hover:bg-slate-200"
+            className="flex items-center gap-1.5 h-8 px-3 text-xs font-medium rounded-md transition-colors cursor-pointer border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <Download size={14} />
+            <Download size={13} />
             CSV
           </button>
+        </div>
+      </div>
+
+      {/* ─── Metrics row ─── */}
+      <div className="grid grid-cols-12 gap-4">
+        {/* Revenue summary - wide card */}
+        <div className="col-span-12 lg:col-span-5 bg-white rounded-xl border border-slate-200/80 p-5">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <p className="text-xs font-medium text-slate-500 mb-1">Ingresos periodo</p>
+              <p className="text-3xl font-bold text-slate-900 tracking-tight">{fmtEuro(totals.paid)}</p>
+            </div>
+            <div className="size-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <TrendingUp size={18} className="text-emerald-600" />
+            </div>
+          </div>
+          <RevenueBar paid={totals.paid} pending={totals.pending} cancelled={totals.cancelled} />
+          <div className="flex items-center gap-4 mt-3">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="text-[11px] text-slate-500">Cobrado</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-amber-400" />
+              <span className="text-[11px] text-slate-500">Pendiente</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-slate-300" />
+              <span className="text-[11px] text-slate-500">Cancelado</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 3 compact metric cards */}
+        <div className="col-span-4 lg:col-span-2 bg-white rounded-xl border border-slate-200/80 p-4 flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <Wallet size={15} className="text-amber-500" />
+            {totals.pendingCount > 0 && (
+              <span className="flex items-center gap-0.5 text-[10px] font-medium text-amber-600">
+                <ArrowUpRight size={10} />
+                {totals.pendingCount}
+              </span>
+            )}
+          </div>
+          <div className="mt-3">
+            <p className="text-lg font-bold text-slate-900">{fmtCompact(totals.pending)}</p>
+            <p className="text-[11px] text-slate-500">Por cobrar</p>
+          </div>
+        </div>
+
+        <div className="col-span-4 lg:col-span-2 bg-white rounded-xl border border-slate-200/80 p-4 flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <Calendar size={15} className="text-gantly-blue" />
+            <span className="text-[10px] font-medium text-slate-400">{items.length} total</span>
+          </div>
+          <div className="mt-3">
+            <p className="text-lg font-bold text-slate-900">{totals.paidCount}</p>
+            <p className="text-[11px] text-slate-500">Sesiones cobradas</p>
+          </div>
+        </div>
+
+        <div className="col-span-4 lg:col-span-3 bg-white rounded-xl border border-slate-200/80 p-4 flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <ArrowDownRight size={15} className="text-slate-400" />
+            <span className="text-[10px] font-medium text-slate-400">{fmtCompact(totals.cancelled)}</span>
+          </div>
+          <div className="mt-3">
+            <p className="text-lg font-bold text-slate-900">
+              {items.length > 0
+                ? `${((totals.paidCount / items.length) * 100).toFixed(0)}%`
+                : '—'
+              }
+            </p>
+            <p className="text-[11px] text-slate-500">Tasa de cobro</p>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Transactions table ─── */}
+      <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+        {/* Table header */}
+        <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-3">
+          <h3 className="text-sm font-semibold text-slate-900">Transacciones</h3>
+          <div className="flex items-center gap-2">
+            {/* Search */}
+            <div className="relative">
+              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar..."
+                className="h-8 pl-8 pr-3 w-48 rounded-md border border-slate-200 bg-slate-50 text-xs text-slate-700 outline-none focus:bg-white focus:border-gantly-blue/50 transition-all placeholder:text-slate-400"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer bg-transparent border-none p-0"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+            <span className="text-[11px] text-slate-400">{filteredItems.length} registros</span>
+          </div>
         </div>
 
         {/* Error */}
         {error && (
-          <div className="mx-5 mt-4 bg-red-50 text-red-700 px-4 py-2.5 rounded-lg text-sm">{error}</div>
+          <div className="mx-4 mt-3 bg-red-50 text-red-700 px-3 py-2 rounded-lg text-xs">{error}</div>
         )}
 
         {/* Table */}
         {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <div className="w-7 h-7 border-2 border-slate-200 border-t-gantly-blue rounded-full animate-spin" />
+          <div className="flex items-center justify-center py-20">
+            <div className="w-6 h-6 border-2 border-slate-200 border-t-gantly-blue rounded-full animate-spin" />
           </div>
-        ) : items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="size-14 rounded-2xl bg-slate-50 flex items-center justify-center mb-3">
-              <Receipt className="text-slate-500" size={28} />
+        ) : filteredItems.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="size-12 rounded-xl bg-slate-50 flex items-center justify-center mb-3">
+              <FileText className="text-slate-300" size={22} />
             </div>
-            <p className="text-sm text-slate-500">No hay registros para este periodo</p>
-            <p className="text-xs text-slate-500 mt-1">Ajusta los filtros o el rango de fechas</p>
+            <p className="text-sm font-medium text-slate-400">Sin transacciones</p>
+            <p className="text-xs text-slate-400 mt-0.5">Cambia el periodo o los filtros</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-slate-50/60">
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Fecha</th>
-                  <th className="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Hora</th>
-                  <th className="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Psicólogo</th>
-                  <th className="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Paciente</th>
-                  <th className="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Servicio</th>
-                  <th className="text-right px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Base</th>
-                  <th className="text-right px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">IVA</th>
-                  <th className="text-right px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Total</th>
-                  <th className="text-center px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Estado</th>
-                  <th className="w-10 px-3 py-3" />
+                <tr className="border-b border-slate-100">
+                  <th className="text-left pl-4 pr-2 py-2.5 text-[11px] font-medium text-slate-400 uppercase tracking-wider">Fecha</th>
+                  <th className="text-left px-2 py-2.5 text-[11px] font-medium text-slate-400 uppercase tracking-wider">Profesional</th>
+                  <th className="text-left px-2 py-2.5 text-[11px] font-medium text-slate-400 uppercase tracking-wider">Paciente</th>
+                  <th className="text-left px-2 py-2.5 text-[11px] font-medium text-slate-400 uppercase tracking-wider">Servicio</th>
+                  <th className="text-right px-2 py-2.5 text-[11px] font-medium text-slate-400 uppercase tracking-wider">Base</th>
+                  <th className="text-right px-2 py-2.5 text-[11px] font-medium text-slate-400 uppercase tracking-wider">IVA</th>
+                  <th className="text-right px-2 py-2.5 text-[11px] font-medium text-slate-400 uppercase tracking-wider">Total</th>
+                  <th className="text-center px-2 py-2.5 text-[11px] font-medium text-slate-400 uppercase tracking-wider">Estado</th>
+                  <th className="w-9 px-2 py-2.5" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
-                {items.map((item) => (
-                  <tr key={item.appointmentId} className="hover:bg-slate-50/50 transition-colors duration-150">
-                    <td className="px-5 py-3 text-sm text-slate-700 whitespace-nowrap">{fmtDate(item.startTime)}</td>
-                    <td className="px-3 py-3 text-sm text-slate-500 whitespace-nowrap">{fmtTime(item.startTime)}</td>
-                    <td className="px-3 py-3 text-sm font-medium text-slate-900 whitespace-nowrap">{item.psychologistName}</td>
-                    <td className="px-3 py-3 text-sm text-slate-700">{item.patientName ?? '—'}</td>
-                    <td className="px-3 py-3 text-sm text-slate-500">{item.service ?? '—'}</td>
-                    <td className="px-3 py-3 text-sm text-slate-900 text-right whitespace-nowrap">{fmtEuro(item.price)}</td>
-                    <td className="px-3 py-3 text-sm text-right whitespace-nowrap">
-                      {item.taxExempt ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-500">Exento</span>
-                      ) : (
-                        <span className="text-slate-700">
-                          {fmtEuro(item.taxAmount)}
-                          {item.taxRate != null && item.taxRate > 0 && (
-                            <span className="text-[10px] text-slate-500 ml-1">({(item.taxRate * 100).toFixed(0)}%)</span>
-                          )}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-3 py-3 text-sm font-semibold text-slate-900 text-right whitespace-nowrap">
-                      {fmtEuro(item.totalAmount ?? item.price)}
-                    </td>
-                    <td className="px-3 py-3 text-center"><PaymentBadge status={item.paymentStatus} /></td>
-                    <td className="px-3 py-3">
-                      <button
-                        onClick={() => generateInvoicePdf(item, clinicName || 'Clínica', clinicNif, clinicAddress, clinicPhone)}
-                        title="Descargar factura"
-                        className="text-slate-500 hover:text-gantly-blue hover:bg-gantly-blue/5 rounded-lg p-1.5 transition-colors cursor-pointer bg-transparent border-none"
-                      >
-                        <FileText size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+              <tbody>
+                {filteredItems.map((item, idx) => {
+                  const cat = paymentCategory(item.paymentStatus);
+                  const borderColor = cat === 'paid' ? 'border-l-emerald-400' : cat === 'pending' ? 'border-l-amber-400' : 'border-l-slate-200';
+                  return (
+                    <tr
+                      key={item.appointmentId}
+                      className={`border-l-2 ${borderColor} transition-colors duration-100 hover:bg-slate-50/60 ${
+                        idx < filteredItems.length - 1 ? 'border-b border-b-slate-50' : ''
+                      }`}
+                    >
+                      <td className="pl-4 pr-2 py-2.5">
+                        <div className="text-xs font-medium text-slate-800">{fmtDate(item.startTime)}</div>
+                        <div className="text-[11px] text-slate-400">{fmtTime(item.startTime)}</div>
+                      </td>
+                      <td className="px-2 py-2.5 text-xs font-medium text-slate-700 whitespace-nowrap">{item.psychologistName}</td>
+                      <td className="px-2 py-2.5 text-xs text-slate-600">{item.patientName ?? '—'}</td>
+                      <td className="px-2 py-2.5 text-xs text-slate-500">{item.service ?? '—'}</td>
+                      <td className="px-2 py-2.5 text-xs text-slate-700 text-right whitespace-nowrap tabular-nums">{fmtEuro(item.price)}</td>
+                      <td className="px-2 py-2.5 text-xs text-right whitespace-nowrap tabular-nums">
+                        {item.taxExempt ? (
+                          <span className="text-[10px] text-slate-400">Exento</span>
+                        ) : (
+                          <span className="text-slate-600">
+                            {fmtEuro(item.taxAmount)}
+                            {item.taxRate != null && item.taxRate > 0 && (
+                              <span className="text-[10px] text-slate-400 ml-0.5">({(item.taxRate * 100).toFixed(0)}%)</span>
+                            )}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-2 py-2.5 text-xs font-semibold text-slate-900 text-right whitespace-nowrap tabular-nums">
+                        {fmtEuro(item.totalAmount ?? item.price)}
+                      </td>
+                      <td className="px-2 py-2.5 text-center"><PaymentBadge status={item.paymentStatus} /></td>
+                      <td className="px-2 py-2.5">
+                        <button
+                          onClick={() => generateInvoicePdf(item, clinicName || 'Clínica', clinicNif, clinicAddress, clinicPhone)}
+                          title="Descargar factura"
+                          className="text-slate-400 hover:text-gantly-blue rounded-md p-1 transition-colors cursor-pointer bg-transparent border-none"
+                        >
+                          <FileText size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
+              {/* Totals footer */}
+              <tfoot>
+                <tr className="border-t border-slate-200 bg-slate-50/40">
+                  <td colSpan={4} className="pl-4 pr-2 py-2.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                    Total ({filteredItems.length})
+                  </td>
+                  <td className="px-2 py-2.5 text-xs font-semibold text-slate-700 text-right tabular-nums">{fmtEuro(tableFooter.base)}</td>
+                  <td className="px-2 py-2.5 text-xs font-semibold text-slate-700 text-right tabular-nums">{fmtEuro(tableFooter.tax)}</td>
+                  <td className="px-2 py-2.5 text-xs font-bold text-slate-900 text-right tabular-nums">{fmtEuro(tableFooter.total)}</td>
+                  <td colSpan={2} />
+                </tr>
+              </tfoot>
             </table>
           </div>
         )}

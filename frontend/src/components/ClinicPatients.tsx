@@ -54,7 +54,7 @@ function Spinner() {
 // ---------------------------------------------------------------------------
 function StatusBadge({ status }: { status: string }) {
   const lc = status?.toLowerCase() ?? '';
-  let classes = 'px-2.5 py-0.5 rounded-xl text-xs font-semibold ';
+  let classes = 'px-2.5 py-0.5 rounded-full text-xs font-semibold ';
   let label = status;
   if (lc === 'active' || lc === 'activo') {
     classes += 'bg-gantly-emerald-50 text-gantly-emerald-700';
@@ -74,7 +74,7 @@ function StatusBadge({ status }: { status: string }) {
 function PaymentBadge({ status }: { status?: string }) {
   if (!status) return null;
   const lc = status.toLowerCase();
-  let classes = 'px-2.5 py-0.5 rounded-xl text-xs font-semibold ';
+  let classes = 'px-2.5 py-0.5 rounded-full text-xs font-semibold ';
   let label = status;
   if (lc === 'paid' || lc === 'pagada' || lc === 'pagado') {
     classes += 'bg-gantly-emerald-50 text-gantly-emerald-700';
@@ -103,29 +103,6 @@ function ApptDot({ status }: { status: string }) {
 }
 
 // ---------------------------------------------------------------------------
-// Expandable section
-// ---------------------------------------------------------------------------
-function ExpandableSection({ label, value }: { label: string; value?: string }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="border-b border-slate-100">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full bg-transparent border-none text-left py-2.5 cursor-pointer flex justify-between items-center text-[13px] text-slate-700 font-medium hover:bg-slate-50/50 rounded-lg px-2 transition-colors duration-200"
-      >
-        {label}
-        <span className="text-[11px] text-slate-500">{open ? '\u25B2' : '\u25BC'}</span>
-      </button>
-      {open && (
-        <div className="pb-2.5 px-2 text-[13px] text-slate-500 leading-relaxed">
-          {value || <span className="italic">Sin información</span>}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Patient list view
 // ---------------------------------------------------------------------------
 function ListView({
@@ -144,7 +121,7 @@ function ListView({
   onSelect: (id: number) => void;
 }) {
   return (
-    <div className="p-6">
+    <div>
       {/* Search */}
       <div className="mb-5">
         <input
@@ -152,7 +129,7 @@ function ListView({
           placeholder="Buscar paciente por nombre o email..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full px-3.5 h-12 border-2 border-slate-200 rounded-xl text-sm outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200 bg-white"
+          className="w-full h-9 px-3 border border-slate-200 rounded-md text-sm bg-white text-slate-900 outline-none focus:border-gantly-blue/50 transition-all placeholder:text-slate-400"
         />
       </div>
 
@@ -170,9 +147,9 @@ function ListView({
           <span className="text-sm">No hay pacientes{search ? ' que coincidan con la búsqueda' : ' registrados aún'}.</span>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
           {/* Table header */}
-          <div className="grid grid-cols-[60px_1fr_1fr_120px_1fr_100px_100px] bg-slate-50/80 px-4 py-3 text-xs font-heading font-bold text-slate-500 uppercase tracking-widest">
+          <div className="grid grid-cols-[60px_1fr_1fr_120px_1fr_100px_100px] bg-slate-50/80 px-4 py-3 text-[11px] font-medium text-slate-500">
             <span>N.º</span>
             <span>Nombre</span>
             <span>Email</span>
@@ -187,7 +164,7 @@ function ListView({
             <div
               key={p.id}
               onClick={() => onSelect(p.id)}
-              className="grid grid-cols-[60px_1fr_1fr_120px_1fr_100px_100px] px-4 py-3 border-t border-slate-100 cursor-pointer text-sm items-center hover:bg-gantly-blue/[0.02] hover:border-l-4 hover:border-l-gantly-blue transition-all duration-200"
+              className="grid grid-cols-[60px_1fr_1fr_120px_1fr_100px_100px] px-4 py-3 border-t border-slate-100 cursor-pointer text-sm items-center hover:bg-slate-50 transition-all duration-200"
             >
               <span className="text-slate-500 text-xs">
                 {p.patientNumber != null ? `#${p.patientNumber}` : '—'}
@@ -372,455 +349,392 @@ function DetailView({
   };
 
   const tabBtnClass = (t: DetailTab) =>
-    `px-5 py-2.5 border-none bg-transparent cursor-pointer text-sm transition-all duration-200 font-heading ${
+    `px-5 py-2.5 border-none bg-transparent cursor-pointer text-sm transition-all duration-200 ${
       tab === t
-        ? 'font-bold text-gantly-blue border-b-2 border-gantly-blue'
+        ? 'font-semibold text-gantly-blue border-b-2 border-gantly-blue'
         : 'font-normal text-slate-500 hover:text-slate-700 border-b-2 border-transparent'
     }`;
 
-  return (
-    <div className="flex h-full min-h-0">
-      {/* ---- Sidebar ---- */}
-      <aside className="w-[300px] min-w-[300px] border-r border-slate-100 shadow-sm p-5 overflow-y-auto bg-white flex flex-col gap-4">
-        {/* Back button */}
-        <button
-          onClick={onBack}
-          className="bg-transparent border-none cursor-pointer text-gantly-blue hover:text-gantly-blue/80 font-heading font-semibold text-sm text-left p-0 flex items-center gap-1 transition-colors duration-200"
-        >
-          &larr; Pacientes
-        </button>
+  const inputCls = "h-9 px-3 border border-slate-200 rounded-md text-sm bg-white text-slate-900 outline-none focus:border-gantly-blue/50 transition-all";
+  const readOnlyCls = "h-9 px-3 border border-slate-200 rounded-md text-sm bg-slate-50 text-slate-500 outline-none";
+  const labelCls = "text-[11px] font-medium text-slate-500 mb-1 block";
+  const textareaCls = "w-full px-3 py-2 border border-slate-200 rounded-md text-sm resize-y outline-none focus:border-gantly-blue/50 transition-all placeholder:text-slate-400";
 
-        {/* Avatar */}
-        <div className="flex flex-col items-center gap-2">
-          <div className="w-[72px] h-[72px] rounded-full bg-gradient-to-br from-gantly-blue to-gantly-cyan text-white flex items-center justify-center text-[26px] font-bold tracking-wider">
+  return (
+    <div className="flex flex-col h-full min-h-0">
+      {/* ---- Patient header ---- */}
+      <div className="bg-white border-b border-slate-200 px-6 py-4">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={onBack}
+            className="bg-transparent border-none cursor-pointer text-slate-400 hover:text-gantly-blue text-sm p-0 flex items-center gap-1 transition-colors flex-shrink-0"
+          >
+            &larr;
+          </button>
+          <div className="size-10 rounded-full bg-gantly-blue text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
             {initials(patient.name)}
           </div>
-          <div className="text-center">
-            <div className="font-heading font-bold text-lg text-gantly-text">{patient.name}</div>
-            {patient.patientNumber != null && (
-              <div className="text-xs text-slate-500 mt-0.5">N.º {patient.patientNumber}</div>
-            )}
-          </div>
-        </div>
-
-        {/* Contact */}
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center gap-2 text-[13px] text-slate-700">
-            <Mail className="text-slate-500" size={16} />
-            <span>{patient.email}</span>
-          </div>
-          {patient.phone && (
-            <div className="flex items-center gap-2 text-[13px] text-slate-700">
-              <Phone className="text-slate-500" size={16} />
-              <span>{patient.phone}</span>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2.5">
+              <h3 className="text-base font-semibold text-slate-900 m-0 truncate">{patient.name}</h3>
+              {patient.patientNumber != null && (
+                <span className="text-[11px] text-slate-400 flex-shrink-0">N.º {patient.patientNumber}</span>
+              )}
+              <StatusBadge status={patient.status ?? 'active'} />
             </div>
-          )}
-        </div>
-
-        {/* Notes (sidebar quick notes) */}
-        <div>
-          <div className="text-xs font-heading font-semibold text-slate-500 uppercase mb-1.5">
-            Notas
+            <div className="flex items-center gap-4 mt-0.5">
+              <span className="flex items-center gap-1.5 text-xs text-slate-500">
+                <Mail size={12} className="text-slate-400" />
+                {patient.email}
+              </span>
+              {patient.phone && (
+                <span className="flex items-center gap-1.5 text-xs text-slate-500">
+                  <Phone size={12} className="text-slate-400" />
+                  {patient.phone}
+                </span>
+              )}
+              {patient.psychologistName && (
+                <span className="text-xs text-slate-500">
+                  Psicólogo: <span className="font-medium text-slate-700">{patient.psychologistName}</span>
+                </span>
+              )}
+            </div>
           </div>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Añadir notas sobre este paciente..."
-            rows={4}
-            className="w-full border-2 border-slate-200 rounded-xl px-2.5 py-2 text-[13px] resize-y outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
-          />
         </div>
+      </div>
 
-        {/* Medical info expandable */}
-        <div>
-          <div className="text-xs font-heading font-semibold text-slate-500 uppercase mb-1">
-            Otra información médica
-          </div>
-          <ExpandableSection label="Alergias" value={patient.allergies} />
-          <ExpandableSection label="Medicación" value={patient.medication} />
-          <ExpandableSection label="Antecedentes médicos" value={patient.medicalHistory} />
-        </div>
-      </aside>
+      {/* ---- Tab bar ---- */}
+      <div className="bg-white border-b border-slate-200 flex px-6">
+        <button className={tabBtnClass('citas')} onClick={() => setTab('citas')}>
+          Citas ({patient.appointments?.length ?? 0})
+        </button>
+        <button className={tabBtnClass('documentos')} onClick={() => setTab('documentos')}>
+          Documentos
+        </button>
+        <button className={tabBtnClass('chat')} onClick={() => setTab('chat')}>
+          Chat
+        </button>
+        <button className={tabBtnClass('datos')} onClick={() => setTab('datos')}>
+          Ficha del paciente
+        </button>
+      </div>
 
-      {/* ---- Main content ---- */}
-      <div className="flex-1 flex flex-col min-h-0">
-        {/* Tab bar */}
-        <div className="border-b-2 border-slate-100 flex pl-6">
-          <button className={tabBtnClass('citas')} onClick={() => setTab('citas')}>
-            Citas ({patient.appointments?.length ?? 0})
-          </button>
-          <button className={tabBtnClass('documentos')} onClick={() => setTab('documentos')}>
-            Documentos
-          </button>
-          <button className={tabBtnClass('chat')} onClick={() => setTab('chat')}>
-            Chat
-          </button>
-          <button className={tabBtnClass('datos')} onClick={() => setTab('datos')}>
-            Datos del paciente
-          </button>
-        </div>
-
-        {/* Tab content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {/* CITAS tab */}
-          {tab === 'citas' && (
-            <div className="flex flex-col gap-2.5">
-              {(!patient.appointments || patient.appointments.length === 0) ? (
-                <div className="text-slate-500 text-center p-10 flex flex-col items-center gap-3">
-                  <CalendarX className="text-slate-500" size={32} />
-                  <span className="text-sm">No hay citas para este paciente.</span>
+      {/* ---- Tab content ---- */}
+      <div className="flex-1 overflow-y-auto p-6">
+        {/* CITAS tab — table layout */}
+        {tab === 'citas' && (
+          <div>
+            {(!patient.appointments || patient.appointments.length === 0) ? (
+              <div className="text-slate-400 text-center py-16 flex flex-col items-center gap-2">
+                <CalendarX size={28} />
+                <span className="text-sm">No hay citas para este paciente.</span>
+              </div>
+            ) : (
+              <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+                {/* Table header */}
+                <div className="grid grid-cols-[1fr_1fr_120px_120px_40px] gap-3 px-5 py-2.5 bg-slate-50/80 border-b border-slate-100">
+                  <span className="text-[11px] font-medium text-slate-500">Fecha y hora</span>
+                  <span className="text-[11px] font-medium text-slate-500">Profesional / Servicio</span>
+                  <span className="text-[11px] font-medium text-slate-500">Estado</span>
+                  <span className="text-[11px] font-medium text-slate-500">Pago</span>
+                  <span />
                 </div>
-              ) : (
-                [...patient.appointments]
+                {/* Rows */}
+                {[...patient.appointments]
                   .sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime())
                   .map((appt) => (
-                    <div
-                      key={appt.id}
-                      className="bg-white rounded-2xl border-2 border-slate-100 hover:border-gantly-blue/20 hover:shadow-sm transition-all duration-200 px-4 py-3.5"
-                    >
-                      <div className="flex justify-between items-center gap-3">
-                        <div className="flex items-center gap-3">
-                          <ApptDot status={appt.status} />
-                          <div>
-                            <div className="font-medium text-sm text-slate-900">
-                              {fmtDateTime(appt.startTime)}
-                            </div>
-                            <div className="text-xs text-slate-500 mt-0.5">
-                              {appt.psychologistName}
-                              {appt.service ? ` · ${appt.service}` : ''}
-                            </div>
-                          </div>
-                        </div>
+                    <div key={appt.id} className="border-b border-slate-100 last:border-b-0">
+                      <div className="grid grid-cols-[1fr_1fr_120px_120px_40px] gap-3 px-5 py-3 items-center hover:bg-slate-50/50 transition-colors">
                         <div className="flex items-center gap-2.5">
+                          <ApptDot status={appt.status} />
+                          <span className="text-sm text-slate-900">{fmtDateTime(appt.startTime)}</span>
+                        </div>
+                        <div>
+                          <span className="text-sm text-slate-700">{appt.psychologistName}</span>
+                          {appt.service && <span className="text-xs text-slate-400 ml-1.5">· {appt.service}</span>}
+                        </div>
+                        <div>
+                          <span className={`text-xs font-medium ${
+                            ['confirmed', 'booked'].includes(appt.status?.toLowerCase()) ? 'text-emerald-600' :
+                            appt.status?.toLowerCase() === 'cancelled' ? 'text-red-500' : 'text-slate-500'
+                          }`}>
+                            {appt.status}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
                           <PaymentBadge status={appt.paymentStatus} />
                           {appt.paymentStatus === 'PENDING' && appt.price != null && Number(appt.price) > 0 && (
                             <button
                               onClick={() => handlePaymentLink(appt.id)}
                               disabled={paymentLinkLoading === appt.id}
-                              title="Enviar link de pago al paciente"
-                              className={`px-3 py-1.5 rounded-xl border-2 border-gantly-blue text-xs text-gantly-blue font-medium flex items-center gap-1 transition-all duration-200 ${
-                                paymentLinkLoading === appt.id ? 'bg-gantly-blue-50 cursor-wait' : 'bg-white hover:bg-gantly-blue hover:text-white cursor-pointer'
-                              }`}
+                              title="Link de pago"
+                              className={`p-1 rounded-md text-gantly-blue transition-colors ${
+                                paymentLinkLoading === appt.id ? 'opacity-50 cursor-wait' : 'hover:bg-gantly-blue/10 cursor-pointer'
+                              } bg-transparent border-none`}
                             >
                               <LinkIcon size={14} />
-                              {paymentLinkLoading === appt.id ? 'Generando...' : 'Link de pago'}
                             </button>
                           )}
                         </div>
+                        <button
+                          onClick={() => { setEditingNoteId(editingNoteId === appt.id ? null : appt.id); setNoteText(appt.clinicNotes || ''); }}
+                          title="Nota"
+                          className="bg-transparent border-none cursor-pointer text-slate-400 hover:text-gantly-blue p-1 rounded-md hover:bg-slate-100 transition-colors"
+                        >
+                          <Pencil size={14} />
+                        </button>
                       </div>
-                      {/* Session note inline editor */}
-                      {editingNoteId === appt.id ? (
-                        <div className="mt-2">
+                      {/* Inline note */}
+                      {editingNoteId === appt.id && (
+                        <div className="px-5 pb-3">
                           <textarea
                             value={noteText}
                             onChange={e => setNoteText(e.target.value)}
                             rows={2}
                             placeholder="Nota administrativa..."
-                            className="w-full border-2 border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-900 resize-none outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
+                            className="w-full border border-slate-200 rounded-md px-3 py-1.5 text-xs text-slate-900 resize-none outline-none focus:border-gantly-blue/50 transition-all"
+                            autoFocus
                           />
-                          <div className="flex gap-2 mt-1">
+                          <div className="flex gap-2 mt-1.5">
                             <button
-                              onClick={async () => {
-                                await clinicService.updateAppointmentNotes(appt.id, noteText);
-                                setEditingNoteId(null);
-                              }}
-                              className="text-xs bg-gantly-blue text-white border-none rounded-md px-2.5 py-1 cursor-pointer"
+                              onClick={async () => { await clinicService.updateAppointmentNotes(appt.id, noteText); setEditingNoteId(null); }}
+                              className="text-xs bg-gantly-blue text-white border-none rounded-md px-3 py-1 cursor-pointer hover:bg-gantly-blue/90"
                             >
                               Guardar
                             </button>
-                            <button
-                              onClick={() => setEditingNoteId(null)}
-                              className="text-xs bg-transparent border-none text-slate-500 cursor-pointer px-1.5 py-1"
-                            >
+                            <button onClick={() => setEditingNoteId(null)} className="text-xs bg-transparent border-none text-slate-500 cursor-pointer px-2 py-1 hover:text-slate-700">
                               Cancelar
                             </button>
                           </div>
                         </div>
-                      ) : (
-                        <div className="mt-1 flex items-start gap-1">
-                          {appt.clinicNotes && (
-                            <span className="text-xs text-slate-500 flex-1">{appt.clinicNotes}</span>
-                          )}
-                          <button
-                            onClick={() => { setEditingNoteId(appt.id); setNoteText(appt.clinicNotes || ''); }}
-                            title="Editar nota"
-                            className="bg-transparent border-none cursor-pointer text-slate-500 hover:text-gantly-blue p-0.5 ml-auto flex-shrink-0 leading-none transition-colors"
-                          >
-                            <Pencil size={16} />
-                          </button>
+                      )}
+                      {!editingNoteId && appt.clinicNotes && (
+                        <div className="px-5 pb-2.5 -mt-1">
+                          <span className="text-xs text-slate-400 italic">{appt.clinicNotes}</span>
                         </div>
                       )}
                     </div>
-                  ))
-              )}
-            </div>
-          )}
-
-          {/* DOCUMENTOS tab */}
-          {tab === 'documentos' && (
-            <div className="flex flex-col gap-3">
-              {/* Upload button */}
-              <div>
-                <label
-                  className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-[13px] font-heading font-semibold text-white shadow-md transition-all duration-300 ${
-                    uploadingDoc ? 'bg-slate-400 cursor-not-allowed' : 'bg-gradient-to-r from-gantly-blue to-gantly-cyan cursor-pointer hover:shadow-lg hover:shadow-gantly-blue/25'
-                  }`}
-                >
-                  <Upload size={16} />
-                  {uploadingDoc ? 'Subiendo...' : 'Subir documento'}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    className="hidden"
-                    onChange={handleDocUpload}
-                    accept=".pdf,.doc,.docx,.jpg,.png"
-                    disabled={uploadingDoc}
-                  />
-                </label>
+                  ))}
               </div>
+            )}
+          </div>
+        )}
 
-              {loadingDocs ? (
-                <Spinner />
-              ) : documents.length === 0 ? (
-                <div className="text-center p-12 text-slate-500 text-sm flex flex-col items-center gap-3">
-                  <FolderOpen className="text-slate-500" size={32} />
-                  <span>Sin documentos para este paciente.</span>
+        {/* DOCUMENTOS tab */}
+        {tab === 'documentos' && (
+          <div>
+            <div className="mb-4">
+              <label
+                className={`inline-flex items-center gap-1.5 rounded-md h-8 px-4 text-xs font-semibold text-white transition-all ${
+                  uploadingDoc ? 'bg-slate-400 cursor-not-allowed' : 'bg-gantly-blue cursor-pointer hover:bg-gantly-blue/90'
+                }`}
+              >
+                <Upload size={14} />
+                {uploadingDoc ? 'Subiendo...' : 'Subir documento'}
+                <input ref={fileInputRef} type="file" className="hidden" onChange={handleDocUpload} accept=".pdf,.doc,.docx,.jpg,.png" disabled={uploadingDoc} />
+              </label>
+            </div>
+
+            {loadingDocs ? (
+              <Spinner />
+            ) : documents.length === 0 ? (
+              <div className="text-slate-400 text-center py-16 flex flex-col items-center gap-2">
+                <FolderOpen size={28} />
+                <span className="text-sm">Sin documentos para este paciente.</span>
+              </div>
+            ) : (
+              <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+                {documents.map((doc, i) => (
+                  <div
+                    key={doc.id}
+                    className={`flex items-center gap-3 px-5 py-3 hover:bg-slate-50/50 transition-colors ${i > 0 ? 'border-t border-slate-100' : ''}`}
+                  >
+                    <FileText className="text-slate-400 flex-shrink-0" size={18} />
+                    <div className="flex-1 min-w-0">
+                      <p className="m-0 text-sm text-slate-900 truncate">{doc.originalName}</p>
+                    </div>
+                    <span className="text-[11px] text-slate-400 flex-shrink-0">{new Date(doc.uploadedAt).toLocaleDateString('es-ES')}</span>
+                    <button onClick={() => fileService.downloadClinicDoc(doc.fileName)} className="bg-transparent border-none cursor-pointer text-slate-400 hover:text-gantly-blue p-1 rounded-md hover:bg-slate-100 transition-colors">
+                      <Download size={16} />
+                    </button>
+                    <button onClick={() => handleDocDelete(doc.id)} className="bg-transparent border-none cursor-pointer text-slate-400 hover:text-red-500 p-1 rounded-md hover:bg-red-50 transition-colors" title="Eliminar">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* CHAT tab */}
+        {tab === 'chat' && (
+          <div className="flex flex-col h-full min-h-[400px] max-w-3xl">
+            <div className="flex-1 overflow-y-auto flex flex-col gap-2 pb-4">
+              {chatMessages.length === 0 ? (
+                <div className="text-slate-400 text-center py-16 flex flex-col items-center gap-2">
+                  <MessageCircle size={28} />
+                  <span className="text-sm">Sin mensajes. Inicia la conversación con el paciente.</span>
                 </div>
               ) : (
-                <div className="flex flex-col gap-2">
-                  {documents.map(doc => (
-                    <div
-                      key={doc.id}
-                      className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl border-2 border-slate-100 hover:border-gantly-blue/20 hover:shadow-sm transition-all duration-200 bg-white"
-                    >
-                      <FileText className="text-slate-500 flex-shrink-0" size={20} />
-                      <div className="flex-1 min-w-0">
-                        <p className="m-0 text-[13px] text-slate-900 truncate">
-                          {doc.originalName}
-                        </p>
-                        <p className="m-0 text-[11px] text-slate-500 mt-0.5">
-                          {new Date(doc.uploadedAt).toLocaleDateString('es-ES')}
+                chatMessages.map(msg => {
+                  const isClinic = msg.sender === 'CLINIC';
+                  return (
+                    <div key={msg.id} className={`flex ${isClinic ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[60%] px-3.5 py-2 text-[13px] leading-relaxed ${
+                        isClinic
+                          ? 'bg-gantly-blue text-white rounded-2xl rounded-br-sm'
+                          : 'bg-slate-100 text-slate-800 rounded-2xl rounded-bl-sm'
+                      }`}>
+                        <p className="m-0">{msg.content}</p>
+                        <p className={`m-0 mt-1 text-[10px] text-right ${isClinic ? 'opacity-70' : 'text-slate-400'}`}>
+                          {new Date(msg.createdAt).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
-                      <button
-                        onClick={() => fileService.downloadClinicDoc(doc.fileName)}
-                        className="bg-transparent border-none cursor-pointer text-slate-500 hover:text-gantly-blue leading-none p-0.5 transition-colors"
-                      >
-                        <Download size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleDocDelete(doc.id)}
-                        className="bg-transparent border-none cursor-pointer text-slate-500 hover:text-red-500 leading-none p-0.5 transition-colors"
-                        title="Eliminar documento"
-                      >
-                        <Trash2 size={18} />
-                      </button>
                     </div>
-                  ))}
-                </div>
+                  );
+                })
               )}
+              <div ref={chatBottomRef} />
             </div>
-          )}
-
-          {/* CHAT tab (Feature F) */}
-          {tab === 'chat' && (
-            <div className="flex flex-col h-full min-h-[400px]">
-              {/* Messages area */}
-              <div className="flex-1 overflow-y-auto flex flex-col gap-2 pb-4">
-                {chatMessages.length === 0 ? (
-                  <div className="text-center p-12 text-slate-500 text-sm flex flex-col items-center gap-3">
-                    <MessageCircle className="text-slate-500" size={32} />
-                    <span>Sin mensajes. Inicia la conversación con el paciente.</span>
-                  </div>
-                ) : (
-                  chatMessages.map(msg => {
-                    const isClinic = msg.sender === 'CLINIC';
-                    return (
-                      <div
-                        key={msg.id}
-                        className={`flex ${isClinic ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div
-                          className={`max-w-[70%] px-3.5 py-2 text-[13px] leading-relaxed ${
-                            isClinic
-                              ? 'bg-gradient-to-r from-gantly-blue to-gantly-blue/90 text-white rounded-2xl rounded-br-sm'
-                              : 'bg-slate-100 text-gantly-text rounded-2xl rounded-bl-sm'
-                          }`}
-                        >
-                          <p className="m-0">{msg.content}</p>
-                          <p className={`m-0 mt-1 text-[10px] text-right ${isClinic ? 'opacity-70' : 'text-slate-500'}`}>
-                            {new Date(msg.createdAt).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-                <div ref={chatBottomRef} />
-              </div>
-              {/* Input area */}
-              <div className="border-t border-slate-200 pt-3 flex gap-2 items-end">
-                <textarea
-                  value={chatInput}
-                  onChange={e => setChatInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendChat(); } }}
-                  placeholder="Escribe un mensaje..."
-                  rows={2}
-                  className="flex-1 border-2 border-slate-200 rounded-xl px-3 py-2 text-[13px] resize-none outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
-                />
-                <button
-                  onClick={handleSendChat}
-                  disabled={!chatInput.trim() || sendingChat}
-                  className={`flex items-center gap-1 rounded-xl px-4 py-2.5 text-[13px] font-semibold text-white flex-shrink-0 transition-all duration-200 ${
-                    !chatInput.trim() || sendingChat
-                      ? 'bg-slate-400 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-gantly-blue to-gantly-cyan cursor-pointer hover:shadow-md hover:shadow-gantly-blue/25'
-                  }`}
-                >
-                  <Send size={16} />
-                  Enviar
-                </button>
-              </div>
+            <div className="border-t border-slate-200 pt-3 flex gap-2 items-end">
+              <textarea
+                value={chatInput}
+                onChange={e => setChatInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendChat(); } }}
+                placeholder="Escribe un mensaje..."
+                rows={2}
+                className="flex-1 border border-slate-200 rounded-md px-3 py-2 text-[13px] resize-none outline-none focus:border-gantly-blue/50 transition-all placeholder:text-slate-400"
+              />
+              <button
+                onClick={handleSendChat}
+                disabled={!chatInput.trim() || sendingChat}
+                className={`flex items-center gap-1 rounded-md h-9 px-4 text-xs font-semibold text-white flex-shrink-0 transition-all border-none ${
+                  !chatInput.trim() || sendingChat ? 'bg-slate-400 cursor-not-allowed' : 'bg-gantly-blue cursor-pointer hover:bg-gantly-blue/90'
+                }`}
+              >
+                <Send size={14} />
+                Enviar
+              </button>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* DATOS DEL PACIENTE tab */}
-          {tab === 'datos' && (
-            <div className="max-w-[560px] flex flex-col gap-6">
-              {/* Datos generales */}
-              <section>
-                <h3 className="text-sm font-heading font-bold text-gantly-text mb-3.5">
-                  Datos generales
-                </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
-                    Nombre
-                    <input value={patient.name} readOnly className="px-2.5 h-12 border-2 border-slate-200 rounded-xl text-[13px] bg-slate-50 text-slate-500 outline-none" />
-                  </label>
-                  <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
-                    Teléfono
-                    <input
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="Sin teléfono"
-                      className="px-2.5 h-12 border-2 border-slate-200 rounded-xl text-[13px] bg-white text-slate-900 outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
-                    />
-                  </label>
-                  <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
-                    Fecha de nacimiento
-                    <input value={fmtDate(patient.birthDate)} readOnly className="px-2.5 h-12 border-2 border-slate-200 rounded-xl text-[13px] bg-slate-50 text-slate-500 outline-none" />
-                  </label>
-                  <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
-                    Género
-                    <input value={patient.gender ?? '—'} readOnly className="px-2.5 h-12 border-2 border-slate-200 rounded-xl text-[13px] bg-slate-50 text-slate-500 outline-none" />
-                  </label>
-                  <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
-                    Tipo
-                    <select
-                      value={patientType}
-                      onChange={(e) => setPatientType(e.target.value)}
-                      className="px-2.5 h-12 border-2 border-slate-200 rounded-xl text-[13px] bg-white text-slate-900 outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 cursor-pointer transition-all duration-200"
-                    >
-                      <option value="PRIVATE">Privado</option>
-                      <option value="INSURANCE">De aseguradora</option>
-                    </select>
-                  </label>
+        {/* FICHA DEL PACIENTE tab — full-width two-column grid */}
+        {tab === 'datos' && (
+          <div className="space-y-5">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+              {/* Card 1: Datos generales */}
+              <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+                <div className="px-5 py-3 border-b border-slate-100">
+                  <h3 className="text-sm font-semibold text-slate-900">Datos generales</h3>
                 </div>
-              </section>
+                <div className="p-5">
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                    <div>
+                      <label className={labelCls}>Nombre</label>
+                      <input value={patient.name} readOnly className={`w-full ${readOnlyCls}`} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Teléfono</label>
+                      <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Sin teléfono" className={`w-full ${inputCls}`} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Fecha de nacimiento</label>
+                      <input value={fmtDate(patient.birthDate)} readOnly className={`w-full ${readOnlyCls}`} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Género</label>
+                      <input value={patient.gender ?? '—'} readOnly className={`w-full ${readOnlyCls}`} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Tipo de paciente</label>
+                      <select value={patientType} onChange={(e) => setPatientType(e.target.value)} className={`w-full ${inputCls} cursor-pointer`}>
+                        <option value="PRIVATE">Privado</option>
+                        <option value="INSURANCE">De aseguradora</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className={labelCls}>Psicólogo asignado</label>
+                      <input value={patient.psychologistName ?? '—'} readOnly className={`w-full ${readOnlyCls}`} />
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-              {/* Datos administrativos */}
-              <section>
-                <h3 className="text-sm font-heading font-bold text-gantly-text mb-3.5">
-                  Datos administrativos
-                </h3>
-                <div className="flex flex-col gap-3">
-                  <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={consentSigned}
-                      onChange={(e) => setConsentSigned(e.target.checked)}
-                      className="w-5 h-5 accent-gantly-blue"
-                    />
-                    Consentimiento RGPD firmado
-                  </label>
-                  <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
-                    Estado del paciente
-                    <select
-                      value={patientStatus}
-                      onChange={(e) => setPatientStatus(e.target.value)}
-                      className="px-2.5 h-12 border-2 border-slate-200 rounded-xl text-[13px] bg-white text-slate-900 outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 cursor-pointer transition-all duration-200"
-                    >
+              {/* Card 2: Administrativo */}
+              <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+                <div className="px-5 py-3 border-b border-slate-100">
+                  <h3 className="text-sm font-semibold text-slate-900">Administrativo</h3>
+                </div>
+                <div className="p-5 space-y-4">
+                  <div>
+                    <label className={labelCls}>Estado del paciente</label>
+                    <select value={patientStatus} onChange={(e) => setPatientStatus(e.target.value)} className={`w-full ${inputCls} cursor-pointer`}>
                       <option value="ACTIVE">Activo</option>
                       <option value="DISCHARGED">Alta</option>
                       <option value="INACTIVE">Baja</option>
                     </select>
+                  </div>
+                  <label className="flex items-center gap-2.5 text-sm text-slate-700 cursor-pointer">
+                    <input type="checkbox" checked={consentSigned} onChange={(e) => setConsentSigned(e.target.checked)} className="w-4 h-4 accent-gantly-blue rounded" />
+                    Consentimiento RGPD firmado
                   </label>
                 </div>
-              </section>
+              </div>
 
-              {/* Psicólogo asignado */}
-              <section>
-                <h3 className="text-sm font-heading font-bold text-gantly-text mb-3.5">
-                  Psicólogo asignado
-                </h3>
-                <input
-                  value={patient.psychologistName ?? '—'}
-                  readOnly
-                  className="px-2.5 h-12 border-2 border-slate-200 rounded-xl text-[13px] bg-slate-50 text-slate-500 outline-none w-full"
-                />
-              </section>
-
-              {/* Historial médico */}
-              <section>
-                <h3 className="text-sm font-heading font-bold text-gantly-text mb-3.5">
-                  Información médica
-                </h3>
-                <div className="flex flex-col gap-3">
-                  <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
-                    Alergias
-                    <textarea
-                      value={allergies}
-                      onChange={(e) => setAllergies(e.target.value)}
-                      rows={2}
-                      className="px-2.5 py-2 border-2 border-slate-200 rounded-xl text-[13px] resize-y outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
-                    />
-                  </label>
-                  <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
-                    Medicación actual
-                    <textarea
-                      value={medication}
-                      onChange={(e) => setMedication(e.target.value)}
-                      rows={2}
-                      className="px-2.5 py-2 border-2 border-slate-200 rounded-xl text-[13px] resize-y outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
-                    />
-                  </label>
-                  <label className="flex flex-col gap-1 text-[13px] font-medium text-slate-700">
-                    Antecedentes médicos
-                    <textarea
-                      value={medicalHistory}
-                      onChange={(e) => setMedicalHistory(e.target.value)}
-                      rows={3}
-                      className="px-2.5 py-2 border-2 border-slate-200 rounded-xl text-[13px] resize-y outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200"
-                    />
-                  </label>
+              {/* Card 3: Notas clínicas */}
+              <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+                <div className="px-5 py-3 border-b border-slate-100">
+                  <h3 className="text-sm font-semibold text-slate-900">Notas clínicas</h3>
                 </div>
-              </section>
+                <div className="p-5">
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Añadir notas sobre este paciente..."
+                    rows={5}
+                    className={textareaCls}
+                  />
+                </div>
+              </div>
 
-              {/* Save button */}
-              <div>
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className={`rounded-xl px-6 h-12 font-heading font-bold text-sm text-white transition-all duration-300 ${
-                    saving ? 'bg-slate-400 cursor-not-allowed' : 'bg-gradient-to-r from-gantly-blue to-gantly-cyan cursor-pointer shadow-md hover:shadow-lg hover:shadow-gantly-blue/25'
-                  }`}
-                >
-                  {saving ? 'Guardando...' : 'Guardar cambios'}
-                </button>
+              {/* Card 4: Información médica */}
+              <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+                <div className="px-5 py-3 border-b border-slate-100">
+                  <h3 className="text-sm font-semibold text-slate-900">Información médica</h3>
+                </div>
+                <div className="p-5 space-y-3">
+                  <div>
+                    <label className={labelCls}>Alergias</label>
+                    <textarea value={allergies} onChange={(e) => setAllergies(e.target.value)} rows={2} className={textareaCls} placeholder="Sin alergias conocidas" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Medicación actual</label>
+                    <textarea value={medication} onChange={(e) => setMedication(e.target.value)} rows={2} className={textareaCls} placeholder="Sin medicación" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Antecedentes médicos</label>
+                    <textarea value={medicalHistory} onChange={(e) => setMedicalHistory(e.target.value)} rows={2} className={textareaCls} placeholder="Sin antecedentes" />
+                  </div>
+                </div>
               </div>
             </div>
-          )}
-        </div>
+
+            {/* Save bar */}
+            <div className="flex justify-end">
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className={`rounded-md h-9 px-5 font-semibold text-sm text-white transition-all border-none ${
+                  saving ? 'bg-slate-400 cursor-not-allowed' : 'bg-gantly-blue cursor-pointer hover:bg-gantly-blue/90'
+                }`}
+              >
+                {saving ? 'Guardando...' : 'Guardar cambios'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -902,41 +816,30 @@ export default function ClinicPatients({ onBack: _onBack }: Props) {
   };
 
   return (
-    <div className="h-full flex flex-col bg-slate-50">
-      {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center gap-3">
-        <h2 className="m-0 font-heading font-bold text-gantly-text text-xl">Pacientes</h2>
-        {view === 'list' && (
-          <span className="text-sm text-slate-500 font-body ml-1">{patients.length} registrados</span>
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 overflow-hidden flex flex-col">
-        {view === 'list' ? (
-          <div className="flex-1 overflow-y-auto">
-            <ListView
-              patients={patients}
-              loading={loadingList}
-              error={errorList}
-              search={search}
-              onSearchChange={setSearch}
-              onSelect={handleSelect}
-            />
-          </div>
-        ) : (
-          <div className="flex-1 overflow-hidden flex">
-            <DetailView
-              patient={selectedPatient}
-              loading={loadingDetail}
-              error={errorDetail}
-              onBack={handleBack}
-              onSave={handleSave}
-              saving={saving}
-            />
-          </div>
-        )}
-      </div>
+    <div className="flex-1 flex flex-col min-h-0">
+      {view === 'list' ? (
+        <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-6">
+          <ListView
+            patients={patients}
+            loading={loadingList}
+            error={errorList}
+            search={search}
+            onSearchChange={setSearch}
+            onSelect={handleSelect}
+          />
+        </div>
+      ) : (
+        <div className="flex-1 flex flex-col min-h-0">
+          <DetailView
+            patient={selectedPatient}
+            loading={loadingDetail}
+            error={errorDetail}
+            onBack={handleBack}
+            onSave={handleSave}
+            saving={saving}
+          />
+        </div>
+      )}
     </div>
   );
 }
