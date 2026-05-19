@@ -12,4 +12,5 @@ public interface CompanyRepository extends JpaRepository<CompanyEntity, Long> {
     Optional<CompanyEntity> findByReferralCode(String referralCode);
     boolean existsByEmail(String email);
     boolean existsByReferralCode(String referralCode);
+    Optional<CompanyEntity> findBySlugAndPublicVisibleTrue(String slug);
 }

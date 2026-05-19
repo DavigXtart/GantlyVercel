@@ -3,7 +3,7 @@ import { clinicService } from '../services/api';
 import type { ClinicBillingItem } from '../services/api';
 import {
   ArrowUpRight, ArrowDownRight, Calendar, ChevronDown, Download,
-  FileText, Search, TrendingUp, Wallet, X,
+  FileText, Search, TrendingUp, Wallet, X, Shield, CreditCard,
 } from 'lucide-react';
 
 interface Props {
@@ -257,7 +257,7 @@ function generateInvoicePdf(item: {
 // CSV export
 // ---------------------------------------------------------------------------
 function exportCsv(items: ClinicBillingItem[]): void {
-  const headers = ['Fecha', 'Hora inicio', 'Hora fin', 'Psicologo', 'Paciente', 'Servicio', 'Base', 'IVA exento', 'Tipo IVA', 'IVA', 'Total', 'Estado pago'];
+  const headers = ['Fecha', 'Hora inicio', 'Hora fin', 'Psicologo', 'Paciente', 'Servicio', 'Tipo facturacion', 'Aseguradora', 'Base', 'IVA exento', 'Tipo IVA', 'IVA', 'Total', 'Estado pago'];
   const rows = items.map((item) => [
     fmtDateFull(item.startTime),
     fmtTime(item.startTime),
@@ -265,6 +265,8 @@ function exportCsv(items: ClinicBillingItem[]): void {
     item.psychologistName,
     item.patientName ?? '',
     item.service ?? '',
+    item.billingType === 'INSURANCE' ? 'Aseguradora' : 'Privado',
+    item.insuranceCompanyName ?? '',
     item.price != null ? item.price.toFixed(2) : '',
     item.taxExempt ? 'Si' : 'No',
     item.taxExempt ? 'Exento' : (item.taxRate != null ? `${(item.taxRate * 100).toFixed(0)}%` : ''),
@@ -285,6 +287,8 @@ function exportCsv(items: ClinicBillingItem[]): void {
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
+type BillingFilter = 'ALL' | 'PRIVATE' | 'INSURANCE';
+
 export default function ClinicBilling({ psychologists, clinicName, clinicNif, clinicAddress, clinicPhone }: Props) {
   const [period, setPeriod] = useState<PeriodKey>('this_month');
   const [from, setFrom] = useState(startOfMonth());
@@ -292,6 +296,7 @@ export default function ClinicBilling({ psychologists, clinicName, clinicNif, cl
   const [psychologistId, setPsychologistId] = useState<number | undefined>(undefined);
   const [showCustom, setShowCustom] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [billingFilter, setBillingFilter] = useState<BillingFilter>('ALL');
 
   const [items, setItems] = useState<ClinicBillingItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -339,16 +344,36 @@ export default function ClinicBilling({ psychologists, clinicName, clinicNif, cl
     return { paid, pending, cancelled, paidCount, pendingCount, total: paid + pending };
   }, [items]);
 
-  // Filtered items by search
+  // Billing type totals
+  const billingTypeTotals = useMemo(() => {
+    let privateTotal = 0, insuranceTotal = 0, privateCount = 0, insuranceCount = 0;
+    for (const i of items) {
+      const amount = i.totalAmount ?? i.price ?? 0;
+      if (i.billingType === 'INSURANCE') { insuranceTotal += amount; insuranceCount++; }
+      else { privateTotal += amount; privateCount++; }
+    }
+    return { privateTotal, insuranceTotal, privateCount, insuranceCount };
+  }, [items]);
+
+  // Filtered items by search and billing type
   const filteredItems = useMemo(() => {
-    if (!searchQuery.trim()) return items;
-    const q = searchQuery.toLowerCase();
-    return items.filter(i =>
-      (i.psychologistName ?? '').toLowerCase().includes(q) ||
-      (i.patientName ?? '').toLowerCase().includes(q) ||
-      (i.service ?? '').toLowerCase().includes(q)
-    );
-  }, [items, searchQuery]);
+    let filtered = items;
+    if (billingFilter !== 'ALL') {
+      filtered = filtered.filter(i =>
+        billingFilter === 'INSURANCE' ? i.billingType === 'INSURANCE' : i.billingType !== 'INSURANCE'
+      );
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(i =>
+        (i.psychologistName ?? '').toLowerCase().includes(q) ||
+        (i.patientName ?? '').toLowerCase().includes(q) ||
+        (i.service ?? '').toLowerCase().includes(q) ||
+        (i.insuranceCompanyName ?? '').toLowerCase().includes(q)
+      );
+    }
+    return filtered;
+  }, [items, searchQuery, billingFilter]);
 
   // Totals for the footer
   const tableFooter = useMemo(() => {
@@ -401,6 +426,20 @@ export default function ClinicBilling({ psychologists, clinicName, clinicNif, cl
         )}
 
         <div className="flex items-center gap-2 ml-auto">
+          {/* Billing type filter */}
+          <div className="relative">
+            <select
+              value={billingFilter}
+              onChange={(e) => setBillingFilter(e.target.value as BillingFilter)}
+              className="h-8 pl-3 pr-7 rounded-md border border-slate-200 bg-white text-xs text-slate-700 outline-none focus:border-gantly-blue/50 transition-colors cursor-pointer appearance-none"
+            >
+              <option value="ALL">Todos</option>
+              <option value="PRIVATE">Privado</option>
+              <option value="INSURANCE">Aseguradora</option>
+            </select>
+            <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          </div>
+
           {/* Psychologist filter */}
           <div className="relative">
             <select
@@ -503,6 +542,32 @@ export default function ClinicBilling({ psychologists, clinicName, clinicNif, cl
         </div>
       </div>
 
+      {/* ─── Billing type breakdown ─── */}
+      {(billingTypeTotals.privateCount > 0 || billingTypeTotals.insuranceCount > 0) && (
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white rounded-xl border border-slate-200/80 p-4 flex items-center gap-3">
+            <div className="size-9 rounded-lg bg-slate-50 flex items-center justify-center flex-shrink-0">
+              <CreditCard size={16} className="text-slate-500" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] text-slate-500 mb-0.5">Privado</p>
+              <p className="text-lg font-bold text-slate-900 tabular-nums">{fmtEuro(billingTypeTotals.privateTotal)}</p>
+            </div>
+            <span className="text-xs text-slate-400">{billingTypeTotals.privateCount} sesiones</span>
+          </div>
+          <div className="bg-white rounded-xl border border-slate-200/80 p-4 flex items-center gap-3">
+            <div className="size-9 rounded-lg bg-violet-50 flex items-center justify-center flex-shrink-0">
+              <Shield size={16} className="text-violet-500" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] text-slate-500 mb-0.5">Aseguradora</p>
+              <p className="text-lg font-bold text-slate-900 tabular-nums">{fmtEuro(billingTypeTotals.insuranceTotal)}</p>
+            </div>
+            <span className="text-xs text-slate-400">{billingTypeTotals.insuranceCount} sesiones</span>
+          </div>
+        </div>
+      )}
+
       {/* ─── Transactions table ─── */}
       <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
         {/* Table header */}
@@ -559,6 +624,7 @@ export default function ClinicBilling({ psychologists, clinicName, clinicNif, cl
                   <th className="text-left px-2 py-2.5 text-[11px] font-medium text-slate-400 uppercase tracking-wider">Profesional</th>
                   <th className="text-left px-2 py-2.5 text-[11px] font-medium text-slate-400 uppercase tracking-wider">Paciente</th>
                   <th className="text-left px-2 py-2.5 text-[11px] font-medium text-slate-400 uppercase tracking-wider">Servicio</th>
+                  <th className="text-center px-2 py-2.5 text-[11px] font-medium text-slate-400 uppercase tracking-wider">Tipo</th>
                   <th className="text-right px-2 py-2.5 text-[11px] font-medium text-slate-400 uppercase tracking-wider">Base</th>
                   <th className="text-right px-2 py-2.5 text-[11px] font-medium text-slate-400 uppercase tracking-wider">IVA</th>
                   <th className="text-right px-2 py-2.5 text-[11px] font-medium text-slate-400 uppercase tracking-wider">Total</th>
@@ -583,7 +649,20 @@ export default function ClinicBilling({ psychologists, clinicName, clinicNif, cl
                       </td>
                       <td className="px-2 py-2.5 text-xs font-medium text-slate-700 whitespace-nowrap">{item.psychologistName}</td>
                       <td className="px-2 py-2.5 text-xs text-slate-600">{item.patientName ?? '—'}</td>
-                      <td className="px-2 py-2.5 text-xs text-slate-500">{item.service ?? '—'}</td>
+                      <td className="px-2 py-2.5 text-xs text-slate-500">{item.service ?? '--'}</td>
+                      <td className="px-2 py-2.5 text-center">
+                        {item.billingType === 'INSURANCE' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-50 text-violet-700">
+                            <Shield size={10} />
+                            {item.insuranceCompanyName || 'Seguro'}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-50 text-slate-500">
+                            <CreditCard size={10} />
+                            Privado
+                          </span>
+                        )}
+                      </td>
                       <td className="px-2 py-2.5 text-xs text-slate-700 text-right whitespace-nowrap tabular-nums">{fmtEuro(item.price)}</td>
                       <td className="px-2 py-2.5 text-xs text-right whitespace-nowrap tabular-nums">
                         {item.taxExempt ? (
@@ -617,7 +696,7 @@ export default function ClinicBilling({ psychologists, clinicName, clinicNif, cl
               {/* Totals footer */}
               <tfoot>
                 <tr className="border-t border-slate-200 bg-slate-50/40">
-                  <td colSpan={4} className="pl-4 pr-2 py-2.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                  <td colSpan={5} className="pl-4 pr-2 py-2.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                     Total ({filteredItems.length})
                   </td>
                   <td className="px-2 py-2.5 text-xs font-semibold text-slate-700 text-right tabular-nums">{fmtEuro(tableFooter.base)}</td>

@@ -42,6 +42,12 @@ public class ConsentRequestEntity {
     @Column(name = "rendered_content", columnDefinition = "TEXT")
     private String renderedContent;
 
+    @Column(name = "signature_data", columnDefinition = "TEXT")
+    private String signatureData;
+
+    @Column(name = "pdf_url", length = 500)
+    private String pdfUrl;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -80,6 +86,10 @@ public class ConsentRequestEntity {
     public void setSignerName(String signerName) { this.signerName = signerName; }
     public String getRenderedContent() { return renderedContent; }
     public void setRenderedContent(String renderedContent) { this.renderedContent = renderedContent; }
+    public String getSignatureData() { return signatureData; }
+    public void setSignatureData(String signatureData) { this.signatureData = signatureData; }
+    public String getPdfUrl() { return pdfUrl; }
+    public void setPdfUrl(String pdfUrl) { this.pdfUrl = pdfUrl; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }

@@ -33,6 +33,7 @@ const PrivacyPolicy = lazy(() => import('./components/legal/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./components/legal/TermsOfService'));
 const PricingPage = lazy(() => import('./components/PricingPage'));
 const TestResultsView = lazy(() => import('./components/TestResultsView'));
+const ClinicPublicPage = lazy(() => import('./components/ClinicPublicPage'));
 
 const LazyFallback = () => (
   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -176,7 +177,7 @@ function OAuthHandler({ onLogin }: { onLogin: () => void }) {
 function ReferralRedirect() {
   const location = useLocation();
   const pathSlug = location.pathname.replace(/^\//, '').toLowerCase().replace(/[^a-z0-9-]/g, '');
-  const KNOWN_PATHS = ['', 'about', 'login', 'register', 'initial-test', 'reset-password', 'soy-profesional', 'privacidad', 'privacy', 'terminos', 'login-empresa', 'register-psicologo', 'register-empresa', 'forgot-password', 'dashboard', 'test', 'oauth-callback'];
+  const KNOWN_PATHS = ['', 'about', 'login', 'register', 'initial-test', 'reset-password', 'soy-profesional', 'privacidad', 'privacy', 'terminos', 'login-empresa', 'register-psicologo', 'register-empresa', 'forgot-password', 'dashboard', 'test', 'oauth-callback', 'clinica', 'pricing', 'test-results'];
 
   if (pathSlug && pathSlug.length > 2 && !KNOWN_PATHS.includes(pathSlug)) {
     return <Navigate to={`/register?referral=${pathSlug}`} replace />;
@@ -397,6 +398,13 @@ function App() {
         <Route path="/pricing" element={
           <Suspense fallback={<LazyFallback />}>
             <PricingPage onBack={() => navigate('/')} />
+          </Suspense>
+        } />
+
+        {/* Public clinic page */}
+        <Route path="/clinica/:slug" element={
+          <Suspense fallback={<LazyFallback />}>
+            <ClinicPublicPage />
           </Suspense>
         } />
 

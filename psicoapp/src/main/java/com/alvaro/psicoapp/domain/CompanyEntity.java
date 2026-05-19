@@ -43,6 +43,15 @@ public class CompanyEntity {
     @Column(length = 20)
     private String nif;
 
+    @Column(length = 80)
+    private String slug;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "public_visible", nullable = false)
+    private Boolean publicVisible = false;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
@@ -67,4 +76,10 @@ public class CompanyEntity {
     public void setWeeklySchedule(String weeklySchedule) { this.weeklySchedule = weeklySchedule; }
     public String getNif() { return nif; }
     public void setNif(String nif) { this.nif = nif; }
+    public String getSlug() { return slug; }
+    public void setSlug(String slug) { this.slug = slug; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public Boolean getPublicVisible() { return publicVisible; }
+    public void setPublicVisible(Boolean publicVisible) { this.publicVisible = publicVisible; }
 }

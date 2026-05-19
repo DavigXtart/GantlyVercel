@@ -5,11 +5,15 @@ import com.alvaro.psicoapp.repository.ClinicChatMessageRepository;
 import com.alvaro.psicoapp.repository.CompanyRepository;
 import com.alvaro.psicoapp.service.ChatEncryptionService;
 import com.alvaro.psicoapp.service.ClinicService;
+import com.alvaro.psicoapp.service.InsuranceService;
 import com.alvaro.psicoapp.service.NotificationService;
+import com.alvaro.psicoapp.service.WaitingListService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import org.springframework.data.domain.PageRequest;
 
 import java.security.Principal;
 import java.time.Instant;
@@ -29,17 +33,23 @@ public class ClinicController {
     private final CompanyRepository companyRepository;
     private final NotificationService notificationService;
     private final ChatEncryptionService chatEncryptionService;
+    private final InsuranceService insuranceService;
+    private final WaitingListService waitingListService;
 
     public ClinicController(ClinicService clinicService,
                              ClinicChatMessageRepository chatRepo,
                              CompanyRepository companyRepository,
                              NotificationService notificationService,
-                             ChatEncryptionService chatEncryptionService) {
+                             ChatEncryptionService chatEncryptionService,
+                             InsuranceService insuranceService,
+                             WaitingListService waitingListService) {
         this.clinicService = clinicService;
         this.chatRepo = chatRepo;
         this.companyRepository = companyRepository;
         this.notificationService = notificationService;
         this.chatEncryptionService = chatEncryptionService;
+        this.insuranceService = insuranceService;
+        this.waitingListService = waitingListService;
     }
 
     private String getCompanyEmail(Principal principal) {
@@ -254,6 +264,13 @@ public class ClinicController {
         return ResponseEntity.ok(clinicService.getPsychologistSchedule(email, id));
     }
 
+    @GetMapping("/psychologists/{id}/absences")
+    public ResponseEntity<?> getPsychologistAbsences(Principal principal, @PathVariable Long id) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(clinicService.getPsychologistAbsences(email, id));
+    }
+
     // ---- Clinic rooms (despachos) ----
 
     @GetMapping("/rooms")
@@ -285,6 +302,169 @@ public class ClinicController {
         if (email == null) return unauthorized();
         clinicService.deleteRoom(email, id);
         return ResponseEntity.ok(Map.of("message", "Despacho eliminado"));
+    }
+
+    // ---- Audit logs (Feature 12) ----
+
+    @GetMapping("/audit-logs")
+    public ResponseEntity<?> getAuditLogs(Principal principal,
+                                           @RequestParam(required = false) String from,
+                                           @RequestParam(required = false) String to,
+                                           @RequestParam(defaultValue = "0") int page,
+                                           @RequestParam(defaultValue = "50") int size) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        Instant fromI = from != null ? Instant.parse(from) : Instant.now().minusSeconds(30L * 24 * 3600);
+        Instant toI = to != null ? Instant.parse(to) : Instant.now().plusSeconds(24 * 3600);
+        return ResponseEntity.ok(clinicService.getAuditLogs(email, fromI, toI, PageRequest.of(page, Math.min(size, 100))));
+    }
+
+    // ---- Multi-admin (Feature 8) ----
+
+    @GetMapping("/admins")
+    public ResponseEntity<?> getAdmins(Principal principal) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(clinicService.getAdmins(email));
+    }
+
+    @PostMapping("/admins/invite")
+    public ResponseEntity<?> inviteAdmin(Principal principal,
+                                          @RequestBody ClinicService.InviteAdminRequest req) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(clinicService.inviteAdmin(email, req));
+    }
+
+    @PutMapping("/admins/{id}")
+    public ResponseEntity<?> updateAdminRole(Principal principal, @PathVariable Long id,
+                                              @RequestBody java.util.Map<String, String> body) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(clinicService.updateAdminRole(email, id, body.get("role")));
+    }
+
+    @DeleteMapping("/admins/{id}")
+    public ResponseEntity<?> removeAdmin(Principal principal, @PathVariable Long id) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        clinicService.removeAdmin(email, id);
+        return ResponseEntity.ok(Map.of("message", "Administrador eliminado"));
+    }
+
+    // ---- Waiting list (Feature 7) ----
+
+    @GetMapping("/waiting-list")
+    public ResponseEntity<?> getWaitingList(Principal principal,
+                                             @RequestParam(required = false) String status) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        Long companyId = resolveCompanyId(email);
+        return ResponseEntity.ok(waitingListService.getEntries(companyId, status));
+    }
+
+    @PostMapping("/waiting-list")
+    public ResponseEntity<?> addToWaitingList(Principal principal,
+                                               @RequestBody WaitingListService.CreateWaitingListRequest req) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        Long companyId = resolveCompanyId(email);
+        return ResponseEntity.ok(waitingListService.addToWaitingList(companyId, req));
+    }
+
+    @PutMapping("/waiting-list/{id}")
+    public ResponseEntity<?> updateWaitingListEntry(Principal principal, @PathVariable Long id,
+                                                     @RequestBody WaitingListService.UpdateWaitingListRequest req) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        Long companyId = resolveCompanyId(email);
+        return ResponseEntity.ok(waitingListService.updateEntry(companyId, id, req));
+    }
+
+    @DeleteMapping("/waiting-list/{id}")
+    public ResponseEntity<?> removeWaitingListEntry(Principal principal, @PathVariable Long id) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        Long companyId = resolveCompanyId(email);
+        waitingListService.removeEntry(companyId, id);
+        return ResponseEntity.ok(Map.of("message", "Entrada eliminada de la lista de espera"));
+    }
+
+    @PostMapping("/waiting-list/{id}/notify")
+    public ResponseEntity<?> notifyWaitingListPatient(Principal principal, @PathVariable Long id) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        Long companyId = resolveCompanyId(email);
+        String clinicName = companyRepository.findById(companyId)
+                .map(c -> c.getName()).orElse("Clínica");
+        return ResponseEntity.ok(waitingListService.notifyPatient(companyId, id, clinicName));
+    }
+
+    public record ScheduleFromWaitingListRequest(Long appointmentId) {}
+
+    @PostMapping("/waiting-list/{id}/schedule")
+    public ResponseEntity<?> scheduleFromWaitingList(Principal principal, @PathVariable Long id,
+                                                      @RequestBody ScheduleFromWaitingListRequest req) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        Long companyId = resolveCompanyId(email);
+        return ResponseEntity.ok(waitingListService.scheduleFromWaitingList(companyId, id, req.appointmentId()));
+    }
+
+    // ---- Insurance billing (Feature 9) ----
+
+    @GetMapping("/insurance-companies")
+    public ResponseEntity<?> getInsuranceCompanies(Principal principal) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(insuranceService.getInsuranceCompanies(email));
+    }
+
+    @PostMapping("/insurance-companies")
+    public ResponseEntity<?> createInsuranceCompany(Principal principal,
+                                                     @RequestBody InsuranceService.CreateInsuranceCompanyRequest req) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(insuranceService.createInsuranceCompany(email, req));
+    }
+
+    @PutMapping("/insurance-companies/{id}")
+    public ResponseEntity<?> updateInsuranceCompany(Principal principal, @PathVariable Long id,
+                                                     @RequestBody InsuranceService.UpdateInsuranceCompanyRequest req) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(insuranceService.updateInsuranceCompany(email, id, req));
+    }
+
+    @DeleteMapping("/insurance-companies/{id}")
+    public ResponseEntity<?> deleteInsuranceCompany(Principal principal, @PathVariable Long id) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        insuranceService.deleteInsuranceCompany(email, id);
+        return ResponseEntity.ok(Map.of("message", "Aseguradora desactivada"));
+    }
+
+    @GetMapping("/patients/{patientId}/insurance-policies")
+    public ResponseEntity<?> getPatientInsurancePolicies(Principal principal, @PathVariable Long patientId) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(insuranceService.getPatientPolicies(email, patientId));
+    }
+
+    @PostMapping("/patients/{patientId}/insurance-policies")
+    public ResponseEntity<?> createPatientInsurancePolicy(Principal principal, @PathVariable Long patientId,
+                                                           @RequestBody InsuranceService.CreatePolicyRequest req) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        return ResponseEntity.ok(insuranceService.createPolicy(email, patientId, req));
+    }
+
+    @DeleteMapping("/insurance-policies/{id}")
+    public ResponseEntity<?> deleteInsurancePolicy(Principal principal, @PathVariable Long id) {
+        String email = getCompanyEmail(principal);
+        if (email == null) return unauthorized();
+        insuranceService.deletePolicy(email, id);
+        return ResponseEntity.ok(Map.of("message", "Poliza eliminada"));
     }
 
     // ---- Clinic chat (Feature F) ----

@@ -3,7 +3,7 @@ import axios from 'axios';
 import {
   ChevronLeft, ChevronRight, Plus, X, Search, RefreshCw,
   Clock, User, CreditCard, FileText, Calendar, MapPin,
-  Video, Building2, Trash2, Check, AlertTriangle,
+  Video, Building2, Trash2, Check, AlertTriangle, Repeat, CalendarOff, Shield,
 } from 'lucide-react';
 
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
@@ -59,6 +59,40 @@ interface PatientSummary {
   totalAppointments: number;
 }
 
+interface Absence {
+  id: number;
+  psychologistId: number;
+  startTime: string;
+  endTime: string;
+  reason?: string;
+}
+
+interface ClinicServiceItem {
+  id: number;
+  name: string;
+  defaultPrice: number | null;
+  durationMinutes: number | null;
+  active: boolean;
+}
+
+interface InsuranceCompanyBrief {
+  id: number;
+  name: string;
+  active: boolean;
+}
+
+interface InsurancePolicyBrief {
+  id: number;
+  patientId: number;
+  patientName?: string;
+  insuranceCompanyId: number;
+  insuranceCompanyName?: string;
+  policyNumber: string;
+  holderName?: string;
+  expirationDate?: string;
+  active: boolean;
+}
+
 interface Props {
   psychologists: Array<{ id: number; name: string; avatarUrl?: string }>;
   onAppointmentChange: () => void;
@@ -74,7 +108,6 @@ const GRID_HEIGHT = TOTAL_MINUTES * PX_PER_MINUTE;
 const COL_WIDTH = 200;
 const TIME_COL_WIDTH = 52;
 
-const SERVICES = ['Psicoterapia', 'Evaluación', 'Primera consulta', 'Seguimiento', 'Otro'];
 const DURATIONS = [30, 45, 60, 90];
 const PAYMENT_STATUSES = [
   { value: 'PENDING', label: 'No pagada' },
@@ -244,6 +277,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
   const [viewMode, setViewMode] = useState<'day' | 'week'>('day');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [absences, setAbsences] = useState<Absence[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [visiblePsychIds, setVisiblePsychIds] = useState<Set<number>>(() => new Set(psychologists.map((p) => p.id)));
@@ -270,6 +304,18 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
   const [formPaymentMethod, setFormPaymentMethod] = useState<'STRIPE' | 'CASH'>('STRIPE');
   const [formTaxExempt, setFormTaxExempt] = useState(true);
   const [formTaxRate, setFormTaxRate] = useState('0.21');
+  const [formRecurrenceRule, setFormRecurrenceRule] = useState<string>('');
+  const [formRecurrenceCount, setFormRecurrenceCount] = useState<number>(4);
+  const [formServiceId, setFormServiceId] = useState<number | null>(null);
+  const [formBillingType, setFormBillingType] = useState<'PRIVATE' | 'INSURANCE'>('PRIVATE');
+  const [formInsurancePolicyId, setFormInsurancePolicyId] = useState<number | null>(null);
+
+  // Dynamic services
+  const [clinicServices, setClinicServices] = useState<ClinicServiceItem[]>([]);
+
+  // Insurance data
+  const [insuranceCompanies, setInsuranceCompanies] = useState<InsuranceCompanyBrief[]>([]);
+  const [insurancePolicies, setInsurancePolicies] = useState<InsurancePolicyBrief[]>([]);
 
   // Patient search
   const [patientSearch, setPatientSearch] = useState('');
@@ -314,7 +360,29 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
     axios.get<Room[]>(`${BASE}/clinic/rooms`, { headers: authHeaders() })
       .then(res => setRooms(res.data || []))
       .catch(() => setRooms([]));
+    axios.get<ClinicServiceItem[]>(`${BASE}/clinic/services`, { headers: authHeaders() })
+      .then(res => setClinicServices((res.data || []).filter(s => s.active)))
+      .catch(() => setClinicServices([]));
+    axios.get<InsuranceCompanyBrief[]>(`${BASE}/clinic/insurance-companies`, { headers: authHeaders() })
+      .then(res => setInsuranceCompanies((res.data || []).filter(c => c.active)))
+      .catch(() => setInsuranceCompanies([]));
+    axios.get<InsurancePolicyBrief[]>(`${BASE}/clinic/insurance-policies`, { headers: authHeaders() })
+      .then(res => setInsurancePolicies(res.data || []))
+      .catch(() => setInsurancePolicies([]));
   }, []);
+
+  // Fetch absences for all visible psychologists
+  useEffect(() => {
+    const ids = Array.from(visiblePsychIds);
+    if (ids.length === 0) { setAbsences([]); return; }
+    Promise.all(
+      ids.map(id =>
+        axios.get<Absence[]>(`${BASE}/clinic/psychologists/${id}/absences`, { headers: authHeaders() })
+          .then(res => (res.data || []).map(a => ({ ...a, psychologistId: id })))
+          .catch(() => [] as Absence[])
+      )
+    ).then(results => setAbsences(results.flat()));
+  }, [visiblePsychIds, currentDate]);
 
   useEffect(() => {
     if (formModality === 'PRESENCIAL' && formPsychId) {
@@ -356,6 +424,8 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
     setFormPsychId(psychId); setFormService('Psicoterapia'); setFormPrice('');
     setFormPaymentStatus('PENDING'); setFormNotes(''); setFormModality('ONLINE');
     setFormRoomId(null); setFormPaymentMethod('STRIPE'); setFormTaxExempt(true); setFormTaxRate('0.21');
+    setFormRecurrenceRule(''); setFormRecurrenceCount(4); setFormServiceId(null);
+    setFormBillingType('PRIVATE'); setFormInsurancePolicyId(null);
     setShowCancelConfirm(false); setPanelOpen(true);
   }
 
@@ -375,6 +445,9 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
     setFormPaymentMethod((appt.paymentMethod as 'STRIPE' | 'CASH') ?? 'STRIPE');
     setFormTaxExempt(appt.taxExempt !== false);
     setFormTaxRate(appt.taxRate != null ? String(appt.taxRate) : '0.21');
+    setFormRecurrenceRule(''); setFormRecurrenceCount(4); setFormServiceId(null);
+    setFormBillingType((appt as any).billingType === 'INSURANCE' ? 'INSURANCE' : 'PRIVATE');
+    setFormInsurancePolicyId((appt as any).insurancePolicyId ?? null);
     setShowCancelConfirm(false); setPanelOpen(true);
   }
 
@@ -392,13 +465,20 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
       endDate.setHours(hh, mm + formDuration, 0, 0);
       const body: Record<string, any> = {
         psychologistId: formPsychId, startTime: startISO, endTime: endDate.toISOString(),
-        service: formService, price: formPrice !== '' ? Number(formPrice) : null,
+        service: formService, serviceId: formServiceId || undefined,
+        price: formPrice !== '' ? Number(formPrice) : null,
         paymentStatus: formPaymentStatus, notes: formNotes || null, modality: formModality,
         paymentMethod: formModality === 'PRESENCIAL' ? formPaymentMethod : 'STRIPE',
         roomId: formModality === 'PRESENCIAL' ? formRoomId : null,
         taxExempt: formTaxExempt, taxRate: !formTaxExempt ? Number(formTaxRate) : undefined,
+        billingType: formBillingType,
+        insurancePolicyId: formBillingType === 'INSURANCE' ? formInsurancePolicyId : null,
       };
       if (formPatientId) body.patientId = formPatientId;
+      if (!editingAppointment && formRecurrenceRule) {
+        body.recurrenceRule = formRecurrenceRule;
+        body.recurrenceCount = formRecurrenceCount;
+      }
       if (editingAppointment) {
         await axios.put(`${BASE}/clinic/appointments/${editingAppointment.id}`, body, { headers: authHeaders() });
       } else {
@@ -456,6 +536,17 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
     return filteredAppointments.filter((a) => a.psychologistId === psychId && isSameDay(new Date(a.startTime), day));
   }
 
+  /** Get absences overlapping a given day for a psychologist */
+  function getAbsencesForColumn(psychId: number, day: Date): Absence[] {
+    const dayStart = new Date(day); dayStart.setHours(HOUR_START, 0, 0, 0);
+    const dayEnd = new Date(day); dayEnd.setHours(HOUR_END, 0, 0, 0);
+    return absences.filter(a =>
+      a.psychologistId === psychId &&
+      new Date(a.startTime) < dayEnd &&
+      new Date(a.endTime) > dayStart
+    );
+  }
+
   // --- Shared input styles ---
   const inputCls = "w-full h-8 px-2 rounded-md border border-slate-200 text-[13px] text-slate-700 outline-none bg-white focus:border-gantly-blue focus:ring-1 focus:ring-gantly-blue/20 transition-all";
   const labelCls = "text-[11px] font-semibold text-slate-500 block mb-0.5";
@@ -463,13 +554,17 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
   // --- Column render ---
 
   function renderColumn(psychId: number, day: Date, colAppts: Appointment[]) {
+    const colAbsences = getAbsencesForColumn(psychId, day);
+    const dayStart = new Date(day); dayStart.setHours(HOUR_START, 0, 0, 0);
+    const dayEnd = new Date(day); dayEnd.setHours(HOUR_END, 0, 0, 0);
+
     return (
       <div
         key={`${psychId}-${formatDateLocal(day)}`}
         className="border-r border-slate-100 relative"
         style={{ width: COL_WIDTH, minWidth: COL_WIDTH, height: GRID_HEIGHT, flexShrink: 0, cursor: 'cell' }}
         onClick={(e) => {
-          if ((e.target as HTMLElement).closest('[data-appt]')) return;
+          if ((e.target as HTMLElement).closest('[data-appt]') || (e.target as HTMLElement).closest('[data-absence]')) return;
           const rect = e.currentTarget.getBoundingClientRect();
           const offsetY = e.clientY - rect.top + e.currentTarget.scrollTop;
           handleSlotClick(psychId, day, Math.max(0, Math.min(TOTAL_MINUTES - 30, offsetY / PX_PER_MINUTE)));
@@ -483,6 +578,35 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
         {hours.slice(0, -1).map((h) => (
           <div key={`${h}h`} className="absolute left-0 right-0 border-t border-dashed border-slate-50" style={{ top: (h - HOUR_START) * 60 * PX_PER_MINUTE + 30 * PX_PER_MINUTE }} />
         ))}
+        {/* Absence blocks */}
+        {colAbsences.map((ab) => {
+          const abStart = new Date(ab.startTime) < dayStart ? dayStart : new Date(ab.startTime);
+          const abEnd = new Date(ab.endTime) > dayEnd ? dayEnd : new Date(ab.endTime);
+          const topMin = (abStart.getHours() * 60 + abStart.getMinutes()) - HOUR_START * 60;
+          const durMin = (abEnd.getTime() - abStart.getTime()) / 60000;
+          const topPx = Math.max(0, topMin * PX_PER_MINUTE);
+          const heightPx = Math.max(22, durMin * PX_PER_MINUTE);
+          return (
+            <div
+              key={`abs-${ab.id}`}
+              data-absence="1"
+              className="absolute left-0 right-0 z-[1] pointer-events-auto"
+              style={{
+                top: topPx,
+                height: heightPx,
+                background: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(148,163,184,0.15) 4px, rgba(148,163,184,0.15) 8px)',
+              }}
+              title={ab.reason ? `Ausencia: ${ab.reason}` : 'Ausencia'}
+            >
+              <div className="flex items-center gap-1 px-1.5 py-1 opacity-60">
+                <CalendarOff size={11} className="text-slate-400 flex-shrink-0" />
+                <span className="text-[10px] font-semibold text-slate-400 truncate">
+                  Ausencia{ab.reason ? ` - ${ab.reason}` : ''}
+                </span>
+              </div>
+            </div>
+          );
+        })}
         {/* Now line */}
         {showNowLine && isSameDay(day, now) && (
           <div className="absolute left-0 right-0 z-[5] pointer-events-none flex items-center" style={{ top: nowMinutes * PX_PER_MINUTE }}>
@@ -739,6 +863,14 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                   {weekDays.map((day) => {
                     const isToday = isSameDay(day, new Date());
                     const dayAppts = filteredAppointments.filter((a) => isSameDay(new Date(a.startTime), day));
+                    // Collect absences for all visible psychologists on this day
+                    const weekDayStart = new Date(day); weekDayStart.setHours(HOUR_START, 0, 0, 0);
+                    const weekDayEnd = new Date(day); weekDayEnd.setHours(HOUR_END, 0, 0, 0);
+                    const dayAbsences = absences.filter(a =>
+                      visiblePsychIds.has(a.psychologistId) &&
+                      new Date(a.startTime) < weekDayEnd &&
+                      new Date(a.endTime) > weekDayStart
+                    );
                     return (
                       <div key={formatDateLocal(day)} className="flex flex-col border-r border-slate-100 flex-shrink-0" style={{ width: 160, minWidth: 160 }}>
                         <div
@@ -756,7 +888,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                           className="relative"
                           style={{ height: GRID_HEIGHT, cursor: 'cell' }}
                           onClick={(e) => {
-                            if ((e.target as HTMLElement).closest('[data-appt]')) return;
+                            if ((e.target as HTMLElement).closest('[data-appt]') || (e.target as HTMLElement).closest('[data-absence]')) return;
                             const rect = e.currentTarget.getBoundingClientRect();
                             const offsetY = e.clientY - rect.top;
                             const psychId = visiblePsychs[0]?.id;
@@ -766,6 +898,31 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                           {hours.map((h) => (
                             <div key={h} className="absolute left-0 right-0 border-t border-slate-100" style={{ top: (h - HOUR_START) * 60 * PX_PER_MINUTE }} />
                           ))}
+                          {/* Absence blocks (week view) */}
+                          {dayAbsences.map((ab) => {
+                            const abStart = new Date(ab.startTime) < weekDayStart ? weekDayStart : new Date(ab.startTime);
+                            const abEnd = new Date(ab.endTime) > weekDayEnd ? weekDayEnd : new Date(ab.endTime);
+                            const topMin = (abStart.getHours() * 60 + abStart.getMinutes()) - HOUR_START * 60;
+                            const durMin = (abEnd.getTime() - abStart.getTime()) / 60000;
+                            return (
+                              <div
+                                key={`wabs-${ab.id}`}
+                                data-absence="1"
+                                className="absolute left-0 right-0 z-[1]"
+                                style={{
+                                  top: Math.max(0, topMin * PX_PER_MINUTE),
+                                  height: Math.max(20, durMin * PX_PER_MINUTE),
+                                  background: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(148,163,184,0.15) 4px, rgba(148,163,184,0.15) 8px)',
+                                }}
+                                title={ab.reason ? `Ausencia: ${ab.reason}` : 'Ausencia'}
+                              >
+                                <div className="flex items-center gap-0.5 px-1 py-0.5 opacity-60">
+                                  <CalendarOff size={9} className="text-slate-400 flex-shrink-0" />
+                                  <span className="text-[9px] font-semibold text-slate-400 truncate">Ausencia</span>
+                                </div>
+                              </div>
+                            );
+                          })}
                           {showNowLine && isToday && (
                             <div className="absolute left-0 right-0 z-[5] pointer-events-none flex items-center" style={{ top: nowMinutes * PX_PER_MINUTE }}>
                               <div className="w-2 h-2 rounded-full bg-red-500 -ml-1 flex-shrink-0" />
@@ -932,6 +1089,42 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                       </select>
                     </div>
                   )}
+
+                  {/* Recurrence — only for new appointments */}
+                  {!editingAppointment && (
+                    <div className="mt-2.5">
+                      <label className={labelCls}>
+                        <Repeat size={11} className="inline-block mr-1 -mt-px text-slate-400" />
+                        Repetir
+                      </label>
+                      <select
+                        value={formRecurrenceRule}
+                        onChange={(e) => setFormRecurrenceRule(e.target.value)}
+                        className={inputCls}
+                      >
+                        <option value="">No repetir</option>
+                        <option value="WEEKLY">Semanal</option>
+                        <option value="BIWEEKLY">Quincenal</option>
+                        <option value="MONTHLY">Mensual</option>
+                      </select>
+                      {formRecurrenceRule && (
+                        <div className="mt-1.5">
+                          <label className={labelCls}>Repeticiones (1-52)</label>
+                          <input
+                            type="number"
+                            min={1}
+                            max={52}
+                            value={formRecurrenceCount}
+                            onChange={(e) => setFormRecurrenceCount(Math.max(1, Math.min(52, Number(e.target.value) || 1)))}
+                            className={inputCls}
+                          />
+                          <p className="text-[10px] text-slate-400 mt-0.5 m-0">
+                            Se crean {formRecurrenceCount} citas {formRecurrenceRule === 'WEEKLY' ? 'semanales' : formRecurrenceRule === 'BIWEEKLY' ? 'quincenales' : 'mensuales'}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="h-px bg-slate-100 mx-4" />
@@ -940,13 +1133,92 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
                 <div className="px-4 pt-2.5 pb-2">
                   <div className="flex items-center gap-1.5 mb-2">
                     <CreditCard size={13} className="text-slate-400" />
-                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Facturación</span>
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Facturacion</span>
                   </div>
+
+                  {/* Billing type toggle */}
+                  <div className="flex gap-1.5 mb-2.5">
+                    {([
+                      { val: 'PRIVATE' as const, icon: CreditCard, label: 'Privado' },
+                      { val: 'INSURANCE' as const, icon: Shield, label: 'Aseguradora' },
+                    ]).map(({ val, icon: Icon, label }) => (
+                      <button
+                        key={val}
+                        onClick={() => { setFormBillingType(val); if (val === 'PRIVATE') setFormInsurancePolicyId(null); }}
+                        className={`flex-1 h-8 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-semibold cursor-pointer border transition-all ${
+                          formBillingType === val
+                            ? 'bg-slate-800 border-slate-800 text-white'
+                            : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
+                        }`}
+                      >
+                        <Icon size={13} /> {label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Insurance selectors */}
+                  {formBillingType === 'INSURANCE' && (
+                    <div className="space-y-2 mb-2.5">
+                      <div>
+                        <label className={labelCls}>Poliza del paciente</label>
+                        <select
+                          value={formInsurancePolicyId ?? ''}
+                          onChange={e => setFormInsurancePolicyId(e.target.value ? Number(e.target.value) : null)}
+                          className={inputCls}
+                        >
+                          <option value="">Seleccionar poliza</option>
+                          {insurancePolicies
+                            .filter(p => !formPatientId || p.patientId === formPatientId)
+                            .filter(p => p.active)
+                            .map(p => (
+                              <option key={p.id} value={p.id}>
+                                {p.insuranceCompanyName} - {p.policyNumber}{p.patientName ? ` (${p.patientName})` : ''}
+                              </option>
+                            ))
+                          }
+                        </select>
+                        {formPatientId && insurancePolicies.filter(p => p.patientId === formPatientId && p.active).length === 0 && (
+                          <p className="text-[10px] text-amber-600 mt-0.5 m-0">Este paciente no tiene polizas activas</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <div>
                     <label className={labelCls}>Servicio</label>
-                    <select value={formService} onChange={(e) => setFormService(e.target.value)} className={inputCls}>
-                      {SERVICES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    <select
+                      value={formServiceId != null ? String(formServiceId) : '_custom'}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === '_custom') {
+                          setFormServiceId(null);
+                          setFormService('');
+                          return;
+                        }
+                        const svc = clinicServices.find(s => s.id === Number(val));
+                        if (svc) {
+                          setFormServiceId(svc.id);
+                          setFormService(svc.name);
+                          if (svc.defaultPrice != null) setFormPrice(String(svc.defaultPrice));
+                          if (svc.durationMinutes != null) setFormDuration(svc.durationMinutes);
+                        }
+                      }}
+                      className={inputCls}
+                    >
+                      {clinicServices.map((s) => (
+                        <option key={s.id} value={String(s.id)}>{s.name}{s.defaultPrice != null ? ` (${s.defaultPrice}\u00A0\u20AC)` : ''}</option>
+                      ))}
+                      <option value="_custom">Otro...</option>
                     </select>
+                    {formServiceId == null && (
+                      <input
+                        type="text"
+                        placeholder="Nombre del servicio"
+                        value={formService}
+                        onChange={(e) => setFormService(e.target.value)}
+                        className={`${inputCls} mt-1.5`}
+                      />
+                    )}
                   </div>
                   <div className="grid grid-cols-2 gap-2 mt-2">
                     <div>

@@ -851,24 +851,32 @@ export const psychService = {
   }
 };
 
-// Consentimientos (menores)
+// Consentimientos
 export const consentService = {
-  listDocumentTypes: async () => {
+  getDocumentTypes: async () => {
     const { data } = await api.get('/consent/document-types');
     return data as Array<{ id: number; code: string; title: string; active: boolean }>;
   },
-  sendConsent: async (userId: number, documentTypeId: number, place?: string) => {
-    const { data } = await api.post('/consent/requests', { userId, documentTypeId, place });
+  createRequest: async (reqData: { userId: number; documentTypeId: number; place?: string }) => {
+    const { data } = await api.post('/consent/requests', reqData);
     return data as any;
   },
-  myPending: async () => {
-    const { data } = await api.get('/consent/requests/me');
+  getMyRequests: async () => {
+    const { data } = await api.get('/consent/requests/my');
     return data as Array<any>;
   },
-  sign: async (consentId: number, signerName: string) => {
-    const { data } = await api.post(`/consent/requests/${consentId}/sign`, { signerName });
+  getSentRequests: async () => {
+    const { data } = await api.get('/consent/requests/sent');
+    return data as Array<any>;
+  },
+  getRequest: async (id: number) => {
+    const { data } = await api.get(`/consent/requests/${id}`);
     return data as any;
-  }
+  },
+  signRequest: async (id: number, signData: { signerName: string; signatureData?: string }) => {
+    const { data } = await api.post(`/consent/requests/${id}/sign`, signData);
+    return data as any;
+  },
 };
 
 // Jitsi
@@ -1146,6 +1154,8 @@ export interface ClinicBillingItem {
   taxAmount?: number;
   totalAmount?: number;
   taxExempt?: boolean;
+  billingType?: 'PRIVATE' | 'INSURANCE';
+  insuranceCompanyName?: string;
 }
 
 export interface CreateAppointmentReq {
@@ -1155,6 +1165,7 @@ export interface CreateAppointmentReq {
   startTime: string;
   endTime: string;
   service?: string;
+  serviceId?: number;
   price?: number;
   notes?: string;
   clinicNotes?: string;
@@ -1164,6 +1175,51 @@ export interface CreateAppointmentReq {
   roomId?: number | null;
   taxExempt?: boolean;
   taxRate?: number;
+  recurrenceRule?: string;
+  recurrenceCount?: number;
+  billingType?: 'PRIVATE' | 'INSURANCE';
+  insurancePolicyId?: number;
+}
+
+export interface ClinicAdmin {
+  id: number;
+  userId?: number;
+  name: string;
+  email: string;
+  role: 'OWNER' | 'ADMIN' | 'VIEWER';
+  status: 'ACTIVE' | 'INVITED' | 'DEACTIVATED';
+  createdAt?: string;
+}
+
+export interface InsuranceCompany {
+  id: number;
+  name: string;
+  nif?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  contactPerson?: string;
+  active: boolean;
+}
+
+export interface InsurancePolicy {
+  id: number;
+  patientId: number;
+  patientName?: string;
+  insuranceCompanyId: number;
+  insuranceCompanyName?: string;
+  policyNumber: string;
+  holderName?: string;
+  expirationDate?: string;
+  active: boolean;
+}
+
+export interface ClinicAbsence {
+  id: number;
+  psychologistId: number;
+  startTime: string;
+  endTime: string;
+  reason?: string;
 }
 
 export interface UpdatePatientReq {
@@ -1185,6 +1241,47 @@ export const patientClinicChatService = {
   sendMessage: async (content: string) => {
     const { data } = await api.post('/patient/clinic-chat', { content });
     return data as { id: number; sender: string; content: string; createdAt: string };
+  },
+};
+
+export const userClinicService = {
+  getMyClinic: async () => {
+    const { data } = await api.get('/user/my-clinic');
+    return data as {
+      id: number;
+      name: string;
+      email?: string;
+      address?: string;
+      phone?: string;
+      website?: string;
+      logoUrl?: string;
+      assignedPsychologistName?: string;
+      assignedPsychologistAvatarUrl?: string;
+    };
+  },
+  getMyClinicAppointments: async () => {
+    const { data } = await api.get('/user/my-clinic/appointments');
+    return data as Array<{
+      id: number;
+      startTime: string;
+      endTime: string;
+      status: string;
+      service?: string;
+      psychologistName?: string;
+      price?: number;
+      paymentStatus?: string;
+      modality?: string;
+    }>;
+  },
+  getMyClinicDocuments: async () => {
+    const { data } = await api.get('/user/my-clinic/documents');
+    return data as Array<{
+      id: number;
+      originalName: string;
+      fileName: string;
+      fileSize: number | null;
+      uploadedAt: string;
+    }>;
   },
 };
 
@@ -1321,6 +1418,152 @@ export const clinicService = {
   },
   deleteRoom: async (id: number) => {
     await api.delete(`/clinic/rooms/${id}`);
+  },
+  getPsychologistAbsences: async (psychologistId: number) => {
+    const { data } = await api.get(`/clinic/psychologists/${psychologistId}/absences`);
+    return data as ClinicAbsence[];
+  },
+  // Waiting list
+  getWaitingList: async (status?: string) => {
+    const params = status ? `?status=${status}` : '';
+    const { data } = await api.get(`/clinic/waiting-list${params}`);
+    return data as Array<{
+      id: number;
+      patientName: string;
+      email: string;
+      phone?: string;
+      service?: string;
+      psychologistPreference?: string;
+      priority: 'NORMAL' | 'HIGH' | 'URGENT';
+      status: 'WAITING' | 'CONTACTED' | 'SCHEDULED' | 'CANCELLED';
+      notes?: string;
+      createdAt: string;
+      updatedAt?: string;
+    }>;
+  },
+  addToWaitingList: async (entry: { patientName: string; email: string; phone?: string; service?: string; psychologistPreference?: string; priority?: string; notes?: string }) => {
+    const { data } = await api.post('/clinic/waiting-list', entry);
+    return data;
+  },
+  updateWaitingListEntry: async (id: number, update: { status?: string; priority?: string; notes?: string; psychologistPreference?: string }) => {
+    const { data } = await api.put(`/clinic/waiting-list/${id}`, update);
+    return data;
+  },
+  removeWaitingListEntry: async (id: number) => {
+    await api.delete(`/clinic/waiting-list/${id}`);
+  },
+  notifyWaitingListPatient: async (id: number) => {
+    const { data } = await api.post(`/clinic/waiting-list/${id}/notify`);
+    return data as { message: string };
+  },
+  scheduleWaitingListEntry: async (id: number, appointmentId: number) => {
+    const { data } = await api.post(`/clinic/waiting-list/${id}/schedule`, { appointmentId });
+    return data;
+  },
+  // Multi-Admin
+  getAdmins: async () => {
+    const { data } = await api.get('/clinic/admins');
+    return data as ClinicAdmin[];
+  },
+  inviteAdmin: async (email: string, role: string) => {
+    const { data } = await api.post('/clinic/admins/invite', { email, role });
+    return data as ClinicAdmin;
+  },
+  updateAdmin: async (id: number, role: string) => {
+    const { data } = await api.put(`/clinic/admins/${id}`, { role });
+    return data as ClinicAdmin;
+  },
+  removeAdmin: async (id: number) => {
+    await api.delete(`/clinic/admins/${id}`);
+  },
+  // Insurance Companies
+  getInsuranceCompanies: async () => {
+    const { data } = await api.get('/clinic/insurance-companies');
+    return data as InsuranceCompany[];
+  },
+  createInsuranceCompany: async (company: Partial<InsuranceCompany>) => {
+    const { data } = await api.post('/clinic/insurance-companies', company);
+    return data as InsuranceCompany;
+  },
+  updateInsuranceCompany: async (id: number, company: Partial<InsuranceCompany>) => {
+    const { data } = await api.put(`/clinic/insurance-companies/${id}`, company);
+    return data as InsuranceCompany;
+  },
+  deleteInsuranceCompany: async (id: number) => {
+    await api.delete(`/clinic/insurance-companies/${id}`);
+  },
+  // Insurance Policies
+  getPatientPolicies: async (patientId: number) => {
+    const { data } = await api.get(`/clinic/patients/${patientId}/insurance-policies`);
+    return data as InsurancePolicy[];
+  },
+  createPatientPolicy: async (patientId: number, policy: Partial<InsurancePolicy>) => {
+    const { data } = await api.post(`/clinic/patients/${patientId}/insurance-policies`, policy);
+    return data as InsurancePolicy;
+  },
+  deletePatientPolicy: async (id: number) => {
+    await api.delete(`/clinic/insurance-policies/${id}`);
+  },
+  getAllPolicies: async () => {
+    const { data } = await api.get('/clinic/insurance-policies');
+    return data as InsurancePolicy[];
+  },
+  getAuditLogs: async (from?: string, to?: string, page = 0, size = 50) => {
+    const params = new URLSearchParams();
+    if (from) params.append('from', from);
+    if (to) params.append('to', to);
+    params.append('page', String(page));
+    params.append('size', String(size));
+    const { data } = await api.get(`/clinic/audit-logs?${params}`);
+    return data as {
+      content: Array<{
+        id: number;
+        action: string;
+        entityType: string;
+        entityId: number | null;
+        performedById: number;
+        performedByRole: string | null;
+        performedByName: string | null;
+        targetUserId: number | null;
+        details: string | null;
+        ipAddress: string | null;
+        createdAt: string;
+      }>;
+      totalPages: number;
+      totalElements: number;
+      number: number;
+      size: number;
+    };
+  },
+};
+
+// Public API (no auth interceptor) for public-facing pages
+const publicApi = axios.create({ baseURL: API_URL });
+
+export const publicClinicService = {
+  getClinicInfo: async (slug: string) => {
+    const { data } = await publicApi.get(`/public/clinic/${slug}`);
+    return data as {
+      id: number;
+      name: string;
+      description?: string;
+      address?: string;
+      phone?: string;
+      website?: string;
+      logoUrl?: string;
+      services: Array<{ id: number; name: string; defaultPrice: number | null; durationMinutes: number | null }>;
+      psychologists: Array<{ id: number; name: string; avatarUrl?: string; bio?: string; specializations?: string }>;
+    };
+  },
+  getAvailableSlots: async (slug: string, from: string, to: string, psychologistId?: number) => {
+    const params = new URLSearchParams({ from, to });
+    if (psychologistId) params.append('psychologistId', String(psychologistId));
+    const { data } = await publicApi.get(`/public/clinic/${slug}/available-slots?${params}`);
+    return data as Array<{ id: number; startTime: string; endTime: string; psychologistId: number; psychologistName: string }>;
+  },
+  requestBooking: async (slug: string, payload: { slotId: number; patientName: string; email: string; phone?: string }) => {
+    const { data } = await publicApi.post(`/public/clinic/${slug}/book`, payload);
+    return data as { message: string };
   },
 };
 

@@ -103,6 +103,7 @@ public class SecurityConfig {
 				.requestMatchers("/api/consent/**").authenticated()
 				.requestMatchers("/api/results/**").authenticated()
 				.requestMatchers("/api/jitsi/**").authenticated()
+				.requestMatchers("/api/public/**").permitAll()
 				.requestMatchers("/api/stripe/webhook").permitAll()
 				.requestMatchers("/api/stripe/**").authenticated()
 				.requestMatchers("/ws/**", "/topic/**", "/app/**").permitAll()

@@ -216,6 +216,16 @@ public class EmailService {
         }
     }
 
+    public void sendGenericEmail(String toEmail, String subject, String textContent) {
+        try {
+            String htmlContent = "<div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'>"
+                    + "<p>" + textContent.replace("\n", "<br>") + "</p></div>";
+            sendHtmlEmail(toEmail, subject, htmlContent);
+        } catch (Exception e) {
+            logger.error("Error enviando correo genérico a {}: {}", toEmail, e.getMessage());
+        }
+    }
+
     public void sendClinicInvitationEmail(String toEmail, String companyName, String inviteUrl) {
         try {
             Context ctx = new Context();

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Home, Brain, CheckSquare, ClipboardList, CalendarDays, BookOpen,
-  BarChart3, FileText, Compass, MessageCircle, Building2, LogOut,
+  BarChart3, FileText, Compass, MessageCircle, Building2, FileCheck, LogOut,
   Menu, MoreHorizontal, X,
 } from 'lucide-react';
 import NotificationBell from './ui/NotificationBell';
@@ -27,7 +27,8 @@ import UserPsychologistTab from './UserPsychologistTab';
 import UserTestsTab from './UserTestsTab';
 import UserCalendarTab from './UserCalendarTab';
 import UserAppointmentsTab from './UserAppointmentsTab';
-import UserClinicChatTab from './UserClinicChatTab';
+import UserClinicPortalTab from './UserClinicPortalTab';
+import UserConsentTab from './UserConsentTab';
 import { toast } from './ui/Toast';
 import JitsiVideoCall from './JitsiVideoCall';
 import OnboardingWizard from './OnboardingWizard';
@@ -47,7 +48,8 @@ type Tab =
   | 'descubrimiento'
   | 'chat'
   | 'perfil-psicologo'
-  | 'mensajes-clinica';
+  | 'consentimientos'
+  | 'clinica';
 
 
 interface UserDashboardProps {
@@ -212,7 +214,8 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
     { id: 'evaluaciones', icon: <FileText size={20} />, label: 'Evaluaciones', requiresPsych: false },
     { id: 'descubrimiento', icon: <Compass size={20} />, label: 'Descubrir', requiresPsych: false },
     { id: 'chat', icon: <div className="relative"><MessageCircle size={20} />{hasUnreadChat && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-gantly-navy" />}</div>, label: 'Chat', requiresPsych: true },
-    ...(me?.companyId ? [{ id: 'mensajes-clinica', icon: <Building2 size={20} /> as ReactNode, label: 'Clinica', requiresPsych: false }] : []),
+    { id: 'consentimientos', icon: <FileCheck size={20} />, label: 'Consentimientos', requiresPsych: true },
+    ...(me?.companyId ? [{ id: 'clinica', icon: <Building2 size={20} /> as ReactNode, label: 'Mi Clinica', requiresPsych: false }] : []),
   ];
 
   return (
@@ -570,9 +573,14 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             <UserAppointmentsTab setTab={(t) => setTab(t as Tab)} />
           )}
 
-          {/* Clinic chat */}
-          {tab === 'mensajes-clinica' && hasClinic && (
-            <UserClinicChatTab hasClinic={hasClinic} />
+          {/* Consentimientos */}
+          {tab === 'consentimientos' && hasPsychologist && (
+            <UserConsentTab userName={me?.name} />
+          )}
+
+          {/* Clinic portal */}
+          {tab === 'clinica' && hasClinic && (
+            <UserClinicPortalTab hasClinic={hasClinic} />
           )}
         </main>
       </div>

@@ -148,11 +148,38 @@ public class ConsentService {
         }
 
         consent.setSignerName(signerName);
+        if (req != null && req.signatureData() != null && !req.signatureData().isBlank()) {
+            consent.setSignatureData(req.signatureData());
+        }
         consent.setSignedAt(Instant.now());
         consent.setStatus(ConsentRequestStatus.SIGNED);
         ConsentRequestEntity saved = consentRequestRepository.save(consent);
         auditService.logSelfDataAccess(user.getId(), "CONSENT_SIGN", "UPDATE");
         return toDto(saved, true);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ConsentDtos.ConsentRequestDto> sentByPsychologist(UserEntity psychologist) {
+        requirePsychologist(psychologist);
+        return consentRequestRepository.findByPsychologist_IdOrderByCreatedAtDesc(psychologist.getId())
+                .stream()
+                .map(c -> toDto(c, false))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public ConsentDtos.ConsentRequestDto getConsentDetail(UserEntity user, Long consentId) {
+        if (user == null || user.getId() == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        ConsentRequestEntity consent = consentRequestRepository.findById(consentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Consentimiento no encontrado"));
+
+        // Allow access if the user is the patient or the psychologist
+        boolean isPatient = consent.getUser() != null && Objects.equals(consent.getUser().getId(), user.getId());
+        boolean isPsych = consent.getPsychologist() != null && Objects.equals(consent.getPsychologist().getId(), user.getId());
+        if (!isPatient && !isPsych) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No autorizado");
+        }
+        return toDto(consent, true);
     }
 
     @Transactional(readOnly = true)
@@ -200,7 +227,9 @@ public class ConsentService {
                 c.getSentAt(),
                 c.getSignedAt(),
                 c.getSignerName(),
-                includeContent ? c.getRenderedContent() : null
+                includeContent ? c.getRenderedContent() : null,
+                c.getSignatureData(),
+                c.getPdfUrl()
         );
     }
 

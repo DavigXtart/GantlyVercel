@@ -1,15 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { clinicService } from '../services/api';
+import type { ClinicAdmin } from '../services/api';
 import ClinicAgenda from './ClinicAgenda';
 import ClinicPatients from './ClinicPatients';
 import ClinicBilling from './ClinicBilling';
 import ClinicStats from './ClinicStats';
+import ClinicInsuranceTab from './ClinicInsuranceTab';
+import ClinicWaitingList from './ClinicWaitingList';
+import AuditLogViewer from './AuditLogViewer';
 import LogoSvg from '../assets/logo-gantly.svg';
 import {
   Building2, Users, Calendar, UsersRound, Receipt, BarChart3, Settings, Home,
   ChevronDown, ChevronUp, Check, Copy, Clock, LogOut, X, Send, Tag, DoorOpen,
-  UserX, Plus, Mail, Stethoscope, Package, Flower2, Timer, Trash2, Menu,
+  UserX, Plus, Mail, Stethoscope, Package, Flower2, Timer, Trash2, Menu, Shield,
+  Globe, Eye, EyeOff, ListOrdered,
 } from 'lucide-react';
 
 const kpiIconMap: Record<string, (size: number) => React.ReactNode> = {
@@ -27,10 +32,13 @@ const navIconMap: Record<string, React.ReactNode> = {
   group: <Users size={20} />,
   people: <UsersRound size={20} />,
   receipt_long: <Receipt size={20} />,
+  shield_check: <Shield size={20} />,
+  shield: <Shield size={20} />,
   settings: <Settings size={20} />,
+  list_ordered: <ListOrdered size={20} />,
 };
 
-type NavTab = 'inicio' | 'estadisticas' | 'agenda' | 'equipo' | 'pacientes' | 'facturacion' | 'configuracion';
+type NavTab = 'inicio' | 'estadisticas' | 'agenda' | 'equipo' | 'pacientes' | 'facturacion' | 'lista-espera' | 'seguros' | 'auditoria' | 'configuracion';
 
 interface ClinicInfo {
   id: number;
@@ -43,6 +51,9 @@ interface ClinicInfo {
   logoUrl?: string;
   weeklySchedule?: string;
   nif?: string;
+  publicVisible?: boolean;
+  slug?: string;
+  description?: string;
 }
 
 interface ClinicServiceItem {
@@ -497,9 +508,18 @@ const DEFAULT_SCHEDULE: DaySchedule[] = [
 
 function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicInfo: ClinicInfo | null; psychologists: Psychologist[]; onClinicInfoUpdate: (info: ClinicInfo) => void }) {
   // --- Clinic info form ---
-  const [infoForm, setInfoForm] = useState({ name: '', address: '', phone: '', website: '', logoUrl: '', nif: '' });
+  const [infoForm, setInfoForm] = useState({ name: '', address: '', phone: '', website: '', logoUrl: '', nif: '', publicVisible: false, slug: '', description: '' });
   const [savingInfo, setSavingInfo] = useState(false);
   const [infoSaved, setInfoSaved] = useState(false);
+
+  // --- Admins ---
+  const [admins, setAdmins] = useState<ClinicAdmin[]>([]);
+  const [loadingAdmins, setLoadingAdmins] = useState(false);
+  const [adminEmail, setAdminEmail] = useState('');
+  const [adminRole, setAdminRole] = useState<'ADMIN' | 'VIEWER'>('ADMIN');
+  const [invitingAdmin, setInvitingAdmin] = useState(false);
+  const [adminError, setAdminError] = useState('');
+  const [adminSuccess, setAdminSuccess] = useState('');
 
   // --- Schedule ---
   const [schedule, setSchedule] = useState<DaySchedule[]>(DEFAULT_SCHEDULE);
@@ -531,6 +551,9 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
         website: clinicInfo.website || '',
         logoUrl: clinicInfo.logoUrl || '',
         nif: clinicInfo.nif || '',
+        publicVisible: clinicInfo.publicVisible ?? false,
+        slug: clinicInfo.slug || '',
+        description: clinicInfo.description || '',
       });
       if (clinicInfo.weeklySchedule) {
         try { setSchedule(JSON.parse(clinicInfo.weeklySchedule)); } catch { /* keep default */ }
@@ -538,7 +561,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
     }
   }, [clinicInfo]);
 
-  // Load services + rooms
+  // Load services + rooms + admins
   useEffect(() => {
     setLoadingServices(true);
     clinicService.getServices()
@@ -550,7 +573,49 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
       .then(data => setRooms(data))
       .catch(() => setRooms([]))
       .finally(() => setLoadingRooms(false));
+    loadAdmins();
   }, []);
+
+  async function loadAdmins() {
+    setLoadingAdmins(true);
+    try {
+      const data = await clinicService.getAdmins();
+      setAdmins(data);
+    } catch { setAdmins([]); }
+    finally { setLoadingAdmins(false); }
+  }
+
+  async function handleInviteAdmin(e: React.FormEvent) {
+    e.preventDefault();
+    if (!adminEmail.trim()) return;
+    setInvitingAdmin(true); setAdminError(''); setAdminSuccess('');
+    try {
+      const admin = await clinicService.inviteAdmin(adminEmail.trim(), adminRole);
+      setAdmins(prev => [...prev, admin]);
+      setAdminSuccess('Invitacion enviada a ' + adminEmail.trim());
+      setAdminEmail('');
+      setTimeout(() => setAdminSuccess(''), 3000);
+    } catch (err: any) {
+      setAdminError(err.response?.data?.message || 'Error al invitar administrador');
+    } finally { setInvitingAdmin(false); }
+  }
+
+  async function handleUpdateAdminRole(id: number, role: string) {
+    try {
+      const updated = await clinicService.updateAdmin(id, role);
+      setAdmins(prev => prev.map(a => a.id === id ? updated : a));
+    } catch { /* ignore */ }
+  }
+
+  async function handleRemoveAdmin(id: number) {
+    if (!confirm('Eliminar este administrador?')) return;
+    try {
+      await clinicService.removeAdmin(id);
+      setAdmins(prev => prev.filter(a => a.id !== id));
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Error al eliminar administrador');
+    }
+  }
 
   // --- Handlers: Clinic info ---
   async function handleSaveInfo() {
@@ -564,7 +629,10 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
         website: infoForm.website,
         logoUrl: infoForm.logoUrl,
         nif: infoForm.nif,
-      });
+        publicVisible: infoForm.publicVisible,
+        slug: infoForm.slug,
+        description: infoForm.description,
+      } as any);
       onClinicInfoUpdate(updated as ClinicInfo);
       setInfoSaved(true);
       setTimeout(() => setInfoSaved(false), 2000);
@@ -984,6 +1052,188 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
           </div>
         </div>
       </div>
+
+      {/* Row 3: Administradores + Pagina publica side by side */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        {/* Card 5 — Administradores */}
+        <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden flex flex-col">
+          <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2.5">
+            <Users size={16} className="text-gantly-blue" />
+            <h3 className="text-sm font-semibold text-slate-900">Administradores</h3>
+            <span className="text-[11px] text-slate-400">{admins.length} registrados</span>
+          </div>
+          <div className="p-5 flex-1 flex flex-col">
+            {/* Invite form */}
+            <form onSubmit={handleInviteAdmin} className="flex gap-2 mb-4">
+              <input
+                type="email"
+                value={adminEmail}
+                onChange={e => setAdminEmail(e.target.value)}
+                placeholder="correo@ejemplo.com"
+                className={inputCls}
+                required
+              />
+              <select
+                value={adminRole}
+                onChange={e => setAdminRole(e.target.value as 'ADMIN' | 'VIEWER')}
+                className="h-9 px-2 rounded-md border border-slate-200 bg-white text-xs text-slate-700 outline-none focus:border-gantly-blue/50 transition-all cursor-pointer"
+              >
+                <option value="ADMIN">Admin</option>
+                <option value="VIEWER">Viewer</option>
+              </select>
+              <button
+                type="submit"
+                disabled={invitingAdmin}
+                className="h-8 px-4 bg-gantly-blue text-white rounded-md text-xs font-semibold hover:bg-gantly-blue/90 transition disabled:opacity-50 cursor-pointer border-none self-center flex-shrink-0"
+              >
+                {invitingAdmin ? 'Enviando...' : 'Invitar'}
+              </button>
+            </form>
+            {adminError && <p className="text-red-500 text-xs mb-2">{adminError}</p>}
+            {adminSuccess && <p className="text-gantly-blue text-xs mb-2">{adminSuccess}</p>}
+
+            {/* Admin list */}
+            {loadingAdmins ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="w-5 h-5 border-2 border-slate-200 border-t-gantly-blue rounded-full animate-spin" />
+              </div>
+            ) : admins.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <Users size={24} className="text-slate-300 mb-2" />
+                <p className="text-sm font-medium text-slate-400">Sin administradores</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-100">
+                      <th className="text-left py-2 text-[11px] font-medium text-slate-400 uppercase tracking-wider">Nombre / Email</th>
+                      <th className="text-center py-2 text-[11px] font-medium text-slate-400 uppercase tracking-wider">Rol</th>
+                      <th className="text-center py-2 text-[11px] font-medium text-slate-400 uppercase tracking-wider">Estado</th>
+                      <th className="text-right py-2 text-[11px] font-medium text-slate-400 uppercase tracking-wider">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {admins.map(admin => {
+                      const isOwner = admin.role === 'OWNER';
+                      const currentIsOwner = admins.some(a => a.role === 'OWNER' && a.email === clinicInfo?.email);
+                      const roleBg = admin.role === 'OWNER' ? 'bg-gantly-blue/10 text-gantly-blue' : admin.role === 'ADMIN' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600';
+                      const statusBg = admin.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700' : admin.status === 'INVITED' ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600';
+                      return (
+                        <tr key={admin.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
+                          <td className="py-2.5">
+                            <div className="text-xs font-medium text-slate-800">{admin.name || admin.email}</div>
+                            {admin.name && <div className="text-[11px] text-slate-400">{admin.email}</div>}
+                          </td>
+                          <td className="py-2.5 text-center">
+                            {isOwner || !currentIsOwner ? (
+                              <span className={`inline-flex items-center rounded-full text-[11px] font-medium px-2.5 py-0.5 ${roleBg}`}>
+                                {admin.role}
+                              </span>
+                            ) : (
+                              <select
+                                value={admin.role}
+                                onChange={e => handleUpdateAdminRole(admin.id, e.target.value)}
+                                className="h-7 px-2 rounded-full border border-slate-200 text-[11px] font-medium text-slate-700 cursor-pointer outline-none bg-white"
+                              >
+                                <option value="ADMIN">ADMIN</option>
+                                <option value="VIEWER">VIEWER</option>
+                              </select>
+                            )}
+                          </td>
+                          <td className="py-2.5 text-center">
+                            <span className={`inline-flex items-center rounded-full text-[11px] font-medium px-2.5 py-0.5 ${statusBg}`}>
+                              {admin.status === 'ACTIVE' ? 'Activo' : admin.status === 'INVITED' ? 'Invitado' : 'Desactivado'}
+                            </span>
+                          </td>
+                          <td className="py-2.5 text-right">
+                            {!isOwner && currentIsOwner && (
+                              <button
+                                onClick={() => handleRemoveAdmin(admin.id)}
+                                className="text-slate-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-md transition-all cursor-pointer bg-transparent border-none"
+                                title="Eliminar"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Card 6 — Pagina publica */}
+        <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden flex flex-col">
+          <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2.5">
+            <Globe size={16} className="text-violet-500" />
+            <h3 className="text-sm font-semibold text-slate-900">Pagina publica</h3>
+          </div>
+          <div className="p-5 flex-1 flex flex-col">
+            {/* Visibility toggle */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                {infoForm.publicVisible ? <Eye size={14} className="text-emerald-500" /> : <EyeOff size={14} className="text-slate-400" />}
+                <span className="text-sm text-slate-700">
+                  {infoForm.publicVisible ? 'Pagina visible' : 'Pagina oculta'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setInfoForm(p => ({ ...p, publicVisible: !p.publicVisible }))}
+                className={`relative w-9 h-5 rounded-full transition-colors duration-200 cursor-pointer border-none flex-shrink-0 ${
+                  infoForm.publicVisible ? 'bg-emerald-500' : 'bg-slate-200'
+                }`}
+              >
+                <span className={`absolute top-[2px] w-4 h-4 rounded-full bg-white shadow-sm transition-all duration-200 ${
+                  infoForm.publicVisible ? 'left-[18px]' : 'left-[2px]'
+                }`} />
+              </button>
+            </div>
+
+            {/* Slug */}
+            <div className="mb-3">
+              <label className="text-[11px] font-medium text-slate-500 mb-1 block">URL personalizada (slug)</label>
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-slate-400">/clinica/</span>
+                <input
+                  type="text"
+                  value={infoForm.slug}
+                  onChange={e => setInfoForm(p => ({ ...p, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))}
+                  placeholder="mi-clinica"
+                  className={inputCls}
+                />
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="mb-3 flex-1">
+              <label className="text-[11px] font-medium text-slate-500 mb-1 block">Descripcion publica</label>
+              <textarea
+                value={infoForm.description}
+                onChange={e => setInfoForm(p => ({ ...p, description: e.target.value }))}
+                rows={4}
+                placeholder="Describe tu clinica para los pacientes..."
+                className="w-full px-3 py-2 rounded-md border border-slate-200 bg-white text-sm text-slate-900 outline-none focus:border-gantly-blue/50 transition-all resize-y placeholder:text-slate-400"
+              />
+            </div>
+
+            <div className="mt-auto pt-3 border-t border-slate-100 flex justify-end">
+              <button
+                onClick={handleSaveInfo}
+                disabled={savingInfo}
+                className="h-8 px-4 rounded-md bg-violet-500 text-white text-xs font-semibold hover:bg-violet-600 transition-colors disabled:opacity-50 cursor-pointer border-none"
+              >
+                {savingInfo ? 'Guardando...' : 'Guardar pagina'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1035,6 +1285,9 @@ export default function ClinicDashboard() {
     { id: 'equipo',         icon: 'group',           label: 'Equipo' },
     { id: 'pacientes',      icon: 'people',          label: 'Pacientes' },
     { id: 'facturacion',    icon: 'receipt_long',    label: 'Facturación' },
+    { id: 'lista-espera',  icon: 'list_ordered',    label: 'Lista de espera' },
+    { id: 'seguros',        icon: 'shield_check',    label: 'Seguros' },
+    { id: 'auditoria',     icon: 'shield',           label: 'Auditoría' },
     { id: 'configuracion',  icon: 'settings',        label: 'Configuración' },
   ];
 
@@ -1165,6 +1418,15 @@ export default function ClinicDashboard() {
                 <div className="flex-1 overflow-y-auto">
                   <ClinicBilling psychologists={psychologists} clinicName={clinicInfo?.name} clinicNif={clinicInfo?.nif} clinicAddress={clinicInfo?.address} clinicPhone={clinicInfo?.phone} />
                 </div>
+              )}
+              {activeTab === 'lista-espera' && (
+                <ClinicWaitingList />
+              )}
+              {activeTab === 'seguros' && (
+                <ClinicInsuranceTab />
+              )}
+              {activeTab === 'auditoria' && (
+                <AuditLogViewer />
               )}
               {activeTab === 'configuracion' && (
                 <ConfigTab clinicInfo={clinicInfo} psychologists={psychologists} onClinicInfoUpdate={setClinicInfo} />

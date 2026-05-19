@@ -45,6 +45,20 @@ public class ConsentController {
         return ResponseEntity.ok(consentService.myPendingConsents(currentUserService.getCurrentUser(principal)));
     }
 
+    @GetMapping("/requests/sent")
+    @Operation(summary = "Consentimientos enviados por mí (psicólogo)", description = "Lista consentimientos enviados por el psicólogo autenticado")
+    @ApiResponse(responseCode = "200", description = "OK")
+    public ResponseEntity<List<ConsentDtos.ConsentRequestDto>> sentByMe(Principal principal) {
+        return ResponseEntity.ok(consentService.sentByPsychologist(currentUserService.getCurrentUser(principal)));
+    }
+
+    @GetMapping("/requests/{consentId}")
+    @Operation(summary = "Obtener detalle de consentimiento")
+    @ApiResponse(responseCode = "200", description = "OK")
+    public ResponseEntity<ConsentDtos.ConsentRequestDto> getConsentDetail(Principal principal, @PathVariable Long consentId) {
+        return ResponseEntity.ok(consentService.getConsentDetail(currentUserService.getCurrentUser(principal), consentId));
+    }
+
     @PostMapping("/requests/{consentId}/sign")
     @Operation(summary = "Firmar consentimiento (paciente)")
     @ApiResponse(responseCode = "200", description = "OK")

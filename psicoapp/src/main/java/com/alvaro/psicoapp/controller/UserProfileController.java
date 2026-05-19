@@ -1,7 +1,9 @@
 package com.alvaro.psicoapp.controller;
 
 import com.alvaro.psicoapp.dto.UserProfileDtos;
+import com.alvaro.psicoapp.service.ClinicService;
 import com.alvaro.psicoapp.service.CurrentUserService;
+import com.alvaro.psicoapp.service.PatientClinicPortalService;
 import com.alvaro.psicoapp.service.UserProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -23,10 +26,16 @@ import java.util.Map;
 public class UserProfileController {
     private final CurrentUserService currentUserService;
     private final UserProfileService userProfileService;
+    private final PatientClinicPortalService patientClinicPortalService;
+    private final ClinicService clinicService;
 
-    public UserProfileController(CurrentUserService currentUserService, UserProfileService userProfileService) {
+    public UserProfileController(CurrentUserService currentUserService, UserProfileService userProfileService,
+                                  PatientClinicPortalService patientClinicPortalService,
+                                  ClinicService clinicService) {
         this.currentUserService = currentUserService;
         this.userProfileService = userProfileService;
+        this.patientClinicPortalService = patientClinicPortalService;
+        this.clinicService = clinicService;
     }
 
     @GetMapping
@@ -100,5 +109,44 @@ public class UserProfileController {
     public ResponseEntity<Map<String, String>> deleteMyAccount(Principal principal) {
         userProfileService.deleteAccount(currentUserService.getCurrentUser(principal));
         return ResponseEntity.ok(Map.of("message", "Cuenta eliminada correctamente"));
+    }
+
+    // --- Patient Clinic Portal ---
+
+    @GetMapping("/my-clinic")
+    @Transactional(readOnly = true)
+    @Operation(summary = "Obtener mi clínica", description = "Devuelve la información de la clínica a la que pertenece el paciente")
+    @ApiResponse(responseCode = "200", description = "Clínica obtenida exitosamente")
+    public ResponseEntity<PatientClinicPortalService.MyClinicDto> getMyClinic(Principal principal) {
+        return ResponseEntity.ok(patientClinicPortalService.getMyClinic(currentUserService.getCurrentUser(principal)));
+    }
+
+    @GetMapping("/my-clinic/appointments")
+    @Transactional(readOnly = true)
+    @Operation(summary = "Mis citas de clínica", description = "Devuelve las citas del paciente con psicólogos de su clínica")
+    @ApiResponse(responseCode = "200", description = "Citas obtenidas exitosamente")
+    public ResponseEntity<List<PatientClinicPortalService.MyClinicAppointmentDto>> getMyClinicAppointments(Principal principal) {
+        return ResponseEntity.ok(patientClinicPortalService.getMyClinicAppointments(currentUserService.getCurrentUser(principal)));
+    }
+
+    @GetMapping("/my-clinic/documents")
+    @Transactional(readOnly = true)
+    @Operation(summary = "Mis documentos de clínica", description = "Devuelve los documentos compartidos con el paciente por la clínica")
+    @ApiResponse(responseCode = "200", description = "Documentos obtenidos exitosamente")
+    public ResponseEntity<List<PatientClinicPortalService.MyClinicDocumentDto>> getMyClinicDocuments(Principal principal) {
+        return ResponseEntity.ok(patientClinicPortalService.getMyClinicDocuments(currentUserService.getCurrentUser(principal)));
+    }
+
+    // --- Clinic Admin Invitation ---
+
+    @PostMapping("/clinic-admin/accept")
+    @Transactional
+    @Operation(summary = "Aceptar invitación de administrador de clínica",
+               description = "Acepta una invitación pendiente para ser administrador de una clínica")
+    @ApiResponse(responseCode = "200", description = "Invitación aceptada exitosamente")
+    public ResponseEntity<ClinicService.ClinicAdminDto> acceptClinicAdminInvitation(
+            Principal principal, @RequestParam Long companyId) {
+        var user = currentUserService.getCurrentUser(principal);
+        return ResponseEntity.ok(clinicService.acceptAdminInvitation(user.getId(), companyId));
     }
 }

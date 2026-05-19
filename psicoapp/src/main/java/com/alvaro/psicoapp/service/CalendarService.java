@@ -119,6 +119,11 @@ public class CalendarService {
 
         if (!created.isEmpty()) {
             auditService.logCalendarAction("APPOINTMENT_CREATED", created.get(0).getId(), psychologist.getId(), null);
+            for (AppointmentEntity c : created) {
+                auditService.persistAudit("CREATE_SLOT", "APPOINTMENT", c.getId(),
+                        psychologist.getId(), psychologist.getRole(), psychologist.getName(),
+                        null, "{\"price\":\"" + (c.getPrice() != null ? c.getPrice().toPlainString() : "null") + "\",\"count\":" + created.size() + "}");
+            }
         }
         return created;
     }
@@ -175,6 +180,9 @@ public class CalendarService {
                 });
         appointmentRepository.delete(appointment);
         auditService.logCalendarAction("APPOINTMENT_CANCELLED", appointmentId, psychologist.getId(), null);
+        auditService.persistAudit("DELETE_SLOT", "APPOINTMENT", appointmentId,
+                psychologist.getId(), psychologist.getRole(), psychologist.getName(),
+                null, null);
     }
 
     @Transactional
@@ -212,6 +220,9 @@ public class CalendarService {
 
         var saved = appointmentRepository.save(appointment);
         auditService.logCalendarAction("APPOINTMENT_UPDATED", appointmentId, psychologist.getId(), null);
+        auditService.persistAudit("EDIT_SLOT", "APPOINTMENT", appointmentId,
+                psychologist.getId(), psychologist.getRole(), psychologist.getName(),
+                null, "{\"price\":\"" + (saved.getPrice() != null ? saved.getPrice().toPlainString() : "null") + "\"}");
         return saved;
     }
 
@@ -287,6 +298,9 @@ public class CalendarService {
             "Nueva solicitud de cita", user.getName() + " ha solicitado una cita contigo.");
 
         auditService.logCalendarAction("APPOINTMENT_BOOKED", appointmentId, appt.getPsychologist().getId(), user.getId());
+        auditService.persistAudit("BOOK_APPOINTMENT", "APPOINTMENT", appointmentId,
+                user.getId(), user.getRole(), user.getName(),
+                appt.getPsychologist().getId(), null);
     }
 
     @Transactional(readOnly = true)
@@ -348,6 +362,9 @@ public class CalendarService {
             "Cita confirmada", "Tu cita con " + psychologist.getName() + " ha sido confirmada.");
 
         auditService.logCalendarAction("APPOINTMENT_CONFIRMED", appointment.getId(), psychologist.getId(), request.getUser().getId());
+        auditService.persistAudit("CONFIRM_APPOINTMENT", "APPOINTMENT", appointment.getId(),
+                psychologist.getId(), psychologist.getRole(), psychologist.getName(),
+                request.getUser().getId(), null);
     }
 
     @Transactional
@@ -371,6 +388,9 @@ public class CalendarService {
         appointmentRepository.save(appointment);
         auditService.logCalendarAction("APPOINTMENT_CANCELLED", appointmentId, psychologist.getId(),
                 appointment.getUser() != null ? appointment.getUser().getId() : null);
+        auditService.persistAudit("CANCEL_APPOINTMENT", "APPOINTMENT", appointmentId,
+                psychologist.getId(), psychologist.getRole(), psychologist.getName(),
+                appointment.getUser() != null ? appointment.getUser().getId() : null, null);
 
         if (appointment.getUser() != null) {
             notificationService.createNotification(appointment.getUser().getId(), "APPOINTMENT",
@@ -421,6 +441,9 @@ public class CalendarService {
 
         var saved = appointmentRepository.save(appointment);
         auditService.logCalendarAction("APPOINTMENT_CREATED", saved.getId(), psychologist.getId(), user.getId());
+        auditService.persistAudit("CREATE_APPOINTMENT", "APPOINTMENT", saved.getId(),
+                psychologist.getId(), psychologist.getRole(), psychologist.getName(),
+                user.getId(), "{\"price\":\"" + (saved.getPrice() != null ? saved.getPrice().toPlainString() : "null") + "\"}");
 
         try {
             emailService.sendAppointmentConfirmationEmail(
@@ -590,13 +613,39 @@ public class CalendarService {
         absence.setEndTime(end);
         absence.setReason(reason);
         var saved = psychAbsenceRepository.save(absence);
+        auditService.persistAudit("CREATE_ABSENCE", "ABSENCE", saved.getId(),
+                psychologist.getId(), psychologist.getRole(), psychologist.getName(),
+                null, "{\"reason\":\"" + (reason != null ? reason.replace("\"", "'") : "") + "\"}");
 
-        // Cancel overlapping FREE slots
+        // Process overlapping appointments
         var slots = appointmentRepository.findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(
                 psychologist.getId(), start, end);
         for (var slot : slots) {
-            if (AppointmentStatusEnum.FREE == slot.getStatus() && slot.getStartTime().isBefore(end) && slot.getEndTime().isAfter(start)) {
+            if (!slot.getStartTime().isBefore(end) || !slot.getEndTime().isAfter(start)) continue;
+
+            if (AppointmentStatusEnum.FREE == slot.getStatus()) {
+                // Cancel overlapping FREE slots
                 appointmentRepository.delete(slot);
+            } else if ((AppointmentStatusEnum.BOOKED == slot.getStatus()
+                        || AppointmentStatusEnum.CONFIRMED == slot.getStatus())
+                       && slot.getUser() != null) {
+                // Notify patients with BOOKED/CONFIRMED appointments
+                String patientName = slot.getUser().getName();
+                String psychName = psychologist.getName();
+                notificationService.createNotification(slot.getUser().getId(), "APPOINTMENT",
+                        "Ausencia de tu psicólogo",
+                        psychName + " ha marcado ausencia durante tu cita del "
+                                + slot.getStartTime().atZone(AppTimezone.APP_ZONE)
+                                    .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy 'a las' HH:mm"))
+                                + ". Por favor, contacta para reprogramar.");
+                try {
+                    emailService.sendAppointmentCancellationEmail(
+                            slot.getUser().getEmail(), patientName, psychName, slot.getStartTime());
+                } catch (Exception e) {
+                    logger.error("Error enviando email de ausencia al paciente {}", slot.getUser().getEmail(), e);
+                }
+                logger.info("Psychologist {} has marked absence during appointment on {} for patient {}",
+                        psychName, slot.getStartTime(), patientName);
             }
         }
         return saved;
@@ -618,6 +667,9 @@ public class CalendarService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes permiso para eliminar esta ausencia");
         }
         psychAbsenceRepository.delete(absence);
+        auditService.persistAudit("DELETE_ABSENCE", "ABSENCE", absenceId,
+                psychologist.getId(), psychologist.getRole(), psychologist.getName(),
+                null, null);
     }
 
     private void validateNoAbsenceOverlap(Long psychologistId, Instant start, Instant end) {

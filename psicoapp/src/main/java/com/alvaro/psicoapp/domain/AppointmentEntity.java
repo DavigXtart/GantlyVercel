@@ -91,6 +91,13 @@ public class AppointmentEntity {
     @Column(name = "recurrence_rule", length = 20)
     private String recurrenceRule;
 
+    @ManyToOne
+    @JoinColumn(name = "insurance_policy_id")
+    private InsurancePatientPolicyEntity insurancePolicy;
+
+    @Column(name = "billing_type", length = 20)
+    private String billingType = "PRIVATE"; // PRIVATE, INSURANCE
+
     @JsonIgnore
     @OneToMany(mappedBy = "appointment", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<AppointmentRequestEntity> requests = new ArrayList<>();
@@ -147,4 +154,8 @@ public class AppointmentEntity {
     public void setRecurrenceRule(String recurrenceRule) { this.recurrenceRule = recurrenceRule; }
     public List<AppointmentRequestEntity> getRequests() { return requests; }
     public void setRequests(List<AppointmentRequestEntity> requests) { this.requests = requests; }
+    public InsurancePatientPolicyEntity getInsurancePolicy() { return insurancePolicy; }
+    public void setInsurancePolicy(InsurancePatientPolicyEntity insurancePolicy) { this.insurancePolicy = insurancePolicy; }
+    public String getBillingType() { return billingType; }
+    public void setBillingType(String billingType) { this.billingType = billingType; }
 }

@@ -22,10 +22,12 @@ public final class ConsentDtos {
             Instant sentAt,
             Instant signedAt,
             String signerName,
-            String renderedContent
+            String renderedContent,
+            String signatureData,
+            String pdfUrl
     ) {}
 
-    public record SignConsentRequest(String signerName) {}
+    public record SignConsentRequest(String signerName, String signatureData) {}
 
     public record ConsentStatusSummary(
             Long userId,

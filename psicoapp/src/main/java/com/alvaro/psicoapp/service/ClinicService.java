@@ -14,9 +14,12 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import com.alvaro.psicoapp.config.AppTimezone;
 import com.alvaro.psicoapp.domain.ClinicInvitationEntity;
+import com.alvaro.psicoapp.repository.ClinicAdminRepository;
 import com.alvaro.psicoapp.repository.ClinicInvitationRepository;
 import com.alvaro.psicoapp.repository.ClinicServiceRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +28,8 @@ import java.util.Map;
 
 @Service
 public class ClinicService {
+
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ClinicService.class);
 
     private final CompanyRepository companyRepository;
     private final UserRepository userRepository;
@@ -35,8 +40,11 @@ public class ClinicService {
     private final ClinicPatientDocumentRepository clinicPatientDocumentRepository;
     private final ClinicRoomRepository clinicRoomRepository;
     private final ClinicServiceRepository clinicServiceRepository;
+    private final ClinicAdminRepository clinicAdminRepository;
+    private final PsychAbsenceRepository psychAbsenceRepository;
     private final EmailService emailService;
     private final StripeService stripeService;
+    private final AuditService auditService;
 
     @Value("${app.base.url:http://localhost:5173}")
     private String baseUrl;
@@ -50,8 +58,11 @@ public class ClinicService {
                          ClinicPatientDocumentRepository clinicPatientDocumentRepository,
                          ClinicRoomRepository clinicRoomRepository,
                          ClinicServiceRepository clinicServiceRepository,
+                         ClinicAdminRepository clinicAdminRepository,
+                         PsychAbsenceRepository psychAbsenceRepository,
                          EmailService emailService,
-                         StripeService stripeService) {
+                         StripeService stripeService,
+                         AuditService auditService) {
         this.companyRepository = companyRepository;
         this.userRepository = userRepository;
         this.appointmentRepository = appointmentRepository;
@@ -61,8 +72,11 @@ public class ClinicService {
         this.clinicPatientDocumentRepository = clinicPatientDocumentRepository;
         this.clinicRoomRepository = clinicRoomRepository;
         this.clinicServiceRepository = clinicServiceRepository;
+        this.clinicAdminRepository = clinicAdminRepository;
+        this.psychAbsenceRepository = psychAbsenceRepository;
         this.emailService = emailService;
         this.stripeService = stripeService;
+        this.auditService = auditService;
     }
 
     // --- DTOs ---
@@ -99,7 +113,9 @@ public class ClinicService {
                                             String startTime, String endTime, String service,
                                             BigDecimal price, String notes, String clinicNotes,
                                             String paymentStatus, String modality, String paymentMethod,
-                                            Long roomId, Boolean taxExempt, BigDecimal taxRate) {}
+                                            Long roomId, Boolean taxExempt, BigDecimal taxRate,
+                                            String recurrenceRule, Integer recurrenceCount,
+                                            Long serviceId) {}
     public record UpdateAppointmentRequest(Long patientId, String patientName, String startTime, String endTime,
                                             String service, BigDecimal price, String notes, String clinicNotes,
                                             String paymentStatus, String modality, String paymentMethod,
@@ -112,6 +128,11 @@ public class ClinicService {
     public record ClinicRoomDto(Long id, String name, String color, Long assignedPsychologistId, Boolean active) {}
     public record CreateRoomRequest(String name, String color, Long assignedPsychologistId) {}
     public record UpdateRoomRequest(String name, String color, Long assignedPsychologistId, Boolean active) {}
+    // Multi-admin DTOs
+    public record ClinicAdminDto(Long id, Long userId, String userName, String userEmail, String avatarUrl,
+                                  String role, String status, String invitedByEmail,
+                                  String invitedAt, String acceptedAt) {}
+    public record InviteAdminRequest(String email, String role) {}
 
     private CompanyEntity getCompany(String email) {
         return companyRepository.findByEmail(email)
@@ -244,7 +265,7 @@ public class ClinicService {
     }
 
     @Transactional
-    public ClinicAppointmentDto createAppointment(String email, CreateAppointmentRequest req) {
+    public List<ClinicAppointmentDto> createAppointment(String email, CreateAppointmentRequest req) {
         var company = getCompany(email);
         UserEntity psych = userRepository.findById(req.psychologistId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Psicólogo no encontrado"));
@@ -256,39 +277,117 @@ public class ClinicService {
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Paciente no encontrado"));
         }
 
-        // Prevent double-booking: check no active appointment exists for the same psychologist/time
-        Instant parsedStart = Instant.parse(req.startTime());
-        if (appointmentRepository.existsActiveAppointment(psych.getId(), parsedStart)) {
-            throw new IllegalArgumentException("Este horario ya está reservado");
+        // Auto-populate from service catalog if serviceId is provided
+        ClinicServiceEntity catalogService = null;
+        if (req.serviceId() != null) {
+            catalogService = clinicServiceRepository.findById(req.serviceId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Servicio no encontrado"));
+            if (!company.getId().equals(catalogService.getCompanyId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Este servicio no pertenece a tu empresa");
+            }
+            if (!Boolean.TRUE.equals(catalogService.getActive())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este servicio no está activo");
+            }
         }
 
-        AppointmentEntity appt = new AppointmentEntity();
-        appt.setPsychologist(psych);
-        appt.setUser(patient);
-        appt.setStartTime(parsedStart);
-        appt.setEndTime(Instant.parse(req.endTime()));
-        appt.setStatus(AppointmentStatusEnum.CONFIRMED);
-        appt.setService(req.service());
-        appt.setPrice(req.price());
-        appt.setNotes(req.notes());
-        appt.setClinicNotes(req.clinicNotes());
-        String paymentMethod = req.paymentMethod() != null ? req.paymentMethod() : "STRIPE";
-        appt.setPaymentMethod(paymentMethod);
-        appt.setModality(req.modality() != null ? req.modality() : "ONLINE");
-        // CASH appointments are pre-paid by definition — auto-set to PAID so Jitsi won't block
-        if ("CASH".equalsIgnoreCase(paymentMethod)) {
-            appt.setPaymentStatus(PaymentStatusEnum.PAID);
+        // Determine service name, price, and endTime from catalog or request
+        String serviceName = req.service();
+        BigDecimal servicePrice = req.price();
+        if (catalogService != null) {
+            if (serviceName == null || serviceName.isBlank()) serviceName = catalogService.getName();
+            if (servicePrice == null) servicePrice = catalogService.getDefaultPrice();
+        }
+
+        Instant baseStart = Instant.parse(req.startTime());
+        Instant baseEnd;
+        if (req.endTime() != null) {
+            baseEnd = Instant.parse(req.endTime());
+        } else if (catalogService != null && catalogService.getDurationMinutes() != null) {
+            baseEnd = baseStart.plusSeconds(catalogService.getDurationMinutes() * 60L);
         } else {
-            appt.setPaymentStatus(req.paymentStatus() != null ? PaymentStatusEnum.valueOf(req.paymentStatus()) : PaymentStatusEnum.PENDING);
+            baseEnd = baseStart.plusSeconds(3600); // Default 1 hour
         }
-        appt.setRoomId(req.roomId());
-        appt.setTaxExempt(req.taxExempt() != null ? req.taxExempt() : true);
-        if (req.taxRate() != null) appt.setTaxRate(req.taxRate());
-        calculateTax(appt);
-        appt.setConfirmedAt(Instant.now());
-        appointmentRepository.save(appt);
 
-        return toAppointmentDto(appt, psych);
+        // Determine recurrence parameters
+        String groupId = null;
+        int count = 1;
+        if (req.recurrenceRule() != null && req.recurrenceCount() != null && req.recurrenceCount() > 1) {
+            groupId = UUID.randomUUID().toString();
+            count = Math.min(req.recurrenceCount(), 52);
+        }
+
+        List<ClinicAppointmentDto> created = new ArrayList<>();
+
+        for (int i = 0; i < count; i++) {
+            Instant start = offsetTime(baseStart, req.recurrenceRule(), i);
+            Instant end = offsetTime(baseEnd, req.recurrenceRule(), i);
+
+            // Check double-booking
+            if (appointmentRepository.existsActiveAppointment(psych.getId(), start)) {
+                if (i == 0) throw new IllegalArgumentException("Este horario ya está reservado");
+                continue; // Skip conflicting recurring slots
+            }
+
+            // Check absence overlap for recurring appointments
+            if (i > 0) {
+                var absences = psychAbsenceRepository.findOverlapping(psych.getId(), start, end);
+                if (!absences.isEmpty()) continue; // Skip slots overlapping absences
+            }
+
+            AppointmentEntity appt = new AppointmentEntity();
+            appt.setPsychologist(psych);
+            appt.setUser(patient);
+            appt.setStartTime(start);
+            appt.setEndTime(end);
+            appt.setStatus(AppointmentStatusEnum.CONFIRMED);
+            appt.setService(serviceName);
+            appt.setPrice(servicePrice);
+            appt.setNotes(req.notes());
+            appt.setClinicNotes(req.clinicNotes());
+            String paymentMethod = req.paymentMethod() != null ? req.paymentMethod() : "STRIPE";
+            appt.setPaymentMethod(paymentMethod);
+            appt.setModality(req.modality() != null ? req.modality() : "ONLINE");
+            // CASH appointments are pre-paid by definition — auto-set to PAID so Jitsi won't block
+            if ("CASH".equalsIgnoreCase(paymentMethod)) {
+                appt.setPaymentStatus(PaymentStatusEnum.PAID);
+            } else {
+                appt.setPaymentStatus(req.paymentStatus() != null ? PaymentStatusEnum.valueOf(req.paymentStatus()) : PaymentStatusEnum.PENDING);
+            }
+            appt.setRoomId(req.roomId());
+            appt.setTaxExempt(req.taxExempt() != null ? req.taxExempt() : true);
+            if (req.taxRate() != null) appt.setTaxRate(req.taxRate());
+            appt.setRecurrenceGroupId(groupId);
+            appt.setRecurrenceRule(req.recurrenceRule());
+            calculateTax(appt);
+            appt.setConfirmedAt(Instant.now());
+            appointmentRepository.save(appt);
+
+            created.add(toAppointmentDto(appt, psych));
+        }
+
+        if (created.isEmpty()) {
+            throw new IllegalArgumentException("No se pudo crear ninguna cita");
+        }
+
+        for (ClinicAppointmentDto dto : created) {
+            auditService.persistAudit("CREATE_APPOINTMENT", "APPOINTMENT", dto.id(),
+                    req.psychologistId(), RoleConstants.PSYCHOLOGIST, psych.getName(),
+                    req.patientId(),
+                    "{\"service\":\"" + (req.service() != null ? req.service() : "") + "\",\"source\":\"CLINIC\",\"count\":" + created.size() + "}");
+        }
+
+        return created;
+    }
+
+    private Instant offsetTime(Instant base, String rule, int index) {
+        if (index == 0 || rule == null) return base;
+        ZonedDateTime zdt = base.atZone(AppTimezone.APP_ZONE);
+        return switch (rule.toUpperCase()) {
+            case "WEEKLY" -> zdt.plusWeeks(index).toInstant();
+            case "BIWEEKLY" -> zdt.plusWeeks(index * 2L).toInstant();
+            case "MONTHLY" -> zdt.plusMonths(index).toInstant();
+            default -> base;
+        };
     }
 
     @Transactional
@@ -326,6 +425,11 @@ public class ClinicService {
         }
         appointmentRepository.save(appt);
 
+        auditService.persistAudit("UPDATE_APPOINTMENT", "APPOINTMENT", appointmentId,
+                appt.getPsychologist().getId(), RoleConstants.PSYCHOLOGIST, appt.getPsychologist().getName(),
+                appt.getUser() != null ? appt.getUser().getId() : null,
+                "{\"source\":\"CLINIC\"}");
+
         return toAppointmentDto(appt, appt.getPsychologist());
     }
 
@@ -337,6 +441,11 @@ public class ClinicService {
         assertPsychBelongsToCompany(appt.getPsychologist(), company.getId());
         appt.setStatus(AppointmentStatusEnum.CANCELLED);
         appointmentRepository.save(appt);
+
+        auditService.persistAudit("CANCEL_APPOINTMENT", "APPOINTMENT", appointmentId,
+                appt.getPsychologist().getId(), RoleConstants.PSYCHOLOGIST, appt.getPsychologist().getName(),
+                appt.getUser() != null ? appt.getUser().getId() : null,
+                "{\"source\":\"CLINIC\"}");
     }
 
     @Transactional(readOnly = true)
@@ -635,6 +744,23 @@ public class ClinicService {
                 revThis, revPrev, occ, psychStats, trend);
     }
 
+    // -------------------------------------------------------------------------
+    // Audit logs
+    // -------------------------------------------------------------------------
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<com.alvaro.psicoapp.domain.AuditLogEntity> getAuditLogs(
+            String email, Instant from, Instant to, org.springframework.data.domain.Pageable pageable) {
+        var company = getCompany(email);
+        List<Long> psychIds = userRepository.findByCompanyId(company.getId()).stream()
+                .filter(u -> RoleConstants.PSYCHOLOGIST.equals(u.getRole()))
+                .map(UserEntity::getId)
+                .collect(Collectors.toList());
+        if (psychIds.isEmpty()) {
+            return org.springframework.data.domain.Page.empty(pageable);
+        }
+        return auditService.getAuditLogsByPerformers(psychIds, from, to, pageable);
+    }
+
     private void calculateTax(AppointmentEntity appointment) {
         if (appointment.getPrice() == null) return;
 
@@ -844,6 +970,148 @@ public class ClinicService {
                 .stream()
                 .map(a -> toAppointmentDto(a, psych))
                 .collect(Collectors.toList());
+    }
+
+    // -------------------------------------------------------------------------
+    // Psychologist absences (Feature 11)
+    // -------------------------------------------------------------------------
+    public record ClinicAbsenceDto(Long id, String startTime, String endTime, String reason, String createdAt) {}
+
+    @Transactional(readOnly = true)
+    public List<ClinicAbsenceDto> getPsychologistAbsences(String email, Long psychologistId) {
+        var company = getCompany(email);
+        UserEntity psych = userRepository.findById(psychologistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Psicólogo no encontrado"));
+        assertPsychBelongsToCompany(psych, company.getId());
+        return psychAbsenceRepository.findByPsychologist_IdAndEndTimeAfterOrderByStartTimeAsc(
+                        psychologistId, Instant.now())
+                .stream()
+                .map(a -> new ClinicAbsenceDto(a.getId(),
+                        a.getStartTime().toString(), a.getEndTime().toString(),
+                        a.getReason(), a.getCreatedAt().toString()))
+                .collect(Collectors.toList());
+    }
+
+    // -------------------------------------------------------------------------
+    // Multi-admin management (Feature 8)
+    // -------------------------------------------------------------------------
+    private ClinicAdminDto toAdminDto(ClinicAdminEntity a) {
+        UserEntity u = a.getUser();
+        return new ClinicAdminDto(a.getId(), u.getId(), u.getName(), u.getEmail(), u.getAvatarUrl(),
+                a.getRole(), a.getStatus(), a.getInvitedByEmail(),
+                a.getInvitedAt() != null ? a.getInvitedAt().toString() : null,
+                a.getAcceptedAt() != null ? a.getAcceptedAt().toString() : null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ClinicAdminDto> getAdmins(String email) {
+        var company = getCompany(email);
+        return clinicAdminRepository.findByCompanyIdOrderByInvitedAtDesc(company.getId()).stream()
+                .map(this::toAdminDto)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public ClinicAdminDto inviteAdmin(String email, InviteAdminRequest req) {
+        var company = getCompany(email);
+        // Only OWNER can invite
+        assertCallerIsOwner(company.getId(), email);
+
+        String targetEmail = req.email().trim().toLowerCase();
+        String role = req.role() != null ? req.role().toUpperCase() : "ADMIN";
+        if (!Set.of("ADMIN", "VIEWER").contains(role)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rol invalido. Usa ADMIN o VIEWER");
+        }
+
+        UserEntity targetUser = userRepository.findByEmail(targetEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "No se encontro un usuario con ese email. Debe estar registrado en la plataforma"));
+
+        // Check if already an admin
+        clinicAdminRepository.findByCompanyIdAndUserId(company.getId(), targetUser.getId())
+                .ifPresent(existing -> {
+                    if ("ACTIVE".equals(existing.getStatus()) || "INVITED".equals(existing.getStatus())) {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT, "Este usuario ya es administrador o tiene una invitacion pendiente");
+                    }
+                });
+
+        ClinicAdminEntity admin = new ClinicAdminEntity();
+        admin.setCompany(company);
+        admin.setUser(targetUser);
+        admin.setRole(role);
+        admin.setInvitedByEmail(email);
+        admin.setStatus("INVITED");
+        clinicAdminRepository.save(admin);
+
+        logger.info("Admin invitation sent: {} invited {} as {} to company {}", email, targetEmail, role, company.getId());
+        return toAdminDto(admin);
+    }
+
+    @Transactional
+    public ClinicAdminDto acceptAdminInvitation(Long userId, Long companyId) {
+        ClinicAdminEntity admin = clinicAdminRepository.findByCompanyIdAndUserId(companyId, userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invitacion no encontrada"));
+        if (!"INVITED".equals(admin.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Esta invitacion ya fue procesada");
+        }
+        admin.setStatus("ACTIVE");
+        admin.setAcceptedAt(Instant.now());
+        clinicAdminRepository.save(admin);
+        logger.info("Admin invitation accepted: userId={} companyId={}", userId, companyId);
+        return toAdminDto(admin);
+    }
+
+    @Transactional
+    public ClinicAdminDto updateAdminRole(String email, Long adminId, String newRole) {
+        var company = getCompany(email);
+        assertCallerIsOwner(company.getId(), email);
+
+        String role = newRole.toUpperCase();
+        if (!Set.of("ADMIN", "VIEWER").contains(role)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rol invalido. Usa ADMIN o VIEWER");
+        }
+
+        ClinicAdminEntity admin = clinicAdminRepository.findById(adminId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Administrador no encontrado"));
+        if (!company.getId().equals(admin.getCompany().getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No autorizado");
+        }
+        if ("OWNER".equals(admin.getRole())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se puede cambiar el rol del propietario");
+        }
+        admin.setRole(role);
+        clinicAdminRepository.save(admin);
+        return toAdminDto(admin);
+    }
+
+    @Transactional
+    public void removeAdmin(String email, Long adminId) {
+        var company = getCompany(email);
+        assertCallerIsOwner(company.getId(), email);
+
+        ClinicAdminEntity admin = clinicAdminRepository.findById(adminId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Administrador no encontrado"));
+        if (!company.getId().equals(admin.getCompany().getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No autorizado");
+        }
+        if ("OWNER".equals(admin.getRole())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se puede eliminar al propietario");
+        }
+        admin.setStatus("DEACTIVATED");
+        clinicAdminRepository.save(admin);
+    }
+
+    private void assertCallerIsOwner(Long companyId, String callerEmail) {
+        // The company email itself is always owner
+        var company = companyRepository.findByEmail(callerEmail).orElse(null);
+        if (company != null && company.getId().equals(companyId)) return;
+        // Otherwise check clinic_admins table for OWNER role
+        var callerUser = userRepository.findByEmail(callerEmail).orElse(null);
+        if (callerUser != null) {
+            var adminEntry = clinicAdminRepository.findByCompanyIdAndUserId(companyId, callerUser.getId());
+            if (adminEntry.isPresent() && "OWNER".equals(adminEntry.get().getRole())) return;
+        }
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo el propietario puede realizar esta accion");
     }
 
 }
