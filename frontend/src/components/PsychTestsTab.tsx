@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { testService, assignedTestsService } from '../services/api';
+import { testService, assignedTestsService, evaluationTestService } from '../services/api';
 import { toast } from './ui/Toast';
-import { Brain, Search, HelpCircle, CalendarDays, CheckCircle, ChevronRight } from 'lucide-react';
+import { Brain, Search, HelpCircle, CalendarDays, CheckCircle, ChevronRight, Stethoscope } from 'lucide-react';
 
 interface PsychTestsTabProps {
   patients: any[];
@@ -15,6 +15,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
   const [assignTestForm, setAssignTestForm] = useState<{ userId: string; testId: string }>({ userId: '', testId: '' });
   const [testSearchTerm, setTestSearchTerm] = useState('');
   const [availableTests, setAvailableTests] = useState<any[]>([]);
+  const [availableEvalTests, setAvailableEvalTests] = useState<any[]>([]);
   const [expandedPatients, setExpandedPatients] = useState<Set<number>>(new Set());
 
   return (
@@ -30,15 +31,15 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
           onClick={async () => {
             setShowAssignTestForm(true);
             try {
-              const tests = await testService.list();
-              const activeTests = (tests || []).filter((t: any) => {
-                if (t.active === false) {
-                  return false;
-                }
-                return true;
-              });
+              const [tests, evalTests] = await Promise.all([
+                testService.list(),
+                evaluationTestService.getAllTests().catch(() => [])
+              ]);
+              const activeTests = (tests || []).filter((t: any) => t.active !== false);
+              const activeEvalTests = (Array.isArray(evalTests) ? evalTests : (evalTests?.tests || [])).filter((t: any) => t.active !== false);
               setAvailableTests(activeTests);
-              if (activeTests.length === 0) {
+              setAvailableEvalTests(activeEvalTests);
+              if (activeTests.length === 0 && activeEvalTests.length === 0) {
                 toast.warning('No hay tests disponibles para asignar. Verifica que haya tests activos en el sistema.');
               }
             } catch (error: any) {
@@ -98,14 +99,18 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                 )}
               </div>
               {(() => {
-                const filteredTests = availableTests.filter((t: any) => {
-                  if (!testSearchTerm.trim()) return true;
-                  const query = testSearchTerm.toLowerCase();
+                const query = testSearchTerm.trim().toLowerCase();
+                const filterFn = (t: any) => {
+                  if (!query) return true;
                   return (
                     (t.title || '').toLowerCase().includes(query) ||
                     (t.code || '').toLowerCase().includes(query)
                   );
-                });
+                };
+                const filteredTests = availableTests.filter(filterFn);
+                const filteredEvalTests = availableEvalTests.filter(filterFn);
+                const totalFiltered = filteredTests.length + filteredEvalTests.length;
+                const totalAvailable = availableTests.length + availableEvalTests.length;
 
                 return (
                   <>
@@ -114,28 +119,41 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                       onChange={(e) => setAssignTestForm({ ...assignTestForm, testId: e.target.value })}
                       className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 bg-white outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                     >
-                      <option value="">{testSearchTerm.trim() ? `Selecciona de ${filteredTests.length} resultado(s)` : 'Selecciona un test'}</option>
-                      {availableTests.length === 0 ? (
+                      <option value="">{query ? `Selecciona de ${totalFiltered} resultado(s)` : 'Selecciona un test'}</option>
+                      {totalAvailable === 0 ? (
                         <option value="" disabled>Cargando tests...</option>
-                      ) : filteredTests.length === 0 ? (
+                      ) : totalFiltered === 0 ? (
                         <option value="" disabled>No se encontraron tests</option>
                       ) : (
-                        filteredTests.map((t: any) => (
-                          <option key={t.id} value={t.id}>{t.title} {t.code ? `(${t.code})` : ''}</option>
-                        ))
+                        <>
+                          {filteredTests.length > 0 && (
+                            <optgroup label="Tests de personalidad">
+                              {filteredTests.map((t: any) => (
+                                <option key={`test:${t.id}`} value={`test:${t.id}`}>{t.title} {t.code ? `(${t.code})` : ''}</option>
+                              ))}
+                            </optgroup>
+                          )}
+                          {filteredEvalTests.length > 0 && (
+                            <optgroup label="Tests clinicos">
+                              {filteredEvalTests.map((t: any) => (
+                                <option key={`eval:${t.id}`} value={`eval:${t.id}`}>{t.title} {t.code ? `(${t.code})` : ''}</option>
+                              ))}
+                            </optgroup>
+                          )}
+                        </>
                       )}
                     </select>
-                    {testSearchTerm.trim() && filteredTests.length > 0 && (
+                    {query && totalFiltered > 0 && (
                       <div className="text-xs text-emerald-600 font-medium mt-1.5">
-                        Mostrando {filteredTests.length} de {availableTests.length} tests
+                        Mostrando {totalFiltered} de {totalAvailable} tests
                       </div>
                     )}
-                    {availableTests.length === 0 && (
+                    {totalAvailable === 0 && (
                       <div className="text-xs text-red-500 mt-1.5">
                         No hay tests disponibles. Verifica que haya tests activos en el sistema.
                       </div>
                     )}
-                    {testSearchTerm.trim() && filteredTests.length === 0 && availableTests.length > 0 && (
+                    {query && totalFiltered === 0 && totalAvailable > 0 && (
                       <div className="text-xs text-red-500 mt-1.5">
                         No se encontraron tests que coincidan con &ldquo;{testSearchTerm}&rdquo;
                       </div>
@@ -153,17 +171,26 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                   }
                   try {
                     const userId = parseInt(assignTestForm.userId);
-                    const testId = parseInt(assignTestForm.testId);
-
-                    if (isNaN(userId) || isNaN(testId)) {
-                      toast.error('Error: Los valores seleccionados no son validos');
+                    if (isNaN(userId)) {
+                      toast.error('Error: El paciente seleccionado no es valido');
                       return;
                     }
 
-                    await assignedTestsService.assign({
-                      userId,
-                      testId
-                    });
+                    const selected = assignTestForm.testId;
+                    const isEval = selected.startsWith('eval:');
+                    const idStr = selected.replace(/^(test|eval):/, '');
+                    const id = parseInt(idStr);
+
+                    if (isNaN(id)) {
+                      toast.error('Error: El test seleccionado no es valido');
+                      return;
+                    }
+
+                    if (isEval) {
+                      await assignedTestsService.assign({ userId, evaluationTestId: id });
+                    } else {
+                      await assignedTestsService.assign({ userId, testId: id });
+                    }
 
                     await onRefresh();
                     setShowAssignTestForm(false);
@@ -331,12 +358,18 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                                     </span>
                                   )}
                                 </div>
-                                <div className="font-semibold text-slate-800 mb-0.5">
+                                <div className="font-semibold text-slate-800 mb-0.5 flex items-center gap-2">
+                                  {at.evaluationTestId && <Stethoscope size={14} className="text-teal-500 flex-shrink-0" />}
                                   {at.testTitle || at.test?.title || 'Test'}
                                 </div>
-                                {at.testCode && (
-                                  <div className="text-xs text-slate-500 font-mono bg-slate-50 px-2 py-0.5 rounded inline-block">Codigo: {at.testCode}</div>
-                                )}
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  {at.evaluationTestId && (
+                                    <span className="text-xs text-teal-600 font-medium bg-teal-50 px-2 py-0.5 rounded border border-teal-200">Clinico</span>
+                                  )}
+                                  {(at.testCode || at.evaluationTestCode) && (
+                                    <span className="text-xs text-slate-500 font-mono bg-slate-50 px-2 py-0.5 rounded inline-block">Codigo: {at.testCode || at.evaluationTestCode}</span>
+                                  )}
+                                </div>
                               </div>
                               <div className="flex items-center gap-2 flex-shrink-0">
                                 {at.completedAt && (

@@ -10,9 +10,11 @@ import com.alvaro.psicoapp.domain.RequestStatusEnum;
 import com.alvaro.psicoapp.domain.RoleConstants;
 import com.alvaro.psicoapp.domain.UserEntity;
 import com.alvaro.psicoapp.dto.CalendarDtos;
+import com.alvaro.psicoapp.domain.PsychAbsenceEntity;
 import com.alvaro.psicoapp.repository.AppointmentRatingRepository;
 import com.alvaro.psicoapp.repository.AppointmentRepository;
 import com.alvaro.psicoapp.repository.AppointmentRequestRepository;
+import com.alvaro.psicoapp.repository.PsychAbsenceRepository;
 import com.alvaro.psicoapp.repository.UserPsychologistRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
 import org.slf4j.Logger;
@@ -28,10 +30,12 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,6 +49,7 @@ public class CalendarService {
     private final AppointmentRatingRepository appointmentRatingRepository;
     private final UserRepository userRepository;
     private final UserPsychologistRepository userPsychologistRepository;
+    private final PsychAbsenceRepository psychAbsenceRepository;
     private final EmailService emailService;
     private final NotificationService notificationService;
     private final AuditService auditService;
@@ -54,6 +59,7 @@ public class CalendarService {
                            AppointmentRatingRepository appointmentRatingRepository,
                            UserRepository userRepository,
                            UserPsychologistRepository userPsychologistRepository,
+                           PsychAbsenceRepository psychAbsenceRepository,
                            EmailService emailService,
                            NotificationService notificationService,
                            AuditService auditService) {
@@ -62,28 +68,90 @@ public class CalendarService {
         this.appointmentRatingRepository = appointmentRatingRepository;
         this.userRepository = userRepository;
         this.userPsychologistRepository = userPsychologistRepository;
+        this.psychAbsenceRepository = psychAbsenceRepository;
         this.emailService = emailService;
         this.notificationService = notificationService;
         this.auditService = auditService;
     }
 
     @Transactional
-    public AppointmentEntity createSlot(UserEntity psychologist, CalendarDtos.CreateSlotRequest req) {
+    public List<AppointmentEntity> createSlot(UserEntity psychologist, CalendarDtos.CreateSlotRequest req) {
         requirePsychologist(psychologist);
         validateSlotTimes(req.start, req.end);
         validateNoOverlap(psychologist.getId(), req.start, req.end, null);
+        validateNoAbsenceOverlap(psychologist.getId(), req.start, req.end);
         validatePrice(req.price);
 
-        AppointmentEntity a = new AppointmentEntity();
-        a.setPsychologist(psychologist);
-        a.setStartTime(req.start);
-        a.setEndTime(req.end);
-        a.setStatus(AppointmentStatusEnum.FREE);
-        a.setPrice(req.price);
-        calculateTax(a);
-        var saved = appointmentRepository.save(a);
-        auditService.logCalendarAction("APPOINTMENT_CREATED", saved.getId(), psychologist.getId(), null);
-        return saved;
+        List<AppointmentEntity> created = new ArrayList<>();
+        String groupId = null;
+        int count = 1;
+
+        if (req.recurrenceRule != null && req.recurrenceCount != null && req.recurrenceCount > 1) {
+            groupId = UUID.randomUUID().toString();
+            count = Math.min(req.recurrenceCount, 52);
+        }
+
+        for (int i = 0; i < count; i++) {
+            Instant start = offsetTime(req.start, req.recurrenceRule, i);
+            Instant end = offsetTime(req.end, req.recurrenceRule, i);
+
+            if (i > 0) {
+                try {
+                    validateSlotTimes(start, end);
+                    validateNoOverlap(psychologist.getId(), start, end, null);
+                    validateNoAbsenceOverlap(psychologist.getId(), start, end);
+                } catch (IllegalArgumentException e) {
+                    continue; // Skip slots that overlap or are in the past
+                }
+            }
+
+            AppointmentEntity a = new AppointmentEntity();
+            a.setPsychologist(psychologist);
+            a.setStartTime(start);
+            a.setEndTime(end);
+            a.setStatus(AppointmentStatusEnum.FREE);
+            a.setPrice(req.price);
+            a.setRecurrenceGroupId(groupId);
+            a.setRecurrenceRule(req.recurrenceRule);
+            calculateTax(a);
+            created.add(appointmentRepository.save(a));
+        }
+
+        if (!created.isEmpty()) {
+            auditService.logCalendarAction("APPOINTMENT_CREATED", created.get(0).getId(), psychologist.getId(), null);
+        }
+        return created;
+    }
+
+    private Instant offsetTime(Instant base, String rule, int index) {
+        if (index == 0 || rule == null) return base;
+        ZonedDateTime zdt = base.atZone(AppTimezone.APP_ZONE);
+        return switch (rule.toUpperCase()) {
+            case "WEEKLY" -> zdt.plusWeeks(index).toInstant();
+            case "BIWEEKLY" -> zdt.plusWeeks(index * 2L).toInstant();
+            case "MONTHLY" -> zdt.plusMonths(index).toInstant();
+            default -> base;
+        };
+    }
+
+    @Transactional
+    public CalendarDtos.DeleteRecurrenceResponse deleteRecurrenceGroup(UserEntity psychologist, String groupId) {
+        requirePsychologist(psychologist);
+        var slots = appointmentRepository.findByRecurrenceGroupId(groupId);
+        int deleted = 0, skipped = 0;
+        for (var slot : slots) {
+            if (!slot.getPsychologist().getId().equals(psychologist.getId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes permiso para eliminar esta serie");
+            }
+            if (AppointmentStatusEnum.FREE == slot.getStatus()) {
+                appointmentRepository.delete(slot);
+                deleted++;
+            } else {
+                skipped++;
+            }
+        }
+        return new CalendarDtos.DeleteRecurrenceResponse(
+                "Serie eliminada: " + deleted + " slots eliminados, " + skipped + " omitidos (con reservas)", deleted, skipped);
     }
 
     @Transactional
@@ -504,6 +572,59 @@ public class CalendarService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cita no encontrada"));
         requireOwnership(appointment.getPsychologist().getId(), psychologist.getId(), "ver notas de");
         return appointment.getNotes();
+    }
+
+    // --- Absence management ---
+
+    @Transactional
+    public PsychAbsenceEntity createAbsence(UserEntity psychologist, Instant start, Instant end, String reason) {
+        requirePsychologist(psychologist);
+        if (!end.isAfter(start)) throw new IllegalArgumentException("La fecha de fin debe ser posterior a la de inicio");
+
+        var overlapping = psychAbsenceRepository.findOverlapping(psychologist.getId(), start, end);
+        if (!overlapping.isEmpty()) throw new IllegalArgumentException("Ya existe una ausencia en ese periodo");
+
+        PsychAbsenceEntity absence = new PsychAbsenceEntity();
+        absence.setPsychologist(psychologist);
+        absence.setStartTime(start);
+        absence.setEndTime(end);
+        absence.setReason(reason);
+        var saved = psychAbsenceRepository.save(absence);
+
+        // Cancel overlapping FREE slots
+        var slots = appointmentRepository.findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(
+                psychologist.getId(), start, end);
+        for (var slot : slots) {
+            if (AppointmentStatusEnum.FREE == slot.getStatus() && slot.getStartTime().isBefore(end) && slot.getEndTime().isAfter(start)) {
+                appointmentRepository.delete(slot);
+            }
+        }
+        return saved;
+    }
+
+    @Transactional(readOnly = true)
+    public List<PsychAbsenceEntity> getAbsences(UserEntity psychologist) {
+        requirePsychologist(psychologist);
+        return psychAbsenceRepository.findByPsychologist_IdAndEndTimeAfterOrderByStartTimeAsc(
+                psychologist.getId(), Instant.now());
+    }
+
+    @Transactional
+    public void deleteAbsence(UserEntity psychologist, Long absenceId) {
+        requirePsychologist(psychologist);
+        var absence = psychAbsenceRepository.findById(absenceId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ausencia no encontrada"));
+        if (!absence.getPsychologist().getId().equals(psychologist.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes permiso para eliminar esta ausencia");
+        }
+        psychAbsenceRepository.delete(absence);
+    }
+
+    private void validateNoAbsenceOverlap(Long psychologistId, Instant start, Instant end) {
+        var absences = psychAbsenceRepository.findOverlapping(psychologistId, start, end);
+        if (!absences.isEmpty()) {
+            throw new IllegalArgumentException("No se pueden crear citas durante un periodo de ausencia");
+        }
     }
 
     private void calculateTax(AppointmentEntity appointment) {

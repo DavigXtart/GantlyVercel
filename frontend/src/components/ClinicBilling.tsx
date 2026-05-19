@@ -6,6 +6,9 @@ import { CreditCard, Clock, Ban, Receipt, ListFilter, Download, FileText } from 
 interface Props {
   psychologists: Array<{ id: number; name: string }>;
   clinicName?: string;
+  clinicNif?: string;
+  clinicAddress?: string;
+  clinicPhone?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -97,7 +100,7 @@ function generateInvoicePdf(item: {
   taxAmount?: number | null;
   totalAmount?: number | null;
   taxExempt?: boolean | null;
-}, clinicName: string) {
+}, clinicName: string, clinicNif?: string, clinicAddress?: string, clinicPhone?: string) {
   import('jspdf').then(({ jsPDF }) => {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
     const pageW = 210;
@@ -108,11 +111,26 @@ function generateInvoicePdf(item: {
     doc.setTextColor(15, 23, 42);
     doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
-    doc.text('GANTLY', margin, 20);
+    doc.text(clinicName || 'GANTLY', margin, 20);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(46, 147, 204);
     doc.text('Plataforma de Salud Mental', margin, 27);
+    let infoY = 27;
+    if (clinicNif) {
+      doc.setTextColor(100, 116, 139);
+      doc.text('NIF: ' + clinicNif, margin, infoY + 6);
+      infoY += 5;
+    }
+    if (clinicAddress) {
+      doc.setTextColor(100, 116, 139);
+      doc.text(clinicAddress, margin, infoY + 6);
+      infoY += 5;
+    }
+    if (clinicPhone) {
+      doc.setTextColor(100, 116, 139);
+      doc.text('Tel: ' + clinicPhone, margin, infoY + 6);
+    }
 
     const invoiceNum = `FAC-${new Date(item.startTime).getFullYear()}-${String(item.appointmentId).padStart(5, '0')}`;
     doc.setTextColor(15, 23, 42);
@@ -174,7 +192,7 @@ function generateInvoicePdf(item: {
 
     doc.setFontSize(8);
     doc.setTextColor(148, 163, 184);
-    doc.text('Gantly · Plataforma de Salud Mental · gantly.com', pageW / 2, 285, { align: 'center' });
+    doc.text((clinicName || 'Gantly') + ' · Plataforma de Salud Mental · gantly.com', pageW / 2, 285, { align: 'center' });
 
     doc.save(`${invoiceNum}.pdf`);
   }).catch(() => {
@@ -214,7 +232,7 @@ function exportCsv(items: ClinicBillingItem[]): void {
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
-export default function ClinicBilling({ psychologists, clinicName }: Props) {
+export default function ClinicBilling({ psychologists, clinicName, clinicNif, clinicAddress, clinicPhone }: Props) {
   const [from, setFrom] = useState(daysAgo(30));
   const [to, setTo] = useState(daysFromNow(365));
   const [psychologistId, setPsychologistId] = useState<number | undefined>(undefined);
@@ -396,7 +414,7 @@ export default function ClinicBilling({ psychologists, clinicName }: Props) {
                     <td className="px-3 py-3 text-center"><PaymentBadge status={item.paymentStatus} /></td>
                     <td className="px-3 py-3">
                       <button
-                        onClick={() => generateInvoicePdf(item, clinicName || 'Clínica')}
+                        onClick={() => generateInvoicePdf(item, clinicName || 'Clínica', clinicNif, clinicAddress, clinicPhone)}
                         title="Descargar factura"
                         className="text-slate-500 hover:text-gantly-blue hover:bg-gantly-blue/5 rounded-lg p-1.5 transition-colors cursor-pointer bg-transparent border-none"
                       >

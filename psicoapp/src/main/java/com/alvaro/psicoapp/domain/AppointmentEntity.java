@@ -85,6 +85,12 @@ public class AppointmentEntity {
     @Column(name = "room_id")
     private Long roomId;
 
+    @Column(name = "recurrence_group_id", length = 36)
+    private String recurrenceGroupId;
+
+    @Column(name = "recurrence_rule", length = 20)
+    private String recurrenceRule;
+
     @JsonIgnore
     @OneToMany(mappedBy = "appointment", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<AppointmentRequestEntity> requests = new ArrayList<>();
@@ -135,6 +141,10 @@ public class AppointmentEntity {
     public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
     public Long getRoomId() { return roomId; }
     public void setRoomId(Long roomId) { this.roomId = roomId; }
+    public String getRecurrenceGroupId() { return recurrenceGroupId; }
+    public void setRecurrenceGroupId(String recurrenceGroupId) { this.recurrenceGroupId = recurrenceGroupId; }
+    public String getRecurrenceRule() { return recurrenceRule; }
+    public void setRecurrenceRule(String recurrenceRule) { this.recurrenceRule = recurrenceRule; }
     public List<AppointmentRequestEntity> getRequests() { return requests; }
     public void setRequests(List<AppointmentRequestEntity> requests) { this.requests = requests; }
 }

@@ -68,9 +68,9 @@ public class ClinicService {
     // --- DTOs ---
     public record ClinicMeDto(Long id, String name, String email, String referralCode,
                               String address, String phone, String website, String logoUrl,
-                              String weeklySchedule) {}
+                              String weeklySchedule, String nif) {}
     public record UpdateClinicInfoRequest(String name, String address, String phone, String website,
-                                           String logoUrl, String weeklySchedule) {}
+                                           String logoUrl, String weeklySchedule, String nif) {}
     public record ClinicServiceDto(Long id, String name, BigDecimal defaultPrice, Integer durationMinutes, Boolean active) {}
     public record CreateClinicServiceRequest(String name, BigDecimal defaultPrice, Integer durationMinutes) {}
     public record UpdateClinicServiceRequest(String name, BigDecimal defaultPrice, Integer durationMinutes, Boolean active) {}
@@ -151,7 +151,7 @@ public class ClinicService {
         var company = getCompany(email);
         return new ClinicMeDto(company.getId(), company.getName(), company.getEmail(), company.getReferralCode(),
                 company.getAddress(), company.getPhone(), company.getWebsite(), company.getLogoUrl(),
-                company.getWeeklySchedule());
+                company.getWeeklySchedule(), company.getNif());
     }
 
     @Transactional
@@ -163,6 +163,7 @@ public class ClinicService {
         if (req.website() != null) company.setWebsite(req.website().trim());
         if (req.logoUrl() != null) company.setLogoUrl(req.logoUrl().trim());
         if (req.weeklySchedule() != null) company.setWeeklySchedule(req.weeklySchedule());
+        if (req.nif() != null) company.setNif(req.nif().trim());
         companyRepository.save(company);
         return getMe(email);
     }

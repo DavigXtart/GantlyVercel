@@ -18,9 +18,13 @@ public class AssignedTestEntity {
     @JoinColumn(name = "psychologist_id")
     private UserEntity psychologist;
 
-    @ManyToOne(optional = false)
+    @ManyToOne
     @JoinColumn(name = "test_id")
     private TestEntity test;
+
+    @ManyToOne
+    @JoinColumn(name = "evaluation_test_id")
+    private EvaluationTestEntity evaluationTest;
 
     @Column(name = "assigned_at", nullable = false, updatable = false)
     private Instant assignedAt = Instant.now();
@@ -40,4 +44,6 @@ public class AssignedTestEntity {
     public void setAssignedAt(Instant assignedAt) { this.assignedAt = assignedAt; }
     public Instant getCompletedAt() { return completedAt; }
     public void setCompletedAt(Instant completedAt) { this.completedAt = completedAt; }
+    public EvaluationTestEntity getEvaluationTest() { return evaluationTest; }
+    public void setEvaluationTest(EvaluationTestEntity evaluationTest) { this.evaluationTest = evaluationTest; }
 }

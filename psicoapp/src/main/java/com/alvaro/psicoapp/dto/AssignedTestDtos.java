@@ -15,6 +15,9 @@ public final class AssignedTestDtos {
             Long testId,
             String testTitle,
             String testCode,
+            Long evaluationTestId,
+            String evaluationTestTitle,
+            String evaluationTestCode,
             TestSummary test,
             Long psychologistId,
             String psychologistName,
@@ -24,12 +27,13 @@ public final class AssignedTestDtos {
 
     public record TestSummary(Long id, String title, String code) {}
 
-    public record AssignTestRequest(Long userId, Long testId) {}
+    public record AssignTestRequest(Long userId, Long testId, Long evaluationTestId) {}
 
     public record AssignedTestResponse(
             Long id,
             Long userId,
             Long testId,
+            Long evaluationTestId,
             Long psychologistId,
             Object assignedAt,
             Object completedAt

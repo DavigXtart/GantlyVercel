@@ -82,6 +82,8 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
            "AND a.paymentStatus = 'PENDING' AND a.paymentDeadline IS NULL AND a.createdAt < :cutoff")
     List<AppointmentEntity> findExpiredUnpaidWithoutDeadline(@Param("cutoff") Instant cutoff);
 
+    List<AppointmentEntity> findByRecurrenceGroupId(String recurrenceGroupId);
+
     @Query("SELECT a FROM AppointmentEntity a WHERE a.psychologist.id = :psychologistId " +
            "AND a.user IS NOT NULL " +
            "AND (a.status = 'CONFIRMED' OR a.status = 'BOOKED') " +

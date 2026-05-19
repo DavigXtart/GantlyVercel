@@ -45,11 +45,21 @@ public class CalendarController {
 
     @PostMapping("/slots")
     @Transactional
-    @Operation(summary = "Crear slot de disponibilidad", description = "Crea un nuevo slot de disponibilidad para citas (solo psicólogos)")
+    @Operation(summary = "Crear slot de disponibilidad", description = "Crea un nuevo slot de disponibilidad para citas (solo psicólogos). Soporta recurrencia semanal/quincenal/mensual.")
     @ApiResponse(responseCode = "200", description = "Slot creado exitosamente")
     public ResponseEntity<?> createSlot(Principal principal, @Valid @RequestBody CalendarDtos.CreateSlotRequest req) {
-        AppointmentEntity slot = calendarService.createSlot(currentUser(principal), req);
-        return ResponseEntity.ok(slot);
+        List<AppointmentEntity> slots = calendarService.createSlot(currentUser(principal), req);
+        if (slots.size() == 1) return ResponseEntity.ok(slots.get(0));
+        return ResponseEntity.ok(slots);
+    }
+
+    @DeleteMapping("/recurrence/{groupId}")
+    @Transactional
+    @Operation(summary = "Eliminar serie recurrente", description = "Elimina todos los slots libres de una serie recurrente")
+    @ApiResponse(responseCode = "200", description = "Serie eliminada exitosamente")
+    public ResponseEntity<CalendarDtos.DeleteRecurrenceResponse> deleteRecurrenceGroup(
+            Principal principal, @PathVariable String groupId) {
+        return ResponseEntity.ok(calendarService.deleteRecurrenceGroup(currentUser(principal), groupId));
     }
 
     @DeleteMapping("/slots/{appointmentId}")
@@ -234,5 +244,35 @@ public class CalendarController {
             @PathVariable Long appointmentId) {
         String notes = calendarService.getAppointmentNotes(appointmentId, currentUser(principal));
         return ResponseEntity.ok(Map.of("notes", notes != null ? notes : ""));
+    }
+
+    // --- Absence management ---
+
+    @PostMapping("/absences")
+    @Transactional
+    @Operation(summary = "Crear ausencia", description = "Registra un periodo de ausencia para el psicólogo. Elimina slots libres que se solapen.")
+    @ApiResponse(responseCode = "200", description = "Ausencia creada exitosamente")
+    public ResponseEntity<?> createAbsence(Principal principal, @RequestBody Map<String, String> body) {
+        Instant start = Instant.parse(body.get("startTime"));
+        Instant end = Instant.parse(body.get("endTime"));
+        String reason = body.get("reason");
+        var absence = calendarService.createAbsence(currentUser(principal), start, end, reason);
+        return ResponseEntity.ok(absence);
+    }
+
+    @GetMapping("/absences")
+    @Operation(summary = "Obtener ausencias", description = "Obtiene las ausencias futuras del psicólogo")
+    @ApiResponse(responseCode = "200", description = "Ausencias obtenidas exitosamente")
+    public ResponseEntity<?> getAbsences(Principal principal) {
+        return ResponseEntity.ok(calendarService.getAbsences(currentUser(principal)));
+    }
+
+    @DeleteMapping("/absences/{id}")
+    @Transactional
+    @Operation(summary = "Eliminar ausencia", description = "Elimina un periodo de ausencia registrado")
+    @ApiResponse(responseCode = "200", description = "Ausencia eliminada exitosamente")
+    public ResponseEntity<?> deleteAbsence(Principal principal, @PathVariable Long id) {
+        calendarService.deleteAbsence(currentUser(principal), id);
+        return ResponseEntity.ok(Map.of("message", "Ausencia eliminada"));
     }
 }

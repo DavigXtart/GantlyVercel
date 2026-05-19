@@ -1,8 +1,8 @@
 import { useMemo, useState, useEffect, useRef, useCallback, Fragment } from 'react';
-import { ChevronLeft, ChevronRight, CalendarCheck, CheckCircle, Clock, CreditCard, Calendar, UserPlus, Pencil, X, PlusCircle, Plus, Info } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarCheck, CheckCircle, Clock, CreditCard, Calendar, UserPlus, Pencil, X, PlusCircle, Plus, Info, CalendarOff, Repeat } from 'lucide-react';
 import { toast } from './ui/Toast';
 
-type Slot = { id: number; startTime: string; endTime: string; status: 'FREE'|'REQUESTED'|'CONFIRMED'|'BOOKED'|'CANCELLED'; user?: { name: string }; price?: number; paymentStatus?: string };
+type Slot = { id: number; startTime: string; endTime: string; status: 'FREE'|'REQUESTED'|'CONFIRMED'|'BOOKED'|'CANCELLED'; user?: { name: string }; price?: number; paymentStatus?: string; recurrenceGroupId?: string | null; recurrenceRule?: string | null };
 
 type SessionPrices = {
   individual?: number;
@@ -13,20 +13,24 @@ type SessionPrices = {
 
 type Patient = { id: number; name: string; email: string };
 
+type Absence = { id: number; startTime: string; endTime: string; reason?: string };
+
 type Props = {
   mode: 'PSYCHO' | 'USER';
   slots: Slot[];
   myAppointments?: Array<{ id: number; startTime: string; endTime: string; status: string }>; // Citas reservadas por el usuario
-  onCreateSlot?: (startIso: string, endIso: string, price?: number) => void;
+  onCreateSlot?: (startIso: string, endIso: string, price?: number, recurrenceRule?: string, recurrenceCount?: number) => void;
   onCreateSlotsRange?: (slots: Array<{ start: string; end: string; price: number }>) => Promise<void>; // Para crear múltiples slots
   onBook?: (appointmentId: number) => void;
   onDeleteSlot?: (appointmentId: number) => void;
+  onDeleteRecurrenceGroup?: (groupId: string) => Promise<void>; // Eliminar serie recurrente
   onUpdateSlot?: (appointmentId: number, updates: { price?: number; startTime?: string; endTime?: string }) => void;
   onAssignToPatient?: (appointmentId: number, userId: number) => Promise<void>; // Para asignar cita directamente a paciente
   initialWeekStart?: Date; // Semana inicial controlada desde el padre
   onWeekChange?: (weekStart: Date) => void; // Callback cuando cambia la semana
   sessionPrices?: SessionPrices | null; // Precios predefinidos del psicólogo
   patients?: Patient[]; // Lista de pacientes para asignar citas directamente
+  absences?: Absence[]; // Periodos de ausencia del psicologo
 };
 
 function startOfWeek(d: Date) {
@@ -39,7 +43,7 @@ function startOfWeek(d: Date) {
 
 function addDays(d: Date, n: number) { const x = new Date(d); x.setDate(x.getDate()+n); return x; }
 
-export default function CalendarWeek({ mode, slots, myAppointments = [], onCreateSlot, onCreateSlotsRange, onBook, onDeleteSlot, onUpdateSlot, onAssignToPatient, initialWeekStart, onWeekChange, sessionPrices, patients = [] }: Props) {
+export default function CalendarWeek({ mode, slots, myAppointments = [], onCreateSlot, onCreateSlotsRange, onBook, onDeleteSlot, onDeleteRecurrenceGroup, onUpdateSlot, onAssignToPatient, initialWeekStart, onWeekChange, sessionPrices, patients = [], absences = [] }: Props) {
   const [weekStart, setWeekStart] = useState(initialWeekStart || startOfWeek(new Date()));
   const [savedWeekStart, setSavedWeekStart] = useState<Date | null>(null); // Guardar semana al abrir modal (solo para cancelar)
 
@@ -96,6 +100,8 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
   const [slotToAssign, setSlotToAssign] = useState<Slot | null>(null);
   const [selectedPatientId, setSelectedPatientId] = useState<string>('');
   const [patientSearchTerm, setPatientSearchTerm] = useState<string>('');
+  const [recurrenceRule, setRecurrenceRule] = useState<string>(''); // WEEKLY, BIWEEKLY, MONTHLY
+  const [recurrenceCount, setRecurrenceCount] = useState<string>('4');
   const hours = Array.from({ length: 13 }).map((_, i) => 8 + i); // 8:00 - 20:00
   const days = useMemo(() => Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i)), [weekStart]);
 
@@ -169,6 +175,30 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
     return map;
   }, [myAppointments]);
 
+  // Mapa de horas con ausencia: para cada celda dia/hora, determina si hay una ausencia activa
+  const absenceByDayHour = useMemo(() => {
+    const map: Record<string, Absence> = {};
+    for (const ab of absences) {
+      const abStart = new Date(ab.startTime);
+      const abEnd = new Date(ab.endTime);
+      // Iterate over all days and hours that this absence covers
+      for (const d of days) {
+        for (const h of [8,9,10,11,12,13,14,15,16,17,18,19,20]) {
+          const cellStart = new Date(d);
+          cellStart.setHours(h, 0, 0, 0);
+          const cellEnd = new Date(d);
+          cellEnd.setHours(h + 1, 0, 0, 0);
+          // Check overlap: absence overlaps cell if abStart < cellEnd AND abEnd > cellStart
+          if (abStart < cellEnd && abEnd > cellStart) {
+            const key = `${d.toDateString()}-${h}`;
+            map[key] = ab;
+          }
+        }
+      }
+    }
+    return map;
+  }, [absences, days]);
+
   // Obtener precio segun tipo de sesion
   const getPriceForSessionType = (sessionType: string): number | null => {
     if (!sessionPrices || !sessionType) return null;
@@ -197,6 +227,8 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
       setShowPriceModal(true);
       setPriceInput('');
       setSelectedSessionType('');
+      setRecurrenceRule('');
+      setRecurrenceCount('4');
       // Si hay un solo tipo de sesion disponible, seleccionarlo automaticamente
       if (availableSessionTypes.length === 1 && sessionPrices) {
         const singleType = availableSessionTypes[0];
@@ -260,6 +292,8 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
       setShowPriceModal(true);
       setPriceInput('');
       setSelectedSessionType('');
+      setRecurrenceRule('');
+      setRecurrenceCount('4');
       // Si hay un solo tipo de sesion disponible, seleccionarlo automaticamente
       if (availableSessionTypes.length === 1 && sessionPrices) {
         const singleType = availableSessionTypes[0];
@@ -383,16 +417,20 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
         toast.warning('No se pudieron crear citas en el rango seleccionado');
       }
     } else if (pendingSlot && onCreateSlot) {
-      // Crear una sola cita
+      // Crear una sola cita (o serie recurrente)
       const slotDate = new Date(pendingSlot.start);
       const slotWeekStart = startOfWeek(slotDate);
       handleWeekChange(slotWeekStart);
 
-      onCreateSlot(pendingSlot.start, pendingSlot.end, price!);
+      const rRule = recurrenceRule || undefined;
+      const rCount = recurrenceRule && recurrenceCount ? parseInt(recurrenceCount, 10) : undefined;
+      onCreateSlot(pendingSlot.start, pendingSlot.end, price!, rRule, rCount);
       setShowPriceModal(false);
       setPendingSlot(null);
       setPriceInput('');
       setSelectedSessionType('');
+      setRecurrenceRule('');
+      setRecurrenceCount('4');
       setSavedWeekStart(null);
     }
   };
@@ -566,6 +604,8 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
     setPendingRange(null);
     setPriceInput('');
     setSelectedSessionType('');
+    setRecurrenceRule('');
+    setRecurrenceCount('4');
     if (savedWeekStart) {
       setWeekStart(savedWeekStart);
       setSavedWeekStart(null);
@@ -794,6 +834,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
               const isTodayCol = isToday(d);
               const isCurrentHour = isTodayCol && now.getHours() === h;
               const minuteOffset = isCurrentHour ? (now.getMinutes() / 60) * 100 : 0;
+              const cellAbsence = absenceByDayHour[key];
 
               return (
                 <div
@@ -801,17 +842,22 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                   data-day-idx={ci}
                   data-hour={h}
                   className={`border-b border-slate-100/80 ${ci < visibleDays.length - 1 ? 'border-r border-slate-100/80' : ''} p-1 md:p-1.5 min-h-[56px] md:min-h-[68px] relative transition-colors duration-200 ${
-                    isPastTime
-                      ? 'bg-slate-50/60'
-                      : isTodayCol
-                        ? 'bg-gantly-cloud/40'
-                        : isHovered && mode === 'PSYCHO' && onCreateSlot
-                          ? 'bg-gantly-blue/5'
-                          : 'bg-white'
-                  } ${onCreateSlot && mode === 'PSYCHO' && !isPastTime ? 'cursor-pointer' : ''}`}
-                  style={mode === 'PSYCHO' && onCreateSlot && !isPastTime ? { touchAction: 'none' } : undefined}
+                    cellAbsence
+                      ? ''
+                      : isPastTime
+                        ? 'bg-slate-50/60'
+                        : isTodayCol
+                          ? 'bg-gantly-cloud/40'
+                          : isHovered && mode === 'PSYCHO' && onCreateSlot
+                            ? 'bg-gantly-blue/5'
+                            : 'bg-white'
+                  } ${onCreateSlot && mode === 'PSYCHO' && !isPastTime && !cellAbsence ? 'cursor-pointer' : ''}`}
+                  style={cellAbsence
+                    ? { background: 'repeating-linear-gradient(45deg, #f1f5f9, #f1f5f9 5px, rgba(148,163,184,0.18) 5px, rgba(148,163,184,0.18) 10px)' }
+                    : mode === 'PSYCHO' && onCreateSlot && !isPastTime ? { touchAction: 'none' } : undefined
+                  }
                   onMouseEnter={() => {
-                    if (mode === 'PSYCHO' && onCreateSlot && !isPastTime) {
+                    if (mode === 'PSYCHO' && onCreateSlot && !isPastTime && !cellAbsence) {
                       setHoveredCell(cellKey);
                     }
                     if (isDragging && dragStart) {
@@ -824,7 +870,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                     }
                   }}
                   onMouseDown={() => {
-                    if (mode === 'PSYCHO' && onCreateSlot && !isPastTime && list.length === 0 && !isDragging) {
+                    if (mode === 'PSYCHO' && onCreateSlot && !isPastTime && !cellAbsence && list.length === 0 && !isDragging) {
                       handleMouseDown(d, h);
                     }
                   }}
@@ -834,7 +880,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                     }
                   }}
                   onTouchStart={() => {
-                    if (mode === 'PSYCHO' && onCreateSlot && !isPastTime && list.length === 0) {
+                    if (mode === 'PSYCHO' && onCreateSlot && !isPastTime && !cellAbsence && list.length === 0) {
                       handleTouchStart(d, h);
                     }
                   }}
@@ -849,7 +895,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                     if ((e.target as HTMLElement).tagName === 'BUTTON' || (e.target as HTMLElement).closest('button')) {
                       return;
                     }
-                    if (mode === 'PSYCHO' && onCreateSlot && !isPastTime && list.length === 0 && !isDragging) {
+                    if (mode === 'PSYCHO' && onCreateSlot && !isPastTime && !cellAbsence && list.length === 0 && !isDragging) {
                       createAt(d, h);
                     }
                   }}
@@ -884,8 +930,9 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                             {isMobile ? (
                               <div className="flex items-center gap-1.5">
                                 <div className={`w-2 h-2 rounded-full shrink-0 ${dotClass}`} />
-                                <div className="font-body font-semibold text-[10px] truncate">
+                                <div className="font-body font-semibold text-[10px] truncate flex items-center gap-0.5">
                                   {new Date(s.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                                  {s.recurrenceGroupId && <Repeat size={8} className="text-gantly-blue/60 shrink-0" />}
                                 </div>
                                 {mode === 'PSYCHO' && s.price != null && (
                                   <span className="text-[9px] opacity-70 ml-auto shrink-0">{s.price.toFixed(0)}&euro;</span>
@@ -936,6 +983,27 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                                         <X size={10} />
                                       </button>
                                     )}
+                                    {s.recurrenceGroupId && onDeleteRecurrenceGroup && s.status === 'FREE' && (
+                                      <button
+                                        onClick={async (e) => {
+                                          e.stopPropagation();
+                                          e.preventDefault();
+                                          if (s.recurrenceGroupId) {
+                                            try {
+                                              await onDeleteRecurrenceGroup(s.recurrenceGroupId);
+                                              toast.success('Serie eliminada');
+                                            } catch (err: any) {
+                                              toast.error(err?.response?.data?.message || 'Error al eliminar serie');
+                                            }
+                                          }
+                                        }}
+                                        onMouseDown={(e) => e.stopPropagation()}
+                                        className="w-[18px] h-[18px] flex items-center justify-center rounded bg-orange-500/10 text-orange-600 border-none cursor-pointer"
+                                        title="Eliminar serie"
+                                      >
+                                        <Repeat size={10} />
+                                      </button>
+                                    )}
                                   </div>
                                 )}
                               </div>
@@ -943,8 +1011,11 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                               /* Desktop: full view */
                               <div className="flex justify-between items-center">
                                 <div>
-                                  <div className="font-body font-semibold text-[11px]">
+                                  <div className="font-body font-semibold text-[11px] flex items-center gap-1">
                                     {new Date(s.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - {new Date(s.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                                    {s.recurrenceGroupId && (
+                                      <Repeat size={10} className="text-gantly-blue/60 shrink-0" title={`Serie ${s.recurrenceRule === 'WEEKLY' ? 'semanal' : s.recurrenceRule === 'BIWEEKLY' ? 'quincenal' : s.recurrenceRule === 'MONTHLY' ? 'mensual' : 'recurrente'}`} />
+                                    )}
                                   </div>
                                   {s.user?.name && (
                                     <div className="text-[10px] opacity-80 mt-0.5">
@@ -1053,6 +1124,29 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                                         <X size={12} />
                                       </button>
                                     )}
+                                    {s.recurrenceGroupId && onDeleteRecurrenceGroup && s.status === 'FREE' && (
+                                      <button
+                                        onClick={async (e) => {
+                                          e.stopPropagation();
+                                          e.preventDefault();
+                                          if (s.recurrenceGroupId) {
+                                            try {
+                                              await onDeleteRecurrenceGroup(s.recurrenceGroupId);
+                                              toast.success('Serie eliminada');
+                                            } catch (err: any) {
+                                              toast.error(err?.response?.data?.message || 'Error al eliminar serie');
+                                            }
+                                          }
+                                        }}
+                                        onMouseDown={(e) => {
+                                          e.stopPropagation();
+                                        }}
+                                        className="w-[18px] h-[18px] flex items-center justify-center rounded bg-orange-500/10 text-orange-600 border-none text-sm cursor-pointer transition-all duration-200 hover:bg-orange-500/20 hover:scale-110"
+                                        title="Eliminar serie"
+                                      >
+                                        <Repeat size={12} />
+                                      </button>
+                                    )}
                                   </div>
                                 )}
                               </div>
@@ -1060,6 +1154,13 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                           </div>
                         );
                       })}
+                    </div>
+                  ) : cellAbsence ? (
+                    <div className="flex items-center justify-center h-full min-h-[44px] md:min-h-[52px]" title={cellAbsence.reason || 'Ausencia'}>
+                      <div className="flex items-center gap-1 opacity-60">
+                        <CalendarOff size={isMobile ? 12 : 14} className="text-slate-400" />
+                        <span className="text-[9px] md:text-[10px] font-semibold text-slate-400 hidden md:block">Ausencia</span>
+                      </div>
                     </div>
                   ) : (
                     mode === 'PSYCHO' && onCreateSlot && !isPastTime && (
@@ -1103,6 +1204,12 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
             <div className="w-2 h-2 md:w-2.5 md:h-2.5 bg-slate-300 rounded-full"></div>
             <span className="font-body text-[10px] md:text-[11px] text-gantly-muted font-medium">Cancelada</span>
           </div>
+          {absences.length > 0 && (
+            <div className="flex items-center gap-1 md:gap-1.5 px-2 md:px-2.5 py-1 md:py-1.5 rounded-lg border border-slate-200/80" style={{ background: 'repeating-linear-gradient(45deg, #f8fafc, #f8fafc 3px, rgba(148,163,184,0.15) 3px, rgba(148,163,184,0.15) 6px)' }}>
+              <CalendarOff size={10} className="text-slate-400" />
+              <span className="font-body text-[10px] md:text-[11px] text-gantly-muted font-medium">Ausencia</span>
+            </div>
+          )}
         </div>
         {mode === 'PSYCHO' && (
           <div className="hidden md:flex items-center gap-2 text-[11px] text-gantly-muted font-body">
@@ -1204,6 +1311,43 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                 }}
               />
             </div>
+            {/* Recurrence controls — only for single slots, not drag ranges */}
+            {!pendingRange && (
+              <div className="mb-6">
+                <label className="block mb-2 font-body text-sm font-semibold text-gantly-text">
+                  <Repeat size={14} className="inline-block mr-1.5 -mt-0.5 text-gantly-blue" />
+                  Repetir
+                </label>
+                <select
+                  value={recurrenceRule}
+                  onChange={(e) => setRecurrenceRule(e.target.value)}
+                  className="w-full h-12 px-3 border-2 border-slate-200 rounded-xl font-body text-base outline-none transition-all duration-200 bg-white focus:border-gantly-blue cursor-pointer"
+                >
+                  <option value="">No repetir</option>
+                  <option value="WEEKLY">Semanal</option>
+                  <option value="BIWEEKLY">Quincenal</option>
+                  <option value="MONTHLY">Mensual</option>
+                </select>
+                {recurrenceRule && (
+                  <div className="mt-3">
+                    <label className="block mb-1.5 font-body text-xs font-semibold text-gantly-muted">
+                      Numero de repeticiones (1-52)
+                    </label>
+                    <input
+                      type="number"
+                      min="2"
+                      max="52"
+                      value={recurrenceCount}
+                      onChange={(e) => setRecurrenceCount(e.target.value)}
+                      className="w-full h-10 px-3 border-2 border-slate-200 rounded-xl font-body text-sm outline-none transition-all duration-200 focus:border-gantly-blue bg-white"
+                    />
+                    <p className="mt-1.5 font-body text-xs text-gantly-muted">
+                      Se crearan {recurrenceCount || '0'} citas {recurrenceRule === 'WEEKLY' ? 'semanales' : recurrenceRule === 'BIWEEKLY' ? 'quincenales' : 'mensuales'}. Los slots con conflictos se omitiran.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="flex gap-3 justify-end">
               <button
                 onClick={closePriceModal}
@@ -1215,7 +1359,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                 onClick={handleConfirmPrice}
                 className="px-6 h-11 border-none rounded-xl bg-gantly-blue text-white font-heading text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-gantly-blue/90 shadow-lg shadow-gantly-blue/20 hover:shadow-xl hover:shadow-gantly-blue/25"
               >
-                {pendingRange ? `Crear ${pendingRange.count} citas` : 'Crear cita'}
+                {pendingRange ? `Crear ${pendingRange.count} citas` : recurrenceRule ? `Crear ${recurrenceCount || '1'} citas` : 'Crear cita'}
               </button>
             </div>
           </div>

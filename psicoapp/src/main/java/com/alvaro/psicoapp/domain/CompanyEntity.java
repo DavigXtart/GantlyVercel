@@ -40,6 +40,9 @@ public class CompanyEntity {
     @Column(name = "weekly_schedule", columnDefinition = "TEXT")
     private String weeklySchedule;
 
+    @Column(length = 20)
+    private String nif;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
@@ -62,4 +65,6 @@ public class CompanyEntity {
     public void setLogoUrl(String logoUrl) { this.logoUrl = logoUrl; }
     public String getWeeklySchedule() { return weeklySchedule; }
     public void setWeeklySchedule(String weeklySchedule) { this.weeklySchedule = weeklySchedule; }
+    public String getNif() { return nif; }
+    public void setNif(String nif) { this.nif = nif; }
 }

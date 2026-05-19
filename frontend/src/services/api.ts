@@ -685,7 +685,7 @@ export const assignedTestsService = {
       userAvatarUrl: at.userAvatarUrl ? resolveAssetUrl(at.userAvatarUrl) : null
     }));
   },
-  assign: async (payload: { userId: number; testId: number }) => {
+  assign: async (payload: { userId: number; testId?: number; evaluationTestId?: number }) => {
     const { data } = await api.post('/assigned-tests', payload);
     return data as any;
   },
@@ -700,8 +700,8 @@ export const assignedTestsService = {
 
 // Calendario
 export const calendarService = {
-  createSlot: async (start: string, end: string, price?: number) => {
-    const { data } = await api.post('/calendar/slots', { start, end, price });
+  createSlot: async (start: string, end: string, price?: number, recurrenceRule?: string, recurrenceCount?: number) => {
+    const { data } = await api.post('/calendar/slots', { start, end, price, recurrenceRule, recurrenceCount });
     return data as any;
   },
   mySlots: async (from: string, to: string) => {
@@ -767,7 +767,23 @@ export const calendarService = {
   getBillingAppointments: async () => {
     const { data } = await api.get('/calendar/psychologist/billing-appointments');
     return data;
-  }
+  },
+  // Absences
+  createAbsence: async (startTime: string, endTime: string, reason?: string) => {
+    const { data } = await api.post('/calendar/absences', { startTime, endTime, reason });
+    return data as any;
+  },
+  getAbsences: async () => {
+    const { data } = await api.get('/calendar/absences');
+    return data as Array<any>;
+  },
+  deleteAbsence: async (id: number) => {
+    await api.delete(`/calendar/absences/${id}`);
+  },
+  deleteRecurrenceGroup: async (groupId: string) => {
+    const { data } = await api.delete(`/calendar/recurrence/${groupId}`);
+    return data as any;
+  },
 };
 
 // Psicólogo
@@ -1175,11 +1191,11 @@ export const patientClinicChatService = {
 export const clinicService = {
   getMe: async () => {
     const { data } = await api.get('/clinic/me');
-    return data as { id: number; name: string; email: string; referralCode: string; address?: string; phone?: string; website?: string; logoUrl?: string; weeklySchedule?: string };
+    return data as { id: number; name: string; email: string; referralCode: string; address?: string; phone?: string; website?: string; logoUrl?: string; weeklySchedule?: string; nif?: string };
   },
-  updateClinicInfo: async (req: { name?: string; address?: string; phone?: string; website?: string; logoUrl?: string; weeklySchedule?: string }) => {
+  updateClinicInfo: async (req: { name?: string; address?: string; phone?: string; website?: string; logoUrl?: string; weeklySchedule?: string; nif?: string }) => {
     const { data } = await api.put('/clinic/me', req);
-    return data as { id: number; name: string; email: string; referralCode: string; address?: string; phone?: string; website?: string; logoUrl?: string; weeklySchedule?: string };
+    return data as { id: number; name: string; email: string; referralCode: string; address?: string; phone?: string; website?: string; logoUrl?: string; weeklySchedule?: string; nif?: string };
   },
   getServices: async () => {
     const { data } = await api.get('/clinic/services');

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, BarChart3, ChevronUp, ChevronDown, LogOut, Camera, Clock, CalendarDays, FileDown, X, Home, UsersRound, CheckSquare, Brain, Calendar, MessageCircle, History, Receipt, type LucideIcon } from 'lucide-react';
+import { User, BarChart3, ChevronUp, ChevronDown, LogOut, Camera, Clock, CalendarDays, FileDown, X, Home, UsersRound, CheckSquare, Brain, Calendar, MessageCircle, History, Receipt, CalendarOff, Trash2, Plus, type LucideIcon } from 'lucide-react';
 import api, { profileService, psychService, calendarService, tasksService, assignedTestsService, testService, resultsService, matchingService, calendarNotesService, jitsiService, API_BASE_URL } from '../services/api';
 import NotificationBell from './ui/NotificationBell';
 import ChatWidget from './ChatWidget';
@@ -131,6 +131,14 @@ export default function PsychDashboard() {
 
   // Estados para perfil profesional del psicólogo
   const [psychologistProfile, setPsychologistProfile] = useState<any>(null);
+
+  // Estados para ausencias
+  const [absences, setAbsences] = useState<Array<{ id: number; startTime: string; endTime: string; reason?: string }>>([]);
+  const [showAbsenceModal, setShowAbsenceModal] = useState(false);
+  const [absenceStartDate, setAbsenceStartDate] = useState('');
+  const [absenceEndDate, setAbsenceEndDate] = useState('');
+  const [absenceReason, setAbsenceReason] = useState('');
+  const [savingAbsence, setSavingAbsence] = useState(false);
 
   // Estados para test de matching
   const [matchingTestCompleted, setMatchingTestCompleted] = useState<boolean | null>(null);
@@ -383,11 +391,21 @@ export default function PsychDashboard() {
     }
   };
 
+  const loadAbsences = async () => {
+    try {
+      const list = await calendarService.getAbsences();
+      setAbsences(list);
+    } catch {
+      // non-critical
+    }
+  };
+
   useEffect(() => {
     if (tab === 'calendario') {
       loadMySlots();
       loadPendingRequests();
       loadPsychologistProfile();
+      loadAbsences();
     }
   }, [tab]);
 
@@ -528,11 +546,11 @@ export default function PsychDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
-      {/* Dark Sidebar */}
-      <aside className="w-64 bg-gradient-to-b from-gantly-navy to-[#0d1f3c] flex-shrink-0 fixed inset-y-0 left-0 z-50 flex flex-col">
+      {/* Light Sidebar */}
+      <aside className="w-64 bg-white border-r border-slate-200 flex-shrink-0 fixed inset-y-0 left-0 z-50 flex flex-col">
         {/* Logo */}
-        <div className="px-6 py-5 border-b border-white/5">
-          <img src={LogoSvg} alt="Gantly" className="h-7 brightness-0 invert cursor-pointer" onClick={() => navigate('/')} />
+        <div className="px-6 py-5 border-b border-slate-100">
+          <img src={LogoSvg} alt="Gantly" className="h-7 cursor-pointer" onClick={() => navigate('/')} />
         </div>
 
         {/* Nav items */}
@@ -543,13 +561,13 @@ export default function PsychDashboard() {
               onClick={() => setTab(t.id as Tab)}
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[15px] font-medium cursor-pointer transition-all duration-200 border-none ${
                 activeTabGroup === t.id
-                  ? 'bg-gantly-blue/20 text-white border-l-2 border-l-gantly-cyan font-semibold'
-                  : 'text-white hover:bg-white/10'
+                  ? 'bg-gantly-blue text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
               <span className="relative">
                 {(() => { const Icon = iconMap[t.icon]; return Icon ? <Icon size={20} /> : null; })()}
-                {t.id === 'chat' && hasUnreadChat && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-gantly-navy" />}
+                {t.id === 'chat' && hasUnreadChat && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white" />}
               </span>
               {t.label}
             </button>
@@ -557,19 +575,19 @@ export default function PsychDashboard() {
         </nav>
 
         {/* User info + logout at bottom */}
-        <div className="px-4 py-4 border-t border-white/5">
+        <div className="px-4 py-4 border-t border-slate-100">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-full overflow-hidden bg-white/10 flex items-center justify-center flex-shrink-0">
+            <div className="w-9 h-9 rounded-full overflow-hidden bg-gantly-blue/10 flex items-center justify-center flex-shrink-0">
               {me?.avatarUrl ? (
                 <img src={me.avatarUrl} alt="" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-sm font-semibold text-white">
+                <span className="text-sm font-semibold text-gantly-blue">
                   {me?.name ? me.name.charAt(0).toUpperCase() : 'P'}
                 </span>
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-white truncate">{me?.name || 'Profesional'}</div>
+              <div className="text-sm font-medium text-slate-800 truncate">{me?.name || 'Profesional'}</div>
               <div className="text-xs text-slate-500 truncate">{me?.email}</div>
             </div>
           </div>
@@ -579,7 +597,7 @@ export default function PsychDashboard() {
               localStorage.removeItem('refreshToken');
               window.location.href = '/login';
             }}
-            className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-slate-500 hover:text-white hover:bg-white/10 cursor-pointer transition-all duration-200 border-none bg-transparent"
+            className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-slate-500 hover:text-slate-700 hover:bg-slate-50 cursor-pointer transition-all duration-200 border-none bg-transparent"
           >
             <LogOut size={18} />
             Cerrar sesión
@@ -1001,11 +1019,12 @@ export default function PsychDashboard() {
               <CalendarWeek
                 mode="PSYCHO"
                 slots={slots}
+                absences={absences}
                 initialWeekStart={calendarWeekStart || undefined}
                 onWeekChange={(weekStart) => setCalendarWeekStart(weekStart)}
                 sessionPrices={psychologistProfile?.sessionPrices ? JSON.parse(psychologistProfile.sessionPrices) : null}
                 patients={patients.map((p: any) => ({ id: p.id, name: p.name, email: p.email }))}
-                onCreateSlot={async (start, end, price) => {
+                onCreateSlot={async (start, end, price, recurrenceRule, recurrenceCount) => {
                   try {
                     const slotDate = new Date(start);
                     const day = (slotDate.getDay() + 6) % 7;
@@ -1014,14 +1033,19 @@ export default function PsychDashboard() {
                     slotWeekStart.setHours(0, 0, 0, 0);
                     setCalendarWeekStart(slotWeekStart);
 
-                    await calendarService.createSlot(start, end, price);
+                    await calendarService.createSlot(start, end, price, recurrenceRule, recurrenceCount);
                     await loadMySlots();
                     await loadPendingRequests();
-                    toast.success('Cita creada exitosamente');
+                    toast.success(recurrenceRule ? 'Serie de citas creada exitosamente' : 'Cita creada exitosamente');
                   } catch (e: any) {
                     const errorMessage = e?.response?.data?.error || 'Error al crear el slot';
                     toast.error(errorMessage);
                   }
+                }}
+                onDeleteRecurrenceGroup={async (groupId) => {
+                  await calendarService.deleteRecurrenceGroup(groupId);
+                  await loadMySlots();
+                  await loadPendingRequests();
                 }}
                 onCreateSlotsRange={async (slots) => {
                   try {
@@ -1202,6 +1226,170 @@ export default function PsychDashboard() {
                         </div>
                       );
                     })}
+                  </div>
+                </div>
+              )}
+
+              {/* Gestion de Ausencias */}
+              <div className="mt-8 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-heading font-bold text-gantly-text flex items-center gap-2">
+                    <CalendarOff size={18} className="text-slate-500" />
+                    Ausencias
+                  </h3>
+                  <button
+                    onClick={() => {
+                      setShowAbsenceModal(true);
+                      setAbsenceStartDate('');
+                      setAbsenceEndDate('');
+                      setAbsenceReason('');
+                    }}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-gantly-blue text-white rounded-xl font-heading text-sm font-semibold cursor-pointer border-none shadow-md shadow-gantly-blue/20 hover:bg-gantly-blue/90 transition-all duration-200"
+                  >
+                    <Plus size={16} />
+                    Nueva ausencia
+                  </button>
+                </div>
+                {absences.length === 0 ? (
+                  <p className="text-sm text-gantly-muted font-body">No tienes ausencias programadas.</p>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    {absences.map(ab => (
+                      <div
+                        key={ab.id}
+                        className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:shadow-sm transition-all duration-200"
+                      >
+                        <div className="flex-1">
+                          <div className="font-body text-sm font-semibold text-gantly-text">
+                            {new Date(ab.startTime).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                            {' - '}
+                            {new Date(ab.endTime).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                          </div>
+                          <div className="font-body text-xs text-gantly-muted mt-0.5">
+                            {new Date(ab.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                            {' - '}
+                            {new Date(ab.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                          {ab.reason && (
+                            <div className="font-body text-xs text-slate-500 mt-1">{ab.reason}</div>
+                          )}
+                        </div>
+                        <button
+                          onClick={async () => {
+                            if (confirm('¿Eliminar esta ausencia?')) {
+                              try {
+                                await calendarService.deleteAbsence(ab.id);
+                                toast.success('Ausencia eliminada');
+                                await loadAbsences();
+                              } catch (e: any) {
+                                toast.error(e?.response?.data?.error || 'Error al eliminar la ausencia');
+                              }
+                            }
+                          }}
+                          className="ml-3 w-9 h-9 flex items-center justify-center rounded-lg bg-red-50 text-red-500 border border-red-100 cursor-pointer hover:bg-red-100 transition-colors duration-200"
+                          title="Eliminar ausencia"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Modal nueva ausencia */}
+              {showAbsenceModal && (
+                <div
+                  className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]"
+                  onClick={() => setShowAbsenceModal(false)}
+                >
+                  <div
+                    className="bg-white rounded-3xl p-6 md:p-8 max-w-[450px] w-[92%] shadow-2xl border border-slate-100"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <h3 className="m-0 mb-5 font-heading text-xl font-bold text-gantly-text">
+                      Registrar ausencia
+                    </h3>
+                    <p className="m-0 mb-5 font-body text-sm text-gantly-muted leading-relaxed">
+                      Los slots libres dentro del periodo se eliminaran automaticamente.
+                    </p>
+                    <div className="mb-4">
+                      <label className="block mb-1.5 font-body text-sm font-semibold text-gantly-text">
+                        Fecha y hora de inicio <span className="text-red-600">*</span>
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={absenceStartDate}
+                        onChange={e => setAbsenceStartDate(e.target.value)}
+                        className="w-full h-12 px-3 border-2 border-slate-200 rounded-xl font-body text-base outline-none transition-all duration-200 focus:border-gantly-blue"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label className="block mb-1.5 font-body text-sm font-semibold text-gantly-text">
+                        Fecha y hora de fin <span className="text-red-600">*</span>
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={absenceEndDate}
+                        onChange={e => setAbsenceEndDate(e.target.value)}
+                        className="w-full h-12 px-3 border-2 border-slate-200 rounded-xl font-body text-base outline-none transition-all duration-200 focus:border-gantly-blue"
+                      />
+                    </div>
+                    <div className="mb-6">
+                      <label className="block mb-1.5 font-body text-sm font-semibold text-gantly-text">
+                        Motivo (opcional)
+                      </label>
+                      <input
+                        type="text"
+                        value={absenceReason}
+                        onChange={e => setAbsenceReason(e.target.value)}
+                        maxLength={500}
+                        placeholder="Ej: Vacaciones, formacion..."
+                        className="w-full h-12 px-3 border-2 border-slate-200 rounded-xl font-body text-base outline-none transition-all duration-200 focus:border-gantly-blue"
+                        onKeyDown={e => {
+                          if (e.key === 'Escape') setShowAbsenceModal(false);
+                        }}
+                      />
+                    </div>
+                    <div className="flex gap-3 justify-end">
+                      <button
+                        onClick={() => setShowAbsenceModal(false)}
+                        className="px-5 h-11 border-none rounded-xl bg-transparent text-gantly-muted font-body text-sm font-medium cursor-pointer transition-all duration-200 hover:text-gantly-text hover:bg-slate-100"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        disabled={savingAbsence}
+                        onClick={async () => {
+                          if (!absenceStartDate || !absenceEndDate) {
+                            toast.warning('Completa las fechas de inicio y fin');
+                            return;
+                          }
+                          const startIso = new Date(absenceStartDate).toISOString();
+                          const endIso = new Date(absenceEndDate).toISOString();
+                          if (new Date(endIso) <= new Date(startIso)) {
+                            toast.warning('La fecha de fin debe ser posterior a la de inicio');
+                            return;
+                          }
+                          setSavingAbsence(true);
+                          try {
+                            await calendarService.createAbsence(startIso, endIso, absenceReason || undefined);
+                            toast.success('Ausencia registrada exitosamente');
+                            setShowAbsenceModal(false);
+                            await loadAbsences();
+                            await loadMySlots();
+                          } catch (e: any) {
+                            toast.error(e?.response?.data?.error || 'Error al registrar la ausencia');
+                          } finally {
+                            setSavingAbsence(false);
+                          }
+                        }}
+                        className="px-6 h-11 border-none rounded-xl bg-gantly-blue text-white font-heading text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-gantly-blue/90 shadow-lg shadow-gantly-blue/20 disabled:opacity-60"
+                      >
+                        {savingAbsence ? 'Guardando...' : 'Registrar ausencia'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}

@@ -60,6 +60,19 @@ public class ReminderScheduler {
                 } catch (Exception e) {
                     logger.error("Error enviando email de recordatorio", e);
                 }
+
+                // Psychologist reminder
+                try {
+                    notificationService.createNotification(apt.getPsychologist().getId(), "REMINDER",
+                            "Recordatorio de cita",
+                            "Tienes una cita mañana con " + apt.getUser().getName());
+                    emailService.sendAppointmentReminderEmail(
+                            apt.getPsychologist().getEmail(), apt.getPsychologist().getName(),
+                            apt.getUser().getName(), apt.getStartTime(),
+                            apt.getEndTime(), apt.getPrice());
+                } catch (Exception e) {
+                    logger.error("Error enviando recordatorio al psicólogo", e);
+                }
             }
         }
     }

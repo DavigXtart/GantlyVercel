@@ -47,7 +47,13 @@ public class CalendarDtos {
         @NotNull(message = "El precio es obligatorio")
         @DecimalMin(value = "0.01", message = "El precio debe ser mayor a 0")
         public BigDecimal price;
+        public String recurrenceRule; // WEEKLY, BIWEEKLY, MONTHLY
+        @Min(value = 1, message = "El numero de repeticiones debe ser al menos 1")
+        @Max(value = 52, message = "El numero maximo de repeticiones es 52")
+        public Integer recurrenceCount;
     }
+
+    public record DeleteRecurrenceResponse(String message, int deleted, int skipped) {}
 
     public static class UpdateSlotRequest {
         public BigDecimal price;

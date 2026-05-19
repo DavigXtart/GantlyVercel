@@ -42,6 +42,7 @@ interface ClinicInfo {
   website?: string;
   logoUrl?: string;
   weeklySchedule?: string;
+  nif?: string;
 }
 
 interface ClinicServiceItem {
@@ -454,7 +455,7 @@ const DEFAULT_SCHEDULE: DaySchedule[] = [
 
 function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicInfo: ClinicInfo | null; psychologists: Psychologist[]; onClinicInfoUpdate: (info: ClinicInfo) => void }) {
   // --- Clinic info form ---
-  const [infoForm, setInfoForm] = useState({ name: '', address: '', phone: '', website: '', logoUrl: '' });
+  const [infoForm, setInfoForm] = useState({ name: '', address: '', phone: '', website: '', logoUrl: '', nif: '' });
   const [savingInfo, setSavingInfo] = useState(false);
   const [infoSaved, setInfoSaved] = useState(false);
 
@@ -487,6 +488,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
         phone: clinicInfo.phone || '',
         website: clinicInfo.website || '',
         logoUrl: clinicInfo.logoUrl || '',
+        nif: clinicInfo.nif || '',
       });
       if (clinicInfo.weeklySchedule) {
         try { setSchedule(JSON.parse(clinicInfo.weeklySchedule)); } catch { /* keep default */ }
@@ -519,6 +521,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
         phone: infoForm.phone,
         website: infoForm.website,
         logoUrl: infoForm.logoUrl,
+        nif: infoForm.nif,
       });
       onClinicInfoUpdate(updated as ClinicInfo);
       setInfoSaved(true);
@@ -667,6 +670,10 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
               <div>
                 <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1.5 block">Logo URL</label>
                 <input type="url" value={infoForm.logoUrl} onChange={e => setInfoForm(p => ({ ...p, logoUrl: e.target.value }))} className={inputCls} placeholder="https://..." />
+              </div>
+              <div>
+                <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1.5 block">NIF / CIF</label>
+                <input type="text" value={infoForm.nif} onChange={e => setInfoForm(p => ({ ...p, nif: e.target.value }))} className={inputCls} placeholder="B12345678" />
               </div>
             </div>
 
@@ -1055,14 +1062,14 @@ export default function ClinicDashboard() {
         />
       )}
 
-      {/* Dark Sidebar */}
-      <aside className={`w-64 bg-gradient-to-b from-gantly-navy to-[#0d1f3c] flex-shrink-0 fixed inset-y-0 left-0 z-[60] flex flex-col transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      {/* Light Sidebar */}
+      <aside className={`w-64 bg-white border-r border-slate-200 flex-shrink-0 fixed inset-y-0 left-0 z-[60] flex flex-col transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Logo + close on mobile */}
-        <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between">
-          <img src={LogoSvg} alt="Gantly" className="h-7 brightness-0 invert cursor-pointer" onClick={() => navigate('/')} />
+        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+          <img src={LogoSvg} alt="Gantly" className="h-7 cursor-pointer" onClick={() => navigate('/')} />
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors cursor-pointer"
+            className="lg:hidden w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
             aria-label="Cerrar menú"
           >
             <X size={18} />
@@ -1078,8 +1085,8 @@ export default function ClinicDashboard() {
               onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[15px] font-medium cursor-pointer transition-all duration-200 border-none ${
                 activeTab === item.id
-                  ? 'bg-gantly-blue/20 text-white border-l-2 border-l-gantly-cyan font-semibold'
-                  : 'text-white hover:bg-white/10'
+                  ? 'bg-gantly-blue text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
               {navIconMap[item.icon]}
@@ -1089,15 +1096,15 @@ export default function ClinicDashboard() {
         </nav>
 
         {/* User info + logout at bottom */}
-        <div className="px-4 py-4 border-t border-white/5">
+        <div className="px-4 py-4 border-t border-slate-100">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
-              <span className="text-sm font-semibold text-white">
+            <div className="w-9 h-9 rounded-full bg-gantly-blue/10 flex items-center justify-center flex-shrink-0">
+              <span className="text-sm font-semibold text-gantly-blue">
                 {clinicInfo?.name ? clinicInfo.name.charAt(0).toUpperCase() : 'C'}
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-white truncate">{clinicInfo?.name || 'Clínica'}</div>
+              <div className="text-sm font-medium text-slate-800 truncate">{clinicInfo?.name || 'Clínica'}</div>
               <div className="text-xs text-slate-500 truncate">{clinicInfo?.email}</div>
             </div>
           </div>
@@ -1107,7 +1114,7 @@ export default function ClinicDashboard() {
               localStorage.removeItem('refreshToken');
               window.location.reload();
             }}
-            className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-slate-500 hover:text-white hover:bg-white/10 cursor-pointer transition-all duration-200 border-none bg-transparent"
+            className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-slate-500 hover:text-slate-700 hover:bg-slate-50 cursor-pointer transition-all duration-200 border-none bg-transparent"
           >
             <LogOut size={18} />
             Cerrar sesión
@@ -1166,7 +1173,7 @@ export default function ClinicDashboard() {
               )}
               {activeTab === 'facturacion' && (
                 <div className="flex-1 overflow-y-auto">
-                  <ClinicBilling psychologists={psychologists} clinicName={clinicInfo?.name} />
+                  <ClinicBilling psychologists={psychologists} clinicName={clinicInfo?.name} clinicNif={clinicInfo?.nif} clinicAddress={clinicInfo?.address} clinicPhone={clinicInfo?.phone} />
                 </div>
               )}
               {activeTab === 'configuracion' && (
