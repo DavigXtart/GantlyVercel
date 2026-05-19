@@ -149,6 +149,10 @@ public class ConsentService {
 
         consent.setSignerName(signerName);
         if (req != null && req.signatureData() != null && !req.signatureData().isBlank()) {
+            // Limit signature data to 500KB to prevent memory/storage abuse
+            if (req.signatureData().length() > 512_000) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La firma excede el tamaño máximo permitido");
+            }
             consent.setSignatureData(req.signatureData());
         }
         consent.setSignedAt(Instant.now());

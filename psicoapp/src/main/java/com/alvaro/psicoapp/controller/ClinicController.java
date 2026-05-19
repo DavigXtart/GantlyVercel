@@ -124,7 +124,11 @@ public class ClinicController {
                                         @RequestParam String to) {
         String email = getCompanyEmail(principal);
         if (email == null) return unauthorized();
-        return ResponseEntity.ok(clinicService.getAgenda(email, Instant.parse(from), Instant.parse(to)));
+        try {
+            return ResponseEntity.ok(clinicService.getAgenda(email, Instant.parse(from), Instant.parse(to)));
+        } catch (java.time.format.DateTimeParseException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Formato de fecha invalido"));
+        }
     }
 
     @PostMapping("/appointments")
@@ -314,9 +318,16 @@ public class ClinicController {
                                            @RequestParam(defaultValue = "50") int size) {
         String email = getCompanyEmail(principal);
         if (email == null) return unauthorized();
-        Instant fromI = from != null ? Instant.parse(from) : Instant.now().minusSeconds(30L * 24 * 3600);
-        Instant toI = to != null ? Instant.parse(to) : Instant.now().plusSeconds(24 * 3600);
-        return ResponseEntity.ok(clinicService.getAuditLogs(email, fromI, toI, PageRequest.of(page, Math.min(size, 100))));
+        Instant fromI, toI;
+        try {
+            fromI = from != null ? Instant.parse(from) : Instant.now().minusSeconds(30L * 24 * 3600);
+            toI = to != null ? Instant.parse(to) : Instant.now().plusSeconds(24 * 3600);
+        } catch (java.time.format.DateTimeParseException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Formato de fecha invalido"));
+        }
+        int safePage = Math.max(0, page);
+        int safeSize = Math.max(1, Math.min(size, 100));
+        return ResponseEntity.ok(clinicService.getAuditLogs(email, fromI, toI, PageRequest.of(safePage, safeSize)));
     }
 
     // ---- Multi-admin (Feature 8) ----
@@ -341,7 +352,11 @@ public class ClinicController {
                                               @RequestBody java.util.Map<String, String> body) {
         String email = getCompanyEmail(principal);
         if (email == null) return unauthorized();
-        return ResponseEntity.ok(clinicService.updateAdminRole(email, id, body.get("role")));
+        String role = body != null ? body.get("role") : null;
+        if (role == null || role.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "El campo 'role' es obligatorio"));
+        }
+        return ResponseEntity.ok(clinicService.updateAdminRole(email, id, role));
     }
 
     @DeleteMapping("/admins/{id}")
@@ -500,6 +515,16 @@ public class ClinicController {
         String email = getCompanyEmail(principal);
         if (email == null) return unauthorized();
         Long companyId = resolveCompanyId(email);
+
+        if (req.content() == null || req.content().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "El contenido del mensaje es obligatorio"));
+        }
+        if (req.content().length() > 10000) {
+            return ResponseEntity.badRequest().body(Map.of("error", "El mensaje excede el tamaño máximo (10000 caracteres)"));
+        }
+
+        // Verify the patient belongs to this clinic (prevents sending notifications to arbitrary users)
+        clinicService.assertPatientBelongsToCompanyPublic(patientId, companyId);
 
         String encryptedContent = chatEncryptionService.encryptClinic(req.content(), companyId, patientId);
 

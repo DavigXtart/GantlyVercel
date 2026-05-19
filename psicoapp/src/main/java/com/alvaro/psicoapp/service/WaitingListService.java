@@ -13,8 +13,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.alvaro.psicoapp.util.InputSanitizer;
+
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -59,14 +62,21 @@ public class WaitingListService {
     public record UpdateWaitingListRequest(String status, String priority, String notes,
                                             Long psychologistPreferenceId, Long requestedServiceId) {}
 
+    private static final Set<String> VALID_PRIORITIES = Set.of("LOW", "NORMAL", "HIGH", "URGENT");
+    private static final Set<String> VALID_STATUSES = Set.of("WAITING", "CONTACTED", "SCHEDULED", "CANCELLED");
+
     @Transactional
     public WaitingListEntryDto addToWaitingList(Long companyId, CreateWaitingListRequest req) {
         WaitingListEntity entry = new WaitingListEntity();
         entry.setCompanyId(companyId);
-        entry.setPatientName(req.patientName());
-        entry.setPatientEmail(req.patientEmail());
-        entry.setPatientPhone(req.patientPhone());
-        entry.setPriority(req.priority() != null ? req.priority() : "NORMAL");
+        entry.setPatientName(InputSanitizer.sanitizeAndValidate(req.patientName(), 200));
+        entry.setPatientEmail(req.patientEmail() != null ? InputSanitizer.sanitizeAndValidate(req.patientEmail(), 255) : null);
+        entry.setPatientPhone(req.patientPhone() != null ? InputSanitizer.sanitizeAndValidate(req.patientPhone(), 30) : null);
+        String priority = req.priority() != null ? req.priority().toUpperCase() : "NORMAL";
+        if (!VALID_PRIORITIES.contains(priority)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Prioridad invalida");
+        }
+        entry.setPriority(priority);
 
         if (req.patientId() != null) {
             UserEntity patient = userRepository.findById(req.patientId())
@@ -100,9 +110,21 @@ public class WaitingListService {
         WaitingListEntity entry = waitingListRepository.findByIdAndCompanyId(id, companyId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Entrada no encontrada"));
 
-        if (req.status() != null) entry.setStatus(req.status());
-        if (req.priority() != null) entry.setPriority(req.priority());
-        if (req.notes() != null) entry.setNotes(req.notes());
+        if (req.status() != null) {
+            String status = req.status().toUpperCase();
+            if (!VALID_STATUSES.contains(status)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Estado invalido");
+            }
+            entry.setStatus(status);
+        }
+        if (req.priority() != null) {
+            String priority = req.priority().toUpperCase();
+            if (!VALID_PRIORITIES.contains(priority)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Prioridad invalida");
+            }
+            entry.setPriority(priority);
+        }
+        if (req.notes() != null) entry.setNotes(InputSanitizer.sanitizeAndValidate(req.notes(), 2000));
 
         if (req.psychologistPreferenceId() != null) {
             UserEntity psych = userRepository.findById(req.psychologistPreferenceId())
@@ -183,6 +205,11 @@ public class WaitingListService {
 
         AppointmentEntity appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cita no encontrada"));
+
+        // Verify the appointment belongs to a psychologist of this company (IDOR prevention)
+        if (appointment.getPsychologist() == null || !companyId.equals(appointment.getPsychologist().getCompanyId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "La cita no pertenece a esta clínica");
+        }
 
         entry.setScheduledAppointment(appointment);
         entry.setStatus("SCHEDULED");

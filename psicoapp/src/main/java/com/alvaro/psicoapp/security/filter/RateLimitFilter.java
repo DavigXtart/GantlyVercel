@@ -52,8 +52,10 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
         boolean isSensitiveEndpoint = endpoint.contains("/verify-code") || endpoint.contains("/reset-password")
                 || endpoint.contains("/login") || endpoint.contains("/register");
+        boolean isPublicBooking = endpoint.contains("/api/public/clinic/") && endpoint.endsWith("/request");
         boolean isAuthEndpoint = endpoint.startsWith("/api/auth/");
         int maxRequests = isSensitiveEndpoint ? MAX_REQUESTS_PER_MINUTE_SENSITIVE
+                : isPublicBooking ? MAX_REQUESTS_PER_MINUTE_SENSITIVE
                 : isAuthEndpoint ? MAX_REQUESTS_PER_MINUTE_AUTH : MAX_REQUESTS_PER_MINUTE;
 
         // Global per-IP rate limit (across all endpoints)

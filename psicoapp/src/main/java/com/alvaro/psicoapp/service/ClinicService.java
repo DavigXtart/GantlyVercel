@@ -145,6 +145,25 @@ public class ClinicService {
         }
     }
 
+    /**
+     * Verifies that a patient belongs to this company (directly or via psychologist assignment).
+     * Public access so controllers can call it for authorization checks.
+     */
+    public void assertPatientBelongsToCompanyPublic(Long patientId, Long companyId) {
+        assertPatientBelongsToCompany(patientId, companyId);
+    }
+
+    private void assertPatientBelongsToCompany(Long patientId, Long companyId) {
+        // Check if patient is directly linked to the company
+        UserEntity patient = userRepository.findById(patientId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Paciente no encontrado"));
+        if (companyId.equals(patient.getCompanyId())) return;
+        // Check if the patient's assigned psychologist belongs to this company
+        var rel = userPsychologistRepository.findByUserId(patientId);
+        if (rel.isPresent() && companyId.equals(rel.get().getPsychologist().getCompanyId())) return;
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Este paciente no pertenece a tu empresa");
+    }
+
     private ClinicAppointmentDto toAppointmentDto(AppointmentEntity a, UserEntity psych) {
         String patientName = a.getUser() != null ? a.getUser().getName() : null;
         Long patientId = a.getUser() != null ? a.getUser().getId() : null;
@@ -506,6 +525,11 @@ public class ClinicService {
             if (!company.getId().equals(psych.getCompanyId())) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Este paciente no pertenece a tu empresa");
             }
+        } else {
+            // Patient has no psychologist — only allow access if patient is directly linked to the company
+            if (!company.getId().equals(patient.getCompanyId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Este paciente no pertenece a tu empresa");
+            }
         }
 
         var profile = clinicPatientProfileRepository
@@ -547,12 +571,19 @@ public class ClinicService {
     @Transactional
     public ClinicPatientDetailDto updatePatient(String email, Long patientId, UpdatePatientRequest req) {
         var company = getCompany(email);
-        userRepository.findById(patientId)
+        UserEntity patient = userRepository.findById(patientId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Paciente no encontrado"));
 
         var rel = userPsychologistRepository.findByUserId(patientId);
-        if (rel.isPresent() && !company.getId().equals(rel.get().getPsychologist().getCompanyId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Este paciente no pertenece a tu empresa");
+        if (rel.isPresent()) {
+            if (!company.getId().equals(rel.get().getPsychologist().getCompanyId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Este paciente no pertenece a tu empresa");
+            }
+        } else {
+            // Patient has no psychologist — only allow if directly linked to the company
+            if (!company.getId().equals(patient.getCompanyId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Este paciente no pertenece a tu empresa");
+            }
         }
 
         var profile = clinicPatientProfileRepository
@@ -807,6 +838,7 @@ public class ClinicService {
     @Transactional(readOnly = true)
     public List<DocumentDto> listDocuments(String email, Long patientId) {
         var company = getCompany(email);
+        assertPatientBelongsToCompany(patientId, company.getId());
         return clinicPatientDocumentRepository
                 .findByCompanyIdAndPatientIdOrderByUploadedAtDesc(company.getId(), patientId).stream()
                 .map(d -> new DocumentDto(d.getId(), d.getOriginalName(), d.getFileName(),
@@ -843,8 +875,7 @@ public class ClinicService {
     public DocumentDto uploadDocument(String email, Long patientId,
                                        org.springframework.web.multipart.MultipartFile file) {
         var company = getCompany(email);
-        userRepository.findById(patientId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Paciente no encontrado"));
+        assertPatientBelongsToCompany(patientId, company.getId());
         validateUploadedFile(file);
         try {
             java.io.File dir = new java.io.File("uploads/clinic-docs");
