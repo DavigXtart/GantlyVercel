@@ -14,7 +14,8 @@
   - `2026-05-05-landing-page.md` — Rediseño completo de la landing page (12 secciones, i18n, animaciones)
   - `2026-05-06-erp-redesign-y-fixes.md` — ERP ConfigTab + rediseño premium + fix notificaciones + fix calendario 500
   - `2026-05-06-ui-unification.md` — Unificacion UI/UX completa (emojis→Lucide, colores→brand tokens, textos, legacy CSS)
-  - `2026-05-10-security-audit.md` — Auditoría de ciberseguridad completa + RGPD + fixes arquitecturales (esta sesión)
+  - `2026-05-10-security-audit.md` — Auditoría de ciberseguridad completa + RGPD + fixes arquitecturales
+  - `2026-05-19-formula-scoring.md` — Fix scoring fórmulas factores + percentil Gaussiano TCA
 
 ## Project Overview
 Plataforma de salud mental que conecta pacientes con psicólogos.
@@ -52,7 +53,7 @@ psicoapp/src/main/java/com/alvaro/psicoapp/
 ├── dto/            (23+ DTO classes with validation)
 ├── security/       (SecurityConfig, JwtAuthFilter, RateLimitFilter, OAuth2SuccessHandler)
 ├── config/         (JwtConfig, WebSocketConfig, AppTimezone, PiiEncryptConverter, PiiDeterministicConverter)
-└── util/           (InputSanitizer)
+└── util/           (InputSanitizer, FormulaEvaluator, ReferralCodeUtil)
 ```
 
 ## Key Frontend Files
@@ -244,10 +245,15 @@ Three predefined test structures available during import:
 
 ### Scoring Model
 - **Subfactors**: Primary scoring units. Each question belongs to one subfactor. Score = sum of answer values.
-- **Factors**: Higher-level aggregations. Defined by formulas referencing subfactor codes (e.g., `"A+F+H+Q2(-)"`)
+- **Factors**: Higher-level aggregations. Defined by formulas referencing subfactor codes (e.g., `"A+F+N(-)+Q2(-)"`)
+- **Formula evaluation**: `FormulaEvaluator` parses formulas (parenthesis-aware splitting) and resolves terms against subfactor/factor score maps
+- **Two-pass evaluation**: Pass 1 = factors referencing only subfactors (TCP, Ansiedad, TCA INV/IV). Pass 2 = factors referencing other factors (TCA IG=INV+IV)
+- **Fallback**: Factors without formula use simple sum of child subfactors (backwards compat)
 - **Bipolar labels**: `min_label` / `max_label` on subfactors and factors (e.g., "Reservado" / "Abierto")
 - **Inverse items**: `questions.inverse = true` reverses scoring: `score = maxValue - answerValue`
-- **Percentage**: `(totalScore / maxScore) * 100` per subfactor, rolled up to factors
+- **Percentage (personality)**: `(totalScore / maxScore) * 100` — TCP, Ansiedad
+- **Percentile (aptitude)**: Gaussian CDF approximation (Abramowitz & Stegun, mean=max/2, stddev=max/6) — TCA. Clamped [1, 99]
+- **Test category**: `TestEntity.category` stores test type ("tcp"/"tca"/"ansiedad"/"generic") set during import. TCA triggers Gaussian percentile mode
 
 ### Test Import (Excel)
 - **Endpoint**: `POST /admin/tests/import/parse` + `POST /admin/tests/import/confirm`
@@ -283,14 +289,14 @@ Located in `psicoapp/src/main/resources/db/`:
 - **App.css**: Removed (styles in Tailwind/global.css)
 - **CompanyController/CompanyService/CompanyDashboard.tsx**: Replaced by new Clinic ERP (see ERP_CLINICA.md)
 
-## Known Issues — Audit (Mayo 2026, actualizado 10 Mayo)
+## Known Issues — Audit (Mayo 2026, actualizado 19 Mayo)
 
 ### CRITICAL (P0 — Production Blockers)
 
 | # | Sistema | Issue | Estado |
 |---|---------|-------|--------|
-| 1 | **Tests** | Fórmulas de factores NUNCA se aplican en scoring → factores MAL calculados | **PENDIENTE** |
-| 2 | **Tests** | Tablas Valores TCA no implementadas (transformación no-lineal Delphos) | **PENDIENTE** |
+| 1 | **Tests** | Fórmulas de factores NUNCA se aplican en scoring → factores MAL calculados | **RESUELTO** — FormulaEvaluator + two-pass evaluation |
+| 2 | **Tests** | Tablas Valores TCA no implementadas (transformación no-lineal Delphos) | **RESUELTO** — Aproximación Gaussiana (CDF normal, Abramowitz & Stegun) |
 | 3 | **Auth** | OAuth2 token expuesto en URL hash | **RESUELTO** — code exchange UUID 30s |
 | 4 | **Auth** | Secrets hardcodeados en application-prod.yml | **PENDIENTE** — mover a env vars en deploy |
 | 5 | **Payments** | Stripe Price IDs hardcodeados en código | **PENDIENTE** — requiere config Stripe |
@@ -345,17 +351,18 @@ Located in `psicoapp/src/main/resources/db/`:
 ## Pending Features (por prioridad)
 
 ### Alta (bloqueantes para producción)
-- Implementar parser/evaluador de fórmulas para factores (TestResultService) — **tests dan resultados incorrectos**
-- Implementar tablas Valores TCA (transformación no-lineal)
+- ~~Implementar parser/evaluador de fórmulas para factores~~ → **HECHO** — FormulaEvaluator + two-pass
+- ~~Implementar tablas Valores TCA~~ → **HECHO** — Aproximación Gaussiana (reemplazable por baremos reales si se obtienen)
 - Mover secrets a variables de entorno (al deployar en Render)
 - Stripe: webhook replay protection + idempotency + persistir suscripción
 
 ### Media
-- Error boundary global
+- ~~Error boundary global~~ → **YA EXISTÍA** — Sentry ErrorBoundary en App.tsx
 - Auto-asignación de subfactors en import de tests
 - Mover Stripe Price IDs a DB
-- Nombre de clínica dinámico en PDF factura
-- Notificación de fallo de pago
+- ~~Nombre de clínica dinámico en PDF factura~~ → **YA EXISTÍA** — clinicInfo?.name, solo fallback 'Clínica'
+- ~~Notificación de fallo de pago~~ → **YA EXISTÍA** — StripeService.handlePaymentFailed()
+- Datos fiscales clínica (NIF, dirección) dinámicos en PDF factura (actualmente hardcodeados)
 
 ### Baja (post-launch)
 - Refactor UserDashboard/PsychDashboard
