@@ -1,7 +1,7 @@
 # Sesion 2026-05-19 noche: Plan 12 Features Post-Launch
 
 ## Estado
-PENDIENTE DE IMPLEMENTACION. Plan completo listo para ejecutar.
+**COMPLETADO** (implementado en commit f7056f1, 2026-05-19). Seguido de 4 commits de fixes: seguridad (f43cf46), DTOs (6afe96a), UX/UI audit 26 fixes (05b9193 + 99a4762 + c3d3763).
 
 ## Resumen
 Plan para implementar 12 features pendientes organizadas en 4 waves. El plan completo esta en `.claude/plans/flickering-skipping-map.md`.
@@ -10,18 +10,18 @@ Plan para implementar 12 features pendientes organizadas en 4 waves. El plan com
 
 | # | Feature | Estado | Wave |
 |---|---------|--------|------|
-| 1 | Refactor PsychDashboard + SaaS flat | 30% — extraer 6 tabs (2013→500 lin) | Wave 1 |
-| 2 | Citas recurrentes | 90% — falta recurrencia en ClinicAgenda | Wave 0 |
-| 3 | Catalogo servicios con precios | 70% — servicios dinamicos en agenda | Wave 2 |
+| 1 | Refactor PsychDashboard + SaaS flat | **100% DONE** — 2013→728 lin, 6 tabs extraídos | Wave 1 |
+| 2 | Citas recurrentes | **100% DONE** — ClinicAgenda + ClinicService | Wave 0 |
+| 3 | Catálogo servicios con precios | **100% DONE** — servicios dinámicos en agendas | Wave 2 |
 | 4 | Recordatorios cita (email 24h) | **100% DONE** — ya implementado | SKIP |
-| 5 | Portal paciente clinica | 10% — UserClinicChatTab existe | Wave 2 |
-| 6 | Pagina publica clinica + reserva | 0% — completamente nuevo | Wave 3 |
-| 7 | Lista de espera | 0% — completamente nuevo | Wave 3 |
-| 8 | Multi-admin clinica | 0% — completamente nuevo | Wave 3 |
-| 9 | Facturacion aseguradoras | 0% — completamente nuevo | Wave 3 |
-| 10 | Firma digital consentimientos | 40% — backend existe, falta frontend | Wave 2 |
-| 11 | Gestion ausencias psicologo | 90% — falta en ClinicAgenda + notificar | Wave 0 |
-| 12 | Auditoria calendario | 20% — AuditService existe, falta DB | Wave 1 |
+| 5 | Portal paciente clínica | **100% DONE** — UserClinicPortalTab completo | Wave 2 |
+| 6 | Página pública clínica + reserva | **100% DONE** — /clinica/:slug | Wave 3 |
+| 7 | Lista de espera | **100% DONE** — WaitingListEntity + UI | Wave 3 |
+| 8 | Multi-admin clínica | **100% DONE** — ClinicAdminEntity | Wave 3 |
+| 9 | Facturación aseguradoras | **100% DONE** — InsuranceCompanyEntity + policies | Wave 3 |
+| 10 | Firma digital consentimientos | **100% DONE** — SignaturePad + consent tabs | Wave 2 |
+| 11 | Gestión ausencias psicólogo | **100% DONE** — diagonal stripes + notificaciones | Wave 0 |
+| 12 | Auditoría calendario | **100% DONE** — AuditLogEntity + viewer | Wave 1 |
 
 ## Waves
 

@@ -17,7 +17,8 @@
   - `2026-05-10-security-audit.md` — Auditoría de ciberseguridad completa + RGPD + fixes arquitecturales
   - `2026-05-19-formula-scoring.md` — Fix scoring fórmulas factores + percentil Gaussiano TCA
   - `2026-05-19-clinic-erp-redesign.md` — Rediseño completo ERP clínica (7 tabs) a estilo SaaS flat
-  - `2026-05-19-12-features-plan.md` — Plan 12 features post-launch (4 waves, pendiente implementar)
+  - `2026-05-19-12-features-plan.md` — Plan 12 features post-launch (4 waves, **COMPLETADO**)
+  - `2026-05-20-ux-audit-verification.md` — Verificación UX/UI audit 26 fixes (ya implementados, tsc clean)
 
 ## Project Overview
 Plataforma de salud mental que conecta pacientes con psicólogos.
@@ -291,7 +292,7 @@ Located in `psicoapp/src/main/resources/db/`:
 - **App.css**: Removed (styles in Tailwind/global.css)
 - **CompanyController/CompanyService/CompanyDashboard.tsx**: Replaced by new Clinic ERP (see ERP_CLINICA.md)
 
-## Known Issues — Audit (Mayo 2026, actualizado 19 Mayo)
+## Known Issues — Audit (Mayo 2026, actualizado 20 Mayo)
 
 ### CRITICAL (P0 — Production Blockers)
 
@@ -367,20 +368,21 @@ Located in `psicoapp/src/main/resources/db/`:
 - ~~Notificación de fallo de pago~~ → **YA EXISTÍA** — StripeService.handlePaymentFailed()
 - Datos fiscales clínica (NIF, dirección) dinámicos en PDF factura (actualmente hardcodeados)
 
-### Baja (post-launch)
-- Refactor UserDashboard/PsychDashboard
-- Enums para appointment/payment status
-- Auditoría de operaciones de calendario
-- Citas recurrentes
-- Catálogo de servicios con precios
-- Recordatorios automáticos de cita (email 24h antes)
-- Portal paciente — vista clínica
-- Página pública clínica con reserva online
-- Lista de espera
-- Multi-administrador clínica
-- Facturación aseguradoras
-- Firma digital consentimientos
-- Gestión bajas/ausencias psicólogo
+### Baja (post-launch) — COMPLETADAS
+- ~~Refactor UserDashboard/PsychDashboard~~ → **HECHO** — 2013→728 líneas, 6 tabs extraídos
+- ~~Enums para appointment/payment status~~ → **HECHO** — AppointmentStatusEnum, PaymentStatusEnum, RequestStatusEnum
+- ~~Auditoría de operaciones de calendario~~ → **HECHO** — AuditLogEntity + AuditLogViewer
+- ~~Citas recurrentes~~ → **HECHO** — ClinicAgenda + ClinicService recurrence
+- ~~Catálogo de servicios con precios~~ → **HECHO** — servicios dinámicos en agendas
+- ~~Recordatorios automáticos de cita (email 24h antes)~~ → **HECHO** — AppointmentReminderService
+- ~~Portal paciente — vista clínica~~ → **HECHO** — UserClinicPortalTab completo
+- ~~Página pública clínica con reserva online~~ → **HECHO** — /clinica/:slug
+- ~~Lista de espera~~ → **HECHO** — WaitingListEntity + ClinicWaitingList UI
+- ~~Multi-administrador clínica~~ → **HECHO** — ClinicAdminEntity
+- ~~Facturación aseguradoras~~ → **HECHO** — InsuranceCompanyEntity + policies
+- ~~Firma digital consentimientos~~ → **HECHO** — SignaturePad + consent tabs
+- ~~Gestión bajas/ausencias psicólogo~~ → **HECHO** — diagonal stripes + notificaciones
+- ~~UX/UI Audit 26 fixes~~ → **HECHO** — Modal, ConfirmDialog, ARIA, responsive, confirm()→ConfirmDialog, rounded-2xl, focus rings
 
 ## MCP Servers
 - **Playwright**: Browser automation para testing E2E. Configurado con `claude mcp add playwright -- npx @playwright/mcp@latest`
@@ -392,7 +394,7 @@ Located in `psicoapp/src/main/resources/db/`:
 ## UI Design System (unificado Mayo 2026)
 - **Colores**: gantly-blue (#2E93CC), gantly-cyan (#22D3EE), gantly-navy (#0A1628), gantly-gold (#F0C930), gantly-emerald (#059669)
 - **Iconos**: Lucide React (NO emojis como iconos UI). Emojis solo para mood picker y ratings
-- **Cards**: `bg-white rounded-xl border border-slate-200/80` (clinic ERP), `bg-white rounded-2xl border border-slate-100 shadow-sm` (dashboards)
+- **Cards**: `bg-white rounded-2xl border border-slate-200/80` (todas las cards usan rounded-2xl tras audit)
 - **Card headers**: `px-5 py-3 border-b border-slate-100` con icono + título
 - **Inputs**: `h-9 px-3 rounded-md border border-slate-200` (compact SaaS style)
 - **Buttons**: flat `bg-gantly-blue text-white rounded-md` (NO gradients)
@@ -401,6 +403,13 @@ Located in `psicoapp/src/main/resources/db/`:
 - **Fuentes**: Outfit (heading), Work Sans (body), Caveat (handwritten)
 - **Legacy CSS eliminado**: .btn, .form-group, .admin-container → Tailwind utilities
 - **Clinic ERP**: 7 tabs rediseñados a estilo SaaS flat (sin gradients, sin shadow-soft, sin ALL CAPS headers)
+- **Modal**: `components/ui/Modal.tsx` — role="dialog", aria-modal, focus trap, Escape, backdrop click, z-[1000]
+- **ConfirmDialog**: `components/ui/ConfirmDialog.tsx` — variants danger/warning/info, loading state (reemplaza confirm())
+- **Accesibilidad**: role="tablist/tab/tabpanel", aria-selected, aria-controls, aria-labelledby, aria-expanded en todos los componentes
+- **Focus rings**: `focus:outline-none focus:ring-2 focus:ring-gantly-blue/20` (botones), `focus:ring-1` (inputs)
+- **Responsive**: flex-col sm:flex-row en sidebars, hidden md:grid + md:hidden para grids complejas
+- **Touch targets**: min-h-[44px] en elementos interactivos móviles
+- **confirm() nativo**: Eliminado — 0 usos en frontend/src/components (todo usa ConfirmDialog)
 
 ## PII Encryption System
 - **PiiEncryptionService**: AES-256-GCM con clave derivada de `PII_ENCRYPTION_KEY` env var
