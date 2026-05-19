@@ -25,48 +25,48 @@ export default function TermsOfService({ onBack }: TermsOfServiceProps) {
           {/* Header */}
           <div className="mb-12 text-center">
             <h1 className="font-heading text-4xl font-bold text-gantly-navy tracking-tight mb-3">
-              Terminos y Condiciones de Uso
+              Términos y Condiciones de Uso
             </h1>
             <p className="text-[15px] text-gantly-blue font-medium font-body m-0">
-              Ultima actualizacion: 1 de marzo de 2026
+              Última actualización: 1 de marzo de 2026
             </p>
           </div>
 
           {/* Sections */}
-          <Section title="1. Objeto y aceptacion">
+          <Section title="1. Objeto y aceptación">
             <p>
-              Los presentes Terminos y Condiciones (en adelante, "los Terminos") regulan
+              Los presentes Términos y Condiciones (en adelante, "los Términos") regulan
               el acceso y uso de la plataforma Gantly (en adelante, "la Plataforma"),
               operada por Gantly Health S.L. (en adelante, "la Empresa"), con domicilio
-              en Madrid, Espana.
+              en Madrid, España.
             </p>
             <p className="mt-3">
-              El acceso y uso de la Plataforma implica la aceptacion plena e
-              incondicional de estos Terminos. Si no esta de acuerdo con alguna de las
-              condiciones aqui establecidas, le rogamos que no utilice la Plataforma.
+              El acceso y uso de la Plataforma implica la aceptación plena e
+              incondicional de estos Términos. Si no está de acuerdo con alguna de las
+              condiciones aquí establecidas, le rogamos que no utilice la Plataforma.
             </p>
           </Section>
 
-          <Section title="2. Descripcion del servicio">
+          <Section title="2. Descripción del servicio">
             <p>
               Gantly es una plataforma digital de salud mental que ofrece los siguientes
               servicios:
             </p>
             <BulletList
               items={[
-                'Evaluacion psicologica mediante tests validados (personalidad, evaluaciones clinicas).',
-                'Emparejamiento algoritmico con profesionales de la salud mental.',
-                'Gestion de citas y sesiones de videollamada con psicologos colegiados.',
-                'Mensajeria cifrada entre pacientes y profesionales.',
-                'Diario de estado de animo y seguimiento emocional.',
-                'Asignacion y gestion de tareas terapeuticas.',
-                'Planes de suscripcion para acceso a funcionalidades premium.',
+                'Evaluación psicológica mediante tests validados (personalidad, evaluaciones clínicas).',
+                'Emparejamiento algorítmico con profesionales de la salud mental.',
+                'Gestión de citas y sesiones de videollamada con psicólogos colegiados.',
+                'Mensajería cifrada entre pacientes y profesionales.',
+                'Diario de estado de ánimo y seguimiento emocional.',
+                'Asignación y gestión de tareas terapéuticas.',
+                'Planes de suscripción para acceso a funcionalidades premium.',
               ]}
             />
             <HighlightBox>
-              Gantly no sustituye la atencion medica de urgencia. En caso de crisis o
-              emergencia, contacte con el 024 (Linea de Atencion a la Conducta Suicida)
-              o acuda al servicio de urgencias mas cercano.
+              Gantly no sustituye la atención médica de urgencia. En caso de crisis o
+              emergencia, contacte con el 024 (Línea de Atención a la Conducta Suicida)
+              o acuda al servicio de urgencias más cercano.
             </HighlightBox>
           </Section>
 
@@ -74,10 +74,10 @@ export default function TermsOfService({ onBack }: TermsOfServiceProps) {
             <SubSection title="3.1. Requisitos de registro">
               <BulletList
                 items={[
-                  'Ser mayor de 18 anos, o mayor de 14 anos con consentimiento parental verificado.',
-                  'Proporcionar informacion veraz, completa y actualizada.',
-                  'Disponer de una direccion de correo electronico valida.',
-                  'Aceptar estos Terminos y la Politica de Privacidad.',
+                  'Ser mayor de 18 años, o mayor de 14 años con consentimiento parental verificado.',
+                  'Proporcionar información veraz, completa y actualizada.',
+                  'Disponer de una dirección de correo electrónico válida.',
+                  'Aceptar estos Términos y la Política de Privacidad.',
                 ]}
               />
             </SubSection>
@@ -85,9 +85,9 @@ export default function TermsOfService({ onBack }: TermsOfServiceProps) {
               <BulletList
                 items={[
                   'Usuario (paciente): acceso a evaluaciones, citas, chat y seguimiento emocional.',
-                  'Profesional (psicologo): debe acreditar colegiacion vigente y cualificacion profesional.',
+                  'Profesional (psicólogo): debe acreditar colegiación vigente y cualificación profesional.',
                   'Empresa: acceso a planes corporativos de bienestar para empleados.',
-                  'Administrador: gestion interna de la plataforma (uso exclusivo del equipo de Gantly).',
+                  'Administrador: gestión interna de la plataforma (uso exclusivo del equipo de Gantly).',
                 ]}
               />
             </SubSection>
@@ -95,8 +95,8 @@ export default function TermsOfService({ onBack }: TermsOfServiceProps) {
               <p>
                 El usuario es responsable de mantener la confidencialidad de sus
                 credenciales de acceso. Cualquier actividad realizada desde su cuenta se
-                considerara realizada por el titular. En caso de acceso no autorizado,
-                debera notificarlo inmediatamente a{' '}
+                considerará realizada por el titular. En caso de acceso no autorizado,
+                deberá notificarlo inmediatamente a{' '}
                 <strong>soporte@gantly.es</strong>.
               </p>
             </SubSection>
@@ -106,14 +106,14 @@ export default function TermsOfService({ onBack }: TermsOfServiceProps) {
             <p>Al utilizar la Plataforma, el usuario se compromete a:</p>
             <NumberedList
               items={[
-                'Utilizar la Plataforma unicamente para los fines previstos.',
-                'No proporcionar informacion falsa o enganosa.',
+                'Utilizar la Plataforma únicamente para los fines previstos.',
+                'No proporcionar información falsa o engañosa.',
                 'No suplantar la identidad de otro usuario o profesional.',
                 'No utilizar la Plataforma para actividades ilegales, difamatorias u ofensivas.',
                 'No intentar acceder a cuentas, datos o sistemas ajenos.',
                 'No interferir con el funcionamiento de la Plataforma mediante software malicioso, ataques de fuerza bruta u otros mecanismos.',
                 'Respetar la propiedad intelectual de la Plataforma y de terceros.',
-                'No compartir contenido de las sesiones terapeuticas sin consentimiento.',
+                'No compartir contenido de las sesiones terapéuticas sin consentimiento.',
                 'Cumplir con las instrucciones y recomendaciones de los profesionales asignados en el contexto del servicio.',
               ]}
             />
@@ -122,24 +122,24 @@ export default function TermsOfService({ onBack }: TermsOfServiceProps) {
           <Section title="5. Profesionales de la salud mental">
             <SubSection title="5.1. Requisitos para profesionales">
               <p>
-                Los profesionales que operan a traves de Gantly deben cumplir los
+                Los profesionales que operan a través de Gantly deben cumplir los
                 siguientes requisitos:
               </p>
               <BulletList
                 items={[
-                  'Estar colegiados en el Colegio Oficial de Psicologos correspondiente.',
-                  'Disponer de titulacion universitaria en Psicologia y, en su caso, habilitacion sanitaria.',
+                  'Estar colegiados en el Colegio Oficial de Psicólogos correspondiente.',
+                  'Disponer de titulación universitaria en Psicología y, en su caso, habilitación sanitaria.',
                   'Mantener un seguro de responsabilidad civil profesional vigente.',
-                  'Cumplir con el codigo deontologico de la profesion.',
-                  'Completar el proceso de verificacion de identidad y credenciales de la Plataforma.',
+                  'Cumplir con el código deontológico de la profesión.',
+                  'Completar el proceso de verificación de identidad y credenciales de la Plataforma.',
                 ]}
               />
             </SubSection>
-            <SubSection title="5.2. Relacion profesional-paciente">
+            <SubSection title="5.2. Relación profesional-paciente">
               <p>
-                La relacion terapeutica se establece directamente entre el profesional y
-                el paciente. Gantly actua como intermediario tecnologico y no interviene
-                en las decisiones clinicas del profesional.
+                La relación terapéutica se establece directamente entre el profesional y
+                el paciente. Gantly actúa como intermediario tecnológico y no interviene
+                en las decisiones clínicas del profesional.
               </p>
             </SubSection>
           </Section>
@@ -148,36 +148,36 @@ export default function TermsOfService({ onBack }: TermsOfServiceProps) {
             <SubSection title="6.1. Modelos de pago">
               <BulletList
                 items={[
-                  'Plan gratuito: acceso limitado a funcionalidades basicas de evaluacion y seguimiento.',
+                  'Plan gratuito: acceso limitado a funcionalidades básicas de evaluación y seguimiento.',
                   'Plan premium: acceso completo a sesiones, chat ilimitado, evaluaciones avanzadas y herramientas de seguimiento.',
-                  'Planes corporativos: tarifas especiales para empresas con condiciones especificas.',
+                  'Planes corporativos: tarifas especiales para empresas con condiciones específicas.',
                 ]}
               />
             </SubSection>
             <SubSection title="6.2. Procesamiento de pagos">
               <p>
-                Los pagos se procesan a traves de Stripe, Inc., una plataforma de pagos
-                certificada PCI-DSS. Gantly no almacena datos de tarjetas de credito o
-                debito. Al realizar un pago, acepta los{' '}
-                <strong>terminos de servicio de Stripe</strong>.
+                Los pagos se procesan a través de Stripe, Inc., una plataforma de pagos
+                certificada PCI-DSS. Gantly no almacena datos de tarjetas de crédito o
+                débito. Al realizar un pago, acepta los{' '}
+                <strong>términos de servicio de Stripe</strong>.
               </p>
             </SubSection>
-            <SubSection title="6.3. Facturacion y renovacion">
+            <SubSection title="6.3. Facturación y renovación">
               <BulletList
                 items={[
-                  'Las suscripciones se facturan de forma mensual o anual, segun el plan seleccionado.',
-                  'La renovacion es automatica salvo cancelacion previa antes de la fecha de renovacion.',
-                  'Los precios pueden ser modificados con un preaviso minimo de 30 dias.',
+                  'Las suscripciones se facturan de forma mensual o anual, según el plan seleccionado.',
+                  'La renovación es automática salvo cancelación previa antes de la fecha de renovación.',
+                  'Los precios pueden ser modificados con un preaviso mínimo de 30 días.',
                 ]}
               />
             </SubSection>
-            <SubSection title="6.4. Politica de reembolso">
+            <SubSection title="6.4. Política de reembolso">
               <p>
-                Puede solicitar un reembolso dentro de los 14 dias posteriores a la
-                contratacion, siempre que no haya utilizado los servicios premium
+                Puede solicitar un reembolso dentro de los 14 días posteriores a la
+                contratación, siempre que no haya utilizado los servicios premium
                 (sesiones con profesionales, tests avanzados). Para solicitar un
                 reembolso, contacte con{' '}
-                <strong>facturacion@gantly.es</strong>.
+                <strong>facturación@gantly.es</strong>.
               </p>
             </SubSection>
           </Section>
@@ -185,27 +185,27 @@ export default function TermsOfService({ onBack }: TermsOfServiceProps) {
           <Section title="7. Propiedad intelectual">
             <p>
               Todos los contenidos de la Plataforma, incluyendo pero sin limitarse a
-              textos, graficos, logotipos, iconos, imagenes, software, algoritmos de
-              emparejamiento y tests psicologicos, son propiedad de Gantly Health S.L. o
-              de sus licenciantes y estan protegidos por las leyes de propiedad
+              textos, gráficos, logotipos, iconos, imágenes, software, algoritmos de
+              emparejamiento y tests psicológicos, son propiedad de Gantly Health S.L. o
+              de sus licenciantes y están protegidos por las leyes de propiedad
               intelectual e industrial.
             </p>
             <BulletList
               items={[
-                'Queda prohibida la reproduccion, distribucion, comunicacion publica o transformacion de los contenidos sin autorizacion expresa.',
-                'El usuario conserva la titularidad de los datos personales e informacion que introduzca en la Plataforma.',
+                'Queda prohibida la reproducción, distribución, comunicación pública o transformación de los contenidos sin autorización expresa.',
+                'El usuario conserva la titularidad de los datos personales e información que introduzca en la Plataforma.',
                 'El usuario concede a Gantly una licencia limitada y no exclusiva para procesar sus datos con el fin de prestar el servicio.',
               ]}
             />
           </Section>
 
-          <Section title="8. Limitacion de responsabilidad">
-            <SubSection title="8.1. Servicio tecnologico">
+          <Section title="8. Limitación de responsabilidad">
+            <SubSection title="8.1. Servicio tecnológico">
               <p>
-                Gantly proporciona una plataforma tecnologica de intermediacion. No
+                Gantly proporciona una plataforma tecnológica de intermediación. No
                 somos un centro sanitario ni prestamos directamente servicios de
-                asistencia sanitaria. La responsabilidad clinica recae en los
-                profesionales colegiados que operan a traves de la Plataforma.
+                asistencia sanitaria. La responsabilidad clínica recae en los
+                profesionales colegiados que operan a través de la Plataforma.
               </p>
             </SubSection>
             <SubSection title="8.2. Disponibilidad del servicio">
@@ -213,7 +213,7 @@ export default function TermsOfService({ onBack }: TermsOfServiceProps) {
                 Gantly se esfuerza por mantener la Plataforma disponible de forma
                 continua, pero no garantiza la ausencia de interrupciones por
                 mantenimiento, actualizaciones o causas de fuerza mayor. No seremos
-                responsables de danos derivados de la indisponibilidad temporal del
+                responsables de daños derivados de la indisponibilidad temporal del
                 servicio.
               </p>
             </SubSection>
@@ -221,35 +221,35 @@ export default function TermsOfService({ onBack }: TermsOfServiceProps) {
               <p>Gantly no se hace responsable de:</p>
               <BulletList
                 items={[
-                  'Decisiones clinicas tomadas por los profesionales.',
-                  'Danos derivados del uso inadecuado de la Plataforma por parte del usuario.',
-                  'Perdida de datos causada por fallos tecnicos fuera de nuestro control.',
+                  'Decisiones clínicas tomadas por los profesionales.',
+                  'Daños derivados del uso inadecuado de la Plataforma por parte del usuario.',
+                  'Pérdida de datos causada por fallos técnicos fuera de nuestro control.',
                   'Contenido generado por terceros o usuarios en la Plataforma.',
-                  'Danos indirectos, incidentales o consecuentes.',
+                  'Daños indirectos, incidentales o consecuentes.',
                 ]}
               />
             </SubSection>
-            <SubSection title="8.4. Limitacion cuantitativa">
+            <SubSection title="8.4. Limitación cuantitativa">
               <p>
                 En cualquier caso, la responsabilidad total de Gantly frente al usuario
-                por cualquier concepto no excedera del importe total abonado por el
+                por cualquier concepto no excederá del importe total abonado por el
                 usuario en los 12 meses anteriores al hecho causante.
               </p>
             </SubSection>
           </Section>
 
-          <Section title="9. Suspension y terminacion">
-            <SubSection title="9.1. Suspension por parte de Gantly">
+          <Section title="9. Suspensión y terminación">
+            <SubSection title="9.1. Suspensión por parte de Gantly">
               <p>
                 Nos reservamos el derecho de suspender o cancelar su cuenta de forma
                 temporal o permanente en los siguientes casos:
               </p>
               <BulletList
                 items={[
-                  'Incumplimiento de estos Terminos.',
+                  'Incumplimiento de estos Términos.',
                   'Uso fraudulento o abusivo de la Plataforma.',
-                  'Suplantacion de identidad o informacion falsa.',
-                  'Impago reiterado de las cuotas de suscripcion.',
+                  'Suplantación de identidad o información falsa.',
+                  'Impago reiterado de las cuotas de suscripción.',
                   'Conducta que ponga en riesgo la seguridad de otros usuarios o de la Plataforma.',
                 ]}
               />
@@ -257,78 +257,78 @@ export default function TermsOfService({ onBack }: TermsOfServiceProps) {
             <SubSection title="9.2. Baja voluntaria del usuario">
               <p>
                 El usuario puede darse de baja en cualquier momento desde la
-                configuracion de su cuenta o solicitandolo por escrito a{' '}
+                configuración de su cuenta o solicitándolo por escrito a{' '}
                 <strong>soporte@gantly.es</strong>. Tras la baja:
               </p>
               <BulletList
                 items={[
-                  'Se cancelara la suscripcion activa (sin derecho a reembolso del periodo en curso).',
-                  'Sus datos personales seran tratados conforme a la Politica de Privacidad y los plazos legales de conservacion.',
-                  'Podra solicitar la portabilidad de sus datos antes de la eliminacion definitiva.',
+                  'Se cancelará la suscripción activa (sin derecho a reembolso del periodo en curso).',
+                  'Sus datos personales serán tratados conforme a la Política de Privacidad y los plazos legales de conservación.',
+                  'Podrá solicitar la portabilidad de sus datos antes de la eliminación definitiva.',
                 ]}
               />
             </SubSection>
-            <SubSection title="9.3. Efectos de la terminacion">
+            <SubSection title="9.3. Efectos de la terminación">
               <p>
-                La terminacion de la relacion contractual no afectara a las
+                La terminación de la relación contractual no afectará a las
                 obligaciones que por su naturaleza deban subsistir, incluyendo las
-                relativas a propiedad intelectual, limitacion de responsabilidad y
-                proteccion de datos.
+                relativas a propiedad intelectual, limitación de responsabilidad y
+                protección de datos.
               </p>
             </SubSection>
           </Section>
 
-          <Section title="10. Resolucion de conflictos">
-            <SubSection title="10.1. Mediacion">
+          <Section title="10. Resolución de conflictos">
+            <SubSection title="10.1. Mediación">
               <p>
-                En caso de controversia derivada de estos Terminos, las partes se
+                En caso de controversia derivada de estos Términos, las partes se
                 comprometen a intentar resolver el conflicto de forma amistosa mediante
-                mediacion, antes de acudir a la via judicial.
+                mediación, antes de acudir a la vía judicial.
               </p>
             </SubSection>
-            <SubSection title="10.2. Jurisdiccion">
+            <SubSection title="10.2. Jurisdicción">
               <p>
                 Para cualquier controversia que no pueda resolverse de forma amistosa,
-                las partes se someten a la jurisdiccion de los Juzgados y Tribunales de
-                Madrid, Espana, con renuncia a cualquier otro fuero que pudiera
+                las partes se someten a la jurisdicción de los Juzgados y Tribunales de
+                Madrid, España, con renuncia a cualquier otro fuero que pudiera
                 corresponderles, salvo que la normativa de consumidores establezca lo
                 contrario.
               </p>
             </SubSection>
-            <SubSection title="10.3. Legislacion aplicable">
+            <SubSection title="10.3. Legislación aplicable">
               <p>
-                Estos Terminos se regiran e interpretaran de conformidad con la
-                legislacion espanola y la normativa de la Union Europea aplicable.
+                Estos Términos se regirán e interpretarán de conformidad con la
+                legislación española y la normativa de la Unión Europea aplicable.
               </p>
             </SubSection>
           </Section>
 
-          <Section title="11. Plataforma de resolucion de litigios en linea">
+          <Section title="11. Plataforma de resolución de litigios en línea">
             <p>
               De conformidad con el Reglamento (UE) 524/2013, le informamos de que la
-              Comision Europea pone a disposicion de los consumidores una plataforma de
-              resolucion de litigios en linea, accesible en:{' '}
+              Comisión Europea pone a disposición de los consumidores una plataforma de
+              resolución de litigios en línea, accesible en:{' '}
               <strong>https://ec.europa.eu/consumers/odr</strong>
             </p>
           </Section>
 
           <Section title="12. Modificaciones">
             <p>
-              Gantly se reserva el derecho de modificar estos Terminos en cualquier
-              momento. Las modificaciones sustanciales seran notificadas a los usuarios
-              con un preaviso minimo de 30 dias a traves de la Plataforma y/o por correo
-              electronico. El uso continuado de la Plataforma tras la notificacion
-              implica la aceptacion de los nuevos Terminos.
+              Gantly se reserva el derecho de modificar estos Términos en cualquier
+              momento. Las modificaciones sustanciales serán notificadas a los usuarios
+              con un preaviso mínimo de 30 días a través de la Plataforma y/o por correo
+              electrónico. El uso continuado de la Plataforma tras la notificación
+              implica la aceptación de los nuevos Términos.
             </p>
           </Section>
 
           <Section title="13. Disposiciones generales">
             <BulletList
               items={[
-                'Nulidad parcial: si alguna clausula de estos Terminos fuera declarada nula o inaplicable, las demas clausulas mantendran su plena validez y eficacia.',
-                'Cesion: el usuario no podra ceder sus derechos u obligaciones derivados de estos Terminos sin el consentimiento previo y por escrito de Gantly.',
-                'Renuncia: la falta de ejercicio de un derecho no implicara la renuncia al mismo.',
-                'Acuerdo completo: estos Terminos, junto con la Politica de Privacidad y cualquier condicion particular aplicable, constituyen el acuerdo completo entre las partes.',
+                'Nulidad parcial: si alguna cláusula de estos Términos fuera declarada nula o inaplicable, las demás cláusulas mantendrán su plena validez y eficacia.',
+                'Cesión: el usuario no podrá ceder sus derechos u obligaciones derivados de estos Términos sin el consentimiento previo y por escrito de Gantly.',
+                'Renuncia: la falta de ejercicio de un derecho no implicará la renuncia al mismo.',
+                'Acuerdo completo: estos Términos, junto con la Política de Privacidad y cualquier condición particular aplicable, constituyen el acuerdo completo entre las partes.',
               ]}
             />
           </Section>

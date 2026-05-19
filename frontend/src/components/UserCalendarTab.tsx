@@ -76,7 +76,7 @@ export default function UserCalendarTab({
               }
               await loadAvailability();
               toast.success(
-                'Cita reservada exitosamente. Espera la confirmacion del psicologo.',
+                'Cita reservada exitosamente. Espera la confirmación del psicólogo.',
               );
             } catch (e: any) {
               const errorMsg =
@@ -203,7 +203,7 @@ export default function UserCalendarTab({
         <EmptyState
           icon={<CalendarDays className="w-12 h-12 text-gantly-blue/40" />}
           title="Sin disponibilidad"
-          description="Tu psicologo aun no ha publicado horarios disponibles. Contacta por chat para coordinar tu primera cita."
+          description="Tu psicólogo aún no ha publicado horarios disponibles. Contacta por chat para coordinar tu primera cita."
           action={hasPsychologist ? (
             <button
               type="button"

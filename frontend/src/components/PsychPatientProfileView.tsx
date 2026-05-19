@@ -199,7 +199,7 @@ export default function PsychPatientProfileView({
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <h3 className="m-0 text-sm font-heading font-semibold text-slate-800">{test.testTitle}</h3>
-                        <p className="text-[11px] text-slate-500 mt-0.5 font-mono m-0">Codigo: {test.testCode}</p>
+                        <p className="text-[11px] text-slate-500 mt-0.5 font-mono m-0">Código: {test.testCode}</p>
                       </div>
                     </div>
                     <div>

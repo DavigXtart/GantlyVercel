@@ -81,7 +81,7 @@ export default function UserClinicPortalTab({ hasClinic }: UserClinicPortalTabPr
     setLoading(true);
     userClinicService.getMyClinic()
       .then(setClinic)
-      .catch(() => toast.error('No se pudo cargar la informacion de la clinica'))
+      .catch(() => toast.error('No se pudo cargar la información de la clínica'))
       .finally(() => setLoading(false));
   }, [hasClinic]);
 
@@ -189,7 +189,7 @@ export default function UserClinicPortalTab({ hasClinic }: UserClinicPortalTabPr
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <InfoField label="Nombre" value={clinic?.name} />
               <InfoField label="Email" value={clinic?.email} />
-              <InfoField label="Telefono" value={clinic?.phone} />
+              <InfoField label="Teléfono" value={clinic?.phone} />
               <InfoField label="Direccion" value={clinic?.address} />
               <InfoField label="Web" value={clinic?.website} />
             </div>

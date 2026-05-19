@@ -325,7 +325,7 @@ export default function PsychHomeTab({
                   setReferralUrl(referral.fullUrl);
                   setShowReferralModal(true);
                 } else {
-                  toast.error('No se pudo obtener el codigo de referencia.');
+                  toast.error('No se pudo obtener el código de referencia.');
                 }
               } catch (error: any) {
                 toast.error('Error: ' + (error.response?.data?.error || error.message));
@@ -352,7 +352,7 @@ export default function PsychHomeTab({
       <div>
         <div className="flex items-center gap-3 mb-5">
           <div className="w-1.5 h-6 rounded-full bg-gradient-to-b from-gantly-blue to-gantly-cyan" />
-          <h3 className="text-lg font-heading font-bold text-gantly-text">Acceso rapido</h3>
+          <h3 className="text-lg font-heading font-bold text-gantly-text">Acceso rápido</h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
           {/* Calendar — wider */}
@@ -471,7 +471,7 @@ export default function PsychHomeTab({
             </div>
 
             <div className="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-100">
-              <div className="text-[11px] text-slate-500 font-medium uppercase tracking-wide mb-2">Codigo de referencia</div>
+              <div className="text-[11px] text-slate-500 font-medium uppercase tracking-wide mb-2">Código de referencia</div>
               <div className="flex items-center gap-2">
                 <input
                   type="text"
@@ -484,9 +484,9 @@ export default function PsychHomeTab({
                   onClick={async () => {
                     try {
                       await navigator.clipboard.writeText(referralCode);
-                      toast.success('Codigo copiado al portapapeles');
+                      toast.success('Código copiado al portapapeles');
                     } catch {
-                      toast.error('Error al copiar el codigo');
+                      toast.error('Error al copiar el código');
                     }
                   }}
                   className="px-3 py-2 bg-gantly-blue text-white rounded-lg text-sm font-medium cursor-pointer border-none hover:bg-gantly-blue/90 transition-colors duration-200"

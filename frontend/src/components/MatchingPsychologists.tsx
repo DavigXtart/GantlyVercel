@@ -86,7 +86,7 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
         setPsychologists(sorted.slice(0, 3));
       }
     } catch (error: any) {
-      toast.error('Error al cargar psicologos: ' + (error.response?.data?.error || error.message));
+      toast.error('Error al cargar psicólogos: ' + (error.response?.data?.error || error.message));
     } finally {
       setLoading(false);
     }
@@ -96,10 +96,10 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
     try {
       setSelecting(psychologistId);
       await userPsychologistService.selectPsychologist(psychologistId);
-      toast.success('Psicologo seleccionado correctamente');
+      toast.success('Psicólogo seleccionado correctamente');
       if (onSelect) onSelect(psychologistId);
     } catch (error: any) {
-      toast.error('Error al seleccionar psicologo: ' + (error.response?.data?.error || error.message));
+      toast.error('Error al seleccionar psicólogo: ' + (error.response?.data?.error || error.message));
     } finally {
       setSelecting(null);
     }
@@ -121,7 +121,7 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
 
       setSelectedPsychologist(psychologistId);
     } catch (err: any) {
-      toast.error('Error al cargar el perfil del psicologo: ' + (err.response?.data?.error || err.message));
+      toast.error('Error al cargar el perfil del psicólogo: ' + (err.response?.data?.error || err.message));
     } finally {
       setLoadingProfile(false);
     }
@@ -184,10 +184,10 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
       <div className="min-h-screen bg-gradient-to-br from-gantly-cloud to-gantly-blue-50 p-5 md:p-10">
         <div className="max-w-[1200px] mx-auto bg-white rounded-2xl p-10 md:p-[60px_40px] shadow-elevated text-center">
           <h2 className="text-[28px] font-heading font-bold text-gantly-navy mb-4">
-            No se encontraron psicologos compatibles
+            No se encontraron psicólogos compatibles
           </h2>
           <p className="text-base text-gantly-muted mb-8 font-body">
-            En este momento no hay psicologos disponibles que coincidan con tu perfil. Puedes intentarlo mas adelante o usar un codigo de referencia si ya tienes un psicologo.
+            En este momento no hay psicólogos disponibles que coincidan con tu perfil. Puedes intentarlo más adelante o usar un código de referencia si ya tienes un psicólogo.
           </p>
           {onBack && (
             <button
@@ -223,7 +223,7 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
             </button>
           )}
           <h1 className="text-3xl md:text-4xl font-heading font-bold text-gantly-navy mb-3">
-            Psicologos recomendados
+            Psicólogos recomendados
           </h1>
           {hasLowAffinity ? (
             <>
@@ -235,16 +235,16 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
                   </h3>
                 </div>
                 <p className="text-sm text-amber-900 leading-relaxed m-0 font-body">
-                  Los resultados muestran una afinidad baja. Te recomendamos <strong>completar el test de matching nuevamente con mas precision</strong>.
+                  Los resultados muestran una afinidad baja. Te recomendamos <strong>completar el test de matching nuevamente con más precisión</strong>.
                 </p>
               </div>
               <p className="text-base text-gantly-muted mb-6 font-body">
-                A continuacion encontraras el psicologo con mayor afinidad disponible:
+                A continuación encontrarás el psicólogo con mayor afinidad disponible:
               </p>
             </>
           ) : (
             <p className="text-base text-gantly-muted mb-6 font-body">
-              Estos son los psicologos que mejor se adaptan a tu perfil, ordenados por afinidad
+              Estos son los psicólogos que mejor se adaptan a tu perfil, ordenados por afinidad
             </p>
           )}
           <div className="flex gap-5 flex-wrap text-xs text-gantly-muted font-body">

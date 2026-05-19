@@ -25,23 +25,23 @@ export default function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
           {/* Header */}
           <div className="mb-12 text-center">
             <h1 className="font-heading text-4xl font-bold text-gantly-navy tracking-tight mb-3">
-              Politica de Privacidad
+              Política de Privacidad
             </h1>
             <p className="text-[15px] text-gantly-blue font-medium font-body m-0">
-              Ultima actualizacion: 10 de mayo de 2026
+              Última actualización: 10 de mayo de 2026
             </p>
           </div>
 
           {/* Introduction */}
-          <Section title="1. Introduccion">
+          <Section title="1. Introducción">
             <p>
               En Gantly (en adelante, "la Plataforma"), operada por Gantly Health S.L.
               (en adelante, "el Responsable"), nos comprometemos a proteger la
-              privacidad y los datos personales de nuestros usuarios. Esta Politica de
-              Privacidad describe como recopilamos, utilizamos, almacenamos y protegemos
-              su informacion personal de conformidad con el Reglamento General de
-              Proteccion de Datos (RGPD - Reglamento UE 2016/679) y la Ley Organica
-              3/2018, de 5 de diciembre, de Proteccion de Datos Personales y garantia de
+              privacidad y los datos personales de nuestros usuarios. Esta Política de
+              Privacidad describe cómo recopilamos, utilizamos, almacenamos y protegemos
+              su información personal de conformidad con el Reglamento General de
+              Protección de Datos (RGPD - Reglamento UE 2016/679) y la Ley Orgánica
+              3/2018, de 5 de diciembre, de Protección de Datos Personales y garantía de
               los derechos digitales (LOPDGDD).
             </p>
           </Section>
@@ -58,45 +58,45 @@ export default function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
           </Section>
 
           <Section title="3. Datos que recopilamos">
-            <p>Recopilamos las siguientes categorias de datos personales:</p>
-            <SubSection title="3.1. Datos de identificacion">
+            <p>Recopilamos las siguientes categorías de datos personales:</p>
+            <SubSection title="3.1. Datos de identificación">
               <BulletList
                 items={[
-                  'Nombre completo, direccion de correo electronico y contrasena (cifrada)',
-                  'Datos de perfil: foto de perfil (opcional), fecha de nacimiento, genero',
-                  'Datos de autenticacion a traves de Google OAuth2 (si se utiliza)',
+                  'Nombre completo, dirección de correo electrónico y contraseña (cifrada)',
+                  'Datos de perfil: foto de perfil (opcional), fecha de nacimiento, género',
+                  'Datos de autenticación a través de Google OAuth2 (si se utiliza)',
                 ]}
               />
             </SubSection>
             <SubSection title="3.2. Datos de salud (categoria especial)">
               <BulletList
                 items={[
-                  'Resultados de tests psicologicos (personalidad, evaluaciones clinicas)',
-                  'Registros del diario de estado de animo (mood_rating, emociones, actividades)',
-                  'Historial de citas y sesiones terapeuticas',
+                  'Resultados de tests psicológicos (personalidad, evaluaciones clínicas)',
+                  'Registros del diario de estado de ánimo (mood_rating, emociones, actividades)',
+                  'Historial de citas y sesiones terapéuticas',
                   'Mensajes de chat con profesionales (cifrados con AES-256-GCM)',
-                  'Tareas terapeuticas asignadas y su seguimiento',
+                  'Tareas terapéuticas asignadas y su seguimiento',
                 ]}
               />
               <HighlightBox>
                 El tratamiento de datos de salud se realiza con base en su
-                consentimiento explicito (art. 9.2.a RGPD) y para la prestacion de
+                consentimiento explícito (art. 9.2.a RGPD) y para la prestación de
                 asistencia sanitaria (art. 9.2.h RGPD).
               </HighlightBox>
             </SubSection>
-            <SubSection title="3.3. Datos tecnicos">
+            <SubSection title="3.3. Datos técnicos">
               <BulletList
                 items={[
-                  'Direccion IP, tipo de navegador, sistema operativo',
-                  'Datos de uso de la plataforma y registros de actividad (logs de auditoria)',
-                  'Tokens de sesion y datos de autenticacion',
+                  'Dirección IP, tipo de navegador, sistema operativo',
+                  'Datos de uso de la plataforma y registros de actividad (logs de auditoría)',
+                  'Tokens de sesión y datos de autenticación',
                 ]}
               />
             </SubSection>
             <SubSection title="3.4. Datos financieros">
               <BulletList
                 items={[
-                  'Informacion de pago procesada a traves de Stripe (no almacenamos datos de tarjetas; Stripe actua como procesador de pagos certificado PCI-DSS)',
+                  'Información de pago procesada a través de Stripe (no almacenamos datos de tarjetas; Stripe actúa como procesador de pagos certificado PCI-DSS)',
                 ]}
               />
             </SubSection>
@@ -106,13 +106,13 @@ export default function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
             <p>Sus datos personales son tratados para las siguientes finalidades:</p>
             <NumberedList
               items={[
-                'Prestacion del servicio: gestion de cuentas, emparejamiento con profesionales, gestion de citas y sesiones de videollamada.',
-                'Evaluacion psicologica: administracion de tests, generacion de resultados y seguimiento terapeutico.',
-                'Comunicacion segura: mensajeria cifrada entre pacientes y profesionales.',
-                'Mejora del servicio: analisis estadisticos anonimizados sobre el uso de la plataforma.',
-                'Facturacion y pagos: gestion de suscripciones y procesamiento de pagos a traves de Stripe.',
-                'Obligaciones legales: cumplimiento de normativas sanitarias y de proteccion de datos.',
-                'Gestion de consentimiento: especialmente para usuarios menores de edad, gestion de autorizaciones parentales.',
+                'Prestación del servicio: gestión de cuentas, emparejamiento con profesionales, gestión de citas y sesiones de videollamada.',
+                'Evaluación psicológica: administración de tests, generación de resultados y seguimiento terapéutico.',
+                'Comunicación segura: mensajería cifrada entre pacientes y profesionales.',
+                'Mejora del servicio: análisis estadísticos anonimizados sobre el uso de la plataforma.',
+                'Facturación y pagos: gestión de suscripciones y procesamiento de pagos a través de Stripe.',
+                'Obligaciones legales: cumplimiento de normativas sanitarias y de protección de datos.',
+                'Gestión de consentimiento: especialmente para usuarios menores de edad, gestión de autorizaciones parentales.',
               ]}
             />
           </Section>
@@ -120,74 +120,74 @@ export default function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
           <Section title="5. Base legal del tratamiento">
             <p>
               El tratamiento de sus datos se fundamenta en las siguientes bases
-              juridicas:
+              jurídicas:
             </p>
             <BulletList
               items={[
                 'Consentimiento (art. 6.1.a y 9.2.a RGPD): para el tratamiento de datos de salud y el uso de cookies no esenciales.',
-                'Ejecucion de contrato (art. 6.1.b RGPD): para la prestacion de los servicios contratados.',
-                'Obligacion legal (art. 6.1.c RGPD): para el cumplimiento de normativas sanitarias y fiscales.',
-                'Interes legitimo (art. 6.1.f RGPD): para la seguridad de la plataforma, prevencion de fraude y mejora del servicio.',
+                'Ejecución de contrato (art. 6.1.b RGPD): para la prestación de los servicios contratados.',
+                'Obligación legal (art. 6.1.c RGPD): para el cumplimiento de normativas sanitarias y fiscales.',
+                'Interés legítimo (art. 6.1.f RGPD): para la seguridad de la plataforma, prevención de fraude y mejora del servicio.',
               ]}
             />
 
             <SubSection title="5.1. Base legal para datos de salud (Art. 9.2.a RGPD)">
               <p>
-                El tratamiento de datos de salud mental (resultados de tests psicologicos,
-                diario emocional, historial de sesiones terapeuticas) se realiza exclusivamente
-                sobre la base de su <strong>consentimiento explicito</strong>, prestado de forma
+                El tratamiento de datos de salud mental (resultados de tests psicológicos,
+                diario emocional, historial de sesiones terapéuticas) se realiza exclusivamente
+                sobre la base de su <strong>consentimiento explícito</strong>, prestado de forma
                 separada durante el proceso de registro. Este consentimiento es libre,
-                especifico, informado e inequivoco, conforme al Art. 9.2.a del RGPD.
+                específico, informado e inequívoco, conforme al Art. 9.2.a del RGPD.
               </p>
               <HighlightBox>
                 Puede retirar su consentimiento para el tratamiento de datos de salud en
-                cualquier momento desde la seccion de Privacidad de su configuracion de
+                cualquier momento desde la sección de Privacidad de su configuración de
                 cuenta, sin que ello afecte a la licitud del tratamiento previo.
               </HighlightBox>
             </SubSection>
           </Section>
 
-          <Section title="6. Politica de cookies">
-            <p>Gantly utiliza las siguientes categorias de cookies:</p>
+          <Section title="6. Política de cookies">
+            <p>Gantly utiliza las siguientes categorías de cookies:</p>
             <SubSection title="6.1. Cookies esenciales">
               <p>
-                Necesarias para el funcionamiento de la plataforma: tokens de sesion JWT,
-                preferencias de idioma y configuracion de seguridad. No requieren
+                Necesarias para el funcionamiento de la plataforma: tokens de sesión JWT,
+                preferencias de idioma y configuración de seguridad. No requieren
                 consentimiento.
               </p>
             </SubSection>
             <SubSection title="6.2. Cookies funcionales">
               <p>
                 Almacenan preferencias del usuario como el idioma seleccionado y la
-                configuracion del panel de usuario. Se activan con su consentimiento.
+                configuración del panel de usuario. Se activan con su consentimiento.
               </p>
             </SubSection>
-            <SubSection title="6.3. Cookies analiticas">
+            <SubSection title="6.3. Cookies analíticas">
               <p>
-                Utilizadas para recopilar datos estadisticos anonimos sobre el uso de la
-                plataforma. Se activan unicamente con su consentimiento previo.
+                Utilizadas para recopilar datos estadísticos anónimos sobre el uso de la
+                plataforma. Se activan únicamente con su consentimiento previo.
               </p>
             </SubSection>
             <HighlightBox>
               Puede gestionar sus preferencias de cookies en cualquier momento desde la
-              configuracion de su cuenta o a traves del banner de cookies al acceder a la
+              configuración de su cuenta o a través del banner de cookies al acceder a la
               plataforma.
             </HighlightBox>
           </Section>
 
-          <Section title="7. Conservacion de datos (periodo de retencion)">
+          <Section title="7. Conservación de datos (periodo de retención)">
             <p>
               Los datos personales se conservan durante los siguientes periodos:
             </p>
             <BulletList
               items={[
-                'Datos de cuenta: mientras la cuenta este activa y hasta 30 dias tras la solicitud de eliminacion.',
-                'Cuentas no verificadas: se eliminan automaticamente tras 30 dias sin verificar el email.',
-                'Datos de salud: durante la relacion terapeutica y hasta 5 anos despues de su finalizacion, conforme a la normativa sanitaria espanola (Ley 41/2002).',
-                'Datos de facturacion: 5 anos conforme a la normativa fiscal.',
-                'Notificaciones: se eliminan automaticamente tras 90 dias.',
-                'Post-eliminacion de cuenta: los datos se anonimizan y se eliminan completamente en un plazo de 30 dias.',
-                'Registros de auditoria: 2 anos desde su generacion.',
+                'Datos de cuenta: mientras la cuenta esté activa y hasta 30 días tras la solicitud de eliminación.',
+                'Cuentas no verificadas: se eliminan automáticamente tras 30 días sin verificar el email.',
+                'Datos de salud: durante la relación terapéutica y hasta 5 años después de su finalización, conforme a la normativa sanitaria española (Ley 41/2002).',
+                'Datos de facturación: 5 años conforme a la normativa fiscal.',
+                'Notificaciones: se eliminan automáticamente tras 90 días.',
+                'Post-eliminación de cuenta: los datos se anonimizan y se eliminan completamente en un plazo de 30 días.',
+                'Registros de auditoría: 2 años desde su generación.',
                 'Datos anonimizados: pueden conservarse de forma indefinida al no constituir datos personales.',
               ]}
             />
@@ -199,15 +199,15 @@ export default function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
             </p>
             <BulletList
               items={[
-                'Profesionales de la salud mental: psicologos asignados a traves de la plataforma, quienes acceden unicamente a los datos necesarios para la prestacion del servicio.',
+                'Profesionales de la salud mental: psicólogos asignados a través de la plataforma, quienes acceden únicamente a los datos necesarios para la prestación del servicio.',
                 'Procesadores de pago: Stripe, Inc. (certificado PCI-DSS) para el procesamiento de pagos.',
                 'Proveedores de infraestructura: servicios de alojamiento y base de datos.',
-                'Autoridades competentes: cuando sea requerido por ley o resolucion judicial.',
+                'Autoridades competentes: cuando sea requerido por ley o resolución judicial.',
               ]}
             />
             <p>
               No realizamos transferencias internacionales de datos fuera del Espacio
-              Economico Europeo (EEE) sin las garantias adecuadas conforme al RGPD.
+              Económico Europeo (EEE) sin las garantías adecuadas conforme al RGPD.
             </p>
           </Section>
 
@@ -218,39 +218,39 @@ export default function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
             </p>
             <NumberedList
               items={[
-                'Derecho de acceso: obtener confirmacion de si se tratan sus datos y acceder a los mismos.',
-                'Derecho de rectificacion: solicitar la correccion de datos inexactos o incompletos.',
-                'Derecho de supresion ("derecho al olvido"): solicitar la eliminacion de sus datos cuando ya no sean necesarios.',
-                'Derecho de limitacion: solicitar la restriccion del tratamiento en determinadas circunstancias.',
-                'Derecho de portabilidad: recibir sus datos en un formato estructurado, de uso comun y lectura mecanica.',
-                'Derecho de oposicion: oponerse al tratamiento de sus datos en determinadas circunstancias.',
+                'Derecho de acceso: obtener confirmación de si se tratan sus datos y acceder a los mismos.',
+                'Derecho de rectificación: solicitar la corrección de datos inexactos o incompletos.',
+                'Derecho de supresión ("derecho al olvido"): solicitar la eliminación de sus datos cuando ya no sean necesarios.',
+                'Derecho de limitación: solicitar la restricción del tratamiento en determinadas circunstancias.',
+                'Derecho de portabilidad: recibir sus datos en un formato estructurado, de uso común y lectura mecánica.',
+                'Derecho de oposición: oponerse al tratamiento de sus datos en determinadas circunstancias.',
                 'Derecho a retirar el consentimiento: en cualquier momento, sin que afecte a la licitud del tratamiento previo.',
-                'Derecho a no ser objeto de decisiones automatizadas: incluida la elaboracion de perfiles con efectos juridicos.',
+                'Derecho a no ser objeto de decisiones automatizadas: incluida la elaboración de perfiles con efectos jurídicos.',
               ]}
             />
             <HighlightBox>
               Para ejercer cualquiera de estos derechos, puede enviar un correo
-              electronico a{' '}
+              electrónico a{' '}
               <strong>privacidad@gantly.es</strong> o a nuestro DPO en{' '}
               <strong>dpo@gantly.es</strong>, adjuntando copia de su documento de
-              identidad. Responderemos en un plazo maximo de 30 dias.
+              identidad. Responderemos en un plazo máximo de 30 días.
             </HighlightBox>
           </Section>
 
           <Section title="10. Seguridad de los datos">
             <p>
-              Implementamos medidas tecnicas y organizativas para proteger sus datos
+              Implementamos medidas técnicas y organizativas para proteger sus datos
               personales:
             </p>
             <BulletList
               items={[
                 'Cifrado de mensajes de chat con AES-256-GCM.',
-                'Contrasenas almacenadas con hash seguro (BCrypt).',
-                'Autenticacion mediante tokens JWT con expiracion limitada.',
-                'Filtros de limitacion de velocidad (rate limiting) para prevenir ataques.',
-                'Registros de auditoria para el seguimiento de accesos y operaciones sensibles.',
+                'Contraseñas almacenadas con hash seguro (BCrypt).',
+                'Autenticación mediante tokens JWT con expiración limitada.',
+                'Filtros de limitación de velocidad (rate limiting) para prevenir ataques.',
+                'Registros de auditoría para el seguimiento de accesos y operaciones sensibles.',
                 'Protocolos HTTPS/TLS para todas las comunicaciones.',
-                'Copias de seguridad periodicas y cifradas de la base de datos.',
+                'Copias de seguridad periódicas y cifradas de la base de datos.',
               ]}
             />
           </Section>
@@ -294,24 +294,24 @@ export default function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
           <Section title="13. Reclamaciones">
             <p>
               Si considera que el tratamiento de sus datos personales vulnera la
-              normativa vigente, tiene derecho a presentar una reclamacion ante la
-              Agencia Espanola de Proteccion de Datos (AEPD):
+              normativa vigente, tiene derecho a presentar una reclamación ante la
+              Agencia Española de Protección de Datos (AEPD):
             </p>
             <InfoBlock
               items={[
                 { label: 'Web', value: 'www.aepd.es' },
-                { label: 'Direccion', value: 'C/ Jorge Juan, 6, 28001 Madrid' },
-                { label: 'Telefono', value: '901 100 099' },
+                { label: 'Dirección', value: 'C/ Jorge Juan, 6, 28001 Madrid' },
+                { label: 'Teléfono', value: '901 100 099' },
               ]}
             />
           </Section>
 
-          <Section title="14. Modificaciones de esta politica">
+          <Section title="14. Modificaciones de esta política">
             <p>
-              Nos reservamos el derecho de modificar esta Politica de Privacidad en
-              cualquier momento. Las modificaciones seran notificadas a traves de la
-              plataforma y/o por correo electronico. Le recomendamos revisar esta
-              politica periodicamente.
+              Nos reservamos el derecho de modificar esta Política de Privacidad en
+              cualquier momento. Las modificaciones serán notificadas a través de la
+              plataforma y/o por correo electrónico. Le recomendamos revisar esta
+              política periódicamente.
             </p>
           </Section>
 

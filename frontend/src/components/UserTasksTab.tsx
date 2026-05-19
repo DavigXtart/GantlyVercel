@@ -112,7 +112,7 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
             )}
             <div className="rounded-xl px-4 py-3 bg-slate-50 border border-slate-100">
               <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Asignada por</div>
-              <div className="text-sm font-medium text-slate-900">{selectedTask.psychologistName || 'Tu psicologo'}</div>
+              <div className="text-sm font-medium text-slate-900">{selectedTask.psychologistName || 'Tu psicólogo'}</div>
             </div>
           </div>
 

@@ -1,5 +1,5 @@
-import { useRef } from 'react';
-import { BarChart3, FileDown, ArrowLeft } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { BarChart3, FileDown, ArrowLeft, Loader2 } from 'lucide-react';
 import LoadingSpinner from './ui/LoadingSpinner';
 import EmptyState from './ui/EmptyState';
 import type { TestReportHandle, TestReportData } from './TestReport';
@@ -23,6 +23,17 @@ export default function PsychTestDetailsView({
   onBack,
 }: PsychTestDetailsViewProps) {
   const testReportRef = useRef<TestReportHandle>(null);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportPdf = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      await testReportRef.current?.exportPdf();
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <div className="bg-white rounded-xl border border-slate-200/80">
@@ -36,15 +47,16 @@ export default function PsychTestDetailsView({
           <div className="px-5 py-4 border-b border-slate-100 flex justify-between items-center">
             <div>
               <h2 className="m-0 text-lg font-heading font-bold text-slate-800">{testAnswers.testTitle}</h2>
-              <p className="text-[11px] text-slate-500 mt-0.5 font-mono m-0">Codigo: {testAnswers.testCode}</p>
+              <p className="text-[11px] text-slate-500 mt-0.5 font-mono m-0">Código: {testAnswers.testCode}</p>
             </div>
             <div className="flex gap-2">
               <button
-                onClick={() => testReportRef.current?.exportPdf()}
-                className="flex items-center gap-1.5 px-3 py-2 bg-gantly-blue text-white rounded-md text-sm font-medium cursor-pointer border-none hover:bg-gantly-blue/90 transition-colors duration-200"
+                onClick={handleExportPdf}
+                disabled={exporting}
+                className="flex items-center gap-1.5 px-3 py-2 bg-gantly-blue text-white rounded-md text-sm font-medium cursor-pointer border-none hover:bg-gantly-blue/90 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <FileDown size={14} />
-                Exportar PDF
+                {exporting ? <Loader2 size={14} className="animate-spin" /> : <FileDown size={14} />}
+                {exporting ? 'Generando PDF...' : 'Exportar PDF'}
               </button>
               <button
                 onClick={onBack}

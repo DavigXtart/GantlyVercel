@@ -174,7 +174,7 @@ export default function AuditLogViewer() {
               <thead>
                 <tr className="border-b border-slate-100">
                   <th className="text-left px-5 py-2.5 text-[11px] font-medium text-slate-500 uppercase tracking-wider">Fecha</th>
-                  <th className="text-left px-5 py-2.5 text-[11px] font-medium text-slate-500 uppercase tracking-wider">Accion</th>
+                  <th className="text-left px-5 py-2.5 text-[11px] font-medium text-slate-500 uppercase tracking-wider">Acción</th>
                   <th className="text-left px-5 py-2.5 text-[11px] font-medium text-slate-500 uppercase tracking-wider">Entidad</th>
                   <th className="text-left px-5 py-2.5 text-[11px] font-medium text-slate-500 uppercase tracking-wider">Realizado por</th>
                   <th className="text-left px-5 py-2.5 text-[11px] font-medium text-slate-500 uppercase tracking-wider">Detalles</th>

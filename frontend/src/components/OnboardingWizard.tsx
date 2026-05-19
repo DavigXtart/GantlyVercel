@@ -17,12 +17,12 @@ const steps = [
   },
   {
     title: 'Completa tu perfil',
-    description: 'Anade tu foto, fecha de nacimiento y otros datos para personalizar tu experiencia. Un perfil completo ayuda a tu psicologo a conocerte mejor.',
+    description: 'Añade tu foto, fecha de nacimiento y otros datos para personalizar tu experiencia. Un perfil completo ayuda a tu psicólogo a conocerte mejor.',
     action: 'profile',
   },
   {
     title: 'Realiza el test de matching',
-    description: 'Responde un breve cuestionario para que podamos conectarte con el profesional mas adecuado para ti. Solo lleva unos minutos.',
+    description: 'Responde un breve cuestionario para que podamos conectarte con el profesional más adecuado para ti. Solo lleva unos minutos.',
     action: 'matching',
   },
   {

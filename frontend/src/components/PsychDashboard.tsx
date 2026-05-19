@@ -720,7 +720,7 @@ export default function PsychDashboard() {
                   key={`jitsi-${roomToUse}`}
                   roomName={roomToUse}
                   userEmail={userToUse.email}
-                  userName={userToUse.name || 'Psicologo'}
+                  userName={userToUse.name || 'Psicólogo'}
                   otherUserEmail={otherUserToUse?.email}
                   otherUserName={otherUserToUse?.name}
                   onClose={handleVideoCallClose}

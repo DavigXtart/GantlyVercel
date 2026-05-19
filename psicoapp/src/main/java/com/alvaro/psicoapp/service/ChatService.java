@@ -147,7 +147,7 @@ public class ChatService {
         ChatMessageEntity saved = chatMessageRepository.save(msg);
         chatMessageRepository.flush();
 
-        if (saved.getId() == null || chatMessageRepository.findById(saved.getId()).isEmpty()) {
+        if (saved.getId() == null) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "El mensaje no se guardó");
         }
 

@@ -85,7 +85,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
               <div className="relative mb-2">
                 <input
                   type="text"
-                  placeholder="Buscar test por nombre o codigo..."
+                  placeholder="Buscar test por nombre o código..."
                   value={testSearchTerm}
                   onChange={(e) => setTestSearchTerm(e.target.value)}
                   className="h-12 w-full pl-10 pr-10 rounded-xl border border-slate-200 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue bg-white transition-all duration-200"
@@ -369,7 +369,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                                     <span className="text-xs text-teal-600 font-medium bg-teal-50 px-2 py-0.5 rounded border border-teal-200">Clinico</span>
                                   )}
                                   {(at.testCode || at.evaluationTestCode) && (
-                                    <span className="text-xs text-slate-500 font-mono bg-slate-50 px-2 py-0.5 rounded inline-block">Codigo: {at.testCode || at.evaluationTestCode}</span>
+                                    <span className="text-xs text-slate-500 font-mono bg-slate-50 px-2 py-0.5 rounded inline-block">Código: {at.testCode || at.evaluationTestCode}</span>
                                   )}
                                 </div>
                               </div>

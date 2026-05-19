@@ -56,13 +56,13 @@ function CompanyModalContent({
           <input id="company-nif" type="text" value={form.nif} onChange={e => setForm(p => ({ ...p, nif: e.target.value }))} className={inputCls} placeholder="A12345678" />
         </div>
         <div>
-          <label htmlFor="company-phone" className={labelCls}>Telefono</label>
+          <label htmlFor="company-phone" className={labelCls}>Teléfono</label>
           <input id="company-phone" type="tel" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} className={inputCls} placeholder="+34 900 000 000" />
         </div>
       </div>
       <div>
-        <label htmlFor="company-address" className={labelCls}>Direccion</label>
-        <input id="company-address" type="text" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} className={inputCls} placeholder="Calle, numero, ciudad" />
+        <label htmlFor="company-address" className={labelCls}>Dirección</label>
+        <input id="company-address" type="text" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} className={inputCls} placeholder="Calle, número, ciudad" />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
@@ -139,7 +139,7 @@ function PolicyModalContent({
         </select>
       </div>
       <div>
-        <label htmlFor="policy-number" className={labelCls}>Numero de poliza *</label>
+        <label htmlFor="policy-number" className={labelCls}>Número de póliza *</label>
         <input id="policy-number" type="text" value={form.policyNumber} onChange={e => setForm(p => ({ ...p, policyNumber: e.target.value }))} className={inputCls} placeholder="POL-123456" />
       </div>
       <div className="grid grid-cols-2 gap-3">
@@ -166,7 +166,7 @@ function PolicyModalContent({
           disabled={saving || !form.patientId || !form.insuranceCompanyId || !form.policyNumber.trim()}
           className="h-8 px-4 rounded-md bg-gantly-blue text-white text-xs font-semibold hover:bg-gantly-blue/90 transition-colors disabled:opacity-50 cursor-pointer border-none"
         >
-          {saving ? 'Creando...' : 'Crear poliza'}
+          {saving ? 'Creando...' : 'Crear póliza'}
         </button>
       </div>
     </div>
@@ -218,7 +218,7 @@ export default function ClinicInsuranceTab() {
       setPolicies(data);
     } catch {
       setPolicies([]);
-      toast.error('Error al cargar las polizas');
+      toast.error('Error al cargar las pólizas');
     }
     finally { setLoadingPolicies(false); }
   }, []);
@@ -276,7 +276,7 @@ export default function ClinicInsuranceTab() {
       setPolicies(prev => [...prev, created]);
       setShowPolicyModal(false);
     } catch {
-      toast.error('Error al crear la poliza');
+      toast.error('Error al crear la póliza');
     }
     finally { setSavingPolicy(false); }
   }
@@ -286,7 +286,7 @@ export default function ClinicInsuranceTab() {
       await clinicService.deletePatientPolicy(id);
       setPolicies(prev => prev.filter(p => p.id !== id));
     } catch {
-      toast.error('Error al eliminar la poliza');
+      toast.error('Error al eliminar la póliza');
     }
   }
 
@@ -315,7 +315,7 @@ export default function ClinicInsuranceTab() {
               className="flex items-center gap-1 text-[11px] text-gantly-blue font-medium cursor-pointer bg-transparent hover:bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-md transition-colors"
             >
               <Plus size={12} />
-              Anadir
+              Añadir
             </button>
           </div>
 
@@ -327,7 +327,7 @@ export default function ClinicInsuranceTab() {
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <Building2 size={24} className="text-slate-300 mb-2" />
               <p className="text-sm font-medium text-slate-400">Sin aseguradoras</p>
-              <p className="text-xs text-slate-400 mt-0.5">Anade la primera aseguradora</p>
+              <p className="text-xs text-slate-400 mt-0.5">Añade la primera aseguradora</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -396,12 +396,12 @@ export default function ClinicInsuranceTab() {
           )}
         </div>
 
-        {/* Right: Polizas de pacientes */}
+        {/* Right: Pólizas de pacientes */}
         <div className="xl:col-span-2 bg-white rounded-2xl border border-slate-200/80 overflow-hidden flex flex-col">
           <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <FileText size={15} className="text-slate-400" />
-              <h2 className="text-sm font-semibold text-slate-800">Polizas de pacientes</h2>
+              <h2 className="text-sm font-semibold text-slate-800">Pólizas de pacientes</h2>
               <span className="text-[11px] text-slate-400">{policies.length}</span>
             </div>
             <button
@@ -410,7 +410,7 @@ export default function ClinicInsuranceTab() {
               className="flex items-center gap-1 text-[11px] text-gantly-blue font-medium cursor-pointer bg-transparent hover:bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Plus size={12} />
-              Anadir
+              Añadir
             </button>
           </div>
 
@@ -443,10 +443,10 @@ export default function ClinicInsuranceTab() {
               <div className="flex flex-col items-center justify-center py-16 text-center px-4">
                 <FileText size={24} className="text-slate-300 mb-2" />
                 <p className="text-sm font-medium text-slate-400">
-                  {policySearch ? 'Sin resultados' : 'Sin polizas'}
+                  {policySearch ? 'Sin resultados' : 'Sin pólizas'}
                 </p>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  {policySearch ? 'Cambia la busqueda' : 'Anade la primera poliza'}
+                  {policySearch ? 'Cambia la búsqueda' : 'Añade la primera póliza'}
                 </p>
               </div>
             ) : (
@@ -481,7 +481,7 @@ export default function ClinicInsuranceTab() {
                         <button
                           onClick={() => setDeletePolicyId(policy.id)}
                           className="text-slate-300 hover:text-red-500 transition-colors p-1 rounded-md cursor-pointer bg-transparent border-none"
-                          title="Eliminar poliza"
+                          title="Eliminar póliza"
                         >
                           <Trash2 size={12} />
                         </button>
@@ -513,7 +513,7 @@ export default function ClinicInsuranceTab() {
       <Modal
         open={showPolicyModal}
         onClose={() => setShowPolicyModal(false)}
-        title="Nueva poliza"
+        title="Nueva póliza"
         maxWidth="max-w-md"
       >
         <PolicyModalContent
@@ -532,7 +532,7 @@ export default function ClinicInsuranceTab() {
           if (deleteCompanyId !== null) await handleDeleteCompany(deleteCompanyId);
         }}
         title="Eliminar aseguradora"
-        message="Esta accion eliminara la aseguradora de forma permanente. ¿Estas seguro?"
+        message="Esta acción eliminará la aseguradora de forma permanente. ¿Estás seguro?"
         confirmLabel="Eliminar"
         variant="danger"
       />
@@ -544,8 +544,8 @@ export default function ClinicInsuranceTab() {
         onConfirm={async () => {
           if (deletePolicyId !== null) await handleDeletePolicy(deletePolicyId);
         }}
-        title="Eliminar poliza"
-        message="Esta accion eliminara la poliza de forma permanente. ¿Estas seguro?"
+        title="Eliminar póliza"
+        message="Esta acción eliminará la póliza de forma permanente. ¿Estás seguro?"
         confirmLabel="Eliminar"
         variant="danger"
       />

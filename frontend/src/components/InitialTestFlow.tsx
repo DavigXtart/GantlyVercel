@@ -43,10 +43,10 @@ const DETAIL_INPUT_PATTERN = /especificar/i;
 
 const getQuestionMeta = (position: number): QuestionMeta | null => {
   if (position === 1) {
-    return { block: 'Bloque 1 · Motivo principal', helper: 'Cuentanos que te trae a terapia.' };
+    return { block: 'Bloque 1 · Motivo principal', helper: 'Cuéntanos qué te trae a terapia.' };
   }
   if (position === 2 || position === 3) {
-    return { block: 'Bloque 2 · Preferencias del profesional', helper: 'Ayudanos a adaptar el estilo del psicologo.' };
+    return { block: 'Bloque 2 · Preferencias del profesional', helper: 'Ayúdanos a adaptar el estilo del psicólogo.' };
   }
   if (position >= 4 && position <= 7) {
     return { block: 'Bloque 3 · Tu estilo y personalidad', helper: 'Escala de 1 (muy en desacuerdo) a 5 (muy de acuerdo).' };
@@ -61,7 +61,7 @@ const getQuestionMeta = (position: number): QuestionMeta | null => {
     return { block: 'Bloque 6 · Presupuesto y urgencia', helper: 'Esto nos permite priorizar y ajustar sugerencias.' };
   }
   if (position === 14 || position === 15) {
-    return { block: 'Bloque 7 · Contexto personal', helper: 'Informacion para ajustar el matching.' };
+    return { block: 'Bloque 7 · Contexto personal', helper: 'Información para ajustar el matching.' };
   }
   if (position === 16) {
     return { block: 'Resumen final', helper: 'Comparte cualquier detalle adicional.' };
@@ -365,7 +365,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
           (selectedAnswer8.text.toLowerCase().startsWith('no') && !selectedAnswer8.text.toLowerCase().includes('si'))
         );
 
-        // Si nunca ha asistido, excluir la pregunta 9 de la validacion (ya esta auto-respondida)
+        // Si nunca ha asistido, excluir la pregunta 9 de la validación (ya está auto-respondida)
         if (neverAttended) {
           questionsToCheck = test.questions.filter(q => q.position !== 9);
         }

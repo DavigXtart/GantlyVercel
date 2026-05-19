@@ -38,6 +38,8 @@ interface UserAnswer {
   }>;
 }
 
+const ANSWERS_PAGE_SIZE = 10;
+
 export default function TestManager({ testId, onBack }: TestManagerProps) {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answersByQuestion, setAnswersByQuestion] = useState<Record<number, Answer[]>>({});
@@ -68,6 +70,7 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
   const [showImporter, setShowImporter] = useState(false);
   const [confirmDeleteQuestionId, setConfirmDeleteQuestionId] = useState<number | null>(null);
   const [confirmDeleteAnswerId, setConfirmDeleteAnswerId] = useState<number | null>(null);
+  const [answersExpanded, setAnswersExpanded] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     loadQuestions();
@@ -982,35 +985,62 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
                         </div>
                       ) : (
                         <div className="answers-list">
-                          {sortedAnswers.map((answer) => (
-                            <div key={answer.id} className="answer-card-admin">
-                              <div style={{ flex: 1 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Posición {answer.position}</span>
-                                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>•</span>
-                                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Valor: {answer.value}</span>
-                                </div>
-                                <p style={{ margin: 0, fontSize: '15px' }}>{answer.text}</p>
-                              </div>
-                              <div style={{ display: 'flex', gap: '8px' }}>
-                                <button 
-                                  className="btn-secondary" 
-                                  onClick={() => setEditingAnswer({ answer, questionId: question.id })}
-                                  style={{ padding: '6px 12px', fontSize: '13px' }}
-                                >
-                                  <Pencil size={14} />
-                                </button>
-                                <button
-                                  className="btn-danger"
-                                  onClick={() => setConfirmDeleteAnswerId(answer.id)}
-                                  disabled={loading}
-                                  style={{ padding: '6px 12px', fontSize: '13px' }}
-                                >
-                                  <Trash2 size={14} />
-                                </button>
-                              </div>
-                            </div>
-                          ))}
+                          {(() => {
+                            const isAnswersExpanded = answersExpanded[question.id] || false;
+                            const visibleAnswers = isAnswersExpanded ? sortedAnswers : sortedAnswers.slice(0, ANSWERS_PAGE_SIZE);
+                            const hasMore = sortedAnswers.length > ANSWERS_PAGE_SIZE;
+                            return (
+                              <>
+                                {visibleAnswers.map((answer) => (
+                                  <div key={answer.id} className="answer-card-admin">
+                                    <div style={{ flex: 1 }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                                        <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Posición {answer.position}</span>
+                                        <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>•</span>
+                                        <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Valor: {answer.value}</span>
+                                      </div>
+                                      <p style={{ margin: 0, fontSize: '15px' }}>{answer.text}</p>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                      <button
+                                        className="btn-secondary"
+                                        onClick={() => setEditingAnswer({ answer, questionId: question.id })}
+                                        style={{ padding: '6px 12px', fontSize: '13px' }}
+                                      >
+                                        <Pencil size={14} />
+                                      </button>
+                                      <button
+                                        className="btn-danger"
+                                        onClick={() => setConfirmDeleteAnswerId(answer.id)}
+                                        disabled={loading}
+                                        style={{ padding: '6px 12px', fontSize: '13px' }}
+                                      >
+                                        <Trash2 size={14} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                                {hasMore && !isAnswersExpanded && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setAnswersExpanded(prev => ({ ...prev, [question.id]: true }))}
+                                    className="w-full py-2 text-xs text-gantly-blue hover:text-gantly-blue/80 font-medium transition-colors cursor-pointer bg-transparent border-none"
+                                  >
+                                    Ver todas las respuestas ({sortedAnswers.length})
+                                  </button>
+                                )}
+                                {hasMore && isAnswersExpanded && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setAnswersExpanded(prev => ({ ...prev, [question.id]: false }))}
+                                    className="w-full py-2 text-xs text-slate-500 hover:text-slate-700 font-medium transition-colors cursor-pointer bg-transparent border-none"
+                                  >
+                                    Mostrar menos
+                                  </button>
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
                       )}
                     </div>

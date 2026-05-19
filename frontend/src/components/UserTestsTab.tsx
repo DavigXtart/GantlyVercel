@@ -48,7 +48,7 @@ export default function UserTestsTab({
         <EmptyState
           icon={<ClipboardList className="w-12 h-12 text-gantly-blue/40" />}
           title="No hay tests pendientes"
-          description="Tu psicologo te asignara tests aqui. Mientras tanto, puedes explorar las evaluaciones clinicas disponibles."
+          description="Tu psicólogo te asignará tests aquí. Mientras tanto, puedes explorar las evaluaciones clínicas disponibles."
           action={
             <button
               type="button"
@@ -87,7 +87,7 @@ export default function UserTestsTab({
                   {isEval ? <Stethoscope size={24} /> : <HelpCircle size={24} />}
                 </div>
                 <p className={`text-xs font-semibold ${isEval ? 'text-teal-600' : 'text-gantly-gold'} uppercase tracking-wide mb-2`}>
-                  {isEval ? 'Test clinico asignado' : 'Asignado por tu psicologo'}
+                  {isEval ? 'Test clínico asignado' : 'Asignado por tu psicólogo'}
                 </p>
                 <h3 className="text-lg font-semibold text-slate-800 group-hover:text-gantly-blue transition-colors mb-2">
                   {at.testTitle || at.test?.title || 'Test'}
@@ -183,7 +183,7 @@ export default function UserTestsTab({
                   {isEval ? <Stethoscope size={24} /> : <CheckSquare size={24} />}
                 </div>
                 <p className={`text-xs font-semibold ${isEval ? 'text-teal-600' : 'text-gantly-emerald'} uppercase tracking-wide mb-2`}>
-                  {isEval ? 'Test clinico completado' : 'Asignado por tu psicologo'}
+                  {isEval ? 'Test clínico completado' : 'Asignado por tu psicólogo'}
                 </p>
                 <h3 className="text-lg font-semibold text-slate-800 group-hover:text-gantly-blue transition-colors mb-2">
                   {at.testTitle || at.test?.title || 'Test'}

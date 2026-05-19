@@ -100,7 +100,7 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
         healthConsent
       );
       trackEvent('register', { role: inviteToken ? 'PSYCHOLOGIST' : 'USER' });
-      toast.success('Te hemos enviado un codigo de verificacion a tu email');
+      toast.success('Te hemos enviado un código de verificación a tu email');
       setStep('verify');
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || 'Error al registrarse';
@@ -114,7 +114,7 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
   const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
     if (verificationCode.length !== 6) {
-      toast.warning('Introduce el codigo de 6 digitos');
+      toast.warning('Introduce el código de 6 dígitos');
       return;
     }
     setVerifying(true);
@@ -124,10 +124,10 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
         toast.success('Email verificado. Bienvenido!');
         onRegister();
       } else {
-        toast.error(res.message || 'Codigo invalido o expirado');
+        toast.error(res.message || 'Código inválido o expirado');
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Error al verificar el codigo');
+      toast.error(err.response?.data?.message || 'Error al verificar el código');
     } finally {
       setVerifying(false);
     }
@@ -136,9 +136,9 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
   const handleResendCode = async () => {
     try {
       await authService.resendVerificationEmail();
-      toast.success('Codigo reenviado a tu email');
+      toast.success('Código reenviado a tu email');
     } catch {
-      toast.error('Error al reenviar el codigo');
+      toast.error('Error al reenviar el código');
     }
   };
 
@@ -279,7 +279,7 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
                 Verifica tu email
               </h2>
               <p className="m-0 mb-2 text-base text-gantly-muted">
-                Hemos enviado un codigo de 6 digitos a:
+                Hemos enviado un código de 6 dígitos a:
               </p>
               <p className="m-0 mb-8 text-base text-gantly-text font-semibold">
                 {email}
@@ -288,7 +288,7 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
               <form onSubmit={handleVerifyCode} className="flex flex-col gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-gantly-muted mb-2">
-                    Codigo de verificacion
+                    Código de verificación
                   </label>
                   <input
                     type="text"
@@ -311,7 +311,7 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
                 </button>
 
                 <div className="text-center text-sm text-gray-500">
-                  ¿No recibiste el codigo?{' '}
+                  ¿No recibiste el código?{' '}
                   <button onClick={handleResendCode} type="button" className="border-none bg-transparent text-gantly-blue-600 font-semibold cursor-pointer text-sm hover:underline">
                     Reenviar
                   </button>

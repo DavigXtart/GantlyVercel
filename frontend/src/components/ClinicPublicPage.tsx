@@ -619,7 +619,7 @@ export default function ClinicPublicPage() {
                 />
               </div>
               <div>
-                <label className="text-[11px] font-medium text-slate-500 mb-1 block">Telefono</label>
+                <label className="text-[11px] font-medium text-slate-500 mb-1 block">Teléfono</label>
                 <input
                   type="tel"
                   value={bookingForm.phone}

@@ -211,10 +211,10 @@ function generateInvoicePdf(item: {
       y += 14;
     };
 
-    addRow('Clinica', clinicName);
-    addRow('Psicologo', item.psychologistName);
+    addRow('Clínica', clinicName);
+    addRow('Psicólogo', item.psychologistName);
     addRow('Paciente', item.patientName || '—');
-    addRow('Servicio', item.service || 'Sesion de psicologia');
+    addRow('Servicio', item.service || 'Sesión de psicología');
     addRow('Fecha', new Date(item.startTime).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }));
 
     y += 4;
@@ -257,7 +257,7 @@ function generateInvoicePdf(item: {
 // CSV export
 // ---------------------------------------------------------------------------
 function exportCsv(items: ClinicBillingItem[]): void {
-  const headers = ['Fecha', 'Hora inicio', 'Hora fin', 'Psicologo', 'Paciente', 'Servicio', 'Tipo facturacion', 'Aseguradora', 'Base', 'IVA exento', 'Tipo IVA', 'IVA', 'Total', 'Estado pago'];
+  const headers = ['Fecha', 'Hora inicio', 'Hora fin', 'Psicólogo', 'Paciente', 'Servicio', 'Tipo facturación', 'Aseguradora', 'Base', 'IVA exento', 'Tipo IVA', 'IVA', 'Total', 'Estado pago'];
   const rows = items.map((item) => [
     fmtDateFull(item.startTime),
     fmtTime(item.startTime),

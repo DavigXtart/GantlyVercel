@@ -334,13 +334,13 @@ function EquipoTab({ psychologists, onRefresh }: { psychologists: Psychologist[]
       <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
           <Users size={15} className="text-slate-400" />
-          <h2 className="text-sm font-semibold text-slate-800">Psicologos del equipo</h2>
+          <h2 className="text-sm font-semibold text-slate-800">Psicólogos del equipo</h2>
         </div>
         <div className="p-4 space-y-2">
           {psychologists.length === 0 ? (
             <div className="py-10 flex flex-col items-center gap-2 text-slate-400">
               <Users size={28} strokeWidth={1.5} />
-              <p className="text-sm">Aun no hay psicologos en tu clinica</p>
+              <p className="text-sm">Aún no hay psicólogos en tu clínica</p>
             </div>
           ) : (
             psychologists.map(p => (
@@ -423,7 +423,7 @@ function EquipoTab({ psychologists, onRefresh }: { psychologists: Psychologist[]
       <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden self-start">
         <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
           <Send size={15} className="text-slate-400" />
-          <h2 className="text-sm font-semibold text-slate-800">Invitar psicologo</h2>
+          <h2 className="text-sm font-semibold text-slate-800">Invitar psicólogo</h2>
         </div>
         <div className="p-4">
           <form onSubmit={handleSend} className="flex gap-2">

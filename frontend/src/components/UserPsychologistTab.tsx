@@ -100,7 +100,7 @@ export default function UserPsychologistTab({
 
   const handleUseReferralCode = async () => {
     if (!referralCodeInput.trim()) {
-      toast.error('Por favor ingresa un codigo de referencia');
+      toast.error('Por favor ingresa un código de referencia');
       return;
     }
     try {
@@ -116,7 +116,7 @@ export default function UserPsychologistTab({
         window.location.reload();
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Error al usar el codigo de referencia');
+      toast.error(error.response?.data?.error || 'Error al usar el código de referencia');
     } finally {
       setUsingReferralCode(false);
     }
@@ -173,10 +173,10 @@ export default function UserPsychologistTab({
                 <>
                   <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200">
                     <h3 className="text-lg font-semibold text-amber-800 mb-2">
-                      Consentimiento requerido (menores de 18 anos)
+                      Consentimiento requerido (menores de 18 años)
                     </h3>
                     <p className="text-sm text-amber-700">
-                      Tu psicologo te ha enviado un documento de consentimiento. Debes leerlo y firmarlo para continuar.
+                      Tu psicólogo te ha enviado un documento de consentimiento. Debes leerlo y firmarlo para continuar.
                     </p>
                   </div>
                   {pendingConsents.map((c: any) => (
@@ -285,7 +285,7 @@ export default function UserPsychologistTab({
               <div className="text-center py-10 bg-gantly-cloud/30 rounded-xl border-2 border-dashed border-slate-200">
                 <CalendarX size={28} className="text-gantly-muted/40 mb-2 mx-auto block" />
                 <p className="text-sm font-body text-gantly-muted">
-                  Aun no tienes citas pasadas con tu psicologo.
+                  Aún no tienes citas pasadas con tu psicólogo.
                 </p>
               </div>
             ) : (
@@ -369,29 +369,29 @@ export default function UserPsychologistTab({
             <Brain size={28} className="text-white" />
           </div>
           <h3 className="text-xl font-heading font-bold text-gantly-text mb-2">
-            {matchingTestCompleted ? 'No se encontraron psicologos compatibles' : 'Encuentra tu psicologo ideal'}
+            {matchingTestCompleted ? 'No se encontraron psicólogos compatibles' : 'Encuentra tu psicólogo ideal'}
           </h3>
           <p className="text-sm font-body text-gantly-muted mb-8 max-w-md mx-auto">
             {matchingTestCompleted
-              ? 'En este momento no hay psicologos disponibles que coincidan con tu perfil. Puedes intentarlo mas adelante, repetir el test o usar un codigo de referencia.'
-              : 'Completa el test de matching para encontrar psicologos que se adapten a tus necesidades, o usa un codigo de referencia si ya tienes un psicologo.'}
+              ? 'En este momento no hay psicólogos disponibles que coincidan con tu perfil. Puedes intentarlo más adelante, repetir el test o usar un código de referencia.'
+              : 'Completa el test de matching para encontrar psicólogos que se adapten a tus necesidades, o usa un código de referencia si ya tienes un psicólogo.'}
           </p>
 
           {/* Referral code form */}
           <div className="max-w-md mx-auto mb-8">
             <div className="bg-gantly-cloud/50 rounded-2xl p-6 border border-slate-100">
               <h4 className="text-base font-heading font-semibold text-gantly-text mb-2">
-                ¿Tienes un codigo de referencia?
+                ¿Tienes un código de referencia?
               </h4>
               <p className="text-sm font-body text-gantly-muted mb-4">
-                Si un psicologo te ha compartido un codigo o enlace, usalo aqui para unirte directamente a su consulta.
+                Si un psicólogo te ha compartido un código o enlace, úsalo aquí para unirte directamente a su consulta.
               </p>
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={referralCodeInput}
                   onChange={(e) => setReferralCodeInput(e.target.value)}
-                  placeholder="Codigo de referencia (ej: juan-garcia)"
+                  placeholder="Código de referencia (ej: juan-garcia)"
                   className="flex-1 h-12 rounded-xl border-2 border-slate-200 px-4 focus:ring-2 focus:ring-gantly-blue/10 focus:border-gantly-blue outline-none transition-all duration-200 text-sm font-body"
                   onKeyPress={(e) => {
                     if (e.key === 'Enter' && referralCodeInput.trim()) {
@@ -404,7 +404,7 @@ export default function UserPsychologistTab({
                   disabled={!referralCodeInput.trim() || usingReferralCode}
                   className="bg-gantly-blue text-white px-5 py-3 rounded-xl font-heading font-semibold cursor-pointer hover:bg-gantly-blue/90 shadow-lg shadow-gantly-blue/20 hover:shadow-xl hover:shadow-gantly-blue/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                 >
-                  {usingReferralCode ? 'Uniendo...' : 'Usar codigo'}
+                  {usingReferralCode ? 'Uniendo...' : 'Usar código'}
                 </button>
               </div>
             </div>

@@ -125,23 +125,23 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
           <div className="bg-white rounded-2xl p-8 border border-slate-100">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-1 h-6 rounded-full bg-gradient-to-b from-gantly-blue to-gantly-blue-600"></div>
-              <h3 className="m-0 text-lg font-semibold text-slate-800">Biografia / Sobre mi</h3>
+              <h3 className="m-0 text-lg font-semibold text-slate-800">Biografía / Sobre mí</h3>
             </div>
             <textarea
               value={psychProfileForm.bio}
               onChange={(e) => setPsychProfileForm({ ...psychProfileForm, bio: e.target.value })}
-              placeholder="Escribe una breve biografia sobre ti, tu experiencia y tu enfoque profesional..."
+              placeholder="Escribe una breve biografía sobre ti, tu experiencia y tu enfoque profesional..."
               rows={5}
               className="w-full p-4 rounded-xl border border-slate-200 text-sm text-slate-800 resize-y leading-relaxed outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
             />
           </div>
 
-          {/* Educacion */}
+          {/* Educación */}
           <div className="bg-white rounded-2xl p-8 border border-slate-100">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-1 h-6 rounded-full bg-gradient-to-b from-emerald-500 to-teal-500"></div>
-                <h3 className="m-0 text-lg font-semibold text-slate-800">Educacion</h3>
+                <h3 className="m-0 text-lg font-semibold text-slate-800">Educación</h3>
               </div>
               <button
                 onClick={() => setPsychProfileForm({
@@ -150,14 +150,14 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                 })}
                 className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
               >
-                + Anadir
+                + Añadir
               </button>
             </div>
             {psychProfileForm.education.map((edu, idx) => (
               <div key={idx} className="mb-4 p-5 bg-gradient-to-br from-slate-50 to-blue-50/20 rounded-xl border border-slate-100">
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Titulo</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Título</label>
                     <input
                       type="text"
                       value={edu.degree}
@@ -180,13 +180,13 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                         newEducation[idx].field = e.target.value;
                         setPsychProfileForm({ ...psychProfileForm, education: newEducation });
                       }}
-                      placeholder="Ej: Psicologia Clinica..."
+                      placeholder="Ej: Psicología Clínica..."
                       className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                     />
                   </div>
                 </div>
                 <div className="mb-3">
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Institucion</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Institución</label>
                   <input
                     type="text"
                     value={edu.institution}
@@ -241,7 +241,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
               </div>
             ))}
             {psychProfileForm.education.length === 0 && (
-              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay educacion anadida.</div>
+              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay educación añadida.</div>
             )}
           </div>
 
@@ -259,13 +259,13 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                 })}
                 className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
               >
-                + Anadir
+                + Añadir
               </button>
             </div>
             {psychProfileForm.certifications.map((cert, idx) => (
               <div key={idx} className="mb-4 p-5 bg-gradient-to-br from-slate-50 to-amber-50/20 rounded-xl border border-slate-100">
                 <div className="mb-3">
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Nombre de la certificacion</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Nombre de la certificación</label>
                   <input
                     type="text"
                     value={cert.name}
@@ -274,7 +274,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                       newCerts[idx].name = e.target.value;
                       setPsychProfileForm({ ...psychProfileForm, certifications: newCerts });
                     }}
-                    placeholder="Ej: Certificacion en Terapia Cognitivo-Conductual"
+                    placeholder="Ej: Certificación en Terapia Cognitivo-Conductual"
                     className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                   />
                 </div>
@@ -289,7 +289,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                         newCerts[idx].issuer = e.target.value;
                         setPsychProfileForm({ ...psychProfileForm, certifications: newCerts });
                       }}
-                      placeholder="Ej: Colegio Oficial de Psicologos"
+                      placeholder="Ej: Colegio Oficial de Psicólogos"
                       className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                     />
                   </div>
@@ -334,7 +334,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
               </div>
             ))}
             {psychProfileForm.certifications.length === 0 && (
-              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay certificaciones anadidas.</div>
+              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay certificaciones añadidas.</div>
             )}
           </div>
 
@@ -352,14 +352,14 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                 })}
                 className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
               >
-                + Anadir
+                + Añadir
               </button>
             </div>
             {psychProfileForm.experience.map((exp, idx) => (
               <div key={idx} className="mb-4 p-5 bg-gradient-to-br from-slate-50 to-cyan-50/20 rounded-xl border border-slate-100">
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Cargo / Titulo</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Cargo / Título</label>
                     <input
                       type="text"
                       value={exp.title}
@@ -368,7 +368,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                         newExp[idx].title = e.target.value;
                         setPsychProfileForm({ ...psychProfileForm, experience: newExp });
                       }}
-                      placeholder="Ej: Psicologo Clinico"
+                      placeholder="Ej: Psicólogo Clínico"
                       className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                     />
                   </div>
@@ -382,13 +382,13 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                         newExp[idx].company = e.target.value;
                         setPsychProfileForm({ ...psychProfileForm, experience: newExp });
                       }}
-                      placeholder="Ej: Centro de Psicologia"
+                      placeholder="Ej: Centro de Psicología"
                       className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                     />
                   </div>
                 </div>
                 <div className="mb-3">
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Descripcion</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Descripción</label>
                   <textarea
                     value={exp.description}
                     onChange={(e) => {
@@ -443,7 +443,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
               </div>
             ))}
             {psychProfileForm.experience.length === 0 && (
-              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay experiencia anadida.</div>
+              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay experiencia añadida.</div>
             )}
           </div>
 
@@ -456,7 +456,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
               </div>
               <button
                 onClick={() => {
-                  const newSpec = prompt('Ingresa una especializacion:');
+                  const newSpec = prompt('Ingresa una especialización:');
                   if (newSpec && newSpec.trim()) {
                     setPsychProfileForm({
                       ...psychProfileForm,
@@ -466,7 +466,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                 }}
                 className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
               >
-                + Anadir
+                + Añadir
               </button>
             </div>
             <div className="flex flex-wrap gap-2.5 mb-2">
@@ -489,7 +489,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
               ))}
             </div>
             {psychProfileForm.specializations.length === 0 && (
-              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay especializaciones anadidas.</div>
+              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay especializaciones añadidas.</div>
             )}
           </div>
 
@@ -502,7 +502,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
               </div>
               <button
                 onClick={() => {
-                  const newInterest = prompt('Ingresa un interes o pasion:');
+                  const newInterest = prompt('Ingresa un interés o pasión:');
                   if (newInterest && newInterest.trim()) {
                     setPsychProfileForm({
                       ...psychProfileForm,
@@ -512,7 +512,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                 }}
                 className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
               >
-                + Anadir
+                + Añadir
               </button>
             </div>
             <div className="flex flex-wrap gap-2.5 mb-2">
@@ -535,7 +535,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
               ))}
             </div>
             {psychProfileForm.interests.length === 0 && (
-              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay intereses anadidos.</div>
+              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay intereses añadidos.</div>
             )}
           </div>
 
@@ -553,7 +553,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                 })}
                 className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
               >
-                + Anadir
+                + Añadir
               </button>
             </div>
             {psychProfileForm.languages.map((lang, idx) => (
@@ -569,7 +569,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
                         newLangs[idx].language = e.target.value;
                         setPsychProfileForm({ ...psychProfileForm, languages: newLangs });
                       }}
-                      placeholder="Ej: Espanol, Ingles..."
+                      placeholder="Ej: Español, Inglés..."
                       className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
                     />
                   </div>
@@ -600,18 +600,18 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
               </div>
             ))}
             {psychProfileForm.languages.length === 0 && (
-              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay idiomas anadidos.</div>
+              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay idiomas añadidos.</div>
             )}
           </div>
 
-          {/* Precio por Sesion */}
+          {/* Precio por Sesión */}
           <div className="bg-white rounded-2xl p-8 border border-slate-100">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-1 h-6 rounded-full bg-gradient-to-b from-emerald-500 to-green-500"></div>
-              <h3 className="m-0 text-lg font-semibold text-slate-800">Precio por Sesion</h3>
+              <h3 className="m-0 text-lg font-semibold text-slate-800">Precio por Sesión</h3>
             </div>
             <p className="text-slate-500 text-sm mb-4">
-              Este sera el precio por defecto al crear nuevos horarios en tu calendario.
+              Este será el precio por defecto al crear nuevos horarios en tu calendario.
             </p>
             <div className="flex items-center gap-3">
               <input
@@ -657,7 +657,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
             </div>
           </div>
 
-          {/* Botones de accion */}
+          {/* Botones de acción */}
           <div className="flex gap-3 mt-2 pt-6 border-t border-slate-200">
             <button
               onClick={savePsychologistProfile}

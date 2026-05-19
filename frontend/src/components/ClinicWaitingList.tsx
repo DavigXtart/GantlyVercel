@@ -144,7 +144,7 @@ export default function ClinicWaitingList() {
       setAddForm({ patientName: '', email: '', phone: '', service: '', psychologistPreference: '', priority: 'NORMAL', notes: '' });
       loadEntries();
     } catch (err: any) {
-      setAddError(err.response?.data?.message || 'Error al anadir paciente');
+      setAddError(err.response?.data?.message || 'Error al añadir paciente');
     } finally {
       setAddSubmitting(false);
     }
@@ -233,7 +233,7 @@ export default function ClinicWaitingList() {
               className="h-8 px-3.5 bg-gantly-blue text-white rounded-md text-xs font-medium hover:bg-gantly-blue/90 transition-colors cursor-pointer border-none inline-flex items-center gap-1.5"
             >
               <Plus size={13} />
-              Anadir paciente
+              Añadir paciente
             </button>
           </div>
         </div>
@@ -247,7 +247,7 @@ export default function ClinicWaitingList() {
           <div className="flex flex-col items-center justify-center py-16 text-slate-400">
             <ListOrdered size={32} strokeWidth={1.5} className="mb-3" />
             <p className="text-sm font-medium">No hay pacientes en lista de espera</p>
-            <p className="text-xs mt-1">Anade un paciente para comenzar</p>
+            <p className="text-xs mt-1">Añade un paciente para comenzar</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -347,7 +347,7 @@ export default function ClinicWaitingList() {
       </div>
 
       {/* Add Patient Modal */}
-      <Modal open={showAddModal} onClose={() => setShowAddModal(false)} title="Anadir a lista de espera" maxWidth="max-w-md">
+      <Modal open={showAddModal} onClose={() => setShowAddModal(false)} title="Añadir a lista de espera" maxWidth="max-w-md">
         <div className="space-y-3">
           <div>
             <label className="text-[11px] font-medium text-slate-500 mb-1 block">Nombre *</label>
@@ -359,7 +359,7 @@ export default function ClinicWaitingList() {
               <input type="email" value={addForm.email} onChange={e => setAddForm(p => ({ ...p, email: e.target.value }))} className={inputCls} placeholder="email@ejemplo.com" />
             </div>
             <div>
-              <label className="text-[11px] font-medium text-slate-500 mb-1 block">Telefono</label>
+              <label className="text-[11px] font-medium text-slate-500 mb-1 block">Teléfono</label>
               <input type="tel" value={addForm.phone} onChange={e => setAddForm(p => ({ ...p, phone: e.target.value }))} className={inputCls} placeholder="+34 600 000 000" />
             </div>
           </div>
@@ -370,7 +370,7 @@ export default function ClinicWaitingList() {
             </div>
             <div>
               <label className="text-[11px] font-medium text-slate-500 mb-1 block">Preferencia profesional</label>
-              <input type="text" value={addForm.psychologistPreference} onChange={e => setAddForm(p => ({ ...p, psychologistPreference: e.target.value }))} className={inputCls} placeholder="Nombre del psicologo" />
+              <input type="text" value={addForm.psychologistPreference} onChange={e => setAddForm(p => ({ ...p, psychologistPreference: e.target.value }))} className={inputCls} placeholder="Nombre del psicólogo" />
             </div>
           </div>
           <div>
@@ -416,7 +416,7 @@ export default function ClinicWaitingList() {
               className="flex-1 h-9 bg-gantly-blue text-white rounded-md text-sm font-medium hover:bg-gantly-blue/90 transition-colors disabled:opacity-50 cursor-pointer border-none inline-flex items-center justify-center gap-2"
             >
               {addSubmitting ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
-              {addSubmitting ? 'Anadiendo...' : 'Anadir a la lista'}
+              {addSubmitting ? 'Añadiendo...' : 'Añadir a la lista'}
             </button>
             <button
               onClick={() => setShowAddModal(false)}

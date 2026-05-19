@@ -87,7 +87,7 @@ export default function CrisisButton() {
                 </div>
                 <div>
                   <div className="font-semibold text-[15px] text-gantly-navy">
-                    Telefono de la Esperanza
+                    Teléfono de la Esperanza
                   </div>
                   <div className="text-xl font-bold text-gantly-blue">
                     024
@@ -161,15 +161,15 @@ export default function CrisisButton() {
             {/* Safety Warning */}
             <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3.5 mb-4">
               <p className="m-0 text-sm font-semibold text-amber-800 leading-relaxed">
-                Si estas en peligro inmediato, llama al 112.
+                Si estás en peligro inmediato, llama al 112.
               </p>
             </div>
 
             {/* Disclaimer */}
             <p className="m-0 text-xs text-gantly-muted leading-relaxed text-center">
               Gantly no es un servicio de emergencias. En caso de crisis, contacta con los
-              servicios profesionales indicados. Esta informacion se proporciona como recurso
-              orientativo y no sustituye la atencion profesional inmediata.
+              servicios profesionales indicados. Esta información se proporciona como recurso
+              orientativo y no sustituye la atención profesional inmediata.
             </p>
           </div>
         </div>

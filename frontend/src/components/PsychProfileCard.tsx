@@ -223,7 +223,7 @@ const PsychProfileCard: React.FC<PsychProfileCardProps> = ({
               : 'bg-gantly-blue cursor-pointer shadow-glow-blue hover:bg-gantly-blue-600 hover:scale-[1.005]'
           }`}
         >
-          {selecting ? 'Seleccionando...' : 'Seleccionar este psicologo'}
+          {selecting ? 'Seleccionando...' : 'Seleccionar este psicólogo'}
         </button>
       )}
 

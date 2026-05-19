@@ -23,10 +23,10 @@ interface SoyProfesionalProps {
 
 /* ─── Stats data ─── */
 const stats = [
-  { value: '100%', label: 'Psicologos titulados, colegiados y habilitados' },
+  { value: '100%', label: 'Psicólogos titulados, colegiados y habilitados' },
   { value: '+300K', label: 'Sesiones realizadas de forma segura' },
   { value: '+92%', label: 'Profesionales que recomiendan Gantly' },
-  { value: '+8', label: 'Anos de experiencia en telepsicologia' },
+  { value: '+8', label: 'Años de experiencia en telepsicología' },
 ];
 
 /* ─── Advantage cards ─── */
@@ -35,7 +35,7 @@ const advantages = [
   { icon: Calendar, color: '#22D3EE', title: 'Horario flexible', desc: 'Trabaja cuando quieras, desde donde quieras. Tu agenda, tus reglas.' },
   { icon: Sparkles, color: '#F0C930', title: 'Asistente IA', desc: 'Resumenes automatizados de sesiones, sugerencias de seguimiento y notas clinicas asistidas.' },
   { icon: Receipt, color: '#059669', title: 'Cobro automatico', desc: 'Olvida perseguir pagos. Stripe gestiona todo automaticamente antes de cada sesion.' },
-  { icon: Video, color: '#2E93CC', title: 'Videollamada integrada', desc: 'Jitsi Meet privado, sin descargas, con encriptacion de extremo a extremo.' },
+  { icon: Video, color: '#2E93CC', title: 'Videollamada integrada', desc: 'Jitsi Meet privado, sin descargas, con encriptación de extremo a extremo.' },
   { icon: ClipboardCheck, color: '#22D3EE', title: 'Tests y evaluacion', desc: 'Baterias de tests clinicos integradas. Asigna, recoge resultados y genera informes en un clic.' },
 ];
 
@@ -233,7 +233,7 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
               onClick={onGetStarted}
               className="font-heading font-semibold text-base text-gantly-text bg-white hover:bg-white/90 transition-colors px-8 py-3.5 rounded-xl cursor-pointer shadow-lg shadow-black/10 min-w-[220px]"
             >
-              Registrarme como psicologo
+              Registrarme como psicólogo
             </button>
             {onRegisterCompany && (
               <button
@@ -361,10 +361,10 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
         <div className="grid md:grid-cols-2 gap-16 items-center max-w-5xl mx-auto">
           <ScrollReveal direction="left">
             <h2 className="font-heading text-3xl lg:text-5xl font-bold text-gantly-text mb-4">
-              Que necesitas para unirte?
+              ¿Qué necesitas para unirte?
             </h2>
             <p className="font-body text-lg text-slate-500 mb-8 leading-relaxed">
-              Verificaremos que cumples los requisitos esenciales para ejercer legalmente como psicologo sanitario online.
+              Verificaremos que cumples los requisitos esenciales para ejercer legalmente como psicólogo sanitario online.
             </p>
             <div className="flex flex-col gap-4">
               {requirements.map((req, i) => (
@@ -417,7 +417,7 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
           <div className="flex items-center justify-center gap-4 px-6 py-5 bg-white/5 rounded-2xl border border-white/10 max-w-3xl mx-auto mb-12">
             <Shield size={28} className="text-gantly-emerald flex-shrink-0" />
             <p className="font-body text-sm text-white/70 leading-relaxed">
-              Gantly se adhiere al Codigo de Conducta de Buenas Practicas en Telepsicologia del Colegio Oficial de Psicologos de Madrid.
+              Gantly se adhiere al Código de Conducta de Buenas Prácticas en Telepsicología del Colegio Oficial de Psicólogos de Madrid.
             </p>
           </div>
         </ScrollReveal>
@@ -441,17 +441,17 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
         <div className="relative z-10 mx-auto max-w-3xl px-6 text-center">
           <ScrollReveal>
             <h2 className="font-heading text-4xl lg:text-6xl font-bold text-white mb-4">
-              Tu consultorio, sin limites
+              Tu consultorio, sin límites
             </h2>
             <p className="font-body text-lg text-white/70 mb-10">
-              Unete a la comunidad de profesionales que ya confian en Gantly para transformar su practica clinica.
+              Únete a la comunidad de profesionales que ya confían en Gantly para transformar su práctica clínica.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
                 onClick={onGetStarted}
                 className="px-8 py-4 rounded-xl bg-white text-gantly-text font-heading font-semibold text-lg hover:bg-white/90 transition-all duration-200 cursor-pointer min-w-[250px] shadow-lg shadow-black/10"
               >
-                Registrarme como psicologo
+                Registrarme como psicólogo
               </button>
               {onRegisterCompany && (
                 <button

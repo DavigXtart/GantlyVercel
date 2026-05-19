@@ -199,7 +199,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
     return map;
   }, [absences, days]);
 
-  // Obtener precio segun tipo de sesion
+  // Obtener precio segun tipo de sesión
   const getPriceForSessionType = (sessionType: string): number | null => {
     if (!sessionPrices || !sessionType) return null;
     return sessionPrices[sessionType] ?? null;
@@ -221,7 +221,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
     if (mode === 'PSYCHO') {
       // Guardar la semana actual antes de abrir el modal
       setSavedWeekStart(new Date(weekStart));
-      // Para psicologos, pedir el precio o tipo de sesion
+      // Para psicólogos, pedir el precio o tipo de sesión
       setPendingSlot({ start: start.toISOString(), end: end.toISOString() });
       setPendingRange(null);
       setShowPriceModal(true);
@@ -229,7 +229,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
       setSelectedSessionType('');
       setRecurrenceRule('');
       setRecurrenceCount('4');
-      // Si hay un solo tipo de sesion disponible, seleccionarlo automaticamente
+      // Si hay un solo tipo de sesión disponible, seleccionarlo automaticamente
       if (availableSessionTypes.length === 1 && sessionPrices) {
         const singleType = availableSessionTypes[0];
         setSelectedSessionType(singleType);
@@ -294,7 +294,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
       setSelectedSessionType('');
       setRecurrenceRule('');
       setRecurrenceCount('4');
-      // Si hay un solo tipo de sesion disponible, seleccionarlo automaticamente
+      // Si hay un solo tipo de sesión disponible, seleccionarlo automaticamente
       if (availableSessionTypes.length === 1 && sessionPrices) {
         const singleType = availableSessionTypes[0];
         setSelectedSessionType(singleType);
@@ -359,13 +359,13 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
     if (selectedSessionType) {
       price = getPriceForSessionType(selectedSessionType);
       if (price === null) {
-        toast.warning('No se encontro precio para el tipo de sesion seleccionado');
+        toast.warning('No se encontró precio para el tipo de sesión seleccionado');
         return;
       }
     } else {
       const priceStr = priceInput.trim();
       if (priceStr === '') {
-        toast.warning('Por favor, selecciona un tipo de sesion o ingresa un precio');
+        toast.warning('Por favor, selecciona un tipo de sesión o ingresa un precio');
         return;
       }
       price = parseFloat(priceStr);
@@ -1265,7 +1265,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                   }}
                   className="w-full h-12 px-3 border-2 border-slate-200 rounded-xl font-body text-base outline-none transition-all duration-200 bg-white focus:border-gantly-blue cursor-pointer"
                 >
-                  <option value="">-- Seleccionar tipo de sesion --</option>
+                  <option value="">-- Seleccionar tipo de sesión --</option>
                   {availableSessionTypes.map(type => {
                     const price = sessionPrices![type];
                     return (
@@ -1297,7 +1297,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                     setSelectedSessionType('');
                   }
                 }}
-                placeholder={selectedSessionType ? "Precio del tipo de sesion" : "Ej: 45.00"}
+                placeholder={selectedSessionType ? "Precio del tipo de sesión" : "Ej: 45.00"}
                 required={!selectedSessionType}
                 disabled={!!selectedSessionType}
                 className={`w-full h-12 px-3 border-2 border-slate-200 rounded-xl font-body text-base outline-none transition-all duration-200 focus:border-gantly-blue ${selectedSessionType ? 'bg-slate-50' : 'bg-white'}`}
@@ -1433,7 +1433,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
         </div>
       )}
 
-      {/* Modal de confirmacion para reservar cita */}
+      {/* Modal de confirmación para reservar cita */}
       {showConfirmBookModal && pendingBookSlot && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]"
@@ -1485,8 +1485,8 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
               )}
             </div>
             <p className="m-0 mb-6 font-body text-sm text-gantly-muted leading-relaxed">
-              Una vez que reserves esta cita, el psicologo la revisara y confirmara.
-              No podras cancelar la solicitud desde aqui, pero el psicologo podra gestionarla.
+              Una vez que reserves esta cita, el psicólogo la revisará y confirmará.
+              No podrás cancelar la solicitud desde aquí, pero el psicólogo podrá gestionarla.
             </p>
             <div className="flex gap-3 justify-end">
               <button

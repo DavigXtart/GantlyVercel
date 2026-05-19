@@ -50,11 +50,11 @@ export default function CookieBanner({ onPrivacyClick }: CookieBannerProps) {
                 }}
                 className="text-gantly-blue-500 underline cursor-pointer font-medium hover:text-gantly-blue-700"
               >
-                Mas informacion
+                Más información
               </span>
             ) : (
               <a href="/privacidad" className="text-gantly-blue-500 underline font-medium hover:text-gantly-blue-700">
-                Mas informacion
+                Más información
               </a>
             )}
           </p>

@@ -164,7 +164,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       setTab('perfil-psicologo');
     } catch (err: any) {
       toast.error(
-        'Error al cargar el perfil del psicologo:' +
+        'Error al cargar el perfil del psicólogo:' +
           (err.response?.data?.error || err.message),
       );
     } finally {
@@ -205,17 +205,17 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
 
   const sidebarItems: { id: string; icon: ReactNode; label: string; requiresPsych: boolean }[] = [
     { id: 'perfil', icon: <Home size={20} />, label: 'Inicio', requiresPsych: false },
-    { id: 'mi-psicologo', icon: <Brain size={20} />, label: 'Psicologo', requiresPsych: false },
+    { id: 'mi-psicologo', icon: <Brain size={20} />, label: 'Psicólogo', requiresPsych: false },
     { id: 'tareas', icon: <CheckSquare size={20} />, label: 'Tareas', requiresPsych: true },
     { id: 'tests-pendientes', icon: <ClipboardList size={20} />, label: 'Tests', requiresPsych: true },
     { id: 'calendario', icon: <CalendarDays size={20} />, label: 'Calendario', requiresPsych: true },
     { id: 'agenda-personal', icon: <BookOpen size={20} />, label: 'Agenda', requiresPsych: false },
-    { id: 'mis-estadisticas', icon: <BarChart3 size={20} />, label: 'Estadisticas', requiresPsych: false },
+    { id: 'mis-estadisticas', icon: <BarChart3 size={20} />, label: 'Estadísticas', requiresPsych: false },
     { id: 'evaluaciones', icon: <FileText size={20} />, label: 'Evaluaciones', requiresPsych: false },
     { id: 'descubrimiento', icon: <Compass size={20} />, label: 'Descubrir', requiresPsych: false },
     { id: 'chat', icon: <div className="relative"><MessageCircle size={20} />{hasUnreadChat && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-gantly-navy" />}</div>, label: 'Chat', requiresPsych: true },
     { id: 'consentimientos', icon: <FileCheck size={20} />, label: 'Consentimientos', requiresPsych: true },
-    ...(me?.companyId ? [{ id: 'clinica', icon: <Building2 size={20} /> as ReactNode, label: 'Mi Clinica', requiresPsych: false }] : []),
+    ...(me?.companyId ? [{ id: 'clinica', icon: <Building2 size={20} /> as ReactNode, label: 'Mi Clínica', requiresPsych: false }] : []),
   ];
 
   return (
@@ -240,7 +240,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                 onClick={() => {
                   if (isDisabled) {
                     toast.error(
-                      'Necesitas tener un psicologo asignado para acceder a esta seccion',
+                      'Necesitas tener un psicólogo asignado para acceder a esta sección',
                     );
                     setTab('mi-psicologo');
                     return;
@@ -254,7 +254,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     ? 'text-slate-400 cursor-not-allowed opacity-50'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }`}
-                title={isDisabled ? 'Requiere psicologo asignado' : undefined}
+                title={isDisabled ? 'Requiere psicólogo asignado' : undefined}
               >
                 {item.icon}
                 <span>{item.label}</span>
@@ -315,7 +315,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     onClick={() => {
                       if (isDisabled) {
                         toast.error(
-                          'Necesitas tener un psicologo asignado para acceder a esta seccion',
+                          'Necesitas tener un psicólogo asignado para acceder a esta sección',
                         );
                         setTab('mi-psicologo');
                         setMobileMenuOpen(false);
@@ -412,7 +412,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                             disabled={isDisabled}
                             onClick={() => {
                               if (isDisabled) {
-                                toast.error('Necesitas psicologo asignado');
+                                toast.error('Necesitas psicólogo asignado');
                                 setTab('mi-psicologo');
                               } else {
                                 setTab(item.id as Tab);
@@ -444,7 +444,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                       disabled={isDisabled}
                       onClick={() => {
                         if (isDisabled) {
-                          toast.error('Necesitas psicologo asignado');
+                          toast.error('Necesitas psicólogo asignado');
                           setTab('mi-psicologo');
                           return;
                         }

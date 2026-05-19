@@ -44,9 +44,9 @@ export default function RegisterCompany({ onBack, onLogin, onSuccess }: Register
   };
 
   const benefits = [
-    { icon: Building2, text: 'Dashboard centralizado para tu clinica' },
-    { icon: Users, text: 'Gestion completa de psicologos y pacientes' },
-    { icon: BarChart3, text: 'Facturacion y metricas en tiempo real' },
+    { icon: Building2, text: 'Dashboard centralizado para tu clínica' },
+    { icon: Users, text: 'Gestión completa de psicólogos y pacientes' },
+    { icon: BarChart3, text: 'Facturación y métricas en tiempo real' },
     { icon: Mail, text: 'Invitaciones por email a profesionales' },
     { icon: Shield, text: 'Datos protegidos con cifrado de extremo a extremo' },
   ];
@@ -54,16 +54,16 @@ export default function RegisterCompany({ onBack, onLogin, onSuccess }: Register
   return (
     <div className="min-h-screen bg-gradient-to-br from-gantly-navy-700 via-gantly-blue-600 to-gantly-cyan-500 flex justify-center items-center px-6 py-20 relative">
       <div className="w-full max-w-[1000px] grid grid-cols-1 md:grid-cols-[minmax(300px,1fr)_minmax(320px,1fr)] gap-12 relative z-[1]">
-        {/* Panel izquierdo - Informacion */}
+        {/* Panel izquierdo - Información */}
         <div className="bg-white/90 border border-gantly-blue-100 rounded-2xl p-12 flex flex-col gap-6 shadow-card">
           <div className="font-heading text-[32px] font-bold text-gantly-blue-500 tracking-tight mb-2">
             Gantly
           </div>
           <h1 className="m-0 text-4xl leading-tight text-gantly-text font-heading font-bold">
-            Gestiona tu clinica
+            Gestiona tu clínica
           </h1>
           <p className="m-0 text-[17px] leading-relaxed text-gantly-muted mb-2">
-            Centraliza la gestion de tu clinica psicologica con herramientas profesionales diseñadas para equipos de salud mental.
+            Centraliza la gestión de tu clínica psicológica con herramientas profesionales diseñadas para equipos de salud mental.
           </p>
           <div className="mt-4 flex flex-col gap-4 text-base text-gantly-muted">
             {benefits.map((benefit, i) => (
@@ -81,7 +81,7 @@ export default function RegisterCompany({ onBack, onLogin, onSuccess }: Register
               onClick={onLogin}
               className="border-none bg-transparent text-gantly-blue-600 font-semibold cursor-pointer text-[15px] hover:underline"
             >
-              Iniciar sesion
+              Iniciar sesión
             </button>
             <button
               onClick={onBack}
@@ -99,23 +99,23 @@ export default function RegisterCompany({ onBack, onLogin, onSuccess }: Register
               <Building2 className="w-5 h-5 text-gantly-blue-500" />
             </div>
             <h2 className="m-0 text-[28px] text-gantly-text font-heading font-bold">
-              Crear cuenta de clinica
+              Crear cuenta de clínica
             </h2>
           </div>
           <p className="m-0 mb-8 text-base text-gantly-muted">
             Registra tu clinica y recibe un codigo de referencia para tus profesionales.
           </p>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-6" aria-label="Formulario de registro de clinica">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6" aria-label="Formulario de registro de clínica">
             <FormField
-              label="Nombre de la clinica"
+              label="Nombre de la clínica"
               name="companyName"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              placeholder="Ej: Clinica Psicologica XYZ"
-              ariaLabel="Nombre de la clinica"
+              placeholder="Ej: Clínica Psicológica XYZ"
+              ariaLabel="Nombre de la clínica"
             />
             <FormField
               label="Email"
@@ -125,7 +125,7 @@ export default function RegisterCompany({ onBack, onLogin, onSuccess }: Register
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="clinica@ejemplo.com"
-              ariaLabel="Correo electronico de la clinica"
+              ariaLabel="Correo electrónico de la clínica"
             />
             <FormField
               label="Contraseña"
@@ -134,7 +134,7 @@ export default function RegisterCompany({ onBack, onLogin, onSuccess }: Register
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              placeholder="Minimo 6 caracteres"
+              placeholder="Mínimo 6 caracteres"
               ariaLabel="Contraseña"
             />
 
@@ -175,7 +175,7 @@ export default function RegisterCompany({ onBack, onLogin, onSuccess }: Register
               ) : (
                 <>
                   <CheckCircle size={18} />
-                  Crear cuenta de clinica
+                  Crear cuenta de clínica
                 </>
               )}
             </button>

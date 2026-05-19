@@ -41,12 +41,12 @@ export default function TwoFactorSetup({ isEnabled, onStatusChange }: Props) {
     setError(null);
     try {
       await twoFactorService.verify(verifyCode.trim());
-      toast.success('Autenticacion en dos pasos activada correctamente');
+      toast.success('Autenticación en dos pasos activada correctamente');
       setSetupData(null);
       setVerifyCode('');
       onStatusChange();
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Codigo incorrecto. Intentalo de nuevo.';
+      const msg = err.response?.data?.message || 'Código incorrecto. Inténtalo de nuevo.';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -61,12 +61,12 @@ export default function TwoFactorSetup({ isEnabled, onStatusChange }: Props) {
     setError(null);
     try {
       await twoFactorService.disable(disablePassword);
-      toast.success('Autenticacion en dos pasos desactivada');
+      toast.success('Autenticación en dos pasos desactivada');
       setShowDisable(false);
       setDisablePassword('');
       onStatusChange();
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Contrasena incorrecta';
+      const msg = err.response?.data?.message || 'Contraseña incorrecta';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -91,7 +91,7 @@ export default function TwoFactorSetup({ isEnabled, onStatusChange }: Props) {
   if (isEnabled) {
     return (
       <div className="bg-white/95 border border-gantly-blue/15 rounded-2xl p-8 shadow-card font-body">
-        <div className="text-xl font-bold text-gantly-navy mb-2">Autenticacion en dos pasos</div>
+        <div className="text-xl font-bold text-gantly-navy mb-2">Autenticación en dos pasos</div>
         <div className="inline-flex items-center gap-1.5 bg-gantly-emerald-100 text-gantly-emerald-800 text-[13px] font-semibold px-3.5 py-1.5 rounded-full mb-4">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0">
             <circle cx="7" cy="7" r="7" fill="#10b981" />
@@ -100,8 +100,8 @@ export default function TwoFactorSetup({ isEnabled, onStatusChange }: Props) {
           2FA activado
         </div>
         <p className="text-sm text-gantly-muted leading-relaxed mb-6">
-          Tu cuenta esta protegida con autenticacion en dos pasos. Cada vez que inicies sesion,
-          necesitaras un codigo de tu aplicacion de autenticacion.
+          Tu cuenta está protegida con autenticación en dos pasos. Cada vez que inicies sesión,
+          necesitarás un código de tu aplicación de autenticación.
         </p>
 
         {!showDisable ? (
@@ -115,14 +115,14 @@ export default function TwoFactorSetup({ isEnabled, onStatusChange }: Props) {
         ) : (
           <form onSubmit={handleDisable}>
             <p className="text-sm text-gantly-muted mb-3">
-              Introduce tu contrasena para confirmar la desactivacion:
+              Introduce tu contraseña para confirmar la desactivación:
             </p>
             <div className="flex gap-3 items-start flex-wrap">
               <input
                 type="password"
                 value={disablePassword}
                 onChange={e => setDisablePassword(e.target.value)}
-                placeholder="Tu contrasena"
+                placeholder="Tu contraseña"
                 className="flex-1 min-w-[200px] px-4 py-3 border border-gantly-blue/20 rounded-xl text-sm outline-none font-body focus:border-gantly-blue focus:ring-1 focus:ring-gantly-blue/20"
                 autoFocus
               />
@@ -153,11 +153,11 @@ export default function TwoFactorSetup({ isEnabled, onStatusChange }: Props) {
   // ================================================================
   return (
     <div className="bg-white/95 border border-gantly-blue/15 rounded-2xl p-8 shadow-card font-body">
-      <div className="text-xl font-bold text-gantly-navy mb-2">Activar autenticacion en dos pasos</div>
+      <div className="text-xl font-bold text-gantly-navy mb-2">Activar autenticación en dos pasos</div>
       <p className="text-sm text-gantly-muted leading-relaxed mb-6">
-        Anade una capa extra de seguridad a tu cuenta. Al activar la autenticacion en dos pasos (2FA),
-        necesitaras un codigo temporal de tu aplicacion de autenticacion (como Google Authenticator,
-        Authy o similar) cada vez que inicies sesion.
+        Añade una capa extra de seguridad a tu cuenta. Al activar la autenticación en dos pasos (2FA),
+        necesitarás un código temporal de tu aplicación de autenticación (como Google Authenticator,
+        Authy o similar) cada vez que inicies sesión.
       </p>
 
       {/* Step 1: Show setup button */}
@@ -177,11 +177,11 @@ export default function TwoFactorSetup({ isEnabled, onStatusChange }: Props) {
           {/* Instructions */}
           <div className="bg-gantly-blue/[0.04] border border-gantly-blue/10 rounded-xl p-5 mb-6">
             <p className="text-[15px] font-semibold text-gantly-navy mb-3">
-              Paso 1: Configura tu aplicacion de autenticacion
+              Paso 1: Configura tu aplicación de autenticación
             </p>
             <p className="text-sm text-gantly-muted leading-relaxed mb-4">
-              Abre tu aplicacion de autenticacion (Google Authenticator, Authy, etc.) y anade una nueva
-              cuenta usando la clave secreta que aparece a continuacion.
+              Abre tu aplicación de autenticación (Google Authenticator, Authy, etc.) y añade una nueva
+              cuenta usando la clave secreta que aparece a continuación.
             </p>
 
             {/* Secret key display */}
@@ -221,11 +221,11 @@ export default function TwoFactorSetup({ isEnabled, onStatusChange }: Props) {
           {/* Step 2: Verify */}
           <div className="bg-gantly-blue/[0.04] border border-gantly-blue/10 rounded-xl p-5">
             <p className="text-[15px] font-semibold text-gantly-navy mb-3">
-              Paso 2: Verifica el codigo
+              Paso 2: Verifica el código
             </p>
             <p className="text-sm text-gantly-muted leading-relaxed mb-4">
-              Introduce el codigo de 6 digitos que aparece en tu aplicacion de autenticacion para
-              completar la configuracion.
+              Introduce el código de 6 dígitos que aparece en tu aplicación de autenticación para
+              completar la configuración.
             </p>
 
             <form onSubmit={handleVerify} className="flex gap-3 items-start flex-wrap">
