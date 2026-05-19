@@ -83,10 +83,12 @@ public class ClinicService {
     public record ClinicMeDto(Long id, String name, String email, String referralCode,
                               String address, String phone, String website, String logoUrl,
                               String weeklySchedule, String nif,
-                              String slug, String description, Boolean publicVisible) {}
+                              String slug, String description, Boolean publicVisible,
+                              String razonSocial, String direccionFiscal) {}
     public record UpdateClinicInfoRequest(String name, String address, String phone, String website,
                                            String logoUrl, String weeklySchedule, String nif,
-                                           String slug, String description, Boolean publicVisible) {}
+                                           String slug, String description, Boolean publicVisible,
+                                           String razonSocial, String direccionFiscal) {}
     public record ClinicServiceDto(Long id, String name, BigDecimal defaultPrice, Integer durationMinutes, Boolean active) {}
     public record CreateClinicServiceRequest(String name, BigDecimal defaultPrice, Integer durationMinutes) {}
     public record UpdateClinicServiceRequest(String name, BigDecimal defaultPrice, Integer durationMinutes, Boolean active) {}
@@ -194,7 +196,8 @@ public class ClinicService {
         return new ClinicMeDto(company.getId(), company.getName(), company.getEmail(), company.getReferralCode(),
                 company.getAddress(), company.getPhone(), company.getWebsite(), company.getLogoUrl(),
                 company.getWeeklySchedule(), company.getNif(),
-                company.getSlug(), company.getDescription(), company.getPublicVisible());
+                company.getSlug(), company.getDescription(), company.getPublicVisible(),
+                company.getRazonSocial(), company.getDireccionFiscal());
     }
 
     @Transactional
@@ -210,6 +213,8 @@ public class ClinicService {
         if (req.slug() != null) company.setSlug(req.slug().trim());
         if (req.description() != null) company.setDescription(req.description().trim());
         if (req.publicVisible() != null) company.setPublicVisible(req.publicVisible());
+        if (req.razonSocial() != null) company.setRazonSocial(req.razonSocial().trim());
+        if (req.direccionFiscal() != null) company.setDireccionFiscal(req.direccionFiscal().trim());
         companyRepository.save(company);
         return getMe(email);
     }

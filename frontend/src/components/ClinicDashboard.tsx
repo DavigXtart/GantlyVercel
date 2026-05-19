@@ -55,6 +55,8 @@ interface ClinicInfo {
   publicVisible?: boolean;
   slug?: string;
   description?: string;
+  razonSocial?: string;
+  direccionFiscal?: string;
 }
 
 interface ClinicServiceItem {
@@ -509,7 +511,7 @@ const DEFAULT_SCHEDULE: DaySchedule[] = [
 
 function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicInfo: ClinicInfo | null; psychologists: Psychologist[]; onClinicInfoUpdate: (info: ClinicInfo) => void }) {
   // --- Clinic info form ---
-  const [infoForm, setInfoForm] = useState({ name: '', address: '', phone: '', website: '', logoUrl: '', nif: '', publicVisible: false, slug: '', description: '' });
+  const [infoForm, setInfoForm] = useState({ name: '', address: '', phone: '', website: '', logoUrl: '', nif: '', publicVisible: false, slug: '', description: '', razonSocial: '', direccionFiscal: '' });
   const [savingInfo, setSavingInfo] = useState(false);
   const [infoSaved, setInfoSaved] = useState(false);
 
@@ -557,6 +559,8 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
         website: clinicInfo.website || '',
         logoUrl: clinicInfo.logoUrl || '',
         nif: clinicInfo.nif || '',
+        razonSocial: clinicInfo.razonSocial || '',
+        direccionFiscal: clinicInfo.direccionFiscal || '',
         publicVisible: clinicInfo.publicVisible ?? false,
         slug: clinicInfo.slug || '',
         description: clinicInfo.description || '',
@@ -639,6 +643,8 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
         website: infoForm.website,
         logoUrl: infoForm.logoUrl,
         nif: infoForm.nif,
+        razonSocial: infoForm.razonSocial,
+        direccionFiscal: infoForm.direccionFiscal,
         publicVisible: infoForm.publicVisible,
         slug: infoForm.slug,
         description: infoForm.description,
@@ -781,6 +787,14 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
               <div>
                 <label className="text-[11px] font-medium text-slate-500 mb-1 block">NIF / CIF</label>
                 <input type="text" value={infoForm.nif} onChange={e => setInfoForm(p => ({ ...p, nif: e.target.value }))} className={inputCls} placeholder="B12345678" />
+              </div>
+              <div>
+                <label className="text-[11px] font-medium text-slate-500 mb-1 block">Razón social (facturación)</label>
+                <input type="text" value={infoForm.razonSocial} onChange={e => setInfoForm(p => ({ ...p, razonSocial: e.target.value }))} className={inputCls} placeholder="Nombre legal de la empresa" />
+              </div>
+              <div className="col-span-2">
+                <label className="text-[11px] font-medium text-slate-500 mb-1 block">Dirección fiscal</label>
+                <input type="text" value={infoForm.direccionFiscal} onChange={e => setInfoForm(p => ({ ...p, direccionFiscal: e.target.value }))} className={inputCls} placeholder="Dirección completa para facturas" />
               </div>
             </div>
 
@@ -1457,7 +1471,7 @@ export default function ClinicDashboard() {
               )}
               {activeTab === 'facturacion' && (
                 <div className="flex-1 overflow-y-auto">
-                  <ClinicBilling psychologists={psychologists} clinicName={clinicInfo?.name} clinicNif={clinicInfo?.nif} clinicAddress={clinicInfo?.address} clinicPhone={clinicInfo?.phone} />
+                  <ClinicBilling psychologists={psychologists} clinicName={clinicInfo?.name} clinicNif={clinicInfo?.nif} clinicAddress={clinicInfo?.address} clinicPhone={clinicInfo?.phone} clinicRazonSocial={clinicInfo?.razonSocial} clinicDireccionFiscal={clinicInfo?.direccionFiscal} />
                 </div>
               )}
               {activeTab === 'lista-espera' && (

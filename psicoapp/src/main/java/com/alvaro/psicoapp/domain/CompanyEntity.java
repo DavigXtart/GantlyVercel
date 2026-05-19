@@ -52,6 +52,12 @@ public class CompanyEntity {
     @Column(name = "public_visible", nullable = false)
     private Boolean publicVisible = false;
 
+    @Column(name = "razon_social", length = 300)
+    private String razonSocial;
+
+    @Column(name = "direccion_fiscal", length = 500)
+    private String direccionFiscal;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
@@ -82,4 +88,8 @@ public class CompanyEntity {
     public void setDescription(String description) { this.description = description; }
     public Boolean getPublicVisible() { return publicVisible; }
     public void setPublicVisible(Boolean publicVisible) { this.publicVisible = publicVisible; }
+    public String getRazonSocial() { return razonSocial; }
+    public void setRazonSocial(String razonSocial) { this.razonSocial = razonSocial; }
+    public String getDireccionFiscal() { return direccionFiscal; }
+    public void setDireccionFiscal(String direccionFiscal) { this.direccionFiscal = direccionFiscal; }
 }

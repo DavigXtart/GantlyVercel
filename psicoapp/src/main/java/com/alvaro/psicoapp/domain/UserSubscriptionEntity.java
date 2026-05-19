@@ -34,6 +34,9 @@ public class UserSubscriptionEntity {
     @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
 
+    @Column(name = "stripe_customer_id", length = 255)
+    private String stripeCustomerId;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Long getUserId() { return userId; }
@@ -50,4 +53,6 @@ public class UserSubscriptionEntity {
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+    public String getStripeCustomerId() { return stripeCustomerId; }
+    public void setStripeCustomerId(String stripeCustomerId) { this.stripeCustomerId = stripeCustomerId; }
 }

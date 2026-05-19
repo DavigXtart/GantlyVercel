@@ -12,6 +12,8 @@ interface Props {
   clinicNif?: string;
   clinicAddress?: string;
   clinicPhone?: string;
+  clinicRazonSocial?: string;
+  clinicDireccionFiscal?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -153,7 +155,7 @@ function generateInvoicePdf(item: {
   taxAmount?: number | null;
   totalAmount?: number | null;
   taxExempt?: boolean | null;
-}, clinicName: string, clinicNif?: string, clinicAddress?: string, clinicPhone?: string) {
+}, clinicName: string, clinicNif?: string, razonSocial?: string, direccionFiscal?: string, clinicAddress?: string, clinicPhone?: string) {
   import('jspdf').then(({ jsPDF }) => {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
     const pageW = 210;
@@ -169,15 +171,16 @@ function generateInvoicePdf(item: {
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(46, 147, 204);
     doc.text('Plataforma de Salud Mental', margin, 27);
+    const invoiceAddress = direccionFiscal || clinicAddress;
     let infoY = 27;
     if (clinicNif) {
       doc.setTextColor(100, 116, 139);
       doc.text('NIF: ' + clinicNif, margin, infoY + 6);
       infoY += 5;
     }
-    if (clinicAddress) {
+    if (invoiceAddress) {
       doc.setTextColor(100, 116, 139);
-      doc.text(clinicAddress, margin, infoY + 6);
+      doc.text(invoiceAddress, margin, infoY + 6);
       infoY += 5;
     }
     if (clinicPhone) {
@@ -211,7 +214,7 @@ function generateInvoicePdf(item: {
       y += 14;
     };
 
-    addRow('Clínica', clinicName);
+    addRow('Clínica', razonSocial || clinicName);
     addRow('Psicólogo', item.psychologistName);
     addRow('Paciente', item.patientName || '—');
     addRow('Servicio', item.service || 'Sesión de psicología');
@@ -289,7 +292,7 @@ function exportCsv(items: ClinicBillingItem[]): void {
 // ---------------------------------------------------------------------------
 type BillingFilter = 'ALL' | 'PRIVATE' | 'INSURANCE';
 
-export default function ClinicBilling({ psychologists, clinicName, clinicNif, clinicAddress, clinicPhone }: Props) {
+export default function ClinicBilling({ psychologists, clinicName, clinicNif, clinicAddress, clinicPhone, clinicRazonSocial, clinicDireccionFiscal }: Props) {
   const [period, setPeriod] = useState<PeriodKey>('this_month');
   const [from, setFrom] = useState(startOfMonth());
   const [to, setTo] = useState(endOfMonth());
@@ -682,7 +685,7 @@ export default function ClinicBilling({ psychologists, clinicName, clinicNif, cl
                       <td className="px-2 py-2.5 text-center"><PaymentBadge status={item.paymentStatus} /></td>
                       <td className="px-2 py-2.5">
                         <button
-                          onClick={() => generateInvoicePdf(item, clinicName || 'Clínica', clinicNif, clinicAddress, clinicPhone)}
+                          onClick={() => generateInvoicePdf(item, clinicName || 'Clínica', clinicNif, clinicRazonSocial, clinicDireccionFiscal, clinicAddress, clinicPhone)}
                           title="Descargar factura"
                           className="text-slate-400 hover:text-gantly-blue rounded-md p-1 transition-colors cursor-pointer bg-transparent border-none"
                         >

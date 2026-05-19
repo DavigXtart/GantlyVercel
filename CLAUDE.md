@@ -55,7 +55,7 @@ psicoapp/src/main/java/com/alvaro/psicoapp/
 ├── repository/     (33+ Spring Data repositories)
 ├── dto/            (23+ DTO classes with validation)
 ├── security/       (SecurityConfig, JwtAuthFilter, RateLimitFilter, OAuth2SuccessHandler)
-├── config/         (JwtConfig, WebSocketConfig, AppTimezone, PiiEncryptConverter, PiiDeterministicConverter)
+├── config/         (JwtConfig, WebSocketConfig, AppTimezone, PiiEncryptConverter, PiiDeterministicConverter, StripeProperties)
 └── util/           (InputSanitizer, FormulaEvaluator, ReferralCodeUtil)
 ```
 
@@ -132,6 +132,19 @@ App.tsx uses `react-router-dom` v7 with declarative `<Routes>`:
 - Clinic agenda: checkbox "IVA exento" + dropdown tasa (21%/10%/4%)
 - Stripe cobra `totalAmount` (tax-inclusive) cuando está definido
 - BigDecimal para todos los cálculos monetarios
+
+### Stripe Hardening (Mayo 2026)
+- **Webhook replay protection**: `stripe_events` table + `StripeEventEntity` — dedup by event ID before processing
+- **Subscription idempotency**: `RequestOptions.idempotencyKey("sub-" + userId + "-" + priceId)` en `createCheckoutSession()`
+- **Customer ID persistence**: `stripeCustomerId` en `UserSubscriptionEntity` — set en handleSubscriptionCreated/Updated
+- **Price IDs externalizados**: `StripeProperties` (`@ConfigurationProperties(prefix="stripe")`) con `prices.basic/premium/enterprise.monthly/yearly`
+- **Config**: `application-local.yml` tiene IDs hardcodeados, `application-prod.yml` usa `${STRIPE_PRICE_BASIC_MONTHLY:}` etc.
+
+### Datos Fiscales Clínica
+- **CompanyEntity**: `razonSocial` (VARCHAR 300), `direccionFiscal` (VARCHAR 500)
+- **ClinicService**: DTOs `ClinicMeDto` + `UpdateClinicInfoRequest` incluyen ambos campos
+- **ClinicDashboard.tsx**: Inputs en Config tab tras NIF
+- **ClinicBilling.tsx PDF**: Header = brand name, body = `razonSocial || clinicName`, address = `direccionFiscal || clinicAddress`
 
 ## Email Verification System
 Two methods: clickable link (token) + 6-digit code:
@@ -282,6 +295,9 @@ Located in `psicoapp/src/main/resources/db/`:
 - `V43__encrypt_totp_secret.sql` - Widens totp_secret to VARCHAR(500) for encryption
 - `V44__add_tax_fields.sql` - Adds tax_rate, tax_amount, total_amount, tax_exempt to appointments
 - `V45__health_data_consent.sql` - Adds `health_data_consent_at` for Art. 9 RGPD
+- `V57__stripe_events_table.sql` - Webhook replay protection (stripe_events table)
+- `V58__add_stripe_customer_id.sql` - Adds `stripe_customer_id` to user_subscriptions
+- `V59__add_fiscal_fields.sql` - Adds `razon_social`, `direccion_fiscal` to companies
 
 ## Deleted Features
 - **Group Sessions**: Removed entirely (GroupSessionController, GroupSessionService, GroupSessionEntity, GroupSessionParticipantEntity, GroupSessions.tsx)
@@ -302,12 +318,12 @@ Located in `psicoapp/src/main/resources/db/`:
 | 2 | **Tests** | Tablas Valores TCA no implementadas (transformación no-lineal Delphos) | **RESUELTO** — Aproximación Gaussiana (CDF normal, Abramowitz & Stegun) |
 | 3 | **Auth** | OAuth2 token expuesto en URL hash | **RESUELTO** — code exchange UUID 30s |
 | 4 | **Auth** | Secrets hardcodeados en application-prod.yml | **PENDIENTE** — mover a env vars en deploy |
-| 5 | **Payments** | Stripe Price IDs hardcodeados en código | **PENDIENTE** — requiere config Stripe |
+| 5 | **Payments** | Stripe Price IDs hardcodeados en código | **RESUELTO** — StripeProperties @ConfigurationProperties + yml |
 | 6 | **Calendar** | Deadline 48h no se enforcea | **RESUELTO** — AppointmentSchedulerService cada hora |
 | 7 | **ERP** | Chat clínica solo unidireccional | **RESUELTO** — UserClinicChatTab funcional |
-| 8 | **Payments** | Sin protección webhook replay | **PENDIENTE** — requiere tabla stripe_events |
-| 9 | **Payments** | Sin idempotency en subscription checkout | **PENDIENTE** — requiere config Stripe |
-| 10 | **Payments** | Suscripción webhook no persiste en DB | **PENDIENTE** — requiere config Stripe |
+| 8 | **Payments** | Sin protección webhook replay | **RESUELTO** — StripeEventEntity + dedup en handleWebhook |
+| 9 | **Payments** | Sin idempotency en subscription checkout | **RESUELTO** — RequestOptions idempotency key sub-{userId}-{priceId} |
+| 10 | **Payments** | Suscripción webhook no persiste en DB | **RESUELTO** — stripeCustomerId en UserSubscriptionEntity |
 | 11 | **GDPR** | Sin privacy policy ni consentimiento salud | **RESUELTO** — RGPD completo |
 
 ### HIGH (P1)
@@ -324,7 +340,7 @@ Located in `psicoapp/src/main/resources/db/`:
 | 20 | **Calendar** | Bug timezone UTC vs local | **RESUELTO** — AppTimezone Europe/Madrid |
 | 21 | **Calendar** | Double-booking race condition | **RESUELTO** — unique index + validación |
 | 23 | **Chat** | WebSocket sin reconexión backoff | **RESUELTO** — exponential backoff 3→60s + random jitter |
-| 24 | **ERP** | Clínica hardcodeada en PDF | **PENDIENTE** |
+| 24 | **ERP** | Clínica hardcodeada en PDF | **RESUELTO** — razonSocial + direccionFiscal en CompanyEntity + PDF |
 
 ### MEDIUM (P2) — Pendientes
 
@@ -349,7 +365,7 @@ Located in `psicoapp/src/main/resources/db/`:
 - ~~**Payment status**: solo "PENDING"/"PAID"~~ → **RESUELTO** — `PaymentStatusEnum` (PENDING/PAID/EXPIRED/FAILED/REFUNDED/CANCELLED)
 - ~~**Request status**: strings sueltos~~ → **RESUELTO** — `RequestStatusEnum` (PENDING/CONFIRMED/REJECTED)
 - **Dos sistemas de tests paralelos**: TestEntity vs EvaluationTestEntity
-- **Stripe config**: `@ConfigurationProperties` con validación no implementado
+- ~~**Stripe config**: `@ConfigurationProperties` con validación no implementado~~ → **RESUELTO** — StripeProperties
 - **File storage**: filesystem local → migrar a Supabase Storage en deploy
 
 ## Pending Features (por prioridad)
@@ -358,15 +374,15 @@ Located in `psicoapp/src/main/resources/db/`:
 - ~~Implementar parser/evaluador de fórmulas para factores~~ → **HECHO** — FormulaEvaluator + two-pass
 - ~~Implementar tablas Valores TCA~~ → **HECHO** — Aproximación Gaussiana (reemplazable por baremos reales si se obtienen)
 - Mover secrets a variables de entorno (al deployar en Render)
-- Stripe: webhook replay protection + idempotency + persistir suscripción
+- ~~Stripe: webhook replay protection + idempotency + persistir suscripción~~ → **HECHO** — StripeEventEntity + idempotency key + stripeCustomerId
 
 ### Media
 - ~~Error boundary global~~ → **YA EXISTÍA** — Sentry ErrorBoundary en App.tsx
 - Auto-asignación de subfactors en import de tests
-- Mover Stripe Price IDs a DB
+- ~~Mover Stripe Price IDs a config~~ → **HECHO** — StripeProperties + application-local/prod.yml
 - ~~Nombre de clínica dinámico en PDF factura~~ → **YA EXISTÍA** — clinicInfo?.name, solo fallback 'Clínica'
 - ~~Notificación de fallo de pago~~ → **YA EXISTÍA** — StripeService.handlePaymentFailed()
-- Datos fiscales clínica (NIF, dirección) dinámicos en PDF factura (actualmente hardcodeados)
+- ~~Datos fiscales clínica (NIF, dirección) dinámicos en PDF factura (actualmente hardcodeados)~~ → **HECHO** — razonSocial + direccionFiscal en CompanyEntity
 
 ### Baja (post-launch) — COMPLETADAS
 - ~~Refactor UserDashboard/PsychDashboard~~ → **HECHO** — 2013→728 líneas, 6 tabs extraídos

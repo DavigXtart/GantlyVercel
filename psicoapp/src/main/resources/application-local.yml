@@ -50,6 +50,16 @@ stripe:
     key: ${STRIPE_PUBLIC_KEY:}
   webhook:
     secret: ${STRIPE_WEBHOOK_SECRET:}
+  prices:
+    basic:
+      monthly: price_1TCOOsBfHWMdW4wSXIRiG7lM
+      yearly: price_1TCOPQBfHWMdW4wSuVZyr0p5
+    premium:
+      monthly: price_1TCOPkBfHWMdW4wSnhyfEba6
+      yearly: price_1TCOQ3BfHWMdW4wSI7G8R9ke
+    enterprise:
+      monthly: price_1TCOQIBfHWMdW4wSz1NAbGt1
+      yearly: price_1TCOQfBfHWMdW4wSH9zzro5X
 
 app:
   base:

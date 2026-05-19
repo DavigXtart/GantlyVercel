@@ -8,11 +8,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.alvaro.psicoapp.config.StripeProperties;
 import com.alvaro.psicoapp.domain.AppointmentEntity;
 import com.alvaro.psicoapp.domain.AppointmentStatusEnum;
 import com.alvaro.psicoapp.domain.PaymentStatusEnum;
+import com.alvaro.psicoapp.domain.StripeEventEntity;
 import com.alvaro.psicoapp.domain.UserSubscriptionEntity;
 import com.alvaro.psicoapp.repository.AppointmentRepository;
+import com.alvaro.psicoapp.repository.StripeEventRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
 import com.alvaro.psicoapp.repository.UserSubscriptionRepository;
 import com.stripe.Stripe;
@@ -44,13 +47,18 @@ public class StripeService {
     private final NotificationService notificationService;
     private final UserRepository userRepository;
     private final UserSubscriptionRepository userSubscriptionRepository;
+    private final StripeEventRepository stripeEventRepository;
+    private final StripeProperties stripeProperties;
 
     public StripeService(AppointmentRepository appointmentRepository, NotificationService notificationService,
-                         UserRepository userRepository, UserSubscriptionRepository userSubscriptionRepository) {
+                         UserRepository userRepository, UserSubscriptionRepository userSubscriptionRepository,
+                         StripeEventRepository stripeEventRepository, StripeProperties stripeProperties) {
         this.appointmentRepository = appointmentRepository;
         this.notificationService = notificationService;
         this.userRepository = userRepository;
         this.userSubscriptionRepository = userSubscriptionRepository;
+        this.stripeEventRepository = stripeEventRepository;
+        this.stripeProperties = stripeProperties;
     }
 
     @PostConstruct
@@ -73,32 +81,24 @@ public class StripeService {
 
         try {
 
-            Map<String, Map<Boolean, String>> planPriceMap = new HashMap<>();
-
-            Map<Boolean, String> basicPrices = new HashMap<>();
-            basicPrices.put(false, "price_1TCOOsBfHWMdW4wSXIRiG7lM");
-            basicPrices.put(true, "price_1TCOPQBfHWMdW4wSuVZyr0p5");
-
-            Map<Boolean, String> premiumPrices = new HashMap<>();
-            premiumPrices.put(false, "price_1TCOPkBfHWMdW4wSnhyfEba6");
-            premiumPrices.put(true, "price_1TCOQ3BfHWMdW4wSI7G8R9ke");
-
-            Map<Boolean, String> enterprisePrices = new HashMap<>();
-            enterprisePrices.put(false, "price_1TCOQIBfHWMdW4wSz1NAbGt1");
-            enterprisePrices.put(true, "price_1TCOQfBfHWMdW4wSH9zzro5X");
-
-            planPriceMap.put("basic", basicPrices);
-            planPriceMap.put("premium", premiumPrices);
-            planPriceMap.put("enterprise", enterprisePrices);
-
-            Map<Boolean, String> prices = planPriceMap.get(planId.toLowerCase());
-            if (prices == null) {
-                throw new RuntimeException("Plan no válido: " + planId);
+            StripeProperties.PlanPrices planPrices;
+            switch (planId.toLowerCase()) {
+                case "basic":
+                    planPrices = stripeProperties.getPrices().getBasic();
+                    break;
+                case "premium":
+                    planPrices = stripeProperties.getPrices().getPremium();
+                    break;
+                case "enterprise":
+                    planPrices = stripeProperties.getPrices().getEnterprise();
+                    break;
+                default:
+                    throw new RuntimeException("Plan no válido: " + planId);
             }
 
-            String priceId = prices.get(isYearly);
-            if (priceId == null) {
-                throw new RuntimeException("Price ID no encontrado para el plan: " + planId);
+            String priceId = isYearly ? planPrices.getYearly() : planPrices.getMonthly();
+            if (priceId == null || priceId.isBlank()) {
+                throw new RuntimeException("Price ID no configurado para el plan: " + planId + " (" + (isYearly ? "yearly" : "monthly") + ")");
             }
 
             SessionCreateParams.Builder paramsBuilder = SessionCreateParams.builder()
@@ -120,7 +120,13 @@ public class StripeService {
 
             SessionCreateParams params = paramsBuilder.build();
 
-            Session session = Session.create(params);
+            // Idempotency key to prevent duplicate session creation
+            Long userId = userRepository.findByEmail(userEmail).map(u -> u.getId()).orElse(0L);
+            RequestOptions requestOptions = RequestOptions.builder()
+                    .setIdempotencyKey("sub-" + userId + "-" + priceId)
+                    .build();
+
+            Session session = Session.create(params, requestOptions);
 
             Map<String, String> response = new HashMap<>();
             response.put("sessionId", session.getId());
@@ -221,6 +227,16 @@ public class StripeService {
 
         try {
             Event event = Webhook.constructEvent(payload, sigHeader, webhookSecret);
+
+            // Replay protection: skip already-processed events
+            if (stripeEventRepository.existsById(event.getId())) {
+                logger.info("Webhook duplicado ignorado: {}", event.getId());
+                return;
+            }
+            StripeEventEntity stripeEvent = new StripeEventEntity();
+            stripeEvent.setId(event.getId());
+            stripeEvent.setEventType(event.getType());
+            stripeEventRepository.save(stripeEvent);
 
             switch (event.getType()) {
                 case "checkout.session.completed":
@@ -363,6 +379,7 @@ public class StripeService {
 
                     entity.setUserId(user.getId());
                     entity.setStripeSubscriptionId(subscriptionId);
+                    entity.setStripeCustomerId(session.getCustomer());
                     entity.setStatus("ACTIVE");
                     entity.setUpdatedAt(java.time.Instant.now());
 
@@ -407,6 +424,7 @@ public class StripeService {
             }
 
             entity.setStatus(mappedStatus);
+            entity.setStripeCustomerId(subscription.getCustomer());
             entity.setUpdatedAt(java.time.Instant.now());
 
             if (subscription.getCurrentPeriodEnd() != null) {

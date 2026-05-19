@@ -123,6 +123,16 @@ stripe:
     key: ${STRIPE_PUBLIC_KEY:}
   webhook:
     secret: ${STRIPE_WEBHOOK_SECRET:}
+  prices:
+    basic:
+      monthly: ${STRIPE_PRICE_BASIC_MONTHLY:}
+      yearly: ${STRIPE_PRICE_BASIC_YEARLY:}
+    premium:
+      monthly: ${STRIPE_PRICE_PREMIUM_MONTHLY:}
+      yearly: ${STRIPE_PRICE_PREMIUM_YEARLY:}
+    enterprise:
+      monthly: ${STRIPE_PRICE_ENTERPRISE_MONTHLY:}
+      yearly: ${STRIPE_PRICE_ENTERPRISE_YEARLY:}
 
 # Configuración de la aplicación
 app:

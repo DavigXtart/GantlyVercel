@@ -1289,11 +1289,11 @@ export const userClinicService = {
 export const clinicService = {
   getMe: async () => {
     const { data } = await api.get('/clinic/me');
-    return data as { id: number; name: string; email: string; referralCode: string; address?: string; phone?: string; website?: string; logoUrl?: string; weeklySchedule?: string; nif?: string };
+    return data as { id: number; name: string; email: string; referralCode: string; address?: string; phone?: string; website?: string; logoUrl?: string; weeklySchedule?: string; nif?: string; slug?: string; description?: string; publicVisible?: boolean; razonSocial?: string; direccionFiscal?: string };
   },
-  updateClinicInfo: async (req: { name?: string; address?: string; phone?: string; website?: string; logoUrl?: string; weeklySchedule?: string; nif?: string }) => {
+  updateClinicInfo: async (req: { name?: string; address?: string; phone?: string; website?: string; logoUrl?: string; weeklySchedule?: string; nif?: string; slug?: string; description?: string; publicVisible?: boolean; razonSocial?: string; direccionFiscal?: string }) => {
     const { data } = await api.put('/clinic/me', req);
-    return data as { id: number; name: string; email: string; referralCode: string; address?: string; phone?: string; website?: string; logoUrl?: string; weeklySchedule?: string; nif?: string };
+    return data as { id: number; name: string; email: string; referralCode: string; address?: string; phone?: string; website?: string; logoUrl?: string; weeklySchedule?: string; nif?: string; slug?: string; description?: string; publicVisible?: boolean; razonSocial?: string; direccionFiscal?: string };
   },
   getServices: async () => {
     const { data } = await api.get('/clinic/services');
