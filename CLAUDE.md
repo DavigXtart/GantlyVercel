@@ -16,6 +16,7 @@
   - `2026-05-06-ui-unification.md` — Unificacion UI/UX completa (emojis→Lucide, colores→brand tokens, textos, legacy CSS)
   - `2026-05-10-security-audit.md` — Auditoría de ciberseguridad completa + RGPD + fixes arquitecturales
   - `2026-05-19-formula-scoring.md` — Fix scoring fórmulas factores + percentil Gaussiano TCA
+  - `2026-05-19-clinic-erp-redesign.md` — Rediseño completo ERP clínica (7 tabs) a estilo SaaS flat
 
 ## Project Overview
 Plataforma de salud mental que conecta pacientes con psicólogos.
@@ -390,10 +391,15 @@ Located in `psicoapp/src/main/resources/db/`:
 ## UI Design System (unificado Mayo 2026)
 - **Colores**: gantly-blue (#2E93CC), gantly-cyan (#22D3EE), gantly-navy (#0A1628), gantly-gold (#F0C930), gantly-emerald (#059669)
 - **Iconos**: Lucide React (NO emojis como iconos UI). Emojis solo para mood picker y ratings
-- **Cards**: `bg-white rounded-2xl border border-slate-100 shadow-sm`
+- **Cards**: `bg-white rounded-xl border border-slate-200/80` (clinic ERP), `bg-white rounded-2xl border border-slate-100 shadow-sm` (dashboards)
+- **Card headers**: `px-5 py-3 border-b border-slate-100` con icono + título
+- **Inputs**: `h-9 px-3 rounded-md border border-slate-200` (compact SaaS style)
+- **Buttons**: flat `bg-gantly-blue text-white rounded-md` (NO gradients)
+- **Labels**: `text-[11px] text-slate-500` para texto secundario
 - **Contraste minimo**: text-slate-500 para texto secundario legible (NO text-slate-400)
 - **Fuentes**: Outfit (heading), Work Sans (body), Caveat (handwritten)
 - **Legacy CSS eliminado**: .btn, .form-group, .admin-container → Tailwind utilities
+- **Clinic ERP**: 7 tabs rediseñados a estilo SaaS flat (sin gradients, sin shadow-soft, sin ALL CAPS headers)
 
 ## PII Encryption System
 - **PiiEncryptionService**: AES-256-GCM con clave derivada de `PII_ENCRYPTION_KEY` env var
