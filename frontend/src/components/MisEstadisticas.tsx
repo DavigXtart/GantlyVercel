@@ -146,91 +146,106 @@ export default function MisEstadisticas() {
                 </span>
                 Tendencia de ánimo (30 días)
               </h4>
-              <div className="relative h-48 mt-2">
-                {/* Y-axis labels */}
-                <div className="absolute left-0 top-0 bottom-6 flex flex-col justify-between w-8">
-                  {[5, 4, 3, 2, 1].map(v => (
-                    <span key={v} className="leading-none"><MoodFace value={v} size={18} /></span>
-                  ))}
-                </div>
-                {/* Grid + Chart */}
-                <div className="ml-10 h-full relative">
-                  {/* Grid lines */}
-                  {[1, 2, 3, 4, 5].map(v => (
-                    <div
-                      key={v}
-                      className="absolute left-0 right-0 border-t border-slate-100"
-                      style={{ bottom: `${((v - 1) / 4) * 100}%` }}
-                    />
-                  ))}
-                  {/* SVG line chart */}
-                  <svg className="absolute inset-0 w-full h-[calc(100%-24px)]" preserveAspectRatio="none" viewBox="0 0 290 40">
-                    {/* Line path */}
-                    <polyline
-                      fill="none"
-                      stroke="#2E93CC"
-                      strokeWidth="1.5"
-                      strokeLinejoin="round"
-                      strokeLinecap="round"
-                      points={chartData
-                        .map((d, i) => {
-                          if (d.mood === null) return null;
-                          const x = (i / 29) * 290;
-                          const y = 40 - ((d.mood - 1) / 4) * 40;
-                          return `${x},${y}`;
-                        })
-                        .filter(Boolean)
-                        .join(' ')}
-                    />
-                    {/* Area fill */}
-                    <polygon
-                      fill="url(#moodGradient)"
-                      opacity="0.15"
-                      points={(() => {
-                        const pts = chartData
-                          .map((d, i) => {
-                            if (d.mood === null) return null;
-                            const x = (i / 29) * 290;
-                            const y = 40 - ((d.mood - 1) / 4) * 40;
-                            return { x, y };
-                          })
-                          .filter(Boolean) as { x: number; y: number }[];
-                        if (pts.length < 2) return '';
-                        return pts.map(p => `${p.x},${p.y}`).join(' ') + ` ${pts[pts.length - 1].x},40 ${pts[0].x},40`;
-                      })()}
-                    />
-                    {/* Dots */}
-                    {chartData.map((d, i) => {
-                      if (d.mood === null) return null;
-                      const x = (i / 29) * 290;
-                      const y = 40 - ((d.mood - 1) / 4) * 40;
-                      return (
-                        <circle
-                          key={i}
-                          cx={x}
-                          cy={y}
-                          r="2"
-                          fill="#2E93CC"
-                          stroke="white"
-                          strokeWidth="1"
-                        />
-                      );
-                    })}
-                    <defs>
-                      <linearGradient id="moodGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#2E93CC" />
-                        <stop offset="100%" stopColor="#2E93CC" stopOpacity="0" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                  {/* X-axis labels */}
-                  <div className="absolute bottom-0 left-0 right-0 flex justify-between text-[10px] text-slate-400 h-6 items-end">
-                    {chartData.filter((_, i) => i % 7 === 0 || i === 29).map((d, idx) => (
-                      <span key={idx}>{d.label}</span>
-                    ))}
+              {(() => {
+                const VB_W = 600;
+                const VB_H = 200;
+                const PAD = 16;
+                const chartH = VB_H - PAD * 2;
+                const chartW = VB_W - PAD * 2;
+                const toX = (i: number) => PAD + (i / 29) * chartW;
+                const toY = (mood: number) => PAD + chartH - ((mood - 1) / 4) * chartH;
+                const points = chartData
+                  .map((d, i) => d.mood !== null ? { x: toX(i), y: toY(d.mood) } : null)
+                  .filter(Boolean) as { x: number; y: number }[];
+                return (
+                  <div className="relative mt-2">
+                    {/* Y-axis labels */}
+                    <div className="absolute left-0 top-3 bottom-8 flex flex-col justify-between w-8 z-10">
+                      {[5, 4, 3, 2, 1].map(v => (
+                        <span key={v} className="leading-none"><MoodFace value={v} size={18} /></span>
+                      ))}
+                    </div>
+                    {/* Chart area */}
+                    <div className="ml-10">
+                      <svg
+                        viewBox={`0 0 ${VB_W} ${VB_H}`}
+                        className="w-full"
+                        style={{ height: 220 }}
+                        preserveAspectRatio="xMidYMid meet"
+                      >
+                        <defs>
+                          <linearGradient id="moodGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#2E93CC" />
+                            <stop offset="100%" stopColor="#2E93CC" stopOpacity="0" />
+                          </linearGradient>
+                        </defs>
+                        {/* Grid lines */}
+                        {[1, 2, 3, 4, 5].map(v => (
+                          <line
+                            key={v}
+                            x1={PAD}
+                            x2={VB_W - PAD}
+                            y1={toY(v)}
+                            y2={toY(v)}
+                            stroke="#f1f5f9"
+                            strokeWidth="1"
+                          />
+                        ))}
+                        {/* Area fill */}
+                        {points.length >= 2 && (
+                          <polygon
+                            fill="url(#moodGradient)"
+                            opacity="0.15"
+                            points={
+                              points.map(p => `${p.x},${p.y}`).join(' ') +
+                              ` ${points[points.length - 1].x},${toY(1)} ${points[0].x},${toY(1)}`
+                            }
+                          />
+                        )}
+                        {/* Line */}
+                        {points.length >= 2 && (
+                          <polyline
+                            fill="none"
+                            stroke="#2E93CC"
+                            strokeWidth="2.5"
+                            strokeLinejoin="round"
+                            strokeLinecap="round"
+                            points={points.map(p => `${p.x},${p.y}`).join(' ')}
+                          />
+                        )}
+                        {/* Dots */}
+                        {points.map((p, i) => (
+                          <circle
+                            key={i}
+                            cx={p.x}
+                            cy={p.y}
+                            r="5"
+                            fill="#2E93CC"
+                            stroke="white"
+                            strokeWidth="2"
+                          />
+                        ))}
+                        {/* X-axis labels */}
+                        {chartData.map((d, i) => {
+                          if (i % 7 !== 0) return null;
+                          return (
+                            <text
+                              key={i}
+                              x={toX(i)}
+                              y={VB_H - 2}
+                              textAnchor="middle"
+                              className="fill-slate-400"
+                              fontSize="11"
+                            >
+                              {d.label}
+                            </text>
+                          );
+                        })}
+                      </svg>
+                    </div>
                   </div>
-                </div>
-              </div>
+                );
+              })()}
             </div>
           )}
           </>

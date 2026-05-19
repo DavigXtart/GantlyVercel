@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { tasksService, fileService } from '../services/api';
 import { toast } from './ui/Toast';
-import { CheckSquare, Clock, ArrowLeft, Upload, FileText, Upload as CloudUpload, CheckCircle, Send, ShieldCheck, AlertTriangle, ChevronRight, ClipboardList } from 'lucide-react';
+import { CheckSquare, Clock, ArrowLeft, Upload, FileText, Upload as CloudUpload, CheckCircle, Send, ShieldCheck, AlertTriangle, ChevronRight, ClipboardList, TrendingUp } from 'lucide-react';
 
 interface UserTasksTabProps {
   tasks: any[];
@@ -266,44 +266,46 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
         <>
           {/* KPI row */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-              <div className="h-1 bg-gradient-to-r from-gantly-blue to-gantly-cyan" />
-              <div className="p-4">
-                <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Total</div>
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-start gap-3">
+              <div className="size-10 rounded-xl bg-gantly-blue/10 flex items-center justify-center flex-shrink-0">
+                <ClipboardList className="text-gantly-blue" size={18} />
+              </div>
+              <div>
+                <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">Total</div>
                 <div className="text-2xl font-bold text-slate-900">{totalTasks}</div>
               </div>
             </div>
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-              <div className="h-1 bg-gradient-to-r from-amber-300 to-amber-400" />
-              <div className="p-4">
-                <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Pendientes</div>
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-start gap-3">
+              <div className="size-10 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
+                <Clock className="text-amber-500" size={18} />
+              </div>
+              <div>
+                <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">Pendientes</div>
                 <div className="text-2xl font-bold text-slate-900">{pendingCount}</div>
               </div>
             </div>
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-              <div className="h-1 bg-gradient-to-r from-emerald-400 to-emerald-500" />
-              <div className="p-4">
-                <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Completadas</div>
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-start gap-3">
+              <div className="size-10 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
+                <CheckCircle className="text-emerald-500" size={18} />
+              </div>
+              <div>
+                <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">Completadas</div>
                 <div className="text-2xl font-bold text-slate-900">{completedCount}</div>
               </div>
             </div>
-            <div className="bg-gradient-to-br from-gantly-navy via-gantly-blue to-gantly-cyan rounded-2xl shadow-sm overflow-hidden">
-              <div className="p-4">
-                <div className="text-[11px] font-semibold text-white/60 uppercase tracking-wider mb-1">Progreso</div>
-                <div className="text-2xl font-bold text-white">{Math.round(progressPercent)}%</div>
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+              <div className="flex items-start gap-3">
+                <div className="size-10 rounded-xl bg-violet-50 flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="text-violet-500" size={18} />
+                </div>
+                <div>
+                  <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">Progreso</div>
+                  <div className="text-2xl font-bold text-slate-900">{Math.round(progressPercent)}%</div>
+                </div>
               </div>
-            </div>
-          </div>
-
-          {/* Progress bar */}
-          <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-4">
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-slate-500 font-medium">Avance:</span>
-              <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-gantly-cyan transition-all duration-500"
-                  style={{ width: `${progressPercent}%` }} />
+              <div className="mt-3 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full rounded-full bg-violet-500 transition-all duration-500" style={{ width: `${progressPercent}%` }} />
               </div>
-              <span className="text-xs font-semibold text-slate-900">{completedCount}/{totalTasks}</span>
             </div>
           </div>
 

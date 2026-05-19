@@ -218,10 +218,10 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex">
       {/* Sidebar - Desktop */}
-      <aside className="hidden md:flex w-60 bg-gradient-to-b from-gantly-navy to-gantly-navy-600 flex-col fixed top-0 left-0 h-screen z-40">
+      <aside className="hidden md:flex w-60 bg-white border-r border-slate-200 flex-col fixed top-0 left-0 h-screen z-40">
         {/* Logo */}
-        <div className="px-6 py-6 border-b border-white/10">
-          <img src={LogoSvg} alt="Gantly" className="h-7 brightness-0 invert cursor-pointer" onClick={() => nav('/')} />
+        <div className="px-6 py-6 border-b border-slate-100">
+          <img src={LogoSvg} alt="Gantly" className="h-7 cursor-pointer" onClick={() => nav('/')} />
         </div>
 
         {/* Nav items */}
@@ -246,10 +246,10 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                 }}
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-[15px] font-medium cursor-pointer transition-all duration-200 ${
                   isActive
-                    ? 'bg-gantly-blue/20 text-white border-l-2 border-l-gantly-cyan font-semibold'
+                    ? 'bg-gantly-blue text-white shadow-sm'
                     : isDisabled
-                    ? 'text-slate-600 cursor-not-allowed opacity-50'
-                    : 'text-white hover:bg-white/10'
+                    ? 'text-slate-400 cursor-not-allowed opacity-50'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }`}
                 title={isDisabled ? 'Requiere psicologo asignado' : undefined}
               >
@@ -261,19 +261,19 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
         </nav>
 
         {/* User info at bottom */}
-        <div className="px-4 py-4 border-t border-white/10">
+        <div className="px-4 py-4 border-t border-slate-100">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-full overflow-hidden bg-white/10 flex items-center justify-center flex-shrink-0">
+            <div className="w-9 h-9 rounded-full overflow-hidden bg-gantly-blue/10 flex items-center justify-center flex-shrink-0">
               {me?.avatarUrl ? (
                 <img src={me.avatarUrl} alt="" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-sm text-white font-semibold">
+                <span className="text-sm text-gantly-blue font-semibold">
                   {me?.name ? me.name.charAt(0).toUpperCase() : 'U'}
                 </span>
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-white truncate">{me?.name || 'Usuario'}</p>
+              <p className="text-sm font-medium text-slate-800 truncate">{me?.name || 'Usuario'}</p>
               <p className="text-xs text-slate-500 truncate">{me?.email}</p>
             </div>
           </div>
@@ -284,7 +284,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               localStorage.removeItem('refreshToken');
               window.location.reload();
             }}
-            className="flex items-center gap-2 text-xs text-slate-500 hover:text-white cursor-pointer transition-colors duration-200 w-full px-1"
+            className="flex items-center gap-2 text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-50 cursor-pointer transition-colors duration-200 w-full px-2 py-1.5 rounded-lg"
           >
             <LogOut size={14} />
             Cerrar sesion
@@ -296,9 +296,9 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
-          <aside className="absolute left-0 top-0 bottom-0 w-64 bg-gradient-to-b from-gantly-navy to-gantly-navy-600 flex flex-col">
-            <div className="px-6 py-6 border-b border-white/10">
-              <img src={LogoSvg} alt="Gantly" className="h-7 brightness-0 invert cursor-pointer" onClick={() => nav('/')} />
+          <aside className="absolute left-0 top-0 bottom-0 w-64 bg-white border-r border-slate-200 flex flex-col">
+            <div className="px-6 py-6 border-b border-slate-100">
+              <img src={LogoSvg} alt="Gantly" className="h-7 cursor-pointer" onClick={() => nav('/')} />
             </div>
             <nav className="flex-1 flex flex-col gap-1 px-3 py-4 overflow-y-auto">
               {sidebarItems.map((item) => {
@@ -323,10 +323,10 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                     }}
                     className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-[15px] font-medium cursor-pointer transition-all duration-200 ${
                       isActive
-                        ? 'bg-gantly-blue/20 text-white border-l-2 border-l-gantly-cyan font-semibold'
+                        ? 'bg-gantly-blue text-white shadow-sm'
                         : isDisabled
-                        ? 'text-slate-600 cursor-not-allowed opacity-50'
-                        : 'text-white hover:bg-white/10'
+                        ? 'text-slate-400 cursor-not-allowed opacity-50'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     }`}
                   >
                     {item.icon}
@@ -335,7 +335,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                 );
               })}
             </nav>
-            <div className="px-4 py-4 border-t border-white/10">
+            <div className="px-4 py-4 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => {
@@ -343,7 +343,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                   localStorage.removeItem('refreshToken');
                   window.location.reload();
                 }}
-                className="flex items-center gap-2 text-xs text-slate-500 hover:text-white cursor-pointer transition-colors duration-200"
+                className="flex items-center gap-2 text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-50 cursor-pointer transition-colors duration-200 px-2 py-1.5 rounded-lg"
               >
                 <LogOut size={14} />
                 Cerrar sesion

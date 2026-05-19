@@ -138,9 +138,16 @@ public class AuthController {
 			content = @Content(schema = @Schema(implementation = AuthDtos.TokenResponse.class))),
 		@ApiResponse(responseCode = "401", description = "Credenciales inválidas")
 	})
-	public ResponseEntity<AuthDtos.TokenResponse> loginCompany(@Valid @RequestBody AuthDtos.CompanyLoginRequest req) {
-		var tokenPair = companyAuthService.loginWithRefresh(req.email, req.password);
-		return ResponseEntity.ok(new AuthDtos.TokenResponse(tokenPair.accessToken, tokenPair.refreshToken, 900));
+	public ResponseEntity<?> loginCompany(@Valid @RequestBody AuthDtos.CompanyLoginRequest req) {
+		try {
+			var tokenPair = companyAuthService.loginWithRefresh(req.email, req.password);
+			return ResponseEntity.ok(new AuthDtos.TokenResponse(tokenPair.accessToken, tokenPair.refreshToken, 900));
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(500).body(java.util.Map.of("error", e.getClass().getName(), "message", e.getMessage() != null ? e.getMessage() : "null"));
+		}
 	}
 
     @GetMapping("/me")
