@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { adminService } from '../services/api';
 import { toast } from './ui/Toast';
 import LoadingSpinner from './ui/LoadingSpinner';
+import ConfirmDialog from './ui/ConfirmDialog';
 
 interface EvaluationTest {
   id: number;
@@ -20,6 +21,7 @@ export default function AdminSectionsManager() {
   const [newTopicName, setNewTopicName] = useState('');
   const [showNewTopicForm, setShowNewTopicForm] = useState(false);
   const [draggedTest, setDraggedTest] = useState<EvaluationTest | null>(null);
+  const [deleteTopicName, setDeleteTopicName] = useState<string | null>(null);
 
   useEffect(() => {
     loadAllTests();
@@ -229,65 +231,52 @@ export default function AdminSectionsManager() {
     }
   };
 
-  const deleteTopic = async (topic: string) => {
+  const getDeleteTopicMessage = (topic: string): string => {
     const testsInTopic = getTestsByTopic(selectedCategory, topic);
-    // Buscar el placeholder de esta sección
+    if (testsInTopic.length > 0) {
+      return `Esta acción moverá ${testsInTopic.length} test(s) a "Sin asignar" y eliminará la sección.`;
+    }
+    return `¿Estás seguro de eliminar la sección "${topic}"?`;
+  };
+
+  const handleConfirmDeleteTopic = async () => {
+    if (!deleteTopicName) return;
+    const topic = deleteTopicName;
+    const testsInTopic = getTestsByTopic(selectedCategory, topic);
     const placeholderTest = allTests.find(t =>
       t.category === selectedCategory &&
       t.topic === topic &&
       t.code.startsWith('SECTION_PLACEHOLDER_')
     );
 
-    if (testsInTopic.length > 0) {
-      if (!confirm(`¿Estás seguro? Esta acción moverá ${testsInTopic.length} test(s) a "Sin asignar" y eliminará la sección.`)) {
-        return;
-      }
-      // Mover todos los tests de este topic a sin asignar
-      try {
-        setLoading(true);
+    try {
+      setLoading(true);
+      if (testsInTopic.length > 0) {
         for (const test of testsInTopic) {
-          // Intentar actualizar como evaluation test primero, si falla como test normal
           try {
             await adminService.updateEvaluationTest(test.id, { topic: '' });
           } catch (e) {
             await adminService.updateTest(test.id, { topic: '' });
           }
         }
-        // Eliminar el placeholder si existe
-        if (placeholderTest) {
-          try {
-            await adminService.deleteEvaluationTest(placeholderTest.id);
-          } catch (e) {
-            await adminService.deleteTest(placeholderTest.id);
-          }
-        }
-        await loadAllTests();
-        toast.success(`Sección "${topic}" eliminada. Los tests fueron movidos a "Sin asignar".`);
-      } catch (error: any) {
-        toast.error('Error al eliminar sección: ' + (error.response?.data?.message || error.message));
-      } finally {
-        setLoading(false);
       }
-    } else {
-      // Si no hay tests, solo eliminar el placeholder
-      if (confirm(`¿Estás seguro de eliminar la sección "${topic}"?`)) {
+      if (placeholderTest) {
         try {
-          setLoading(true);
-          if (placeholderTest) {
-            try {
-              await adminService.deleteEvaluationTest(placeholderTest.id);
-            } catch (e) {
-              await adminService.deleteTest(placeholderTest.id);
-            }
-          }
-          await loadAllTests();
-          toast.success(`Sección "${topic}" eliminada.`);
-        } catch (error: any) {
-          toast.error('Error al eliminar sección: ' + (error.response?.data?.message || error.message));
-        } finally {
-          setLoading(false);
+          await adminService.deleteEvaluationTest(placeholderTest.id);
+        } catch (e) {
+          await adminService.deleteTest(placeholderTest.id);
         }
       }
+      await loadAllTests();
+      toast.success(
+        testsInTopic.length > 0
+          ? `Sección "${topic}" eliminada. Los tests fueron movidos a "Sin asignar".`
+          : `Sección "${topic}" eliminada.`
+      );
+    } catch (error: any) {
+      toast.error('Error al eliminar sección: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -397,7 +386,7 @@ export default function AdminSectionsManager() {
                       {topic} ({testsInTopic.length})
                     </h3>
                     <button
-                      onClick={() => deleteTopic(topic)}
+                      onClick={() => setDeleteTopicName(topic)}
                       className="px-3 py-1.5 bg-red-50 text-red-600 border-none rounded-lg cursor-pointer text-xs font-semibold hover:bg-red-100 transition-colors"
                     >
                       Eliminar sección
@@ -532,6 +521,16 @@ export default function AdminSectionsManager() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={deleteTopicName !== null}
+        onClose={() => setDeleteTopicName(null)}
+        onConfirm={handleConfirmDeleteTopic}
+        title="Eliminar sección"
+        message={deleteTopicName ? getDeleteTopicMessage(deleteTopicName) : ''}
+        variant="danger"
+        confirmLabel="Eliminar"
+      />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { CalendarDays, History } from 'lucide-react';
 import { calendarService } from '../services/api';
 import EmptyState from './ui/EmptyState';
 import LoadingSpinner from './ui/LoadingSpinner';
+import ConfirmDialog from './ui/ConfirmDialog';
 import { toast } from './ui/Toast';
 
 interface UserAppointmentsTabProps {
@@ -12,6 +13,7 @@ interface UserAppointmentsTabProps {
 export default function UserAppointmentsTab({ setTab }: UserAppointmentsTabProps) {
   const [pastAppointments, setPastAppointments] = useState<any[]>([]);
   const [loadingPastAppointments, setLoadingPastAppointments] = useState(false);
+  const [cancelAppointmentId, setCancelAppointmentId] = useState<number | null>(null);
 
   const loadPastAppointments = async () => {
     try {
@@ -132,16 +134,7 @@ export default function UserAppointmentsTab({ setTab }: UserAppointmentsTabProps
                     {/* Cancel button for upcoming, non-cancelled appointments */}
                     {!isCancelled && new Date(apt.startTime) > new Date() && (
                       <button
-                        onClick={async () => {
-                          if (!confirm('¿Seguro que quieres cancelar esta cita?')) return;
-                          try {
-                            await calendarService.cancelAppointment(apt.id);
-                            toast.success('Cita cancelada correctamente');
-                            await loadPastAppointments();
-                          } catch (err: any) {
-                            toast.error(err.response?.data?.error || 'Error al cancelar la cita');
-                          }
-                        }}
+                        onClick={() => setCancelAppointmentId(apt.id)}
                         className="text-xs px-3 py-1 rounded-full font-medium bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors cursor-pointer"
                       >
                         Cancelar
@@ -153,6 +146,25 @@ export default function UserAppointmentsTab({ setTab }: UserAppointmentsTabProps
             })}
         </div>
       )}
+
+      <ConfirmDialog
+        open={cancelAppointmentId !== null}
+        onClose={() => setCancelAppointmentId(null)}
+        onConfirm={async () => {
+          if (cancelAppointmentId === null) return;
+          try {
+            await calendarService.cancelAppointment(cancelAppointmentId);
+            toast.success('Cita cancelada correctamente');
+            await loadPastAppointments();
+          } catch (err: any) {
+            toast.error(err.response?.data?.error || 'Error al cancelar la cita');
+          }
+        }}
+        title="Cancelar cita"
+        message="¿Estás seguro de que quieres cancelar esta cita? Esta acción no se puede deshacer."
+        variant="danger"
+        confirmLabel="Cancelar cita"
+      />
     </div>
   );
 }

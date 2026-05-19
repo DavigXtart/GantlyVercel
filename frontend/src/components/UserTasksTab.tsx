@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { tasksService, fileService } from '../services/api';
 import { toast } from './ui/Toast';
+import ConfirmDialog from './ui/ConfirmDialog';
 import { CheckSquare, Clock, ArrowLeft, Upload, FileText, Upload as CloudUpload, CheckCircle, Send, ShieldCheck, AlertTriangle, ChevronRight, ClipboardList, TrendingUp } from 'lucide-react';
 
 interface UserTasksTabProps {
@@ -15,6 +16,7 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
   const [taskComments, setTaskComments] = useState<Record<number, any[]>>({});
   const [newComment, setNewComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [confirmCompleteTaskId, setConfirmCompleteTaskId] = useState<number | null>(null);
 
   const loadTaskFiles = async (taskId: number) => {
     try { const files = await tasksService.getFiles(taskId); setTaskFiles(prev => ({ ...prev, [taskId]: files })); } catch { toast.error('Error al cargar los archivos'); }
@@ -35,7 +37,6 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
     catch (error: any) { toast.error('Error al agregar el comentario: ' + (error.response?.data?.error || error.message)); }
   };
   const handleCompleteTask = async (taskId: number) => {
-    if (!confirm('¿Estas seguro de que quieres finalizar esta tarea? Esta accion no se puede deshacer.')) return;
     try {
       setSubmitting(true);
       await tasksService.complete(taskId);
@@ -217,7 +218,7 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
                   <div className="text-xs text-slate-500">Marca la tarea como completada cuando la hayas finalizado.</div>
                 </div>
               </div>
-              <button onClick={() => handleCompleteTask(selectedTaskId)} disabled={submitting}
+              <button onClick={() => setConfirmCompleteTaskId(selectedTaskId)} disabled={submitting}
                 className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors cursor-pointer border-none ${
                   submitting ? 'bg-slate-200 text-slate-500 cursor-not-allowed' : 'bg-emerald-600 text-white hover:bg-emerald-700'
                 }`}>
@@ -245,6 +246,18 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
             </div>
           )}
         </div>
+
+        <ConfirmDialog
+          open={confirmCompleteTaskId !== null}
+          onClose={() => setConfirmCompleteTaskId(null)}
+          onConfirm={async () => {
+            if (confirmCompleteTaskId !== null) await handleCompleteTask(confirmCompleteTaskId);
+          }}
+          title="Finalizar tarea"
+          message="¿Estas seguro de que quieres finalizar esta tarea? Esta accion no se puede deshacer."
+          variant="warning"
+          confirmLabel="Finalizar"
+        />
       </div>
     );
   }

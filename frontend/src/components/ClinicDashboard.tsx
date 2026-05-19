@@ -9,6 +9,7 @@ import ClinicStats from './ClinicStats';
 import ClinicInsuranceTab from './ClinicInsuranceTab';
 import ClinicWaitingList from './ClinicWaitingList';
 import AuditLogViewer from './AuditLogViewer';
+import ConfirmDialog from './ui/ConfirmDialog';
 import LogoSvg from '../assets/logo-gantly.svg';
 import {
   Building2, Users, Calendar, UsersRound, Receipt, BarChart3, Settings, Home,
@@ -541,6 +542,11 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
   const [newRoomColor, setNewRoomColor] = useState(ROOM_COLORS[0]);
   const [savingRoom, setSavingRoom] = useState(false);
 
+  // Confirm dialog state
+  const [deleteAdminId, setDeleteAdminId] = useState<number | null>(null);
+  const [deleteServiceId, setDeleteServiceId] = useState<number | null>(null);
+  const [deleteRoomId, setDeleteRoomId] = useState<number | null>(null);
+
   // Initialize form from clinicInfo
   useEffect(() => {
     if (clinicInfo) {
@@ -608,12 +614,16 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
   }
 
   async function handleRemoveAdmin(id: number) {
-    if (!confirm('Eliminar este administrador?')) return;
+    setDeleteAdminId(id);
+  }
+
+  async function confirmRemoveAdmin() {
+    if (deleteAdminId === null) return;
     try {
-      await clinicService.removeAdmin(id);
-      setAdmins(prev => prev.filter(a => a.id !== id));
+      await clinicService.removeAdmin(deleteAdminId);
+      setAdmins(prev => prev.filter(a => a.id !== deleteAdminId));
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Error al eliminar administrador');
+      throw new Error(err.response?.data?.message || 'Error al eliminar administrador');
     }
   }
 
@@ -675,11 +685,13 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
   }
 
   async function handleDeleteService(id: number) {
-    if (!confirm('Eliminar este servicio?')) return;
-    try {
-      await clinicService.deleteService(id);
-      setServices(prev => prev.filter(s => s.id !== id));
-    } catch { /* ignore */ }
+    setDeleteServiceId(id);
+  }
+
+  async function confirmDeleteService() {
+    if (deleteServiceId === null) return;
+    await clinicService.deleteService(deleteServiceId);
+    setServices(prev => prev.filter(s => s.id !== deleteServiceId));
   }
 
   // --- Handlers: Rooms ---
@@ -714,13 +726,13 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
   }
 
   async function handleDeleteRoom(id: number) {
-    if (!confirm('Eliminar este despacho?')) return;
-    try {
-      await clinicService.deleteRoom(id);
-      setRooms(prev => prev.filter(r => r.id !== id));
-    } catch {
-      alert('Error al eliminar el despacho');
-    }
+    setDeleteRoomId(id);
+  }
+
+  async function confirmDeleteRoom() {
+    if (deleteRoomId === null) return;
+    await clinicService.deleteRoom(deleteRoomId);
+    setRooms(prev => prev.filter(r => r.id !== deleteRoomId));
   }
 
   const [copiedCode, setCopiedCode] = useState(false);
@@ -1234,6 +1246,35 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
           </div>
         </div>
       </div>
+
+      {/* Confirm dialogs */}
+      <ConfirmDialog
+        open={deleteAdminId !== null}
+        onClose={() => setDeleteAdminId(null)}
+        onConfirm={confirmRemoveAdmin}
+        title="Eliminar administrador"
+        message="¿Estás seguro de que deseas eliminar este administrador? Esta acción no se puede deshacer."
+        variant="danger"
+        confirmLabel="Eliminar"
+      />
+      <ConfirmDialog
+        open={deleteServiceId !== null}
+        onClose={() => setDeleteServiceId(null)}
+        onConfirm={confirmDeleteService}
+        title="Eliminar servicio"
+        message="¿Estás seguro de que deseas eliminar este servicio? Esta acción no se puede deshacer."
+        variant="danger"
+        confirmLabel="Eliminar"
+      />
+      <ConfirmDialog
+        open={deleteRoomId !== null}
+        onClose={() => setDeleteRoomId(null)}
+        onConfirm={confirmDeleteRoom}
+        title="Eliminar despacho"
+        message="¿Estás seguro de que deseas eliminar este despacho? Esta acción no se puede deshacer."
+        variant="danger"
+        confirmLabel="Eliminar"
+      />
     </div>
   );
 }

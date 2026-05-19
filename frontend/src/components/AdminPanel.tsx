@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { adminService } from '../services/api';
 import TestManager from './TestManager';
 import TestImporter from './TestImporter';
+import ConfirmDialog from './ui/ConfirmDialog';
 
 interface Test {
   id: number;
@@ -25,6 +26,7 @@ export default function AdminPanel() {
   const [editingTest, setEditingTest] = useState<Test | null>(null);
   const [testSearch, setTestSearch] = useState('');
   const [availableTopics, setAvailableTopics] = useState<string[]>([]);
+  const [deleteTestId, setDeleteTestId] = useState<number | null>(null);
   useEffect(() => {
     loadTests();
   }, []);
@@ -117,21 +119,19 @@ export default function AdminPanel() {
     }
   };
 
-  const deleteTest = async (id: number) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar este test? Esta acción no se puede deshacer.')) {
-      return;
-    }
+  const handleConfirmDeleteTest = async () => {
+    if (deleteTestId === null) return;
     try {
       setLoading(true);
-      const test = tests.find(t => t.id === id);
+      const test = tests.find(t => t.id === deleteTestId);
       if (test?._source === 'evaluation') {
-        await adminService.deleteEvaluationTest(id);
+        await adminService.deleteEvaluationTest(deleteTestId);
       } else {
-        await adminService.deleteTest(id);
+        await adminService.deleteTest(deleteTestId);
       }
 
       await loadTests();
-      if (selectedTestId === id) {
+      if (selectedTestId === deleteTestId) {
         setSelectedTestId(null);
       }
     } catch (err: any) {
@@ -437,7 +437,7 @@ export default function AdminPanel() {
                   </button>
                   <button
                     className="px-3 py-2 text-[13px] bg-slate-100 text-slate-600 rounded-xl font-medium hover:bg-slate-200 transition-colors cursor-pointer"
-                    onClick={() => deleteTest(test.id)}
+                    onClick={() => setDeleteTestId(test.id)}
                     disabled={loading}
                   >
                     Eliminar
@@ -449,6 +449,16 @@ export default function AdminPanel() {
         )}
       </div>
       </>
+
+      <ConfirmDialog
+        open={deleteTestId !== null}
+        onClose={() => setDeleteTestId(null)}
+        onConfirm={handleConfirmDeleteTest}
+        title="Eliminar test"
+        message="¿Estás seguro de que deseas eliminar este test? Esta acción no se puede deshacer."
+        variant="danger"
+        confirmLabel="Eliminar"
+      />
     </div>
   );
 }

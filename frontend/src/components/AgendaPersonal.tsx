@@ -3,6 +3,7 @@ import { personalAgendaService } from '../services/api';
 import { toast } from './ui/Toast';
 import LoadingSpinner from './ui/LoadingSpinner';
 import MoodFace, { moodColors } from './ui/MoodFace';
+import ConfirmDialog from './ui/ConfirmDialog';
 import { Check } from 'lucide-react';
 
 /** Formatea una fecha a YYYY-MM-DD usando hora local (evita el bug de toISOString en UTC) */
@@ -35,6 +36,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
   const [showCalendar, setShowCalendar] = useState(false);
   const [entries, setEntries] = useState<DailyEntry[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<DailyEntry | null>(null);
+  const [deleteEntryId, setDeleteEntryId] = useState<number | null>(null);
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => {
     const today = new Date();
     const currentDay = today.getDay();
@@ -366,6 +368,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
     today.setHours(0, 0, 0, 0);
 
     return (
+      <>
       <div className={`bg-white rounded-2xl shadow-card p-10 border border-gantly-blue-50 mx-auto animate-fade-in-up ${viewMode === 'month' ? 'max-w-[1200px]' : 'max-w-[900px]'}`}>
         {/* Header con navegacion */}
         <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
@@ -498,18 +501,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
                   </button>
                 )}
                 <button
-                  onClick={async () => {
-                    if (!confirm('¿Seguro que quieres eliminar esta entrada?')) return;
-                    try {
-                      await personalAgendaService.deleteEntry(selectedEntry.id);
-                      toast.success('Entrada eliminada');
-                      setSelectedEntry(null);
-                      const response = await personalAgendaService.getUserEntries();
-                      setEntries(response.entries || []);
-                    } catch (err: any) {
-                      toast.error(err.response?.data?.error || 'Error al eliminar');
-                    }
-                  }}
+                  onClick={() => setDeleteEntryId(selectedEntry.id)}
                   className="px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg cursor-pointer font-semibold text-sm hover:bg-red-100 transition-colors duration-200"
                 >
                   Eliminar
@@ -751,6 +743,28 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={deleteEntryId !== null}
+        onClose={() => setDeleteEntryId(null)}
+        onConfirm={async () => {
+          if (deleteEntryId === null) return;
+          try {
+            await personalAgendaService.deleteEntry(deleteEntryId);
+            toast.success('Entrada eliminada');
+            setSelectedEntry(null);
+            const response = await personalAgendaService.getUserEntries();
+            setEntries(response.entries || []);
+          } catch (err: any) {
+            toast.error(err.response?.data?.error || 'Error al eliminar');
+          }
+        }}
+        title="Eliminar entrada"
+        message="¿Seguro que quieres eliminar esta entrada?"
+        variant="danger"
+        confirmLabel="Eliminar"
+      />
+      </>
     );
   }
 

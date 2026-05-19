@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { adminService, testService } from '../services/api';
 import TestImporter from './TestImporter';
+import ConfirmDialog from './ui/ConfirmDialog';
 import { Pencil, Trash2 } from 'lucide-react';
 
 interface TestManagerProps {
@@ -65,6 +66,8 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
   const [showSubfactorForm, setShowSubfactorForm] = useState(false);
   const [selectedFactorForSubfactor, setSelectedFactorForSubfactor] = useState<number | ''>('');
   const [showImporter, setShowImporter] = useState(false);
+  const [confirmDeleteQuestionId, setConfirmDeleteQuestionId] = useState<number | null>(null);
+  const [confirmDeleteAnswerId, setConfirmDeleteAnswerId] = useState<number | null>(null);
 
   useEffect(() => {
     loadQuestions();
@@ -252,9 +255,6 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
   };
 
   const deleteQuestion = async (id: number) => {
-    if (!confirm('¿Estás seguro de eliminar esta pregunta? También se eliminarán todas sus respuestas.')) {
-      return;
-    }
     try {
       setLoading(true);
       await adminService.deleteQuestion(id);
@@ -316,9 +316,6 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
   };
 
   const deleteAnswer = async (answerId: number) => {
-    if (!confirm('¿Estás seguro de eliminar esta respuesta?')) {
-      return;
-    }
     try {
       setLoading(true);
       await adminService.deleteAnswer(answerId);
@@ -945,9 +942,9 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
                         >
                           + Añadir Respuesta
                         </button>
-                        <button 
-                          className="btn-danger" 
-                          onClick={() => deleteQuestion(question.id)}
+                        <button
+                          className="btn-danger"
+                          onClick={() => setConfirmDeleteQuestionId(question.id)}
                           disabled={loading}
                           style={{ padding: '8px 16px', fontSize: '14px' }}
                         >
@@ -1003,9 +1000,9 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
                                 >
                                   <Pencil size={14} />
                                 </button>
-                                <button 
-                                  className="btn-danger" 
-                                onClick={() => deleteAnswer(answer.id)}
+                                <button
+                                  className="btn-danger"
+                                  onClick={() => setConfirmDeleteAnswerId(answer.id)}
                                   disabled={loading}
                                   style={{ padding: '6px 12px', fontSize: '13px' }}
                                 >
@@ -1024,6 +1021,30 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={confirmDeleteQuestionId !== null}
+        onClose={() => setConfirmDeleteQuestionId(null)}
+        onConfirm={async () => {
+          if (confirmDeleteQuestionId !== null) await deleteQuestion(confirmDeleteQuestionId);
+        }}
+        title="Eliminar pregunta"
+        message="¿Estas seguro de eliminar esta pregunta? Tambien se eliminaran todas sus respuestas."
+        variant="danger"
+        confirmLabel="Eliminar"
+      />
+
+      <ConfirmDialog
+        open={confirmDeleteAnswerId !== null}
+        onClose={() => setConfirmDeleteAnswerId(null)}
+        onConfirm={async () => {
+          if (confirmDeleteAnswerId !== null) await deleteAnswer(confirmDeleteAnswerId);
+        }}
+        title="Eliminar respuesta"
+        message="¿Estas seguro de eliminar esta respuesta?"
+        variant="danger"
+        confirmLabel="Eliminar"
+      />
     </div>
   );
 }

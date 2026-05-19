@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, type ReactNode } from 'react';
 import { AlertTriangle, Info, Trash2 } from 'lucide-react';
 import Modal from './Modal';
 import { cn } from '@/lib/utils';
@@ -14,6 +14,7 @@ interface ConfirmDialogProps {
   confirmLabel?: string;
   cancelLabel?: string;
   variant?: Variant;
+  children?: ReactNode;
 }
 
 const variantConfig: Record<Variant, {
@@ -47,6 +48,7 @@ export default function ConfirmDialog({
   confirmLabel = 'Confirmar',
   cancelLabel = 'Cancelar',
   variant = 'danger',
+  children,
 }: ConfirmDialogProps) {
   const [loading, setLoading] = useState(false);
   const config = variantConfig[variant];
@@ -73,6 +75,7 @@ export default function ConfirmDialog({
         <div>
           <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
           <p className="mt-1 text-sm text-slate-500">{message}</p>
+          {children}
         </div>
         <div className="flex gap-3 w-full mt-2">
           <button

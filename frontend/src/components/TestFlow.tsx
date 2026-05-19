@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { testService } from '../services/api';
 import { toast } from './ui/Toast';
+import ConfirmDialog from './ui/ConfirmDialog';
 import { BarChart3, CheckCircle, ArrowLeft, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 interface Answer {
@@ -114,6 +115,8 @@ export default function TestFlow({ testId, onBack, onComplete, previewOnly }: Te
   const [submitting, setSubmitting] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [results, setResults] = useState<SubfactorResult[]>([]);
+  const [confirmFinish, setConfirmFinish] = useState<Record<number, { answerId?: number; numericValue?: number }> | null>(null);
+  const [confirmSubmit, setConfirmSubmit] = useState(false);
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout | null = null;
@@ -194,9 +197,7 @@ export default function TestFlow({ testId, onBack, onComplete, previewOnly }: Te
       setResults(computed);
       setShowResults(true);
     } else {
-      if (confirm('Has completado todas las preguntas. ¿Deseas enviar el test?')) {
-        handleSubmitWithAnswers(answersToUse);
-      }
+      setConfirmFinish(answersToUse);
     }
   };
 
@@ -245,10 +246,7 @@ export default function TestFlow({ testId, onBack, onComplete, previewOnly }: Te
       return;
     }
 
-    if (!confirm('¿Estas seguro de que deseas enviar tus respuestas? No podras modificarlas despues.')) {
-      return;
-    }
-    await handleSubmitWithAnswers(answers);
+    setConfirmSubmit(true);
   };
 
   // --- Loading state ---
@@ -638,6 +636,30 @@ export default function TestFlow({ testId, onBack, onComplete, previewOnly }: Te
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmFinish !== null}
+        onClose={() => setConfirmFinish(null)}
+        onConfirm={async () => {
+          if (confirmFinish) await handleSubmitWithAnswers(confirmFinish);
+        }}
+        title="Enviar test"
+        message="Has completado todas las preguntas. ¿Deseas enviar el test?"
+        variant="info"
+        confirmLabel="Enviar test"
+      />
+
+      <ConfirmDialog
+        open={confirmSubmit}
+        onClose={() => setConfirmSubmit(false)}
+        onConfirm={async () => {
+          await handleSubmitWithAnswers(answers);
+        }}
+        title="Enviar respuestas"
+        message="¿Estas seguro de que deseas enviar tus respuestas? No podras modificarlas despues."
+        variant="info"
+        confirmLabel="Enviar test"
+      />
     </div>
   );
 }

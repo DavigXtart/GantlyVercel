@@ -2,6 +2,7 @@ import { useState, useEffect, lazy, Suspense } from 'react';
 import { profileService, authService, gdprService } from '../services/api';
 import { toast } from './ui/Toast';
 import LoadingSpinner from './ui/LoadingSpinner';
+import ConfirmDialog from './ui/ConfirmDialog';
 import { ArrowLeft, Settings, User, Lock, Receipt, Shield, Upload, Download, Info, AlertTriangle, Trash2, RotateCcw, type LucideIcon } from 'lucide-react';
 
 const BillingPortal = lazy(() => import('./BillingPortal'));
@@ -23,6 +24,8 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate, onShowOnboardi
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [savingPassword, setSavingPassword] = useState(false);
+  const [confirmDeleteAccount, setConfirmDeleteAccount] = useState(false);
+  const [deleteAccountPassword, setDeleteAccountPassword] = useState('');
 
   useEffect(() => {
     if (me) {
@@ -407,28 +410,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate, onShowOnboardi
               {`Eliminar tu cuenta es una acci\u00f3n irreversible. Todos tus datos ser\u00e1n eliminados permanentemente (Art. 17 RGPD \u2014 Derecho de supresi\u00f3n).`}
             </p>
             <button
-              onClick={async () => {
-                const confirmed = window.confirm(
-                  '\u00bfEst\u00e1s seguro de que quieres eliminar tu cuenta? Esta acci\u00f3n es IRREVERSIBLE y todos tus datos ser\u00e1n eliminados permanentemente.'
-                );
-                if (!confirmed) return;
-                const password = window.prompt('Introduce tu contrase\u00f1a para confirmar la eliminaci\u00f3n:');
-                if (password === null) return;
-                if (!password.trim()) {
-                  toast.error('Debes introducir tu contrase\u00f1a');
-                  return;
-                }
-                try {
-                  await gdprService.deleteAccount(password);
-                  toast.success('Cuenta eliminada correctamente');
-                  localStorage.removeItem('token');
-                  localStorage.removeItem('refreshToken');
-                  window.location.reload();
-                } catch (err: any) {
-                  const msg = err.response?.data?.message || 'Error al eliminar la cuenta';
-                  toast.error(msg);
-                }
-              }}
+              onClick={() => { setDeleteAccountPassword(''); setConfirmDeleteAccount(true); }}
               className="px-6 py-3 rounded-xl border-2 border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 hover:border-red-300 cursor-pointer transition-all duration-200 flex items-center gap-2"
             >
               <Trash2 size={16} />
@@ -437,6 +419,35 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate, onShowOnboardi
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmDeleteAccount}
+        onClose={() => { setConfirmDeleteAccount(false); setDeleteAccountPassword(''); }}
+        onConfirm={async () => {
+          if (!deleteAccountPassword.trim()) {
+            toast.error('Debes introducir tu contrase\u00f1a');
+            throw new Error('empty password');
+          }
+          await gdprService.deleteAccount(deleteAccountPassword);
+          toast.success('Cuenta eliminada correctamente');
+          localStorage.removeItem('token');
+          localStorage.removeItem('refreshToken');
+          window.location.reload();
+        }}
+        title="Eliminar cuenta"
+        message="Esta acci\u00f3n es IRREVERSIBLE y todos tus datos ser\u00e1n eliminados permanentemente. Introduce tu contrase\u00f1a para confirmar."
+        variant="danger"
+        confirmLabel="Eliminar cuenta"
+      >
+        <input
+          type="password"
+          value={deleteAccountPassword}
+          onChange={(e) => setDeleteAccountPassword(e.target.value)}
+          placeholder="Tu contrase\u00f1a"
+          className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-900 outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 focus:bg-white transition-all duration-200 placeholder:text-slate-500 mt-3"
+          autoFocus
+        />
+      </ConfirmDialog>
     </div>
   );
 }

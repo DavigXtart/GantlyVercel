@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { testService, assignedTestsService, evaluationTestService } from '../services/api';
 import { toast } from './ui/Toast';
+import ConfirmDialog from './ui/ConfirmDialog';
 import { Brain, Search, HelpCircle, CalendarDays, CheckCircle, ChevronRight, Stethoscope } from 'lucide-react';
 
 interface PsychTestsTabProps {
@@ -17,6 +18,7 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
   const [availableTests, setAvailableTests] = useState<any[]>([]);
   const [availableEvalTests, setAvailableEvalTests] = useState<any[]>([]);
   const [expandedPatients, setExpandedPatients] = useState<Set<number>>(new Set());
+  const [unassignTestId, setUnassignTestId] = useState<number | null>(null);
 
   return (
     <div>
@@ -387,16 +389,9 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                                 )}
                                 {!at.completedAt && (
                                   <button
-                                    onClick={async (e) => {
+                                    onClick={(e) => {
                                       e.stopPropagation();
-                                      if (confirm('¿Estas seguro de que deseas desasignar este test?')) {
-                                        try {
-                                          await assignedTestsService.unassign(at.id);
-                                          await onRefresh();
-                                        } catch (error) {
-                                          toast.error('Error al desasignar el test');
-                                        }
-                                      }
+                                      setUnassignTestId(at.id);
                                     }}
                                     className="text-red-500 hover:text-red-700 text-sm font-medium cursor-pointer transition-colors duration-200"
                                   >
@@ -416,6 +411,24 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
           </div>
         );
       })()}
+
+      <ConfirmDialog
+        open={unassignTestId !== null}
+        onClose={() => setUnassignTestId(null)}
+        onConfirm={async () => {
+          if (unassignTestId === null) return;
+          try {
+            await assignedTestsService.unassign(unassignTestId);
+            await onRefresh();
+          } catch {
+            toast.error('Error al desasignar el test');
+          }
+        }}
+        title="Desasignar test"
+        message="¿Estás seguro de que deseas desasignar este test? El paciente ya no podrá completarlo."
+        variant="warning"
+        confirmLabel="Desasignar"
+      />
     </div>
   );
 }
