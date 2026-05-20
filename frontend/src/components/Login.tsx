@@ -5,6 +5,7 @@ import FormField from './ui/FormField';
 import { toast } from './ui/Toast';
 import LogoSvg from '../assets/logo-gantly.svg';
 import { trackEvent } from '../utils/analytics';
+import SEO from './seo/SEO';
 
 interface LoginProps {
   onLogin: () => void;
@@ -262,6 +263,12 @@ export default function Login({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gantly-navy-700 via-gantly-blue-600 to-gantly-cyan-500 flex justify-center items-center px-6 py-20 relative">
+      <SEO
+        title="Iniciar sesión"
+        description="Accede a tu cuenta de Gantly. Plataforma de salud mental con psicólogos verificados."
+        path="/login"
+        noindex
+      />
       <div className="w-full max-w-[1000px] grid grid-cols-1 md:grid-cols-[minmax(300px,1fr)_minmax(320px,1fr)] gap-12 relative z-[1]">
         {/* Panel izquierdo - Información */}
         <div className="bg-white/90 border border-gantly-blue-100 rounded-2xl p-12 flex flex-col gap-6 shadow-card">

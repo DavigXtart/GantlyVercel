@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import LogoSvg from '../assets/logo-gantly.svg';
 import Footer from './landing/Footer';
+import SEO, { breadcrumbSchema } from './seo/SEO';
 
 interface AboutProps {
   onBack: () => void;
@@ -43,6 +44,15 @@ export default function About({ onBack, onLogin, onGetStarted }: AboutProps) {
 
   return (
     <div className="overflow-x-hidden bg-white min-h-screen">
+      <SEO
+        title="Sobre nosotros"
+        description="Conoce Gantly: la plataforma de salud mental que conecta pacientes con psicólogos verificados. Nuestra misión, valores y compromiso con tu bienestar."
+        path="/about"
+        jsonLd={breadcrumbSchema([
+          { name: 'Inicio', url: 'https://gantly.es/' },
+          { name: 'Sobre nosotros', url: 'https://gantly.es/about' },
+        ])}
+      />
       {/* ─── Progress bar ─── */}
       <motion.div
         className="fixed top-0 left-0 h-[3px] bg-gantly-blue z-[60]"

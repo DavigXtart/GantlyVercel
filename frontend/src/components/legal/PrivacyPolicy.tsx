@@ -1,3 +1,5 @@
+import SEO from '../seo/SEO';
+
 interface PrivacyPolicyProps {
   onBack: () => void;
 }
@@ -5,6 +7,11 @@ interface PrivacyPolicyProps {
 export default function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
   return (
     <div className="min-h-screen bg-gantly-cloud text-gantly-text">
+      <SEO
+        title="Política de privacidad"
+        description="Política de privacidad de Gantly. Cumplimiento RGPD, protección de datos de salud (Art. 9), cifrado AES-256 y derechos ARCO."
+        path="/privacidad"
+      />
       {/* Navigation */}
       <nav className="sticky top-0 z-[1000] bg-white/95 backdrop-blur-md border-b border-gantly-blue/10 px-6 md:px-10 py-5 flex justify-between items-center">
         <button

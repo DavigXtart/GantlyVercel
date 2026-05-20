@@ -1,6 +1,24 @@
 User-agent: *
 Allow: /
+Allow: /about
+Allow: /soy-profesional
+Allow: /pricing
+Allow: /privacidad
+Allow: /terminos
+Allow: /clinica/
+
 Disallow: /dashboard
-Disallow: /psych-dashboard
 Disallow: /admin
+Disallow: /login
+Disallow: /register
+Disallow: /register-psicologo
+Disallow: /register-empresa
+Disallow: /login-empresa
+Disallow: /initial-test
+Disallow: /test/
+Disallow: /test-results
+Disallow: /reset-password
+Disallow: /forgot-password
+Disallow: /oauth-callback
+
 Sitemap: https://gantly.es/sitemap.xml

@@ -1,3 +1,5 @@
+import SEO from '../seo/SEO';
+
 interface TermsOfServiceProps {
   onBack: () => void;
 }
@@ -5,6 +7,11 @@ interface TermsOfServiceProps {
 export default function TermsOfService({ onBack }: TermsOfServiceProps) {
   return (
     <div className="min-h-screen bg-gantly-cloud text-gantly-text">
+      <SEO
+        title="Términos de servicio"
+        description="Términos y condiciones de uso de Gantly. Plataforma de salud mental para pacientes, psicólogos y clínicas."
+        path="/terminos"
+      />
       {/* Navigation */}
       <nav className="sticky top-0 z-[1000] bg-white/95 backdrop-blur-md border-b border-gantly-blue/10 px-6 md:px-10 py-5 flex justify-between items-center">
         <button

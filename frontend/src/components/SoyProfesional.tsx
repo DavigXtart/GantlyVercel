@@ -13,6 +13,7 @@ import ScrollReveal from './landing/shared/ScrollReveal';
 import GlowCard from './landing/shared/GlowCard';
 import TiltCard from './landing/shared/TiltCard';
 import Footer from './landing/Footer';
+import SEO, { breadcrumbSchema } from './seo/SEO';
 
 interface SoyProfesionalProps {
   onBack: () => void;
@@ -72,6 +73,15 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
 
   return (
     <div className="overflow-x-hidden bg-gantly-cloud min-h-screen">
+      <SEO
+        title="Para profesionales - Únete como psicólogo"
+        description="Gestiona tu consulta desde Gantly: agenda inteligente, tests clínicos validados (16PF, TCA), facturación automática y panel de pacientes. Únete gratis."
+        path="/soy-profesional"
+        jsonLd={breadcrumbSchema([
+          { name: 'Inicio', url: 'https://gantly.es/' },
+          { name: 'Para profesionales', url: 'https://gantly.es/soy-profesional' },
+        ])}
+      />
       {/* ─── Floating Navbar ─── */}
       <nav
         className={`fixed top-4 left-4 right-4 z-50 rounded-2xl transition-all duration-300 ${

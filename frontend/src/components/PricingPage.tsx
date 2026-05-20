@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Pricing, PricingPlan } from './ui/pricing';
 import { toast } from './ui/Toast';
+import SEO, { breadcrumbSchema } from './seo/SEO';
 
 const plans: PricingPlan[] = [
   {
@@ -80,6 +81,15 @@ export default function PricingPage({ onBack }: { onBack?: () => void }) {
 
   return (
     <div className="min-h-screen bg-gantly-cloud">
+      <SEO
+        title="Precios y planes"
+        description="Planes de suscripción para psicólogos en Gantly. Desde 23€/mes: agenda, tests clínicos, facturación y videollamadas. Registro gratuito para pacientes."
+        path="/pricing"
+        jsonLd={breadcrumbSchema([
+          { name: 'Inicio', url: 'https://gantly.es/' },
+          { name: 'Precios', url: 'https://gantly.es/pricing' },
+        ])}
+      />
       <nav className="max-w-7xl mx-auto flex justify-between items-center px-6 py-4">
         <h3
           onClick={() => navigate('/')}
