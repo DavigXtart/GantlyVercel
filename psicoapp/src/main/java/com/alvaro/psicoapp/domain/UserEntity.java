@@ -13,11 +13,12 @@ public class UserEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Convert(converter = PiiEncryptConverter.class)
+	// PII encryption — activate via POST /api/admin/pii/migrate then uncomment
+	// @Convert(converter = PiiEncryptConverter.class)
 	@Column(nullable = false, length = 500)
 	private String name;
 
-	@Convert(converter = PiiDeterministicConverter.class)
+	// @Convert(converter = PiiDeterministicConverter.class)
 	@Column(nullable = false, unique = true, length = 500)
 	private String email;
 
@@ -86,7 +87,7 @@ public class UserEntity {
 	@Column(name = "lockout_count", nullable = false)
 	private Integer lockoutCount = 0;
 
-	@Convert(converter = PiiEncryptConverter.class)
+	// @Convert(converter = PiiEncryptConverter.class)
 	@Column(name = "totp_secret", length = 500)
 	private String totpSecret;
 

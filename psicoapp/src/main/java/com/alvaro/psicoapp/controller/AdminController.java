@@ -4,6 +4,7 @@ import com.alvaro.psicoapp.domain.*;
 import com.alvaro.psicoapp.dto.AdminDtos;
 import com.alvaro.psicoapp.dto.TestImportDtos;
 import com.alvaro.psicoapp.service.AdminService;
+import com.alvaro.psicoapp.service.PiiMigrationRunner;
 import com.alvaro.psicoapp.service.TestImportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,10 +34,19 @@ public class AdminController {
     private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
     private final AdminService adminService;
     private final TestImportService testImportService;
+    private final PiiMigrationRunner piiMigrationRunner;
 
-    public AdminController(AdminService adminService, TestImportService testImportService) {
+    public AdminController(AdminService adminService, TestImportService testImportService, PiiMigrationRunner piiMigrationRunner) {
         this.adminService = adminService;
         this.testImportService = testImportService;
+        this.piiMigrationRunner = piiMigrationRunner;
+    }
+
+    @PostMapping("/pii/migrate")
+    @Operation(summary = "Encrypt PII data", description = "Encrypts all plaintext name/email/totp in users table. Run before enabling @Convert.")
+    public ResponseEntity<Map<String, Object>> migratePii() {
+        int count = piiMigrationRunner.migrateAll();
+        return ResponseEntity.ok(Map.of("migrated", count, "message", "PII migration complete. Now uncomment @Convert in UserEntity and restart."));
     }
 
     @GetMapping("/tests")
