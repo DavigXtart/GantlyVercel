@@ -8,6 +8,7 @@ import ClinicBilling from './ClinicBilling';
 import ClinicStats from './ClinicStats';
 import ClinicInsuranceTab from './ClinicInsuranceTab';
 import ClinicWaitingList from './ClinicWaitingList';
+import ClinicReports from './ClinicReports';
 import AuditLogViewer from './AuditLogViewer';
 import ConfirmDialog from './ui/ConfirmDialog';
 import LogoSvg from '../assets/logo-gantly.svg';
@@ -15,7 +16,7 @@ import {
   Building2, Users, Calendar, UsersRound, Receipt, BarChart3, Settings, Home,
   ChevronDown, ChevronUp, Check, Copy, Clock, LogOut, X, Send, Tag, DoorOpen,
   UserX, Plus, Mail, Stethoscope, Package, Flower2, Timer, Trash2, Menu, Shield,
-  Globe, Eye, EyeOff, ListOrdered,
+  Globe, Eye, EyeOff, ListOrdered, FileBarChart,
 } from 'lucide-react';
 
 const kpiIconMap: Record<string, (size: number) => React.ReactNode> = {
@@ -37,9 +38,10 @@ const navIconMap: Record<string, React.ReactNode> = {
   shield: <Shield size={20} />,
   settings: <Settings size={20} />,
   list_ordered: <ListOrdered size={20} />,
+  file_bar_chart: <FileBarChart size={20} />,
 };
 
-type NavTab = 'inicio' | 'estadisticas' | 'agenda' | 'equipo' | 'pacientes' | 'facturacion' | 'lista-espera' | 'seguros' | 'auditoria' | 'configuracion';
+type NavTab = 'inicio' | 'estadisticas' | 'agenda' | 'equipo' | 'pacientes' | 'facturacion' | 'reportes' | 'lista-espera' | 'seguros' | 'auditoria' | 'configuracion';
 
 interface ClinicInfo {
   id: number;
@@ -65,6 +67,7 @@ interface ClinicServiceItem {
   defaultPrice: number | null;
   durationMinutes: number | null;
   active: boolean;
+  psychologistPrices?: string | null;
 }
 
 interface DaySchedule {
@@ -142,10 +145,35 @@ function HomeTab({
   onCopyReferral: () => void;
   onNavigate: (tab: NavTab) => void;
 }) {
-  const [stats, setStats] = useState<{ totalPatients: number; appointmentsThisMonth: number; revenueThisMonth: number } | null>(null);
+  const [stats, setStats] = useState<{
+    totalPatients: number;
+    appointmentsThisMonth: number;
+    revenueThisMonth: number;
+    appointmentsByPsychologist: Array<{ id: number; name: string; count: number; revenue: number }>;
+  } | null>(null);
+  const [psychRatings, setPsychRatings] = useState<Record<number, { avg: number; total: number }>>({});
   useEffect(() => {
     clinicService.getStats()
-      .then(s => setStats({ totalPatients: s.totalPatients, appointmentsThisMonth: s.appointmentsThisMonth, revenueThisMonth: s.revenueThisMonth }))
+      .then(s => {
+        setStats({
+          totalPatients: s.totalPatients,
+          appointmentsThisMonth: s.appointmentsThisMonth,
+          revenueThisMonth: s.revenueThisMonth,
+          appointmentsByPsychologist: s.appointmentsByPsychologist ?? [],
+        });
+        // Load ratings for each psychologist (fire & forget, non-blocking)
+        for (const ps of (s.appointmentsByPsychologist ?? [])) {
+          import('../services/api').then(({ calendarService: calSvc }) => {
+            calSvc.getPsychologistRating(ps.id)
+              .then((r: any) => {
+                if (r && r.totalRatings > 0) {
+                  setPsychRatings(prev => ({ ...prev, [ps.id]: { avg: r.averageRating, total: r.totalRatings } }));
+                }
+              })
+              .catch(() => {});
+          });
+        }
+      })
       .catch(() => {});
   }, []);
 
@@ -264,6 +292,81 @@ function HomeTab({
           </div>
         </button>
       </div>
+
+      {/* Per-psychologist performance */}
+      {stats && stats.appointmentsByPsychologist.length > 0 && (
+        <div className="bg-white rounded-xl border border-slate-200/80 overflow-hidden">
+          <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2.5">
+            <BarChart3 size={16} className="text-violet-500" />
+            <h3 className="text-sm font-semibold text-slate-900">Rendimiento por profesional</h3>
+            <span className="text-[11px] text-slate-400 ml-auto">Este mes</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-100">
+                  <th className="text-left pl-5 pr-2 py-2.5 text-[11px] font-medium text-slate-400 uppercase tracking-wider">Profesional</th>
+                  <th className="text-center px-2 py-2.5 text-[11px] font-medium text-slate-400 uppercase tracking-wider">Citas</th>
+                  <th className="text-right px-2 py-2.5 text-[11px] font-medium text-slate-400 uppercase tracking-wider">Ingresos</th>
+                  <th className="text-center px-2 py-2.5 text-[11px] font-medium text-slate-400 uppercase tracking-wider">Valoración</th>
+                  <th className="text-right pr-5 pl-2 py-2.5 text-[11px] font-medium text-slate-400 uppercase tracking-wider">% carga</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.appointmentsByPsychologist
+                  .slice()
+                  .sort((a, b) => b.revenue - a.revenue)
+                  .map((ps, idx) => {
+                    const maxCount = Math.max(...stats.appointmentsByPsychologist.map(p => p.count), 1);
+                    const loadPercent = maxCount > 0 ? Math.round((ps.count / maxCount) * 100) : 0;
+                    const rating = psychRatings[ps.id];
+                    return (
+                      <tr key={ps.id} className={`transition-colors hover:bg-slate-50/60 ${idx < stats.appointmentsByPsychologist.length - 1 ? 'border-b border-slate-50' : ''}`}>
+                        <td className="pl-5 pr-2 py-3">
+                          <div className="flex items-center gap-2.5">
+                            <div className="size-8 rounded-lg bg-violet-50 flex items-center justify-center flex-shrink-0">
+                              <span className="text-[11px] font-bold text-violet-600">
+                                {ps.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
+                              </span>
+                            </div>
+                            <span className="text-sm font-medium text-slate-800 truncate">{ps.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-2 py-3 text-center">
+                          <span className="text-sm font-semibold text-slate-900 tabular-nums">{ps.count}</span>
+                        </td>
+                        <td className="px-2 py-3 text-right">
+                          <span className="text-sm font-semibold text-emerald-600 tabular-nums">
+                            {fmtEuro(ps.revenue)}
+                          </span>
+                        </td>
+                        <td className="px-2 py-3 text-center">
+                          {rating ? (
+                            <span className="inline-flex items-center gap-1 text-sm text-amber-600 font-medium">
+                              <span className="text-amber-400">&#9733;</span>
+                              {rating.avg.toFixed(1)}
+                              <span className="text-[10px] text-slate-400">({rating.total})</span>
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-slate-400">Sin datos</span>
+                          )}
+                        </td>
+                        <td className="pr-5 pl-2 py-3 text-right">
+                          <div className="flex items-center gap-2 justify-end">
+                            <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-violet-400 rounded-full transition-all duration-500" style={{ width: `${loadPercent}%` }} />
+                            </div>
+                            <span className="text-[11px] font-medium text-slate-500 tabular-nums w-8 text-right">{loadPercent}%</span>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -535,6 +638,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
   const [showServiceForm, setShowServiceForm] = useState(false);
   const [newService, setNewService] = useState({ name: '', defaultPrice: '', durationMinutes: '' });
   const [savingService, setSavingService] = useState(false);
+  const [expandedServiceId, setExpandedServiceId] = useState<number | null>(null);
 
   // --- Rooms ---
   const [rooms, setRooms] = useState<Array<{ id: number; name: string; color: string; assignedPsychologistId?: number; active: boolean }>>([]);
@@ -934,29 +1038,93 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                 </div>
               ) : (
                 <div className="space-y-0.5">
-                  {services.map((svc) => (
-                    <div key={svc.id} className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-50 group transition-colors">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
-                        <span className="text-sm font-medium text-slate-800 truncate">{svc.name}</span>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          {svc.defaultPrice != null && (
-                            <span className="text-xs tabular-nums font-medium text-emerald-600">{svc.defaultPrice} €</span>
-                          )}
-                          {svc.durationMinutes != null && (
-                            <span className="text-[11px] text-slate-400 flex items-center gap-0.5">
-                              <Timer size={10} />
-                              {svc.durationMinutes}min
-                            </span>
-                          )}
+                  {services.map((svc) => {
+                    const isExpanded = expandedServiceId === svc.id;
+                    const pricesMap: Record<string, number> = (() => {
+                      try { return svc.psychologistPrices ? JSON.parse(svc.psychologistPrices) : {}; } catch { return {}; }
+                    })();
+                    const hasPriceOverrides = Object.keys(pricesMap).length > 0;
+                    return (
+                      <div key={svc.id} className="rounded-lg hover:bg-slate-50 group transition-colors">
+                        <div className="flex items-center justify-between px-3 py-2.5">
+                          <button
+                            type="button"
+                            onClick={() => setExpandedServiceId(isExpanded ? null : svc.id)}
+                            className="flex items-center gap-2.5 min-w-0 bg-transparent border-none cursor-pointer p-0 text-left"
+                          >
+                            <ChevronDown size={12} className={`text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                            <span className="text-sm font-medium text-slate-800 truncate">{svc.name}</span>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              {svc.defaultPrice != null && (
+                                <span className="text-xs tabular-nums font-medium text-emerald-600">{svc.defaultPrice} €</span>
+                              )}
+                              {svc.durationMinutes != null && (
+                                <span className="text-[11px] text-slate-400 flex items-center gap-0.5">
+                                  <Timer size={10} />
+                                  {svc.durationMinutes}min
+                                </span>
+                              )}
+                              {hasPriceOverrides && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-violet-50 text-violet-600 font-medium">
+                                  {Object.keys(pricesMap).length} precio{Object.keys(pricesMap).length !== 1 ? 's' : ''} custom
+                                </span>
+                              )}
+                            </div>
+                          </button>
+                          <button onClick={() => handleDeleteService(svc.id)}
+                            className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all p-1.5 rounded-md cursor-pointer bg-transparent border-none hover:bg-red-50">
+                            <Trash2 size={14} />
+                          </button>
                         </div>
+                        {/* Per-psychologist pricing panel */}
+                        {isExpanded && (
+                          <div className="px-3 pb-3">
+                            <div className="bg-white border border-slate-100 rounded-lg p-3 space-y-2">
+                              <p className="text-[11px] font-medium text-slate-500">Precios por profesional (vacio = precio base)</p>
+                              {psychologists.length === 0 ? (
+                                <p className="text-xs text-slate-400">Sin profesionales en la clinica</p>
+                              ) : (
+                                <div className="space-y-1.5">
+                                  {psychologists.map((psych) => {
+                                    const customPrice = pricesMap[String(psych.id)];
+                                    return (
+                                      <div key={psych.id} className="flex items-center gap-2">
+                                        <span className="text-xs text-slate-700 w-32 truncate" title={psych.name}>{psych.name}</span>
+                                        <input
+                                          type="number"
+                                          step="0.01"
+                                          min="0"
+                                          placeholder={svc.defaultPrice != null ? `${svc.defaultPrice}` : '---'}
+                                          value={customPrice != null ? customPrice : ''}
+                                          onChange={(e) => {
+                                            const val = e.target.value;
+                                            const newMap = { ...pricesMap };
+                                            if (val === '' || val === undefined) {
+                                              delete newMap[String(psych.id)];
+                                            } else {
+                                              newMap[String(psych.id)] = parseFloat(val);
+                                            }
+                                            const json = Object.keys(newMap).length > 0 ? JSON.stringify(newMap) : null;
+                                            clinicService.updateService(svc.id, { psychologistPrices: json || undefined })
+                                              .then((updated) => {
+                                                setServices(prev => prev.map(s => s.id === svc.id ? { ...s, psychologistPrices: updated.psychologistPrices ?? null } : s));
+                                              })
+                                              .catch(() => toast.error('Error al guardar precio'));
+                                          }}
+                                          className="h-7 w-20 px-2 rounded border border-slate-200 text-xs tabular-nums focus:ring-1 focus:ring-gantly-blue/20 focus:border-gantly-blue outline-none"
+                                        />
+                                        <span className="text-[11px] text-slate-400">€</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <button onClick={() => handleDeleteService(svc.id)}
-                        className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all p-1.5 rounded-md cursor-pointer bg-transparent border-none hover:bg-red-50">
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -1340,6 +1508,7 @@ export default function ClinicDashboard() {
     { id: 'equipo',         icon: 'group',           label: 'Equipo' },
     { id: 'pacientes',      icon: 'people',          label: 'Pacientes' },
     { id: 'facturacion',    icon: 'receipt_long',    label: 'Facturación' },
+    { id: 'reportes',       icon: 'file_bar_chart',  label: 'Reportes' },
     { id: 'lista-espera',  icon: 'list_ordered',    label: 'Lista de espera' },
     { id: 'seguros',        icon: 'shield_check',    label: 'Seguros' },
     { id: 'auditoria',     icon: 'shield',           label: 'Auditoría' },
@@ -1349,7 +1518,7 @@ export default function ClinicDashboard() {
   const currentTabLabel = navItems.find(t => t.id === activeTab)?.label || 'Dashboard';
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 dark:text-slate-100 flex">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
@@ -1359,7 +1528,7 @@ export default function ClinicDashboard() {
       )}
 
       {/* Light Sidebar */}
-      <aside className={`w-64 bg-white border-r border-slate-200 flex-shrink-0 fixed inset-y-0 left-0 z-[60] flex flex-col transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex-shrink-0 fixed inset-y-0 left-0 z-[60] flex flex-col transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Logo + close on mobile */}
         <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
           <img src={LogoSvg} alt="Gantly" className="h-7 cursor-pointer" onClick={() => navigate('/')} />
@@ -1473,6 +1642,9 @@ export default function ClinicDashboard() {
                 <div className="flex-1 overflow-y-auto">
                   <ClinicBilling psychologists={psychologists} clinicName={clinicInfo?.name} clinicNif={clinicInfo?.nif} clinicAddress={clinicInfo?.address} clinicPhone={clinicInfo?.phone} clinicRazonSocial={clinicInfo?.razonSocial} clinicDireccionFiscal={clinicInfo?.direccionFiscal} />
                 </div>
+              )}
+              {activeTab === 'reportes' && (
+                <ClinicReports />
               )}
               {activeTab === 'lista-espera' && (
                 <ClinicWaitingList />

@@ -594,7 +594,7 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public List<AdminDtos.PendingPsychologistDto> getPendingPsychologists() {
-        return psychologistProfileRepository.findByApprovedFalseOrderByUpdatedAtDesc().stream()
+        return psychologistProfileRepository.findPendingReviewOrderByUpdatedAtDesc().stream()
                 .map(p -> new AdminDtos.PendingPsychologistDto(
                         p.getId(), p.getUser().getId(), p.getUser().getName(), p.getUser().getEmail(),
                         p.getLicenseNumber(), p.getEducation(), p.getCertifications(),

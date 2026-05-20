@@ -1,0 +1,4 @@
+-- V60: PII encryption activated via JPA @Convert converters.
+-- Existing plaintext rows are encrypted on application startup by PiiMigrationRunner.
+-- No SQL changes needed — columns already VARCHAR(500) from V41.
+-- This file is a marker for migration history tracking.

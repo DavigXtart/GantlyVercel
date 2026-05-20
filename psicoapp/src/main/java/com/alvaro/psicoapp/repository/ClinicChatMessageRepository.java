@@ -10,4 +10,6 @@ public interface ClinicChatMessageRepository extends JpaRepository<ClinicChatMes
     List<ClinicChatMessageEntity> findByCompanyIdAndPatientIdOrderByCreatedAtAsc(Long companyId, Long patientId);
     List<ClinicChatMessageEntity> findByCompanyIdAndPatientIdAndCreatedAtAfterOrderByCreatedAtAsc(
             Long companyId, Long patientId, Instant after);
+
+    void deleteByPatientId(Long patientId);
 }

@@ -23,6 +23,7 @@ import java.util.List;
 public class JwtAuthFilter extends OncePerRequestFilter {
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthFilter.class);
     private static final String COMPANY_PREFIX = "company:";
+    public static final String CURRENT_CONSENT_VERSION = "2.0";
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
@@ -67,9 +68,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         .map(c -> RoleConstants.EMPRESA)
                         .orElse(RoleConstants.USER);
                 } else {
-                    role = userRepository.findByEmail(subject)
-                        .map(u -> u.getRole())
-                        .orElse(RoleConstants.USER);
+                    var userOpt = userRepository.findByEmail(subject);
+                    role = userOpt.map(u -> u.getRole()).orElse(RoleConstants.USER);
+
+                    // RGPD-12: Check if user needs to re-consent to updated privacy policy
+                    userOpt.ifPresent(u -> {
+                        String version = u.getGdprConsentVersion();
+                        if (version == null || !CURRENT_CONSENT_VERSION.equals(version)) {
+                            response.setHeader("X-Consent-Required", "true");
+                        }
+                    });
                 }
 
                 var auth = new UsernamePasswordAuthenticationToken(

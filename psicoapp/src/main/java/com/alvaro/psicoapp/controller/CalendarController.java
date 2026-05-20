@@ -21,8 +21,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+
 import java.security.Principal;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -246,6 +251,15 @@ public class CalendarController {
         return ResponseEntity.ok(Map.of("notes", notes != null ? notes : ""));
     }
 
+    @PutMapping("/appointments/{appointmentId}/reschedule")
+    @Transactional
+    @Operation(summary = "Reagendar cita", description = "Reagenda una cita existente a un nuevo horario. Solo permitido para citas BOOKED/CONFIRMED.")
+    @ApiResponse(responseCode = "200", description = "Cita reagendada exitosamente")
+    public ResponseEntity<CalendarDtos.MessageResponse> rescheduleAppointment(Principal principal,
+            @PathVariable Long appointmentId, @Valid @RequestBody CalendarDtos.RescheduleAppointmentRequest req) {
+        return ResponseEntity.ok(calendarService.rescheduleAppointment(currentUser(principal), appointmentId, req));
+    }
+
     // --- Absence management ---
 
     @PostMapping("/absences")
@@ -274,5 +288,69 @@ public class CalendarController {
     public ResponseEntity<?> deleteAbsence(Principal principal, @PathVariable Long id) {
         calendarService.deleteAbsence(currentUser(principal), id);
         return ResponseEntity.ok(Map.of("message", "Ausencia eliminada"));
+    }
+
+    // --- iCal export ---
+
+    @GetMapping("/export.ics")
+    @Transactional(readOnly = true)
+    @Operation(summary = "Exportar citas a iCal", description = "Genera un archivo .ics con las citas del usuario (BOOKED/CONFIRMED)")
+    @ApiResponse(responseCode = "200", description = "Archivo ICS generado")
+    public ResponseEntity<byte[]> exportIcal(Principal principal) {
+        UserEntity user = currentUser(principal);
+        List<CalendarDtos.AppointmentListItemDto> appointments = calendarService.getMyAppointments(user);
+
+        DateTimeFormatter icsFormatter = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'")
+                .withZone(ZoneId.of("UTC"));
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("BEGIN:VCALENDAR\r\n");
+        sb.append("VERSION:2.0\r\n");
+        sb.append("PRODID:-//Gantly//Citas//ES\r\n");
+        sb.append("CALSCALE:GREGORIAN\r\n");
+        sb.append("METHOD:PUBLISH\r\n");
+        sb.append("X-WR-CALNAME:Mis citas Gantly\r\n");
+
+        for (CalendarDtos.AppointmentListItemDto apt : appointments) {
+            if (apt.startTime() == null || apt.endTime() == null) continue;
+            String status = apt.status();
+            if (status == null) continue;
+            // Only export BOOKED or CONFIRMED appointments
+            if (!"BOOKED".equals(status) && !"CONFIRMED".equals(status)) continue;
+
+            Instant start = Instant.parse(apt.startTime());
+            Instant end = Instant.parse(apt.endTime());
+            String psychName = apt.psychologist() != null ? apt.psychologist().name() : "Gantly";
+
+            sb.append("BEGIN:VEVENT\r\n");
+            sb.append("UID:gantly-apt-").append(apt.id()).append("@gantly.es\r\n");
+            sb.append("DTSTART:").append(icsFormatter.format(start)).append("\r\n");
+            sb.append("DTEND:").append(icsFormatter.format(end)).append("\r\n");
+            sb.append("SUMMARY:Cita con ").append(escapeIcalText(psychName)).append("\r\n");
+            if (apt.notes() != null && !apt.notes().isBlank()) {
+                sb.append("DESCRIPTION:").append(escapeIcalText(apt.notes())).append("\r\n");
+            }
+            sb.append("STATUS:CONFIRMED\r\n");
+            sb.append("END:VEVENT\r\n");
+        }
+        sb.append("END:VCALENDAR\r\n");
+
+        byte[] bytes = sb.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("text/calendar; charset=UTF-8"));
+        headers.setContentDispositionFormData("attachment", "appointments.ics");
+        headers.setContentLength(bytes.length);
+
+        return ResponseEntity.ok().headers(headers).body(bytes);
+    }
+
+    private static String escapeIcalText(String text) {
+        if (text == null) return "";
+        return text.replace("\\", "\\\\")
+                   .replace(";", "\\;")
+                   .replace(",", "\\,")
+                   .replace("\n", "\\n")
+                   .replace("\r", "");
     }
 }

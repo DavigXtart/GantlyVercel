@@ -67,7 +67,11 @@ public class UserProfileService {
                 user.getAge(),
                 user.getBirthDate(),
                 user.getCreatedAt(),
-                user.getCompanyId()
+                user.getCompanyId(),
+                user.getEmergencyContactName(),
+                user.getEmergencyContactPhone(),
+                user.getReferralSource(),
+                user.getChiefComplaint()
         );
     }
 
@@ -189,6 +193,10 @@ public class UserProfileService {
             user.setBirthDate(req.birthDate());
             user.setAge((int) ChronoUnit.YEARS.between(req.birthDate(), LocalDate.now()));
         }
+        if (req.emergencyContactName() != null) user.setEmergencyContactName(req.emergencyContactName());
+        if (req.emergencyContactPhone() != null) user.setEmergencyContactPhone(req.emergencyContactPhone());
+        if (req.referralSource() != null) user.setReferralSource(req.referralSource());
+        if (req.chiefComplaint() != null) user.setChiefComplaint(req.chiefComplaint());
         userRepository.save(user);
     }
 

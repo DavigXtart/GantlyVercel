@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Wallet, RefreshCw, TrendingUp, Hourglass, TimerOff, Calendar, ListFilter, X, Receipt, User, ChevronDown, CheckCircle, Clock } from 'lucide-react';
+import { Wallet, RefreshCw, TrendingUp, Hourglass, TimerOff, Calendar, ListFilter, X, Receipt, User, ChevronDown, CheckCircle, Clock, FileText, Download } from 'lucide-react';
 
 interface Appointment {
   id: number;
@@ -20,9 +20,161 @@ interface Props {
   appointments: Appointment[];
   loading: boolean;
   onRefresh: () => void;
+  psychologistName?: string;
 }
 
-export default function PsychBillingTab({ appointments, loading, onRefresh }: Props) {
+// ---------------------------------------------------------------------------
+// PDF invoice generator for psychologists
+// ---------------------------------------------------------------------------
+function generatePsychInvoicePdf(
+  items: Appointment[],
+  psychologistName: string,
+  filterMonth: string
+) {
+  import('jspdf').then(({ jsPDF }) => {
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const pageW = 210;
+    const margin = 20;
+
+    // Header
+    doc.setFillColor(241, 245, 249);
+    doc.rect(0, 0, pageW, 36, 'F');
+    doc.setTextColor(15, 23, 42);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text(psychologistName || 'Psicólogo', margin, 18);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(46, 147, 204);
+    const periodLabel = filterMonth
+      ? new Date(Number(filterMonth.split('-')[0]), Number(filterMonth.split('-')[1]) - 1)
+          .toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+      : 'Todas las citas';
+    doc.text('Informe de facturación — ' + periodLabel, margin, 26);
+
+    const invoiceDate = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+    doc.setTextColor(100, 116, 139);
+    doc.setFontSize(9);
+    doc.text('Generado: ' + invoiceDate, pageW - margin, 18, { align: 'right' });
+
+    // Separator
+    doc.setDrawColor(226, 232, 240);
+    doc.line(margin, 40, pageW - margin, 40);
+
+    // Table header
+    let y = 48;
+    doc.setFillColor(241, 245, 249);
+    doc.rect(margin, y - 4, pageW - margin * 2, 8, 'F');
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(100, 116, 139);
+    doc.text('FECHA', margin + 2, y);
+    doc.text('PACIENTE', margin + 35, y);
+    doc.text('BASE', margin + 95, y, { align: 'right' });
+    doc.text('IVA', margin + 120, y, { align: 'right' });
+    doc.text('TOTAL', margin + 145, y, { align: 'right' });
+    doc.text('ESTADO', margin + 168, y, { align: 'right' });
+
+    y += 8;
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(15, 23, 42);
+
+    let totalBase = 0;
+    let totalIva = 0;
+    let totalAmount = 0;
+
+    for (const a of items) {
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+      const base = Number(a.price) || 0;
+      const iva = a.taxExempt ? 0 : (Number(a.taxAmount) || 0);
+      const total = a.totalAmount != null ? Number(a.totalAmount) : base;
+
+      totalBase += base;
+      totalIva += iva;
+      totalAmount += total;
+
+      doc.setFontSize(8);
+      doc.setTextColor(15, 23, 42);
+      const dateStr = new Date(a.startTime).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+      doc.text(dateStr, margin + 2, y);
+      doc.text((a.user?.name || 'Paciente').substring(0, 30), margin + 35, y);
+      doc.text(base.toFixed(2) + ' \u20AC', margin + 95, y, { align: 'right' });
+      doc.text(a.taxExempt ? 'Exento' : (iva.toFixed(2) + ' \u20AC'), margin + 120, y, { align: 'right' });
+      doc.setFont('helvetica', 'bold');
+      doc.text(total.toFixed(2) + ' \u20AC', margin + 145, y, { align: 'right' });
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(a.paymentStatus === 'PAID' ? 5 : 180, a.paymentStatus === 'PAID' ? 150 : 130, a.paymentStatus === 'PAID' ? 105 : 0);
+      doc.text(a.paymentStatus === 'PAID' ? 'Pagado' : 'Pendiente', margin + 168, y, { align: 'right' });
+      doc.setTextColor(15, 23, 42);
+      y += 6;
+      // separator line
+      doc.setDrawColor(241, 245, 249);
+      doc.line(margin, y - 2, pageW - margin, y - 2);
+    }
+
+    // Totals
+    y += 4;
+    doc.setFillColor(241, 245, 249);
+    doc.roundedRect(margin, y, pageW - margin * 2, 16, 3, 3, 'F');
+    doc.setFontSize(9);
+    doc.setTextColor(46, 147, 204);
+    doc.text('TOTAL BASE', margin + 6, y + 6);
+    doc.text('TOTAL IVA', pageW / 2 - 10, y + 6);
+    doc.text('TOTAL', pageW - margin - 6, y + 6, { align: 'right' });
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 23, 42);
+    doc.text(totalBase.toFixed(2) + ' \u20AC', margin + 6, y + 13);
+    doc.text(totalIva.toFixed(2) + ' \u20AC', pageW / 2 - 10, y + 13);
+    doc.text(totalAmount.toFixed(2) + ' \u20AC', pageW - margin - 6, y + 13, { align: 'right' });
+
+    // Footer
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(148, 163, 184);
+    doc.text('Gantly \u00B7 Plataforma de Salud Mental \u00B7 gantly.com', pageW / 2, 285, { align: 'center' });
+
+    const fileName = filterMonth
+      ? `facturacion_${psychologistName.replace(/\s+/g, '_')}_${filterMonth}.pdf`
+      : `facturacion_${psychologistName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(fileName);
+  }).catch(() => {
+    // fallback
+  });
+}
+
+// ---------------------------------------------------------------------------
+// CSV export for psychologists
+// ---------------------------------------------------------------------------
+function exportPsychCsv(items: Appointment[], psychologistName: string) {
+  const headers = ['Fecha', 'Hora inicio', 'Hora fin', 'Paciente', 'Base', 'IVA exento', 'Tipo IVA', 'IVA', 'Total', 'Estado pago'];
+  const rows = items.map(a => [
+    new Date(a.startTime).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }),
+    new Date(a.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+    new Date(a.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+    a.user?.name ?? '',
+    a.price != null ? Number(a.price).toFixed(2) : '',
+    a.taxExempt ? 'Si' : 'No',
+    a.taxExempt ? 'Exento' : (a.taxRate != null ? `${(Number(a.taxRate) * 100).toFixed(0)}%` : ''),
+    a.taxAmount != null ? Number(a.taxAmount).toFixed(2) : '0.00',
+    (a.totalAmount != null ? Number(a.totalAmount) : a.price != null ? Number(a.price) : 0).toFixed(2),
+    a.paymentStatus ?? '',
+  ]);
+  const csv = [headers, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `facturacion_${psychologistName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+export default function PsychBillingTab({ appointments, loading, onRefresh, psychologistName }: Props) {
   const [filterMonth, setFilterMonth] = useState<string>('');
   const [filterPaymentStatus, setFilterPaymentStatus] = useState<string>('');
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -116,14 +268,32 @@ export default function PsychBillingTab({ appointments, loading, onRefresh }: Pr
             <p className="text-sm font-body text-gantly-muted m-0 mt-0.5">{filtered.length} cita{filtered.length !== 1 ? 's' : ''} en el período</p>
           </div>
         </div>
-        <button
-          onClick={onRefresh}
-          disabled={loading}
-          className="h-10 px-4 rounded-xl bg-gantly-cloud hover:bg-gantly-blue hover:text-white text-gantly-blue cursor-pointer flex items-center gap-1.5 text-sm font-heading font-semibold disabled:opacity-60 transition-all duration-300 border-none"
-        >
-          <RefreshCw className={loading ? 'animate-spin' : ''} size={16} />
-          Actualizar
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => generatePsychInvoicePdf(filtered, psychologistName || 'Psicólogo', filterMonth)}
+            disabled={filtered.length === 0}
+            className="h-10 px-4 rounded-xl bg-gantly-blue text-white cursor-pointer flex items-center gap-1.5 text-sm font-heading font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 border-none hover:bg-gantly-blue/90"
+          >
+            <FileText size={16} />
+            Generar PDF
+          </button>
+          <button
+            onClick={() => exportPsychCsv(filtered, psychologistName || 'Psicólogo')}
+            disabled={filtered.length === 0}
+            className="h-10 px-4 rounded-xl bg-white border border-slate-200 text-slate-600 cursor-pointer flex items-center gap-1.5 text-sm font-heading font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 hover:bg-slate-50"
+          >
+            <Download size={16} />
+            CSV
+          </button>
+          <button
+            onClick={onRefresh}
+            disabled={loading}
+            className="h-10 px-4 rounded-xl bg-gantly-cloud hover:bg-gantly-blue hover:text-white text-gantly-blue cursor-pointer flex items-center gap-1.5 text-sm font-heading font-semibold disabled:opacity-60 transition-all duration-300 border-none"
+          >
+            <RefreshCw className={loading ? 'animate-spin' : ''} size={16} />
+            Actualizar
+          </button>
+        </div>
       </div>
 
       {/* Revenue overview — asymmetric bento */}

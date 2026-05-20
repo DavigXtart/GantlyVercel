@@ -4,7 +4,7 @@ import * as Sentry from '@sentry/react';
 import Login from './components/Login';
 import Register from './components/Register';
 import Landing from './components/landing/Landing';
-import { authService, safeStorage } from './services/api';
+import { authService, gdprService, safeStorage } from './services/api';
 import { ToastContainer, toast } from './components/ui/Toast';
 import GlobalLoader from './components/ui/GlobalLoader';
 import Maintenance from './components/Maintenance';
@@ -312,12 +312,64 @@ function TestPage({ onBack }: { onBack: () => void }) {
   );
 }
 
+// RGPD-12: Re-consent modal when privacy policy is updated
+function ConsentRenewalModal({ onAccept }: { onAccept: () => void }) {
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleAccept = async () => {
+    setLoading(true);
+    try {
+      await gdprService.renewConsent();
+      onAccept();
+    } catch {
+      // silent — user can retry
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 p-6" role="dialog" aria-modal="true" aria-labelledby="consent-title">
+        <h2 id="consent-title" className="font-heading text-lg font-bold text-slate-800 mb-3">
+          Politica de privacidad actualizada
+        </h2>
+        <p className="text-sm text-slate-600 mb-4 leading-relaxed">
+          Hemos actualizado nuestra politica de privacidad. Para continuar usando Gantly, necesitamos que aceptes los nuevos terminos.
+        </p>
+        <button
+          onClick={() => navigate('/privacidad')}
+          className="text-sm text-gantly-blue underline mb-4 block hover:text-gantly-blue/80"
+        >
+          Leer politica de privacidad
+        </button>
+        <button
+          onClick={handleAccept}
+          disabled={loading}
+          className="w-full px-4 py-2.5 rounded-md bg-gantly-blue text-white font-semibold text-sm hover:bg-gantly-blue/90 transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-gantly-blue/20"
+        >
+          {loading ? 'Guardando...' : 'Acepto la nueva politica de privacidad'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const { isAuthenticated, role, maintenanceMode, login, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [initialTestSessionId, setInitialTestSessionId] = useState<string | null>(null);
   const [oauthError, setOauthError] = useState<string | null>(null);
+  const [consentRequired, setConsentRequired] = useState(false);
+
+  // RGPD-12: Listen for consent-required event from Axios interceptor
+  useEffect(() => {
+    const handleConsentRequired = () => setConsentRequired(true);
+    window.addEventListener('consent-required', handleConsentRequired);
+    return () => window.removeEventListener('consent-required', handleConsentRequired);
+  }, []);
 
   // Pick up OAuth error from navigation state
   useEffect(() => {
@@ -328,6 +380,16 @@ function App() {
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state]);
+
+  // Dark mode initialization from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('darkMode');
+      if (saved === 'true') {
+        document.documentElement.classList.add('dark');
+      }
+    } catch { /* silent */ }
+  }, []);
 
   if (maintenanceMode) {
     return <Maintenance />;
@@ -501,6 +563,9 @@ function App() {
         <Route path="*" element={<ReferralRedirect />} />
       </Routes>
       <CookieBanner onPrivacyClick={() => navigate('/privacidad')} />
+      {isAuthenticated && consentRequired && (
+        <ConsentRenewalModal onAccept={() => setConsentRequired(false)} />
+      )}
     </>
   );
 }

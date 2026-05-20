@@ -3,7 +3,7 @@ import { profileService, authService, gdprService } from '../services/api';
 import { toast } from './ui/Toast';
 import LoadingSpinner from './ui/LoadingSpinner';
 import ConfirmDialog from './ui/ConfirmDialog';
-import { ArrowLeft, Settings, User, Lock, Receipt, Shield, Upload, Download, Info, AlertTriangle, Trash2, RotateCcw, type LucideIcon } from 'lucide-react';
+import { ArrowLeft, Settings, User, Lock, Receipt, Shield, Upload, Download, Info, AlertTriangle, Trash2, RotateCcw, HeartOff, Stethoscope, Phone, UserCheck, Moon, Sun, type LucideIcon } from 'lucide-react';
 
 const BillingPortal = lazy(() => import('./BillingPortal'));
 const TwoFactorSetup = lazy(() => import('./TwoFactorSetup'));
@@ -26,6 +26,15 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate, onShowOnboardi
   const [savingPassword, setSavingPassword] = useState(false);
   const [confirmDeleteAccount, setConfirmDeleteAccount] = useState(false);
   const [deleteAccountPassword, setDeleteAccountPassword] = useState('');
+  const [confirmWithdrawHealthConsent, setConfirmWithdrawHealthConsent] = useState(false);
+  const [healthConsentWithdrawnAt, setHealthConsentWithdrawnAt] = useState<string | null>(null);
+  const [intakeForm, setIntakeForm] = useState({
+    emergencyContactName: '',
+    emergencyContactPhone: '',
+    referralSource: '',
+    chiefComplaint: '',
+  });
+  const [savingIntake, setSavingIntake] = useState(false);
 
   useEffect(() => {
     if (me) {
@@ -33,6 +42,12 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate, onShowOnboardi
         name: me.name ?? '',
         gender: me.gender ?? '',
         birthDate: me.birthDate ? (typeof me.birthDate === 'string' ? me.birthDate.slice(0, 10) : '') : '',
+      });
+      setIntakeForm({
+        emergencyContactName: me.emergencyContactName ?? '',
+        emergencyContactPhone: me.emergencyContactPhone ?? '',
+        referralSource: me.referralSource ?? '',
+        chiefComplaint: me.chiefComplaint ?? '',
       });
     }
   }, [me]);
@@ -153,6 +168,49 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate, onShowOnboardi
             </div>
           )}
 
+          {/* Dark mode toggle */}
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 hover:shadow-lg transition-all duration-300">
+            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 uppercase tracking-wide mb-3 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+                {me?.darkMode ? <Moon className="text-indigo-400" size={14} /> : <Sun className="text-amber-500" size={14} />}
+              </span>
+              Apariencia
+            </h3>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-700 dark:text-slate-300">Modo oscuro</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Reduce la fatiga visual en entornos con poca luz</p>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  const newValue = !me?.darkMode;
+                  // Toggle class immediately for instant visual feedback
+                  document.documentElement.classList.toggle('dark', newValue);
+                  try {
+                    localStorage.setItem('darkMode', String(newValue));
+                  } catch { /* silent */ }
+                  onMeUpdate({ ...me, darkMode: newValue });
+                  try {
+                    await profileService.update({ darkMode: newValue });
+                  } catch {
+                    // Revert on error
+                    document.documentElement.classList.toggle('dark', !newValue);
+                    onMeUpdate({ ...me, darkMode: !newValue });
+                    toast.error('Error al cambiar el modo oscuro');
+                  }
+                }}
+                className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer border-none flex-shrink-0 ${
+                  me?.darkMode ? 'bg-indigo-500' : 'bg-slate-200'
+                }`}
+              >
+                <span className={`absolute top-[3px] w-[18px] h-[18px] rounded-full bg-white shadow-sm transition-all duration-200 ${
+                  me?.darkMode ? 'left-[22px]' : 'left-[3px]'
+                }`} />
+              </button>
+            </div>
+          </div>
+
           {/* Personal info card */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-lg transition-all duration-300">
             <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-5">{`Informaci\u00f3n personal`}</h3>
@@ -234,6 +292,105 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate, onShowOnboardi
                   className="bg-gradient-to-r from-gantly-blue to-gantly-blue-600 hover:shadow-lg hover:shadow-gantly-blue/25 text-white px-6 py-3 rounded-xl font-medium cursor-pointer transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {savingProfile ? 'Guardando...' : 'Guardar cambios'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Datos medicos / intake card */}
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-lg transition-all duration-300">
+            <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-5 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                <Stethoscope className="text-emerald-600" size={14} />
+              </span>
+              Datos m&eacute;dicos
+            </h3>
+            <p className="text-xs text-slate-500 mb-4">
+              Informaci&oacute;n adicional para tu profesional de salud mental. Estos datos son confidenciales y solo visibles para tu psic&oacute;logo.
+            </p>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-slate-700 block mb-1.5">Contacto de emergencia (nombre)</label>
+                  <input
+                    type="text"
+                    value={intakeForm.emergencyContactName}
+                    onChange={(e) => setIntakeForm({ ...intakeForm, emergencyContactName: e.target.value })}
+                    className="w-full h-12 rounded-xl border border-slate-200 px-4 focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue outline-none transition-all duration-200 text-sm bg-slate-50 focus:bg-white"
+                    placeholder="Nombre completo"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700 block mb-1.5">Contacto de emergencia (tel&eacute;fono)</label>
+                  <input
+                    type="tel"
+                    value={intakeForm.emergencyContactPhone}
+                    onChange={(e) => setIntakeForm({ ...intakeForm, emergencyContactPhone: e.target.value })}
+                    className="w-full h-12 rounded-xl border border-slate-200 px-4 focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue outline-none transition-all duration-200 text-sm bg-slate-50 focus:bg-white"
+                    placeholder="+34 600 000 000"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 block mb-1.5">Fuente de referido</label>
+                <select
+                  value={intakeForm.referralSource}
+                  onChange={(e) => setIntakeForm({ ...intakeForm, referralSource: e.target.value })}
+                  className="w-full h-12 rounded-xl border border-slate-200 px-4 focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue outline-none transition-all duration-200 text-sm bg-slate-50 focus:bg-white"
+                >
+                  <option value="">No especificado</option>
+                  <option value="SEARCH_ENGINE">Buscador (Google, etc.)</option>
+                  <option value="SOCIAL_MEDIA">Redes sociales</option>
+                  <option value="RECOMMENDATION">Recomendaci&oacute;n personal</option>
+                  <option value="INSURANCE">Seguro m&eacute;dico</option>
+                  <option value="OTHER">Otro</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 block mb-1.5">Motivo de consulta</label>
+                <textarea
+                  value={intakeForm.chiefComplaint}
+                  onChange={(e) => {
+                    if (e.target.value.length <= 1000) {
+                      setIntakeForm({ ...intakeForm, chiefComplaint: e.target.value });
+                    }
+                  }}
+                  rows={4}
+                  className="w-full rounded-xl border border-slate-200 px-4 py-3 focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue outline-none transition-all duration-200 text-sm bg-slate-50 focus:bg-white resize-y"
+                  placeholder="Describe brevemente el motivo por el que buscas ayuda profesional..."
+                />
+                <p className="text-xs text-slate-400 mt-1 text-right">{intakeForm.chiefComplaint.length}/1000</p>
+              </div>
+              <div className="flex justify-end pt-2">
+                <button
+                  type="button"
+                  disabled={savingIntake}
+                  onClick={async () => {
+                    try {
+                      setSavingIntake(true);
+                      await profileService.update({
+                        emergencyContactName: intakeForm.emergencyContactName || undefined,
+                        emergencyContactPhone: intakeForm.emergencyContactPhone || undefined,
+                        referralSource: intakeForm.referralSource || undefined,
+                        chiefComplaint: intakeForm.chiefComplaint || undefined,
+                      });
+                      onMeUpdate({
+                        ...me,
+                        emergencyContactName: intakeForm.emergencyContactName,
+                        emergencyContactPhone: intakeForm.emergencyContactPhone,
+                        referralSource: intakeForm.referralSource,
+                        chiefComplaint: intakeForm.chiefComplaint,
+                      });
+                      toast.success('Datos m\u00e9dicos actualizados');
+                    } catch (err: any) {
+                      toast.error(err.response?.data?.error || 'Error al guardar');
+                    } finally {
+                      setSavingIntake(false);
+                    }
+                  }}
+                  className="bg-gradient-to-r from-gantly-blue to-gantly-blue-600 hover:shadow-lg hover:shadow-gantly-blue/25 text-white px-6 py-3 rounded-xl font-medium cursor-pointer transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {savingIntake ? 'Guardando...' : 'Guardar datos m\u00e9dicos'}
                 </button>
               </div>
             </div>
@@ -398,6 +555,44 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate, onShowOnboardi
             </p>
           </div>
 
+          {/* Health data consent withdrawal */}
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-lg transition-all duration-300">
+            <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+                <HeartOff className="text-amber-600" size={14} />
+              </span>
+              Consentimiento datos de salud
+            </h3>
+            {healthConsentWithdrawnAt ? (
+              <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <Info className="text-slate-400 flex-shrink-0" size={18} />
+                <div>
+                  <p className="text-sm font-medium text-slate-700">Consentimiento retirado</p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {`Retirado el ${new Date(healthConsentWithdrawnAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <p className="text-sm text-slate-500 mb-2">
+                  {`Puedes retirar tu consentimiento para el tratamiento de datos de salud en cualquier momento (Art. 7.3 y Art. 9 RGPD).`}
+                </p>
+                <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+                  {`Retirar el consentimiento no elimina tus datos ya tratados, ya que la legislaci\u00f3n sanitaria (Ley 41/2002) obliga a conservar el historial cl\u00ednico durante un m\u00ednimo de 5 a\u00f1os. Sin embargo, se bloquear\u00e1 cualquier nuevo procesamiento de tus datos de salud.`}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setConfirmWithdrawHealthConsent(true)}
+                  className="px-5 py-2.5 rounded-xl border-2 border-amber-200 text-amber-700 text-sm font-medium hover:bg-amber-50 hover:border-amber-300 cursor-pointer transition-all duration-200 flex items-center gap-2"
+                >
+                  <HeartOff size={16} />
+                  Retirar consentimiento datos de salud
+                </button>
+              </>
+            )}
+          </div>
+
           {/* Delete account */}
           <div className="border-2 border-red-200 bg-red-50/50 rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
             <h3 className="text-sm font-semibold text-red-500 uppercase tracking-wide mb-3 flex items-center gap-2">
@@ -419,6 +614,20 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate, onShowOnboardi
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmWithdrawHealthConsent}
+        onClose={() => setConfirmWithdrawHealthConsent(false)}
+        onConfirm={async () => {
+          await gdprService.withdrawHealthDataConsent();
+          setHealthConsentWithdrawnAt(new Date().toISOString());
+          toast.success('Consentimiento de datos de salud retirado correctamente');
+        }}
+        title="Retirar consentimiento de datos de salud"
+        message="Esta acci\u00f3n bloquear\u00e1 el procesamiento de tus datos de salud. Tus datos existentes se conservar\u00e1n seg\u00fan la legislaci\u00f3n sanitaria (5 a\u00f1os). \u00bfDeseas continuar?"
+        variant="warning"
+        confirmLabel="Retirar consentimiento"
+      />
 
       <ConfirmDialog
         open={confirmDeleteAccount}

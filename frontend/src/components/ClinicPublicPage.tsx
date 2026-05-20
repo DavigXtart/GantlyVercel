@@ -4,9 +4,11 @@ import { publicClinicService } from '../services/api';
 import {
   Building2, User, Clock, MapPin, Phone, Globe, ChevronLeft, ChevronRight,
   Calendar, ArrowRight, Send, Users, Stethoscope, CheckCircle2, Loader2,
+  HelpCircle, Mail, ChevronDown,
 } from 'lucide-react';
 import LogoSvg from '../assets/logo-gantly.svg';
 import Modal from './ui/Modal';
+import SEO from './seo/SEO';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -210,6 +212,21 @@ export default function ClinicPublicPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <SEO
+        title={`${clinic.name} - Clínica de salud mental`}
+        description={clinic.description || `${clinic.name}: clínica de salud mental en Gantly. Reserva tu cita online con psicólogos verificados.`}
+        path={`/clinica/${slug}`}
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'MedicalClinic',
+          name: clinic.name,
+          description: clinic.description,
+          address: clinic.address,
+          telephone: clinic.phone,
+          url: `https://gantly.es/clinica/${slug}`,
+          medicalSpecialty: 'Psychiatric',
+        }}
+      />
       {/* Top bar */}
       <header className="sticky top-0 z-50 bg-white border-b border-slate-200 px-4 sm:px-8">
         <div className="max-w-5xl mx-auto h-14 flex items-center justify-between">
@@ -514,6 +531,85 @@ export default function ClinicPublicPage() {
                 );
               })}
             </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section>
+          <SectionTitle id="faq">
+            <span className="flex items-center gap-2">
+              <HelpCircle size={18} className="text-gantly-blue" />
+              Preguntas frecuentes
+            </span>
+          </SectionTitle>
+          <div className="space-y-3">
+            {[
+              { q: '¿Como funciona la primera sesion?', a: 'En la primera sesion, el psicologo realizara una evaluacion inicial para conocer tu situacion, tus necesidades y definir juntos los objetivos terapeuticos. Es un espacio seguro y confidencial donde podras expresarte libremente.' },
+              { q: '¿Cuanto dura una sesion?', a: 'Las sesiones tienen una duracion estandar de 50 a 60 minutos, aunque puede variar segun el tipo de terapia y las necesidades del paciente. La primera sesion de evaluacion puede durar hasta 90 minutos.' },
+              { q: '¿Puedo cambiar de psicologo?', a: 'Si, puedes solicitar un cambio de psicologo en cualquier momento. La relacion terapeutica es fundamental para el exito del tratamiento, y queremos que te sientas comodo/a con tu profesional.' },
+              { q: '¿Es confidencial?', a: 'Absolutamente. Toda la informacion compartida en sesion es estrictamente confidencial, protegida por el secreto profesional y la legislacion vigente en materia de proteccion de datos (RGPD).' },
+              { q: '¿Como cancelo una cita?', a: 'Puedes cancelar o reprogramar tu cita desde tu panel de usuario con al menos 24 horas de antelacion. Si necesitas ayuda, contacta directamente con la clinica.' },
+            ].map((faq, i) => (
+              <details key={i} className="bg-white rounded-2xl border border-slate-200/80 group">
+                <summary className="flex items-center justify-between px-5 py-4 cursor-pointer list-none text-sm font-medium text-slate-800 hover:bg-slate-50/50 transition-colors rounded-2xl [&::-webkit-details-marker]:hidden">
+                  {faq.q}
+                  <ChevronDown size={16} className="text-slate-400 transition-transform duration-200 group-open:rotate-180 flex-shrink-0 ml-3" />
+                </summary>
+                <div className="px-5 pb-4 text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3 mx-5 mb-1">
+                  {faq.a}
+                </div>
+              </details>
+            ))}
+          </div>
+        </section>
+
+        {/* Contact form */}
+        <section>
+          <SectionTitle id="contacto">
+            <span className="flex items-center gap-2">
+              <Mail size={18} className="text-gantly-blue" />
+              Contacto
+            </span>
+          </SectionTitle>
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-6 sm:p-8">
+            <p className="text-sm text-slate-600 mb-6">
+              ¿Tienes alguna pregunta? Escribenos y te responderemos lo antes posible.
+            </p>
+            <form onSubmit={(e) => { e.preventDefault(); }} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[11px] font-medium text-slate-500 mb-1 block">Nombre</label>
+                  <input
+                    type="text"
+                    placeholder="Tu nombre"
+                    className="w-full h-9 px-3 rounded-md border border-slate-200 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-gantly-blue/50 focus:ring-1 focus:ring-gantly-blue/20 transition"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-medium text-slate-500 mb-1 block">Email</label>
+                  <input
+                    type="email"
+                    placeholder="tu@email.com"
+                    className="w-full h-9 px-3 rounded-md border border-slate-200 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-gantly-blue/50 focus:ring-1 focus:ring-gantly-blue/20 transition"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-[11px] font-medium text-slate-500 mb-1 block">Mensaje</label>
+                <textarea
+                  rows={4}
+                  placeholder="Escribe tu mensaje..."
+                  className="w-full px-3 py-2 rounded-md border border-slate-200 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-gantly-blue/50 focus:ring-1 focus:ring-gantly-blue/20 transition resize-y"
+                />
+              </div>
+              <button
+                type="submit"
+                className="h-9 px-5 bg-gantly-blue text-white rounded-md text-sm font-medium hover:bg-gantly-blue/90 transition-colors cursor-pointer border-none inline-flex items-center gap-2"
+              >
+                <Send size={14} />
+                Enviar mensaje
+              </button>
+            </form>
           </div>
         </section>
 

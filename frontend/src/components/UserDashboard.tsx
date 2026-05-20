@@ -45,6 +45,7 @@ type Tab =
   | 'agenda-personal'
   | 'mis-estadisticas'
   | 'evaluaciones'
+  | 'valoraciones'
   | 'descubrimiento'
   | 'chat'
   | 'perfil-psicologo'
@@ -203,64 +204,97 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
     );
   }
 
-  const sidebarItems: { id: string; icon: ReactNode; label: string; requiresPsych: boolean }[] = [
-    { id: 'perfil', icon: <Home size={20} />, label: 'Inicio', requiresPsych: false },
-    { id: 'mi-psicologo', icon: <Brain size={20} />, label: 'Psicólogo', requiresPsych: false },
-    { id: 'tareas', icon: <CheckSquare size={20} />, label: 'Tareas', requiresPsych: true },
-    { id: 'tests-pendientes', icon: <ClipboardList size={20} />, label: 'Tests', requiresPsych: true },
-    { id: 'calendario', icon: <CalendarDays size={20} />, label: 'Calendario', requiresPsych: true },
-    { id: 'agenda-personal', icon: <BookOpen size={20} />, label: 'Agenda', requiresPsych: false },
-    { id: 'mis-estadisticas', icon: <BarChart3 size={20} />, label: 'Estadísticas', requiresPsych: false },
-    { id: 'evaluaciones', icon: <FileText size={20} />, label: 'Evaluaciones', requiresPsych: false },
-    { id: 'descubrimiento', icon: <Compass size={20} />, label: 'Descubrir', requiresPsych: false },
-    { id: 'chat', icon: <div className="relative"><MessageCircle size={20} />{hasUnreadChat && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-gantly-navy" />}</div>, label: 'Chat', requiresPsych: true },
-    { id: 'consentimientos', icon: <FileCheck size={20} />, label: 'Consentimientos', requiresPsych: true },
-    ...(me?.companyId ? [{ id: 'clinica', icon: <Building2 size={20} /> as ReactNode, label: 'Mi Clínica', requiresPsych: false }] : []),
+  type SidebarItem = { id: string; icon: ReactNode; label: string; requiresPsych: boolean };
+  type SidebarGroup = { group: string; items: SidebarItem[] };
+
+  const sidebarGroups: SidebarGroup[] = [
+    {
+      group: 'Inicio',
+      items: [
+        { id: 'perfil', icon: <Home size={20} />, label: 'Inicio', requiresPsych: false },
+        { id: 'mis-estadisticas', icon: <BarChart3 size={20} />, label: 'Estadísticas', requiresPsych: false },
+      ],
+    },
+    {
+      group: 'Terapia',
+      items: [
+        { id: 'mi-psicologo', icon: <Brain size={20} />, label: 'Psicólogo', requiresPsych: false },
+        { id: 'chat', icon: <div className="relative"><MessageCircle size={20} />{hasUnreadChat && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-gantly-navy" />}</div>, label: 'Chat', requiresPsych: true },
+        { id: 'tareas', icon: <CheckSquare size={20} />, label: 'Tareas', requiresPsych: true },
+        { id: 'valoraciones', icon: <ClipboardList size={20} />, label: 'Valoraciones', requiresPsych: false },
+        { id: 'descubrimiento', icon: <Compass size={20} />, label: 'Descubrir', requiresPsych: false },
+      ],
+    },
+    {
+      group: 'Citas',
+      items: [
+        { id: 'calendario', icon: <CalendarDays size={20} />, label: 'Calendario', requiresPsych: true },
+        { id: 'agenda-personal', icon: <BookOpen size={20} />, label: 'Agenda', requiresPsych: false },
+      ],
+    },
+    {
+      group: 'Config',
+      items: [
+        { id: 'consentimientos', icon: <FileCheck size={20} />, label: 'Consentimientos', requiresPsych: true },
+        ...(me?.companyId ? [{ id: 'clinica', icon: <Building2 size={20} /> as ReactNode, label: 'Mi Clínica', requiresPsych: false }] : []),
+      ],
+    },
   ];
 
+  // Flat list for mobile bottom nav and header title lookup
+  const sidebarItems: SidebarItem[] = sidebarGroups.flatMap(g => g.items);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 dark:text-slate-100 flex">
       {/* Sidebar - Desktop */}
-      <aside className="hidden md:flex w-60 bg-white border-r border-slate-200 flex-col fixed top-0 left-0 h-screen z-40">
+      <aside className="hidden md:flex w-60 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex-col fixed top-0 left-0 h-screen z-40">
         {/* Logo */}
         <div className="px-6 py-6 border-b border-slate-100">
           <img src={LogoSvg} alt="Gantly" className="h-7 cursor-pointer" onClick={() => nav('/')} />
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 flex flex-col gap-1 px-3 py-4 overflow-y-auto">
-          {sidebarItems.map((item) => {
-            const isDisabled = item.requiresPsych && !hasPsychologist;
-            const isActive = tab === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                disabled={isDisabled}
-                onClick={() => {
-                  if (isDisabled) {
-                    toast.error(
-                      'Necesitas tener un psicólogo asignado para acceder a esta sección',
-                    );
-                    setTab('mi-psicologo');
-                    return;
-                  }
-                  setTab(item.id as Tab);
-                }}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-[15px] font-medium cursor-pointer transition-all duration-200 ${
-                  isActive
-                    ? 'bg-gantly-blue text-white shadow-sm'
-                    : isDisabled
-                    ? 'text-slate-400 cursor-not-allowed opacity-50'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                }`}
-                title={isDisabled ? 'Requiere psicólogo asignado' : undefined}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
+        <nav className="flex-1 flex flex-col px-3 py-4 overflow-y-auto">
+          {sidebarGroups.map((group, gi) => (
+            <div key={group.group}>
+              {gi > 0 && <div className="mx-3 my-1.5 border-t border-slate-100" />}
+              <span className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold px-4 pt-3 pb-1 block select-none">{group.group}</span>
+              <div className="flex flex-col gap-0.5">
+                {group.items.map((item) => {
+                  const isDisabled = item.requiresPsych && !hasPsychologist;
+                  const isActive = tab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      disabled={isDisabled}
+                      onClick={() => {
+                        if (isDisabled) {
+                          toast.error(
+                            'Necesitas tener un psicólogo asignado para acceder a esta sección',
+                          );
+                          setTab('mi-psicologo');
+                          return;
+                        }
+                        setTab(item.id as Tab);
+                      }}
+                      className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-[15px] font-medium cursor-pointer transition-all duration-200 ${
+                        isActive
+                          ? 'bg-gantly-blue text-white shadow-sm'
+                          : isDisabled
+                          ? 'text-slate-400 cursor-not-allowed opacity-50'
+                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                      }`}
+                      title={isDisabled ? 'Requiere psicólogo asignado' : undefined}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         {/* User info at bottom */}
@@ -303,40 +337,48 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             <div className="px-6 py-6 border-b border-slate-100">
               <img src={LogoSvg} alt="Gantly" className="h-7 cursor-pointer" onClick={() => nav('/')} />
             </div>
-            <nav className="flex-1 flex flex-col gap-1 px-3 py-4 overflow-y-auto">
-              {sidebarItems.map((item) => {
-                const isDisabled = item.requiresPsych && !hasPsychologist;
-                const isActive = tab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    disabled={isDisabled}
-                    onClick={() => {
-                      if (isDisabled) {
-                        toast.error(
-                          'Necesitas tener un psicólogo asignado para acceder a esta sección',
-                        );
-                        setTab('mi-psicologo');
-                        setMobileMenuOpen(false);
-                        return;
-                      }
-                      setTab(item.id as Tab);
-                      setMobileMenuOpen(false);
-                    }}
-                    className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-[15px] font-medium cursor-pointer transition-all duration-200 ${
-                      isActive
-                        ? 'bg-gantly-blue text-white shadow-sm'
-                        : isDisabled
-                        ? 'text-slate-400 cursor-not-allowed opacity-50'
-                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                    }`}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </button>
-                );
-              })}
+            <nav className="flex-1 flex flex-col px-3 py-4 overflow-y-auto">
+              {sidebarGroups.map((group, gi) => (
+                <div key={group.group}>
+                  {gi > 0 && <div className="mx-3 my-1.5 border-t border-slate-100" />}
+                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold px-4 pt-3 pb-1 block select-none">{group.group}</span>
+                  <div className="flex flex-col gap-0.5">
+                    {group.items.map((item) => {
+                      const isDisabled = item.requiresPsych && !hasPsychologist;
+                      const isActive = tab === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          disabled={isDisabled}
+                          onClick={() => {
+                            if (isDisabled) {
+                              toast.error(
+                                'Necesitas tener un psicólogo asignado para acceder a esta sección',
+                              );
+                              setTab('mi-psicologo');
+                              setMobileMenuOpen(false);
+                              return;
+                            }
+                            setTab(item.id as Tab);
+                            setMobileMenuOpen(false);
+                          }}
+                          className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-[15px] font-medium cursor-pointer transition-all duration-200 ${
+                            isActive
+                              ? 'bg-gantly-blue text-white shadow-sm'
+                              : isDisabled
+                              ? 'text-slate-400 cursor-not-allowed opacity-50'
+                              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                          }`}
+                        >
+                          {item.icon}
+                          <span>{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </nav>
             <div className="px-4 py-4 border-t border-slate-100">
               <button
@@ -359,7 +401,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       {/* Main content wrapper */}
       <div className="flex-1 md:ml-60 flex flex-col min-h-screen">
         {/* Top Navbar */}
-        <nav className="bg-white/80 backdrop-blur-md border-b border-slate-200/50 px-6 py-3 flex items-center justify-between sticky top-0 z-30">
+        <nav className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-700/50 px-6 py-3 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-4">
             {/* Mobile menu button */}
             <button
@@ -550,7 +592,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             <UserTasksTab tasks={tasks} onRefresh={loadData} />
           )}
 
-          {/* Assigned Tests */}
+          {/* Assigned Tests (legacy tab id kept for deep-links) */}
           {tab === 'tests-pendientes' && hasPsychologist && (
             <UserTestsTab
               me={me}
@@ -558,6 +600,29 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
               onStartTest={onStartTest}
               setTab={(t) => setTab(t as Tab)}
             />
+          )}
+
+          {/* Valoraciones — unified tests + evaluations */}
+          {tab === 'valoraciones' && (
+            <div className="space-y-8">
+              {hasPsychologist && assignedTests.length > 0 && (
+                <div>
+                  <h2 className="text-lg font-heading font-semibold text-slate-800 mb-4">Tests asignados</h2>
+                  <UserTestsTab
+                    me={me}
+                    assignedTests={assignedTests}
+                    onStartTest={onStartTest}
+                    setTab={(t) => setTab(t as Tab)}
+                  />
+                </div>
+              )}
+              <div>
+                {hasPsychologist && assignedTests.length > 0 && (
+                  <h2 className="text-lg font-heading font-semibold text-slate-800 mb-4">Evaluaciones</h2>
+                )}
+                <Evaluaciones onStartTest={onStartTest} />
+              </div>
+            </div>
           )}
 
           {/* Calendar */}

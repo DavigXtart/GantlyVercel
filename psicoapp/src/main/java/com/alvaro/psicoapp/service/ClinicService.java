@@ -89,9 +89,9 @@ public class ClinicService {
                                            String logoUrl, String weeklySchedule, String nif,
                                            String slug, String description, Boolean publicVisible,
                                            String razonSocial, String direccionFiscal) {}
-    public record ClinicServiceDto(Long id, String name, BigDecimal defaultPrice, Integer durationMinutes, Boolean active) {}
-    public record CreateClinicServiceRequest(String name, BigDecimal defaultPrice, Integer durationMinutes) {}
-    public record UpdateClinicServiceRequest(String name, BigDecimal defaultPrice, Integer durationMinutes, Boolean active) {}
+    public record ClinicServiceDto(Long id, String name, BigDecimal defaultPrice, Integer durationMinutes, Boolean active, String psychologistPrices) {}
+    public record CreateClinicServiceRequest(String name, BigDecimal defaultPrice, Integer durationMinutes, String psychologistPrices) {}
+    public record UpdateClinicServiceRequest(String name, BigDecimal defaultPrice, Integer durationMinutes, Boolean active, String psychologistPrices) {}
     public record ClinicPsychologistDto(Long id, String name, String email, String avatarUrl) {}
     public record ClinicAppointmentDto(Long id, Long psychologistId, String psychologistName,
                                         String psychologistAvatarUrl, Long patientId, String patientName,
@@ -223,7 +223,7 @@ public class ClinicService {
     public List<ClinicServiceDto> getServices(String email) {
         var company = getCompany(email);
         return clinicServiceRepository.findByCompanyIdOrderByNameAsc(company.getId()).stream()
-                .map(s -> new ClinicServiceDto(s.getId(), s.getName(), s.getDefaultPrice(), s.getDurationMinutes(), s.getActive()))
+                .map(s -> new ClinicServiceDto(s.getId(), s.getName(), s.getDefaultPrice(), s.getDurationMinutes(), s.getActive(), s.getPsychologistPrices()))
                 .collect(Collectors.toList());
     }
 
@@ -238,8 +238,9 @@ public class ClinicService {
         svc.setDefaultPrice(req.defaultPrice());
         svc.setDurationMinutes(req.durationMinutes());
         svc.setActive(true);
+        svc.setPsychologistPrices(req.psychologistPrices());
         clinicServiceRepository.save(svc);
-        return new ClinicServiceDto(svc.getId(), svc.getName(), svc.getDefaultPrice(), svc.getDurationMinutes(), svc.getActive());
+        return new ClinicServiceDto(svc.getId(), svc.getName(), svc.getDefaultPrice(), svc.getDurationMinutes(), svc.getActive(), svc.getPsychologistPrices());
     }
 
     @Transactional
@@ -253,8 +254,9 @@ public class ClinicService {
         if (req.defaultPrice() != null) svc.setDefaultPrice(req.defaultPrice());
         if (req.durationMinutes() != null) svc.setDurationMinutes(req.durationMinutes());
         if (req.active() != null) svc.setActive(req.active());
+        if (req.psychologistPrices() != null) svc.setPsychologistPrices(req.psychologistPrices());
         clinicServiceRepository.save(svc);
-        return new ClinicServiceDto(svc.getId(), svc.getName(), svc.getDefaultPrice(), svc.getDurationMinutes(), svc.getActive());
+        return new ClinicServiceDto(svc.getId(), svc.getName(), svc.getDefaultPrice(), svc.getDurationMinutes(), svc.getActive(), svc.getPsychologistPrices());
     }
 
     @Transactional

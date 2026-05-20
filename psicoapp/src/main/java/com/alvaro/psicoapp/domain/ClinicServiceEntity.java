@@ -26,6 +26,10 @@ public class ClinicServiceEntity {
     @Column(nullable = false)
     private Boolean active = true;
 
+    /** JSON map: psychologistId -> custom price (e.g. {"5": 80.00, "12": 95.00}) */
+    @Column(name = "psychologist_prices", columnDefinition = "TEXT")
+    private String psychologistPrices;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -41,6 +45,8 @@ public class ClinicServiceEntity {
     public void setDurationMinutes(Integer durationMinutes) { this.durationMinutes = durationMinutes; }
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
+    public String getPsychologistPrices() { return psychologistPrices; }
+    public void setPsychologistPrices(String psychologistPrices) { this.psychologistPrices = psychologistPrices; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }

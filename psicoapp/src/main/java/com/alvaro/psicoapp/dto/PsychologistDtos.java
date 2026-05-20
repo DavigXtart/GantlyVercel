@@ -84,7 +84,9 @@ public final class PsychologistDtos {
             String linkedinUrl,
             String website,
             String sessionPrices,
-            Instant updatedAt
+            Instant updatedAt,
+            Boolean approved,
+            String rejectionReason
     ) {}
 
     public record PsychologistProfileUpdateRequest(

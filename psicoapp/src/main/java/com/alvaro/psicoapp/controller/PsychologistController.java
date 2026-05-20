@@ -84,4 +84,11 @@ public class PsychologistController {
     public ResponseEntity<PsychologistDtos.ReferralUrlResponse> getReferralUrl(Principal principal) {
         return ResponseEntity.ok(psychologistService.getReferralUrl(currentUserService.getCurrentUser(principal)));
     }
+
+    @PostMapping("/request-review")
+    @Operation(summary = "Solicitar nueva revisión de perfil", description = "Permite a un psicólogo rechazado reenviar su perfil para revisión por un administrador")
+    @ApiResponse(responseCode = "200", description = "Solicitud de revisión enviada exitosamente")
+    public ResponseEntity<PsychologistDtos.MessageResponse> requestReview(Principal principal) {
+        return ResponseEntity.ok(psychologistService.requestReview(currentUserService.getCurrentUser(principal)));
+    }
 }

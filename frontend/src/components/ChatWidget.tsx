@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { MessageCircle, Users, User, Stethoscope } from 'lucide-react';
+import { MessageCircle, Users, User, Stethoscope, PanelRightOpen, PanelRightClose, CalendarDays, UserCircle } from 'lucide-react';
 import { Client } from '@stomp/stompjs';
 import type { IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import api, { profileService, psychService } from '../services/api';
+import api, { profileService, psychService, calendarService } from '../services/api';
 import { toast } from './ui/Toast';
 
 // Obtener la URL base para WebSocket (sin /api)
@@ -44,6 +44,18 @@ export default function ChatWidget({ mode, otherId }: Props) {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const reconnectDelayRef = useRef(INITIAL_RECONNECT_DELAY);
+
+  // Patient context sidebar — UX-9
+  const [contextOpen, setContextOpen] = useState(false);
+  const [patientContext, setPatientContext] = useState<{
+    name?: string;
+    age?: number;
+    gender?: string;
+    email?: string;
+    lastAppointment?: string;
+    assignedAt?: string;
+    status?: string;
+  } | null>(null);
 
   useEffect(() => {
     // Limpiar conexión anterior solo si cambian los IDs
@@ -133,6 +145,47 @@ export default function ChatWidget({ mode, otherId }: Props) {
       messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Load patient context for psychologist — UX-9
+  useEffect(() => {
+    if (mode !== 'PSYCHOLOGIST' || !otherId) {
+      setPatientContext(null);
+      return;
+    }
+    (async () => {
+      try {
+        const details = await psychService.getPatientDetails(otherId);
+        const patients = await psychService.patients();
+        const patientInfo = patients.find((p: any) => p.id === otherId);
+
+        // Get last appointment from past appointments
+        let lastAppointment: string | undefined;
+        try {
+          const past = await calendarService.getPsychologistPastAppointments();
+          const patientAppts = (past as any[])
+            .filter((a: any) => a.user?.id === otherId)
+            .sort((a: any, b: any) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+          if (patientAppts.length > 0) {
+            lastAppointment = patientAppts[0].startTime;
+          }
+        } catch {
+          // silent
+        }
+
+        setPatientContext({
+          name: details?.name || patientInfo?.name,
+          age: details?.age || patientInfo?.age,
+          gender: details?.gender || patientInfo?.gender,
+          email: details?.email || patientInfo?.email,
+          lastAppointment,
+          assignedAt: patientInfo?.assignedAt,
+          status: patientInfo?.status,
+        });
+      } catch {
+        // silent — context is optional
+      }
+    })();
+  }, [mode, otherId]);
 
   const connect = (psychologistId: number, uId: number) => {
     const token = localStorage.getItem('token');
@@ -358,7 +411,8 @@ export default function ChatWidget({ mode, otherId }: Props) {
   }
 
   return (
-    <div className="flex flex-col h-[75vh] w-full bg-white rounded-xl shadow-card overflow-hidden border border-slate-200">
+    <div className="flex h-[75vh] w-full gap-0">
+    <div className="flex flex-col flex-1 min-w-0 bg-white rounded-xl shadow-card overflow-hidden border border-slate-200">
       {/* Header */}
       <div className="bg-gradient-to-r from-gantly-blue-500 to-gantly-cyan-500 px-5 py-4 text-white flex items-center gap-3">
         <div style={{
@@ -373,9 +427,9 @@ export default function ChatWidget({ mode, otherId }: Props) {
           overflow: 'hidden'
         }}>
           {otherUser?.avatarUrl ? (
-            <img 
-              src={otherUser.avatarUrl} 
-              alt="" 
+            <img
+              src={otherUser.avatarUrl}
+              alt=""
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
@@ -406,6 +460,18 @@ export default function ChatWidget({ mode, otherId }: Props) {
             {connected ? 'En línea' : reconnecting ? 'Reconectando...' : 'Conectando...'}
           </div>
         </div>
+        {/* Context panel toggle — UX-9 */}
+        {mode === 'PSYCHOLOGIST' && otherId && (
+          <button
+            type="button"
+            onClick={() => setContextOpen(!contextOpen)}
+            className="p-2 rounded-lg hover:bg-white/20 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/30"
+            aria-label={contextOpen ? 'Ocultar ficha paciente' : 'Ver ficha paciente'}
+            title={contextOpen ? 'Ocultar ficha' : 'Ver ficha paciente'}
+          >
+            {contextOpen ? <PanelRightClose size={20} /> : <PanelRightOpen size={20} />}
+          </button>
+        )}
       </div>
 
       {/* Messages */}
@@ -627,6 +693,88 @@ export default function ChatWidget({ mode, otherId }: Props) {
           {sending ? '...' : 'Enviar'}
         </button>
       </div>
+    </div>
+
+    {/* Patient context sidebar — UX-9 */}
+    {mode === 'PSYCHOLOGIST' && contextOpen && patientContext && (
+      <div className="hidden md:flex w-64 flex-col bg-white rounded-xl border border-slate-200 ml-3 overflow-hidden">
+        <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
+          <UserCircle size={16} className="text-gantly-blue" />
+          <span className="text-xs font-semibold text-slate-700 uppercase tracking-wide">Ficha paciente</span>
+        </div>
+        <div className="p-4 space-y-4 overflow-y-auto flex-1">
+          {/* Avatar + name */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+              {otherUser?.avatarUrl ? (
+                <img src={otherUser.avatarUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <User size={18} className="text-slate-400" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-slate-800 truncate">{patientContext.name || 'Paciente'}</p>
+              {patientContext.status && (
+                <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                  patientContext.status === 'ACTIVE' ? 'bg-gantly-emerald/10 text-gantly-emerald' : 'bg-slate-100 text-slate-500'
+                }`}>
+                  {patientContext.status === 'ACTIVE' ? 'Activo' : patientContext.status === 'DISCHARGED' ? 'Alta' : patientContext.status}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Info fields */}
+          <div className="space-y-3">
+            {patientContext.age && (
+              <div>
+                <p className="text-[11px] text-slate-500 font-medium">Edad</p>
+                <p className="text-sm text-slate-800">{patientContext.age} anos</p>
+              </div>
+            )}
+            {patientContext.gender && (
+              <div>
+                <p className="text-[11px] text-slate-500 font-medium">Genero</p>
+                <p className="text-sm text-slate-800 capitalize">{patientContext.gender === 'male' ? 'Masculino' : patientContext.gender === 'female' ? 'Femenino' : patientContext.gender}</p>
+              </div>
+            )}
+            {patientContext.email && (
+              <div>
+                <p className="text-[11px] text-slate-500 font-medium">Email</p>
+                <p className="text-sm text-slate-800 truncate">{patientContext.email}</p>
+              </div>
+            )}
+            {patientContext.lastAppointment && (
+              <div>
+                <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1">
+                  <CalendarDays size={12} />
+                  Ultima sesion
+                </p>
+                <p className="text-sm text-slate-800">
+                  {new Date(patientContext.lastAppointment).toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                  })}
+                </p>
+              </div>
+            )}
+            {patientContext.assignedAt && (
+              <div>
+                <p className="text-[11px] text-slate-500 font-medium">Paciente desde</p>
+                <p className="text-sm text-slate-800">
+                  {new Date(patientContext.assignedAt).toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                  })}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
     </div>
   );
 }

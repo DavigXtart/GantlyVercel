@@ -402,17 +402,34 @@ export default function PsychDashboard() {
     file_check: FileCheck,
   };
 
-  const mainTabs = [
-    { id: 'perfil', label: 'Inicio', icon: 'home' },
-    { id: 'pacientes', label: 'Pacientes', icon: 'group' },
-    { id: 'tareas', label: 'Tareas', icon: 'task_alt' },
-    { id: 'tests-asignados', label: 'Tests', icon: 'psychology' },
-    { id: 'consentimientos', label: 'Consentimientos', icon: 'file_check' },
-    { id: 'calendario', label: 'Calendario', icon: 'calendar_month' },
-    { id: 'chat', label: 'Chat', icon: 'chat' },
-    { id: 'citas-pasadas', label: 'Historial', icon: 'history' },
-    { id: 'facturacion', label: 'Facturacion', icon: 'receipt_long' },
+  const tabGroups = [
+    {
+      group: 'Panel',
+      items: [
+        { id: 'perfil', label: 'Inicio', icon: 'home' },
+      ],
+    },
+    {
+      group: 'Pacientes',
+      items: [
+        { id: 'pacientes', label: 'Pacientes', icon: 'group' },
+        { id: 'chat', label: 'Chat', icon: 'chat' },
+        { id: 'tests-asignados', label: 'Tests', icon: 'psychology' },
+        { id: 'consentimientos', label: 'Consentimientos', icon: 'file_check' },
+      ],
+    },
+    {
+      group: 'Gestion',
+      items: [
+        { id: 'calendario', label: 'Calendario', icon: 'calendar_month' },
+        { id: 'tareas', label: 'Tareas', icon: 'task_alt' },
+        { id: 'citas-pasadas', label: 'Historial', icon: 'history' },
+        { id: 'facturacion', label: 'Facturacion', icon: 'receipt_long' },
+      ],
+    },
   ];
+
+  const mainTabs = tabGroups.flatMap(g => g.items);
 
   const activeTabGroup = (() => {
     if (tab === 'editar-perfil-profesional' || tab === 'matching-test') return 'perfil';
@@ -438,32 +455,40 @@ export default function PsychDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 dark:text-slate-100 flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-slate-200 flex-shrink-0 fixed inset-y-0 left-0 z-50 flex flex-col">
+      <aside className="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex-shrink-0 fixed inset-y-0 left-0 z-50 flex flex-col">
         {/* Logo */}
         <div className="px-6 py-5 border-b border-slate-100">
           <img src={LogoSvg} alt="Gantly" className="h-7 cursor-pointer" onClick={() => navigate('/')} />
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          {mainTabs.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id as Tab)}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors duration-200 border-none ${
-                activeTabGroup === t.id
-                  ? 'bg-gantly-blue/10 text-gantly-blue'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800 bg-transparent'
-              }`}
-            >
-              <span className="relative">
-                {(() => { const Icon = iconMap[t.icon]; return Icon ? <Icon size={18} /> : null; })()}
-                {t.id === 'chat' && hasUnreadChat && <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />}
-              </span>
-              {t.label}
-            </button>
+        <nav className="flex-1 px-3 py-4 overflow-y-auto">
+          {tabGroups.map((group, gi) => (
+            <div key={group.group}>
+              {gi > 0 && <div className="mx-3 my-1.5 border-t border-slate-100" />}
+              <span className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold px-3 pt-3 pb-1 block select-none">{group.group}</span>
+              <div className="space-y-0.5">
+                {group.items.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setTab(t.id as Tab)}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors duration-200 border-none ${
+                      activeTabGroup === t.id
+                        ? 'bg-gantly-blue/10 text-gantly-blue'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800 bg-transparent'
+                    }`}
+                  >
+                    <span className="relative">
+                      {(() => { const Icon = iconMap[t.icon]; return Icon ? <Icon size={18} /> : null; })()}
+                      {t.id === 'chat' && hasUnreadChat && <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />}
+                    </span>
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
 
@@ -704,6 +729,7 @@ export default function PsychDashboard() {
               appointments={billingAppointments}
               loading={loadingBillingAppointments}
               onRefresh={loadBillingAppointments}
+              psychologistName={me?.name}
             />
           )}
 

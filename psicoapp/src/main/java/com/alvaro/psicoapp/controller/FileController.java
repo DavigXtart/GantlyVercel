@@ -9,6 +9,7 @@ import com.alvaro.psicoapp.repository.CompanyRepository;
 import com.alvaro.psicoapp.repository.TaskFileRepository;
 import com.alvaro.psicoapp.repository.TaskRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
+import com.alvaro.psicoapp.service.AuditService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -36,15 +37,18 @@ public class FileController {
     private final ClinicPatientDocumentRepository clinicPatientDocumentRepository;
     private final CompanyRepository companyRepository;
     private final UserRepository userRepository;
+    private final AuditService auditService;
 
     public FileController(TaskFileRepository taskFileRepository, TaskRepository taskRepository,
                           ClinicPatientDocumentRepository clinicPatientDocumentRepository,
-                          CompanyRepository companyRepository, UserRepository userRepository) {
+                          CompanyRepository companyRepository, UserRepository userRepository,
+                          AuditService auditService) {
         this.taskFileRepository = taskFileRepository;
         this.taskRepository = taskRepository;
         this.clinicPatientDocumentRepository = clinicPatientDocumentRepository;
         this.companyRepository = companyRepository;
         this.userRepository = userRepository;
+        this.auditService = auditService;
     }
 
     @GetMapping("/tasks/{filename}")
@@ -85,6 +89,11 @@ public class FileController {
             }
         }
 
+        // RGPD-17: Audit file download
+        auditService.persistAudit("FILE_DOWNLOAD", "TASK_FILE", null,
+                user.getId(), user.getRole(), user.getName(), null,
+                "filename=" + filename);
+
         return serveFile("uploads/tasks", filename);
     }
 
@@ -105,6 +114,11 @@ public class FileController {
         if (!clinicPatientDocumentRepository.existsByCompanyIdAndFileName(company.getId(), storedFileName)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes acceso a este documento");
         }
+
+        // RGPD-17: Audit file download
+        auditService.persistAudit("FILE_DOWNLOAD", "CLINIC_DOC", company.getId(),
+                company.getId(), RoleConstants.EMPRESA, company.getName(), null,
+                "filename=" + filename);
 
         return serveFile("uploads/clinic-docs", filename);
     }

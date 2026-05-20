@@ -368,6 +368,125 @@ Located in `psicoapp/src/main/resources/db/`:
 - ~~**Stripe config**: `@ConfigurationProperties` con validación no implementado~~ → **RESUELTO** — StripeProperties
 - **File storage**: filesystem local → migrar a Supabase Storage en deploy
 
+## Auditoría Psicólogo/UX — Mayo 2026
+
+### P0 — Bloqueantes clínicos (antes de producción)
+
+| # | Área | Issue | Detalle |
+|---|------|-------|---------|
+| UX-1 | **Clínica** | Sin notas de sesión | Psicólogo NO puede documentar sesiones. `AppointmentEntity.notes` existe (500 chars) pero NO hay UI. Incumple requisito legal de historial clínico (Ley 41/2002 Art. 5) |
+| UX-2 | **Clínica** | Sin plan de tratamiento | No hay objetivos terapéuticos, duración estimada, línea base + seguimiento. Solo tasks ad-hoc |
+| UX-3 | **Psicólogo** | Aprobación sin re-envío | Psicólogo rechazado ve razón pero NO puede editar y re-enviar perfil. Flujo termina en dead-end |
+| UX-4 | **Paciente** | Sin historial de sesiones | Paciente no puede ver notas de sesiones pasadas (prepararse para siguiente) |
+| UX-5 | **ERP** | Multi-admin parcial | ClinicAdminEntity existe pero UI de gestión de admins no está completa |
+
+### P1 — Gaps importantes (primer sprint post-launch)
+
+| # | Área | Issue | Detalle |
+|---|------|-------|---------|
+| UX-6 | **Paciente** | Mood tracking enterrado | Diario de ánimo en tab "Agenda Personal" — debería ser accesible desde home con 1 tap |
+| UX-7 | **Paciente** | Status cita confuso | Calendario no diferencia visualmente: por confirmar / confirmada / pago pendiente / pagada / lista para video |
+| UX-8 | **Paciente** | Sin notas pre-cita | Psicólogo no puede escribir "Nos centraremos en X" visible para paciente antes de sesión |
+| UX-9 | **Psicólogo** | Chat sin contexto paciente | En chat no se ve resumen del paciente (edad, motivo, última sesión). Debe salir a otra tab |
+| UX-10 | **Psicólogo** | Sin búsqueda de pacientes | Con 50+ pacientes, solo scroll. Falta buscador por nombre |
+| UX-11 | **Psicólogo** | Facturación sin PDF | Solo export CSV. Falta factura PDF con membrete, desglose IVA, datos fiscales |
+| UX-12 | **ERP** | Chat clínica→paciente unidireccional | Clínica envía mensaje pero paciente no puede responder (UserClinicChatTab existe pero UX poco clara) |
+| UX-13 | **ERP** | Sin métricas por psicólogo | Director no puede ver carga de trabajo, satisfacción, facturación individual |
+| UX-14 | **Psicólogo** | Intake form incompleto | Falta: contacto emergencia, aseguradora, fuente referido, motivo consulta |
+| UX-15 | **Psicólogo** | Sin outcome measures en flujo clínico | Debería asignar GAD-7/PHQ-9 como baseline día 1 y comparar al alta |
+| UX-16 | **Paciente** | Sin reagendar cita | Solo puede cancelar + re-reservar. Debería ser un click |
+| UX-17 | **Psicólogo** | Calendario sin nombres de pacientes | Al crear slots en bloque, no se ve qué paciente reservó qué slot |
+
+### P2 — Mejoras de usabilidad (post-MVP)
+
+| # | Área | Issue |
+|---|------|-------|
+| UX-18 | **Paciente** | 15 tabs en dashboard — reorganizar por fases (Inicio, Chat/Tests/Tareas, Citas, Informes, Config) |
+| UX-19 | **Paciente** | Tests vs Evaluaciones — terminología confusa (unificar en "Valoraciones") |
+| UX-20 | **Psicólogo** | Edición perfil abrumadora — arrays de educación/certificaciones/experiencia en un solo form |
+| UX-21 | **ERP** | Página pública clínica mínima — falta: servicios detallados, FAQ, formulario de contacto |
+| UX-22 | **ERP** | Lista espera básica — falta: notificación automática, prioridad, tiempo estimado |
+| UX-23 | **ERP** | Sin reportes — revenue por mes/servicio/psicólogo solo via CSV manual |
+| UX-24 | **Todos** | Sin integración calendario externo (iCal, Google Calendar) |
+| UX-25 | **Todos** | Sin dark mode (accesibilidad para baja visión) |
+| UX-26 | **ERP** | Servicios precio global — no per-psicólogo (senior puede cobrar más) |
+
+### P3 — Polish (futuro)
+
+- Terapia de grupo (actualmente solo 1:1)
+- Modo supervisor para psicólogos en formación
+- App móvil nativa para psicólogos
+- Biblioteca de recursos terapéuticos compartibles
+- SMS/WhatsApp para recordatorios (email actual a veces va a spam)
+- Plantillas de cita ("evaluación inicial 90min", "seguimiento 50min")
+- Exportación HL7/FHIR para interoperabilidad con otros EHR
+
+## Auditoría RGPD/Legal — Mayo 2026
+
+### CRITICAL (P0 — Antes de producción)
+
+| # | Área | Issue | Detalle | Riesgo legal |
+|---|------|-------|---------|--------------|
+| RGPD-1 | **Cifrado** | PII encryption DESACTIVADA | `@Convert` comentado en UserEntity → nombre, email, TOTP en **plaintext** en DB. Implementación existe pero no está activa | RGPD Art. 32 — multa hasta 10M€ |
+| RGPD-2 | **Consentimiento** | Sin retirada de consentimiento Art. 9 | Privacy Policy dice "puede retirar desde Privacidad" pero UI NO existe. No hay endpoint | RGPD Art. 7.3 — derecho fundamental |
+| RGPD-3 | **Borrado** | Eliminación de cuenta incompleta | `DELETE /user/delete-account` no borra: ChatMessageEntity, UserPsychologistEntity, AssignedTestEntity, ClinicInvitationEntity | RGPD Art. 17 — derecho al olvido |
+| RGPD-4 | **DPAs** | Sin DPAs con sub-procesadores | Stripe, Google, Sentry, Resend, Supabase, Render — ningún DPA firmado | RGPD Art. 28 — transferencia ilegal |
+| RGPD-5 | **Email** | Resend (USA) para emails con datos de salud | Contenido de emails (citas, tests) contiene datos sensibles enviados a servidor USA sin DPA | RGPD Art. 46 — transferencia internacional |
+
+### HIGH (P1 — Primer mes)
+
+| # | Área | Issue | Detalle |
+|---|------|-------|---------|
+| RGPD-6 | **Logs** | API access sin auditar | No se loguea quién accede a qué endpoint. Admin podría ver datos de pacientes sin registro |
+| RGPD-7 | **Menores** | Consentimiento tutor incompleto | ConsentRequestEntity existe pero flujo guardian consent NO implementado (ni endpoint ni UI) |
+| RGPD-8 | **Export** | GDPR export incompleto | `GET /user/export-data` NO incluye: chat messages, clinic patient documents |
+| RGPD-9 | **Logs** | PII en logs | Email aparece en logs como `user {}`. Si logs comprometidos → filtración PII |
+| RGPD-10 | **Archivos** | Avatars/archivos sin cifrar | `/uploads/avatars/`, `/uploads/tasks/` en plaintext en filesystem |
+| RGPD-11 | **Stripe** | stripeSessionId almacenado indefinidamente | Debería borrarse 30 días post-pago (PCI scope reduction) |
+
+### MEDIUM (P2 — Antes de escalar)
+
+| # | Área | Issue |
+|---|------|-------|
+| RGPD-12 | Consentimiento versión — sin re-consentimiento al actualizar política |
+| RGPD-13 | Audit logs sin purga automática — retención 2 años no implementada |
+| RGPD-14 | Logs locales sin cifrar — `logs/psicoapp.log` plaintext |
+| RGPD-15 | Umami analytics auto-enabled — tracking sin opt-in explícito |
+| RGPD-16 | Google OAuth scope demasiado amplio — pide email+profile+openid, solo necesita email |
+| RGPD-17 | File downloads sin auditar — FileController no registra quién descarga qué |
+| RGPD-18 | Chat decryption failures sin alertar — intento de descifrar chat ajeno no se detecta |
+
+### Compliant (lo que SÍ está bien)
+
+- ✅ Doble consentimiento en registro (RGPD + datos de salud Art. 9)
+- ✅ Timestamps de consentimiento en DB
+- ✅ Chat AES-256-GCM con PBKDF2 (100k iteraciones, salt por conversación)
+- ✅ HTTPS obligatorio en prod + HSTS 1 año
+- ✅ CSP headers configurados
+- ✅ Rate limiting (5 req/min sensitive, 30/min auth)
+- ✅ Account lockout escalado (15min → 1h → 4h → 24h)
+- ✅ Password policy (10 chars + mayúscula + símbolo)
+- ✅ OAuth2 code exchange (no token en URL)
+- ✅ Token blacklist + refresh rotation
+- ✅ IDOR fix en FileController (ownership check)
+- ✅ WebSocket auth + destination validation
+- ✅ DataRetentionService (cuentas no verificadas 30d, notificaciones 90d)
+- ✅ Sentry `send-default-pii: false`
+- ✅ Política de privacidad 14 secciones (base legal salud, retención, brechas)
+- ✅ `GET /user/export-data` + `DELETE /user/delete-account`
+
+### DPAs necesarios (no código)
+
+| Proveedor | Tipo | URL DPA | Prioridad |
+|-----------|------|---------|-----------|
+| Stripe | Pagos | stripe.com/legal/dpa | P0 |
+| Supabase | DB + Storage | supabase.com/governance/supabase_dpa.pdf | P0 |
+| Render | Backend hosting | render.com/legal/dpa | P0 |
+| Google | OAuth2 | Google Cloud Console | P1 |
+| Sentry | Error tracking | sentry.io/legal/dpa | P1 |
+| Resend | Email | resend.com/legal → NO USAR para datos salud, cambiar a SMTP EU | P0 |
+| Hetzner | Jitsi VPS | hetzner.com/legal/dpa | P1 |
+
 ## Pending Features (por prioridad)
 
 ### Alta (bloqueantes para producción)
@@ -375,14 +494,30 @@ Located in `psicoapp/src/main/resources/db/`:
 - ~~Implementar tablas Valores TCA~~ → **HECHO** — Aproximación Gaussiana (reemplazable por baremos reales si se obtienen)
 - Mover secrets a variables de entorno (al deployar en Render)
 - ~~Stripe: webhook replay protection + idempotency + persistir suscripción~~ → **HECHO** — StripeEventEntity + idempotency key + stripeCustomerId
+- **Activar PII encryption** en UserEntity (descomentar @Convert, migrar datos existentes) → RGPD-1
+- **Notas de sesión UI** para psicólogos (AppointmentEntity.notes ya existe, falta frontend) → UX-1
+- **Completar borrado de cuenta** (cascade delete chat, relaciones, tests asignados) → RGPD-3
+- **Firmar DPAs** con Stripe, Supabase, Render (descargar de sus webs) → RGPD-4
+- **NO usar Resend para emails con datos de salud** — cambiar a SMTP EU → RGPD-5
 
 ### Media
 - ~~Error boundary global~~ → **YA EXISTÍA** — Sentry ErrorBoundary en App.tsx
 - Auto-asignación de subfactors en import de tests
+- Crear OG image 1200x630px (actualmente usa iconoGantly.png)
+- Registrar Google Search Console + enviar sitemap
+- Blog / contenido SEO (footer enlaza a "#")
 - ~~Mover Stripe Price IDs a config~~ → **HECHO** — StripeProperties + application-local/prod.yml
 - ~~Nombre de clínica dinámico en PDF factura~~ → **YA EXISTÍA** — clinicInfo?.name, solo fallback 'Clínica'
 - ~~Notificación de fallo de pago~~ → **YA EXISTÍA** — StripeService.handlePaymentFailed()
 - ~~Datos fiscales clínica (NIF, dirección) dinámicos en PDF factura (actualmente hardcodeados)~~ → **HECHO** — razonSocial + direccionFiscal en CompanyEntity
+- Implementar retirada de consentimiento Art. 9 (UI + endpoint) → RGPD-2
+- Completar export GDPR (añadir chat messages, clinic docs) → RGPD-8
+- Redactar PII en logs (email → `user@...com`) → RGPD-9
+- Flujo consentimiento tutor para menores → RGPD-7
+- Factura PDF para psicólogos (membrete + IVA) → UX-11
+- Status visual de citas en calendario (badges color) → UX-7
+- Buscador de pacientes para psicólogos → UX-10
+- Re-envío perfil psicólogo tras rechazo → UX-3
 
 ### Baja (post-launch) — COMPLETADAS
 - ~~Refactor UserDashboard/PsychDashboard~~ → **HECHO** — 2013→728 líneas, 6 tabs extraídos
@@ -426,6 +561,18 @@ Located in `psicoapp/src/main/resources/db/`:
 - **Responsive**: flex-col sm:flex-row en sidebars, hidden md:grid + md:hidden para grids complejas
 - **Touch targets**: min-h-[44px] en elementos interactivos móviles
 - **confirm() nativo**: Eliminado — 0 usos en frontend/src/components (todo usa ConfirmDialog)
+
+## SEO & Posicionamiento (implementado Mayo 2026)
+- **react-helmet-async**: HelmetProvider en `main.tsx`, componente `SEO.tsx` reutilizable
+- **Per-page meta tags**: Title, description, canonical, og:*, twitter:* únicos por ruta pública
+- **JSON-LD**: Organization, MedicalBusiness, WebApplication, FAQPage (6 preguntas), SoftwareApplication, BreadcrumbList, MedicalClinic (dinámico para /clinica/:slug)
+- **Open Graph**: `summary_large_image`, image dimensions, site_name, locale ES/EN
+- **Hreflang**: `es`, `en`, `x-default` en Helmet + sitemap.xml
+- **robots.txt**: Bloquea auth/test/dashboard pages, permite públicas
+- **sitemap.xml**: 6 URLs públicas con lastmod + hreflang xhtml:link
+- **noindex**: Login, Register (evitar crawl budget en auth pages)
+- **Keywords**: 12 términos clave en index.html (psicólogo online, terapia online, test personalidad, etc.)
+- **Componente**: `frontend/src/components/seo/SEO.tsx` — exports: SEO (default), organizationSchema, medicalBusinessSchema, webAppSchema, faqSchema, softwareAppSchema, breadcrumbSchema()
 
 ## PII Encryption System
 - **PiiEncryptionService**: AES-256-GCM con clave derivada de `PII_ENCRYPTION_KEY` env var
@@ -501,6 +648,14 @@ Located in `psicoapp/src/main/resources/db/`:
 - DPIA (Evaluación de Impacto) — documento legal obligatorio para datos de salud
 - Registro de actividades de tratamiento (Art. 30 RGPD)
 - Configurar Jitsi en VPS EU con dominio propio (video.gantly.com)
+
+### Tareas SEO (no código)
+- **Crear OG image 1200x630px** — actualmente usa iconoGantly.png (funcional pero aspect ratio incorrecto). Crear imagen con logo + tagline para redes sociales, guardar como `frontend/public/og-image.png` y actualizar refs en `index.html` y `SEO.tsx`
+- **Registrar Google Search Console** — verificar propiedad con meta tag, reemplazar placeholder en `index.html` línea `google-site-verification`
+- **Crear cuenta Twitter @gantly_es** — o actualizar el handle en `index.html` y `SEO.tsx` (const `TWITTER_HANDLE`)
+- **Enviar sitemap a Google Search Console** — tras registro, enviar `https://gantly.es/sitemap.xml`
+- **Configurar Bing Webmaster Tools** — opcional pero recomendado
+- **Crear página de blog** — el footer enlaza a "#", ideal para SEO long-tail (contenido sobre ansiedad, terapia, etc.)
 
 ## Build & Run
 - **Maven**: Installed globally at `/c/Program Files (x86)/Apache/Maven/bin/mvn` (no `./mvnw` wrapper)

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { psychService } from '../services/api';
 import LoadingSpinner from './ui/LoadingSpinner';
 import { toast } from './ui/Toast';
-import { Pencil } from 'lucide-react';
+import { Pencil, AlertTriangle, Clock, Send, ChevronDown } from 'lucide-react';
 
 interface PsychEditProfileTabProps {
   onBack: () => void;
@@ -56,6 +56,10 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
   const [psychologistProfile, setPsychologistProfile] = useState<any>(null);
   const [loadingPsychProfile, setLoadingPsychProfile] = useState(true);
   const [psychProfileForm, setPsychProfileForm] = useState<PsychProfileForm>(defaultForm);
+  const [requestingReview, setRequestingReview] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({ education: true, certifications: false, experience: false, specializations: false, interests: false, languages: false });
+
+  const toggleSection = (key: string) => setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }));
 
   const loadPsychologistProfile = async () => {
     try {
@@ -100,6 +104,22 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
     }
   };
 
+  const handleRequestReview = async () => {
+    try {
+      setRequestingReview(true);
+      await psychService.requestReview();
+      toast.success('Solicitud de revisión enviada. Un administrador revisará tu perfil.');
+      await loadPsychologistProfile();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Error al solicitar revisión');
+    } finally {
+      setRequestingReview(false);
+    }
+  };
+
+  const isRejected = psychologistProfile?.approved === false && psychologistProfile?.rejectionReason;
+  const isPendingReview = psychologistProfile?.approved === null;
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-6">
@@ -116,6 +136,51 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
           ← Volver al Perfil
         </button>
       </div>
+
+      {/* Rejection banner */}
+      {!loadingPsychProfile && isRejected && (
+        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-5">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <AlertTriangle className="text-amber-600" size={20} />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-base font-semibold text-amber-800 m-0 mb-1">Perfil rechazado</h3>
+              <p className="text-sm text-amber-700 m-0 mb-3">
+                <span className="font-medium">Motivo:</span> {psychologistProfile.rejectionReason}
+              </p>
+              <p className="text-sm text-amber-600 m-0 mb-4">
+                Revisa y actualiza tu perfil con la información solicitada. Cuando esté listo, solicita una nueva revisión.
+              </p>
+              <button
+                onClick={handleRequestReview}
+                disabled={requestingReview}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-medium cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300"
+              >
+                <Send size={14} />
+                {requestingReview ? 'Enviando...' : 'Solicitar nueva revisión'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pending review banner */}
+      {!loadingPsychProfile && isPendingReview && (
+        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-2xl p-5">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <Clock className="text-blue-600" size={20} />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-base font-semibold text-blue-800 m-0 mb-1">Revisión en curso</h3>
+              <p className="text-sm text-blue-600 m-0">
+                Tu perfil ha sido reenviado y está pendiente de revisión por un administrador. Te notificaremos cuando haya una respuesta.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {loadingPsychProfile ? (
         <LoadingSpinner text="Cargando perfil profesional..." />
@@ -137,470 +202,542 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
           </div>
 
           {/* Educación */}
-          <div className="bg-white rounded-2xl p-8 border border-slate-100">
-            <div className="flex justify-between items-center mb-4">
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => toggleSection('education')}
+              className="w-full flex justify-between items-center px-8 py-5 bg-transparent border-none cursor-pointer hover:bg-slate-50/50 transition-colors"
+            >
               <div className="flex items-center gap-3">
                 <div className="w-1 h-6 rounded-full bg-gradient-to-b from-emerald-500 to-teal-500"></div>
                 <h3 className="m-0 text-lg font-semibold text-slate-800">Educación</h3>
+                <span className="text-[11px] font-medium text-slate-400 bg-slate-100 rounded-full px-2 py-0.5">{psychProfileForm.education.length}</span>
               </div>
-              <button
-                onClick={() => setPsychProfileForm({
-                  ...psychProfileForm,
-                  education: [...psychProfileForm.education, { degree: '', field: '', institution: '', startDate: '', endDate: '' }]
-                })}
-                className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
-              >
-                + Añadir
-              </button>
-            </div>
-            {psychProfileForm.education.map((edu, idx) => (
-              <div key={idx} className="mb-4 p-5 bg-gradient-to-br from-slate-50 to-blue-50/20 rounded-xl border border-slate-100">
-                <div className="grid grid-cols-2 gap-3 mb-3">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Título</label>
-                    <input
-                      type="text"
-                      value={edu.degree}
-                      onChange={(e) => {
-                        const newEducation = [...psychProfileForm.education];
-                        newEducation[idx].degree = e.target.value;
-                        setPsychProfileForm({ ...psychProfileForm, education: newEducation });
-                      }}
-                      placeholder="Ej: Licenciatura, Grado, Master..."
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Campo de estudio</label>
-                    <input
-                      type="text"
-                      value={edu.field}
-                      onChange={(e) => {
-                        const newEducation = [...psychProfileForm.education];
-                        newEducation[idx].field = e.target.value;
-                        setPsychProfileForm({ ...psychProfileForm, education: newEducation });
-                      }}
-                      placeholder="Ej: Psicología Clínica..."
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
-                    />
-                  </div>
+              <ChevronDown size={18} className={`text-slate-400 transition-transform duration-200 ${expandedSections.education ? 'rotate-180' : ''}`} />
+            </button>
+            {expandedSections.education && (
+              <div className="px-8 pb-8 pt-0">
+                <div className="flex justify-end mb-4">
+                  <button
+                    onClick={() => setPsychProfileForm({
+                      ...psychProfileForm,
+                      education: [...psychProfileForm.education, { degree: '', field: '', institution: '', startDate: '', endDate: '' }]
+                    })}
+                    className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
+                  >
+                    + Añadir
+                  </button>
                 </div>
-                <div className="mb-3">
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Institución</label>
-                  <input
-                    type="text"
-                    value={edu.institution}
-                    onChange={(e) => {
-                      const newEducation = [...psychProfileForm.education];
-                      newEducation[idx].institution = e.target.value;
-                      setPsychProfileForm({ ...psychProfileForm, education: newEducation });
-                    }}
-                    placeholder="Ej: Universidad Complutense de Madrid"
-                    className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Fecha inicio</label>
-                    <input
-                      type="text"
-                      value={edu.startDate}
-                      onChange={(e) => {
-                        const newEducation = [...psychProfileForm.education];
-                        newEducation[idx].startDate = e.target.value;
+                {psychProfileForm.education.map((edu, idx) => (
+                  <div key={idx} className="mb-4 p-5 bg-gradient-to-br from-slate-50 to-blue-50/20 rounded-xl border border-slate-100">
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Título</label>
+                        <input
+                          type="text"
+                          value={edu.degree}
+                          onChange={(e) => {
+                            const newEducation = [...psychProfileForm.education];
+                            newEducation[idx].degree = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, education: newEducation });
+                          }}
+                          placeholder="Ej: Licenciatura, Grado, Master..."
+                          className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Campo de estudio</label>
+                        <input
+                          type="text"
+                          value={edu.field}
+                          onChange={(e) => {
+                            const newEducation = [...psychProfileForm.education];
+                            newEducation[idx].field = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, education: newEducation });
+                          }}
+                          placeholder="Ej: Psicología Clínica..."
+                          className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
+                        />
+                      </div>
+                    </div>
+                    <div className="mb-3">
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">Institución</label>
+                      <input
+                        type="text"
+                        value={edu.institution}
+                        onChange={(e) => {
+                          const newEducation = [...psychProfileForm.education];
+                          newEducation[idx].institution = e.target.value;
+                          setPsychProfileForm({ ...psychProfileForm, education: newEducation });
+                        }}
+                        placeholder="Ej: Universidad Complutense de Madrid"
+                        className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Fecha inicio</label>
+                        <input
+                          type="text"
+                          value={edu.startDate}
+                          onChange={(e) => {
+                            const newEducation = [...psychProfileForm.education];
+                            newEducation[idx].startDate = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, education: newEducation });
+                          }}
+                          placeholder="Ej: 2010"
+                          className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Fecha fin</label>
+                        <input
+                          type="text"
+                          value={edu.endDate}
+                          onChange={(e) => {
+                            const newEducation = [...psychProfileForm.education];
+                            newEducation[idx].endDate = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, education: newEducation });
+                          }}
+                          placeholder="Ej: 2014 o 'En curso'"
+                          className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newEducation = psychProfileForm.education.filter((_, i) => i !== idx);
                         setPsychProfileForm({ ...psychProfileForm, education: newEducation });
                       }}
-                      placeholder="Ej: 2010"
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
-                    />
+                      className="mt-3 px-3 py-1.5 text-red-600 bg-red-50 border border-red-200 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-red-100 hover:shadow-sm"
+                    >
+                      Eliminar
+                    </button>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Fecha fin</label>
-                    <input
-                      type="text"
-                      value={edu.endDate}
-                      onChange={(e) => {
-                        const newEducation = [...psychProfileForm.education];
-                        newEducation[idx].endDate = e.target.value;
-                        setPsychProfileForm({ ...psychProfileForm, education: newEducation });
-                      }}
-                      placeholder="Ej: 2014 o 'En curso'"
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
-                    />
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    const newEducation = psychProfileForm.education.filter((_, i) => i !== idx);
-                    setPsychProfileForm({ ...psychProfileForm, education: newEducation });
-                  }}
-                  className="mt-3 px-3 py-1.5 text-red-600 bg-red-50 border border-red-200 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-red-100 hover:shadow-sm"
-                >
-                  Eliminar
-                </button>
+                ))}
+                {psychProfileForm.education.length === 0 && (
+                  <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay educación añadida.</div>
+                )}
               </div>
-            ))}
-            {psychProfileForm.education.length === 0 && (
-              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay educación añadida.</div>
             )}
           </div>
 
           {/* Certificaciones */}
-          <div className="bg-white rounded-2xl p-8 border border-slate-100">
-            <div className="flex justify-between items-center mb-4">
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => toggleSection('certifications')}
+              className="w-full flex justify-between items-center px-8 py-5 bg-transparent border-none cursor-pointer hover:bg-slate-50/50 transition-colors"
+            >
               <div className="flex items-center gap-3">
                 <div className="w-1 h-6 rounded-full bg-gradient-to-b from-amber-500 to-orange-500"></div>
                 <h3 className="m-0 text-lg font-semibold text-slate-800">Certificaciones</h3>
+                <span className="text-[11px] font-medium text-slate-400 bg-slate-100 rounded-full px-2 py-0.5">{psychProfileForm.certifications.length}</span>
               </div>
-              <button
-                onClick={() => setPsychProfileForm({
-                  ...psychProfileForm,
-                  certifications: [...psychProfileForm.certifications, { name: '', issuer: '', date: '', credentialId: '' }]
-                })}
-                className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
-              >
-                + Añadir
-              </button>
-            </div>
-            {psychProfileForm.certifications.map((cert, idx) => (
-              <div key={idx} className="mb-4 p-5 bg-gradient-to-br from-slate-50 to-amber-50/20 rounded-xl border border-slate-100">
-                <div className="mb-3">
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Nombre de la certificación</label>
-                  <input
-                    type="text"
-                    value={cert.name}
-                    onChange={(e) => {
-                      const newCerts = [...psychProfileForm.certifications];
-                      newCerts[idx].name = e.target.value;
-                      setPsychProfileForm({ ...psychProfileForm, certifications: newCerts });
-                    }}
-                    placeholder="Ej: Certificación en Terapia Cognitivo-Conductual"
-                    className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
-                  />
+              <ChevronDown size={18} className={`text-slate-400 transition-transform duration-200 ${expandedSections.certifications ? 'rotate-180' : ''}`} />
+            </button>
+            {expandedSections.certifications && (
+              <div className="px-8 pb-8 pt-0">
+                <div className="flex justify-end mb-4">
+                  <button
+                    onClick={() => setPsychProfileForm({
+                      ...psychProfileForm,
+                      certifications: [...psychProfileForm.certifications, { name: '', issuer: '', date: '', credentialId: '' }]
+                    })}
+                    className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
+                  >
+                    + Añadir
+                  </button>
                 </div>
-                <div className="grid grid-cols-2 gap-3 mb-3">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Emitido por</label>
-                    <input
-                      type="text"
-                      value={cert.issuer}
-                      onChange={(e) => {
-                        const newCerts = [...psychProfileForm.certifications];
-                        newCerts[idx].issuer = e.target.value;
+                {psychProfileForm.certifications.map((cert, idx) => (
+                  <div key={idx} className="mb-4 p-5 bg-gradient-to-br from-slate-50 to-amber-50/20 rounded-xl border border-slate-100">
+                    <div className="mb-3">
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">Nombre de la certificación</label>
+                      <input
+                        type="text"
+                        value={cert.name}
+                        onChange={(e) => {
+                          const newCerts = [...psychProfileForm.certifications];
+                          newCerts[idx].name = e.target.value;
+                          setPsychProfileForm({ ...psychProfileForm, certifications: newCerts });
+                        }}
+                        placeholder="Ej: Certificación en Terapia Cognitivo-Conductual"
+                        className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Emitido por</label>
+                        <input
+                          type="text"
+                          value={cert.issuer}
+                          onChange={(e) => {
+                            const newCerts = [...psychProfileForm.certifications];
+                            newCerts[idx].issuer = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, certifications: newCerts });
+                          }}
+                          placeholder="Ej: Colegio Oficial de Psicólogos"
+                          className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Fecha</label>
+                        <input
+                          type="text"
+                          value={cert.date}
+                          onChange={(e) => {
+                            const newCerts = [...psychProfileForm.certifications];
+                            newCerts[idx].date = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, certifications: newCerts });
+                          }}
+                          placeholder="Ej: 2020"
+                          className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">ID de credencial (opcional)</label>
+                      <input
+                        type="text"
+                        value={cert.credentialId}
+                        onChange={(e) => {
+                          const newCerts = [...psychProfileForm.certifications];
+                          newCerts[idx].credentialId = e.target.value;
+                          setPsychProfileForm({ ...psychProfileForm, certifications: newCerts });
+                        }}
+                        placeholder="Ej: ABC123"
+                        className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
+                      />
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newCerts = psychProfileForm.certifications.filter((_, i) => i !== idx);
                         setPsychProfileForm({ ...psychProfileForm, certifications: newCerts });
                       }}
-                      placeholder="Ej: Colegio Oficial de Psicólogos"
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
-                    />
+                      className="mt-3 px-3 py-1.5 text-red-600 bg-red-50 border border-red-200 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-red-100 hover:shadow-sm"
+                    >
+                      Eliminar
+                    </button>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Fecha</label>
-                    <input
-                      type="text"
-                      value={cert.date}
-                      onChange={(e) => {
-                        const newCerts = [...psychProfileForm.certifications];
-                        newCerts[idx].date = e.target.value;
-                        setPsychProfileForm({ ...psychProfileForm, certifications: newCerts });
-                      }}
-                      placeholder="Ej: 2020"
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">ID de credencial (opcional)</label>
-                  <input
-                    type="text"
-                    value={cert.credentialId}
-                    onChange={(e) => {
-                      const newCerts = [...psychProfileForm.certifications];
-                      newCerts[idx].credentialId = e.target.value;
-                      setPsychProfileForm({ ...psychProfileForm, certifications: newCerts });
-                    }}
-                    placeholder="Ej: ABC123"
-                    className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
-                  />
-                </div>
-                <button
-                  onClick={() => {
-                    const newCerts = psychProfileForm.certifications.filter((_, i) => i !== idx);
-                    setPsychProfileForm({ ...psychProfileForm, certifications: newCerts });
-                  }}
-                  className="mt-3 px-3 py-1.5 text-red-600 bg-red-50 border border-red-200 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-red-100 hover:shadow-sm"
-                >
-                  Eliminar
-                </button>
+                ))}
+                {psychProfileForm.certifications.length === 0 && (
+                  <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay certificaciones añadidas.</div>
+                )}
               </div>
-            ))}
-            {psychProfileForm.certifications.length === 0 && (
-              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay certificaciones añadidas.</div>
             )}
           </div>
 
           {/* Experiencia */}
-          <div className="bg-white rounded-2xl p-8 border border-slate-100">
-            <div className="flex justify-between items-center mb-4">
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => toggleSection('experience')}
+              className="w-full flex justify-between items-center px-8 py-5 bg-transparent border-none cursor-pointer hover:bg-slate-50/50 transition-colors"
+            >
               <div className="flex items-center gap-3">
                 <div className="w-1 h-6 rounded-full bg-gradient-to-b from-cyan-500 to-blue-500"></div>
                 <h3 className="m-0 text-lg font-semibold text-slate-800">Experiencia Profesional</h3>
+                <span className="text-[11px] font-medium text-slate-400 bg-slate-100 rounded-full px-2 py-0.5">{psychProfileForm.experience.length}</span>
               </div>
-              <button
-                onClick={() => setPsychProfileForm({
-                  ...psychProfileForm,
-                  experience: [...psychProfileForm.experience, { title: '', company: '', description: '', startDate: '', endDate: '' }]
-                })}
-                className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
-              >
-                + Añadir
-              </button>
-            </div>
-            {psychProfileForm.experience.map((exp, idx) => (
-              <div key={idx} className="mb-4 p-5 bg-gradient-to-br from-slate-50 to-cyan-50/20 rounded-xl border border-slate-100">
-                <div className="grid grid-cols-2 gap-3 mb-3">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Cargo / Título</label>
-                    <input
-                      type="text"
-                      value={exp.title}
-                      onChange={(e) => {
-                        const newExp = [...psychProfileForm.experience];
-                        newExp[idx].title = e.target.value;
-                        setPsychProfileForm({ ...psychProfileForm, experience: newExp });
-                      }}
-                      placeholder="Ej: Psicólogo Clínico"
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Empresa / Centro</label>
-                    <input
-                      type="text"
-                      value={exp.company}
-                      onChange={(e) => {
-                        const newExp = [...psychProfileForm.experience];
-                        newExp[idx].company = e.target.value;
-                        setPsychProfileForm({ ...psychProfileForm, experience: newExp });
-                      }}
-                      placeholder="Ej: Centro de Psicología"
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
-                    />
-                  </div>
+              <ChevronDown size={18} className={`text-slate-400 transition-transform duration-200 ${expandedSections.experience ? 'rotate-180' : ''}`} />
+            </button>
+            {expandedSections.experience && (
+              <div className="px-8 pb-8 pt-0">
+                <div className="flex justify-end mb-4">
+                  <button
+                    onClick={() => setPsychProfileForm({
+                      ...psychProfileForm,
+                      experience: [...psychProfileForm.experience, { title: '', company: '', description: '', startDate: '', endDate: '' }]
+                    })}
+                    className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
+                  >
+                    + Añadir
+                  </button>
                 </div>
-                <div className="mb-3">
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Descripción</label>
-                  <textarea
-                    value={exp.description}
-                    onChange={(e) => {
-                      const newExp = [...psychProfileForm.experience];
-                      newExp[idx].description = e.target.value;
-                      setPsychProfileForm({ ...psychProfileForm, experience: newExp });
-                    }}
-                    placeholder="Describe tus responsabilidades y logros..."
-                    rows={2}
-                    className="w-full p-3 rounded-xl border border-slate-200 text-sm text-slate-800 resize-y outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Fecha inicio</label>
-                    <input
-                      type="text"
-                      value={exp.startDate}
-                      onChange={(e) => {
-                        const newExp = [...psychProfileForm.experience];
-                        newExp[idx].startDate = e.target.value;
+                {psychProfileForm.experience.map((exp, idx) => (
+                  <div key={idx} className="mb-4 p-5 bg-gradient-to-br from-slate-50 to-cyan-50/20 rounded-xl border border-slate-100">
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Cargo / Título</label>
+                        <input
+                          type="text"
+                          value={exp.title}
+                          onChange={(e) => {
+                            const newExp = [...psychProfileForm.experience];
+                            newExp[idx].title = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, experience: newExp });
+                          }}
+                          placeholder="Ej: Psicólogo Clínico"
+                          className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Empresa / Centro</label>
+                        <input
+                          type="text"
+                          value={exp.company}
+                          onChange={(e) => {
+                            const newExp = [...psychProfileForm.experience];
+                            newExp[idx].company = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, experience: newExp });
+                          }}
+                          placeholder="Ej: Centro de Psicología"
+                          className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
+                        />
+                      </div>
+                    </div>
+                    <div className="mb-3">
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">Descripción</label>
+                      <textarea
+                        value={exp.description}
+                        onChange={(e) => {
+                          const newExp = [...psychProfileForm.experience];
+                          newExp[idx].description = e.target.value;
+                          setPsychProfileForm({ ...psychProfileForm, experience: newExp });
+                        }}
+                        placeholder="Describe tus responsabilidades y logros..."
+                        rows={2}
+                        className="w-full p-3 rounded-xl border border-slate-200 text-sm text-slate-800 resize-y outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Fecha inicio</label>
+                        <input
+                          type="text"
+                          value={exp.startDate}
+                          onChange={(e) => {
+                            const newExp = [...psychProfileForm.experience];
+                            newExp[idx].startDate = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, experience: newExp });
+                          }}
+                          placeholder="Ej: 2015"
+                          className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Fecha fin</label>
+                        <input
+                          type="text"
+                          value={exp.endDate}
+                          onChange={(e) => {
+                            const newExp = [...psychProfileForm.experience];
+                            newExp[idx].endDate = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, experience: newExp });
+                          }}
+                          placeholder="Ej: 2020 o 'Actual'"
+                          className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newExp = psychProfileForm.experience.filter((_, i) => i !== idx);
                         setPsychProfileForm({ ...psychProfileForm, experience: newExp });
                       }}
-                      placeholder="Ej: 2015"
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
-                    />
+                      className="mt-3 px-3 py-1.5 text-red-600 bg-red-50 border border-red-200 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-red-100 hover:shadow-sm"
+                    >
+                      Eliminar
+                    </button>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Fecha fin</label>
-                    <input
-                      type="text"
-                      value={exp.endDate}
-                      onChange={(e) => {
-                        const newExp = [...psychProfileForm.experience];
-                        newExp[idx].endDate = e.target.value;
-                        setPsychProfileForm({ ...psychProfileForm, experience: newExp });
-                      }}
-                      placeholder="Ej: 2020 o 'Actual'"
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
-                    />
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    const newExp = psychProfileForm.experience.filter((_, i) => i !== idx);
-                    setPsychProfileForm({ ...psychProfileForm, experience: newExp });
-                  }}
-                  className="mt-3 px-3 py-1.5 text-red-600 bg-red-50 border border-red-200 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-red-100 hover:shadow-sm"
-                >
-                  Eliminar
-                </button>
+                ))}
+                {psychProfileForm.experience.length === 0 && (
+                  <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay experiencia añadida.</div>
+                )}
               </div>
-            ))}
-            {psychProfileForm.experience.length === 0 && (
-              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay experiencia añadida.</div>
             )}
           </div>
 
           {/* Especializaciones */}
-          <div className="bg-white rounded-2xl p-8 border border-slate-100">
-            <div className="flex justify-between items-center mb-4">
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => toggleSection('specializations')}
+              className="w-full flex justify-between items-center px-8 py-5 bg-transparent border-none cursor-pointer hover:bg-slate-50/50 transition-colors"
+            >
               <div className="flex items-center gap-3">
                 <div className="w-1 h-6 rounded-full bg-gradient-to-b from-gantly-blue to-gantly-blue-600"></div>
                 <h3 className="m-0 text-lg font-semibold text-slate-800">Especializaciones</h3>
+                <span className="text-[11px] font-medium text-slate-400 bg-slate-100 rounded-full px-2 py-0.5">{psychProfileForm.specializations.length}</span>
               </div>
-              <button
-                onClick={() => {
-                  const newSpec = prompt('Ingresa una especialización:');
-                  if (newSpec && newSpec.trim()) {
-                    setPsychProfileForm({
-                      ...psychProfileForm,
-                      specializations: [...psychProfileForm.specializations, newSpec.trim()]
-                    });
-                  }
-                }}
-                className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
-              >
-                + Añadir
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2.5 mb-2">
-              {psychProfileForm.specializations.map((spec, idx) => (
-                <span
-                  key={idx}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-gantly-blue-50 to-gantly-blue-100 text-gantly-blue-700 rounded-xl text-sm font-medium border border-gantly-blue-200 hover:shadow-md transition-all duration-300"
-                >
-                  {spec}
+              <ChevronDown size={18} className={`text-slate-400 transition-transform duration-200 ${expandedSections.specializations ? 'rotate-180' : ''}`} />
+            </button>
+            {expandedSections.specializations && (
+              <div className="px-8 pb-8 pt-0">
+                <div className="flex justify-end mb-4">
                   <button
                     onClick={() => {
-                      const newSpecs = psychProfileForm.specializations.filter((_, i) => i !== idx);
-                      setPsychProfileForm({ ...psychProfileForm, specializations: newSpecs });
+                      const newSpec = prompt('Ingresa una especialización:');
+                      if (newSpec && newSpec.trim()) {
+                        setPsychProfileForm({
+                          ...psychProfileForm,
+                          specializations: [...psychProfileForm.specializations, newSpec.trim()]
+                        });
+                      }
                     }}
-                    className="bg-transparent border-none text-gantly-blue hover:text-red-500 cursor-pointer text-sm p-0 ml-0.5 transition-colors duration-200"
+                    className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
                   >
-                    x
+                    + Añadir
                   </button>
-                </span>
-              ))}
-            </div>
-            {psychProfileForm.specializations.length === 0 && (
-              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay especializaciones añadidas.</div>
+                </div>
+                <div className="flex flex-wrap gap-2.5 mb-2">
+                  {psychProfileForm.specializations.map((spec, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-gantly-blue-50 to-gantly-blue-100 text-gantly-blue-700 rounded-xl text-sm font-medium border border-gantly-blue-200 hover:shadow-md transition-all duration-300"
+                    >
+                      {spec}
+                      <button
+                        onClick={() => {
+                          const newSpecs = psychProfileForm.specializations.filter((_, i) => i !== idx);
+                          setPsychProfileForm({ ...psychProfileForm, specializations: newSpecs });
+                        }}
+                        className="bg-transparent border-none text-gantly-blue hover:text-red-500 cursor-pointer text-sm p-0 ml-0.5 transition-colors duration-200"
+                      >
+                        x
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                {psychProfileForm.specializations.length === 0 && (
+                  <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay especializaciones añadidas.</div>
+                )}
+              </div>
             )}
           </div>
 
           {/* Intereses */}
-          <div className="bg-white rounded-2xl p-8 border border-slate-100">
-            <div className="flex justify-between items-center mb-4">
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => toggleSection('interests')}
+              className="w-full flex justify-between items-center px-8 py-5 bg-transparent border-none cursor-pointer hover:bg-slate-50/50 transition-colors"
+            >
               <div className="flex items-center gap-3">
                 <div className="w-1 h-6 rounded-full bg-gradient-to-b from-rose-500 to-pink-500"></div>
                 <h3 className="m-0 text-lg font-semibold text-slate-800">Intereses y Pasiones</h3>
+                <span className="text-[11px] font-medium text-slate-400 bg-slate-100 rounded-full px-2 py-0.5">{psychProfileForm.interests.length}</span>
               </div>
-              <button
-                onClick={() => {
-                  const newInterest = prompt('Ingresa un interés o pasión:');
-                  if (newInterest && newInterest.trim()) {
-                    setPsychProfileForm({
-                      ...psychProfileForm,
-                      interests: [...psychProfileForm.interests, newInterest.trim()]
-                    });
-                  }
-                }}
-                className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
-              >
-                + Añadir
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2.5 mb-2">
-              {psychProfileForm.interests.map((interest, idx) => (
-                <span
-                  key={idx}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 rounded-xl text-sm font-medium border border-amber-200 hover:shadow-md transition-all duration-300"
-                >
-                  {interest}
+              <ChevronDown size={18} className={`text-slate-400 transition-transform duration-200 ${expandedSections.interests ? 'rotate-180' : ''}`} />
+            </button>
+            {expandedSections.interests && (
+              <div className="px-8 pb-8 pt-0">
+                <div className="flex justify-end mb-4">
                   <button
                     onClick={() => {
-                      const newInterests = psychProfileForm.interests.filter((_, i) => i !== idx);
-                      setPsychProfileForm({ ...psychProfileForm, interests: newInterests });
+                      const newInterest = prompt('Ingresa un interés o pasión:');
+                      if (newInterest && newInterest.trim()) {
+                        setPsychProfileForm({
+                          ...psychProfileForm,
+                          interests: [...psychProfileForm.interests, newInterest.trim()]
+                        });
+                      }
                     }}
-                    className="bg-transparent border-none text-amber-400 hover:text-red-500 cursor-pointer text-sm p-0 ml-0.5 transition-colors duration-200"
+                    className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
                   >
-                    x
+                    + Añadir
                   </button>
-                </span>
-              ))}
-            </div>
-            {psychProfileForm.interests.length === 0 && (
-              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay intereses añadidos.</div>
+                </div>
+                <div className="flex flex-wrap gap-2.5 mb-2">
+                  {psychProfileForm.interests.map((interest, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 rounded-xl text-sm font-medium border border-amber-200 hover:shadow-md transition-all duration-300"
+                    >
+                      {interest}
+                      <button
+                        onClick={() => {
+                          const newInterests = psychProfileForm.interests.filter((_, i) => i !== idx);
+                          setPsychProfileForm({ ...psychProfileForm, interests: newInterests });
+                        }}
+                        className="bg-transparent border-none text-amber-400 hover:text-red-500 cursor-pointer text-sm p-0 ml-0.5 transition-colors duration-200"
+                      >
+                        x
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                {psychProfileForm.interests.length === 0 && (
+                  <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay intereses añadidos.</div>
+                )}
+              </div>
             )}
           </div>
 
           {/* Idiomas */}
-          <div className="bg-white rounded-2xl p-8 border border-slate-100">
-            <div className="flex justify-between items-center mb-4">
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => toggleSection('languages')}
+              className="w-full flex justify-between items-center px-8 py-5 bg-transparent border-none cursor-pointer hover:bg-slate-50/50 transition-colors"
+            >
               <div className="flex items-center gap-3">
                 <div className="w-1 h-6 rounded-full bg-gradient-to-b from-teal-500 to-emerald-500"></div>
                 <h3 className="m-0 text-lg font-semibold text-slate-800">Idiomas</h3>
+                <span className="text-[11px] font-medium text-slate-400 bg-slate-100 rounded-full px-2 py-0.5">{psychProfileForm.languages.length}</span>
               </div>
-              <button
-                onClick={() => setPsychProfileForm({
-                  ...psychProfileForm,
-                  languages: [...psychProfileForm.languages, { language: '', level: '' }]
-                })}
-                className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
-              >
-                + Añadir
-              </button>
-            </div>
-            {psychProfileForm.languages.map((lang, idx) => (
-              <div key={idx} className="mb-4 p-5 bg-gradient-to-br from-slate-50 to-teal-50/20 rounded-xl border border-slate-100">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Idioma</label>
-                    <input
-                      type="text"
-                      value={lang.language}
-                      onChange={(e) => {
-                        const newLangs = [...psychProfileForm.languages];
-                        newLangs[idx].language = e.target.value;
-                        setPsychProfileForm({ ...psychProfileForm, languages: newLangs });
-                      }}
-                      placeholder="Ej: Español, Inglés..."
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Nivel</label>
-                    <input
-                      type="text"
-                      value={lang.level}
-                      onChange={(e) => {
-                        const newLangs = [...psychProfileForm.languages];
-                        newLangs[idx].level = e.target.value;
-                        setPsychProfileForm({ ...psychProfileForm, languages: newLangs });
-                      }}
-                      placeholder="Ej: Nativo, Avanzado..."
-                      className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
-                    />
-                  </div>
+              <ChevronDown size={18} className={`text-slate-400 transition-transform duration-200 ${expandedSections.languages ? 'rotate-180' : ''}`} />
+            </button>
+            {expandedSections.languages && (
+              <div className="px-8 pb-8 pt-0">
+                <div className="flex justify-end mb-4">
+                  <button
+                    onClick={() => setPsychProfileForm({
+                      ...psychProfileForm,
+                      languages: [...psychProfileForm.languages, { language: '', level: '' }]
+                    })}
+                    className="px-4 py-2 bg-transparent text-gantly-blue border-2 border-dashed border-gantly-blue-300 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-gantly-blue-50 hover:border-gantly-blue-400"
+                  >
+                    + Añadir
+                  </button>
                 </div>
-                <button
-                  onClick={() => {
-                    const newLangs = psychProfileForm.languages.filter((_, i) => i !== idx);
-                    setPsychProfileForm({ ...psychProfileForm, languages: newLangs });
-                  }}
-                  className="mt-3 px-3 py-1.5 text-red-600 bg-red-50 border border-red-200 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-red-100 hover:shadow-sm"
-                >
-                  Eliminar
-                </button>
+                {psychProfileForm.languages.map((lang, idx) => (
+                  <div key={idx} className="mb-4 p-5 bg-gradient-to-br from-slate-50 to-teal-50/20 rounded-xl border border-slate-100">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Idioma</label>
+                        <input
+                          type="text"
+                          value={lang.language}
+                          onChange={(e) => {
+                            const newLangs = [...psychProfileForm.languages];
+                            newLangs[idx].language = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, languages: newLangs });
+                          }}
+                          placeholder="Ej: Español, Inglés..."
+                          className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Nivel</label>
+                        <input
+                          type="text"
+                          value={lang.level}
+                          onChange={(e) => {
+                            const newLangs = [...psychProfileForm.languages];
+                            newLangs[idx].level = e.target.value;
+                            setPsychProfileForm({ ...psychProfileForm, languages: newLangs });
+                          }}
+                          placeholder="Ej: Nativo, Avanzado..."
+                          className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue transition-all duration-200"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newLangs = psychProfileForm.languages.filter((_, i) => i !== idx);
+                        setPsychProfileForm({ ...psychProfileForm, languages: newLangs });
+                      }}
+                      className="mt-3 px-3 py-1.5 text-red-600 bg-red-50 border border-red-200 rounded-xl text-xs font-medium cursor-pointer transition-all duration-300 hover:bg-red-100 hover:shadow-sm"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                ))}
+                {psychProfileForm.languages.length === 0 && (
+                  <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay idiomas añadidos.</div>
+                )}
               </div>
-            ))}
-            {psychProfileForm.languages.length === 0 && (
-              <div className="text-center py-6 text-slate-500 text-sm bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No hay idiomas añadidos.</div>
             )}
           </div>
 

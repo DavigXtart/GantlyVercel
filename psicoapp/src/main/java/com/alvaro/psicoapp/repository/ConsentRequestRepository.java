@@ -14,4 +14,6 @@ public interface ConsentRequestRepository extends JpaRepository<ConsentRequestEn
     Optional<ConsentRequestEntity> findTop1ByPsychologist_IdAndUser_IdOrderByCreatedAtDesc(Long psychologistId, Long userId);
     boolean existsByPsychologist_IdAndUser_IdAndStatus(Long psychologistId, Long userId, ConsentRequestStatus status);
     List<ConsentRequestEntity> findByPsychologist_IdOrderByCreatedAtDesc(Long psychologistId);
+
+    void deleteByUser_Id(Long userId);
 }

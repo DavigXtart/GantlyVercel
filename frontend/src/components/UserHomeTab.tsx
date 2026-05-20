@@ -1,11 +1,12 @@
-import type { ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import {
   CheckSquare, ClipboardList, CalendarDays, BarChart3, FileText,
   Compass, MessageCircle, Settings, ArrowRight, ChevronRight,
-  TrendingUp, CalendarCheck, Plus, Video,
+  TrendingUp, CalendarCheck, Plus, Video, Check,
 } from 'lucide-react';
-import { jitsiService } from '../services/api';
+import { jitsiService, personalAgendaService } from '../services/api';
 import { toast } from './ui/Toast';
+import MoodFace from './ui/MoodFace';
 
 interface UserHomeTabProps {
   me: any;
@@ -30,6 +31,46 @@ export default function UserHomeTab({
   setVideoCallRoom,
   setVideoCallOtherUser,
 }: UserHomeTabProps) {
+  const [moodSubmitted, setMoodSubmitted] = useState(false);
+  const [moodLoading, setMoodLoading] = useState(false);
+  const [todayMood, setTodayMood] = useState<number | null>(null);
+
+  // Check if user already logged mood today
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await personalAgendaService.getTodayEntry();
+        if (res.entry) {
+          setTodayMood(res.entry.moodRating);
+          setMoodSubmitted(true);
+        }
+      } catch {
+        // no entry today — that's fine
+      }
+    })();
+  }, []);
+
+  const handleQuickMood = async (rating: number) => {
+    if (moodLoading || moodSubmitted) return;
+    setMoodLoading(true);
+    try {
+      await personalAgendaService.saveEntry({
+        moodRating: rating,
+        emotions: [],
+        activities: [],
+        companions: [],
+        location: '',
+        notes: '',
+      });
+      setTodayMood(rating);
+      setMoodSubmitted(true);
+    } catch {
+      toast.error('No se pudo registrar tu estado de animo');
+    } finally {
+      setMoodLoading(false);
+    }
+  };
+
   const getGreeting = () => {
     const h = new Date().getHours();
     if (h < 12) return 'Buenos dias';
@@ -39,6 +80,51 @@ export default function UserHomeTab({
 
   return (
     <div className="space-y-6">
+      {/* Quick mood widget — UX-6 */}
+      {!moodSubmitted ? (
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 flex flex-col sm:flex-row items-center gap-4">
+          <p className="text-sm font-heading font-semibold text-slate-700 whitespace-nowrap">
+            ¿Como te sientes hoy?
+          </p>
+          <div className="flex items-center gap-3">
+            {[1, 2, 3, 4, 5].map((val) => (
+              <button
+                key={val}
+                type="button"
+                disabled={moodLoading}
+                onClick={() => handleQuickMood(val)}
+                className="cursor-pointer hover:scale-110 active:scale-95 transition-transform duration-150 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-gantly-blue/20 rounded-full"
+                aria-label={['Muy triste', 'Triste', 'Neutral', 'Feliz', 'Muy feliz'][val - 1]}
+              >
+                <MoodFace value={val} size={40} />
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setTab('agenda-personal')}
+            className="text-xs text-gantly-blue hover:text-gantly-blue/80 font-medium cursor-pointer transition-colors ml-auto whitespace-nowrap"
+          >
+            Registro completo
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-4 flex items-center gap-3">
+          {todayMood && <MoodFace value={todayMood} size={32} />}
+          <div className="flex items-center gap-2 text-sm text-gantly-emerald font-medium">
+            <Check size={16} />
+            Registrado
+          </div>
+          <button
+            type="button"
+            onClick={() => setTab('agenda-personal')}
+            className="text-xs text-gantly-blue hover:text-gantly-blue/80 font-medium cursor-pointer transition-colors ml-auto whitespace-nowrap"
+          >
+            Ver agenda personal
+          </button>
+        </div>
+      )}
+
       {/* Hero welcome — compact asymmetric */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Main greeting — spans 7 cols */}

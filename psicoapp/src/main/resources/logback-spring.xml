@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <springProfile name="prod">
+        <!-- RGPD-9: Redact email addresses from log messages -->
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-                <pattern>{"timestamp":"%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ}","level":"%level","logger":"%logger{36}","thread":"%thread","message":"%msg"}%n</pattern>
+                <pattern>{"timestamp":"%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ}","level":"%level","logger":"%logger{36}","thread":"%thread","message":"%replace(%msg){'[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}','[REDACTED_EMAIL]'}"}%n</pattern>
             </encoder>
         </appender>
 
@@ -15,7 +16,7 @@
                 <totalSizeCap>1GB</totalSizeCap>
             </rollingPolicy>
             <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-                <pattern>{"timestamp":"%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ}","level":"%level","logger":"%logger{36}","thread":"%thread","message":"%msg"}%n</pattern>
+                <pattern>{"timestamp":"%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ}","level":"%level","logger":"%logger{36}","thread":"%thread","message":"%replace(%msg){'[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}','[REDACTED_EMAIL]'}"}%n</pattern>
             </encoder>
         </appender>
 

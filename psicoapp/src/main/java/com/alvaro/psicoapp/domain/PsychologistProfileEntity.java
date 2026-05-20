@@ -44,7 +44,7 @@ public class PsychologistProfileEntity {
     @Column(name = "session_prices", columnDefinition = "TEXT")
     private String sessionPrices;
 
-    @Column(name = "approved", nullable = false)
+    @Column(name = "approved")
     private Boolean approved = false;
 
     @Column(name = "approved_at")

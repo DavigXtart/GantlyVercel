@@ -105,11 +105,25 @@ public class AuthService {
 	@Transactional
 	public com.alvaro.psicoapp.security.JwtService.TokenPair registerWithRefresh(String name, String email, String password, String sessionId, String role,
 			String companyReferralCode, String psychologistReferralCode, LocalDate birthDate, String inviteToken, Boolean gdprConsent, Boolean healthDataConsent) {
+		return registerWithRefresh(name, email, password, sessionId, role, companyReferralCode, psychologistReferralCode, birthDate, inviteToken, gdprConsent, healthDataConsent, null);
+	}
+
+	@Transactional
+	public com.alvaro.psicoapp.security.JwtService.TokenPair registerWithRefresh(String name, String email, String password, String sessionId, String role,
+			String companyReferralCode, String psychologistReferralCode, LocalDate birthDate, String inviteToken, Boolean gdprConsent, Boolean healthDataConsent, String guardianEmail) {
 		if (!Boolean.TRUE.equals(gdprConsent)) {
 			throw new IllegalArgumentException("Debes aceptar la politica de privacidad");
 		}
 		if (!Boolean.TRUE.equals(healthDataConsent)) {
 			throw new IllegalArgumentException("Debes consentir el tratamiento de datos de salud");
+		}
+
+		// RGPD-7: Minors under 14 require guardian email (Art. 8 RGPD, LOPDGDD Art. 7)
+		if (birthDate != null) {
+			long age = ChronoUnit.YEARS.between(birthDate, LocalDate.now());
+			if (age < 14 && (guardianEmail == null || guardianEmail.trim().isEmpty())) {
+				throw new IllegalArgumentException("Los menores de 14 años requieren el email de un tutor legal");
+			}
 		}
 
 		String sanitizedEmail = InputSanitizer.sanitizeEmail(email);
@@ -152,6 +166,10 @@ public class AuthService {
 		if (birthDate != null) {
 			u.setBirthDate(birthDate);
 			u.setAge((int) ChronoUnit.YEARS.between(birthDate, LocalDate.now()));
+		}
+		// RGPD-7: Store guardian email for minors
+		if (guardianEmail != null && !guardianEmail.trim().isEmpty()) {
+			u.setGuardianEmail(InputSanitizer.sanitizeEmail(guardianEmail));
 		}
 
 		if (RoleConstants.PSYCHOLOGIST.equals(role)) {

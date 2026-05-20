@@ -16,14 +16,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.alvaro.psicoapp.domain.RoleConstants;
 import com.alvaro.psicoapp.domain.UserEntity;
+import com.alvaro.psicoapp.repository.AuditLogRepository;
 import com.alvaro.psicoapp.repository.AppointmentRatingRepository;
 import com.alvaro.psicoapp.repository.AppointmentRepository;
 import com.alvaro.psicoapp.repository.AppointmentRequestRepository;
 import com.alvaro.psicoapp.repository.AssignedTestRepository;
+import com.alvaro.psicoapp.repository.ChatConversationRepository;
 import com.alvaro.psicoapp.repository.ChatMessageRepository;
+import com.alvaro.psicoapp.repository.ClinicChatMessageRepository;
+import com.alvaro.psicoapp.repository.ConsentRequestRepository;
 import com.alvaro.psicoapp.repository.DailyMoodEntryRepository;
 import com.alvaro.psicoapp.repository.EvaluationTestResultRepository;
 import com.alvaro.psicoapp.repository.FactorResultRepository;
+import com.alvaro.psicoapp.repository.InsurancePatientPolicyRepository;
 import com.alvaro.psicoapp.repository.NotificationRepository;
 import com.alvaro.psicoapp.repository.TaskCommentRepository;
 import com.alvaro.psicoapp.repository.TaskFileRepository;
@@ -32,6 +37,7 @@ import com.alvaro.psicoapp.repository.TestResultRepository;
 import com.alvaro.psicoapp.repository.UserAnswerRepository;
 import com.alvaro.psicoapp.repository.UserPsychologistRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
+import com.alvaro.psicoapp.repository.UserSubscriptionRepository;
 
 @Service
 public class PatientDataRetentionService {
@@ -42,6 +48,8 @@ public class PatientDataRetentionService {
     private final UserRepository userRepository;
     private final UserPsychologistRepository userPsychologistRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final ChatConversationRepository chatConversationRepository;
+    private final ClinicChatMessageRepository clinicChatMessageRepository;
     private final UserAnswerRepository userAnswerRepository;
     private final EvaluationTestResultRepository evaluationTestResultRepository;
     private final TestResultRepository testResultRepository;
@@ -55,12 +63,18 @@ public class PatientDataRetentionService {
     private final AppointmentRequestRepository appointmentRequestRepository;
     private final AppointmentRepository appointmentRepository;
     private final NotificationRepository notificationRepository;
+    private final UserSubscriptionRepository userSubscriptionRepository;
+    private final ConsentRequestRepository consentRequestRepository;
+    private final InsurancePatientPolicyRepository insurancePatientPolicyRepository;
+    private final AuditLogRepository auditLogRepository;
     private final AuditService auditService;
 
     public PatientDataRetentionService(
         UserRepository userRepository,
         UserPsychologistRepository userPsychologistRepository,
         ChatMessageRepository chatMessageRepository,
+        ChatConversationRepository chatConversationRepository,
+        ClinicChatMessageRepository clinicChatMessageRepository,
         UserAnswerRepository userAnswerRepository,
         EvaluationTestResultRepository evaluationTestResultRepository,
         TestResultRepository testResultRepository,
@@ -74,11 +88,17 @@ public class PatientDataRetentionService {
         AppointmentRequestRepository appointmentRequestRepository,
         AppointmentRepository appointmentRepository,
         NotificationRepository notificationRepository,
+        UserSubscriptionRepository userSubscriptionRepository,
+        ConsentRequestRepository consentRequestRepository,
+        InsurancePatientPolicyRepository insurancePatientPolicyRepository,
+        AuditLogRepository auditLogRepository,
         AuditService auditService
     ) {
         this.userRepository = userRepository;
         this.userPsychologistRepository = userPsychologistRepository;
         this.chatMessageRepository = chatMessageRepository;
+        this.chatConversationRepository = chatConversationRepository;
+        this.clinicChatMessageRepository = clinicChatMessageRepository;
         this.userAnswerRepository = userAnswerRepository;
         this.evaluationTestResultRepository = evaluationTestResultRepository;
         this.testResultRepository = testResultRepository;
@@ -92,6 +112,10 @@ public class PatientDataRetentionService {
         this.appointmentRequestRepository = appointmentRequestRepository;
         this.appointmentRepository = appointmentRepository;
         this.notificationRepository = notificationRepository;
+        this.userSubscriptionRepository = userSubscriptionRepository;
+        this.consentRequestRepository = consentRequestRepository;
+        this.insurancePatientPolicyRepository = insurancePatientPolicyRepository;
+        this.auditLogRepository = auditLogRepository;
         this.auditService = auditService;
     }
 
@@ -124,7 +148,33 @@ public class PatientDataRetentionService {
         deleteUnverifiedAccounts();
         deleteOldNotifications();
         cleanupDeletedAccounts();
+        clearOldStripeSessionIds();
+        purgeOldAuditLogs();
         logger.info("RGPD retention policies job completed");
+    }
+
+    /**
+     * RGPD-11: Clear Stripe session IDs from paid appointments older than 30 days.
+     * Reduces PCI DSS scope by removing payment references no longer needed.
+     */
+    private void clearOldStripeSessionIds() {
+        Instant cutoff = Instant.now().minus(30, ChronoUnit.DAYS);
+        int cleared = appointmentRepository.clearOldStripeSessionIds(cutoff);
+        if (cleared > 0) {
+            logger.info("RGPD retention: cleared {} old Stripe session IDs (>30 days post-payment)", cleared);
+        }
+    }
+
+    /**
+     * RGPD-13: Purge audit logs older than 2 years.
+     * Retention period aligned with RGPD data minimization principle.
+     */
+    private void purgeOldAuditLogs() {
+        Instant cutoff = Instant.now().minus(730, ChronoUnit.DAYS); // ~2 years
+        int deleted = auditLogRepository.deleteByCreatedAtBefore(cutoff);
+        if (deleted > 0) {
+            logger.info("RGPD retention: purged {} audit logs older than 2 years", deleted);
+        }
     }
 
     private void deleteUnverifiedAccounts() {
@@ -195,6 +245,8 @@ public class PatientDataRetentionService {
         appointmentRepository.deleteByUser_Id(userId);
 
         chatMessageRepository.deleteByUser_Id(userId);
+        chatConversationRepository.deleteByUserId(userId);
+        clinicChatMessageRepository.deleteByPatientId(userId);
 
         userAnswerRepository.deleteByUser_Id(userId);
         evaluationTestResultRepository.deleteByUser_Id(userId);
@@ -204,8 +256,14 @@ public class PatientDataRetentionService {
 
         dailyMoodEntryRepository.deleteByUser_Id(userId);
 
+        notificationRepository.deleteByUser_Id(userId);
+        userSubscriptionRepository.deleteByUserId(userId);
+        consentRequestRepository.deleteByUser_Id(userId);
+        insurancePatientPolicyRepository.deleteByPatientId(userId);
+
         userPsychologistRepository.deleteByUserId(userId);
 
+        deleteAvatarFile(user.getAvatarUrl());
         anonymizeUser(user);
         userRepository.save(user);
     }
@@ -224,6 +282,21 @@ public class PatientDataRetentionService {
             }
         } catch (Exception e) {
             logger.warn("RGPD retention: error leyendo/borrando ficheros en disco para userId={}", userId, e);
+        }
+    }
+
+    private void deleteAvatarFile(String avatarUrl) {
+        if (avatarUrl == null || avatarUrl.isBlank()) return;
+        try {
+            // avatarUrl is like /uploads/avatars/uuid.jpg — resolve to disk path
+            String relative = avatarUrl.startsWith("/") ? avatarUrl.substring(1) : avatarUrl;
+            Path p = Path.of(relative);
+            if (Files.exists(p)) {
+                Files.delete(p);
+                logger.info("RGPD: deleted avatar file {}", p);
+            }
+        } catch (Exception e) {
+            logger.warn("RGPD: could not delete avatar file {}", avatarUrl, e);
         }
     }
 
@@ -259,5 +332,12 @@ public class PatientDataRetentionService {
         user.setGdprConsentAt(null);
         user.setGdprConsentVersion(null);
         user.setHealthDataConsentAt(null);
+        user.setHealthDataConsentWithdrawnAt(null);
+        user.setGuardianEmail(null);
+        user.setGuardianConsentAt(null);
+        user.setEmergencyContactName(null);
+        user.setEmergencyContactPhone(null);
+        user.setReferralSource(null);
+        user.setChiefComplaint(null);
     }
 }

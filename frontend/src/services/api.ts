@@ -67,7 +67,14 @@ const processQueue = (error: any, token: string | null = null) => {
 };
 
 api.interceptors.response.use(
-  response => { updateLoadingState(-1); return response; },
+  response => {
+    updateLoadingState(-1);
+    // RGPD-12: Check if backend signals consent renewal is needed
+    if (response.headers['x-consent-required'] === 'true') {
+      window.dispatchEvent(new CustomEvent('consent-required'));
+    }
+    return response;
+  },
   async error => {
     updateLoadingState(-1);
     const originalRequest = error.config;
@@ -573,7 +580,7 @@ export const profileService = {
     const user = data as { id: number; name: string; email: string; role: string; avatarUrl?: string | null; darkMode?: boolean; gender?: string; age?: number; birthDate?: string; createdAt?: string; companyId?: number | null };
     return { ...user, avatarUrl: resolveAssetUrl(user.avatarUrl) };
   },
-  update: async (updates: { name?: string; darkMode?: boolean; gender?: string | null; age?: number | null; birthDate?: string | null }) => {
+  update: async (updates: { name?: string; darkMode?: boolean; gender?: string | null; age?: number | null; birthDate?: string | null; emergencyContactName?: string; emergencyContactPhone?: string; referralSource?: string; chiefComplaint?: string }) => {
     await api.put('/profile', updates);
   },
   uploadAvatar: async (file: File) => {
@@ -621,6 +628,14 @@ export const gdprService = {
   },
   deleteAccount: async (password: string) => {
     const { data } = await api.delete('/user/delete-account', { data: { password } });
+    return data as { message: string };
+  },
+  withdrawHealthDataConsent: async () => {
+    const { data } = await api.post('/user/consent/withdraw-health-data');
+    return data as { message: string };
+  },
+  renewConsent: async () => {
+    const { data } = await api.post('/user/consent/renew');
     return data as { message: string };
   },
 };
@@ -719,7 +734,7 @@ export const calendarService = {
   },
   myAppointments: async () => {
     const { data } = await api.get('/calendar/my-appointments');
-    return data as Array<{ id: number; startTime: string; endTime: string; status: string; psychologist?: { id: number; name: string; email: string }; paymentStatus?: string; paymentDeadline?: string; confirmedAt?: string }>;
+    return data as Array<{ id: number; startTime: string; endTime: string; status: string; psychologist?: { id: number; name: string; email: string }; paymentStatus?: string; paymentDeadline?: string; confirmedAt?: string; notes?: string }>;
   },
   getPendingRequests: async () => {
     const { data } = await api.get('/calendar/requests/pending');
@@ -785,6 +800,20 @@ export const calendarService = {
     const { data } = await api.delete(`/calendar/recurrence/${groupId}`);
     return data as any;
   },
+  rescheduleAppointment: async (appointmentId: number, newStartTime: string, newEndTime: string) => {
+    const { data } = await api.put(`/calendar/appointments/${appointmentId}/reschedule`, { newStartTime, newEndTime });
+    return data as { message: string };
+  },
+  exportIcal: async () => {
+    const { data } = await api.get('/calendar/export.ics', { responseType: 'blob' });
+    const blob = new Blob([data], { type: 'text/calendar' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'appointments.ics';
+    a.click();
+    URL.revokeObjectURL(url);
+  },
 };
 
 // Psicólogo
@@ -849,6 +878,10 @@ export const psychService = {
   getReferralUrl: async () => {
     const { data } = await api.get('/psych/referral-url');
     return data as { referralCode: string; fullUrl: string };
+  },
+  requestReview: async () => {
+    const { data } = await api.post('/psych/request-review');
+    return data as { message: string };
   }
 };
 
@@ -1297,15 +1330,15 @@ export const clinicService = {
   },
   getServices: async () => {
     const { data } = await api.get('/clinic/services');
-    return data as Array<{ id: number; name: string; defaultPrice: number | null; durationMinutes: number | null; active: boolean }>;
+    return data as Array<{ id: number; name: string; defaultPrice: number | null; durationMinutes: number | null; active: boolean; psychologistPrices?: string | null }>;
   },
-  createService: async (req: { name: string; defaultPrice?: number; durationMinutes?: number }) => {
+  createService: async (req: { name: string; defaultPrice?: number; durationMinutes?: number; psychologistPrices?: string }) => {
     const { data } = await api.post('/clinic/services', req);
-    return data as { id: number; name: string; defaultPrice: number | null; durationMinutes: number | null; active: boolean };
+    return data as { id: number; name: string; defaultPrice: number | null; durationMinutes: number | null; active: boolean; psychologistPrices?: string | null };
   },
-  updateService: async (id: number, req: { name?: string; defaultPrice?: number; durationMinutes?: number; active?: boolean }) => {
+  updateService: async (id: number, req: { name?: string; defaultPrice?: number; durationMinutes?: number; active?: boolean; psychologistPrices?: string }) => {
     const { data } = await api.put(`/clinic/services/${id}`, req);
-    return data as { id: number; name: string; defaultPrice: number | null; durationMinutes: number | null; active: boolean };
+    return data as { id: number; name: string; defaultPrice: number | null; durationMinutes: number | null; active: boolean; psychologistPrices?: string | null };
   },
   deleteService: async (id: number) => {
     await api.delete(`/clinic/services/${id}`);

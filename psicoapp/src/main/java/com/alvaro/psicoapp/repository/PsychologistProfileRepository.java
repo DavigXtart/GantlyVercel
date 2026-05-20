@@ -3,6 +3,7 @@ package com.alvaro.psicoapp.repository;
 import com.alvaro.psicoapp.domain.PsychologistProfileEntity;
 import com.alvaro.psicoapp.domain.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,4 +15,8 @@ public interface PsychologistProfileRepository extends JpaRepository<Psychologis
     Optional<PsychologistProfileEntity> findByUser_Id(Long userId);
     List<PsychologistProfileEntity> findByApprovedFalseOrderByUpdatedAtDesc();
     List<PsychologistProfileEntity> findByApprovedTrueOrderByUpdatedAtDesc();
+
+    /** Finds profiles pending review: rejected (false) or resubmitted (null) */
+    @Query("SELECT p FROM PsychologistProfileEntity p WHERE p.approved = false OR p.approved IS NULL ORDER BY p.updatedAt DESC")
+    List<PsychologistProfileEntity> findPendingReviewOrderByUpdatedAtDesc();
 }

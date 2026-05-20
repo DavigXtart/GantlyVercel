@@ -3,6 +3,8 @@ package com.alvaro.psicoapp.service;
 import com.alvaro.psicoapp.domain.RoleConstants;
 import com.alvaro.psicoapp.domain.UserEntity;
 import com.alvaro.psicoapp.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,8 @@ import java.util.*;
 
 @Service
 public class GdprService {
+    private static final Logger logger = LoggerFactory.getLogger(GdprService.class);
+
     private final UserRepository userRepository;
     private final AppointmentRepository appointmentRepository;
     private final TaskRepository taskRepository;
@@ -23,6 +27,7 @@ public class GdprService {
     private final UserAnswerRepository userAnswerRepository;
     private final NotificationRepository notificationRepository;
     private final PatientDataRetentionService patientDataRetentionService;
+    private final ChatEncryptionService chatEncryptionService;
     private final AuditService auditService;
     private final PasswordEncoder passwordEncoder;
 
@@ -36,6 +41,7 @@ public class GdprService {
                        UserAnswerRepository userAnswerRepository,
                        NotificationRepository notificationRepository,
                        PatientDataRetentionService patientDataRetentionService,
+                       ChatEncryptionService chatEncryptionService,
                        AuditService auditService,
                        PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
@@ -48,6 +54,7 @@ public class GdprService {
         this.userAnswerRepository = userAnswerRepository;
         this.notificationRepository = notificationRepository;
         this.patientDataRetentionService = patientDataRetentionService;
+        this.chatEncryptionService = chatEncryptionService;
         this.auditService = auditService;
         this.passwordEncoder = passwordEncoder;
     }
@@ -154,7 +161,39 @@ public class GdprService {
         }
         data.put("notifications", notifList);
 
+        // Chat messages (decrypted) — RGPD-8
+        var chatMessages = chatMessageRepository.findByUser_IdOrderByCreatedAtAsc(user.getId());
+        List<Map<String, Object>> chatList = new ArrayList<>();
+        for (var msg : chatMessages) {
+            Map<String, Object> cm = new LinkedHashMap<>();
+            cm.put("sender", msg.getSender());
+            cm.put("createdAt", msg.getCreatedAt());
+            // Decrypt message content
+            String content = msg.getContent();
+            if (content != null && !content.isEmpty()) {
+                try {
+                    content = chatEncryptionService.decrypt(content,
+                        msg.getPsychologist().getId(), msg.getUser().getId());
+                } catch (Exception e) {
+                    logger.warn("RGPD export: could not decrypt chat message id={}", msg.getId());
+                    content = "[encrypted]";
+                }
+            }
+            cm.put("content", content);
+            cm.put("hasAttachment", msg.getAttachmentPath() != null);
+            chatList.add(cm);
+        }
+        data.put("chatMessages", chatList);
+
         return data;
+    }
+
+    @Transactional
+    public void withdrawHealthDataConsent(UserEntity user) {
+        user.setHealthDataConsentAt(null);
+        user.setHealthDataConsentWithdrawnAt(java.time.Instant.now());
+        userRepository.save(user);
+        auditService.logDataDeletion(user.getId(), user.getRole(), user.getId(), "HEALTH_CONSENT_WITHDRAWAL");
     }
 
     @Transactional

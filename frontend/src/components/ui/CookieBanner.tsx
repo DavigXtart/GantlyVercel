@@ -6,6 +6,7 @@ interface CookieBannerProps {
 
 export default function CookieBanner({ onPrivacyClick }: CookieBannerProps) {
   const [visible, setVisible] = useState(false);
+  const [analyticsConsent, setAnalyticsConsent] = useState(false);
 
   useEffect(() => {
     try {
@@ -19,12 +20,21 @@ export default function CookieBanner({ onPrivacyClick }: CookieBannerProps) {
   }, []);
 
   const handleAccept = () => {
-    try { localStorage.setItem('storage-consent', 'true'); } catch { /* silent */ }
+    try {
+      localStorage.setItem('storage-consent', 'true');
+      if (analyticsConsent) {
+        localStorage.setItem('analytics-consent', 'true');
+        window.dispatchEvent(new CustomEvent('analytics-consent-granted'));
+      }
+    } catch { /* silent */ }
     setVisible(false);
   };
 
   const handleReject = () => {
-    try { localStorage.setItem('storage-consent', 'rejected'); } catch { /* silent */ }
+    try {
+      localStorage.setItem('storage-consent', 'rejected');
+      localStorage.removeItem('analytics-consent');
+    } catch { /* silent */ }
     setVisible(false);
   };
 
@@ -34,30 +44,41 @@ export default function CookieBanner({ onPrivacyClick }: CookieBannerProps) {
     <div className="fixed bottom-0 left-0 right-0 z-[9998] backdrop-blur-xl bg-white/92 border-t border-gantly-blue-100 shadow-elevated animate-[cookieBannerSlideUp_0.4s_ease-out]">
       <div className="max-w-[1200px] mx-auto px-6 py-5 flex items-center justify-between gap-5 flex-wrap">
         <div className="flex-1 min-w-[280px]">
-          <p className="m-0 text-sm leading-relaxed text-slate-700">
-            Utilizamos almacenamiento local para mantener tu sesion iniciada. No usamos cookies de seguimiento.
-            {' '}
-            {onPrivacyClick ? (
-              <span
-                onClick={onPrivacyClick}
-                role="link"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onPrivacyClick?.();
-                  }
-                }}
-                className="text-gantly-blue-500 underline cursor-pointer font-medium hover:text-gantly-blue-700"
-              >
-                Más información
-              </span>
-            ) : (
-              <a href="/privacidad" className="text-gantly-blue-500 underline font-medium hover:text-gantly-blue-700">
-                Más información
-              </a>
-            )}
-          </p>
+          <div>
+            <p className="m-0 text-sm leading-relaxed text-slate-700">
+              Utilizamos almacenamiento local para mantener tu sesion iniciada. No usamos cookies de seguimiento.
+              {' '}
+              {onPrivacyClick ? (
+                <span
+                  onClick={onPrivacyClick}
+                  role="link"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onPrivacyClick?.();
+                    }
+                  }}
+                  className="text-gantly-blue-500 underline cursor-pointer font-medium hover:text-gantly-blue-700"
+                >
+                  Mas informacion
+                </span>
+              ) : (
+                <a href="/privacidad" className="text-gantly-blue-500 underline font-medium hover:text-gantly-blue-700">
+                  Mas informacion
+                </a>
+              )}
+            </p>
+            <label className="flex items-center gap-2 mt-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={analyticsConsent}
+                onChange={(e) => setAnalyticsConsent(e.target.checked)}
+                className="w-4 h-4 rounded border-slate-300 text-gantly-blue-500 focus:ring-gantly-blue/20"
+              />
+              <span className="text-xs text-slate-500">Permitir analytics anonimos (Umami, sin cookies)</span>
+            </label>
+          </div>
         </div>
 
         <div className="flex gap-3 shrink-0">

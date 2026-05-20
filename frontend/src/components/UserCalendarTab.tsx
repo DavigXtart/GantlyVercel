@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CalendarDays, MessageCircle } from 'lucide-react';
+import { CalendarDays, MessageCircle, FileText, Download } from 'lucide-react';
 import { calendarService, stripeService } from '../services/api';
 import CalendarWeek from './CalendarWeek';
 import EmptyState from './ui/EmptyState';
@@ -59,6 +59,17 @@ export default function UserCalendarTab({
           <CalendarDays size={20} className="text-gantly-blue" />
         </div>
         <h2 className="text-2xl font-heading font-bold text-gantly-text">Calendario</h2>
+        {myAppointments.length > 0 && (
+          <button
+            type="button"
+            onClick={() => calendarService.exportIcal().catch(() => toast.error('Error al exportar'))}
+            className="ml-auto inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer bg-white"
+            title="Exportar citas a calendario externo (iCal)"
+          >
+            <Download size={14} />
+            Exportar a calendario
+          </button>
+        )}
       </div>
       {loadingSlots ? (
         <LoadingSpinner text="Cargando calendario..." />
@@ -127,59 +138,73 @@ export default function UserCalendarTab({
               return (
                 <div
                   key={apt.id}
-                  className="p-4 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-4 hover:shadow-sm transition-all duration-200"
+                  className="p-4 rounded-xl bg-slate-50 border border-slate-100 hover:shadow-sm transition-all duration-200"
                 >
-                  <div>
-                    <p className="text-sm font-medium text-slate-800">
-                      {new Date(apt.startTime).toLocaleDateString('es-ES', {
-                        weekday: 'short',
-                        day: '2-digit',
-                        month: 'short',
-                      })}
-                      {' - '}
-                      {new Date(apt.startTime).toLocaleTimeString('es-ES', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                      {' - '}
-                      {apt.endTime &&
-                        new Date(apt.endTime).toLocaleTimeString('es-ES', {
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-slate-800">
+                        {new Date(apt.startTime).toLocaleDateString('es-ES', {
+                          weekday: 'short',
+                          day: '2-digit',
+                          month: 'short',
+                        })}
+                        {' - '}
+                        {new Date(apt.startTime).toLocaleTimeString('es-ES', {
                           hour: '2-digit',
                           minute: '2-digit',
                         })}
-                    </p>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      {apt.psychologist?.name || 'Terapia online'}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {isConfirmed && apt.paymentStatus === 'PENDING' && (
-                      <button
-                        className="text-xs px-4 py-2 rounded-xl font-medium bg-gantly-blue text-white hover:shadow-lg hover:shadow-gantly-blue/25 cursor-pointer transition-all duration-300"
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          try {
-                            const { url } = await stripeService.createAppointmentCheckout(apt.id);
-                            if (!url || !url.startsWith('https://checkout.stripe.com')) {
-                              console.error('Invalid Stripe URL:', url);
-                              alert('Error: URL de pago no valida');
-                              return;
+                        {' - '}
+                        {apt.endTime &&
+                          new Date(apt.endTime).toLocaleTimeString('es-ES', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {apt.psychologist?.name || 'Terapia online'}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {isConfirmed && apt.paymentStatus === 'PENDING' && (
+                        <button
+                          className="text-xs px-4 py-2 rounded-xl font-medium bg-gantly-blue text-white hover:shadow-lg hover:shadow-gantly-blue/25 cursor-pointer transition-all duration-300"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              const { url } = await stripeService.createAppointmentCheckout(apt.id);
+                              if (!url || !url.startsWith('https://checkout.stripe.com')) {
+                                console.error('Invalid Stripe URL:', url);
+                                alert('Error: URL de pago no valida');
+                                return;
+                              }
+                              window.location.href = url;
+                            } catch (err: any) {
+                              alert(err.response?.data?.error || 'Error al iniciar el pago');
                             }
-                            window.location.href = url;
-                          } catch (err: any) {
-                            alert(err.response?.data?.error || 'Error al iniciar el pago');
-                          }
-                        }}
+                          }}
+                        >
+                          Pagar {apt.price ? `${apt.price}\u20AC` : ''}
+                        </button>
+                      )}
+                      <span
+                        className={`text-xs px-3 py-1 rounded-full font-semibold ${statusClasses}`}
                       >
-                        Pagar {apt.price ? `${apt.price}\u20AC` : ''}
-                      </button>
-                    )}
-                    <span
-                      className={`text-xs px-3 py-1 rounded-full font-semibold ${statusClasses}`}
-                    >
-                      {statusLabel}
-                    </span>
+                        {statusLabel}
+                      </span>
+                    </div>
                   </div>
+                  {/* Pre-session notes from psychologist — UX-8 */}
+                  {apt.notes && (
+                    <div className="mt-3 pt-3 border-t border-slate-200/60">
+                      <div className="flex items-start gap-2">
+                        <FileText size={14} className="text-violet-500 mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-xs font-semibold text-slate-600 mb-1">Notas del profesional:</p>
+                          <p className="text-sm text-slate-700 whitespace-pre-line leading-relaxed">{apt.notes}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}

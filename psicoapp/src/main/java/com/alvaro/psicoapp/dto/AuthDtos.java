@@ -31,6 +31,9 @@ public class AuthDtos {
 		public String inviteToken;
 		public Boolean gdprConsent;
 		public Boolean healthDataConsent;
+		@jakarta.validation.constraints.Email(message = "Email del tutor inválido")
+		@Size(max = 255)
+		public String guardianEmail;
 	}
 
 	public static class LoginRequest {

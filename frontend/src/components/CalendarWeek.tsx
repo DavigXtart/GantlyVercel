@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect, useRef, useCallback, Fragment } from 'react';
-import { ChevronLeft, ChevronRight, CalendarCheck, CheckCircle, Clock, CreditCard, Calendar, UserPlus, Pencil, X, PlusCircle, Plus, Info, CalendarOff, Repeat } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarCheck, CheckCircle, Clock, CreditCard, Calendar, UserPlus, Pencil, X, PlusCircle, Plus, Info, CalendarOff, Repeat, FileText } from 'lucide-react';
 import { toast } from './ui/Toast';
+import { calendarNotesService } from '../services/api';
 
 type Slot = { id: number; startTime: string; endTime: string; status: 'FREE'|'REQUESTED'|'CONFIRMED'|'BOOKED'|'CANCELLED'; user?: { name: string }; price?: number; paymentStatus?: string; recurrenceGroupId?: string | null; recurrenceRule?: string | null };
 
@@ -98,6 +99,11 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
   const [pendingBookSlot, setPendingBookSlot] = useState<Slot | null>(null);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [slotToAssign, setSlotToAssign] = useState<Slot | null>(null);
+  const [showNotesModal, setShowNotesModal] = useState(false);
+  const [notesSlot, setNotesSlot] = useState<Slot | null>(null);
+  const [notesInput, setNotesInput] = useState('');
+  const [notesLoading, setNotesLoading] = useState(false);
+  const [notesSaving, setNotesSaving] = useState(false);
   const [selectedPatientId, setSelectedPatientId] = useState<string>('');
   const [patientSearchTerm, setPatientSearchTerm] = useState<string>('');
   const [recurrenceRule, setRecurrenceRule] = useState<string>(''); // WEEKLY, BIWEEKLY, MONTHLY
@@ -146,6 +152,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
   const editModalRef = useRef<HTMLDivElement>(null);
   const bookModalRef = useRef<HTMLDivElement>(null);
   const assignModalRef = useRef<HTMLDivElement>(null);
+  const notesModalRef = useRef<HTMLDivElement>(null);
 
   // Current time indicator - update every minute
   const [now, setNow] = useState(new Date());
@@ -632,6 +639,42 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
     setSlotToAssign(null);
     setSelectedPatientId('');
     setPatientSearchTerm('');
+  }, []);
+
+  const handleOpenNotes = useCallback(async (slot: Slot) => {
+    setNotesSlot(slot);
+    setNotesInput('');
+    setShowNotesModal(true);
+    setNotesLoading(true);
+    try {
+      const { notes } = await calendarNotesService.getNotes(slot.id);
+      setNotesInput(notes || '');
+    } catch {
+      // No notes yet — leave empty
+    } finally {
+      setNotesLoading(false);
+    }
+  }, []);
+
+  const handleSaveNotes = useCallback(async () => {
+    if (!notesSlot) return;
+    setNotesSaving(true);
+    try {
+      await calendarNotesService.updateNotes(notesSlot.id, notesInput);
+      toast.success('Notas guardadas');
+      setShowNotesModal(false);
+      setNotesSlot(null);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || 'Error al guardar las notas');
+    } finally {
+      setNotesSaving(false);
+    }
+  }, [notesSlot, notesInput]);
+
+  const closeNotesModal = useCallback(() => {
+    setShowNotesModal(false);
+    setNotesSlot(null);
+    setNotesInput('');
   }, []);
 
   return (
@@ -1147,6 +1190,22 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                                         <Repeat size={12} />
                                       </button>
                                     )}
+                                    {(s.status === 'BOOKED' || s.status === 'CONFIRMED') && s.user && (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          e.preventDefault();
+                                          handleOpenNotes(s);
+                                        }}
+                                        onMouseDown={(e) => {
+                                          e.stopPropagation();
+                                        }}
+                                        className="w-[18px] h-[18px] flex items-center justify-center rounded bg-violet-500/10 text-violet-600 border-none text-[10px] cursor-pointer transition-all duration-200 hover:bg-violet-500/20 hover:scale-110"
+                                        title="Notas de sesion"
+                                      >
+                                        <FileText size={12} />
+                                      </button>
+                                    )}
                                   </div>
                                 )}
                               </div>
@@ -1601,6 +1660,80 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                 className="px-6 h-11 border-none rounded-xl bg-gantly-blue text-white font-heading text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-gantly-blue/90 shadow-lg shadow-gantly-blue/20 hover:shadow-xl hover:shadow-gantly-blue/25"
               >
                 Asignar cita
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para notas de sesion */}
+      {showNotesModal && notesSlot && mode === 'PSYCHO' && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Notas de sesion"
+          onKeyDown={(e) => handleModalKeyDown(e, closeNotesModal)}
+          onClick={closeNotesModal}
+        >
+          <div
+            ref={notesModalRef}
+            className="bg-white rounded-3xl p-6 md:p-8 max-w-[480px] w-[92%] shadow-2xl border border-slate-100"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="m-0 mb-5 font-heading text-xl font-bold text-gantly-text flex items-center gap-2">
+              <FileText size={20} className="text-violet-600" />
+              Notas de sesion
+            </h3>
+            <div className="bg-gantly-cloud/50 rounded-xl p-4 mb-5 border border-slate-100">
+              <p className="m-0 mb-2 font-body text-sm text-gantly-muted">
+                <span className="font-semibold text-gantly-text">Paciente:</span> {notesSlot.user?.name || 'Sin asignar'}
+              </p>
+              <p className="m-0 mb-2 font-body text-sm text-gantly-muted">
+                <span className="font-semibold text-gantly-text">Fecha:</span> {new Date(notesSlot.startTime).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              </p>
+              <p className="m-0 font-body text-sm text-gantly-muted">
+                <span className="font-semibold text-gantly-text">Hora:</span> {new Date(notesSlot.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - {new Date(notesSlot.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+              </p>
+            </div>
+            <div className="mb-6">
+              <label className="block mb-2 font-body text-sm font-semibold text-gantly-text">
+                Notas de la sesion
+              </label>
+              {notesLoading ? (
+                <div className="w-full h-32 flex items-center justify-center text-sm text-slate-400">
+                  Cargando notas...
+                </div>
+              ) : (
+                <>
+                  <textarea
+                    value={notesInput}
+                    onChange={(e) => setNotesInput(e.target.value.slice(0, 500))}
+                    placeholder="Escribe aqui las notas de la sesion..."
+                    maxLength={500}
+                    rows={5}
+                    className="w-full px-3 py-2 border-2 border-slate-200 rounded-xl font-body text-sm outline-none transition-all duration-200 focus:border-gantly-blue resize-none"
+                    autoFocus
+                  />
+                  <p className="m-0 mt-1 text-xs text-slate-400 text-right">
+                    {notesInput.length}/500
+                  </p>
+                </>
+              )}
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={closeNotesModal}
+                className="px-5 h-11 border-none rounded-xl bg-transparent text-gantly-muted font-body text-sm font-medium cursor-pointer transition-all duration-200 hover:text-gantly-text hover:bg-slate-100"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveNotes}
+                disabled={notesSaving || notesLoading}
+                className="px-6 h-11 border-none rounded-xl bg-gantly-blue text-white font-heading text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-gantly-blue/90 shadow-lg shadow-gantly-blue/20 hover:shadow-xl hover:shadow-gantly-blue/25 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {notesSaving ? 'Guardando...' : 'Guardar notas'}
               </button>
             </div>
           </div>

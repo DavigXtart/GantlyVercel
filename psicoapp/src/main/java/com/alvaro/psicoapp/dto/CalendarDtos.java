@@ -14,7 +14,7 @@ public class CalendarDtos {
 
     public record AppointmentListItemDto(Long id, Long requestId, String startTime, String endTime, String status, BigDecimal price,
                                          String paymentStatus, String paymentDeadline, String confirmedAt, String requestedAt,
-                                         PsychologistSummary psychologist) {}
+                                         PsychologistSummary psychologist, String notes) {}
     public record AppointmentDto(Long id, String startTime, String endTime, String status, BigDecimal price,
                                 String paymentStatus, String paymentDeadline, String confirmedAt, PsychologistSummary psychologist) {}
     public record RequestedAppointmentDto(Long id, Long requestId, String startTime, String endTime, String status,
@@ -25,7 +25,7 @@ public class CalendarDtos {
                                    PendingUserDto user, PendingAppointmentDto appointment) {}
     public record RatingDto(Long id, Integer rating, String comment, String createdAt) {}
     public record PastAppointmentDto(Long id, Instant startTime, Instant endTime, String status, BigDecimal price,
-                                    PsychologistSummary psychologist, RatingDto rating) {}
+                                    PsychologistSummary psychologist, RatingDto rating, String notes) {}
     public record PastUserDto(Long id, String name, String email) {}
     public record PsychologistPastAppointmentDto(Long id, Instant startTime, Instant endTime, String status, BigDecimal price,
                                                  String paymentStatus, Instant confirmedAt,
@@ -77,5 +77,12 @@ public class CalendarDtos {
         @Max(value = 5, message = "La valoración debe estar entre 1 y 5")
         public Integer rating;
         public String comment;
+    }
+
+    public static class RescheduleAppointmentRequest {
+        @NotNull(message = "La nueva fecha de inicio es requerida")
+        public Instant newStartTime;
+        @NotNull(message = "La nueva fecha de fin es requerida")
+        public Instant newEndTime;
     }
 }

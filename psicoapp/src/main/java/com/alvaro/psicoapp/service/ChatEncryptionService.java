@@ -129,7 +129,9 @@ public class ChatEncryptionService {
             try {
                 return decryptWithKey(encryptedMessage, getLegacyKey(psychologistId, userId));
             } catch (Exception e2) {
-                logger.error("Error descifrando mensaje (ambos métodos fallaron)", e2);
+                // RGPD-18: Log decryption failure for security monitoring
+                logger.warn("SECURITY: Chat decryption failure psychologistId={} userId={} — possible unauthorized access attempt",
+                        psychologistId, userId);
                 throw new RuntimeException("Error descifrando mensaje", e2);
             }
         }
@@ -199,7 +201,9 @@ public class ChatEncryptionService {
         try {
             return decryptWithKey(encryptedPayload, getOrCreateClinicKey(companyId, patientId));
         } catch (Exception e) {
-            logger.error("Error descifrando mensaje de clínica", e);
+            // RGPD-18: Log decryption failure for security monitoring
+            logger.warn("SECURITY: Clinic chat decryption failure companyId={} patientId={} — possible unauthorized access attempt",
+                    companyId, patientId);
             throw new RuntimeException("Error descifrando mensaje de clínica", e);
         }
     }

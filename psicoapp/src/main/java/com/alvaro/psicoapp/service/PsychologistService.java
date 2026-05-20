@@ -30,13 +30,15 @@ public class PsychologistService {
     private final AppointmentRepository appointmentRepository;
     private final AuditService auditService;
     private final ConsentService consentService;
+    private final NotificationService notificationService;
 
     public PsychologistService(UserRepository userRepository, UserPsychologistRepository userPsychologistRepository,
                                UserAnswerRepository userAnswerRepository, TestRepository testRepository,
                                PsychologistProfileRepository psychologistProfileRepository,
                                AppointmentRepository appointmentRepository,
                                AuditService auditService,
-                               ConsentService consentService) {
+                               ConsentService consentService,
+                               NotificationService notificationService) {
         this.userRepository = userRepository;
         this.userPsychologistRepository = userPsychologistRepository;
         this.userAnswerRepository = userAnswerRepository;
@@ -45,6 +47,7 @@ public class PsychologistService {
         this.appointmentRepository = appointmentRepository;
         this.auditService = auditService;
         this.consentService = consentService;
+        this.notificationService = notificationService;
     }
 
     @Transactional(readOnly = true)
@@ -159,7 +162,9 @@ public class PsychologistService {
                 profile.map(PsychologistProfileEntity::getLinkedinUrl).orElse(null),
                 profile.map(PsychologistProfileEntity::getWebsite).orElse(null),
                 profile.map(PsychologistProfileEntity::getSessionPrices).orElse(null),
-                profile.map(PsychologistProfileEntity::getUpdatedAt).orElse(null)
+                profile.map(PsychologistProfileEntity::getUpdatedAt).orElse(null),
+                profile.map(PsychologistProfileEntity::getApproved).orElse(false),
+                profile.map(PsychologistProfileEntity::getRejectionReason).orElse(null)
         );
     }
 
@@ -246,6 +251,36 @@ public class PsychologistService {
             slug = base + "-" + suffix;
         }
         return slug;
+    }
+
+    @Transactional
+    public PsychologistDtos.MessageResponse requestReview(UserEntity psychologist) {
+        requirePsychologist(psychologist);
+        var profileOpt = psychologistProfileRepository.findByUser(psychologist);
+        if (profileOpt.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Perfil de psicólogo no encontrado");
+        }
+        PsychologistProfileEntity profile = profileOpt.get();
+
+        // Only allow resubmission if currently rejected (approved == false)
+        if (profile.getApproved() == null || Boolean.TRUE.equals(profile.getApproved())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Solo puedes solicitar revisión si tu perfil fue rechazado");
+        }
+
+        profile.setApproved(null); // null = pending re-review
+        profile.setRejectionReason(null);
+        profile.setUpdatedAt(Instant.now());
+        psychologistProfileRepository.save(profile);
+
+        // Notify all admins about the resubmission
+        List<UserEntity> admins = userRepository.findByRole(RoleConstants.ADMIN);
+        for (UserEntity admin : admins) {
+            notificationService.createNotification(admin.getId(), "APPROVAL",
+                    "Perfil reenviado para revisión",
+                    "El psicólogo " + psychologist.getName() + " ha reenviado su perfil para revisión.");
+        }
+
+        return new PsychologistDtos.MessageResponse("Solicitud de revisión enviada exitosamente");
     }
 
     private void requirePsychologist(UserEntity user) {

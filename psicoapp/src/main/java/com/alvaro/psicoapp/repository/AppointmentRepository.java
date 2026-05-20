@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -93,4 +94,9 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
         @Param("fromTime") Instant fromTime,
         @Param("toTime") Instant toTime,
         Pageable pageable);
+
+    // RGPD-11: Clear Stripe session IDs from paid appointments older than cutoff (PCI scope reduction)
+    @Modifying
+    @Query("UPDATE AppointmentEntity a SET a.stripeSessionId = null WHERE a.stripeSessionId IS NOT NULL AND a.paymentStatus = 'PAID' AND a.createdAt < :cutoff")
+    int clearOldStripeSessionIds(@Param("cutoff") Instant cutoff);
 }

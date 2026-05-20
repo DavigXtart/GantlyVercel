@@ -407,6 +407,54 @@ public class CalendarService {
     }
 
     @Transactional
+    public CalendarDtos.MessageResponse rescheduleAppointment(UserEntity user, Long appointmentId, CalendarDtos.RescheduleAppointmentRequest req) {
+        var appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cita no encontrada"));
+
+        // Only BOOKED or CONFIRMED appointments can be rescheduled
+        if (appointment.getStatus() != AppointmentStatusEnum.BOOKED && appointment.getStatus() != AppointmentStatusEnum.CONFIRMED) {
+            throw new IllegalArgumentException("Solo se pueden reagendar citas confirmadas o reservadas");
+        }
+
+        // Verify the requesting user is either the patient or the psychologist
+        boolean isPatient = appointment.getUser() != null && appointment.getUser().getId().equals(user.getId());
+        boolean isPsychologist = appointment.getPsychologist().getId().equals(user.getId());
+        if (!isPatient && !isPsychologist) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes permiso para reagendar esta cita");
+        }
+
+        // Validate new times
+        validateSlotTimes(req.newStartTime, req.newEndTime);
+        validateNoOverlap(appointment.getPsychologist().getId(), req.newStartTime, req.newEndTime, appointmentId);
+
+        Instant oldStart = appointment.getStartTime();
+        appointment.setStartTime(req.newStartTime);
+        appointment.setEndTime(req.newEndTime);
+        appointmentRepository.save(appointment);
+
+        auditService.logCalendarAction("APPOINTMENT_RESCHEDULED", appointmentId, user.getId(),
+                isPatient ? appointment.getPsychologist().getId() : (appointment.getUser() != null ? appointment.getUser().getId() : null));
+        auditService.persistAudit("RESCHEDULE_APPOINTMENT", "APPOINTMENT", appointmentId,
+                user.getId(), user.getRole(), user.getName(),
+                isPatient ? appointment.getPsychologist().getId() : (appointment.getUser() != null ? appointment.getUser().getId() : null), null);
+
+        // Notify the other party
+        String formattedNew = req.newStartTime.atZone(com.alvaro.psicoapp.config.AppTimezone.APP_ZONE)
+                .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        if (isPatient && appointment.getPsychologist() != null) {
+            notificationService.createNotification(appointment.getPsychologist().getId(), "APPOINTMENT",
+                    "Cita reagendada",
+                    user.getName() + " ha reagendado su cita al " + formattedNew);
+        } else if (isPsychologist && appointment.getUser() != null) {
+            notificationService.createNotification(appointment.getUser().getId(), "APPOINTMENT",
+                    "Cita reagendada",
+                    appointment.getPsychologist().getName() + " ha reagendado tu cita al " + formattedNew);
+        }
+
+        return new CalendarDtos.MessageResponse("Cita reagendada exitosamente");
+    }
+
+    @Transactional
     public CalendarDtos.CreateForPatientResponse createForPatient(UserEntity psychologist, CalendarDtos.CreateForPatientRequest req) {
         requirePsychologist(psychologist);
         validateSlotTimes(req.start, req.end);
@@ -755,7 +803,7 @@ public class CalendarService {
                 apt.getPaymentStatus() != null ? apt.getPaymentStatus().name() : null,
                 apt.getPaymentDeadline() != null ? apt.getPaymentDeadline().toString() : null,
                 apt.getConfirmedAt() != null ? apt.getConfirmedAt().toString() : null,
-                null, psych);
+                null, psych, apt.getNotes());
     }
 
     private CalendarDtos.AppointmentListItemDto toRequestedAppointmentListItemDto(AppointmentRequestEntity req) {
@@ -768,7 +816,7 @@ public class CalendarService {
                 apt.getStartTime() != null ? apt.getStartTime().toString() : null,
                 apt.getEndTime() != null ? apt.getEndTime().toString() : null,
                 AppointmentStatusEnum.REQUESTED.name(), apt.getPrice(),
-                null, null, null, req.getRequestedAt().toString(), psych);
+                null, null, null, req.getRequestedAt().toString(), psych, apt.getNotes());
     }
 
     private CalendarDtos.PendingRequestDto toPendingRequestDto(AppointmentRequestEntity req) {
@@ -785,7 +833,7 @@ public class CalendarService {
         var rating = appointmentRatingRepository.findByAppointment_IdAndUser_Id(apt.getId(), userId)
                 .map(r -> new CalendarDtos.RatingDto(r.getId(), r.getRating(), r.getComment() != null ? r.getComment() : "", r.getCreatedAt() != null ? r.getCreatedAt().toString() : null))
                 .orElse(null);
-        return new CalendarDtos.PastAppointmentDto(apt.getId(), apt.getStartTime(), apt.getEndTime(), apt.getStatus() != null ? apt.getStatus().name() : null, apt.getPrice(), psych, rating);
+        return new CalendarDtos.PastAppointmentDto(apt.getId(), apt.getStartTime(), apt.getEndTime(), apt.getStatus() != null ? apt.getStatus().name() : null, apt.getPrice(), psych, rating, apt.getNotes());
     }
 
     private CalendarDtos.PsychologistPastAppointmentDto toPsychologistPastAppointmentDto(AppointmentEntity apt) {

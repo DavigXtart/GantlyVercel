@@ -18,7 +18,11 @@ public final class UserProfileDtos {
             Integer age,
             LocalDate birthDate,
             Instant createdAt,
-            Long companyId
+            Long companyId,
+            String emergencyContactName,
+            String emergencyContactPhone,
+            String referralSource,
+            String chiefComplaint
     ) {}
 
     public record MyPsychologistResponse(String status, PsychologistSummary psychologist) {}
@@ -52,7 +56,9 @@ public final class UserProfileDtos {
             Instant updatedAt
     ) {}
 
-    public record UpdateProfileRequest(String name, Boolean darkMode, String gender, Integer age, LocalDate birthDate) {}
+    public record UpdateProfileRequest(String name, Boolean darkMode, String gender, Integer age, LocalDate birthDate,
+                                       String emergencyContactName, String emergencyContactPhone,
+                                       String referralSource, String chiefComplaint) {}
 
     public record AvatarResponse(String avatarUrl) {}
 }

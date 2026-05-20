@@ -8,4 +8,6 @@ public interface InsurancePatientPolicyRepository extends JpaRepository<Insuranc
     List<InsurancePatientPolicyEntity> findByPatientIdOrderByCreatedAtDesc(Long patientId);
     List<InsurancePatientPolicyEntity> findByInsuranceCompanyCompanyIdAndPatientIdOrderByCreatedAtDesc(Long companyId, Long patientId);
     List<InsurancePatientPolicyEntity> findByInsuranceCompanyCompanyIdOrderByCreatedAtDesc(Long companyId);
+
+    void deleteByPatientId(Long patientId);
 }

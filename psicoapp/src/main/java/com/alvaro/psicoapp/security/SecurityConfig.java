@@ -40,7 +40,7 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter, RateLimitFilter rateLimitFilter, MaintenanceFilter maintenanceFilter,
-			OAuth2SuccessHandler oauth2SuccessHandler, Environment env) throws Exception {
+			AuditRequestFilter auditRequestFilter, OAuth2SuccessHandler oauth2SuccessHandler, Environment env) throws Exception {
         boolean isProd = java.util.Arrays.stream(env.getActiveProfiles()).anyMatch(p -> "prod".equalsIgnoreCase(p));
 
 		http
@@ -130,7 +130,8 @@ public class SecurityConfig {
                 .requestMatchers("/error", "/favicon.ico").permitAll()
                 .anyRequest().authenticated()
             )
-			.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+			.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+			.addFilterAfter(auditRequestFilter, JwtAuthFilter.class);
 		return http.build();
 	}
 
@@ -142,6 +143,7 @@ public class SecurityConfig {
         origins.forEach(origin -> config.addAllowedOrigin(origin.trim()));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        config.setExposedHeaders(List.of("X-Consent-Required"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
         source.registerCorsConfiguration("/**", config);

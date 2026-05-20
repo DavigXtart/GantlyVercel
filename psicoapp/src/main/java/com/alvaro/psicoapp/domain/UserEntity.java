@@ -13,12 +13,11 @@ public class UserEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	// PII encryption disabled until data migration script encrypts existing rows
-	// @Convert(converter = PiiEncryptConverter.class)
+	@Convert(converter = PiiEncryptConverter.class)
 	@Column(nullable = false, length = 500)
 	private String name;
 
-	// @Convert(converter = PiiDeterministicConverter.class)
+	@Convert(converter = PiiDeterministicConverter.class)
 	@Column(nullable = false, unique = true, length = 500)
 	private String email;
 
@@ -87,7 +86,7 @@ public class UserEntity {
 	@Column(name = "lockout_count", nullable = false)
 	private Integer lockoutCount = 0;
 
-	// @Convert(converter = PiiEncryptConverter.class)
+	@Convert(converter = PiiEncryptConverter.class)
 	@Column(name = "totp_secret", length = 500)
 	private String totpSecret;
 
@@ -102,6 +101,27 @@ public class UserEntity {
 
 	@Column(name = "health_data_consent_at")
 	private Instant healthDataConsentAt;
+
+	@Column(name = "health_data_consent_withdrawn_at")
+	private Instant healthDataConsentWithdrawnAt;
+
+	@Column(name = "guardian_email", length = 500)
+	private String guardianEmail;
+
+	@Column(name = "guardian_consent_at")
+	private Instant guardianConsentAt;
+
+	@Column(name = "emergency_contact_name", length = 255)
+	private String emergencyContactName;
+
+	@Column(name = "emergency_contact_phone", length = 50)
+	private String emergencyContactPhone;
+
+	@Column(name = "referral_source", length = 100)
+	private String referralSource;
+
+	@Column(name = "chief_complaint", length = 1000)
+	private String chiefComplaint;
 
 	public Long getId() { return id; }
 	public void setId(Long id) { this.id = id; }
@@ -163,4 +183,18 @@ public class UserEntity {
 	public void setGdprConsentVersion(String gdprConsentVersion) { this.gdprConsentVersion = gdprConsentVersion; }
 	public Instant getHealthDataConsentAt() { return healthDataConsentAt; }
 	public void setHealthDataConsentAt(Instant healthDataConsentAt) { this.healthDataConsentAt = healthDataConsentAt; }
+	public Instant getHealthDataConsentWithdrawnAt() { return healthDataConsentWithdrawnAt; }
+	public void setHealthDataConsentWithdrawnAt(Instant healthDataConsentWithdrawnAt) { this.healthDataConsentWithdrawnAt = healthDataConsentWithdrawnAt; }
+	public String getGuardianEmail() { return guardianEmail; }
+	public void setGuardianEmail(String guardianEmail) { this.guardianEmail = guardianEmail; }
+	public Instant getGuardianConsentAt() { return guardianConsentAt; }
+	public void setGuardianConsentAt(Instant guardianConsentAt) { this.guardianConsentAt = guardianConsentAt; }
+	public String getEmergencyContactName() { return emergencyContactName; }
+	public void setEmergencyContactName(String emergencyContactName) { this.emergencyContactName = emergencyContactName; }
+	public String getEmergencyContactPhone() { return emergencyContactPhone; }
+	public void setEmergencyContactPhone(String emergencyContactPhone) { this.emergencyContactPhone = emergencyContactPhone; }
+	public String getReferralSource() { return referralSource; }
+	public void setReferralSource(String referralSource) { this.referralSource = referralSource; }
+	public String getChiefComplaint() { return chiefComplaint; }
+	public void setChiefComplaint(String chiefComplaint) { this.chiefComplaint = chiefComplaint; }
 }
