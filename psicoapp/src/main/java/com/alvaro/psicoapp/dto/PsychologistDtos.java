@@ -2,6 +2,7 @@ package com.alvaro.psicoapp.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -113,4 +114,38 @@ public final class PsychologistDtos {
     public record UpdatePatientStatusResponse(String message, String status) {}
 
     public record ReferralUrlResponse(String referralCode, String fullUrl) {}
+
+    // --- Patient detail view DTOs ---
+
+    public record PatientAppointmentDto(
+            Long id,
+            Instant startTime,
+            Instant endTime,
+            String status,
+            BigDecimal price,
+            String paymentStatus,
+            String notes,
+            String service,
+            String modality
+    ) {}
+
+    public record PatientMoodEntryDto(
+            Long id,
+            LocalDate entryDate,
+            Integer moodRating,
+            String emotions,
+            String activities,
+            String notes,
+            Instant createdAt
+    ) {}
+
+    public record PatientTaskDto(
+            Long id,
+            String title,
+            String description,
+            String createdAt,
+            String dueDate,
+            String completedAt,
+            String createdBy
+    ) {}
 }

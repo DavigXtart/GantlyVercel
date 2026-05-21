@@ -4,6 +4,8 @@ import com.alvaro.psicoapp.domain.DailyMoodEntryEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -12,6 +14,7 @@ import java.util.Optional;
 public interface DailyMoodEntryRepository extends JpaRepository<DailyMoodEntryEntity, Long> {
     Optional<DailyMoodEntryEntity> findByUser_IdAndEntryDate(Long userId, LocalDate entryDate);
     List<DailyMoodEntryEntity> findByUser_IdOrderByEntryDateDesc(Long userId);
+    List<DailyMoodEntryEntity> findByUser_IdOrderByEntryDateDesc(Long userId, Pageable pageable);
     List<DailyMoodEntryEntity> findByUser_IdAndEntryDateBetween(Long userId, LocalDate start, LocalDate end);
     long deleteByUser_Id(Long userId);
 }

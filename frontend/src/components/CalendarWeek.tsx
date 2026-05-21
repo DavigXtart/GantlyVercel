@@ -373,8 +373,11 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
         setPanelNotesLoading(false);
       }
     }
-    // Scroll panel into view after state settles
-    setTimeout(() => panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+    // Scroll to show the panel — scroll the calendar container top into view
+    setTimeout(() => {
+      if (isMobile) return; // mobile uses fixed overlay, no scroll needed
+      panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
   }, [availableSessionTypes, sessionPrices]);
 
   const closePanel = useCallback(() => {

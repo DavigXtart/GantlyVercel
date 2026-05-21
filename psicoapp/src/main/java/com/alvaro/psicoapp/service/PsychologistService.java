@@ -7,6 +7,7 @@ import com.alvaro.psicoapp.domain.UserEntity;
 import com.alvaro.psicoapp.dto.PsychologistDtos;
 import com.alvaro.psicoapp.repository.*;
 import com.alvaro.psicoapp.util.ReferralCodeUtil;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class PsychologistService {
@@ -28,6 +30,8 @@ public class PsychologistService {
     private final TestRepository testRepository;
     private final PsychologistProfileRepository psychologistProfileRepository;
     private final AppointmentRepository appointmentRepository;
+    private final DailyMoodEntryRepository dailyMoodEntryRepository;
+    private final TaskRepository taskRepository;
     private final AuditService auditService;
     private final ConsentService consentService;
     private final NotificationService notificationService;
@@ -36,6 +40,8 @@ public class PsychologistService {
                                UserAnswerRepository userAnswerRepository, TestRepository testRepository,
                                PsychologistProfileRepository psychologistProfileRepository,
                                AppointmentRepository appointmentRepository,
+                               DailyMoodEntryRepository dailyMoodEntryRepository,
+                               TaskRepository taskRepository,
                                AuditService auditService,
                                ConsentService consentService,
                                NotificationService notificationService) {
@@ -45,6 +51,8 @@ public class PsychologistService {
         this.testRepository = testRepository;
         this.psychologistProfileRepository = psychologistProfileRepository;
         this.appointmentRepository = appointmentRepository;
+        this.dailyMoodEntryRepository = dailyMoodEntryRepository;
+        this.taskRepository = taskRepository;
         this.auditService = auditService;
         this.consentService = consentService;
         this.notificationService = notificationService;
@@ -281,6 +289,68 @@ public class PsychologistService {
         }
 
         return new PsychologistDtos.MessageResponse("Solicitud de revisión enviada exitosamente");
+    }
+
+    @Transactional(readOnly = true)
+    public List<PsychologistDtos.PatientAppointmentDto> getPatientAppointments(UserEntity psychologist, Long patientId) {
+        requirePsychologist(psychologist);
+        requirePatientOf(psychologist.getId(), patientId);
+        auditService.logPatientDataAccess(psychologist.getId(), patientId, "PATIENT_APPOINTMENTS", "READ");
+
+        return appointmentRepository.findByPsychologistAndPatient(psychologist.getId(), patientId)
+                .stream()
+                .map(a -> new PsychologistDtos.PatientAppointmentDto(
+                        a.getId(),
+                        a.getStartTime(),
+                        a.getEndTime(),
+                        a.getStatus() != null ? a.getStatus().name() : null,
+                        a.getPrice(),
+                        a.getPaymentStatus() != null ? a.getPaymentStatus().name() : null,
+                        a.getNotes(),
+                        a.getService(),
+                        a.getModality()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<PsychologistDtos.PatientMoodEntryDto> getPatientMoodEntries(UserEntity psychologist, Long patientId) {
+        requirePsychologist(psychologist);
+        requirePatientOf(psychologist.getId(), patientId);
+        auditService.logPatientDataAccess(psychologist.getId(), patientId, "PATIENT_MOOD_ENTRIES", "READ");
+
+        return dailyMoodEntryRepository.findByUser_IdOrderByEntryDateDesc(patientId, PageRequest.of(0, 14))
+                .stream()
+                .map(e -> new PsychologistDtos.PatientMoodEntryDto(
+                        e.getId(),
+                        e.getEntryDate(),
+                        e.getMoodRating(),
+                        e.getEmotions(),
+                        e.getActivities(),
+                        e.getNotes(),
+                        e.getCreatedAt()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<PsychologistDtos.PatientTaskDto> getPatientTasks(UserEntity psychologist, Long patientId) {
+        requirePsychologist(psychologist);
+        requirePatientOf(psychologist.getId(), patientId);
+        auditService.logPatientDataAccess(psychologist.getId(), patientId, "PATIENT_TASKS", "READ");
+
+        return taskRepository.findByUser_IdAndPsychologist_IdOrderByCreatedAtDesc(patientId, psychologist.getId())
+                .stream()
+                .map(t -> new PsychologistDtos.PatientTaskDto(
+                        t.getId(),
+                        t.getTitle(),
+                        t.getDescription(),
+                        t.getCreatedAt() != null ? t.getCreatedAt().toString() : null,
+                        t.getDueDate() != null ? t.getDueDate().toString() : null,
+                        t.getCompletedAt() != null ? t.getCompletedAt().toString() : null,
+                        t.getCreatedBy()
+                ))
+                .collect(Collectors.toList());
     }
 
     private void requirePsychologist(UserEntity user) {

@@ -91,4 +91,30 @@ public class PsychologistController {
     public ResponseEntity<PsychologistDtos.MessageResponse> requestReview(Principal principal) {
         return ResponseEntity.ok(psychologistService.requestReview(currentUserService.getCurrentUser(principal)));
     }
+
+    // --- Patient detail view endpoints ---
+
+    @GetMapping("/patients/{patientId}/appointments")
+    @Operation(summary = "Obtener citas con paciente", description = "Obtiene todas las citas entre el psicólogo y un paciente específico, ordenadas por fecha descendente")
+    @ApiResponse(responseCode = "200", description = "Citas obtenidas exitosamente")
+    public ResponseEntity<List<PsychologistDtos.PatientAppointmentDto>> getPatientAppointments(
+            Principal principal, @PathVariable Long patientId) {
+        return ResponseEntity.ok(psychologistService.getPatientAppointments(currentUserService.getCurrentUser(principal), patientId));
+    }
+
+    @GetMapping("/patients/{patientId}/mood-entries")
+    @Operation(summary = "Obtener entradas de ánimo del paciente", description = "Obtiene las últimas 14 entradas del diario de ánimo del paciente")
+    @ApiResponse(responseCode = "200", description = "Entradas de ánimo obtenidas exitosamente")
+    public ResponseEntity<List<PsychologistDtos.PatientMoodEntryDto>> getPatientMoodEntries(
+            Principal principal, @PathVariable Long patientId) {
+        return ResponseEntity.ok(psychologistService.getPatientMoodEntries(currentUserService.getCurrentUser(principal), patientId));
+    }
+
+    @GetMapping("/patients/{patientId}/tasks")
+    @Operation(summary = "Obtener tareas del paciente", description = "Obtiene las tareas asignadas a un paciente por este psicólogo")
+    @ApiResponse(responseCode = "200", description = "Tareas obtenidas exitosamente")
+    public ResponseEntity<List<PsychologistDtos.PatientTaskDto>> getPatientTasks(
+            Principal principal, @PathVariable Long patientId) {
+        return ResponseEntity.ok(psychologistService.getPatientTasks(currentUserService.getCurrentUser(principal), patientId));
+    }
 }

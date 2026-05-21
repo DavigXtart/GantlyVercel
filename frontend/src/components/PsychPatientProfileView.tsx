@@ -2,9 +2,9 @@ import { useState, useEffect, useMemo } from 'react';
 import {
   User, ArrowLeft, Calendar, CalendarCheck, Clock, CheckCircle2,
   ClipboardList, Heart, FileText, ChevronDown, ChevronUp,
-  Smile, Frown, Meh, AlertCircle
+  Smile, Frown, Meh
 } from 'lucide-react';
-import { calendarService, calendarNotesService, tasksService, API_BASE_URL } from '../services/api';
+import { calendarNotesService, psychPatientService, API_BASE_URL } from '../services/api';
 import LoadingSpinner from './ui/LoadingSpinner';
 import EmptyState from './ui/EmptyState';
 import { toast } from './ui/Toast';
@@ -112,7 +112,7 @@ export default function PsychPatientProfileView({
   onBack,
 }: PsychPatientProfileViewProps) {
   // Extra data fetched internally
-  const [pastAppointments, setPastAppointments] = useState<any[]>([]);
+  const [allAppointments, setAllAppointments] = useState<any[]>([]);
   const [loadingAppointments, setLoadingAppointments] = useState(false);
   const [tasks, setTasks] = useState<any[]>([]);
   const [loadingTasks, setLoadingTasks] = useState(false);
@@ -122,7 +122,7 @@ export default function PsychPatientProfileView({
   const [showAllTasks, setShowAllTasks] = useState(false);
   const [showAllNotes, setShowAllNotes] = useState(false);
 
-  // Load appointments for this psychologist, then filter by patient
+  // Load appointments and tasks via dedicated patient endpoints
   useEffect(() => {
     if (!viewingPatientId) return;
     let cancelled = false;
@@ -130,20 +130,17 @@ export default function PsychPatientProfileView({
     const loadAppointments = async () => {
       try {
         setLoadingAppointments(true);
-        const all = await calendarService.getPsychologistPastAppointments();
+        const appts = await psychPatientService.getAppointments(viewingPatientId);
         if (cancelled) return;
-        // Filter by patient ID — the DTO has user.id
-        const patientAppts = (all || []).filter(
-          (a: any) => a.user?.id === viewingPatientId
-        );
         // Sort by startTime desc (most recent first)
-        patientAppts.sort((a: any, b: any) =>
+        const sorted = (appts || []).slice().sort((a: any, b: any) =>
           new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
         );
-        setPastAppointments(patientAppts);
+        setAllAppointments(sorted);
 
-        // Load notes for recent appointments (first 5)
-        const recentIds = patientAppts.slice(0, 5).map((a: any) => a.id).filter(Boolean);
+        // Load notes for recent past appointments (first 5 past)
+        const pastAppts = sorted.filter((a: any) => new Date(a.startTime) <= new Date());
+        const recentIds = pastAppts.slice(0, 5).map((a: any) => a.id).filter(Boolean);
         if (recentIds.length > 0) {
           setLoadingNotes(true);
           const notesMap: Record<number, string> = {};
@@ -172,13 +169,9 @@ export default function PsychPatientProfileView({
     const loadTasks = async () => {
       try {
         setLoadingTasks(true);
-        const all = await tasksService.list();
+        const patientTasks = await psychPatientService.getTasks(viewingPatientId);
         if (cancelled) return;
-        // Filter tasks for this specific patient
-        const patientTasks = (all || []).filter(
-          (t: any) => t.userId === viewingPatientId || t.assignedTo === viewingPatientId
-        );
-        setTasks(patientTasks);
+        setTasks(patientTasks || []);
       } catch {
         // non-critical
       } finally {
@@ -192,54 +185,27 @@ export default function PsychPatientProfileView({
     return () => { cancelled = true; };
   }, [viewingPatientId]);
 
-  // Derived data
+  // Derived data — split allAppointments into past completed and upcoming
   const now = useMemo(() => new Date(), []);
 
-  const completedSessions = useMemo(
-    () => pastAppointments.filter((a: any) => a.status === 'BOOKED' || a.status === 'CONFIRMED'),
-    [pastAppointments]
+  const pastAppointments = useMemo(
+    () => allAppointments.filter((a: any) =>
+      new Date(a.startTime) <= now && (a.status === 'BOOKED' || a.status === 'CONFIRMED')
+    ),
+    [allAppointments, now]
   );
 
+  const completedSessions = pastAppointments;
   const lastSession = completedSessions[0] || null;
 
-  // For next appointment we need future slots — we check the past appointments list for any in the future
-  // But past appointments endpoint only returns past ones. We'll also fetch current slots.
-  const [upcomingAppointments, setUpcomingAppointments] = useState<any[]>([]);
-  const [loadingUpcoming, setLoadingUpcoming] = useState(false);
-
-  useEffect(() => {
-    if (!viewingPatientId) return;
-    let cancelled = false;
-
-    const loadUpcoming = async () => {
-      try {
-        setLoadingUpcoming(true);
-        const fromDate = new Date();
-        const toDate = new Date();
-        toDate.setDate(toDate.getDate() + 60);
-        const slots = await calendarService.mySlots(fromDate.toISOString(), toDate.toISOString());
-        if (cancelled) return;
-        // Filter slots that are booked/confirmed for this patient
-        const patientUpcoming = (slots || []).filter(
-          (s: any) =>
-            s.userId === viewingPatientId &&
-            (s.status === 'BOOKED' || s.status === 'CONFIRMED') &&
-            new Date(s.startTime) > now
-        );
-        patientUpcoming.sort((a: any, b: any) =>
-          new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
-        );
-        setUpcomingAppointments(patientUpcoming);
-      } catch {
-        // non-critical
-      } finally {
-        if (!cancelled) setLoadingUpcoming(false);
-      }
-    };
-
-    loadUpcoming();
-    return () => { cancelled = true; };
-  }, [viewingPatientId]);
+  const upcomingAppointments = useMemo(
+    () => allAppointments
+      .filter((a: any) =>
+        new Date(a.startTime) > now && (a.status === 'BOOKED' || a.status === 'CONFIRMED')
+      )
+      .sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()),
+    [allAppointments, now]
+  );
 
   const nextAppointment = upcomingAppointments[0] || null;
 
@@ -352,7 +318,7 @@ export default function PsychPatientProfileView({
                 <div>
                   <div className="text-[11px] text-slate-500 uppercase tracking-wider font-bold">Proxima cita</div>
                   <div className="text-sm font-semibold text-slate-800">
-                    {loadingUpcoming ? '...' : nextAppointment ? formatDateShort(nextAppointment.startTime) : 'Sin cita'}
+                    {loadingAppointments ? '...' : nextAppointment ? formatDateShort(nextAppointment.startTime) : 'Sin cita'}
                   </div>
                 </div>
               </div>
@@ -682,39 +648,144 @@ export default function PsychPatientProfileView({
 }
 
 // --- Mood Section (separate component to handle its own data loading) ---
-// TODO: Backend currently has no endpoint for a psychologist to view a patient's mood entries.
-// The personalAgendaService endpoints (getUserEntries, getStatistics) are user-scoped (current auth user).
-// A new endpoint like GET /psych/patients/{id}/mood-entries would be needed.
-// For now, this section shows a placeholder indicating the feature is coming.
 
 function MoodSection({ patientId }: { patientId: number }) {
-  // Placeholder — no API available for psychologist to fetch patient mood data
+  const [moodEntries, setMoodEntries] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!patientId) return;
+    let cancelled = false;
+    const load = async () => {
+      try {
+        setLoading(true);
+        const entries = await psychPatientService.getMoodEntries(patientId);
+        if (!cancelled) setMoodEntries(entries || []);
+      } catch {
+        // non-critical
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [patientId]);
+
+  // Build last 14 days array, filling gaps with null
+  const last14Days = useMemo(() => {
+    const days: Array<{ date: Date; entry: any | null }> = [];
+    const today = new Date();
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      d.setHours(0, 0, 0, 0);
+      // Find matching entry by date string (YYYY-MM-DD)
+      const dateStr = d.toISOString().slice(0, 10);
+      const entry = moodEntries.find((e: any) => {
+        const eDate = (e.date || e.entryDate || '').slice(0, 10);
+        return eDate === dateStr;
+      }) || null;
+      days.push({ date: d, entry });
+    }
+    return days;
+  }, [moodEntries]);
+
+  const dayAbbr = (d: Date) => {
+    const abbrs = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
+    return abbrs[d.getDay()];
+  };
+
+  const hasAnyData = moodEntries.length > 0;
+
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80">
       <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
         <Heart size={15} className="text-rose-400" />
         <h3 className="m-0 text-sm font-heading font-semibold text-slate-800">Estado de animo</h3>
+        {hasAnyData && (
+          <span className="text-[11px] text-slate-400 font-medium">Ultimos 14 dias</span>
+        )}
       </div>
       <div className="p-5">
-        <div className="text-center py-4">
-          <div className="flex justify-center gap-1.5 mb-3">
-            {/* Mini mood bar placeholder */}
-            {Array.from({ length: 14 }).map((_, i) => (
-              <div
-                key={i}
-                className="w-3 h-8 rounded-sm bg-slate-100"
-              />
-            ))}
+        {loading ? (
+          <div className="flex items-center gap-2 text-sm text-slate-400">
+            <div className="w-3 h-3 border-2 border-slate-300 border-t-gantly-blue rounded-full animate-spin" />
+            Cargando...
           </div>
-          <div className="flex items-center gap-1.5 justify-center text-sm text-slate-400">
-            <AlertCircle size={14} />
-            <span>Proximamente</span>
+        ) : !hasAnyData ? (
+          <EmptyState
+            icon={<Heart className="w-8 h-8 text-slate-300" />}
+            title="Sin registros de animo"
+            description="El paciente aun no ha registrado su estado de animo."
+          />
+        ) : (
+          <div>
+            {/* Bar chart */}
+            <div className="flex items-end justify-between gap-1" style={{ height: 80 }}>
+              {last14Days.map(({ date, entry }, i) => {
+                const rating = entry?.moodRating ?? 0;
+                const barHeight = rating > 0 ? (rating / 5) * 100 : 0;
+                return (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-0.5 group relative">
+                    {rating > 0 ? (
+                      <>
+                        <div
+                          className={`w-full max-w-[20px] rounded-sm transition-all ${moodBarColor(rating)}`}
+                          style={{ height: `${barHeight}%`, minHeight: 4 }}
+                        />
+                        {/* Tooltip on hover */}
+                        <div className="absolute bottom-full mb-1 hidden group-hover:block z-10">
+                          <div className="bg-slate-800 text-white text-[10px] rounded px-2 py-1 whitespace-nowrap shadow-lg">
+                            <div className="flex items-center gap-1">
+                              {moodIcon(rating)}
+                              <span>{rating}/5</span>
+                            </div>
+                            {entry?.notes && (
+                              <p className="mt-0.5 m-0 text-slate-300 max-w-[150px] truncate">{entry.notes}</p>
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div
+                        className="w-full max-w-[20px] rounded-sm bg-slate-100"
+                        style={{ height: 4 }}
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            {/* Day labels */}
+            <div className="flex justify-between gap-1 mt-1.5">
+              {last14Days.map(({ date }, i) => (
+                <div key={i} className="flex-1 text-center">
+                  <span className="text-[9px] text-slate-400 font-medium">
+                    {dayAbbr(date)}
+                  </span>
+                  <span className="block text-[9px] text-slate-300">
+                    {date.getDate()}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {/* Legend */}
+            <div className="flex items-center justify-center gap-4 mt-3 pt-3 border-t border-slate-100">
+              <div className="flex items-center gap-1">
+                <Smile size={12} className="text-emerald-500" />
+                <span className="text-[10px] text-slate-500">Bien (4-5)</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Meh size={12} className="text-amber-500" />
+                <span className="text-[10px] text-slate-500">Regular (3)</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Frown size={12} className="text-red-400" />
+                <span className="text-[10px] text-slate-500">Bajo (1-2)</span>
+              </div>
+            </div>
           </div>
-          <p className="text-xs text-slate-400 mt-1 m-0">
-            {/* TODO: New backend endpoint needed: GET /psych/patients/{patientId}/mood-entries */}
-            Vista del diario de animo del paciente
-          </p>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -85,6 +85,13 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
 
     List<AppointmentEntity> findByRecurrenceGroupId(String recurrenceGroupId);
 
+    @Query("SELECT a FROM AppointmentEntity a WHERE a.psychologist.id = :psychologistId AND a.user.id = :userId " +
+           "AND a.user IS NOT NULL AND (a.status = 'CONFIRMED' OR a.status = 'BOOKED' OR a.status = 'CANCELLED') " +
+           "ORDER BY a.startTime DESC")
+    List<AppointmentEntity> findByPsychologistAndPatient(
+        @Param("psychologistId") Long psychologistId,
+        @Param("userId") Long userId);
+
     @Query("SELECT a FROM AppointmentEntity a WHERE a.psychologist.id = :psychologistId " +
            "AND a.user IS NOT NULL " +
            "AND (a.status = 'CONFIRMED' OR a.status = 'BOOKED') " +

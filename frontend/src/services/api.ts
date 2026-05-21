@@ -906,6 +906,13 @@ export const psychService = {
   }
 };
 
+// Patient detail endpoints for psychologist view
+export const psychPatientService = {
+  getAppointments: (patientId: number) => api.get(`/psych/patients/${patientId}/appointments`).then(r => r.data),
+  getMoodEntries: (patientId: number) => api.get(`/psych/patients/${patientId}/mood-entries`).then(r => r.data),
+  getTasks: (patientId: number) => api.get(`/psych/patients/${patientId}/tasks`).then(r => r.data),
+};
+
 // Consentimientos
 export const consentService = {
   getDocumentTypes: async () => {
