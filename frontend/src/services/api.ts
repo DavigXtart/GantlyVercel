@@ -924,7 +924,7 @@ export const consentService = {
     return data as ConsentRequest;
   },
   getMyRequests: async () => {
-    const { data } = await api.get('/consent/requests/my');
+    const { data } = await api.get('/consent/requests/me');
     return data as ConsentRequest[];
   },
   getSentRequests: async () => {

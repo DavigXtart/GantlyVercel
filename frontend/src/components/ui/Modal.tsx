@@ -16,9 +16,12 @@ export default function Modal({ open, onClose, title, children, className, maxWi
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') {
-      onClose();
+      onCloseRef.current();
       return;
     }
     if (e.key === 'Tab' && dialogRef.current) {
@@ -40,7 +43,7 @@ export default function Modal({ open, onClose, title, children, className, maxWi
         }
       }
     }
-  }, [onClose]);
+  }, []);
 
   useEffect(() => {
     if (open) {
@@ -85,7 +88,7 @@ export default function Modal({ open, onClose, title, children, className, maxWi
         ref={dialogRef}
         tabIndex={-1}
         className={cn(
-          'relative w-full bg-white rounded-2xl shadow-xl overflow-hidden',
+          'relative w-full max-h-[90vh] bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col',
           'animate-fade-in',
           maxWidth,
           className
@@ -114,7 +117,7 @@ export default function Modal({ open, onClose, title, children, className, maxWi
             <X size={18} />
           </button>
         )}
-        <div className="p-6">{children}</div>
+        <div className="p-6 overflow-y-auto flex-1 min-h-0">{children}</div>
       </div>
     </div>
   );
