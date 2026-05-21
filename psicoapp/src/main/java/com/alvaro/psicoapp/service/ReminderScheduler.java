@@ -50,7 +50,7 @@ public class ReminderScheduler {
             if (apt.getUser() != null) {
                 notificationService.createNotification(apt.getUser().getId(), "REMINDER",
                         "Recordatorio de cita",
-                        "Tienes una cita mañana con " + apt.getPsychologist().getName());
+                        "Tienes una cita mañana con " + apt.getPsychologist().getName(), apt.getId());
 
                 try {
                     emailService.sendAppointmentReminderEmail(
@@ -65,7 +65,7 @@ public class ReminderScheduler {
                 try {
                     notificationService.createNotification(apt.getPsychologist().getId(), "REMINDER",
                             "Recordatorio de cita",
-                            "Tienes una cita mañana con " + apt.getUser().getName());
+                            "Tienes una cita mañana con " + apt.getUser().getName(), apt.getId());
                     emailService.sendAppointmentReminderEmail(
                             apt.getPsychologist().getEmail(), apt.getPsychologist().getName(),
                             apt.getUser().getName(), apt.getStartTime(),
@@ -89,7 +89,7 @@ public class ReminderScheduler {
                 if (recentEntry.isEmpty() && todayEntry.isEmpty()) {
                     notificationService.createNotification(user.getId(), "REMINDER",
                             "Diario de ánimo",
-                            "No olvides registrar tu estado de ánimo hoy. Es importante para tu seguimiento.");
+                            "No olvides registrar tu estado de ánimo hoy. Es importante para tu seguimiento.", null);
                 }
             } catch (Exception e) {
                 logger.debug("Error checking mood entries for user {}", user.getId());

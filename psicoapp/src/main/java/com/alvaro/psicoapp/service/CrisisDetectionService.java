@@ -92,13 +92,13 @@ public class CrisisDetectionService {
             String type = "HIGH".equals(level) ? "CRISIS" : "WARNING";
             notificationService.createNotification(psychId, type,
                     "HIGH".equals(level) ? "Alerta de crisis - Paciente" : "Alerta - Paciente",
-                    reason);
+                    reason, null);
         }
 
         if ("HIGH".equals(level)) {
             notificationService.createNotification(userId, "CRISIS",
                     "Recursos de ayuda",
-                    "Si necesitas ayuda inmediata, llama al 024 (Línea de atención a la conducta suicida) o al 112 (Emergencias).");
+                    "Si necesitas ayuda inmediata, llama al 024 (Línea de atención a la conducta suicida) o al 112 (Emergencias).", null);
         }
     }
 }

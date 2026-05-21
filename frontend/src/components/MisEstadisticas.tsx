@@ -3,10 +3,14 @@ import { personalAgendaService, evaluationTestService } from '../services/api';
 import { toast } from './ui/Toast';
 import LoadingSpinner from './ui/LoadingSpinner';
 import EmptyState from './ui/EmptyState';
-import { LineChart, Smile, Flame, FileEdit, HelpCircle, TrendingUp, LayoutGrid, History, BarChart3 } from 'lucide-react';
+import { LineChart, Smile, Flame, FileEdit, HelpCircle, TrendingUp, LayoutGrid, History, BarChart3, Eye, ChevronRight } from 'lucide-react';
 import MoodFace from './ui/MoodFace';
 
-export default function MisEstadisticas() {
+interface MisEstadisticasProps {
+  onViewTest?: (testId: number, testCode: string, testTitle: string) => void;
+}
+
+export default function MisEstadisticas({ onViewTest }: MisEstadisticasProps = {}) {
   const [loading, setLoading] = useState(true);
   const [moodStats, setMoodStats] = useState<any>(null);
   const [testStats, setTestStats] = useState<any>(null);
@@ -337,18 +341,24 @@ export default function MisEstadisticas() {
                 </div>
                 <div className="divide-y divide-slate-50">
                   {testStats.recentResults.map((result: any, index: number) => (
-                    <div
+                    <button
                       key={index}
-                      className={`flex justify-between items-center px-6 py-4 hover:bg-gantly-cloud/50 transition-all duration-200 ${
+                      type="button"
+                      onClick={() => {
+                        if (onViewTest && result.testId) {
+                          onViewTest(result.testId, result.testCode || '', result.testTitle);
+                        }
+                      }}
+                      className={`w-full flex justify-between items-center px-6 py-4 hover:bg-gantly-blue/5 transition-all duration-200 cursor-pointer group ${
                         index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-gantly-blue/10 flex items-center justify-center">
+                        <div className="w-9 h-9 rounded-lg bg-gantly-blue/10 flex items-center justify-center group-hover:bg-gantly-blue/20 transition-colors">
                           <BarChart3 size={16} className="text-gantly-blue" />
                         </div>
-                        <div>
-                          <p className="text-sm font-body font-semibold text-gantly-text">
+                        <div className="text-left">
+                          <p className="text-sm font-body font-semibold text-gantly-text group-hover:text-gantly-blue transition-colors">
                             {result.testTitle}
                           </p>
                           <div className="flex items-center gap-2 mt-0.5">
@@ -368,12 +378,13 @@ export default function MisEstadisticas() {
                           </div>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="flex items-center gap-3">
                         <p className="text-xl font-heading font-bold text-gantly-blue">
                           {result.score.toFixed(1)}
                         </p>
+                        <ChevronRight size={16} className="text-slate-300 group-hover:text-gantly-blue transition-colors" />
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>

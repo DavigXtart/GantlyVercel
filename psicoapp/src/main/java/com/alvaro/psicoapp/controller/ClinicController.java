@@ -547,7 +547,8 @@ public class ClinicController {
                 patientId,
                 "CLINIC_CHAT",
                 "Mensaje de tu clinica",
-                "Tu clinica te ha enviado un mensaje"
+                "Tu clinica te ha enviado un mensaje",
+                null
         );
 
         return ResponseEntity.ok(new ChatMessageDto(msg.getId(), msg.getSender(), req.content(), msg.getCreatedAt().toString()));

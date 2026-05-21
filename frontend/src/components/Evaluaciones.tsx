@@ -37,7 +37,19 @@ export default function Evaluaciones({ onStartTest }: EvaluacionesProps) {
 
   useEffect(() => {
     loadTests();
-    loadCompletedTests();
+    loadCompletedTests().then(() => {
+      // Auto-open test results if navigated from Estadísticas
+      const stored = sessionStorage.getItem('view-test-result');
+      if (stored) {
+        sessionStorage.removeItem('view-test-result');
+        try {
+          const { testId, testCode, testTitle } = JSON.parse(stored);
+          if (testId) {
+            setViewingResults({ testId, code: testCode || '', title: testTitle || '' });
+          }
+        } catch { /* ignore */ }
+      }
+    });
   }, []);
 
   const loadTests = async () => {

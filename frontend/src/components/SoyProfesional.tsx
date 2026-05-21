@@ -7,7 +7,6 @@ import {
   BadgeCheck, Laptop, HeartPulse, CheckCircle2,
 } from 'lucide-react';
 import LogoSvg from '../assets/logo-gantly.svg';
-import LogoIcon from '../assets/logo-gantly-icon.svg';
 import SectionWrapper from './landing/shared/SectionWrapper';
 import ScrollReveal from './landing/shared/ScrollReveal';
 import GlowCard from './landing/shared/GlowCard';
@@ -194,80 +193,115 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
       </nav>
 
       {/* ─── Hero Section ─── */}
-      <section
-        className="relative min-h-screen overflow-hidden flex flex-col"
-        style={{
-          background: 'linear-gradient(135deg, #1B6FA0 0%, #2E93CC 20%, #48C6D4 42%, #78D4B0 60%, #B8CC68 80%, #D8C850 100%)',
-        }}
-      >
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 lg:px-12 pt-28">
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/15 border border-white/20 mb-8"
-          >
-            <Brain size={14} className="text-white/80" />
-            <span className="text-xs font-semibold font-body text-white/80 tracking-wide uppercase">
-              Para profesionales de la salud mental
-            </span>
-          </motion.div>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.4, ease: 'easeOut' }}
-            className="font-heading text-center text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.1] max-w-4xl mb-6"
-          >
-            Haz crecer tu{' '}
-            <em className="italic font-extrabold">practica clinica</em>{' '}
-            con Gantly
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.8 }}
-            className="font-body text-lg sm:text-xl text-white/80 text-center max-w-xl mb-10"
-          >
-            Dedicarte a lo que importa: tus pacientes. Nosotros nos encargamos de la agenda, los pagos, la tecnologia y la seguridad.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1 }}
-            className="flex flex-col sm:flex-row items-center gap-4"
-          >
-            <button
-              onClick={onGetStarted}
-              className="font-heading font-semibold text-base text-gantly-text bg-white hover:bg-white/90 transition-colors px-8 py-3.5 rounded-xl cursor-pointer shadow-lg shadow-black/10 min-w-[220px]"
-            >
-              Registrarme como psicólogo
-            </button>
-            {onRegisterCompany && (
-              <button
-                onClick={onRegisterCompany}
-                className="font-heading font-semibold text-base text-white border-2 border-white/40 hover:border-white/80 hover:bg-white/10 transition-all px-8 py-3.5 rounded-xl cursor-pointer min-w-[220px] flex items-center justify-center gap-2"
-              >
-                Soy empresa / clinica
-                <ArrowRight size={18} />
-              </button>
-            )}
-          </motion.div>
-        </div>
-
-        {/* Logo watermark */}
-        <motion.img
-          src={LogoIcon}
-          alt=""
-          aria-hidden="true"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 0.15, scale: 1 }}
-          transition={{ duration: 1, delay: 1.2 }}
-          className="absolute bottom-8 right-8 lg:bottom-12 lg:right-16 w-24 h-24 lg:w-40 lg:h-40 select-none pointer-events-none"
-          style={{ filter: 'brightness(0) invert(1)' }}
+      <section className="relative min-h-screen overflow-hidden flex flex-col bg-[#FAFBFC]">
+        {/* Subtle dot pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.4]"
+          style={{
+            backgroundImage: 'radial-gradient(circle, #CBD5E1 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
+          }}
         />
+
+        {/* Accent shape — top right */}
+        <div className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full bg-gantly-blue/[0.06] blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-40 -left-40 w-[400px] h-[400px] rounded-full bg-cyan-400/[0.04] blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex-1 flex items-center pt-28 pb-16">
+          <div className="mx-auto max-w-6xl px-6 lg:px-12 w-full">
+            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+              {/* Left — Copy */}
+              <div>
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gantly-blue/8 border border-gantly-blue/15 mb-6"
+                >
+                  <Brain size={14} className="text-gantly-blue" />
+                  <span className="text-xs font-semibold font-body text-gantly-blue tracking-wide uppercase">
+                    Para profesionales
+                  </span>
+                </motion.div>
+
+                <motion.h1
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.35, ease: 'easeOut' }}
+                  className="font-heading text-4xl sm:text-5xl lg:text-[3.5rem] font-bold text-[#0A1628] leading-[1.12] mb-5"
+                >
+                  Haz crecer tu practica clinica con Gantly
+                </motion.h1>
+
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.55 }}
+                  className="font-body text-lg text-slate-500 leading-relaxed mb-8 max-w-lg"
+                >
+                  Dedicarte a lo que importa: tus pacientes. Nosotros nos encargamos de la agenda, los pagos, la tecnologia y la seguridad.
+                </motion.p>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.7 }}
+                  className="flex flex-col sm:flex-row items-start gap-3"
+                >
+                  <button
+                    onClick={onGetStarted}
+                    className="font-heading font-semibold text-[15px] text-white bg-gantly-blue hover:bg-sky-600 transition-colors px-7 py-3 rounded-xl cursor-pointer shadow-sm shadow-gantly-blue/20"
+                  >
+                    Registrarme como psicólogo
+                  </button>
+                  {onRegisterCompany && (
+                    <button
+                      onClick={onRegisterCompany}
+                      className="font-heading font-semibold text-[15px] text-slate-700 border border-slate-300 hover:border-slate-400 hover:bg-slate-50 transition-all px-7 py-3 rounded-xl cursor-pointer flex items-center gap-2"
+                    >
+                      Soy empresa / clinica
+                      <ArrowRight size={16} />
+                    </button>
+                  )}
+                </motion.div>
+              </div>
+
+              {/* Right — Stats + Trust card */}
+              <motion.div
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.5 }}
+                className="hidden lg:block"
+              >
+                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-lg shadow-slate-200/50 p-8">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-xl bg-gantly-blue/10 flex items-center justify-center">
+                      <Shield size={20} className="text-gantly-blue" />
+                    </div>
+                    <div>
+                      <p className="font-heading font-semibold text-[15px] text-[#0A1628]">Plataforma verificada</p>
+                      <p className="font-body text-xs text-slate-400">Código de Buenas Prácticas COP Madrid</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    {stats.map((stat, i) => (
+                      <motion.div
+                        key={stat.label}
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.7 + i * 0.1 }}
+                        className="bg-[#FAFBFC] rounded-xl p-4 border border-slate-100"
+                      >
+                        <p className="font-heading text-2xl font-bold text-[#0A1628] mb-1">{stat.value}</p>
+                        <p className="font-body text-xs text-slate-500 leading-snug">{stat.label}</p>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </div>
 
         {/* Scroll indicator */}
         <motion.div
@@ -275,7 +309,7 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
           animate={{ y: [0, 8, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
         >
-          <ChevronDown size={24} className="text-white/50" />
+          <ChevronDown size={24} className="text-slate-300" />
         </motion.div>
       </section>
 
@@ -433,43 +467,38 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
         </ScrollReveal>
       </SectionWrapper>
 
-      {/* ─── Final CTA (gradient) ─── */}
-      <section
-        className="relative py-28 lg:py-36 overflow-hidden"
-        style={{
-          background: 'linear-gradient(135deg, #1B6FA0 0%, #2E93CC 25%, #48C6D4 50%, #78D4B0 75%, #B8CC68 100%)',
-        }}
-      >
-        <img
-          src={LogoIcon}
-          alt=""
-          aria-hidden="true"
-          className="absolute bottom-6 right-8 lg:bottom-10 lg:right-16 w-20 h-20 lg:w-32 lg:h-32 opacity-10 select-none pointer-events-none"
-          style={{ filter: 'brightness(0) invert(1)' }}
+      {/* ─── Final CTA ─── */}
+      <section className="relative py-28 lg:py-36 overflow-hidden bg-[#0F172A]">
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+            backgroundSize: '60px 60px',
+          }}
         />
 
         <div className="relative z-10 mx-auto max-w-3xl px-6 text-center">
           <ScrollReveal>
-            <h2 className="font-heading text-4xl lg:text-6xl font-bold text-white mb-4">
+            <h2 className="font-heading text-4xl lg:text-5xl font-bold text-white mb-4">
               Tu consultorio, sin límites
             </h2>
-            <p className="font-body text-lg text-white/70 mb-10">
+            <p className="font-body text-lg text-white/50 mb-10 max-w-xl mx-auto">
               Únete a la comunidad de profesionales que ya confían en Gantly para transformar su práctica clínica.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <button
                 onClick={onGetStarted}
-                className="px-8 py-4 rounded-xl bg-white text-gantly-text font-heading font-semibold text-lg hover:bg-white/90 transition-all duration-200 cursor-pointer min-w-[250px] shadow-lg shadow-black/10"
+                className="px-8 py-3.5 rounded-xl bg-gantly-blue text-white font-heading font-semibold text-base hover:bg-sky-600 transition-colors cursor-pointer min-w-[240px] shadow-sm shadow-gantly-blue/30"
               >
                 Registrarme como psicólogo
               </button>
               {onRegisterCompany && (
                 <button
                   onClick={onRegisterCompany}
-                  className="px-8 py-4 rounded-xl border-2 border-white/40 text-white font-heading font-semibold text-lg hover:border-white/80 hover:bg-white/10 transition-all duration-200 cursor-pointer min-w-[250px] flex items-center justify-center gap-2"
+                  className="px-8 py-3.5 rounded-xl border border-white/20 text-white/80 font-heading font-semibold text-base hover:border-white/40 hover:text-white transition-all cursor-pointer min-w-[240px] flex items-center justify-center gap-2"
                 >
                   Registrar clinica
-                  <ArrowRight size={20} />
+                  <ArrowRight size={18} />
                 </button>
               )}
             </div>

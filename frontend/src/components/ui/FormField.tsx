@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface FormFieldProps {
@@ -31,7 +32,9 @@ export default function FormField({
   ariaDescribedBy
 }: FormFieldProps) {
   const [touched, setTouched] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const showError = touched && error;
+  const isPassword = type === 'password';
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setTouched(true);
@@ -54,28 +57,42 @@ export default function FormField({
         {required && <span className="text-red-500 ml-1">*</span>}
       </label>
       {children || (
-        <input
-          id={inputId}
-          name={name}
-          type={type}
-          value={value}
-          onChange={onChange}
-          onBlur={handleBlur}
-          placeholder={placeholder}
-          required={required}
-          aria-label={ariaLabel || label}
-          aria-describedby={showError ? errorId : ariaDescribedBy}
-          aria-invalid={showError ? "true" : "false"}
-          aria-required={required}
-          className={cn(
-            'w-full px-4 py-3 rounded-xl border text-[15px] font-body text-gantly-text',
-            'transition-all duration-200 outline-none',
-            'focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/10',
-            showError
-              ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-500/10'
-              : 'border-[var(--color-border)] bg-white'
+        <div className={isPassword ? 'relative' : undefined}>
+          <input
+            id={inputId}
+            name={name}
+            type={isPassword && showPassword ? 'text' : type}
+            value={value}
+            onChange={onChange}
+            onBlur={handleBlur}
+            placeholder={placeholder}
+            required={required}
+            aria-label={ariaLabel || label}
+            aria-describedby={showError ? errorId : ariaDescribedBy}
+            aria-invalid={showError ? "true" : "false"}
+            aria-required={required}
+            className={cn(
+              'w-full px-4 py-3 rounded-xl border text-[15px] font-body text-gantly-text',
+              'transition-all duration-200 outline-none',
+              'focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/10',
+              isPassword && 'pr-11',
+              showError
+                ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-500/10'
+                : 'border-[var(--color-border)] bg-white'
+            )}
+          />
+          {isPassword && (
+            <button
+              type="button"
+              tabIndex={-1}
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
           )}
-        />
+        </div>
       )}
       {showError && (
         <p

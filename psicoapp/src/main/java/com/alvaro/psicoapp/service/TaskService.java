@@ -99,7 +99,7 @@ public class TaskService {
         t.setCreatedAt(Instant.now());
         TaskEntity saved = taskRepository.save(t);
         notificationService.createNotification(user.getId(), "TASK", "Nueva tarea asignada",
-            "Tu psicólogo te ha asignado la tarea: " + req.title());
+            "Tu psicólogo te ha asignado la tarea: " + req.title(), saved.getId());
         return saved;
     }
 

@@ -132,6 +132,7 @@ public class EvaluationTestService {
             .collect(Collectors.groupingBy(r -> r.getTest().getTopic(), Collectors.counting()));
         var recentResults = results.stream().limit(10)
             .map(r -> new com.alvaro.psicoapp.dto.EvaluationTestDtos.RecentResultDto(
+                    r.getTest().getId(), r.getTest().getCode(),
                     r.getTest().getTitle(), r.getTest().getTopic(),
                     r.getScore() != null ? r.getScore().doubleValue() : 0.0,
                     r.getLevel() != null ? r.getLevel() : "N/A",

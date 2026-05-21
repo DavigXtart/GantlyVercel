@@ -1,6 +1,8 @@
-import { useState } from 'react';
-import { Clock, CalendarDays, CalendarOff, Trash2, Plus } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Clock, CalendarDays, CalendarOff, Trash2, Plus, ChevronDown, ChevronUp, X, CalendarClock, Info } from 'lucide-react';
 import { calendarService } from '../services/api';
+import type { DaySchedule } from '../services/api';
 import CalendarWeek from './CalendarWeek';
 import LoadingSpinner from './ui/LoadingSpinner';
 import { toast } from './ui/Toast';
@@ -34,6 +36,7 @@ export default function PsychCalendarTab({
   onReloadPendingRequests,
   onReloadAbsences,
 }: PsychCalendarTabProps) {
+  const { t } = useTranslation();
   const [showAbsenceModal, setShowAbsenceModal] = useState(false);
   const [absenceStartDate, setAbsenceStartDate] = useState('');
   const [absenceEndDate, setAbsenceEndDate] = useState('');
@@ -42,6 +45,83 @@ export default function PsychCalendarTab({
   const [confirmAppointmentId, setConfirmAppointmentId] = useState<number | null>(null);
   const [cancelAppointmentId, setCancelAppointmentId] = useState<number | null>(null);
   const [deleteAbsenceId, setDeleteAbsenceId] = useState<number | null>(null);
+
+  // Weekly schedule state
+  const [showWeeklySchedule, setShowWeeklySchedule] = useState(false);
+  const [weeklySchedule, setWeeklySchedule] = useState<DaySchedule[]>([]);
+  const [loadingSchedule, setLoadingSchedule] = useState(false);
+  const [savingSchedule, setSavingSchedule] = useState(false);
+  const [generatingSlots, setGeneratingSlots] = useState(false);
+
+  const DEFAULT_SCHEDULE: DaySchedule[] = Array.from({ length: 7 }, (_, i) => ({
+    dayOfWeek: i,
+    enabled: i < 5, // Mon-Fri enabled
+    startTime1: '09:00',
+    endTime1: '14:00',
+    startTime2: null,
+    endTime2: null,
+  }));
+
+  const TIME_OPTIONS: string[] = [];
+  for (let h = 7; h <= 22; h++) {
+    for (let m = 0; m < 60; m += 30) {
+      if (h === 22 && m > 0) break;
+      TIME_OPTIONS.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+    }
+  }
+
+  const loadWeeklySchedule = useCallback(async () => {
+    setLoadingSchedule(true);
+    try {
+      const data = await calendarService.getWeeklySchedule();
+      if (data && data.length > 0) {
+        setWeeklySchedule(data);
+      } else {
+        setWeeklySchedule(DEFAULT_SCHEDULE);
+      }
+    } catch {
+      setWeeklySchedule(DEFAULT_SCHEDULE);
+    } finally {
+      setLoadingSchedule(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (showWeeklySchedule && weeklySchedule.length === 0) {
+      loadWeeklySchedule();
+    }
+  }, [showWeeklySchedule, weeklySchedule.length, loadWeeklySchedule]);
+
+  const updateDay = (dayIndex: number, updates: Partial<DaySchedule>) => {
+    setWeeklySchedule(prev =>
+      prev.map(d => (d.dayOfWeek === dayIndex ? { ...d, ...updates } : d))
+    );
+  };
+
+  const handleSaveSchedule = async () => {
+    setSavingSchedule(true);
+    try {
+      await calendarService.saveWeeklySchedule(weeklySchedule);
+      toast.success(t('weeklySchedule.saved'));
+    } catch (e: any) {
+      toast.error(e?.response?.data?.error || 'Error al guardar el horario');
+    } finally {
+      setSavingSchedule(false);
+    }
+  };
+
+  const handleGenerateSlots = async () => {
+    setGeneratingSlots(true);
+    try {
+      const result = await calendarService.generateWeeklySlots();
+      toast.success(t('weeklySchedule.generated', { created: result.slotsCreated, skipped: result.slotsSkipped }));
+      await onReloadSlots();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.error || 'Error al generar slots');
+    } finally {
+      setGeneratingSlots(false);
+    }
+  };
 
   if (loadingSlots) {
     return <LoadingSpinner text="Cargando calendario..." />;
@@ -125,6 +205,170 @@ export default function PsychCalendarTab({
           }
         }}
       />
+
+      {/* Horario Semanal */}
+      <div className="mt-6 bg-white rounded-2xl border border-slate-200/80">
+        <button
+          onClick={() => setShowWeeklySchedule(prev => !prev)}
+          className="w-full px-5 py-3 border-b border-slate-100 flex items-center justify-between cursor-pointer bg-transparent border-x-0 border-t-0"
+        >
+          <div className="flex items-center gap-2">
+            <CalendarClock size={16} className="text-gantly-blue" />
+            <h3 className="text-sm font-heading font-semibold text-slate-800 m-0">
+              {t('weeklySchedule.title')}
+            </h3>
+          </div>
+          {showWeeklySchedule ? (
+            <ChevronUp size={16} className="text-slate-400" />
+          ) : (
+            <ChevronDown size={16} className="text-slate-400" />
+          )}
+        </button>
+
+        {showWeeklySchedule && (
+          <div className="p-5">
+            {loadingSchedule ? (
+              <div className="flex items-center justify-center py-8">
+                <LoadingSpinner text="" />
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-col gap-2">
+                  {weeklySchedule.map(day => (
+                    <div
+                      key={day.dayOfWeek}
+                      className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-lg border transition-colors duration-200 ${
+                        day.enabled
+                          ? 'border-slate-200/80 bg-white'
+                          : 'border-slate-100 bg-slate-50/50'
+                      }`}
+                    >
+                      {/* Toggle + Day name */}
+                      <div className="flex items-center gap-3 min-w-[120px]">
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={day.enabled}
+                          onClick={() => updateDay(day.dayOfWeek, { enabled: !day.enabled })}
+                          className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gantly-blue/20 ${
+                            day.enabled ? 'bg-gantly-blue' : 'bg-slate-200'
+                          }`}
+                        >
+                          <span
+                            className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow transform ring-0 transition-transform duration-200 ${
+                              day.enabled ? 'translate-x-4' : 'translate-x-0'
+                            }`}
+                          />
+                        </button>
+                        <span className={`text-[13px] font-medium ${day.enabled ? 'text-slate-800' : 'text-slate-400'}`}>
+                          {t(`weeklySchedule.daysShort.${day.dayOfWeek}`)}
+                        </span>
+                      </div>
+
+                      {/* Time blocks or "Libre" */}
+                      {day.enabled ? (
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-1">
+                          {/* Block 1 */}
+                          <div className="flex items-center gap-1.5">
+                            <select
+                              value={day.startTime1}
+                              onChange={e => updateDay(day.dayOfWeek, { startTime1: e.target.value })}
+                              className="h-8 px-2 rounded-md border border-slate-200 text-[13px] text-slate-700 bg-white outline-none focus:border-gantly-blue focus:ring-1 focus:ring-gantly-blue/20 cursor-pointer"
+                            >
+                              {TIME_OPTIONS.map(opt => (
+                                <option key={opt} value={opt}>{opt}</option>
+                              ))}
+                            </select>
+                            <span className="text-slate-400 text-[11px]">-</span>
+                            <select
+                              value={day.endTime1}
+                              onChange={e => updateDay(day.dayOfWeek, { endTime1: e.target.value })}
+                              className="h-8 px-2 rounded-md border border-slate-200 text-[13px] text-slate-700 bg-white outline-none focus:border-gantly-blue focus:ring-1 focus:ring-gantly-blue/20 cursor-pointer"
+                            >
+                              {TIME_OPTIONS.map(opt => (
+                                <option key={opt} value={opt}>{opt}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          {/* Block 2 or add break button */}
+                          {day.startTime2 !== null ? (
+                            <div className="flex items-center gap-1.5">
+                              <select
+                                value={day.startTime2 || ''}
+                                onChange={e => updateDay(day.dayOfWeek, { startTime2: e.target.value })}
+                                className="h-8 px-2 rounded-md border border-slate-200 text-[13px] text-slate-700 bg-white outline-none focus:border-gantly-blue focus:ring-1 focus:ring-gantly-blue/20 cursor-pointer"
+                              >
+                                {TIME_OPTIONS.map(t => (
+                                  <option key={t} value={t}>{t}</option>
+                                ))}
+                              </select>
+                              <span className="text-slate-400 text-[11px]">-</span>
+                              <select
+                                value={day.endTime2 || ''}
+                                onChange={e => updateDay(day.dayOfWeek, { endTime2: e.target.value })}
+                                className="h-8 px-2 rounded-md border border-slate-200 text-[13px] text-slate-700 bg-white outline-none focus:border-gantly-blue focus:ring-1 focus:ring-gantly-blue/20 cursor-pointer"
+                              >
+                                {TIME_OPTIONS.map(t => (
+                                  <option key={t} value={t}>{t}</option>
+                                ))}
+                              </select>
+                              <button
+                                type="button"
+                                onClick={() => updateDay(day.dayOfWeek, { startTime2: null, endTime2: null })}
+                                className="w-7 h-7 flex items-center justify-center rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors duration-200 cursor-pointer bg-transparent border-none"
+                                title="Eliminar bloque"
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => updateDay(day.dayOfWeek, { startTime2: '16:00', endTime2: '20:00' })}
+                              className="text-[12px] text-gantly-blue hover:text-gantly-blue/80 font-medium cursor-pointer bg-transparent border-none px-0 transition-colors duration-200"
+                            >
+                              {t('weeklySchedule.addBreak')}
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-[12px] text-slate-400 italic">
+                          {t('weeklySchedule.free')}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footer */}
+                <div className="mt-5 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  <button
+                    onClick={handleSaveSchedule}
+                    disabled={savingSchedule}
+                    className="bg-gantly-blue text-white rounded-md h-9 px-4 text-[13px] font-semibold cursor-pointer border-none hover:bg-gantly-blue/90 transition-colors duration-200 disabled:opacity-60"
+                  >
+                    {savingSchedule ? t('common.loading') : t('weeklySchedule.save')}
+                  </button>
+                  <button
+                    onClick={handleGenerateSlots}
+                    disabled={generatingSlots}
+                    className="border border-slate-200 bg-white text-slate-600 rounded-md h-9 px-4 text-[13px] font-semibold cursor-pointer hover:bg-slate-50 transition-colors duration-200 disabled:opacity-60"
+                  >
+                    {generatingSlots ? t('weeklySchedule.generating') : t('weeklySchedule.generate')}
+                  </button>
+                  <div className="flex items-center gap-1.5 ml-0 sm:ml-auto">
+                    <Info size={12} className="text-slate-400 flex-shrink-0" />
+                    <span className="text-[11px] text-slate-400">
+                      {t('weeklySchedule.info')}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Solicitudes Pendientes */}
       {pendingRequests.length > 0 && (

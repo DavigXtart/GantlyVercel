@@ -616,7 +616,7 @@ public class AdminService {
         psychologistProfileRepository.save(profile);
 
         notificationService.createNotification(profile.getUser().getId(), "APPROVAL",
-                "Cuenta aprobada", "Tu cuenta de psicólogo ha sido aprobada. Ya puedes recibir pacientes.");
+                "Cuenta aprobada", "Tu cuenta de psicólogo ha sido aprobada. Ya puedes recibir pacientes.", profile.getId());
 
         try {
             emailService.sendPsychologistApprovalEmail(profile.getUser().getEmail(), profile.getUser().getName());
@@ -634,7 +634,7 @@ public class AdminService {
         psychologistProfileRepository.save(profile);
 
         notificationService.createNotification(profile.getUser().getId(), "APPROVAL",
-                "Cuenta rechazada", "Tu solicitud de cuenta de psicólogo necesita revisión: " + (reason != null ? reason : ""));
+                "Cuenta rechazada", "Tu solicitud de cuenta de psicólogo necesita revisión: " + (reason != null ? reason : ""), profile.getId());
 
         try {
             emailService.sendPsychologistRejectionEmail(profile.getUser().getEmail(), profile.getUser().getName(), reason);

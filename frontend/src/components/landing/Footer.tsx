@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { ClipboardList, Brain, Video, HeartPulse } from 'lucide-react';
 import LogoSvg from '../../assets/logo-gantly.svg';
 
@@ -11,6 +12,7 @@ const journeySteps = [
 
 export default function Footer() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   return (
     <footer className="bg-[#070E1A] text-white/60 overflow-hidden">
@@ -41,7 +43,7 @@ export default function Footer() {
         {/* Grid: logo + links */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           <div>
-            <img src={LogoSvg} alt="Gantly" className="h-6 brightness-0 invert mb-4 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
+            <img src={LogoSvg} alt="Gantly" className="h-6 brightness-0 invert mb-4 cursor-pointer" onClick={() => navigate('/')} />
             <p className="font-body text-sm leading-relaxed">{t('landing.footer.tagline')}</p>
           </div>
 
@@ -52,8 +54,7 @@ export default function Footer() {
             <ul className="space-y-2 font-body text-sm">
               <li><a href="/about" className="hover:text-white transition-colors duration-200">{t('landing.footer.about')}</a></li>
               <li><a href="/pricing" className="hover:text-white transition-colors duration-200">{t('landing.footer.pricing')}</a></li>
-              <li><a href="#" className="hover:text-white transition-colors duration-200">{t('landing.footer.blog')}</a></li>
-              <li><a href="#" className="hover:text-white transition-colors duration-200">{t('landing.footer.contact')}</a></li>
+              <li><a href="/soy-profesional" className="hover:text-white transition-colors duration-200">{t('landing.footer.professionals')}</a></li>
             </ul>
           </div>
 
@@ -62,9 +63,8 @@ export default function Footer() {
               {t('landing.footer.legal')}
             </h4>
             <ul className="space-y-2 font-body text-sm">
-              <li><a href="#" className="hover:text-white transition-colors duration-200">{t('landing.footer.privacy')}</a></li>
-              <li><a href="#" className="hover:text-white transition-colors duration-200">{t('landing.footer.terms')}</a></li>
-              <li><a href="#" className="hover:text-white transition-colors duration-200">{t('landing.footer.cookies')}</a></li>
+              <li><a href="/privacidad" className="hover:text-white transition-colors duration-200">{t('landing.footer.privacy')}</a></li>
+              <li><a href="/terminos" className="hover:text-white transition-colors duration-200">{t('landing.footer.terms')}</a></li>
             </ul>
           </div>
 

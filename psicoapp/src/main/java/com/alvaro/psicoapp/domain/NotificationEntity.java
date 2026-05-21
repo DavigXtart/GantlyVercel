@@ -26,6 +26,9 @@ public class NotificationEntity {
     @Column(columnDefinition = "TEXT")
     private String message;
 
+    @Column(name = "entity_id")
+    private Long entityId;
+
     @Column(name = "is_read", nullable = false)
     private boolean read = false;
 
@@ -44,6 +47,8 @@ public class NotificationEntity {
     public void setMessage(String message) { this.message = message; }
     public boolean isRead() { return read; }
     public void setRead(boolean read) { this.read = read; }
+    public Long getEntityId() { return entityId; }
+    public void setEntityId(Long entityId) { this.entityId = entityId; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }

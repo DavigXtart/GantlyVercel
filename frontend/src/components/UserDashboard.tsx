@@ -221,8 +221,8 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
         { id: 'mi-psicologo', icon: <Brain size={20} />, label: 'Psicólogo', requiresPsych: false },
         { id: 'chat', icon: <div className="relative"><MessageCircle size={20} />{hasUnreadChat && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-gantly-navy" />}</div>, label: 'Chat', requiresPsych: true },
         { id: 'tareas', icon: <CheckSquare size={20} />, label: 'Tareas', requiresPsych: true },
-        { id: 'valoraciones', icon: <ClipboardList size={20} />, label: 'Valoraciones', requiresPsych: false },
-        { id: 'descubrimiento', icon: <Compass size={20} />, label: 'Descubrir', requiresPsych: false },
+        { id: 'valoraciones', icon: <ClipboardList size={20} />, label: 'Evaluaciones', requiresPsych: false },
+        { id: 'descubrimiento', icon: <Compass size={20} />, label: 'Colabora', requiresPsych: false },
       ],
     },
     {
@@ -417,7 +417,21 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <NotificationBell />
+            <NotificationBell onNavigate={(type) => {
+              const tabMap: Record<string, Tab> = {
+                TASK: 'tareas',
+                APPOINTMENT: 'mis-citas',
+                PAYMENT: 'mis-citas',
+                REMINDER: 'mis-citas',
+                MESSAGE: 'chat',
+                CLINIC_CHAT: 'clinica',
+                APPROVAL: 'perfil',
+                CRISIS: 'perfil',
+                WARNING: 'perfil',
+              };
+              const target = tabMap[type];
+              if (target) setTab(target);
+            }} />
           </div>
         </nav>
 
@@ -548,7 +562,12 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
           )}
 
           {/* Statistics */}
-          {tab === 'mis-estadisticas' && <MisEstadisticas />}
+          {tab === 'mis-estadisticas' && <MisEstadisticas onViewTest={(testId, testCode, testTitle) => {
+            // Navigate to evaluaciones tab and let it handle showing results
+            setTab('evaluaciones');
+            // Store in sessionStorage so Evaluaciones can auto-open results
+            sessionStorage.setItem('view-test-result', JSON.stringify({ testId, testCode, testTitle }));
+          }} />}
 
           {/* Evaluations */}
           {tab === 'evaluaciones' && <Evaluaciones onStartTest={onStartTest} />}

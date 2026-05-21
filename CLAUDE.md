@@ -19,6 +19,7 @@
   - `2026-05-19-clinic-erp-redesign.md` — Rediseño completo ERP clínica (7 tabs) a estilo SaaS flat
   - `2026-05-19-12-features-plan.md` — Plan 12 features post-launch (4 waves, **COMPLETADO**)
   - `2026-05-20-ux-audit-verification.md` — Verificación UX/UI audit 26 fixes (ya implementados, tsc clean)
+  - `2026-05-21-calendar-panel-weekly-schedule.md` — Panel lateral CalendarWeek + horario semanal + rediseño ficha paciente
 
 ## Project Overview
 Plataforma de salud mental que conecta pacientes con psicólogos.
@@ -30,7 +31,7 @@ Plataforma de salud mental que conecta pacientes con psicólogos.
 ## Tech Stack
 - **Backend**: Spring Boot 3.4.7, Spring Security, JWT (JJWT 0.11.5), WebSocket STOMP/SockJS, JPA/Hibernate
 - **Frontend**: React 18.3.1, TypeScript 5.6.3, Vite 5.4.10, Tailwind 3.4.18, React Router 7, Axios, Framer Motion, i18next, Stripe JS, GSAP, Three.js/@react-three
-- **DB**: PostgreSQL 17, 26+ entidades JPA, 22+ tablas (migrado de MySQL 8.0)
+- **DB**: PostgreSQL 17, 27+ entidades JPA, 23+ tablas (migrado de MySQL 8.0)
 - **Infra**: Docker (2-stage build), Nginx reverse proxy, Jitsi Meet self-hosted
 - **PDF Export**: html2canvas + jsPDF (frontend)
 - **Excel Import**: Apache POI 5.2.5 (backend)
@@ -50,7 +51,7 @@ Plataforma de salud mental que conecta pacientes con psicólogos.
 ```
 psicoapp/src/main/java/com/alvaro/psicoapp/
 ├── controller/     (20+ controllers: Auth, Admin, Task, Calendar, Chat, Test, Stripe, Jitsi, Matching, Gdpr, Company...)
-├── service/        (35+ services: Auth, Email, JWT, Task, Test, Calendar, Chat, Matching, Audit, Stripe, TestImport, Gdpr, PiiEncryption, SecurityBreach, DataRetention, OAuthCodeStore...)
+├── service/        (37+ services: Auth, Email, JWT, Task, Test, Calendar, Chat, Matching, Audit, Stripe, TestImport, Gdpr, PiiEncryption, SecurityBreach, DataRetention, OAuthCodeStore, WeeklySchedule, WeeklySlotGeneratorScheduler...)
 ├── domain/         (25+ JPA entities)
 ├── repository/     (33+ Spring Data repositories)
 ├── dto/            (23+ DTO classes with validation)
@@ -68,7 +69,7 @@ frontend/src/
 │   ├── Auth: Login, Register, ForgotPassword, ResetPassword
 │   ├── Dashboards: UserDashboard, PsychDashboard, AdminPanel, CompanyDashboard
 │   ├── Dashboard Tabs (extracted):
-│   │   ├── Psych: PsychEditProfileTab, PsychPatientsTab, PsychTasksTab, PsychTestsTab, PsychBillingTab
+│   │   ├── Psych: PsychEditProfileTab, PsychPatientsTab, PsychTasksTab, PsychTestsTab, PsychBillingTab, PsychCalendarTab
 │   │   └── User: UserSettingsTab, UserTasksTab, UserPsychProfileTab
 │   ├── Flows: TestFlow, InitialTestFlow, AgendaPersonal, PatientMatchingTest
 │   ├── Tests: TestManager, TestImporter, TestReport
@@ -98,6 +99,7 @@ frontend/src/
 - **psychologist_profiles** - Extended psychologist info (approved, approved_at, rejection_reason, license_number)
 - **user_psychologist** - Patient-psychologist assignment
 - **consent_requests/consent_document_types** - Consent management (minors)
+- **weekly_schedules** - Psychologist weekly schedule templates (dayOfWeek, 2 time blocks, enabled)
 
 ## Routing (React Router)
 App.tsx uses `react-router-dom` v7 with declarative `<Routes>`:
@@ -298,6 +300,8 @@ Located in `psicoapp/src/main/resources/db/`:
 - `V57__stripe_events_table.sql` - Webhook replay protection (stripe_events table)
 - `V58__add_stripe_customer_id.sql` - Adds `stripe_customer_id` to user_subscriptions
 - `V59__add_fiscal_fields.sql` - Adds `razon_social`, `direccion_fiscal` to companies
+- `V60__add_notification_entity_id.sql` - Adds `entity_id` to notifications for deep linking
+- `V65__weekly_schedules.sql` - Weekly schedule templates for psychologists (dayOfWeek, 2 time blocks, enabled)
 
 ## Deleted Features
 - **Group Sessions**: Removed entirely (GroupSessionController, GroupSessionService, GroupSessionEntity, GroupSessionParticipantEntity, GroupSessions.tsx)
@@ -534,6 +538,9 @@ Located in `psicoapp/src/main/resources/db/`:
 - ~~Firma digital consentimientos~~ → **HECHO** — SignaturePad + consent tabs
 - ~~Gestión bajas/ausencias psicólogo~~ → **HECHO** — diagonal stripes + notificaciones
 - ~~UX/UI Audit 26 fixes~~ → **HECHO** — Modal, ConfirmDialog, ARIA, responsive, confirm()→ConfirmDialog, rounded-2xl, focus rings
+- ~~Panel lateral calendario psicólogo~~ → **HECHO** — Reemplaza 4 modals por panel 320px (create/edit), mobile overlay
+- ~~Horario semanal psicólogo~~ → **HECHO** — WeeklyScheduleEntity + auto-generación slots 2 semanas + scheduler domingo 2AM
+- ~~Ficha paciente clínica~~ → **HECHO** — Rediseño PsychPatientProfileView con sesiones, notas, tareas, próxima cita
 
 ## MCP Servers
 - **Playwright**: Browser automation para testing E2E. Configurado con `claude mcp add playwright -- npx @playwright/mcp@latest`
@@ -593,6 +600,36 @@ Located in `psicoapp/src/main/resources/db/`:
 - **48h expiration**: AppointmentSchedulerService expira citas sin pagar cada hora (con notificación al paciente)
 - **Timezone**: AppTimezone.APP_ZONE = Europe/Madrid centralizado en todos los servicios
 - **Tax fields**: taxRate, taxAmount, totalAmount, taxExempt — default exento (sanitario)
+
+## Weekly Schedule System
+- **WeeklyScheduleEntity**: Per-day schedule with 2 optional time blocks (morning: startTime1/endTime1, afternoon: startTime2/endTime2)
+- **dayOfWeek**: 0=Monday...6=Sunday, unique per psychologist
+- **Slot generation**: `WeeklyScheduleService.generateSlots()` creates 1-hour FREE appointment slots for next 2 weeks
+- **Skips**: existing appointments (non-CANCELLED), absences (PsychAbsenceEntity), past dates
+- **Price**: Auto-fills from `PsychologistProfileEntity.sessionPrices` JSON field (key "individual")
+- **Scheduler**: `WeeklySlotGeneratorScheduler` runs Sunday 2AM (`@Scheduled(cron = "0 0 2 * * SUN")`)
+- **Manual generation**: POST `/api/calendar/weekly-schedule/generate`
+- **Endpoints**: GET/PUT `/api/calendar/weekly-schedule`, POST `/api/calendar/weekly-schedule/generate`
+- **Frontend**: `PsychCalendarTab.tsx` collapsible schedule config (7 days, toggles, time selects, optional pause)
+- **Migration**: `V65__weekly_schedules.sql`
+
+## Psychologist Calendar Panel
+- **CalendarWeek.tsx**: Replaced 4 modals (price, edit, assign, notes) with single 320px right-side panel
+- **Panel fields**: Patient search, session type, price, payment method (Tarjeta/Efectivo), recurrence, notes
+- **Panel modes**: `panelMode: 'create' | 'edit' | null` — create for new slots, edit for existing
+- **Mobile**: Fixed full-screen overlay with backdrop instead of side panel
+- **Auto-scroll**: Panel scrolls into view on open via `panelRef.scrollIntoView()`
+- **Drag-to-create**: Drag across hours opens panel with range info, creates multiple slots
+- **Book modal**: USER mode (patient booking) unchanged — still uses confirmation modal
+
+## Patient Detail View (PsychPatientProfileView.tsx)
+- **Redesigned**: Replaced test-focused view with clinically relevant layout
+- **Header**: Avatar, name, email, age/gender badges, last session date
+- **Quick stats**: 4 cards (total sessions, last session, next appointment, tasks progress)
+- **Left column**: Next appointment details, session history timeline (5 + expand), clinical notes
+- **Right column**: Mood placeholder (needs backend endpoint), therapeutic tasks, patient info
+- **Data sources**: calendarService (appointments), calendarNotesService (notes), tasksService (tasks)
+- **Props unchanged**: Same interface as before — parent PsychDashboard requires zero changes
 
 ## Monitoring & Observability
 

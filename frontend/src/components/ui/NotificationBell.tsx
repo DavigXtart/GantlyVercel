@@ -8,10 +8,15 @@ interface Notification {
   title: string;
   message: string;
   read: boolean;
+  entityId?: number | null;
   createdAt: string;
 }
 
-export default function NotificationBell() {
+interface NotificationBellProps {
+  onNavigate?: (type: string, entityId?: number | null) => void;
+}
+
+export default function NotificationBell({ onNavigate }: NotificationBellProps = {}) {
   const [count, setCount] = useState(0);
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -132,7 +137,13 @@ export default function NotificationBell() {
               notifications.slice(0, 20).map(n => (
                 <button
                   key={n.id}
-                  onClick={() => !n.read && handleMarkRead(n.id)}
+                  onClick={() => {
+                    if (!n.read) handleMarkRead(n.id);
+                    if (onNavigate) {
+                      onNavigate(n.type, n.entityId);
+                      setOpen(false);
+                    }
+                  }}
                   className={`w-full text-left px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition-colors flex gap-3 bg-transparent cursor-pointer ${!n.read ? 'bg-gantly-blue/5' : ''}`}
                 >
                   {(() => {

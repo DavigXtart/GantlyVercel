@@ -67,7 +67,7 @@ public class AppointmentSchedulerService {
                     notificationService.createNotification(appointment.getUser().getId(), "PAYMENT",
                         "Cita expirada por falta de pago",
                         "Tu cita con " + (appointment.getPsychologist() != null ? appointment.getPsychologist().getName() : "tu psicólogo")
-                            + " ha sido liberada por no completar el pago a tiempo.");
+                            + " ha sido liberada por no completar el pago a tiempo.", appointment.getId());
                 }
 
                 appointment.setStatus(AppointmentStatusEnum.FREE);

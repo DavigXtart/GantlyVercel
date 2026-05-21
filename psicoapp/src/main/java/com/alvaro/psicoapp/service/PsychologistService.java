@@ -277,7 +277,7 @@ public class PsychologistService {
         for (UserEntity admin : admins) {
             notificationService.createNotification(admin.getId(), "APPROVAL",
                     "Perfil reenviado para revisión",
-                    "El psicólogo " + psychologist.getName() + " ha reenviado su perfil para revisión.");
+                    "El psicólogo " + psychologist.getName() + " ha reenviado su perfil para revisión.", profile.getId());
         }
 
         return new PsychologistDtos.MessageResponse("Solicitud de revisión enviada exitosamente");

@@ -531,7 +531,20 @@ export default function PsychDashboard() {
             {mainTabs.find(t => t.id === activeTabGroup)?.label || 'Dashboard'}
           </h2>
           <div className="flex items-center gap-3">
-            <NotificationBell />
+            <NotificationBell onNavigate={(type) => {
+              const tabMap: Record<string, Tab> = {
+                TASK: 'tareas',
+                APPOINTMENT: 'calendario',
+                PAYMENT: 'facturacion',
+                REMINDER: 'calendario',
+                MESSAGE: 'chat',
+                APPROVAL: 'perfil',
+                CRISIS: 'pacientes',
+                WARNING: 'perfil',
+              };
+              const target = tabMap[type];
+              if (target) setTab(target);
+            }} />
           </div>
         </header>
 

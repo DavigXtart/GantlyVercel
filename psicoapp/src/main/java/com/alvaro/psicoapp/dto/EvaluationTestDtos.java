@@ -9,6 +9,6 @@ public final class EvaluationTestDtos {
 
     public record SubmitResultRequest(String sessionId, BigDecimal score, String level, String answers) {}
 
-    public record RecentResultDto(String testTitle, String topic, double score, String level, String completedAt) {}
+    public record RecentResultDto(Long testId, String testCode, String testTitle, String topic, double score, String level, String completedAt) {}
     public record UserStatisticsResponse(int totalTests, double averageScore, Map<String, Long> testsByTopic, List<RecentResultDto> recentResults) {}
 }

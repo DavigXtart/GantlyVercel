@@ -186,7 +186,8 @@ public class WaitingListService {
                     entry.getPatient().getId(),
                     "WAITING_LIST",
                     "Disponibilidad en tu clínica",
-                    "Hay disponibilidad para tu cita. Contacta con la clínica para confirmar."
+                    "Hay disponibilidad para tu cita. Contacta con la clínica para confirmar.",
+                    entry.getId()
             );
         }
 

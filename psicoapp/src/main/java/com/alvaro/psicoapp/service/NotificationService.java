@@ -22,6 +22,10 @@ public class NotificationService {
     }
 
     public void createNotification(Long userId, String type, String title, String message) {
+        createNotification(userId, type, title, message, null);
+    }
+
+    public void createNotification(Long userId, String type, String title, String message, Long entityId) {
         UserEntity user = userRepository.findById(userId).orElse(null);
         if (user == null) return;
 
@@ -30,6 +34,7 @@ public class NotificationService {
         notification.setType(type);
         notification.setTitle(title);
         notification.setMessage(message);
+        notification.setEntityId(entityId);
         notification.setCreatedAt(Instant.now());
         notificationRepository.save(notification);
     }
@@ -44,6 +49,7 @@ public class NotificationService {
             map.put("title", n.getTitle());
             map.put("message", n.getMessage());
             map.put("read", n.isRead());
+            map.put("entityId", n.getEntityId());
             map.put("createdAt", n.getCreatedAt());
             return map;
         }).toList();

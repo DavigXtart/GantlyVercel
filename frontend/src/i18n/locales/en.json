@@ -125,6 +125,37 @@
       "description": "You don't have any assigned patients yet"
     }
   },
+  "weeklySchedule": {
+    "title": "Weekly schedule",
+    "save": "Save schedule",
+    "generate": "Generate slots now",
+    "generating": "Generating...",
+    "info": "Slots are automatically generated every Sunday for the next 2 weeks",
+    "saved": "Schedule saved",
+    "generated": "{{created}} appointments created, {{skipped}} skipped",
+    "addBreak": "+ Break",
+    "free": "Free",
+    "block1": "Block 1",
+    "block2": "Block 2",
+    "days": {
+      "0": "Monday",
+      "1": "Tuesday",
+      "2": "Wednesday",
+      "3": "Thursday",
+      "4": "Friday",
+      "5": "Saturday",
+      "6": "Sunday"
+    },
+    "daysShort": {
+      "0": "Mon",
+      "1": "Tue",
+      "2": "Wed",
+      "3": "Thu",
+      "4": "Fri",
+      "5": "Sat",
+      "6": "Sun"
+    }
+  },
   "landing": {
     "nav": { "patients": "Patients", "professionals": "Professionals", "clinics": "Clinics", "tests": "Tests", "login": "Sign in", "start": "Get started", "language": "ES" },
     "hero": { "handwritten": "Your path to wellness", "title_pre": "Your mental wellness,", "title_highlight": "in good hands", "subtitle": "Smart matching with verified psychologists. Clinical tests, secure video calls and continuous follow-up.", "cta_start": "Get started free", "cta_how": "See how it works", "cta_patient": "I'm a patient", "cta_professional": "I'm a professional", "social_patients": "active patients", "social_psychologists": "verified psychologists", "social_satisfaction": "satisfaction", "trust_badge": "GDPR · E2E Encrypted" },
@@ -137,7 +168,7 @@
     "tests": { "title": "Clinically validated tests", "subtitle": "Detailed reports with psychological profile visualization.", "badge1": "16PF Personality", "badge2": "TCA Intelligence", "badge3": "Anxiety", "description": "Clinically validated tests with detailed reports for each patient." },
     "trust": { "title": "Your security is our priority", "badge1_title": "GDPR", "badge1_desc": "Full compliance with European data protection regulation.", "badge2_title": "AES-256 Encryption", "badge2_desc": "Your conversations are end-to-end encrypted.", "badge3_title": "Health data", "badge3_desc": "Special protection for sensitive mental health data.", "badge4_title": "Verified professionals", "badge4_desc": "All psychologists go through a verification process.", "badge5_title": "Secure payments", "badge5_desc": "Secure payment processing with Stripe.", "badge6_title": "Private video calls", "badge6_desc": "Own infrastructure for maximum privacy." },
     "cta": { "title": "Ready to take care of your mental health?", "subtitle": "We connect you with the perfect professional for you", "cta_patient": "I'm a patient", "cta_professional": "I'm a professional" },
-    "footer": { "tagline": "Mental health powered by technology", "platform": "Platform", "about": "About us", "pricing": "Pricing", "blog": "Blog", "contact": "Contact", "legal": "Legal", "privacy": "Privacy", "terms": "Terms", "cookies": "Cookies", "copyright": "© 2026 Gantly. All rights reserved." }
+    "footer": { "tagline": "Mental health powered by technology", "platform": "Platform", "about": "About us", "pricing": "Pricing", "professionals": "Professionals", "legal": "Legal", "privacy": "Privacy", "terms": "Terms", "contact": "Contact", "copyright": "© 2026 Gantly. All rights reserved." }
   }
 }
 

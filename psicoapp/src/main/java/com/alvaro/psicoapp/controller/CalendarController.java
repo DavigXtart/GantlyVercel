@@ -3,8 +3,10 @@ package com.alvaro.psicoapp.controller;
 import com.alvaro.psicoapp.domain.AppointmentEntity;
 import com.alvaro.psicoapp.domain.UserEntity;
 import com.alvaro.psicoapp.dto.CalendarDtos;
+import com.alvaro.psicoapp.dto.WeeklyScheduleDtos;
 import com.alvaro.psicoapp.repository.UserRepository;
 import com.alvaro.psicoapp.service.CalendarService;
+import com.alvaro.psicoapp.service.WeeklyScheduleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -37,10 +39,13 @@ import java.util.Map;
 @Tag(name = "Calendario", description = "APIs para gestión de citas, disponibilidad y calificaciones de psicólogos")
 public class CalendarController {
     private final CalendarService calendarService;
+    private final WeeklyScheduleService weeklyScheduleService;
     private final UserRepository userRepository;
 
-    public CalendarController(CalendarService calendarService, UserRepository userRepository) {
+    public CalendarController(CalendarService calendarService, WeeklyScheduleService weeklyScheduleService,
+                              UserRepository userRepository) {
         this.calendarService = calendarService;
+        this.weeklyScheduleService = weeklyScheduleService;
         this.userRepository = userRepository;
     }
 
@@ -288,6 +293,37 @@ public class CalendarController {
     public ResponseEntity<?> deleteAbsence(Principal principal, @PathVariable Long id) {
         calendarService.deleteAbsence(currentUser(principal), id);
         return ResponseEntity.ok(Map.of("message", "Ausencia eliminada"));
+    }
+
+    // --- Weekly schedule management ---
+
+    @GetMapping("/weekly-schedule")
+    @Operation(summary = "Obtener horario semanal", description = "Obtiene el horario semanal configurado del psicólogo")
+    @ApiResponse(responseCode = "200", description = "Horario obtenido exitosamente")
+    public ResponseEntity<List<WeeklyScheduleDtos.DayScheduleDto>> getWeeklySchedule(Principal principal) {
+        UserEntity user = currentUser(principal);
+        return ResponseEntity.ok(weeklyScheduleService.getSchedule(user.getId()));
+    }
+
+    @PutMapping("/weekly-schedule")
+    @Transactional
+    @Operation(summary = "Guardar horario semanal", description = "Guarda el horario semanal del psicólogo (reemplaza el existente)")
+    @ApiResponse(responseCode = "200", description = "Horario guardado exitosamente")
+    public ResponseEntity<CalendarDtos.MessageResponse> saveWeeklySchedule(Principal principal,
+            @Valid @RequestBody WeeklyScheduleDtos.SaveScheduleRequest req) {
+        UserEntity user = currentUser(principal);
+        weeklyScheduleService.saveSchedule(user, req.days);
+        return ResponseEntity.ok(new CalendarDtos.MessageResponse("Horario semanal guardado exitosamente"));
+    }
+
+    @PostMapping("/weekly-schedule/generate")
+    @Transactional
+    @Operation(summary = "Generar slots desde horario semanal", description = "Genera slots de disponibilidad para las próximas 2 semanas basándose en el horario semanal configurado")
+    @ApiResponse(responseCode = "200", description = "Slots generados exitosamente")
+    public ResponseEntity<WeeklyScheduleDtos.GenerateResult> generateSlotsNow(Principal principal) {
+        UserEntity user = currentUser(principal);
+        WeeklyScheduleDtos.GenerateResult result = weeklyScheduleService.generateSlots(user.getId(), 2);
+        return ResponseEntity.ok(result);
     }
 
     // --- iCal export ---

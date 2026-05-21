@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef, useCallback, Fragment } from 'react';
-import { ChevronLeft, ChevronRight, CalendarCheck, CheckCircle, Clock, CreditCard, Calendar, UserPlus, Pencil, X, PlusCircle, Plus, Info, CalendarOff, Repeat, FileText } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarCheck, CheckCircle, Clock, CreditCard, Calendar, UserPlus, Pencil, X, PlusCircle, Plus, Info, CalendarOff, Repeat, FileText, Search, Check, Wallet } from 'lucide-react';
 import { toast } from './ui/Toast';
 import { calendarNotesService } from '../services/api';
 
@@ -84,30 +84,27 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
     }
   };
   const [hoveredCell, setHoveredCell] = useState<string | null>(null);
-  const [showPriceModal, setShowPriceModal] = useState(false);
-  const [priceInput, setPriceInput] = useState('');
-  const [selectedSessionType, setSelectedSessionType] = useState<string>(''); // Tipo de sesion seleccionado
   const [pendingSlot, setPendingSlot] = useState<{ start: string; end: string } | null>(null);
-  const [pendingRange, setPendingRange] = useState<{ start: string; end: string; count: number } | null>(null); // Para arrastrar multiples citas
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<{ day: Date; hour: number } | null>(null);
   const [dragEnd, setDragEnd] = useState<{ day: Date; hour: number } | null>(null);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingSlot, setEditingSlot] = useState<Slot | null>(null);
-  const [editPriceInput, setEditPriceInput] = useState('');
+  // USER book modal (kept)
   const [showConfirmBookModal, setShowConfirmBookModal] = useState(false);
   const [pendingBookSlot, setPendingBookSlot] = useState<Slot | null>(null);
-  const [showAssignModal, setShowAssignModal] = useState(false);
-  const [slotToAssign, setSlotToAssign] = useState<Slot | null>(null);
-  const [showNotesModal, setShowNotesModal] = useState(false);
-  const [notesSlot, setNotesSlot] = useState<Slot | null>(null);
-  const [notesInput, setNotesInput] = useState('');
-  const [notesLoading, setNotesLoading] = useState(false);
-  const [notesSaving, setNotesSaving] = useState(false);
-  const [selectedPatientId, setSelectedPatientId] = useState<string>('');
-  const [patientSearchTerm, setPatientSearchTerm] = useState<string>('');
-  const [recurrenceRule, setRecurrenceRule] = useState<string>(''); // WEEKLY, BIWEEKLY, MONTHLY
-  const [recurrenceCount, setRecurrenceCount] = useState<string>('4');
+  // Side panel state (replaces price, edit, assign, notes modals)
+  const [panelMode, setPanelMode] = useState<'create' | 'edit' | null>(null);
+  const [panelSlot, setPanelSlot] = useState<Slot | null>(null);
+  const [panelRange, setPanelRange] = useState<{ start: string; end: string; count: number } | null>(null);
+  const [panelSessionType, setPanelSessionType] = useState('');
+  const [panelPrice, setPanelPrice] = useState('');
+  const [panelPatientId, setPanelPatientId] = useState('');
+  const [panelPatientSearch, setPanelPatientSearch] = useState('');
+  const [panelPaymentMethod, setPanelPaymentMethod] = useState<'stripe' | 'efectivo'>('stripe');
+  const [panelRecurrence, setPanelRecurrence] = useState('');
+  const [panelRecurrenceCount, setPanelRecurrenceCount] = useState('4');
+  const [panelNotes, setPanelNotes] = useState('');
+  const [panelNotesLoading, setPanelNotesLoading] = useState(false);
+  const [panelNotesSaving, setPanelNotesSaving] = useState(false);
   const hours = Array.from({ length: 13 }).map((_, i) => 8 + i); // 8:00 - 20:00
   const days = useMemo(() => Array.from({ length: 7 }).map((_, i) => addDays(weekStart, i)), [weekStart]);
 
@@ -147,12 +144,8 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
   const gridRef = useRef<HTMLDivElement>(null);
   const touchDragRef = useRef<{ startDay: Date; startHour: number; active: boolean }>({ startDay: new Date(), startHour: 0, active: false });
 
-  // Modal refs for focus trap
-  const priceModalRef = useRef<HTMLDivElement>(null);
-  const editModalRef = useRef<HTMLDivElement>(null);
   const bookModalRef = useRef<HTMLDivElement>(null);
-  const assignModalRef = useRef<HTMLDivElement>(null);
-  const notesModalRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   // Current time indicator - update every minute
   const [now, setNow] = useState(new Date());
@@ -226,25 +219,9 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
     end.setHours(start.getHours() + 1);
 
     if (mode === 'PSYCHO') {
-      // Guardar la semana actual antes de abrir el modal
       setSavedWeekStart(new Date(weekStart));
-      // Para psicólogos, pedir el precio o tipo de sesión
       setPendingSlot({ start: start.toISOString(), end: end.toISOString() });
-      setPendingRange(null);
-      setShowPriceModal(true);
-      setPriceInput('');
-      setSelectedSessionType('');
-      setRecurrenceRule('');
-      setRecurrenceCount('4');
-      // Si hay un solo tipo de sesión disponible, seleccionarlo automaticamente
-      if (availableSessionTypes.length === 1 && sessionPrices) {
-        const singleType = availableSessionTypes[0];
-        setSelectedSessionType(singleType);
-        const price = sessionPrices[singleType];
-        if (price) {
-          setPriceInput(price.toString());
-        }
-      }
+      openPanel('create', null, null);
     } else {
       onCreateSlot(start.toISOString(), end.toISOString());
     }
@@ -293,23 +270,9 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
         const end = new Date(dragStart.day);
         end.setHours(endHour + 1, 0, 0, 0);
 
-      setSavedWeekStart(new Date(weekStart));
-      setPendingSlot(null);
-      setPendingRange({ start: start.toISOString(), end: end.toISOString(), count: totalSlots });
-      setShowPriceModal(true);
-      setPriceInput('');
-      setSelectedSessionType('');
-      setRecurrenceRule('');
-      setRecurrenceCount('4');
-      // Si hay un solo tipo de sesión disponible, seleccionarlo automaticamente
-      if (availableSessionTypes.length === 1 && sessionPrices) {
-        const singleType = availableSessionTypes[0];
-        setSelectedSessionType(singleType);
-        const price = sessionPrices[singleType];
-        if (price) {
-          setPriceInput(price.toString());
-        }
-      }
+        setSavedWeekStart(new Date(weekStart));
+        setPendingSlot(null);
+        openPanel('create', null, { start: start.toISOString(), end: end.toISOString(), count: totalSlots });
       } else {
         // Crear una sola cita
         createAt(dragStart.day, dragStart.hour);
@@ -359,123 +322,169 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
     handleMouseUp();
   }, [isDragging, dragStart, dragEnd, mode]);
 
-  const handleConfirmPrice = async () => {
-    // Determinar precio
-    let price: number | null = null;
+  // Filtered patients for panel search
+  const filteredPatients = useMemo(() => {
+    if (!panelPatientSearch.trim()) return patients;
+    const term = panelPatientSearch.toLowerCase();
+    return patients.filter(p => p.name.toLowerCase().includes(term) || p.email.toLowerCase().includes(term));
+  }, [patients, panelPatientSearch]);
 
-    if (selectedSessionType) {
-      price = getPriceForSessionType(selectedSessionType);
-      if (price === null) {
-        toast.warning('No se encontró precio para el tipo de sesión seleccionado');
-        return;
+  const openPanel = useCallback(async (mode: 'create' | 'edit', slot?: Slot | null, range?: { start: string; end: string; count: number } | null) => {
+    setPanelMode(mode);
+    setPanelSlot(slot || null);
+    setPanelRange(range || null);
+    setPanelPatientSearch('');
+    setPanelPatientId('');
+    setPanelPaymentMethod('stripe');
+    setPanelNotesSaving(false);
+
+    if (mode === 'create') {
+      setPanelSessionType('');
+      setPanelPrice('');
+      setPanelRecurrence('');
+      setPanelRecurrenceCount('4');
+      setPanelNotes('');
+      setPanelNotesLoading(false);
+      // Auto-select if single session type
+      if (availableSessionTypes.length === 1 && sessionPrices) {
+        const singleType = availableSessionTypes[0];
+        setPanelSessionType(singleType);
+        const price = sessionPrices[singleType];
+        if (price) setPanelPrice(price.toString());
       }
-    } else {
-      const priceStr = priceInput.trim();
-      if (priceStr === '') {
-        toast.warning('Por favor, selecciona un tipo de sesión o ingresa un precio');
-        return;
-      }
-      price = parseFloat(priceStr);
-      if (isNaN(price) || price <= 0) {
-        toast.warning('Por favor, ingresa un precio valido (numero mayor a 0)');
-        return;
-      }
-    }
-
-    if (pendingRange && onCreateSlotsRange) {
-      // Crear multiples citas (mismo dia, horas consecutivas)
-      const start = new Date(pendingRange.start);
-      const end = new Date(pendingRange.end);
-      const slots: Array<{ start: string; end: string; price: number }> = [];
-
-      let current = new Date(start);
-      while (current < end) {
-        const slotStart = new Date(current);
-        const slotEnd = new Date(current);
-        slotEnd.setHours(slotEnd.getHours() + 1);
-
-        slots.push({
-          start: slotStart.toISOString(),
-          end: slotEnd.toISOString(),
-          price: price!
-        });
-
-        current.setHours(current.getHours() + 1);
-        if (current >= end) break;
-      }
-
-      if (slots.length > 0) {
-        const slotDate = new Date(slots[0].start);
-        const slotWeekStart = startOfWeek(slotDate);
-        handleWeekChange(slotWeekStart);
-
+    } else if (mode === 'edit' && slot) {
+      setPanelPrice(slot.price?.toString() || '');
+      setPanelRecurrence('');
+      setPanelRecurrenceCount('4');
+      // Load notes for booked/confirmed slots
+      if ((slot.status === 'BOOKED' || slot.status === 'CONFIRMED') && slot.user) {
+        setPanelNotesLoading(true);
+        setPanelNotes('');
         try {
-          await onCreateSlotsRange(slots);
-          setShowPriceModal(false);
-          setPendingRange(null);
-          setPendingSlot(null);
-          setPriceInput('');
-          setSelectedSessionType('');
-          setSavedWeekStart(null);
-        } catch (error) {
-          // El error ya se maneja en el componente padre
+          const { notes } = await calendarNotesService.getNotes(slot.id);
+          setPanelNotes(notes || '');
+        } catch {
+          // No notes yet
+        } finally {
+          setPanelNotesLoading(false);
         }
       } else {
-        toast.warning('No se pudieron crear citas en el rango seleccionado');
+        setPanelNotes('');
+        setPanelNotesLoading(false);
       }
-    } else if (pendingSlot && onCreateSlot) {
-      // Crear una sola cita (o serie recurrente)
-      const slotDate = new Date(pendingSlot.start);
-      const slotWeekStart = startOfWeek(slotDate);
-      handleWeekChange(slotWeekStart);
-
-      const rRule = recurrenceRule || undefined;
-      const rCount = recurrenceRule && recurrenceCount ? parseInt(recurrenceCount, 10) : undefined;
-      onCreateSlot(pendingSlot.start, pendingSlot.end, price!, rRule, rCount);
-      setShowPriceModal(false);
-      setPendingSlot(null);
-      setPriceInput('');
-      setSelectedSessionType('');
-      setRecurrenceRule('');
-      setRecurrenceCount('4');
-      setSavedWeekStart(null);
     }
-  };
+    // Scroll panel into view after state settles
+    setTimeout(() => panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+  }, [availableSessionTypes, sessionPrices]);
 
-  const handleEditSlot = (slot: Slot) => {
-    setEditingSlot(slot);
-    setEditPriceInput(slot.price?.toString() || '');
-    setSavedWeekStart(new Date(weekStart));
-    setShowEditModal(true);
-  };
-
-  const handleConfirmEdit = () => {
-    if (!onUpdateSlot || !editingSlot) return;
-
-    const priceStr = editPriceInput.trim();
-
-    if (priceStr === '') {
-      toast.warning('El precio es obligatorio.');
-      return;
-    }
-
-    const price = parseFloat(priceStr);
-
-    if (isNaN(price) || price <= 0) {
-      toast.warning('Por favor, ingresa un precio valido (numero mayor a 0)');
-      return;
-    }
-
-    onUpdateSlot(editingSlot.id, { price });
-    setShowEditModal(false);
-    setEditingSlot(null);
-    setEditPriceInput('');
-    // Restaurar la semana guardada si existe
+  const closePanel = useCallback(() => {
+    setPanelMode(null);
+    setPanelSlot(null);
+    setPanelRange(null);
+    setPanelSessionType('');
+    setPanelPrice('');
+    setPanelPatientId('');
+    setPanelPatientSearch('');
+    setPanelPaymentMethod('stripe');
+    setPanelRecurrence('');
+    setPanelRecurrenceCount('4');
+    setPanelNotes('');
+    setPanelNotesLoading(false);
+    setPanelNotesSaving(false);
+    setPendingSlot(null);
     if (savedWeekStart) {
-      handleWeekChange(savedWeekStart);
+      setWeekStart(savedWeekStart);
       setSavedWeekStart(null);
     }
-  };
+  }, [savedWeekStart]);
+
+  const handlePanelSave = useCallback(async () => {
+    if (panelMode === 'create') {
+      // Determine price
+      let price: number | null = null;
+      if (panelSessionType) {
+        price = getPriceForSessionType(panelSessionType);
+        if (price === null) {
+          toast.warning('No se encontró precio para el tipo de sesión seleccionado');
+          return;
+        }
+      } else {
+        const priceStr = panelPrice.trim();
+        if (priceStr === '') {
+          toast.warning('Por favor, selecciona un tipo de sesión o ingresa un precio');
+          return;
+        }
+        price = parseFloat(priceStr);
+        if (isNaN(price) || price <= 0) {
+          toast.warning('Por favor, ingresa un precio válido');
+          return;
+        }
+      }
+
+      if (panelRange && onCreateSlotsRange) {
+        const start = new Date(panelRange.start);
+        const end = new Date(panelRange.end);
+        const slotsToCreate: Array<{ start: string; end: string; price: number }> = [];
+        let current = new Date(start);
+        while (current < end) {
+          const slotStart = new Date(current);
+          const slotEnd = new Date(current);
+          slotEnd.setHours(slotEnd.getHours() + 1);
+          slotsToCreate.push({ start: slotStart.toISOString(), end: slotEnd.toISOString(), price: price! });
+          current.setHours(current.getHours() + 1);
+          if (current >= end) break;
+        }
+        if (slotsToCreate.length > 0) {
+          try {
+            await onCreateSlotsRange(slotsToCreate);
+            closePanel();
+          } catch {
+            // Error handled in parent
+          }
+        }
+      } else if (pendingSlot && onCreateSlot) {
+        const rRule = panelRecurrence || undefined;
+        const rCount = panelRecurrence && panelRecurrenceCount ? parseInt(panelRecurrenceCount, 10) : undefined;
+        onCreateSlot(pendingSlot.start, pendingSlot.end, price!, rRule, rCount);
+        closePanel();
+      }
+    } else if (panelMode === 'edit' && panelSlot) {
+      // Update price for FREE/REQUESTED slots
+      if ((panelSlot.status === 'FREE' || panelSlot.status === 'REQUESTED') && onUpdateSlot) {
+        const priceStr = panelPrice.trim();
+        if (priceStr !== '') {
+          const price = parseFloat(priceStr);
+          if (!isNaN(price) && price > 0 && price !== panelSlot.price) {
+            onUpdateSlot(panelSlot.id, { price });
+          }
+        }
+      }
+      // Assign patient for FREE/REQUESTED slots
+      if (panelPatientId && (panelSlot.status === 'FREE' || panelSlot.status === 'REQUESTED') && onAssignToPatient) {
+        try {
+          await onAssignToPatient(panelSlot.id, parseInt(panelPatientId));
+          toast.success('Cita asignada exitosamente');
+        } catch (error: any) {
+          toast.error(error?.response?.data?.error || 'Error al asignar la cita');
+          return;
+        }
+      }
+      closePanel();
+    }
+  }, [panelMode, panelSlot, panelRange, panelSessionType, panelPrice, panelPatientId, panelRecurrence, panelRecurrenceCount, pendingSlot, onCreateSlot, onCreateSlotsRange, onUpdateSlot, onAssignToPatient, closePanel]);
+
+  const handlePanelSaveNotes = useCallback(async () => {
+    if (!panelSlot) return;
+    setPanelNotesSaving(true);
+    try {
+      await calendarNotesService.updateNotes(panelSlot.id, panelNotes);
+      toast.success('Notas guardadas');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || 'Error al guardar las notas');
+    } finally {
+      setPanelNotesSaving(false);
+    }
+  }, [panelSlot, panelNotes]);
 
   const getStatusClasses = (status: string, isMyAppointment: boolean = false, paymentStatus?: string) => {
     if (isMyAppointment && (status === 'BOOKED' || status === 'CONFIRMED')) {
@@ -605,76 +614,9 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
   };
 
   // Close handlers for modals
-  const closePriceModal = useCallback(() => {
-    setShowPriceModal(false);
-    setPendingSlot(null);
-    setPendingRange(null);
-    setPriceInput('');
-    setSelectedSessionType('');
-    setRecurrenceRule('');
-    setRecurrenceCount('4');
-    if (savedWeekStart) {
-      setWeekStart(savedWeekStart);
-      setSavedWeekStart(null);
-    }
-  }, [savedWeekStart]);
-
-  const closeEditModal = useCallback(() => {
-    setShowEditModal(false);
-    setEditingSlot(null);
-    setEditPriceInput('');
-    if (savedWeekStart) {
-      setWeekStart(savedWeekStart);
-      setSavedWeekStart(null);
-    }
-  }, [savedWeekStart]);
-
   const closeBookModal = useCallback(() => {
     setShowConfirmBookModal(false);
     setPendingBookSlot(null);
-  }, []);
-
-  const closeAssignModal = useCallback(() => {
-    setShowAssignModal(false);
-    setSlotToAssign(null);
-    setSelectedPatientId('');
-    setPatientSearchTerm('');
-  }, []);
-
-  const handleOpenNotes = useCallback(async (slot: Slot) => {
-    setNotesSlot(slot);
-    setNotesInput('');
-    setShowNotesModal(true);
-    setNotesLoading(true);
-    try {
-      const { notes } = await calendarNotesService.getNotes(slot.id);
-      setNotesInput(notes || '');
-    } catch {
-      // No notes yet — leave empty
-    } finally {
-      setNotesLoading(false);
-    }
-  }, []);
-
-  const handleSaveNotes = useCallback(async () => {
-    if (!notesSlot) return;
-    setNotesSaving(true);
-    try {
-      await calendarNotesService.updateNotes(notesSlot.id, notesInput);
-      toast.success('Notas guardadas');
-      setShowNotesModal(false);
-      setNotesSlot(null);
-    } catch (err: any) {
-      toast.error(err?.response?.data?.error || 'Error al guardar las notas');
-    } finally {
-      setNotesSaving(false);
-    }
-  }, [notesSlot, notesInput]);
-
-  const closeNotesModal = useCallback(() => {
-    setShowNotesModal(false);
-    setNotesSlot(null);
-    setNotesInput('');
   }, []);
 
   return (
@@ -797,10 +739,11 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
         )}
       </div>
 
-      {/* Calendar Grid */}
+      {/* Calendar Grid + Side Panel */}
+      <div className="flex overflow-hidden">
       <div
         ref={gridRef}
-        className="grid overflow-x-auto"
+        className="flex-1 grid overflow-x-auto min-w-0"
         style={{ gridTemplateColumns: isMobile ? `56px repeat(${visibleDays.length}, 1fr)` : '72px repeat(7, 1fr)' }}
       >
         {/* Hour header */}
@@ -1002,9 +945,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           e.preventDefault();
-                                          setSlotToAssign(s);
-                                          setSelectedPatientId('');
-                                          setShowAssignModal(true);
+                                          openPanel('edit', s);
                                         }}
                                         onMouseDown={(e) => e.stopPropagation()}
                                         className="w-[18px] h-[18px] flex items-center justify-center rounded bg-gantly-emerald/10 text-gantly-emerald border-none cursor-pointer"
@@ -1122,9 +1063,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           e.preventDefault();
-                                          setSlotToAssign(s);
-                                          setSelectedPatientId('');
-                                          setShowAssignModal(true);
+                                          openPanel('edit', s);
                                         }}
                                         onMouseDown={(e) => {
                                           e.stopPropagation();
@@ -1140,7 +1079,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           e.preventDefault();
-                                          handleEditSlot(s);
+                                          openPanel('edit', s);
                                         }}
                                         onMouseDown={(e) => {
                                           e.stopPropagation();
@@ -1195,7 +1134,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           e.preventDefault();
-                                          handleOpenNotes(s);
+                                          openPanel('edit', s);
                                         }}
                                         onMouseDown={(e) => {
                                           e.stopPropagation();
@@ -1244,6 +1183,318 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
         ))}
       </div>
 
+      {/* Side Panel */}
+      {mode === 'PSYCHO' && (
+        <>
+          {/* Mobile overlay */}
+          {isMobile && panelMode && (
+            <div className="fixed inset-0 bg-black/40 z-[999]" onClick={closePanel} />
+          )}
+          <div
+            ref={panelRef}
+            className={`bg-white border-l border-slate-100 flex-col overflow-hidden transition-all duration-200 ease-out flex-shrink-0 ${
+              isMobile
+                ? panelMode
+                  ? 'fixed inset-x-0 bottom-0 z-[1000] w-full border-l-0 border-t rounded-t-2xl shadow-2xl max-h-[85vh] flex'
+                  : 'hidden'
+                : panelMode
+                  ? 'w-[320px] min-w-[320px] flex'
+                  : 'w-0 min-w-0 hidden'
+            }`}
+          >
+            {panelMode && (
+              <div className={`${isMobile ? 'w-full' : 'w-[320px]'} flex flex-col h-full`}>
+                {/* Panel header */}
+                <div className="flex items-center justify-between px-4 h-11 border-b border-slate-100 flex-shrink-0">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${panelMode === 'create' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                    <span className="text-[14px] font-bold text-slate-800 font-heading">
+                      {panelMode === 'create'
+                        ? panelRange ? `Crear ${panelRange.count} citas` : 'Nueva cita'
+                        : panelSlot && (panelSlot.status === 'BOOKED' || panelSlot.status === 'CONFIRMED')
+                          ? 'Detalles de cita'
+                          : 'Editar cita'}
+                    </span>
+                  </div>
+                  <button onClick={closePanel} className="p-1 rounded-md hover:bg-slate-100 cursor-pointer text-slate-400 bg-transparent border-none transition-colors">
+                    <X size={16} />
+                  </button>
+                </div>
+
+                {/* Panel body */}
+                <div className="flex-1 overflow-y-auto" onKeyDown={(e) => { if (e.key === 'Escape') closePanel(); }}>
+                  {/* Date/time info */}
+                  {(pendingSlot || panelRange || panelSlot) && (
+                    <div className="px-4 pt-3 pb-2">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <Calendar size={13} className="text-slate-400" />
+                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Horario</span>
+                      </div>
+                      <div className="text-[12px] text-slate-600 font-body">
+                        {(() => {
+                          const src = panelSlot || (pendingSlot ? { startTime: pendingSlot.start, endTime: pendingSlot.end } : panelRange ? { startTime: panelRange.start, endTime: panelRange.end } : null);
+                          if (!src) return null;
+                          const st = new Date(src.startTime);
+                          const en = new Date(src.endTime);
+                          return (
+                            <>
+                              <div className="font-semibold text-slate-700">
+                                {st.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                              </div>
+                              <div className="text-slate-500 mt-0.5">
+                                {st.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - {en.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                                {panelRange && <span className="ml-1 text-gantly-blue font-semibold">({panelRange.count} citas)</span>}
+                              </div>
+                            </>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="h-px bg-slate-100 mx-4" />
+
+                  {/* Patient section — create mode or edit FREE/REQUESTED */}
+                  {panelMode === 'edit' && panelSlot && (panelSlot.status === 'BOOKED' || panelSlot.status === 'CONFIRMED') && panelSlot.user ? (
+                    <div className="px-4 pt-2.5 pb-2">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <UserPlus size={13} className="text-slate-400" />
+                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Paciente</span>
+                      </div>
+                      <div className="flex items-center gap-2 px-2 py-1.5 bg-emerald-50 border border-emerald-200 rounded-md">
+                        <Check size={12} className="text-emerald-600 flex-shrink-0" />
+                        <span className="text-[12px] font-medium text-emerald-800 flex-1 truncate">{panelSlot.user.name}</span>
+                      </div>
+                    </div>
+                  ) : (panelMode === 'edit' && panelSlot && (panelSlot.status === 'FREE' || panelSlot.status === 'REQUESTED') && onAssignToPatient && patients.length > 0) ? (
+                    <div className="px-4 pt-2.5 pb-2">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <UserPlus size={13} className="text-slate-400" />
+                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Paciente</span>
+                      </div>
+                      <div className="relative">
+                        <Search size={13} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
+                        <input
+                          type="text"
+                          placeholder="Buscar paciente..."
+                          value={panelPatientSearch}
+                          onChange={(e) => { setPanelPatientSearch(e.target.value); if (!e.target.value) setPanelPatientId(''); }}
+                          className="w-full h-8 pl-7 pr-2 rounded-md border border-slate-200 text-[13px] font-body outline-none focus:border-gantly-blue focus:ring-1 focus:ring-gantly-blue/20 transition-all"
+                        />
+                      </div>
+                      {panelPatientSearch.trim() && filteredPatients.length > 0 && !panelPatientId && (
+                        <div className="mt-1 bg-white rounded-md border border-slate-200 max-h-[120px] overflow-y-auto shadow-sm">
+                          {filteredPatients.slice(0, 8).map(p => (
+                            <button
+                              key={p.id}
+                              onClick={() => { setPanelPatientId(p.id.toString()); setPanelPatientSearch(p.name); }}
+                              className="w-full text-left px-2.5 py-1.5 hover:bg-slate-50 transition-colors bg-transparent border-none cursor-pointer border-b border-slate-50 last:border-0"
+                            >
+                              <div className="text-[12px] font-semibold text-slate-700">{p.name}</div>
+                              <div className="text-[10px] text-slate-400">{p.email}</div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {panelPatientId && (
+                        <div className="mt-1.5 flex items-center gap-2 px-2 py-1.5 bg-emerald-50 border border-emerald-200 rounded-md">
+                          <Check size={12} className="text-emerald-600 flex-shrink-0" />
+                          <span className="text-[12px] font-medium text-emerald-800 flex-1 truncate">{panelPatientSearch}</span>
+                          <button onClick={() => { setPanelPatientId(''); setPanelPatientSearch(''); }} className="text-slate-400 hover:text-slate-600 bg-transparent border-none cursor-pointer p-0">
+                            <X size={12} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
+
+                  {/* Session type + Price — create mode or edit FREE/REQUESTED */}
+                  {(panelMode === 'create' || (panelMode === 'edit' && panelSlot && (panelSlot.status === 'FREE' || panelSlot.status === 'REQUESTED'))) && (
+                    <>
+                      <div className="h-px bg-slate-100 mx-4" />
+                      <div className="px-4 pt-2.5 pb-2">
+                        <div className="flex items-center gap-1.5 mb-2">
+                          <CreditCard size={13} className="text-slate-400" />
+                          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Precio</span>
+                        </div>
+                        {panelMode === 'create' && availableSessionTypes.length > 0 && (
+                          <div className="mb-2">
+                            <label className="text-[11px] text-slate-500 font-medium mb-1 block">Tipo de sesion</label>
+                            <select
+                              value={panelSessionType}
+                              onChange={(e) => {
+                                const t = e.target.value;
+                                setPanelSessionType(t);
+                                if (t && sessionPrices) {
+                                  const p = sessionPrices[t];
+                                  setPanelPrice(p != null && p > 0 ? p.toString() : '');
+                                } else {
+                                  setPanelPrice('');
+                                }
+                              }}
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-[13px] font-body outline-none focus:border-gantly-blue cursor-pointer bg-white"
+                            >
+                              <option value="">-- Seleccionar --</option>
+                              {availableSessionTypes.map(t => (
+                                <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)} - {sessionPrices![t]}&euro;</option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                        <div>
+                          <label className="text-[11px] text-slate-500 font-medium mb-1 block">
+                            Precio (&euro;) {panelMode === 'create' && !panelSessionType && <span className="text-red-500">*</span>}
+                          </label>
+                          <input
+                            type="number"
+                            min="0.01"
+                            step="0.01"
+                            value={panelPrice}
+                            onChange={(e) => { setPanelPrice(e.target.value); if (e.target.value) setPanelSessionType(''); }}
+                            placeholder="Ej: 45.00"
+                            disabled={!!panelSessionType}
+                            className={`w-full h-8 px-2 rounded-md border border-slate-200 text-[13px] font-body outline-none focus:border-gantly-blue transition-all ${panelSessionType ? 'bg-slate-50 text-slate-400' : 'bg-white'}`}
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Payment method — create mode */}
+                  {panelMode === 'create' && (
+                    <>
+                      <div className="h-px bg-slate-100 mx-4" />
+                      <div className="px-4 pt-2.5 pb-2">
+                        <div className="flex items-center gap-1.5 mb-2">
+                          <Wallet size={13} className="text-slate-400" />
+                          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Pago</span>
+                        </div>
+                        <div className="flex gap-1.5">
+                          {([
+                            { val: 'stripe' as const, label: 'Tarjeta' },
+                            { val: 'efectivo' as const, label: 'Efectivo' },
+                          ]).map(({ val, label }) => (
+                            <button
+                              key={val}
+                              onClick={() => setPanelPaymentMethod(val)}
+                              className={`flex-1 h-8 rounded-md flex items-center justify-center text-[11px] font-semibold cursor-pointer border transition-all ${
+                                panelPaymentMethod === val
+                                  ? 'bg-slate-800 border-slate-800 text-white'
+                                  : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Recurrence — create mode, single slot only */}
+                  {panelMode === 'create' && !panelRange && (
+                    <>
+                      <div className="h-px bg-slate-100 mx-4" />
+                      <div className="px-4 pt-2.5 pb-2">
+                        <div className="flex items-center gap-1.5 mb-2">
+                          <Repeat size={13} className="text-slate-400" />
+                          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Repetir</span>
+                        </div>
+                        <select
+                          value={panelRecurrence}
+                          onChange={(e) => setPanelRecurrence(e.target.value)}
+                          className="w-full h-8 px-2 rounded-md border border-slate-200 text-[13px] font-body outline-none focus:border-gantly-blue cursor-pointer bg-white"
+                        >
+                          <option value="">No repetir</option>
+                          <option value="WEEKLY">Semanal</option>
+                          <option value="BIWEEKLY">Quincenal</option>
+                          <option value="MONTHLY">Mensual</option>
+                        </select>
+                        {panelRecurrence && (
+                          <div className="mt-2">
+                            <label className="text-[11px] text-slate-500 font-medium mb-1 block">Repeticiones (1-52)</label>
+                            <input
+                              type="number"
+                              min="2"
+                              max="52"
+                              value={panelRecurrenceCount}
+                              onChange={(e) => setPanelRecurrenceCount(e.target.value)}
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-[13px] font-body outline-none focus:border-gantly-blue bg-white"
+                            />
+                            <p className="mt-1 text-[10px] text-slate-400 font-body">
+                              {panelRecurrenceCount || '0'} citas {panelRecurrence === 'WEEKLY' ? 'semanales' : panelRecurrence === 'BIWEEKLY' ? 'quincenales' : 'mensuales'}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Notes — edit mode for booked/confirmed */}
+                  {panelMode === 'edit' && panelSlot && (panelSlot.status === 'BOOKED' || panelSlot.status === 'CONFIRMED') && panelSlot.user && (
+                    <>
+                      <div className="h-px bg-slate-100 mx-4" />
+                      <div className="px-4 pt-2.5 pb-2">
+                        <div className="flex items-center gap-1.5 mb-2">
+                          <FileText size={13} className="text-violet-500" />
+                          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Notas de sesion</span>
+                        </div>
+                        {panelNotesLoading ? (
+                          <div className="h-20 flex items-center justify-center text-[11px] text-slate-400">Cargando notas...</div>
+                        ) : (
+                          <>
+                            <textarea
+                              value={panelNotes}
+                              onChange={(e) => setPanelNotes(e.target.value.slice(0, 500))}
+                              placeholder="Escribe aqui las notas de la sesion..."
+                              maxLength={500}
+                              rows={4}
+                              className="w-full px-2 py-1.5 rounded-md border border-slate-200 text-[13px] font-body outline-none focus:border-gantly-blue resize-none transition-all"
+                            />
+                            <div className="flex items-center justify-between mt-1">
+                              <span className="text-[10px] text-slate-400">{panelNotes.length}/500</span>
+                              <button
+                                onClick={handlePanelSaveNotes}
+                                disabled={panelNotesSaving}
+                                className="text-[11px] font-semibold text-gantly-blue hover:text-gantly-blue/80 bg-transparent border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {panelNotesSaving ? 'Guardando...' : 'Guardar notas'}
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Panel footer */}
+                <div className="px-4 py-3 border-t border-slate-100 flex gap-2 flex-shrink-0">
+                  <button
+                    onClick={closePanel}
+                    className="flex-1 h-9 rounded-md border border-slate-200 bg-white text-slate-600 text-[13px] font-semibold font-body cursor-pointer hover:bg-slate-50 transition-all"
+                  >
+                    Cancelar
+                  </button>
+                  {/* Show save button for create mode, or edit mode on FREE/REQUESTED slots */}
+                  {(panelMode === 'create' || (panelMode === 'edit' && panelSlot && (panelSlot.status === 'FREE' || panelSlot.status === 'REQUESTED'))) && (
+                    <button
+                      onClick={handlePanelSave}
+                      className="flex-1 h-9 rounded-md border-none bg-gantly-blue text-white text-[13px] font-semibold font-heading cursor-pointer hover:bg-gantly-blue/90 transition-all shadow-sm"
+                    >
+                      {panelMode === 'create'
+                        ? panelRange ? `Crear ${panelRange.count} citas` : panelRecurrence ? `Crear ${panelRecurrenceCount || '1'} citas` : 'Crear cita'
+                        : panelPatientId ? 'Asignar y guardar' : 'Guardar'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+      </div>
+
       {/* Legend + quick actions footer */}
       <div className="px-4 md:px-6 py-3 md:py-4 bg-gradient-to-r from-slate-50/80 to-gantly-cloud/30 border-t border-slate-100 flex items-center justify-between flex-wrap gap-2 md:gap-3 rounded-b-2xl">
         <div className="flex gap-1.5 md:gap-2 flex-wrap items-center">
@@ -1277,220 +1528,6 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
           </div>
         )}
       </div>
-
-      {/* Modal para ingresar precio */}
-      {showPriceModal && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]"
-          role="dialog"
-          aria-modal="true"
-          aria-label={pendingRange ? `Crear ${pendingRange.count} citas` : 'Establecer precio de la cita'}
-          onKeyDown={(e) => handleModalKeyDown(e, closePriceModal)}
-          onClick={closePriceModal}
-        >
-          <div
-            ref={priceModalRef}
-            className="bg-white rounded-3xl p-6 md:p-8 max-w-[450px] w-[92%] shadow-2xl border border-slate-100"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="m-0 mb-5 font-heading text-xl font-bold text-gantly-text">
-              {pendingRange ? `Crear ${pendingRange.count} citas` : 'Establecer precio de la cita'}
-            </h3>
-            {pendingRange && (
-              <p className="m-0 mb-5 font-body text-sm text-gantly-muted leading-relaxed">
-                Se crearan {pendingRange.count} citas consecutivas de 1 hora cada una.
-              </p>
-            )}
-            {availableSessionTypes.length > 0 && (
-              <div className="mb-5">
-                <label className="block mb-2 font-body text-sm font-semibold text-gantly-text">
-                  Tipo de sesion <span className="text-gantly-emerald text-xs font-medium">(recomendado)</span>
-                </label>
-                <select
-                  value={selectedSessionType}
-                  onChange={(e) => {
-                    const selectedType = e.target.value;
-                    setSelectedSessionType(selectedType);
-                    if (selectedType && sessionPrices) {
-                      const price = sessionPrices[selectedType];
-                      if (price != null && price > 0) {
-                        setPriceInput(price.toString());
-                      } else {
-                        setPriceInput('');
-                      }
-                    } else {
-                      setPriceInput('');
-                    }
-                  }}
-                  className="w-full h-12 px-3 border-2 border-slate-200 rounded-xl font-body text-base outline-none transition-all duration-200 bg-white focus:border-gantly-blue cursor-pointer"
-                >
-                  <option value="">-- Seleccionar tipo de sesión --</option>
-                  {availableSessionTypes.map(type => {
-                    const price = sessionPrices![type];
-                    return (
-                      <option key={type} value={type}>
-                        {type.charAt(0).toUpperCase() + type.slice(1)} - {price}&euro;
-                      </option>
-                    );
-                  })}
-                </select>
-                {selectedSessionType && sessionPrices && sessionPrices[selectedSessionType] && (
-                  <div className="font-body text-xs text-gantly-emerald mt-1.5 font-medium">
-                    Precio predefinido: {sessionPrices[selectedSessionType]}&euro;
-                  </div>
-                )}
-              </div>
-            )}
-            <div className="mb-6">
-              <label className="block mb-2 font-body text-sm font-semibold text-gantly-text">
-                Precio (&euro;) {!selectedSessionType && <span className="text-red-600">*</span>}
-              </label>
-              <input
-                type="number"
-                min="0.01"
-                step="0.01"
-                value={priceInput}
-                onChange={(e) => {
-                  setPriceInput(e.target.value);
-                  if (e.target.value) {
-                    setSelectedSessionType('');
-                  }
-                }}
-                placeholder={selectedSessionType ? "Precio del tipo de sesión" : "Ej: 45.00"}
-                required={!selectedSessionType}
-                disabled={!!selectedSessionType}
-                className={`w-full h-12 px-3 border-2 border-slate-200 rounded-xl font-body text-base outline-none transition-all duration-200 focus:border-gantly-blue ${selectedSessionType ? 'bg-slate-50' : 'bg-white'}`}
-                autoFocus={!selectedSessionType}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleConfirmPrice();
-                  } else if (e.key === 'Escape') {
-                    closePriceModal();
-                  }
-                }}
-              />
-            </div>
-            {/* Recurrence controls — only for single slots, not drag ranges */}
-            {!pendingRange && (
-              <div className="mb-6">
-                <label className="block mb-2 font-body text-sm font-semibold text-gantly-text">
-                  <Repeat size={14} className="inline-block mr-1.5 -mt-0.5 text-gantly-blue" />
-                  Repetir
-                </label>
-                <select
-                  value={recurrenceRule}
-                  onChange={(e) => setRecurrenceRule(e.target.value)}
-                  className="w-full h-12 px-3 border-2 border-slate-200 rounded-xl font-body text-base outline-none transition-all duration-200 bg-white focus:border-gantly-blue cursor-pointer"
-                >
-                  <option value="">No repetir</option>
-                  <option value="WEEKLY">Semanal</option>
-                  <option value="BIWEEKLY">Quincenal</option>
-                  <option value="MONTHLY">Mensual</option>
-                </select>
-                {recurrenceRule && (
-                  <div className="mt-3">
-                    <label className="block mb-1.5 font-body text-xs font-semibold text-gantly-muted">
-                      Numero de repeticiones (1-52)
-                    </label>
-                    <input
-                      type="number"
-                      min="2"
-                      max="52"
-                      value={recurrenceCount}
-                      onChange={(e) => setRecurrenceCount(e.target.value)}
-                      className="w-full h-10 px-3 border-2 border-slate-200 rounded-xl font-body text-sm outline-none transition-all duration-200 focus:border-gantly-blue bg-white"
-                    />
-                    <p className="mt-1.5 font-body text-xs text-gantly-muted">
-                      Se crearan {recurrenceCount || '0'} citas {recurrenceRule === 'WEEKLY' ? 'semanales' : recurrenceRule === 'BIWEEKLY' ? 'quincenales' : 'mensuales'}. Los slots con conflictos se omitiran.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={closePriceModal}
-                className="px-5 h-11 border-none rounded-xl bg-transparent text-gantly-muted font-body text-sm font-medium cursor-pointer transition-all duration-200 hover:text-gantly-text hover:bg-slate-100"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleConfirmPrice}
-                className="px-6 h-11 border-none rounded-xl bg-gantly-blue text-white font-heading text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-gantly-blue/90 shadow-lg shadow-gantly-blue/20 hover:shadow-xl hover:shadow-gantly-blue/25"
-              >
-                {pendingRange ? `Crear ${pendingRange.count} citas` : recurrenceRule ? `Crear ${recurrenceCount || '1'} citas` : 'Crear cita'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal para editar cita */}
-      {showEditModal && editingSlot && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Editar cita"
-          onKeyDown={(e) => handleModalKeyDown(e, closeEditModal)}
-          onClick={closeEditModal}
-        >
-          <div
-            ref={editModalRef}
-            className="bg-white rounded-3xl p-6 md:p-8 max-w-[400px] w-[92%] shadow-2xl border border-slate-100"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="m-0 mb-5 font-heading text-xl font-bold text-gantly-text">
-              Editar cita
-            </h3>
-            <div className="bg-gantly-cloud/50 rounded-xl p-4 mb-5 border border-slate-100">
-              <p className="m-0 mb-2 font-body text-sm text-gantly-muted">
-                <span className="font-semibold text-gantly-text">Fecha:</span> {new Date(editingSlot.startTime).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-              </p>
-              <p className="m-0 font-body text-sm text-gantly-muted">
-                <span className="font-semibold text-gantly-text">Hora:</span> {new Date(editingSlot.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - {new Date(editingSlot.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-              </p>
-            </div>
-            <div className="mb-6">
-              <label className="block mb-2 font-body text-sm font-semibold text-gantly-text">
-                Precio (&euro;) <span className="text-red-600">*</span>
-              </label>
-              <input
-                type="number"
-                min="0.01"
-                step="0.01"
-                value={editPriceInput}
-                onChange={(e) => setEditPriceInput(e.target.value)}
-                placeholder="Ej: 45.00"
-                required
-                className="w-full h-12 px-3 border-2 border-slate-200 rounded-xl font-body text-base outline-none transition-all duration-200 focus:border-gantly-blue"
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleConfirmEdit();
-                  } else if (e.key === 'Escape') {
-                    closeEditModal();
-                  }
-                }}
-              />
-            </div>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={closeEditModal}
-                className="px-5 h-11 border-none rounded-xl bg-transparent text-gantly-muted font-body text-sm font-medium cursor-pointer transition-all duration-200 hover:text-gantly-text hover:bg-slate-100"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleConfirmEdit}
-                className="px-6 h-11 border-none rounded-xl bg-gantly-blue text-white font-heading text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-gantly-blue/90 shadow-lg shadow-gantly-blue/20 hover:shadow-xl hover:shadow-gantly-blue/25"
-              >
-                Guardar cambios
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Modal de confirmación para reservar cita */}
       {showConfirmBookModal && pendingBookSlot && (
@@ -1572,173 +1609,6 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
         </div>
       )}
 
-      {/* Modal para asignar cita a paciente */}
-      {showAssignModal && slotToAssign && mode === 'PSYCHO' && onAssignToPatient && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Asignar cita a paciente"
-          onKeyDown={(e) => handleModalKeyDown(e, closeAssignModal)}
-          onClick={closeAssignModal}
-        >
-          <div
-            ref={assignModalRef}
-            className="bg-white rounded-3xl p-6 md:p-8 max-w-[450px] w-[92%] shadow-2xl border border-slate-100"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="m-0 mb-5 font-heading text-xl font-bold text-gantly-text">
-              Asignar cita a paciente
-            </h3>
-            <div className="bg-gantly-cloud/50 rounded-xl p-4 mb-5 border border-slate-100">
-              <div className="mb-3">
-                <div className="font-body text-xs text-gantly-muted mb-1 uppercase tracking-wider font-medium">Fecha</div>
-                <div className="font-body text-base font-semibold text-gantly-text">
-                  {new Date(slotToAssign.startTime).toLocaleDateString('es-ES', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </div>
-              </div>
-              <div>
-                <div className="font-body text-xs text-gantly-muted mb-1 uppercase tracking-wider font-medium">Hora</div>
-                <div className="font-body text-base font-semibold text-gantly-text">
-                  {new Date(slotToAssign.startTime).toLocaleTimeString('es-ES', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })} - {new Date(slotToAssign.endTime).toLocaleTimeString('es-ES', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </div>
-              </div>
-            </div>
-            <div className="mb-6">
-              <label className="block mb-2 font-body text-sm font-semibold text-gantly-text">
-                Seleccionar paciente <span className="text-red-600">*</span>
-              </label>
-              <select
-                value={selectedPatientId}
-                onChange={(e) => setSelectedPatientId(e.target.value)}
-                className="w-full h-12 px-3 border-2 border-slate-200 rounded-xl font-body text-base outline-none transition-all duration-200 bg-white focus:border-gantly-blue cursor-pointer"
-                autoFocus
-              >
-                <option value="">-- Seleccionar paciente --</option>
-                {patients.map(patient => (
-                  <option key={patient.id} value={patient.id.toString()}>
-                    {patient.name} ({patient.email})
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={closeAssignModal}
-                className="px-5 h-11 border-none rounded-xl bg-transparent text-gantly-muted font-body text-sm font-medium cursor-pointer transition-all duration-200 hover:text-gantly-text hover:bg-slate-100"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={async () => {
-                  if (!selectedPatientId) {
-                    toast.warning('Por favor, selecciona un paciente');
-                    return;
-                  }
-                  try {
-                    await onAssignToPatient(slotToAssign.id, parseInt(selectedPatientId));
-                    setShowAssignModal(false);
-                    setSlotToAssign(null);
-                    setSelectedPatientId('');
-                    setPatientSearchTerm('');
-                    toast.success('Cita asignada exitosamente');
-                  } catch (error: any) {
-                    toast.error(error?.response?.data?.error || 'Error al asignar la cita');
-                  }
-                }}
-                className="px-6 h-11 border-none rounded-xl bg-gantly-blue text-white font-heading text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-gantly-blue/90 shadow-lg shadow-gantly-blue/20 hover:shadow-xl hover:shadow-gantly-blue/25"
-              >
-                Asignar cita
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal para notas de sesion */}
-      {showNotesModal && notesSlot && mode === 'PSYCHO' && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Notas de sesion"
-          onKeyDown={(e) => handleModalKeyDown(e, closeNotesModal)}
-          onClick={closeNotesModal}
-        >
-          <div
-            ref={notesModalRef}
-            className="bg-white rounded-3xl p-6 md:p-8 max-w-[480px] w-[92%] shadow-2xl border border-slate-100"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="m-0 mb-5 font-heading text-xl font-bold text-gantly-text flex items-center gap-2">
-              <FileText size={20} className="text-violet-600" />
-              Notas de sesion
-            </h3>
-            <div className="bg-gantly-cloud/50 rounded-xl p-4 mb-5 border border-slate-100">
-              <p className="m-0 mb-2 font-body text-sm text-gantly-muted">
-                <span className="font-semibold text-gantly-text">Paciente:</span> {notesSlot.user?.name || 'Sin asignar'}
-              </p>
-              <p className="m-0 mb-2 font-body text-sm text-gantly-muted">
-                <span className="font-semibold text-gantly-text">Fecha:</span> {new Date(notesSlot.startTime).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-              </p>
-              <p className="m-0 font-body text-sm text-gantly-muted">
-                <span className="font-semibold text-gantly-text">Hora:</span> {new Date(notesSlot.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - {new Date(notesSlot.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-              </p>
-            </div>
-            <div className="mb-6">
-              <label className="block mb-2 font-body text-sm font-semibold text-gantly-text">
-                Notas de la sesion
-              </label>
-              {notesLoading ? (
-                <div className="w-full h-32 flex items-center justify-center text-sm text-slate-400">
-                  Cargando notas...
-                </div>
-              ) : (
-                <>
-                  <textarea
-                    value={notesInput}
-                    onChange={(e) => setNotesInput(e.target.value.slice(0, 500))}
-                    placeholder="Escribe aqui las notas de la sesion..."
-                    maxLength={500}
-                    rows={5}
-                    className="w-full px-3 py-2 border-2 border-slate-200 rounded-xl font-body text-sm outline-none transition-all duration-200 focus:border-gantly-blue resize-none"
-                    autoFocus
-                  />
-                  <p className="m-0 mt-1 text-xs text-slate-400 text-right">
-                    {notesInput.length}/500
-                  </p>
-                </>
-              )}
-            </div>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={closeNotesModal}
-                className="px-5 h-11 border-none rounded-xl bg-transparent text-gantly-muted font-body text-sm font-medium cursor-pointer transition-all duration-200 hover:text-gantly-text hover:bg-slate-100"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSaveNotes}
-                disabled={notesSaving || notesLoading}
-                className="px-6 h-11 border-none rounded-xl bg-gantly-blue text-white font-heading text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-gantly-blue/90 shadow-lg shadow-gantly-blue/20 hover:shadow-xl hover:shadow-gantly-blue/25 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {notesSaving ? 'Guardando...' : 'Guardar notas'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

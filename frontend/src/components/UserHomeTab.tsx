@@ -372,7 +372,7 @@ export default function UserHomeTab({
               <div className="w-12 h-12 rounded-2xl bg-gantly-emerald flex items-center justify-center shadow-lg shadow-gantly-emerald/20 group-hover:rotate-6 transition-transform duration-300">
                 <Compass size={20} className="text-white" />
               </div>
-              <h3 className="text-base font-heading font-bold text-gantly-text mt-4 group-hover:text-gantly-emerald transition-colors">Descubrir</h3>
+              <h3 className="text-base font-heading font-bold text-gantly-text mt-4 group-hover:text-gantly-emerald transition-colors">Colabora</h3>
               <p className="text-sm text-gantly-muted mt-1 font-body">Insights personalizados</p>
               <span className="inline-flex items-center gap-1.5 text-xs text-gantly-emerald font-heading font-semibold mt-4 group-hover:gap-3 transition-all">
                 Explorar <ArrowRight size={14} />

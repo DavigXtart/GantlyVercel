@@ -176,7 +176,7 @@ public class CalendarService {
                     req.setStatus(RequestStatusEnum.REJECTED);
                     appointmentRequestRepository.save(req);
                     notificationService.createNotification(req.getUser().getId(), "APPOINTMENT",
-                        "Horario eliminado", "El horario que solicitaste con " + psychologist.getName() + " ya no está disponible.");
+                        "Horario eliminado", "El horario que solicitaste con " + psychologist.getName() + " ya no está disponible.", appointmentId);
                 });
         appointmentRepository.delete(appointment);
         auditService.logCalendarAction("APPOINTMENT_CANCELLED", appointmentId, psychologist.getId(), null);
@@ -295,7 +295,7 @@ public class CalendarService {
         }
 
         notificationService.createNotification(appt.getPsychologist().getId(), "APPOINTMENT",
-            "Nueva solicitud de cita", user.getName() + " ha solicitado una cita contigo.");
+            "Nueva solicitud de cita", user.getName() + " ha solicitado una cita contigo.", appt.getId());
 
         auditService.logCalendarAction("APPOINTMENT_BOOKED", appointmentId, appt.getPsychologist().getId(), user.getId());
         auditService.persistAudit("BOOK_APPOINTMENT", "APPOINTMENT", appointmentId,
@@ -336,7 +336,7 @@ public class CalendarService {
             } else {
                 req.setStatus(RequestStatusEnum.REJECTED);
                 notificationService.createNotification(req.getUser().getId(), "APPOINTMENT",
-                    "Solicitud rechazada", "Tu solicitud de cita con " + psychologist.getName() + " no ha sido aceptada.");
+                    "Solicitud rechazada", "Tu solicitud de cita con " + psychologist.getName() + " no ha sido aceptada.", appointment.getId());
             }
             appointmentRequestRepository.save(req);
         });
@@ -359,7 +359,7 @@ public class CalendarService {
         }
 
         notificationService.createNotification(request.getUser().getId(), "APPOINTMENT",
-            "Cita confirmada", "Tu cita con " + psychologist.getName() + " ha sido confirmada.");
+            "Cita confirmada", "Tu cita con " + psychologist.getName() + " ha sido confirmada.", appointment.getId());
 
         auditService.logCalendarAction("APPOINTMENT_CONFIRMED", appointment.getId(), psychologist.getId(), request.getUser().getId());
         auditService.persistAudit("CONFIRM_APPOINTMENT", "APPOINTMENT", appointment.getId(),
@@ -394,7 +394,7 @@ public class CalendarService {
 
         if (appointment.getUser() != null) {
             notificationService.createNotification(appointment.getUser().getId(), "APPOINTMENT",
-                "Cita cancelada", "Tu cita con " + psychologist.getName() + " ha sido cancelada.");
+                "Cita cancelada", "Tu cita con " + psychologist.getName() + " ha sido cancelada.", appointment.getId());
 
             try {
                 emailService.sendAppointmentCancellationEmail(
@@ -444,11 +444,11 @@ public class CalendarService {
         if (isPatient && appointment.getPsychologist() != null) {
             notificationService.createNotification(appointment.getPsychologist().getId(), "APPOINTMENT",
                     "Cita reagendada",
-                    user.getName() + " ha reagendado su cita al " + formattedNew);
+                    user.getName() + " ha reagendado su cita al " + formattedNew, appointment.getId());
         } else if (isPsychologist && appointment.getUser() != null) {
             notificationService.createNotification(appointment.getUser().getId(), "APPOINTMENT",
                     "Cita reagendada",
-                    appointment.getPsychologist().getName() + " ha reagendado tu cita al " + formattedNew);
+                    appointment.getPsychologist().getName() + " ha reagendado tu cita al " + formattedNew, appointment.getId());
         }
 
         return new CalendarDtos.MessageResponse("Cita reagendada exitosamente");
@@ -502,7 +502,7 @@ public class CalendarService {
         }
 
         notificationService.createNotification(user.getId(), "APPOINTMENT",
-            "Nueva cita programada", psychologist.getName() + " ha programado una cita contigo.");
+            "Nueva cita programada", psychologist.getName() + " ha programado una cita contigo.", saved.getId());
 
         return new CalendarDtos.CreateForPatientResponse(
                 saved.getId(), saved.getStartTime().toString(), saved.getEndTime().toString(),
@@ -685,7 +685,7 @@ public class CalendarService {
                         psychName + " ha marcado ausencia durante tu cita del "
                                 + slot.getStartTime().atZone(AppTimezone.APP_ZONE)
                                     .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy 'a las' HH:mm"))
-                                + ". Por favor, contacta para reprogramar.");
+                                + ". Por favor, contacta para reprogramar.", slot.getId());
                 try {
                     emailService.sendAppointmentCancellationEmail(
                             slot.getUser().getEmail(), patientName, psychName, slot.getStartTime());

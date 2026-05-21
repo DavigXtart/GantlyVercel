@@ -796,6 +796,18 @@ export const calendarService = {
   deleteAbsence: async (id: number) => {
     await api.delete(`/calendar/absences/${id}`);
   },
+  // Weekly schedule
+  getWeeklySchedule: async () => {
+    const { data } = await api.get('/calendar/weekly-schedule');
+    return data as DaySchedule[];
+  },
+  saveWeeklySchedule: async (days: DaySchedule[]) => {
+    await api.put('/calendar/weekly-schedule', { days });
+  },
+  generateWeeklySlots: async () => {
+    const { data } = await api.post('/calendar/weekly-schedule/generate');
+    return data as { slotsCreated: number; slotsSkipped: number };
+  },
   deleteRecurrenceGroup: async (groupId: string) => {
     const { data } = await api.delete(`/calendar/recurrence/${groupId}`);
     return data as any;
@@ -814,6 +826,15 @@ export const calendarService = {
     a.click();
     URL.revokeObjectURL(url);
   },
+};
+
+export type DaySchedule = {
+  dayOfWeek: number; // 0=Mon...6=Sun
+  enabled: boolean;
+  startTime1: string; // "HH:mm"
+  endTime1: string;
+  startTime2: string | null;
+  endTime2: string | null;
 };
 
 // Psicólogo

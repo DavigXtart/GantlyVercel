@@ -307,11 +307,11 @@ public class StripeService {
 
                 if (appointment.getUser() != null) {
                     notificationService.createNotification(appointment.getUser().getId(), "PAYMENT",
-                            "Pago confirmado", "Tu pago para la cita con " + appointment.getPsychologist().getName() + " ha sido confirmado.");
+                            "Pago confirmado", "Tu pago para la cita con " + appointment.getPsychologist().getName() + " ha sido confirmado.", appointment.getId());
                 }
                 if (appointment.getPsychologist() != null) {
                     notificationService.createNotification(appointment.getPsychologist().getId(), "PAYMENT",
-                            "Pago recibido", "El pago de " + appointment.getUser().getName() + " para su cita ha sido confirmado.");
+                            "Pago recibido", "El pago de " + appointment.getUser().getName() + " para su cita ha sido confirmado.", appointment.getId());
                 }
 
                 result.put("status", "PAID");
@@ -347,11 +347,11 @@ public class StripeService {
 
                 if (appointment.getUser() != null) {
                     notificationService.createNotification(appointment.getUser().getId(), "PAYMENT",
-                            "Pago confirmado", "Tu pago para la cita con " + appointment.getPsychologist().getName() + " ha sido confirmado.");
+                            "Pago confirmado", "Tu pago para la cita con " + appointment.getPsychologist().getName() + " ha sido confirmado.", appointment.getId());
                 }
                 if (appointment.getPsychologist() != null) {
                     notificationService.createNotification(appointment.getPsychologist().getId(), "PAYMENT",
-                            "Pago recibido", "El pago de " + appointment.getUser().getName() + " para su cita ha sido confirmado.");
+                            "Pago recibido", "El pago de " + appointment.getUser().getName() + " para su cita ha sido confirmado.", appointment.getId());
                 }
             });
         } catch (NumberFormatException e) {
@@ -457,7 +457,8 @@ public class StripeService {
                             "PAYMENT",
                             "Pago fallido",
                             "Tu pago para la cita con " + appointment.getPsychologist().getName() +
-                                    " no se ha podido procesar. Por favor, inténtalo de nuevo."
+                                    " no se ha podido procesar. Por favor, inténtalo de nuevo.",
+                            appointment.getId()
                     );
                 }
             });
