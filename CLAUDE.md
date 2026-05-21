@@ -98,7 +98,7 @@ frontend/src/
 - **tasks/task_comments/task_files** - Therapeutic tasks
 - **psychologist_profiles** - Extended psychologist info (approved, approved_at, rejection_reason, license_number)
 - **user_psychologist** - Patient-psychologist assignment
-- **consent_requests/consent_document_types** - Consent management (minors)
+- **consent_requests/consent_document_types** - Consent management (informed consent + intake forms)
 - **weekly_schedules** - Psychologist weekly schedule templates (dayOfWeek, 2 time blocks, enabled)
 
 ## Routing (React Router)
@@ -302,6 +302,7 @@ Located in `psicoapp/src/main/resources/db/`:
 - `V59__add_fiscal_fields.sql` - Adds `razon_social`, `direccion_fiscal` to companies
 - `V60__add_notification_entity_id.sql` - Adds `entity_id` to notifications for deep linking
 - `V65__weekly_schedules.sql` - Weekly schedule templates for psychologists (dayOfWeek, 2 time blocks, enabled)
+- `V66__clinical_forms.sql` - Clinical forms: form_schema/form_data columns + INFORMED_CONSENT and INTAKE_FORM templates
 
 ## Deleted Features
 - **Group Sessions**: Removed entirely (GroupSessionController, GroupSessionService, GroupSessionEntity, GroupSessionParticipantEntity, GroupSessions.tsx)
@@ -396,7 +397,7 @@ Located in `psicoapp/src/main/resources/db/`:
 | UX-11 | **Psicólogo** | Facturación sin PDF | Solo export CSV. Falta factura PDF con membrete, desglose IVA, datos fiscales |
 | UX-12 | **ERP** | Chat clínica→paciente unidireccional | Clínica envía mensaje pero paciente no puede responder (UserClinicChatTab existe pero UX poco clara) |
 | UX-13 | **ERP** | Sin métricas por psicólogo | Director no puede ver carga de trabajo, satisfacción, facturación individual |
-| UX-14 | **Psicólogo** | Intake form incompleto | Falta: contacto emergencia, aseguradora, fuente referido, motivo consulta |
+| UX-14 | **Psicólogo** | ~~Intake form incompleto~~ | **RESUELTO** — Formulario Recogida Datos Personales con 12 campos (DNI, teléfono, emergencia, motivo consulta, antecedentes, medicación, terapia previa, RGPD) |
 | UX-15 | **Psicólogo** | Sin outcome measures en flujo clínico | Debería asignar GAD-7/PHQ-9 como baseline día 1 y comparar al alta |
 | UX-16 | **Paciente** | Sin reagendar cita | Solo puede cancelar + re-reservar. Debería ser un click |
 | UX-17 | **Psicólogo** | Calendario sin nombres de pacientes | Al crear slots en bloque, no se ve qué paciente reservó qué slot |
@@ -630,6 +631,15 @@ Located in `psicoapp/src/main/resources/db/`:
 - **Right column**: Mood placeholder (needs backend endpoint), therapeutic tasks, patient info
 - **Data sources**: calendarService (appointments), calendarNotesService (notes), tasksService (tasks)
 - **Props unchanged**: Same interface as before — parent PsychDashboard requires zero changes
+
+## Clinical Forms (Consent + Intake)
+- **Two document templates**: `INFORMED_CONSENT` (read+sign) and `INTAKE_FORM` (fillable fields + sign)
+- **formSchema**: JSON array of field definitions on `ConsentDocumentTypeEntity` — supports text, textarea, select, checkbox types with `required` and `showIf` conditional logic
+- **formData**: JSON object of patient responses on `ConsentRequestEntity` — stored on sign, used to re-render template replacing `{{FIELD:xxx}}` placeholders
+- **Template variables**: `{{PSYCHOLOGIST_NAME}}`, `{{PSYCHOLOGIST_EMAIL}}`, `{{PSYCHOLOGIST_LICENSE}}`, `{{PATIENT_NAME}}`, `{{PATIENT_EMAIL}}`, `{{PLACE}}`, `{{DATE}}`, `{{TIME}}`
+- **No minor restriction**: `createAndSend()` works for any patient (not just minors)
+- **Frontend**: `UserConsentTab.tsx` renders dynamic form fields before signature, `PsychConsentTab.tsx` displays filled data as key-value pairs in detail view
+- **Migration**: `V66__clinical_forms.sql`
 
 ## Monitoring & Observability
 

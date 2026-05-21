@@ -935,7 +935,7 @@ export const consentService = {
     const { data } = await api.get(`/consent/requests/${id}`);
     return data as ConsentRequest;
   },
-  signRequest: async (id: number, signData: { signerName: string; signatureData?: string }) => {
+  signRequest: async (id: number, signData: { signerName: string; signatureData?: string; formData?: string }) => {
     const { data } = await api.post(`/consent/requests/${id}/sign`, signData);
     return data as ConsentRequest;
   },

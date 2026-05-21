@@ -20,6 +20,9 @@ public class ConsentDocumentTypeEntity {
     @Column(name = "template", nullable = false, columnDefinition = "TEXT")
     private String template;
 
+    @Column(name = "form_schema", columnDefinition = "TEXT")
+    private String formSchema;
+
     @Column(name = "active", nullable = false)
     private Boolean active = true;
 
@@ -49,6 +52,8 @@ public class ConsentDocumentTypeEntity {
     public void setTitle(String title) { this.title = title; }
     public String getTemplate() { return template; }
     public void setTemplate(String template) { this.template = template; }
+    public String getFormSchema() { return formSchema; }
+    public void setFormSchema(String formSchema) { this.formSchema = formSchema; }
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
     public Instant getCreatedAt() { return createdAt; }

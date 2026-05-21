@@ -4,6 +4,7 @@ import com.alvaro.psicoapp.domain.*;
 import com.alvaro.psicoapp.dto.ConsentDtos;
 import com.alvaro.psicoapp.repository.ConsentDocumentTypeRepository;
 import com.alvaro.psicoapp.repository.ConsentRequestRepository;
+import com.alvaro.psicoapp.repository.PsychologistProfileRepository;
 import com.alvaro.psicoapp.repository.UserPsychologistRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ public class ConsentService {
     private final ConsentRequestRepository consentRequestRepository;
     private final UserRepository userRepository;
     private final UserPsychologistRepository userPsychologistRepository;
+    private final PsychologistProfileRepository psychologistProfileRepository;
     private final AuditService auditService;
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -35,12 +37,14 @@ public class ConsentService {
             ConsentRequestRepository consentRequestRepository,
             UserRepository userRepository,
             UserPsychologistRepository userPsychologistRepository,
+            PsychologistProfileRepository psychologistProfileRepository,
             AuditService auditService
     ) {
         this.documentTypeRepository = documentTypeRepository;
         this.consentRequestRepository = consentRequestRepository;
         this.userRepository = userRepository;
         this.userPsychologistRepository = userPsychologistRepository;
+        this.psychologistProfileRepository = psychologistProfileRepository;
         this.auditService = auditService;
     }
 
@@ -71,7 +75,7 @@ public class ConsentService {
     public List<ConsentDtos.DocumentTypeDto> listActiveDocumentTypes() {
         return documentTypeRepository.findByActiveTrueOrderByTitleAsc()
                 .stream()
-                .map(t -> new ConsentDtos.DocumentTypeDto(t.getId(), t.getCode(), t.getTitle(), t.getActive()))
+                .map(t -> new ConsentDtos.DocumentTypeDto(t.getId(), t.getCode(), t.getTitle(), t.getFormSchema(), t.getActive()))
                 .toList();
     }
 
@@ -93,10 +97,6 @@ public class ConsentService {
         UserEntity patient = userRepository.findById(patientId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Paciente no encontrado"));
 
-        if (!isMinor(patient)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El paciente no es menor de edad");
-        }
-
         ConsentDocumentTypeEntity docType = documentTypeRepository.findById(req.documentTypeId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tipo de documento no encontrado"));
         if (docType.getActive() == null || !docType.getActive()) {
@@ -111,7 +111,7 @@ public class ConsentService {
         consent.setStatus(ConsentRequestStatus.SENT);
         consent.setSentAt(Instant.now());
 
-        String rendered = renderTemplate(docType.getTemplate(), psychologist, patient, consent);
+        String rendered = renderTemplate(docType.getTemplate(), psychologist, patient, consent, null);
         consent.setRenderedContent(rendered);
 
         ConsentRequestEntity saved = consentRequestRepository.save(consent);
@@ -149,12 +149,28 @@ public class ConsentService {
 
         consent.setSignerName(signerName);
         if (req != null && req.signatureData() != null && !req.signatureData().isBlank()) {
-            // Limit signature data to 500KB to prevent memory/storage abuse
             if (req.signatureData().length() > 512_000) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La firma excede el tamaño máximo permitido");
             }
             consent.setSignatureData(req.signatureData());
         }
+
+        // Store form data and re-render template with filled fields
+        if (req != null && req.formData() != null && !req.formData().isBlank()) {
+            if (req.formData().length() > 100_000) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Los datos del formulario exceden el tamaño máximo");
+            }
+            consent.setFormData(req.formData());
+
+            // Re-render the template replacing {{FIELD:xxx}} with actual values
+            ConsentDocumentTypeEntity docType = consent.getDocumentType();
+            if (docType != null && docType.getTemplate() != null) {
+                Map<String, String> formFields = parseFormData(req.formData());
+                String rendered = renderTemplate(docType.getTemplate(), consent.getPsychologist(), consent.getUser(), consent, formFields);
+                consent.setRenderedContent(rendered);
+            }
+        }
+
         consent.setSignedAt(Instant.now());
         consent.setStatus(ConsentRequestStatus.SIGNED);
         ConsentRequestEntity saved = consentRequestRepository.save(consent);
@@ -177,7 +193,6 @@ public class ConsentService {
         ConsentRequestEntity consent = consentRequestRepository.findById(consentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Consentimiento no encontrado"));
 
-        // Allow access if the user is the patient or the psychologist
         boolean isPatient = consent.getUser() != null && Objects.equals(consent.getUser().getId(), user.getId());
         boolean isPsych = consent.getPsychologist() != null && Objects.equals(consent.getPsychologist().getId(), user.getId());
         if (!isPatient && !isPsych) {
@@ -223,21 +238,25 @@ public class ConsentService {
         return new ConsentDtos.ConsentRequestDto(
                 c.getId(),
                 c.getUser() != null ? c.getUser().getId() : null,
+                c.getUser() != null ? c.getUser().getName() : null,
                 c.getPsychologist() != null ? c.getPsychologist().getId() : null,
                 c.getDocumentType() != null ? c.getDocumentType().getId() : null,
                 c.getDocumentType() != null ? c.getDocumentType().getTitle() : null,
+                c.getDocumentType() != null ? c.getDocumentType().getCode() : null,
+                c.getDocumentType() != null ? c.getDocumentType().getFormSchema() : null,
                 c.getStatus() != null ? c.getStatus().name() : null,
                 c.getPlace(),
                 c.getSentAt(),
                 c.getSignedAt(),
                 c.getSignerName(),
                 includeContent ? c.getRenderedContent() : null,
+                c.getFormData(),
                 c.getSignatureData(),
                 c.getPdfUrl()
         );
     }
 
-    private String renderTemplate(String template, UserEntity psychologist, UserEntity patient, ConsentRequestEntity consent) {
+    private String renderTemplate(String template, UserEntity psychologist, UserEntity patient, ConsentRequestEntity consent, Map<String, String> formFields) {
         String t = template != null ? template : "";
         ZoneId tz = com.alvaro.psicoapp.config.AppTimezone.APP_ZONE;
         Instant sentAt = consent.getSentAt() != null ? consent.getSentAt() : Instant.now();
@@ -245,9 +264,19 @@ public class ConsentService {
         String date = dt.toLocalDate().format(DATE_FMT);
         String time = dt.toLocalTime().format(TIME_FMT);
 
+        // Lookup psychologist license number
+        String licenseNumber = "";
+        if (psychologist != null && psychologist.getId() != null) {
+            var profileOpt = psychologistProfileRepository.findByUser_Id(psychologist.getId());
+            if (profileOpt.isPresent() && profileOpt.get().getLicenseNumber() != null) {
+                licenseNumber = profileOpt.get().getLicenseNumber();
+            }
+        }
+
         Map<String, String> vars = new HashMap<>();
         vars.put("PSYCHOLOGIST_NAME", nullSafe(psychologist.getName()));
         vars.put("PSYCHOLOGIST_EMAIL", nullSafe(psychologist.getEmail()));
+        vars.put("PSYCHOLOGIST_LICENSE", licenseNumber);
         vars.put("PATIENT_NAME", nullSafe(patient.getName()));
         vars.put("PATIENT_EMAIL", nullSafe(patient.getEmail()));
         vars.put("PLACE", nullSafe(consent.getPlace()));
@@ -258,7 +287,33 @@ public class ConsentService {
         for (var e : vars.entrySet()) {
             out = out.replace("{{" + e.getKey() + "}}", e.getValue());
         }
+
+        // Replace {{FIELD:xxx}} placeholders with form data values (or empty string if not filled)
+        if (formFields != null) {
+            for (var e : formFields.entrySet()) {
+                out = out.replace("{{FIELD:" + e.getKey() + "}}", nullSafe(e.getValue()));
+            }
+        }
+        // Clean any remaining {{FIELD:xxx}} placeholders (unfilled fields)
+        out = out.replaceAll("\\{\\{FIELD:[^}]+\\}\\}", "");
+
         return out;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, String> parseFormData(String formDataJson) {
+        Map<String, String> result = new HashMap<>();
+        if (formDataJson == null || formDataJson.isBlank()) return result;
+        try {
+            var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            Map<String, Object> map = mapper.readValue(formDataJson, Map.class);
+            for (var e : map.entrySet()) {
+                result.put(e.getKey(), e.getValue() != null ? e.getValue().toString() : "");
+            }
+        } catch (Exception ignored) {
+            // If JSON parsing fails, return empty map
+        }
+        return result;
     }
 
     private static String safeTrim(String s, int max) {

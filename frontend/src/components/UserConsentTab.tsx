@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { FileCheck, Pen, Eye, Clock, CheckCircle, XCircle, FileText, Check } from 'lucide-react';
 import { consentService } from '../services/api';
 import { toast } from './ui/Toast';
@@ -6,10 +6,25 @@ import EmptyState from './ui/EmptyState';
 import { SkeletonList } from './ui/SkeletonLoader';
 import SignaturePad, { type SignaturePadHandle } from './ui/SignaturePad';
 import Modal from './ui/Modal';
-import type { ConsentRequest } from '../services/types/consent';
+import type { ConsentRequest, FormField } from '../services/types/consent';
 
 interface UserConsentTabProps {
   userName?: string;
+}
+
+function parseFormSchema(schema?: string): FormField[] {
+  if (!schema) return [];
+  try {
+    return JSON.parse(schema) as FormField[];
+  } catch {
+    return [];
+  }
+}
+
+function shouldShowField(field: FormField, formValues: Record<string, string>): boolean {
+  if (!field.showIf) return true;
+  const [key, value] = field.showIf.split('=');
+  return formValues[key] === value;
 }
 
 export default function UserConsentTab({ userName }: UserConsentTabProps) {
@@ -23,7 +38,10 @@ export default function UserConsentTab({ userName }: UserConsentTabProps) {
   const [accepted, setAccepted] = useState(false);
   const [signerName, setSignerName] = useState(userName || '');
   const [signing, setSigning] = useState(false);
+  const [formValues, setFormValues] = useState<Record<string, string>>({});
   const signaturePadRef = useRef<SignaturePadHandle>(null);
+
+  const formFields = useMemo(() => parseFormSchema(selectedRequest?.formSchema), [selectedRequest?.formSchema]);
 
   const loadRequests = async () => {
     try {
@@ -53,6 +71,7 @@ export default function UserConsentTab({ userName }: UserConsentTabProps) {
       setSelectedRequest(full);
       setAccepted(false);
       setSignerName(userName || '');
+      setFormValues({});
       setShowSigningModal(true);
     } catch {
       toast.error('Error al cargar el consentimiento');
@@ -69,16 +88,36 @@ export default function UserConsentTab({ userName }: UserConsentTabProps) {
     }
   };
 
+  const validateForm = (): boolean => {
+    for (const field of formFields) {
+      if (!shouldShowField(field, formValues)) continue;
+      if (!field.required) continue;
+      const val = formValues[field.key];
+      if (field.type === 'checkbox') {
+        if (val !== 'true') return false;
+      } else {
+        if (!val || !val.trim()) return false;
+      }
+    }
+    return true;
+  };
+
   const handleSign = async () => {
     if (!selectedRequest || !accepted || !signerName.trim()) return;
+    if (formFields.length > 0 && !validateForm()) {
+      toast.error('Completa todos los campos obligatorios');
+      return;
+    }
 
     const signatureData = signaturePadRef.current?.getSignatureData() || undefined;
+    const formData = formFields.length > 0 ? JSON.stringify(formValues) : undefined;
 
     try {
       setSigning(true);
       await consentService.signRequest(selectedRequest.id, {
         signerName: signerName.trim(),
         signatureData,
+        formData,
       });
       toast.success('Consentimiento firmado correctamente');
       setShowSigningModal(false);
@@ -95,11 +134,16 @@ export default function UserConsentTab({ userName }: UserConsentTabProps) {
     setShowSigningModal(false);
     setSelectedRequest(null);
     setAccepted(false);
+    setFormValues({});
   };
 
   const closeViewModal = () => {
     setShowViewModal(false);
     setSelectedRequest(null);
+  };
+
+  const setFieldValue = (key: string, value: string) => {
+    setFormValues((prev) => ({ ...prev, [key]: value }));
   };
 
   const statusBadge = (status: string) => {
@@ -128,6 +172,60 @@ export default function UserConsentTab({ userName }: UserConsentTabProps) {
   const otherRequests = requests.filter((r) => r.status !== 'SENT' && r.status !== 'SIGNED');
 
   const inputCls = 'w-full h-9 px-3 rounded-md border border-slate-200 text-sm text-slate-900 outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200';
+
+  const renderFormField = (field: FormField) => {
+    if (!shouldShowField(field, formValues)) return null;
+    const value = formValues[field.key] || '';
+    const requiredMark = field.required ? <span className="text-red-500 ml-0.5">*</span> : null;
+
+    return (
+      <div key={field.key}>
+        {field.type === 'checkbox' ? (
+          <label className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={value === 'true'}
+              onChange={(e) => setFieldValue(field.key, e.target.checked ? 'true' : 'false')}
+              className="mt-0.5 h-4 w-4 rounded border-slate-300 text-gantly-blue focus:ring-gantly-blue cursor-pointer"
+            />
+            <span className="text-sm text-slate-700">{field.label}{requiredMark}</span>
+          </label>
+        ) : (
+          <>
+            <label className="block text-[11px] text-slate-500 font-medium mb-1 uppercase tracking-wider">
+              {field.label}{requiredMark}
+            </label>
+            {field.type === 'textarea' ? (
+              <textarea
+                value={value}
+                onChange={(e) => setFieldValue(field.key, e.target.value)}
+                rows={3}
+                className={`${inputCls} h-auto py-2`}
+              />
+            ) : field.type === 'select' ? (
+              <select
+                value={value}
+                onChange={(e) => setFieldValue(field.key, e.target.value)}
+                className={`${inputCls} cursor-pointer`}
+              >
+                <option value="">Seleccionar...</option>
+                {(field.options || []).map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type="text"
+                value={value}
+                onChange={(e) => setFieldValue(field.key, e.target.value)}
+                className={inputCls}
+              />
+            )}
+          </>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-5">
@@ -167,7 +265,7 @@ export default function UserConsentTab({ userName }: UserConsentTabProps) {
                       {statusBadge(r.status)}
                     </div>
                     <p className="text-xs text-slate-500 m-0">
-                      {r.psychologistName ? `Enviado por ${r.psychologistName}` : 'Enviado'} el {formatDate(r.createdAt)}
+                      {r.psychologistName ? `Enviado por ${r.psychologistName}` : 'Enviado'} el {formatDate(r.createdAt || r.sentAt)}
                     </p>
                   </div>
                   <button
@@ -254,6 +352,14 @@ export default function UserConsentTab({ userName }: UserConsentTabProps) {
               <p className="text-sm text-slate-500">Sin contenido disponible</p>
             )}
 
+            {/* Form fields (if formSchema exists) */}
+            {formFields.length > 0 && (
+              <div className="border border-slate-200 rounded-lg p-4 space-y-3 bg-white">
+                <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider mb-2">Datos del formulario</p>
+                {formFields.map(renderFormField)}
+              </div>
+            )}
+
             {/* Acceptance checkbox */}
             <label className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100 cursor-pointer select-none">
               <input
@@ -294,7 +400,7 @@ export default function UserConsentTab({ userName }: UserConsentTabProps) {
               <button
                 type="button"
                 onClick={handleSign}
-                disabled={signing || !accepted || !signerName.trim()}
+                disabled={signing || !accepted || !signerName.trim() || (formFields.length > 0 && !validateForm())}
                 className="flex items-center gap-1.5 px-4 py-2 bg-gantly-blue text-white rounded-md text-sm font-medium cursor-pointer hover:bg-gantly-blue/90 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Check size={14} />

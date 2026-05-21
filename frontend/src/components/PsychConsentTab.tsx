@@ -1,14 +1,32 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { FileCheck, Send, Eye, Plus, Clock, CheckCircle, XCircle, FileText } from 'lucide-react';
 import { consentService } from '../services/api';
 import { toast } from './ui/Toast';
 import EmptyState from './ui/EmptyState';
 import { SkeletonList } from './ui/SkeletonLoader';
 import Modal from './ui/Modal';
-import type { ConsentRequest, ConsentDocumentType } from '../services/types/consent';
+import type { ConsentRequest, ConsentDocumentType, FormField } from '../services/types/consent';
 
 interface PsychConsentTabProps {
   patients: Array<{ id: number; name: string }>;
+}
+
+function parseFormSchema(schema?: string): FormField[] {
+  if (!schema) return [];
+  try {
+    return JSON.parse(schema) as FormField[];
+  } catch {
+    return [];
+  }
+}
+
+function parseFormData(data?: string): Record<string, string> {
+  if (!data) return {};
+  try {
+    return JSON.parse(data) as Record<string, string>;
+  } catch {
+    return {};
+  }
 }
 
 export default function PsychConsentTab({ patients }: PsychConsentTabProps) {
@@ -24,6 +42,9 @@ export default function PsychConsentTab({ patients }: PsychConsentTabProps) {
   const [selectedPatientId, setSelectedPatientId] = useState<string>('');
   const [selectedDocTypeId, setSelectedDocTypeId] = useState<string>('');
   const [place, setPlace] = useState('');
+
+  const viewFormFields = useMemo(() => parseFormSchema(viewingRequest?.formSchema), [viewingRequest?.formSchema]);
+  const viewFormData = useMemo(() => parseFormData(viewingRequest?.formData), [viewingRequest?.formData]);
 
   const loadRequests = async () => {
     try {
@@ -156,7 +177,7 @@ export default function PsychConsentTab({ patients }: PsychConsentTabProps) {
                       <td className="py-2.5 px-3 text-slate-800 font-medium">{r.userName || `Paciente #${r.userId}`}</td>
                       <td className="py-2.5 px-3 text-slate-600">{r.documentTypeTitle || r.documentTypeCode || '-'}</td>
                       <td className="py-2.5 px-3">{statusBadge(r.status)}</td>
-                      <td className="py-2.5 px-3 text-slate-500">{formatDate(r.createdAt)}</td>
+                      <td className="py-2.5 px-3 text-slate-500">{formatDate(r.sentAt || r.createdAt)}</td>
                       <td className="py-2.5 px-3 text-slate-500">{formatDate(r.signedAt)}</td>
                       <td className="py-2.5 px-3">
                         <button
@@ -269,6 +290,33 @@ export default function PsychConsentTab({ patients }: PsychConsentTabProps) {
                 <p className="text-sm text-slate-500">Sin contenido disponible</p>
               )}
             </div>
+
+            {/* Form data display (if the consent has form data) */}
+            {viewingRequest.status === 'SIGNED' && viewFormFields.length > 0 && Object.keys(viewFormData).length > 0 && (
+              <div className="border border-slate-200 rounded-lg p-4 bg-slate-50/30">
+                <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider mb-3">Datos del formulario</p>
+                <div className="space-y-2">
+                  {viewFormFields.map((field) => {
+                    const value = viewFormData[field.key];
+                    if (!value && value !== 'false') return null;
+                    if (field.type === 'checkbox') {
+                      return (
+                        <div key={field.key} className="flex items-center gap-2">
+                          <CheckCircle size={14} className={value === 'true' ? 'text-emerald-500' : 'text-slate-400'} />
+                          <span className="text-sm text-slate-700">{field.label}</span>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div key={field.key} className="flex flex-col sm:flex-row sm:items-start gap-0.5 sm:gap-2">
+                        <span className="text-xs text-slate-500 font-medium min-w-[160px] shrink-0">{field.label}:</span>
+                        <span className="text-sm text-slate-800">{value}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Signature if signed */}
             {viewingRequest.status === 'SIGNED' && (
