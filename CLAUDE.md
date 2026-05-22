@@ -562,7 +562,8 @@ Located in `psicoapp/src/main/resources/db/`:
 - **Fuentes**: Outfit (heading), Work Sans (body), Caveat (handwritten)
 - **Legacy CSS eliminado**: .btn, .form-group, .admin-container → Tailwind utilities
 - **Clinic ERP**: 7 tabs rediseñados a estilo SaaS flat (sin gradients, sin shadow-soft, sin ALL CAPS headers)
-- **Modal**: `components/ui/Modal.tsx` — role="dialog", aria-modal, focus trap, Escape, backdrop click, z-[1000]
+- **Modal**: `components/ui/Modal.tsx` — role="dialog", aria-modal, focus trap, Escape, backdrop click, z-[1000], max-h-[90vh] + overflow-y-auto, stable onClose ref (no focus stealing)
+- **SignaturePad**: `components/ui/SignaturePad.tsx` — quadratic Bezier curves, velocity-based line width (1.5-4px), retina scaling (devicePixelRatio), smooth width interpolation
 - **ConfirmDialog**: `components/ui/ConfirmDialog.tsx` — variants danger/warning/info, loading state (reemplaza confirm())
 - **Accesibilidad**: role="tablist/tab/tabpanel", aria-selected, aria-controls, aria-labelledby, aria-expanded en todos los componentes
 - **Focus rings**: `focus:outline-none focus:ring-2 focus:ring-gantly-blue/20` (botones), `focus:ring-1` (inputs)
