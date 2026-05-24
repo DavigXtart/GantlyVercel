@@ -33,7 +33,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
     /** Allowed SUBSCRIBE destination patterns */
     private static final List<Pattern> ALLOWED_DESTINATIONS = List.of(
-        Pattern.compile("^/topic/chat/[\\w-]+$"),           // /topic/chat/{conversationId}
+        Pattern.compile("^/topic/chat/[\\w-]+(/[\\w-]+)?$"),  // /topic/chat/{id} or /topic/chat/{psychId}/{userId}
         Pattern.compile("^/topic/notifications/[\\w@.+-]+$"), // /topic/notifications/{userId}
         Pattern.compile("^/user/queue/.*$")                  // /user/queue/* (user-specific queues)
     );
