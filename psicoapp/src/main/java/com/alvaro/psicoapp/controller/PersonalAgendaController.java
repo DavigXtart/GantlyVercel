@@ -85,7 +85,10 @@ public class PersonalAgendaController {
         try {
             var user = currentUserService.getCurrentUser(principal);
             Optional<DailyMoodEntryEntity> entry = dailyMoodService.getTodayEntry(user.getId());
-            return ResponseEntity.ok(Map.of("entry", entry.orElse(null)));
+            if (entry.isPresent()) {
+                return ResponseEntity.ok(Map.of("entry", entry.get()));
+            }
+            return ResponseEntity.ok(java.util.Collections.singletonMap("entry", null));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
