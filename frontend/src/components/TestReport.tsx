@@ -131,7 +131,7 @@ function PercentageScaleTable({ items }: { items: (TestReportSubfactor | TestRep
           const filledCells = Math.round(ps / 10);
           return (
             <tr key={idx}>
-              <td style={{ ...CELL_STYLE, textAlign: 'left' }}>{'name' in item ? item.name : item.code}</td>
+              <td style={{ ...CELL_STYLE, textAlign: 'left' }}>{item.name || item.code}</td>
               <td style={{ ...CELL_STYLE, textAlign: 'center', fontWeight: 'bold' }}>{ps}</td>
               {ticks.map((n, i) => (
                 <td key={n} style={{

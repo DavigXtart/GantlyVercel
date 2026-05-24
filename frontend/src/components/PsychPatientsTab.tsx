@@ -251,7 +251,7 @@ export default function PsychPatientsTab({
                             onClick={async (e) => {
                               e.stopPropagation();
                               try {
-                                const types = await consentService.listDocumentTypes();
+                                const types = await consentService.getDocumentTypes();
                                 setConsentDocTypes(types || []);
                                 const first = (types || [])[0];
                                 setConsentForm({ userId: p.id, documentTypeId: first?.id || 0, place: '' });
@@ -409,7 +409,7 @@ export default function PsychPatientsTab({
                 onClick={async () => {
                   try {
                     setSendingConsent(true);
-                    await consentService.sendConsent(consentForm.userId, consentForm.documentTypeId, consentForm.place || undefined);
+                    await consentService.createRequest({ userId: consentForm.userId, documentTypeId: consentForm.documentTypeId, place: consentForm.place || undefined });
                     toast.success('Consentimiento enviado');
                     setShowConsentModal(false);
                     await onRefresh();

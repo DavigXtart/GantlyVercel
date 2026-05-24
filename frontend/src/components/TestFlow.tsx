@@ -119,7 +119,7 @@ export default function TestFlow({ testId, onBack, onComplete, previewOnly }: Te
   const [confirmSubmit, setConfirmSubmit] = useState(false);
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout | null = null;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
     let isMounted = true;
 
     const loadTestWithTimeout = async () => {

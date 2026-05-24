@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import {
   Brain, CalendarDays, CalendarX, Clock, History,
 } from 'lucide-react';
-import { profileService, calendarService, consentService } from '../services/api';
+import { profileService, calendarService, consentService, type ConsentRequest } from '../services/api';
 import LoadingSpinner from './ui/LoadingSpinner';
 import PatientMatchingTest from './PatientMatchingTest';
 import MatchingPsychologists from './MatchingPsychologists';
@@ -61,8 +61,8 @@ export default function UserPsychologistTab({
     let cancelled = false;
     setLoadingConsents(true);
     consentService
-      .myPending()
-      .then((list) => {
+      .getMyRequests()
+      .then((list: ConsentRequest[]) => {
         if (!cancelled) setPendingConsents(Array.isArray(list) ? list : []);
       })
       .catch(() => {
@@ -202,10 +202,10 @@ export default function UserPsychologistTab({
                             if (!signerNameForConsent.trim()) return;
                             setSigningConsentId(c.id);
                             try {
-                              await consentService.sign(c.id, signerNameForConsent.trim());
+                              await consentService.signRequest(c.id, { signerName: signerNameForConsent.trim() });
                               toast.success('Consentimiento firmado');
                               setSignerNameForConsent('');
-                              const list = await consentService.myPending();
+                              const list = await consentService.getMyRequests();
                               setPendingConsents(Array.isArray(list) ? list : []);
                             } catch (err: any) {
                               toast.error(err.response?.data?.error || 'Error al firmar');

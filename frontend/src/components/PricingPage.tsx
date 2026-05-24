@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Pricing, PricingPlan } from './ui/pricing';
+import { Pricing, type PricingPlan } from './ui/pricing';
 import { toast } from './ui/Toast';
 import SEO, { breadcrumbSchema } from './seo/SEO';
 

@@ -561,6 +561,14 @@ export const adminService = {
       specializations: string | null;
       createdAt: string;
       rejectionReason: string | null;
+      bio: string | null;
+      languages: string | null;
+      linkedinUrl: string | null;
+      website: string | null;
+      avatarUrl: string | null;
+      gender: string | null;
+      age: number | null;
+      interests: string | null;
     }>;
   },
   approvePsychologist: async (profileId: number) => {

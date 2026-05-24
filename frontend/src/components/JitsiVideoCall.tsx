@@ -26,7 +26,7 @@ function JitsiVideoCallComponent({
   const isInitializedRef = useRef(false); // Prevenir múltiples inicializaciones
   const hasJoinedRef = useRef(false); // Rastrear si el usuario se ha unido
   const isReconnectingRef = useRef(false); // Rastrear si está reconectando
-  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Timeout para cerrar
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null); // Timeout para cerrar
   const allowCloseRef = useRef(false); // Solo permitir cerrar cuando el usuario hace clic explícitamente
   const onCloseRef = useRef(onClose); // Guardar referencia estable de onClose
   

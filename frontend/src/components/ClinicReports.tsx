@@ -200,7 +200,7 @@ export default function ClinicReports() {
                 <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#94a3b8' }} />
                 <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickFormatter={(v: number) => `${v}€`} />
                 <Tooltip
-                  formatter={(value: number) => [fmtEuro(value), 'Ingresos']}
+                  formatter={(value: number | undefined) => [fmtEuro(value ?? 0), 'Ingresos']}
                   labelStyle={{ fontWeight: 600, color: '#0f172a' }}
                   contentStyle={{ borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 12 }}
                 />

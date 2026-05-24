@@ -1109,7 +1109,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
                                               .then((updated) => {
                                                 setServices(prev => prev.map(s => s.id === svc.id ? { ...s, psychologistPrices: updated.psychologistPrices ?? null } : s));
                                               })
-                                              .catch(() => toast.error('Error al guardar precio'));
+                                              .catch(() => { /* error saving price */ });
                                           }}
                                           className="h-7 w-20 px-2 rounded border border-slate-200 text-xs tabular-nums focus:ring-1 focus:ring-gantly-blue/20 focus:border-gantly-blue outline-none"
                                         />

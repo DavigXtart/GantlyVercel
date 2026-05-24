@@ -1001,7 +1001,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                                   <div className="font-body font-semibold text-[11px] flex items-center gap-1">
                                     {new Date(s.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - {new Date(s.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                                     {s.recurrenceGroupId && (
-                                      <Repeat size={10} className="text-gantly-blue/60 shrink-0" title={`Serie ${s.recurrenceRule === 'WEEKLY' ? 'semanal' : s.recurrenceRule === 'BIWEEKLY' ? 'quincenal' : s.recurrenceRule === 'MONTHLY' ? 'mensual' : 'recurrente'}`} />
+                                      <Repeat size={10} className="text-gantly-blue/60 shrink-0" aria-label={`Serie ${s.recurrenceRule === 'WEEKLY' ? 'semanal' : s.recurrenceRule === 'BIWEEKLY' ? 'quincenal' : s.recurrenceRule === 'MONTHLY' ? 'mensual' : 'recurrente'}`} />
                                     )}
                                   </div>
                                   {s.user?.name && (
