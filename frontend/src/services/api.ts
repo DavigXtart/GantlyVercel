@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { trackEvent } from '../utils/analytics';
 import type { ConsentRequest, ConsentDocumentType } from './types/consent';
+export type { ConsentRequest, ConsentDocumentType };
 
 // Safe localStorage wrapper — handles SecurityError in private browsing / disabled storage
 export const safeStorage = {
