@@ -131,7 +131,15 @@ public class AuthService {
 		if (sanitizedName.isEmpty()) throw new IllegalArgumentException("El nombre es requerido");
 		validatePassword(password);
 
-		if (userRepository.existsByEmail(sanitizedEmail)) throw new IllegalArgumentException("Email ya registrado");
+		var existingUser = userRepository.findByEmail(sanitizedEmail);
+		if (existingUser.isPresent()) {
+			if (Boolean.TRUE.equals(existingUser.get().getEmailVerified())) {
+				throw new IllegalArgumentException("Email ya registrado");
+			}
+			// Remove unverified account so user can re-register
+			userRepository.delete(existingUser.get());
+			userRepository.flush();
+		}
 
 		if (RoleConstants.PSYCHOLOGIST.equals(role) && companyReferralCode != null && !companyReferralCode.trim().isEmpty()) {
 			String code = companyReferralCode.trim().toUpperCase();
