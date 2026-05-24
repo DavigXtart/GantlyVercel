@@ -104,9 +104,23 @@ export default function Register({ onRegister, onSwitchToLogin, sessionId, psych
       toast.success('Te hemos enviado un código de verificación a tu email');
       setStep('verify');
     } catch (err: any) {
-      const errorMsg = err.response?.data?.message || 'Error al registrarse';
+      const raw = err.response?.data?.message || err.response?.data?.error || '';
+      const status = err.response?.status;
+      let errorMsg: string;
+      let fieldErrors: typeof errors = {};
+
+      if (status === 400 && /email.*registrad|already/i.test(raw)) {
+        errorMsg = 'Este email ya está registrado. ¿Quieres iniciar sesión?';
+        fieldErrors = { email: errorMsg };
+      } else if (status === 400 && /password|contraseña/i.test(raw)) {
+        errorMsg = raw;
+        fieldErrors = { password: errorMsg };
+      } else {
+        errorMsg = raw || 'Error al registrarse. Inténtalo de nuevo.';
+      }
+
       toast.error(errorMsg);
-      setErrors({ email: errorMsg.includes('email') ? errorMsg : undefined });
+      setErrors(fieldErrors);
     } finally {
       setLoading(false);
     }
