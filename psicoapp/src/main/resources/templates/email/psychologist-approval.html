@@ -4,24 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin:0;padding:0;background-color:#f0fdf4;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0fdf4;padding:40px 20px;">
+<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f1f5f9;padding:40px 20px;">
     <tr><td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
-            <tr><td style="background:linear-gradient(135deg,#065f46,#10b981);padding:32px 40px;text-align:center;">
-                <h1 style="color:#ffffff;margin:0;font-size:28px;font-weight:700;">Gantly</h1>
+        <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+            <tr><td style="height:4px;background:#059669;"></td></tr>
+            <tr><td style="padding:32px 40px 0;text-align:center;">
+                <img src="https://gantly.es/iconoGantly.png" alt="Gantly" width="44" height="44" style="display:inline-block;width:44px;height:44px;border-radius:10px;" />
             </td></tr>
-            <tr><td style="padding:40px;">
-                <h2 style="color:#065f46;margin:0 0 16px;font-size:22px;" th:text="'Hola ' + ${name} + ','">Hola,</h2>
-                <p style="color:#374151;font-size:16px;line-height:1.6;">Tu cuenta de profesional ha sido <strong style="color:#065f46;">aprobada</strong>.</p>
-                <p style="color:#374151;font-size:16px;line-height:1.6;">Ya puedes recibir pacientes, gestionar tu calendario y ofrecer sesiones a trav&eacute;s de la plataforma.</p>
-                <div style="text-align:center;margin:32px 0;">
-                    <a th:href="${loginUrl}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#065f46,#10b981);color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;font-size:16px;">Acceder a mi panel</a>
-                </div>
-                <p style="color:#6b7280;font-size:14px;line-height:1.6;">Si tienes alguna duda, no dudes en contactarnos.</p>
+            <tr><td style="padding:24px 40px 40px;">
+                <h2 style="color:#0A1628;margin:0 0 8px;font-size:20px;font-weight:600;text-align:center;">Cuenta aprobada</h2>
+                <p style="color:#059669;font-size:14px;text-align:center;margin:0 0 28px;font-weight:500;">Bienvenido/a al equipo</p>
+                <p style="color:#334155;font-size:15px;line-height:1.6;margin:0 0 8px;" th:text="'Hola ' + ${name} + ','">Hola,</p>
+                <p style="color:#334155;font-size:15px;line-height:1.6;margin:0 0 8px;">Tu cuenta de profesional ha sido <strong style="color:#059669;">aprobada</strong>.</p>
+                <p style="color:#334155;font-size:15px;line-height:1.6;margin:0 0 28px;">Ya puedes recibir pacientes, gestionar tu calendario y ofrecer sesiones a través de la plataforma.</p>
+                <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+                    <a th:href="${loginUrl}" style="display:inline-block;background:#2E93CC;color:#ffffff;text-decoration:none;padding:12px 32px;border-radius:6px;font-size:14px;font-weight:600;">Acceder a mi panel</a>
+                </td></tr></table>
+                <p style="color:#64748b;font-size:13px;line-height:1.6;margin:24px 0 0;">Si tienes alguna duda, no dudes en contactarnos.</p>
             </td></tr>
-            <tr><td style="background:#f9fafb;padding:24px 40px;text-align:center;border-top:1px solid #e5e7eb;">
-                <p style="color:#9ca3af;font-size:12px;margin:0;">El equipo de Gantly</p>
+            <tr><td style="padding:20px 40px;border-top:1px solid #f1f5f9;">
+                <p style="color:#94a3b8;font-size:12px;margin:0;text-align:center;">Gantly · Plataforma de salud mental</p>
             </td></tr>
         </table>
     </td></tr>
