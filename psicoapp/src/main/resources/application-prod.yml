@@ -146,6 +146,6 @@ app:
     enabled: ${APP_MAINTENANCE_ENABLED:false}
   email:
     resend-api-key: ${RESEND_API_KEY:}
-    from: ${EMAIL_FROM:noreply@gantly.com}
+    from: ${EMAIL_FROM:noreply@gantly.es}
     from-name: ${EMAIL_FROM_NAME:Gantly}
 

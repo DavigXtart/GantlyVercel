@@ -68,12 +68,12 @@ public class EmailService {
             String verificationUrl = baseUrl + "/verify-email?token=" + verificationToken;
 
             String greeting = isPsychologist
-                ? "Gracias por unirte a PSYmatch como profesional de la psicología."
-                : "Gracias por registrarte en PSYmatch.";
+                ? "Gracias por unirte a Gantly como profesional de la psicología."
+                : "Gracias por registrarte en Gantly.";
 
             String extraMessage = isPsychologist
                 ? "Una vez verificado tu correo, podrás comenzar a gestionar tu práctica profesional y recibir pacientes."
-                : "Si no creaste una cuenta en PSYmatch, puedes ignorar este correo.";
+                : "Si no creaste una cuenta en Gantly, puedes ignorar este correo.";
 
             Context ctx = new Context();
             ctx.setVariable("name", name);
@@ -83,7 +83,7 @@ public class EmailService {
             ctx.setVariable("extraMessage", extraMessage);
 
             String html = templateEngine.process("email/verification", ctx);
-            sendHtmlEmail(toEmail, "Verifica tu cuenta - PSYmatch", html);
+            sendHtmlEmail(toEmail, "Verifica tu cuenta - Gantly", html);
         } catch (Exception e) {
             logger.error("Error enviando correo de verificación", e);
             throw new RuntimeException("Error al enviar el correo de verificación", e);
@@ -105,7 +105,7 @@ public class EmailService {
             }
 
             String html = templateEngine.process("email/appointment-confirmation", ctx);
-            sendHtmlEmail(toEmail, "Cita confirmada - PSYmatch", html);
+            sendHtmlEmail(toEmail, "Cita confirmada - Gantly", html);
         } catch (Exception e) {
             logger.error("Error enviando correo de confirmación de cita", e);
         }
@@ -123,7 +123,7 @@ public class EmailService {
             ctx.setVariable("price", price != null ? String.format("%.2f", price.doubleValue()) : "0.00");
 
             String html = templateEngine.process("email/appointment-reminder", ctx);
-            sendHtmlEmail(toEmail, "Recordatorio de cita - PSYmatch", html);
+            sendHtmlEmail(toEmail, "Recordatorio de cita - Gantly", html);
         } catch (Exception e) {
             logger.error("Error enviando correo de recordatorio", e);
         }
@@ -149,7 +149,7 @@ public class EmailService {
             ctx.setVariable("hoursRemaining", hoursRemaining);
 
             String html = templateEngine.process("email/payment-reminder", ctx);
-            sendHtmlEmail(toEmail, "Recordatorio de pago - PSYmatch", html);
+            sendHtmlEmail(toEmail, "Recordatorio de pago - Gantly", html);
         } catch (Exception e) {
             logger.error("Error enviando correo de recordatorio de pago", e);
         }
@@ -164,7 +164,7 @@ public class EmailService {
             ctx.setVariable("resetUrl", resetUrl);
 
             String html = templateEngine.process("email/password-reset", ctx);
-            sendHtmlEmail(toEmail, "Recuperación de contraseña - PSYmatch", html);
+            sendHtmlEmail(toEmail, "Recuperación de contraseña - Gantly", html);
         } catch (Exception e) {
             logger.error("Error enviando correo de recuperación de contraseña", e);
             throw new RuntimeException("Error al enviar el correo de recuperación de contraseña", e);
@@ -182,7 +182,7 @@ public class EmailService {
             ctx.setVariable("loginUrl", baseUrl + "/login");
 
             String html = templateEngine.process("email/psychologist-approval", ctx);
-            sendHtmlEmail(toEmail, "Cuenta aprobada - PSYmatch", html);
+            sendHtmlEmail(toEmail, "Cuenta aprobada - Gantly", html);
         } catch (Exception e) {
             logger.error("Error enviando correo de aprobación de psicólogo", e);
         }
@@ -195,7 +195,7 @@ public class EmailService {
             ctx.setVariable("reason", reason != null ? reason : "No se proporcionó un motivo específico");
 
             String html = templateEngine.process("email/psychologist-rejection", ctx);
-            sendHtmlEmail(toEmail, "Solicitud de cuenta - PSYmatch", html);
+            sendHtmlEmail(toEmail, "Solicitud de cuenta - Gantly", html);
         } catch (Exception e) {
             logger.error("Error enviando correo de rechazo de psicólogo", e);
         }
@@ -210,7 +210,7 @@ public class EmailService {
             ctx.setVariable("appointmentDate", DATE_FORMATTER.format(appointmentStart));
 
             String html = templateEngine.process("email/appointment-cancellation", ctx);
-            sendHtmlEmail(toEmail, "Cita cancelada - PSYmatch", html);
+            sendHtmlEmail(toEmail, "Cita cancelada - Gantly", html);
         } catch (Exception e) {
             logger.error("Error enviando correo de cancelación de cita", e);
         }
