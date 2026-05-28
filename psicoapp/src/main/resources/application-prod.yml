@@ -107,6 +107,7 @@ info:
 # Configuración del servidor
 server:
   port: ${PORT:8080}
+  forward-headers-strategy: framework
   error:
     include-message: never
     include-binding-errors: never
