@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { User, GraduationCap, Lock, CheckCircle, Mail, Clock } from 'lucide-react';
 import { authService } from '../services/api';
 import { toast } from './ui/Toast';
+import LogoSvg from '../assets/logo-gantly.svg';
 
 interface RegisterPsychologistProps {
   onBack: () => void;
@@ -181,12 +182,12 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
     return (
       <div className="min-h-screen bg-gradient-to-br from-gantly-navy-700 via-gantly-blue-600 to-gantly-cyan-500 px-6 pt-[100px] pb-20">
         <nav className="fixed top-0 left-0 right-0 z-[1000] bg-white/95 backdrop-blur-md border-b border-gantly-blue-100 py-5 px-10 flex justify-between items-center">
-          <div
+          <img
+            src={LogoSvg}
+            alt="Gantly"
+            className="h-8 cursor-pointer transition-opacity hover:opacity-70"
             onClick={onBack}
-            className="font-heading text-[28px] font-bold text-gantly-blue-500 cursor-pointer transition-opacity hover:opacity-70"
-          >
-            Gantly
-          </div>
+          />
         </nav>
 
         <div className="max-w-[560px] mx-auto">
