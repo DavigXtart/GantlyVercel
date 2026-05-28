@@ -111,6 +111,14 @@ export default function Login({
         return;
       }
 
+      // Psychologist pending admin approval
+      if (backendMessage?.includes('PSYCHOLOGIST_PENDING_APPROVAL')) {
+        toast.warning('Tu cuenta está pendiente de aprobación. Recibirás un email cuando sea revisada.');
+        setFormError('Tu cuenta está pendiente de aprobación por nuestro equipo. Recibirás un email de confirmación cuando sea revisada.');
+        setLoading(false);
+        return;
+      }
+
       // Mensaje claro para credenciales incorrectas
       if (status === 401 || status === 403) {
         friendlyMessage = 'Email o contraseña incorrectos';

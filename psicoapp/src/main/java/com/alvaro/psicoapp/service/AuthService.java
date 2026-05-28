@@ -392,6 +392,14 @@ public class AuthService {
 			throw new IllegalArgumentException("EMAIL_NOT_VERIFIED");
 		}
 
+		// Psychologist approval check
+		if (RoleConstants.PSYCHOLOGIST.equals(u.getRole())) {
+			var profile = psychologistProfileRepository.findByUserId(u.getId());
+			if (profile.isEmpty() || !Boolean.TRUE.equals(profile.get().getApproved())) {
+				throw new IllegalArgumentException("PSYCHOLOGIST_PENDING_APPROVAL");
+			}
+		}
+
 		// 2FA check
 		if (Boolean.TRUE.equals(u.getTotpEnabled())) {
 			// Return a special temporary token indicating 2FA is required
