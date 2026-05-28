@@ -286,7 +286,7 @@ export default function AdminSectionsManager() {
   if (loading && allTests.length === 0) {
     return (
       <div className="max-w-[1200px] mx-auto p-10">
-        <LoadingSpinner text="Cargando secciones..." />
+        <LoadingSpinner />
       </div>
     );
   }

@@ -124,7 +124,7 @@ export default function PsychCalendarTab({
   };
 
   if (loadingSlots) {
-    return <LoadingSpinner text="Cargando calendario..." />;
+    return <LoadingSpinner />;
   }
 
   return (
@@ -229,7 +229,7 @@ export default function PsychCalendarTab({
           <div className="p-5">
             {loadingSchedule ? (
               <div className="flex items-center justify-center py-8">
-                <LoadingSpinner text="" />
+                <LoadingSpinner noText />
               </div>
             ) : (
               <>

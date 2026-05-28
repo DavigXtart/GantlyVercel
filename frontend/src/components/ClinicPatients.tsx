@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { clinicService, fileService } from '../services/api';
 import type { ClinicPatientSummary, ClinicPatientDetail, UpdatePatientReq } from '../services/api';
 import { Search, Mail, Phone, CalendarX, Link as LinkIcon, Pencil, Upload, FolderOpen, FileText, Download, Trash2, MessageCircle, Send } from 'lucide-react';
+import LoadingSpinner from './ui/LoadingSpinner';
 
 interface Props {
   onBack?: () => void;
@@ -39,14 +40,6 @@ function fmtDateTime(iso?: string): string {
   } catch {
     return iso;
   }
-}
-
-function Spinner() {
-  return (
-    <div className="flex justify-center py-10">
-      <div className="w-9 h-9 border-[3px] border-slate-200 border-t-gantly-blue rounded-full animate-spin" />
-    </div>
-  );
 }
 
 // ---------------------------------------------------------------------------
@@ -140,7 +133,7 @@ function ListView({
       )}
 
       {loading ? (
-        <Spinner />
+        <LoadingSpinner />
       ) : patients.length === 0 ? (
         <div className="text-center p-12 text-slate-500 flex flex-col items-center gap-3">
           <Search className="text-slate-500" size={32} />
@@ -326,7 +319,7 @@ function DetailView({
     } catch { /* ignore */ }
   };
 
-  if (loading) return <Spinner />;
+  if (loading) return <LoadingSpinner />;
   if (error)
     return (
       <div className="p-6 bg-red-50 text-red-700 rounded-lg m-6">
@@ -536,7 +529,7 @@ function DetailView({
             </div>
 
             {loadingDocs ? (
-              <Spinner />
+              <LoadingSpinner />
             ) : documents.length === 0 ? (
               <div className="text-slate-400 text-center py-16 flex flex-col items-center gap-2">
                 <FolderOpen size={28} />

@@ -72,7 +72,7 @@ export default function UserCalendarTab({
         )}
       </div>
       {loadingSlots ? (
-        <LoadingSpinner text="Cargando calendario..." />
+        <LoadingSpinner />
       ) : (
         <CalendarWeek
           mode="USER"

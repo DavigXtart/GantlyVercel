@@ -704,6 +704,22 @@ nav button {
   }
 }
 
+/* === GANTLY SPINNER (wobble arrow) === */
+
+@keyframes gantly-wobble {
+  0%   { transform: rotate(0deg) scale(1); }
+  15%  { transform: rotate(-20deg) scale(0.92); }
+  30%  { transform: rotate(12deg) scale(1.05); }
+  45%  { transform: rotate(-8deg) scale(0.97); }
+  60%  { transform: rotate(360deg) scale(1.1); }
+  75%  { transform: rotate(360deg) scale(0.95); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+.gantly-spinner svg {
+  animation: gantly-wobble 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
 /* === REDUCED MOTION === */
 
 @media (prefers-reduced-motion: reduce) {

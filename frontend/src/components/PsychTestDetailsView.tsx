@@ -39,7 +39,7 @@ export default function PsychTestDetailsView({
     <div className="bg-white rounded-xl border border-slate-200/80">
       {loadingTestDetails ? (
         <div className="p-6">
-          <LoadingSpinner text="Cargando detalles del test..." />
+          <LoadingSpinner />
         </div>
       ) : testDetailsData && testAnswers ? (
         <>

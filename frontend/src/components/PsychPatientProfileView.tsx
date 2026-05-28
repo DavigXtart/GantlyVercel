@@ -225,7 +225,7 @@ export default function PsychPatientProfileView({
     <div>
       {loadingPatientDetails ? (
         <div className="bg-white rounded-2xl border border-slate-200/80 p-10">
-          <LoadingSpinner text="Cargando detalles del paciente..." />
+          <LoadingSpinner />
         </div>
       ) : patientDetails ? (
         <div className="space-y-5">

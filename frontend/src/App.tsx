@@ -10,6 +10,7 @@ import GlobalLoader from './components/ui/GlobalLoader';
 import Maintenance from './components/Maintenance';
 import CookieBanner from './components/ui/CookieBanner';
 import CrisisButton from './components/CrisisButton';
+import LoadingSpinner from './components/ui/LoadingSpinner';
 import LogoSvg from './assets/logo-gantly.svg';
 
 // Lazy-loaded heavy components
@@ -37,9 +38,7 @@ const ClinicPublicPage = lazy(() => import('./components/ClinicPublicPage'));
 
 const LazyFallback = () => (
   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-    <div style={{ textAlign: 'center', color: '#6b7280' }}>
-      <div style={{ fontSize: '24px', marginBottom: '8px' }}>Cargando...</div>
-    </div>
+    <LoadingSpinner />
   </div>
 );
 
@@ -269,8 +268,8 @@ function Dashboard({ role, logout, onStartTest }: {
   return (
     <div>
       <div className="container" style={{ maxWidth: '1200px', marginTop: 24, padding: '40px', textAlign: 'center' }}>
-        <div style={{ fontSize: '18px', marginBottom: '16px' }}>Cargando tu cuenta...</div>
-        <div style={{ fontSize: '14px', color: '#6b7280' }}>
+        <LoadingSpinner />
+        <div style={{ fontSize: '14px', color: '#6b7280', marginTop: '12px' }}>
           Si esto tarda mucho, verifica que el backend esté funcionando correctamente.
         </div>
       </div>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X, ArrowRight, ArrowLeft, CheckCircle, RotateCcw, AlertTriangle } from 'lucide-react';
 import { evaluationTestService } from '../services/api';
 import { toast } from './ui/Toast';
+import LoadingSpinner from './ui/LoadingSpinner';
 import type { EvaluationTestDefinition, ScoringLevel } from '../data/evaluationTestDefinitions';
 import { calculateResult } from '../data/evaluationTestDefinitions';
 
@@ -228,8 +229,7 @@ export default function EvaluationTestFlow({ test, definition, onClose, onComple
           {/* Submitting phase */}
           {phase === 'submitting' && (
             <div className="text-center py-12">
-              <div className="w-12 h-12 rounded-full border-3 border-gantly-blue border-t-transparent animate-spin mx-auto mb-4" />
-              <p className="text-sm text-slate-500">Calculando resultados...</p>
+              <LoadingSpinner />
             </div>
           )}
 

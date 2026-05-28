@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { matchingService, psychService } from '../services/api';
 import { toast } from './ui/Toast';
+import LoadingSpinner from './ui/LoadingSpinner';
 import LogoSvg from '../assets/logo-gantly.svg';
 
 interface Question {
@@ -309,10 +310,7 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 border-2 border-gantly-blue border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-slate-600 font-medium">Cargando test de matching...</p>
-        </div>
+        <LoadingSpinner size="large" />
       </div>
     );
   }

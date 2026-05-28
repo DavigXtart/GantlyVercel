@@ -183,7 +183,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
       )}
 
       {loadingPsychProfile ? (
-        <LoadingSpinner text="Cargando perfil profesional..." />
+        <LoadingSpinner />
       ) : (
         <div className="flex flex-col gap-6">
           {/* Biografia */}

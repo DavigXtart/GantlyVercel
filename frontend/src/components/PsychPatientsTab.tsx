@@ -120,7 +120,7 @@ export default function PsychPatientsTab({
       </div>
 
       {loadingPatients ? (
-        <LoadingSpinner text="Cargando pacientes..." />
+        <LoadingSpinner />
       ) : filteredPatients.length === 0 ? (
         <EmptyState
           icon={<Users className="w-12 h-12 text-slate-500" />}

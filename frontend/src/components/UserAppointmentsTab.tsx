@@ -46,7 +46,7 @@ export default function UserAppointmentsTab({ setTab }: UserAppointmentsTabProps
       </h2>
 
       {loadingPastAppointments ? (
-        <LoadingSpinner text="Cargando historial de citas..." />
+        <LoadingSpinner />
       ) : pastAppointments.length === 0 ? (
         <EmptyState
           icon={<History className="w-12 h-12 text-slate-300" />}

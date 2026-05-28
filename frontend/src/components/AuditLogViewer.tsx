@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { clinicService } from '../services/api';
 import { Shield, ChevronLeft, ChevronRight, Filter, Calendar, User, FileText } from 'lucide-react';
+import LoadingSpinner from './ui/LoadingSpinner';
 
 interface AuditLogEntry {
   id: number;
@@ -160,7 +161,7 @@ export default function AuditLogViewer() {
         {/* Table */}
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <div className="w-6 h-6 border-2 border-slate-200 border-t-gantly-blue rounded-full animate-spin" />
+            <LoadingSpinner />
           </div>
         ) : logs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-slate-500">

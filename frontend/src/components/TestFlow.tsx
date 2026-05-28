@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { testService } from '../services/api';
 import { toast } from './ui/Toast';
 import ConfirmDialog from './ui/ConfirmDialog';
+import LoadingSpinner from './ui/LoadingSpinner';
 import { BarChart3, CheckCircle, ArrowLeft, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 interface Answer {
@@ -253,10 +254,7 @@ export default function TestFlow({ testId, onBack, onComplete, previewOnly }: Te
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-gantly-blue border-t-transparent rounded-full animate-spin" />
-          <p className="text-lg text-slate-600 font-medium">Cargando test...</p>
-        </div>
+        <LoadingSpinner size="large" />
       </div>
     );
   }

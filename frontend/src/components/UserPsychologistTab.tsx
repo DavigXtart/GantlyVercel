@@ -168,7 +168,7 @@ export default function UserPsychologistTab({
           {hasPsychologist && isMinor && (loadingConsents || pendingConsents.length > 0) ? (
             <div className="space-y-6">
               {loadingConsents ? (
-                <LoadingSpinner text="Cargando consentimiento..." />
+                <LoadingSpinner />
               ) : (
                 <>
                   <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200">
@@ -280,7 +280,7 @@ export default function UserPsychologistTab({
               )}
             </div>
             {loadingPastAppointments ? (
-              <LoadingSpinner text="Cargando citas pasadas..." />
+              <LoadingSpinner />
             ) : pastAppointments.length === 0 ? (
               <div className="text-center py-10 bg-gantly-cloud/30 rounded-xl border-2 border-dashed border-slate-200">
                 <CalendarX size={28} className="text-gantly-muted/40 mb-2 mx-auto block" />

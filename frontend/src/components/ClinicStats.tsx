@@ -4,6 +4,7 @@ import {
   ArrowUpRight, ArrowDownRight, Calendar, TrendingUp,
   Users, UserCheck, Activity, Minus,
 } from 'lucide-react';
+import LoadingSpinner from './ui/LoadingSpinner';
 
 type StatsData = {
   totalPsychologists: number;
@@ -60,7 +61,7 @@ export default function ClinicStats() {
   if (loading) {
     return (
       <div className="flex items-center justify-center flex-1 py-20">
-        <div className="w-6 h-6 border-2 border-slate-200 border-t-gantly-blue rounded-full animate-spin" />
+        <LoadingSpinner />
       </div>
     );
   }

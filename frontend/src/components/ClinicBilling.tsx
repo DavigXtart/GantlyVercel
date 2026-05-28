@@ -5,6 +5,7 @@ import {
   ArrowUpRight, ArrowDownRight, Calendar, ChevronDown, Download,
   FileText, Search, TrendingUp, Wallet, X, Shield, CreditCard,
 } from 'lucide-react';
+import LoadingSpinner from './ui/LoadingSpinner';
 
 interface Props {
   psychologists: Array<{ id: number; name: string }>;
@@ -608,7 +609,7 @@ export default function ClinicBilling({ psychologists, clinicName, clinicNif, cl
         {/* Table */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="w-6 h-6 border-2 border-slate-200 border-t-gantly-blue rounded-full animate-spin" />
+            <LoadingSpinner />
           </div>
         ) : filteredItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
