@@ -156,7 +156,8 @@ public class AdminDtos {
             String experience, String specializations,
             Instant createdAt, String rejectionReason,
             String bio, String languages, String linkedinUrl, String website,
-            String avatarUrl, String gender, Integer age, String interests) {}
+            String avatarUrl, String gender, Integer age, String interests,
+            String phone) {}
 
     public static class RejectPsychologistRequest {
         public String reason;

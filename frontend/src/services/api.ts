@@ -165,7 +165,8 @@ export const authService = {
     birthDate?: string,
     inviteToken?: string,
     gdprConsent?: boolean,
-    healthDataConsent?: boolean
+    healthDataConsent?: boolean,
+    extra?: { phone?: string; licenseNumber?: string; experienceYears?: string; specialization?: string }
   ) => {
     const { data } = await api.post<{ token?: string; accessToken?: string; refreshToken?: string; expiresIn?: number }>('/auth/register', {
       name,
@@ -178,7 +179,8 @@ export const authService = {
       birthDate: birthDate || undefined,
       inviteToken: inviteToken || undefined,
       gdprConsent: gdprConsent ?? true,
-      healthDataConsent: healthDataConsent ?? true
+      healthDataConsent: healthDataConsent ?? true,
+      ...extra
     });
     // Compatibilidad: usar accessToken si existe, sino token (legacy)
     const token = data.accessToken;
@@ -570,6 +572,7 @@ export const adminService = {
       gender: string | null;
       age: number | null;
       interests: string | null;
+      phone: string | null;
     }>;
   },
   approvePsychologist: async (profileId: number) => {

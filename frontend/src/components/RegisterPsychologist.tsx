@@ -128,7 +128,17 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
         undefined,
         'PSYCHOLOGIST',
         companyCode ? companyCode.toUpperCase() : undefined,
-        undefined
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        {
+          phone: formData.phone,
+          licenseNumber: formData.license,
+          experienceYears: formData.experience,
+          specialization: formData.specialization,
+        }
       );
       toast.success('Te hemos enviado un código de verificación a tu email');
       setCurrentStep(5);

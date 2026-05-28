@@ -602,7 +602,7 @@ public class AdminService {
                         p.getUser().getCreatedAt(), p.getRejectionReason(),
                         p.getBio(), p.getLanguages(), p.getLinkedinUrl(), p.getWebsite(),
                         p.getUser().getAvatarUrl(), p.getUser().getGender(), p.getUser().getAge(),
-                        p.getInterests()))
+                        p.getInterests(), p.getUser().getPhone()))
                 .collect(Collectors.toList());
     }
 

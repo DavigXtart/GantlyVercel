@@ -111,6 +111,13 @@ public class AuthService {
 	@Transactional
 	public com.alvaro.psicoapp.security.JwtService.TokenPair registerWithRefresh(String name, String email, String password, String sessionId, String role,
 			String companyReferralCode, String psychologistReferralCode, LocalDate birthDate, String inviteToken, Boolean gdprConsent, Boolean healthDataConsent, String guardianEmail) {
+		return registerWithRefresh(name, email, password, sessionId, role, companyReferralCode, psychologistReferralCode, birthDate, inviteToken, gdprConsent, healthDataConsent, guardianEmail, null, null, null, null);
+	}
+
+	@Transactional
+	public com.alvaro.psicoapp.security.JwtService.TokenPair registerWithRefresh(String name, String email, String password, String sessionId, String role,
+			String companyReferralCode, String psychologistReferralCode, LocalDate birthDate, String inviteToken, Boolean gdprConsent, Boolean healthDataConsent, String guardianEmail,
+			String phone, String licenseNumber, String experienceYears, String specialization) {
 		if (!Boolean.TRUE.equals(gdprConsent)) {
 			throw new IllegalArgumentException("Debes aceptar la politica de privacidad");
 		}
@@ -179,6 +186,10 @@ public class AuthService {
 		if (guardianEmail != null && !guardianEmail.trim().isEmpty()) {
 			u.setGuardianEmail(InputSanitizer.sanitizeEmail(guardianEmail));
 		}
+		// Store phone for psychologist registration
+		if (phone != null && !phone.trim().isEmpty()) {
+			u.setPhone(phone.trim());
+		}
 
 		if (RoleConstants.PSYCHOLOGIST.equals(role)) {
 			if (companyReferralCode != null && !companyReferralCode.trim().isEmpty()) {
@@ -220,6 +231,15 @@ public class AuthService {
 			PsychologistProfileEntity profile = new PsychologistProfileEntity();
 			profile.setUser(u);
 			profile.setApproved(false);
+			if (licenseNumber != null && !licenseNumber.trim().isEmpty()) {
+				profile.setLicenseNumber(licenseNumber.trim());
+			}
+			if (experienceYears != null && !experienceYears.trim().isEmpty()) {
+				profile.setExperience(experienceYears.trim());
+			}
+			if (specialization != null && !specialization.trim().isEmpty()) {
+				profile.setSpecializations("[\"" + specialization.trim().replace("\"", "\\\"") + "\"]");
+			}
 			psychologistProfileRepository.save(profile);
 		}
 
@@ -394,7 +414,7 @@ public class AuthService {
 
 		// Psychologist approval check
 		if (RoleConstants.PSYCHOLOGIST.equals(u.getRole())) {
-			var profile = psychologistProfileRepository.findByUserId(u.getId());
+			var profile = psychologistProfileRepository.findByUser_Id(u.getId());
 			if (profile.isEmpty() || !Boolean.TRUE.equals(profile.get().getApproved())) {
 				throw new IllegalArgumentException("PSYCHOLOGIST_PENDING_APPROVAL");
 			}

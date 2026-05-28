@@ -12,6 +12,7 @@ interface PendingPsychologist {
   rejectionReason: string | null; bio: string | null; languages: string | null;
   linkedinUrl: string | null; website: string | null; avatarUrl: string | null;
   gender: string | null; age: number | null; interests: string | null;
+  phone: string | null;
 }
 
 function parseJson<T>(raw: string | null | undefined, fallback: T): T {
@@ -309,22 +310,36 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
             </button>
           </div>
 
-          {/* Info badges */}
-          <div className="flex gap-3 flex-wrap mb-6">
-            {p.licenseNumber && (
-              <span className="text-[13px] bg-orange-50 border border-orange-200 rounded-lg px-3.5 py-1.5 text-orange-800 font-medium">
-                N. Colegiado: {p.licenseNumber}
-              </span>
-            )}
-            {p.gender && <span className="text-[13px] bg-slate-50 rounded-lg px-3.5 py-1.5 text-slate-700">{p.gender}</span>}
-            {p.age != null && <span className="text-[13px] bg-slate-50 rounded-lg px-3.5 py-1.5 text-slate-700">{p.age} anos</span>}
-            <span className="text-[13px] bg-gantly-gold-50 rounded-lg px-3.5 py-1.5 text-amber-700 font-medium">
-              Pendiente de aprobacion
-            </span>
+          {/* Registration data summary */}
+          <div className="mb-6 p-5 bg-slate-50 rounded-xl border border-slate-200">
+            <h3 className="m-0 mb-4 text-sm font-semibold text-slate-700 uppercase tracking-wide">Datos de registro</h3>
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
+              <div>
+                <div className="text-xs text-slate-500 mb-0.5">Nº de colegiado</div>
+                <div className="text-base font-bold text-slate-800">{p.licenseNumber || <span className="text-slate-400 font-normal italic">No proporcionado</span>}</div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-500 mb-0.5">Teléfono</div>
+                <div className="text-sm font-medium text-slate-800">{p.phone || <span className="text-slate-400 font-normal italic">No proporcionado</span>}</div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-500 mb-0.5">Años de experiencia</div>
+                <div className="text-sm font-medium text-slate-800">{p.experience || <span className="text-slate-400 font-normal italic">No proporcionado</span>}</div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-500 mb-0.5">Fecha de registro</div>
+                <div className="text-sm text-slate-800">{formatDate(p.createdAt)}</div>
+              </div>
+            </div>
           </div>
 
-          <div className="mb-6 p-4 bg-slate-50 rounded-xl">
-            <p><strong>Registrado:</strong> {formatDate(p.createdAt)}</p>
+          {/* Info badges */}
+          <div className="flex gap-3 flex-wrap mb-6">
+            {p.gender && <span className="text-[13px] bg-slate-50 rounded-lg px-3.5 py-1.5 text-slate-700">{p.gender}</span>}
+            {p.age != null && <span className="text-[13px] bg-slate-50 rounded-lg px-3.5 py-1.5 text-slate-700">{p.age} años</span>}
+            <span className="text-[13px] bg-gantly-gold-50 rounded-lg px-3.5 py-1.5 text-amber-700 font-medium">
+              Pendiente de aprobación
+            </span>
           </div>
 
           {/* Rejection reason */}
@@ -339,14 +354,14 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
             <div>
               {p.bio && (
                 <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-5 mb-4">
-                  <h3 className="font-heading font-bold text-slate-800">Sobre mi</h3>
+                  <h3 className="font-heading font-bold text-slate-800">Sobre mí</h3>
                   <p className="mt-2 mb-0 text-sm text-slate-700 leading-relaxed">{p.bio}</p>
                 </div>
               )}
 
               {(hasEducation || p.education) && (
                 <div className="bg-white rounded-xl shadow-soft border border-slate-200 p-5 mb-4">
-                  <h3 className="font-heading font-bold text-slate-800">Formacion</h3>
+                  <h3 className="font-heading font-bold text-slate-800">Formación</h3>
                   {hasEducation ? educationItems.map((ed, i) => (
                     <div key={i} className="mt-2.5 text-sm text-slate-700">
                       <div><strong>{ed.degree}</strong>{ed.field ? ` en ${ed.field}` : ''}{ed.institution ? ` — ${ed.institution}` : ''}</div>
@@ -969,7 +984,7 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
       {/* Pending psychologists section */}
       {filterRole === 'PSYCHOLOGIST' && pendingPsychologists.length > 0 && (
         <div className="bg-white rounded-xl shadow-soft border border-slate-200 border-l-4 border-l-gantly-gold p-6 mt-6">
-          <h2 className="m-0 mb-4 font-heading font-bold text-slate-800">Pendientes de aprobacion ({pendingPsychologists.length})</h2>
+          <h2 className="m-0 mb-4 font-heading font-bold text-slate-800">Pendientes de aprobación ({pendingPsychologists.length})</h2>
           <div className="users-grid">
             {pendingPsychologists.map(p => (
               <div

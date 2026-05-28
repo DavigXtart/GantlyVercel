@@ -112,6 +112,9 @@ public class UserEntity {
 	@Column(name = "guardian_consent_at")
 	private Instant guardianConsentAt;
 
+	@Column(name = "phone", length = 50)
+	private String phone;
+
 	@Column(name = "emergency_contact_name", length = 255)
 	private String emergencyContactName;
 
@@ -190,6 +193,8 @@ public class UserEntity {
 	public void setGuardianEmail(String guardianEmail) { this.guardianEmail = guardianEmail; }
 	public Instant getGuardianConsentAt() { return guardianConsentAt; }
 	public void setGuardianConsentAt(Instant guardianConsentAt) { this.guardianConsentAt = guardianConsentAt; }
+	public String getPhone() { return phone; }
+	public void setPhone(String phone) { this.phone = phone; }
 	public String getEmergencyContactName() { return emergencyContactName; }
 	public void setEmergencyContactName(String emergencyContactName) { this.emergencyContactName = emergencyContactName; }
 	public String getEmergencyContactPhone() { return emergencyContactPhone; }

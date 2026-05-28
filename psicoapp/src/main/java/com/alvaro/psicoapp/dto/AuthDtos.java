@@ -31,6 +31,16 @@ public class AuthDtos {
 		public String inviteToken;
 		public Boolean gdprConsent;
 		public Boolean healthDataConsent;
+
+		// Psychologist registration fields
+		@Size(max = 50)
+		public String phone;
+		@Size(max = 100)
+		public String licenseNumber;
+		@Size(max = 50)
+		public String experienceYears;
+		@Size(max = 500)
+		public String specialization;
 		@jakarta.validation.constraints.Email(message = "Email del tutor inválido")
 		@Size(max = 255)
 		public String guardianEmail;
