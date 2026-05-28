@@ -56,7 +56,7 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
           return false;
         }
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-          setError('Por favor, ingresa un email valido');
+          setError('Por favor, ingresa un email válido');
           return false;
         }
         return true;
@@ -72,25 +72,25 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
           return false;
         }
         if (formData.password.length < 10) {
-          setError('La contrasena debe tener al menos 10 caracteres');
+          setError('La contraseña debe tener al menos 10 caracteres');
           return false;
         }
         if (!/[A-Z]/.test(formData.password)) {
-          setError('La contrasena debe incluir al menos una mayuscula');
+          setError('La contraseña debe incluir al menos una mayúscula');
           return false;
         }
         if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(formData.password)) {
-          setError('La contrasena debe incluir al menos un simbolo');
+          setError('La contraseña debe incluir al menos un símbolo');
           return false;
         }
         if (formData.password !== formData.confirmPassword) {
-          setError('Las contrasenas no coinciden');
+          setError('Las contraseñas no coinciden');
           return false;
         }
         return true;
       case 4:
         if (!formData.acceptTerms || !formData.acceptPrivacy) {
-          setError('Debes aceptar los terminos y condiciones y la politica de privacidad');
+          setError('Debes aceptar los términos y condiciones y la política de privacidad');
           return false;
         }
         return true;
@@ -129,12 +129,12 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
         companyCode ? companyCode.toUpperCase() : undefined,
         undefined
       );
-      toast.success('Te hemos enviado un codigo de verificacion a tu email');
+      toast.success('Te hemos enviado un código de verificación a tu email');
       setCurrentStep(5);
     } catch (err: any) {
       const raw = err.response?.data?.message || err.response?.data?.error || '';
       if (/email.*registrad|already/i.test(raw)) {
-        setError('Este email ya esta registrado. ¿Quieres iniciar sesion?');
+        setError('Este email ya está registrado. ¿Quieres iniciar sesión?');
       } else if (/password|contrase/i.test(raw)) {
         setError(raw);
       } else {
@@ -148,7 +148,7 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
   const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
     if (verificationCode.length !== 6) {
-      toast.warning('Introduce el codigo de 6 digitos');
+      toast.warning('Introduce el código de 6 dígitos');
       return;
     }
     setVerifying(true);
@@ -158,10 +158,10 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
         toast.success('Email verificado correctamente');
         setRegistered(true);
       } else {
-        toast.error(res.message || 'Codigo invalido o expirado');
+        toast.error(res.message || 'Código inválido o expirado');
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Error al verificar el codigo');
+      toast.error(err.response?.data?.message || 'Error al verificar el código');
     } finally {
       setVerifying(false);
     }
@@ -170,9 +170,9 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
   const handleResendCode = async () => {
     try {
       await authService.resendVerificationEmail();
-      toast.success('Codigo reenviado a tu email');
+      toast.success('Código reenviado a tu email');
     } catch {
-      toast.error('Error al reenviar el codigo');
+      toast.error('Error al reenviar el código');
     }
   };
 
@@ -202,8 +202,8 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
             </p>
             <div className="bg-gantly-blue-50 rounded-xl p-6 mb-8 border border-gantly-blue-100">
               <p className="text-sm text-gantly-text leading-relaxed m-0">
-                Ahora nuestro equipo revisara tus credenciales profesionales.
-                Recibiras un <strong>email de confirmacion</strong> cuando tu cuenta sea aprobada.
+                Ahora nuestro equipo revisará tus credenciales profesionales.
+                Recibirás un <strong>email de confirmación</strong> cuando tu cuenta sea aprobada.
                 Este proceso suele tardar entre 24 y 48 horas laborables.
               </p>
             </div>
@@ -211,7 +211,7 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
               onClick={onLogin}
               className="py-3.5 px-8 text-base font-semibold bg-gantly-blue-500 hover:bg-gantly-blue-600 text-white border-none rounded-xl cursor-pointer transition-all shadow-md hover:shadow-lg"
             >
-              Ir a iniciar sesion
+              Ir a iniciar sesión
             </button>
           </div>
         </div>
@@ -222,9 +222,9 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
   const steps = [
     { number: 1, title: 'Datos personales', icon: <User size={18} /> },
     { number: 2, title: 'Credenciales', icon: <GraduationCap size={18} /> },
-    { number: 3, title: 'Contrasena', icon: <Lock size={18} /> },
-    { number: 4, title: 'Confirmacion', icon: <CheckCircle size={18} /> },
-    { number: 5, title: 'Verificacion', icon: <Mail size={18} /> },
+    { number: 3, title: 'Contraseña', icon: <Lock size={18} /> },
+    { number: 4, title: 'Confirmación', icon: <CheckCircle size={18} /> },
+    { number: 5, title: 'Verificación', icon: <Mail size={18} /> },
   ];
 
   return (
@@ -241,7 +241,7 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
           onClick={onLogin}
           className="py-2.5 px-6 text-[15px] font-semibold bg-transparent text-gantly-blue-600 border-2 border-gantly-blue-500 rounded-full cursor-pointer transition-all hover:bg-gantly-blue-500 hover:text-white"
         >
-          Iniciar sesion
+          Iniciar sesión
         </button>
       </nav>
 
@@ -295,7 +295,7 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
                 Verifica tu email
               </h2>
               <p className="text-base text-gantly-muted mb-2">
-                Hemos enviado un codigo de 6 digitos a:
+                Hemos enviado un código de 6 dígitos a:
               </p>
               <p className="text-base text-gantly-text font-semibold mb-8">
                 {formData.email}
@@ -304,7 +304,7 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
               <form onSubmit={handleVerifyCode} className="flex flex-col gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-gantly-muted mb-2">
-                    Codigo de verificacion
+                    Código de verificación
                   </label>
                   <input
                     type="text"
@@ -327,7 +327,7 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
                 </button>
 
                 <div className="text-center text-sm text-gray-500">
-                  ¿No recibiste el codigo?{' '}
+                  ¿No recibiste el código?{' '}
                   <button onClick={handleResendCode} type="button" className="border-none bg-transparent text-gantly-blue-600 font-semibold cursor-pointer text-sm hover:underline">
                     Reenviar
                   </button>
@@ -340,10 +340,10 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
               {currentStep === 1 && (
                 <div className="animate-[fadeIn_0.3s]">
                   <h2 className="text-[32px] font-bold text-gantly-text mb-2 font-heading">
-                    Informacion personal
+                    Información personal
                   </h2>
                   <p className="text-base text-gantly-muted mb-8">
-                    Comienza con tus datos basicos
+                    Comienza con tus datos básicos
                   </p>
 
                   <div className="flex flex-col gap-6">
@@ -356,7 +356,7 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        placeholder="Ej: Maria Garcia Lopez"
+                        placeholder="Ej: María García López"
                         required
                         className="w-full py-3.5 px-[18px] rounded-xl border border-gantly-blue-200 text-base transition-all outline-none focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/20"
                       />
@@ -379,7 +379,7 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
 
                     <div>
                       <label className="block text-sm font-semibold text-gantly-text mb-2">
-                        Telefono *
+                        Teléfono *
                       </label>
                       <input
                         type="tel"
@@ -394,18 +394,18 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
 
                     <div>
                       <label className="block text-sm font-semibold text-gantly-text mb-2">
-                        Codigo de empresa (opcional)
+                        Código de empresa (opcional)
                       </label>
                       <input
                         type="text"
                         name="companyReferralCode"
                         value={formData.companyReferralCode}
                         onChange={handleChange}
-                        placeholder="Ej: EMP-XXXXXXXX (solicitalo a tu empresa)"
+                        placeholder="Ej: EMP-XXXXXXXX (solicítalo a tu empresa)"
                         className="w-full py-3.5 px-[18px] rounded-xl border border-gantly-blue-200 text-base transition-all outline-none focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/20"
                       />
                       <p className="text-[13px] text-gray-500 mt-1.5">
-                        Si trabajas con una empresa o clinica que usa Gantly, introduce aqui el codigo que te hayan dado. Si no, puedes dejarlo vacio.
+                        Si trabajas con una empresa o clínica que usa Gantly, introduce aquí el código que te hayan dado. Si no, puedes dejarlo vacío.
                       </p>
                     </div>
                   </div>
@@ -419,13 +419,13 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
                     Credenciales profesionales
                   </h2>
                   <p className="text-base text-gantly-muted mb-8">
-                    Verificaremos tus credenciales para ejercer como psicologo
+                    Verificaremos tus credenciales para ejercer como psicólogo
                   </p>
 
                   <div className="flex flex-col gap-6">
                     <div>
                       <label className="block text-sm font-semibold text-gantly-text mb-2">
-                        Numero de colegiado *
+                        Número de colegiado *
                       </label>
                       <input
                         type="text"
@@ -440,7 +440,7 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
 
                     <div>
                       <label className="block text-sm font-semibold text-gantly-text mb-2">
-                        Anos de experiencia *
+                        Años de experiencia *
                       </label>
                       <select
                         name="experience"
@@ -449,24 +449,24 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
                         required
                         className="w-full py-3.5 px-[18px] rounded-xl border border-gantly-blue-200 text-base bg-white cursor-pointer transition-all outline-none focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/20"
                       >
-                        <option value="">Selecciona una opcion</option>
-                        <option value="0-2">0-2 anos</option>
-                        <option value="3-5">3-5 anos</option>
-                        <option value="6-10">6-10 anos</option>
-                        <option value="10+">Mas de 10 anos</option>
+                        <option value="">Selecciona una opción</option>
+                        <option value="0-2">0-2 años</option>
+                        <option value="3-5">3-5 años</option>
+                        <option value="6-10">6-10 años</option>
+                        <option value="10+">Más de 10 años</option>
                       </select>
                     </div>
 
                     <div>
                       <label className="block text-sm font-semibold text-gantly-text mb-2">
-                        Especializacion *
+                        Especialización *
                       </label>
                       <input
                         type="text"
                         name="specialization"
                         value={formData.specialization}
                         onChange={handleChange}
-                        placeholder="Ej: Psicologia clinica, Terapia cognitivo-conductual..."
+                        placeholder="Ej: Psicología clínica, Terapia cognitivo-conductual..."
                         required
                         className="w-full py-3.5 px-[18px] rounded-xl border border-gantly-blue-200 text-base transition-all outline-none focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/20"
                       />
@@ -479,41 +479,41 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
               {currentStep === 3 && (
                 <div className="animate-[fadeIn_0.3s]">
                   <h2 className="text-[32px] font-bold text-gantly-text mb-2 font-heading">
-                    Crea tu contrasena
+                    Crea tu contraseña
                   </h2>
                   <p className="text-base text-gantly-muted mb-8">
-                    Elige una contrasena segura para tu cuenta
+                    Elige una contraseña segura para tu cuenta
                   </p>
 
                   <div className="flex flex-col gap-6">
                     <div>
                       <label className="block text-sm font-semibold text-gantly-text mb-2">
-                        Contrasena *
+                        Contraseña *
                       </label>
                       <input
                         type="password"
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
-                        placeholder="Minimo 10 caracteres"
+                        placeholder="Mínimo 10 caracteres"
                         required
                         className="w-full py-3.5 px-[18px] rounded-xl border border-gantly-blue-200 text-base transition-all outline-none focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/20"
                       />
                       <p className="text-xs text-gray-500 mt-1.5">
-                        Minimo 10 caracteres, una mayuscula y un simbolo
+                        Mínimo 10 caracteres, una mayúscula y un símbolo
                       </p>
                     </div>
 
                     <div>
                       <label className="block text-sm font-semibold text-gantly-text mb-2">
-                        Confirmar contrasena *
+                        Confirmar contraseña *
                       </label>
                       <input
                         type="password"
                         name="confirmPassword"
                         value={formData.confirmPassword}
                         onChange={handleChange}
-                        placeholder="Repite tu contrasena"
+                        placeholder="Repite tu contraseña"
                         required
                         className="w-full py-3.5 px-[18px] rounded-xl border border-gantly-blue-200 text-base transition-all outline-none focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/20"
                       />
@@ -526,23 +526,23 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
               {currentStep === 4 && (
                 <div className="animate-[fadeIn_0.3s]">
                   <h2 className="text-[32px] font-bold text-gantly-text mb-2 font-heading">
-                    Ultimo paso
+                    Último paso
                   </h2>
                   <p className="text-base text-gantly-muted mb-8">
-                    Revisa y acepta los terminos para completar tu registro
+                    Revisa y acepta los términos para completar tu registro
                   </p>
 
                   <div className="bg-gray-50 rounded-xl p-6 mb-6 border border-gray-200">
                     <h3 className="text-lg font-semibold text-gantly-text mb-4">
-                      Resumen de tu informacion
+                      Resumen de tu información
                     </h3>
                     <div className="flex flex-col gap-3 text-sm text-gantly-muted">
                       <div><strong>Nombre:</strong> {formData.name}</div>
                       <div><strong>Email:</strong> {formData.email}</div>
-                      <div><strong>Telefono:</strong> {formData.phone}</div>
+                      <div><strong>Teléfono:</strong> {formData.phone}</div>
                       <div><strong>Colegiado:</strong> {formData.license}</div>
-                      <div><strong>Experiencia:</strong> {formData.experience} anos</div>
-                      <div><strong>Especializacion:</strong> {formData.specialization}</div>
+                      <div><strong>Experiencia:</strong> {formData.experience} años</div>
+                      <div><strong>Especialización:</strong> {formData.specialization}</div>
                     </div>
                   </div>
 
@@ -556,7 +556,7 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
                         className="mt-1 w-5 h-5 cursor-pointer accent-gantly-blue-500"
                       />
                       <span className="text-sm text-gantly-muted leading-relaxed">
-                        Acepto los <a href="/terminos" target="_blank" className="text-gantly-blue-600 underline">terminos y condiciones</a> de Gantly *
+                        Acepto los <a href="/terminos" target="_blank" className="text-gantly-blue-600 underline">términos y condiciones</a> de Gantly *
                       </span>
                     </label>
 
@@ -569,7 +569,7 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
                         className="mt-1 w-5 h-5 cursor-pointer accent-gantly-blue-500"
                       />
                       <span className="text-sm text-gantly-muted leading-relaxed">
-                        Acepto la <a href="/privacidad" target="_blank" className="text-gantly-blue-600 underline">politica de privacidad</a> y el tratamiento de mis datos *
+                        Acepto la <a href="/privacidad" target="_blank" className="text-gantly-blue-600 underline">política de privacidad</a> y el tratamiento de mis datos *
                       </span>
                     </label>
                   </div>
