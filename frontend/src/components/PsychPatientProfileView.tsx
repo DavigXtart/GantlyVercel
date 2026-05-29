@@ -2,9 +2,9 @@ import { useState, useEffect, useMemo } from 'react';
 import {
   User, ArrowLeft, Calendar, CalendarCheck, Clock, CheckCircle2,
   ClipboardList, Heart, FileText, ChevronDown, ChevronUp,
-  Smile, Frown, Meh
+  Smile, Frown, Meh, X, BarChart3
 } from 'lucide-react';
-import { calendarNotesService, psychPatientService, API_BASE_URL } from '../services/api';
+import { calendarNotesService, psychPatientService, resultsService, API_BASE_URL } from '../services/api';
 import LoadingSpinner from './ui/LoadingSpinner';
 import EmptyState from './ui/EmptyState';
 import { toast } from './ui/Toast';
@@ -30,7 +30,7 @@ function resolveAvatar(url?: string | null): string | undefined {
 
 function formatDateShort(dateStr?: string | null): string {
   if (!dateStr) return '--';
-  return new Date(dateStr).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+  return new Date(dateStr).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 function formatDateLong(dateStr?: string | null): string {
@@ -121,6 +121,8 @@ export default function PsychPatientProfileView({
   const [showAllSessions, setShowAllSessions] = useState(false);
   const [showAllTasks, setShowAllTasks] = useState(false);
   const [showAllNotes, setShowAllNotes] = useState(false);
+  const [selectedTestResult, setSelectedTestResult] = useState<any | null>(null);
+  const [loadingTestResult, setLoadingTestResult] = useState(false);
 
   // Load appointments and tasks via dedicated patient endpoints
   useEffect(() => {
@@ -218,6 +220,18 @@ export default function PsychPatientProfileView({
     [completedSessions, sessionNotes]
   );
 
+  const handleViewTestResult = async (testId: number) => {
+    try {
+      setLoadingTestResult(true);
+      const result = await resultsService.getUserTest(viewingPatientId, testId);
+      setSelectedTestResult(result);
+    } catch {
+      toast.error('Error al cargar los resultados del test');
+    } finally {
+      setLoadingTestResult(false);
+    }
+  };
+
   // Avatar
   const avatarUrl = resolveAvatar(patientDetails?.avatarUrl);
 
@@ -250,7 +264,7 @@ export default function PsychPatientProfileView({
                   <div className="flex items-center gap-2 mt-2 flex-wrap">
                     {patientDetails.age && (
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-                        {patientDetails.age} anos
+                        {patientDetails.age} años
                       </span>
                     )}
                     {patientDetails.gender && (
@@ -594,6 +608,53 @@ export default function PsychPatientProfileView({
                 </div>
               </div>
 
+              {/* --- Tests realizados --- */}
+              <div className="bg-white rounded-2xl border border-slate-200/80">
+                <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
+                  <BarChart3 size={15} className="text-indigo-500" />
+                  <h3 className="m-0 text-sm font-heading font-semibold text-slate-800">Tests realizados</h3>
+                  {patientDetails.tests?.length > 0 && (
+                    <span className="text-[11px] text-slate-400 font-medium">({patientDetails.tests.length})</span>
+                  )}
+                </div>
+                <div className="p-5">
+                  {!patientDetails.tests || patientDetails.tests.length === 0 ? (
+                    <div className="text-center py-4">
+                      <BarChart3 size={28} className="mx-auto text-slate-300 mb-2" />
+                      <p className="text-sm text-slate-500 m-0">Sin tests realizados</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {patientDetails.tests.map((test: any) => (
+                        <div
+                          key={test.testId}
+                          className="flex items-center gap-3 p-3 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 transition-colors"
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
+                            <ClipboardList size={14} className="text-indigo-500" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-slate-800 truncate">
+                              {test.testTitle || test.testCode}
+                            </div>
+                            {test.testCode && test.testTitle && (
+                              <div className="text-[11px] text-slate-400 mt-0.5">{test.testCode}</div>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => handleViewTestResult(test.testId)}
+                            disabled={loadingTestResult}
+                            className="text-xs font-medium text-gantly-blue hover:text-blue-700 cursor-pointer bg-transparent border-none hover:underline flex-shrink-0 disabled:opacity-50"
+                          >
+                            Ver resultados
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* --- Info del paciente --- */}
               <div className="bg-white rounded-2xl border border-slate-200/80">
                 <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
@@ -611,7 +672,7 @@ export default function PsychPatientProfileView({
                     <div>
                       <div className="text-[11px] text-slate-500 uppercase tracking-wider font-bold mb-0.5">Edad</div>
                       <div className="text-sm font-medium text-slate-800">
-                        {patientDetails.age ? `${patientDetails.age} anos` : '--'}
+                        {patientDetails.age ? `${patientDetails.age} años` : '--'}
                       </div>
                     </div>
                     <div>
@@ -628,6 +689,28 @@ export default function PsychPatientProfileView({
                         </div>
                       </div>
                     )}
+                    <div>
+                      <div className="text-[11px] text-slate-500 uppercase tracking-wider font-bold mb-0.5">Consentimiento</div>
+                      <div className="text-sm font-medium">
+                        {patientDetails.consentStatus === 'SIGNED' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-600">
+                            <CheckCircle2 size={12} /> Firmado
+                          </span>
+                        ) : patientDetails.consentStatus === 'SENT' || patientDetails.consentStatus === 'PENDING' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-600">
+                            <Clock size={12} /> Pendiente
+                          </span>
+                        ) : patientDetails.consentStatus === 'DRAFT' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500">
+                            Borrador
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500">
+                            No enviado
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -641,6 +724,79 @@ export default function PsychPatientProfileView({
             title="Paciente no encontrado"
             description="No se pudieron cargar los detalles del paciente."
           />
+        </div>
+      )}
+
+      {/* ===== MODAL: Test Results ===== */}
+      {selectedTestResult && (
+        <div
+          className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40"
+          onClick={() => setSelectedTestResult(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
+              <h3 className="m-0 text-base font-heading font-bold text-slate-800">
+                {selectedTestResult.testTitle || 'Resultados del test'}
+              </h3>
+              <button
+                onClick={() => setSelectedTestResult(null)}
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors cursor-pointer bg-transparent border-none text-slate-400 hover:text-slate-600"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            {/* Body */}
+            <div className="p-6 overflow-y-auto">
+              {selectedTestResult.factors?.length > 0 ? (
+                <div className="space-y-4">
+                  {selectedTestResult.factors.map((factor: any, i: number) => (
+                    <div key={i}>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-sm font-medium text-slate-700">{factor.name}</span>
+                        <span className="text-sm font-bold text-slate-800">{Math.round(factor.percentage ?? factor.score ?? 0)}%</span>
+                      </div>
+                      <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-gantly-blue transition-all duration-500"
+                          style={{ width: `${Math.min(100, Math.max(0, factor.percentage ?? factor.score ?? 0))}%` }}
+                        />
+                      </div>
+                      {/* Subfactors */}
+                      {selectedTestResult.subfactors?.filter((sf: any) => sf.factorName === factor.name).length > 0 && (
+                        <div className="mt-2 ml-3 space-y-2">
+                          {selectedTestResult.subfactors
+                            .filter((sf: any) => sf.factorName === factor.name)
+                            .map((sf: any, j: number) => (
+                              <div key={j}>
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-xs text-slate-500">{sf.name}</span>
+                                  <span className="text-xs font-semibold text-slate-600">{Math.round(sf.percentage ?? sf.score ?? 0)}%</span>
+                                </div>
+                                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full rounded-full bg-cyan-400 transition-all duration-500"
+                                    style={{ width: `${Math.min(100, Math.max(0, sf.percentage ?? sf.score ?? 0))}%` }}
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <BarChart3 size={32} className="mx-auto text-slate-300 mb-2" />
+                  <p className="text-sm text-slate-500 m-0">No se encontraron resultados para este test</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
