@@ -518,6 +518,53 @@ export default function PsychPatientProfileView({
                   )}
                 </div>
               </div>
+
+              {/* --- Tests realizados --- */}
+              <div className="bg-white rounded-2xl border border-slate-200/80">
+                <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
+                  <BarChart3 size={15} className="text-indigo-500" />
+                  <h3 className="m-0 text-sm font-heading font-semibold text-slate-800">Tests realizados</h3>
+                  {patientDetails.tests?.length > 0 && (
+                    <span className="text-[11px] text-slate-400 font-medium">({patientDetails.tests.length})</span>
+                  )}
+                </div>
+                <div className="p-5">
+                  {!patientDetails.tests || patientDetails.tests.length === 0 ? (
+                    <div className="text-center py-4">
+                      <BarChart3 size={28} className="mx-auto text-slate-300 mb-2" />
+                      <p className="text-sm text-slate-500 m-0">Sin tests realizados</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {patientDetails.tests.map((test: any) => (
+                        <div
+                          key={test.testId}
+                          className="flex items-center gap-3 p-3 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 transition-colors"
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
+                            <ClipboardList size={14} className="text-indigo-500" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-slate-800 truncate">
+                              {test.testTitle || test.testCode}
+                            </div>
+                            {test.testCode && test.testTitle && (
+                              <div className="text-[11px] text-slate-400 mt-0.5">{test.testCode}</div>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => handleViewTestResult(test.testId)}
+                            disabled={loadingTestResult}
+                            className="text-xs font-medium text-gantly-blue hover:text-blue-700 cursor-pointer bg-transparent border-none hover:underline flex-shrink-0 disabled:opacity-50"
+                          >
+                            Ver resultados
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* RIGHT COLUMN */}
@@ -603,53 +650,6 @@ export default function PsychPatientProfileView({
                           </div>
                         );
                       })}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* --- Tests realizados --- */}
-              <div className="bg-white rounded-2xl border border-slate-200/80">
-                <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
-                  <BarChart3 size={15} className="text-indigo-500" />
-                  <h3 className="m-0 text-sm font-heading font-semibold text-slate-800">Tests realizados</h3>
-                  {patientDetails.tests?.length > 0 && (
-                    <span className="text-[11px] text-slate-400 font-medium">({patientDetails.tests.length})</span>
-                  )}
-                </div>
-                <div className="p-5">
-                  {!patientDetails.tests || patientDetails.tests.length === 0 ? (
-                    <div className="text-center py-4">
-                      <BarChart3 size={28} className="mx-auto text-slate-300 mb-2" />
-                      <p className="text-sm text-slate-500 m-0">Sin tests realizados</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {patientDetails.tests.map((test: any) => (
-                        <div
-                          key={test.testId}
-                          className="flex items-center gap-3 p-3 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 transition-colors"
-                        >
-                          <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
-                            <ClipboardList size={14} className="text-indigo-500" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-slate-800 truncate">
-                              {test.testTitle || test.testCode}
-                            </div>
-                            {test.testCode && test.testTitle && (
-                              <div className="text-[11px] text-slate-400 mt-0.5">{test.testCode}</div>
-                            )}
-                          </div>
-                          <button
-                            onClick={() => handleViewTestResult(test.testId)}
-                            disabled={loadingTestResult}
-                            className="text-xs font-medium text-gantly-blue hover:text-blue-700 cursor-pointer bg-transparent border-none hover:underline flex-shrink-0 disabled:opacity-50"
-                          >
-                            Ver resultados
-                          </button>
-                        </div>
-                      ))}
                     </div>
                   )}
                 </div>
