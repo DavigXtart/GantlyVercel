@@ -253,6 +253,37 @@ public class TestResultService {
 		userAnswerRepository.deleteAll(sessionAnswers);
 	}
 
+	/**
+	 * Extract profile fields (chiefComplaint, age) from the user's INITIAL test answers.
+	 * Called after transferring session answers to the user during registration.
+	 */
+	@Transactional
+	public void extractProfileFromInitialTest(UserEntity user) {
+		var testOpt = testRepository.findByCode("INITIAL");
+		if (testOpt.isEmpty()) return;
+		TestEntity test = testOpt.get();
+		List<UserAnswerEntity> answers = userAnswerRepository.findByUser(user).stream()
+				.filter(ua -> ua.getQuestion().getTest().getId().equals(test.getId()))
+				.collect(Collectors.toList());
+		boolean changed = false;
+		for (UserAnswerEntity ua : answers) {
+			int pos = ua.getQuestion().getPosition();
+			// Position 1: chief complaint (single answer from predefined list)
+			if (pos == 1 && ua.getAnswer() != null && user.getChiefComplaint() == null) {
+				user.setChiefComplaint(ua.getAnswer().getText());
+				changed = true;
+			}
+			// Position 14: age (numeric)
+			if (pos == 14 && ua.getNumericValue() != null && user.getAge() == null) {
+				user.setAge(ua.getNumericValue().intValue());
+				changed = true;
+			}
+		}
+		if (changed) {
+			userRepository.save(user);
+		}
+	}
+
 	@Transactional(readOnly = true)
 	public TestResultDtos.MyResultsResponse getMyResults(UserEntity user) {
 		List<TestResultEntity> subfactorResults = testResultRepository.findByUser(user);

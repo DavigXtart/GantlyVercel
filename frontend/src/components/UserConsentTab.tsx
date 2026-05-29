@@ -121,6 +121,14 @@ export default function UserConsentTab({ userName }: UserConsentTabProps) {
       });
       toast.success('Consentimiento firmado correctamente');
       setShowSigningModal(false);
+      // Optimistic update — show signed immediately
+      if (selectedRequest) {
+        setRequests(prev => prev.map(r =>
+          r.id === selectedRequest.id
+            ? { ...r, status: 'SIGNED', signedAt: new Date().toISOString() }
+            : r
+        ));
+      }
       setSelectedRequest(null);
       await loadRequests();
     } catch (err: any) {
@@ -164,7 +172,7 @@ export default function UserConsentTab({ userName }: UserConsentTabProps) {
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '-';
-    return new Date(dateStr).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+    return new Date(dateStr).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
   };
 
   const pendingRequests = requests.filter((r) => r.status === 'SENT');

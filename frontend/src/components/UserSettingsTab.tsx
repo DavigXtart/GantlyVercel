@@ -272,16 +272,9 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate, onShowOnboardi
                         gender: editProfileForm.gender || undefined,
                         birthDate: editProfileForm.birthDate || undefined,
                       });
-                      const ageFromBirth = editProfileForm.birthDate
-                        ? Math.floor((Date.now() - new Date(editProfileForm.birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
-                        : undefined;
-                      onMeUpdate({
-                        ...me,
-                        name: editProfileForm.name,
-                        gender: editProfileForm.gender,
-                        birthDate: editProfileForm.birthDate || undefined,
-                        age: ageFromBirth,
-                      });
+                      // Re-fetch from server to confirm persistence
+                      const updated = await profileService.me();
+                      onMeUpdate(updated);
                       toast.success('Perfil actualizado');
                     } catch (err: any) {
                       toast.error(err.response?.data?.error || 'Error al guardar');

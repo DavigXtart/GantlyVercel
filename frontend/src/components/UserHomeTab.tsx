@@ -73,8 +73,8 @@ export default function UserHomeTab({
 
   const getGreeting = () => {
     const h = new Date().getHours();
-    if (h < 12) return 'Buenos dias';
-    if (h < 20) return 'Buenas tardes';
+    if (h >= 6 && h < 12) return 'Buenos días';
+    if (h >= 12 && h < 20) return 'Buenas tardes';
     return 'Buenas noches';
   };
 

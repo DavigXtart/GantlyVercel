@@ -195,7 +195,7 @@ export default function PsychPatientsTab({
             </h4>
             {minorPatients.length === 0 ? (
               <p className="text-sm text-slate-500 mb-4 bg-white p-4 rounded-xl border border-dashed border-slate-200">
-                Los pacientes con fecha de nacimiento o edad menor de 18 anos apareceran aqui.
+                Los pacientes con fecha de nacimiento o edad menor de 18 años aparecerán aquí.
               </p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">

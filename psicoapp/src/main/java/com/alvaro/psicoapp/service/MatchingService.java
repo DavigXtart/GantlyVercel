@@ -712,6 +712,59 @@ public class MatchingService {
             if (it.textValue() != null && !it.textValue().trim().isEmpty()) ua.setTextValue(it.textValue().trim());
             userAnswerRepository.save(ua);
         }
+
+        // Extract profile fields from patient matching answers
+        if (PATIENT_MATCHING_TEST_CODE.equals(testCode)) {
+            extractProfileFromPatientMatching(user, test, req);
+        }
+    }
+
+    private void extractProfileFromPatientMatching(UserEntity user, TestEntity test, MatchingDtos.SubmitMatchingRequest req) {
+        Map<Integer, QuestionEntity> questionsByPosition = questionRepository.findByTestOrderByPositionAsc(test)
+                .stream().collect(Collectors.toMap(QuestionEntity::getPosition, q -> q));
+        boolean changed = false;
+
+        // Position 2: birth date (TEXT field)
+        QuestionEntity birthDateQ = questionsByPosition.get(2);
+        if (birthDateQ != null) {
+            for (MatchingDtos.MatchingAnswerItem it : req.answers()) {
+                if (birthDateQ.getId().equals(it.questionId()) && it.textValue() != null && !it.textValue().trim().isEmpty()) {
+                    try {
+                        LocalDate bd = LocalDate.parse(it.textValue().trim());
+                        user.setBirthDate(bd);
+                        user.setAge(Period.between(bd, LocalDate.now()).getYears());
+                        changed = true;
+                    } catch (Exception ignored) {
+                        // Try alternate format dd/MM/yyyy
+                        try {
+                            LocalDate bd = LocalDate.parse(it.textValue().trim(), DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                            user.setBirthDate(bd);
+                            user.setAge(Period.between(bd, LocalDate.now()).getYears());
+                            changed = true;
+                        } catch (Exception ignored2) { /* skip unparseable */ }
+                    }
+                }
+            }
+        }
+
+        // Position 8: chief complaint (MULTIPLE — collect answer texts)
+        QuestionEntity chiefQ = questionsByPosition.get(8);
+        if (chiefQ != null) {
+            List<String> complaints = new ArrayList<>();
+            for (MatchingDtos.MatchingAnswerItem it : req.answers()) {
+                if (chiefQ.getId().equals(it.questionId()) && it.answerId() != null) {
+                    answerRepository.findById(it.answerId()).ifPresent(a -> complaints.add(a.getText()));
+                }
+            }
+            if (!complaints.isEmpty()) {
+                user.setChiefComplaint(String.join(", ", complaints));
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            userRepository.save(user);
+        }
     }
 
     @Transactional(readOnly = true)

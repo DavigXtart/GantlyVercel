@@ -264,7 +264,7 @@ export default function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
 
           <Section title="11. Menores de edad">
             <p>
-              La plataforma puede ser utilizada por menores de 14 anos unicamente con el
+              La plataforma puede ser utilizada por menores de 14 años únicamente con el
               consentimiento verificable de sus padres, tutores o representantes legales.
               Gantly implementa un sistema de gestion de consentimiento parental que
               incluye:

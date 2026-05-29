@@ -257,6 +257,7 @@ public class AuthService {
 			var sessionOpt = sessionService.getSession(sessionId);
 			if (sessionOpt.isPresent()) {
 				testResultService.transferSessionAnswersToUser(sessionOpt.get(), u);
+				testResultService.extractProfileFromInitialTest(u);
 
 				var testOpt = testRepository.findByCode(INITIAL_TEST_CODE);
 				if (testOpt.isPresent()) {

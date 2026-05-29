@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { User, GraduationCap, Lock, CheckCircle, Mail, Clock } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { User, GraduationCap, Lock, CheckCircle, Mail, Clock, ChevronDown, X } from 'lucide-react';
 import { authService } from '../services/api';
 import { toast } from './ui/Toast';
 import LogoSvg from '../assets/logo-gantly.svg';
@@ -37,6 +37,31 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
   });
 
   const totalSteps = 5;
+
+  const SPECIALIZATION_OPTIONS = [
+    'Ansiedad y estrés', 'Depresión', 'Terapia de pareja', 'Trauma y TEPT',
+    'TDAH', 'Trastornos alimentarios', 'Adicciones', 'Duelo', 'Autoestima',
+    'Terapia infantojuvenil', 'Terapia familiar', 'TOC', 'Fobias', 'Sexología',
+    'Neuropsicología', 'Psicología perinatal', 'Coaching y desarrollo personal',
+  ];
+  const [specOpen, setSpecOpen] = useState(false);
+  const specRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (specRef.current && !specRef.current.contains(e.target as Node)) setSpecOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const selectedSpecs = formData.specialization ? formData.specialization.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const toggleSpec = (spec: string) => {
+    const next = selectedSpecs.includes(spec)
+      ? selectedSpecs.filter(s => s !== spec)
+      : [...selectedSpecs, spec];
+    setFormData(prev => ({ ...prev, specialization: next.join(', ') }));
+    setError('');
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -464,23 +489,53 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
                         <option value="0-2">0-2 años</option>
                         <option value="3-5">3-5 años</option>
                         <option value="6-10">6-10 años</option>
-                        <option value="10+">Más de 10 años</option>
+                        <option value="11-15">11-15 años</option>
+                        <option value="16-20">16-20 años</option>
+                        <option value="20+">Más de 20 años</option>
                       </select>
                     </div>
 
-                    <div>
+                    <div ref={specRef}>
                       <label className="block text-sm font-semibold text-gantly-text mb-2">
-                        Especialización *
+                        Especialización * <span className="text-xs font-normal text-slate-400">(selecciona una o más)</span>
                       </label>
-                      <input
-                        type="text"
-                        name="specialization"
-                        value={formData.specialization}
-                        onChange={handleChange}
-                        placeholder="Ej: Psicología clínica, Terapia cognitivo-conductual..."
-                        required
-                        className="w-full py-3.5 px-[18px] rounded-xl border border-gantly-blue-200 text-base transition-all outline-none focus:border-gantly-blue-500 focus:ring-2 focus:ring-gantly-blue-500/20"
-                      />
+                      <button
+                        type="button"
+                        onClick={() => setSpecOpen(!specOpen)}
+                        className={`w-full py-3.5 px-[18px] rounded-xl border text-left text-base transition-all outline-none flex items-center justify-between gap-2 ${specOpen ? 'border-gantly-blue-500 ring-2 ring-gantly-blue-500/20' : 'border-gantly-blue-200'}`}
+                      >
+                        <span className={selectedSpecs.length ? 'text-gantly-text' : 'text-slate-400'}>
+                          {selectedSpecs.length ? `${selectedSpecs.length} seleccionada${selectedSpecs.length > 1 ? 's' : ''}` : 'Selecciona especializaciones'}
+                        </span>
+                        <ChevronDown size={16} className={`text-slate-400 transition-transform ${specOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                      {specOpen && (
+                        <div className="mt-1 border border-slate-200 rounded-xl bg-white shadow-lg max-h-52 overflow-y-auto p-2 z-20 relative">
+                          {SPECIALIZATION_OPTIONS.map(spec => (
+                            <label key={spec} className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-50 cursor-pointer text-sm">
+                              <input
+                                type="checkbox"
+                                checked={selectedSpecs.includes(spec)}
+                                onChange={() => toggleSpec(spec)}
+                                className="accent-gantly-blue w-4 h-4 rounded"
+                              />
+                              <span className="text-slate-700">{spec}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                      {selectedSpecs.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {selectedSpecs.map(spec => (
+                            <span key={spec} className="inline-flex items-center gap-1 bg-gantly-blue/10 text-gantly-blue text-xs font-medium px-2.5 py-1 rounded-full">
+                              {spec}
+                              <button type="button" onClick={() => toggleSpec(spec)} className="hover:text-red-500 transition-colors">
+                                <X size={12} />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

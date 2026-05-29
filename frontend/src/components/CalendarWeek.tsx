@@ -657,7 +657,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
             <div className="text-center">
               {isMobile ? (
                 <span className="font-heading text-base font-bold text-gantly-text tracking-tight">
-                  {visibleDays[0]?.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} &ndash; {visibleDays[visibleDays.length - 1]?.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                  {visibleDays[0]?.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })} &ndash; {visibleDays[visibleDays.length - 1]?.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
                 </span>
               ) : (
                 <span className="font-heading text-xl font-bold text-gantly-text tracking-tight">

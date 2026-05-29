@@ -729,7 +729,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
             {patientContext.age && (
               <div>
                 <p className="text-[11px] text-slate-500 font-medium">Edad</p>
-                <p className="text-sm text-slate-800">{patientContext.age} anos</p>
+                <p className="text-sm text-slate-800">{patientContext.age} años</p>
               </div>
             )}
             {patientContext.gender && (
