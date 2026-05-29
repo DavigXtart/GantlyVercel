@@ -3,7 +3,8 @@ import { MessageCircle, Users, User, Stethoscope, PanelRightOpen, PanelRightClos
 import { Client } from '@stomp/stompjs';
 import type { IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import api, { profileService, psychService, calendarService } from '../services/api';
+import api, { profileService, psychService, calendarService, safeStorage, API_BASE_URL } from '../services/api';
+import axios from 'axios';
 import { toast } from './ui/Toast';
 
 // Obtener la URL base para WebSocket (sin /api)
@@ -188,7 +189,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
   }, [mode, otherId]);
 
   const connect = (psychologistId: number, uId: number) => {
-    const token = localStorage.getItem('token');
+    const token = safeStorage.get('token');
     if (!token) {
       return;
     }
@@ -210,9 +211,37 @@ export default function ChatWidget({ mode, otherId }: Props) {
       debug: () => {},
     });
 
-    // Override beforeConnect to apply exponential backoff
-    client.beforeConnect = () => {
+    // Before each reconnect: ensure token is fresh
+    client.beforeConnect = async () => {
       client.reconnectDelay = reconnectDelayRef.current;
+
+      let currentToken = safeStorage.get('token');
+      if (!currentToken) return;
+
+      // Check if token is expired or about to expire (<30s)
+      try {
+        const payload = JSON.parse(atob(currentToken.split('.')[1]));
+        if (Date.now() > payload.exp * 1000 - 30000) {
+          // Token expired — call refresh endpoint directly
+          const refreshToken = safeStorage.get('refreshToken');
+          if (!refreshToken) return;
+          try {
+            const { data } = await axios.post(`${API_BASE_URL}/api/auth/refresh`, { refreshToken });
+            if (data.accessToken) {
+              safeStorage.set('token', data.accessToken);
+              if (data.refreshToken) safeStorage.set('refreshToken', data.refreshToken);
+              currentToken = data.accessToken;
+            }
+          } catch {
+            // Refresh failed — session is truly expired, let normal auth flow handle it
+            return;
+          }
+        }
+      } catch {
+        // Can't decode token — use as-is
+      }
+
+      client.connectHeaders = { Authorization: `Bearer ${currentToken}` };
     };
 
     client.onConnect = () => {
