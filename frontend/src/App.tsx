@@ -440,7 +440,11 @@ function App() {
         } />
         <Route path="/para-profesionales" element={
           <Suspense fallback={<LazyFallback />}>
-            <ParaProfesionales />
+            <ParaProfesionales
+              onBack={() => navigate('/')}
+              onLogin={() => navigate('/login')}
+              onGetStarted={() => navigate('/register')}
+            />
           </Suspense>
         } />
         <Route path="/register-psicologo" element={
