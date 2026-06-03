@@ -25,6 +25,7 @@ const AdminStatistics = lazy(() => import('./components/AdminStatistics'));
 const UsersManager = lazy(() => import('./components/UsersManager'));
 const About = lazy(() => import('./components/About'));
 const SoyProfesional = lazy(() => import('./components/SoyProfesional'));
+const ParaProfesionales = lazy(() => import('./components/ParaProfesionales'));
 const RegisterPsychologist = lazy(() => import('./components/RegisterPsychologist'));
 const RegisterCompany = lazy(() => import('./components/RegisterCompany'));
 const ClinicDashboard = lazy(() => import('./components/ClinicDashboard'));
@@ -176,7 +177,7 @@ function OAuthHandler({ onLogin }: { onLogin: () => void }) {
 function ReferralRedirect() {
   const location = useLocation();
   const pathSlug = location.pathname.replace(/^\//, '').toLowerCase().replace(/[^a-z0-9-]/g, '');
-  const KNOWN_PATHS = ['', 'about', 'login', 'register', 'initial-test', 'reset-password', 'soy-profesional', 'privacidad', 'privacy', 'terminos', 'login-empresa', 'register-psicologo', 'register-empresa', 'forgot-password', 'dashboard', 'test', 'oauth-callback', 'clinica', 'pricing', 'test-results'];
+  const KNOWN_PATHS = ['', 'about', 'login', 'register', 'initial-test', 'reset-password', 'soy-profesional', 'para-profesionales', 'privacidad', 'privacy', 'terminos', 'login-empresa', 'register-psicologo', 'register-empresa', 'forgot-password', 'dashboard', 'test', 'oauth-callback', 'clinica', 'pricing', 'test-results'];
 
   if (pathSlug && pathSlug.length > 2 && !KNOWN_PATHS.includes(pathSlug)) {
     return <Navigate to={`/register?referral=${pathSlug}`} replace />;
@@ -437,6 +438,11 @@ function App() {
             />
           </Suspense>
         } />
+        <Route path="/para-profesionales" element={
+          <Suspense fallback={<LazyFallback />}>
+            <ParaProfesionales />
+          </Suspense>
+        } />
         <Route path="/register-psicologo" element={
           <Suspense fallback={<LazyFallback />}>
             <RegisterPsychologist
@@ -552,6 +558,7 @@ function App() {
               onLogin={() => navigate('/login')}
               onShowAbout={() => navigate('/about')}
               onShowSoyProfesional={() => navigate('/soy-profesional')}
+              onShowParaProfesionales={() => navigate('/para-profesionales')}
             />
         } />
 
