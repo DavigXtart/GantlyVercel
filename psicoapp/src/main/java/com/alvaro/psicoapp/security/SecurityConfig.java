@@ -86,7 +86,7 @@ public class SecurityConfig {
 				.requestMatchers("/api/auth/**").permitAll()
 				.requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
 				.requestMatchers("/api/auth/verify-email").permitAll()
-				.requestMatchers("/api/tests/**").permitAll()
+				.requestMatchers("/api/tests/**").authenticated()
 				.requestMatchers("/api/initial-test/**").permitAll()
 				.requestMatchers("/api/matching/**").authenticated()
 				.requestMatchers("/api/flow/**").authenticated()

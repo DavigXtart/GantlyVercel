@@ -9,6 +9,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,6 +74,11 @@ public class TestImportService {
 		}
 	}
 
+	@Caching(evict = {
+		@CacheEvict(value = "testsByCategory", allEntries = true),
+		@CacheEvict(value = "testsByTopic", allEntries = true),
+		@CacheEvict(value = "adminStats", allEntries = true)
+	})
 	@Transactional
 	public ImportResponse importTest(TestImportDtos.ImportRequest req) {
 		if (req.code == null || req.code.isBlank()) {

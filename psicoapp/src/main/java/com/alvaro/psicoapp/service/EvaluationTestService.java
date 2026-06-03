@@ -9,6 +9,7 @@ import com.alvaro.psicoapp.repository.EvaluationTestResultRepository;
 import com.alvaro.psicoapp.repository.TestRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +37,7 @@ public class EvaluationTestService {
     @Autowired
     private UserRepository userRepository;
 
+    @Cacheable(value = "testsByCategory", key = "#category")
     public List<EvaluationTestEntity> getTestsByCategory(String category) {
         List<EvaluationTestEntity> evaluationTests = evaluationTestRepository.findByCategoryAndActiveTrue(category);
 
@@ -64,6 +66,7 @@ public class EvaluationTestService {
         return evalTest;
     }
 
+    @Cacheable(value = "testsByTopic", key = "#category + '-' + #topic")
     public List<EvaluationTestEntity> getTestsByTopic(String category, String topic) {
         List<EvaluationTestEntity> evaluationTests = evaluationTestRepository.findByCategoryAndTopicAndActiveTrue(category, topic);
 

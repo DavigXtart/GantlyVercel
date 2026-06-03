@@ -6,6 +6,9 @@ import com.alvaro.psicoapp.dto.AdminDtos;
 import com.alvaro.psicoapp.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,6 +76,11 @@ public class AdminService {
         return testRepository.findById(id);
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = "testsByCategory", allEntries = true),
+        @CacheEvict(value = "testsByTopic", allEntries = true),
+        @CacheEvict(value = "adminStats", allEntries = true)
+    })
     @Transactional
     public TestEntity createTest(AdminDtos.TestCreate req) {
         TestEntity t = new TestEntity();
@@ -85,6 +93,11 @@ public class AdminService {
         return savedTest;
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = "testsByCategory", allEntries = true),
+        @CacheEvict(value = "testsByTopic", allEntries = true),
+        @CacheEvict(value = "adminStats", allEntries = true)
+    })
     @Transactional
     public Optional<TestEntity> updateTest(Long id, AdminDtos.TestUpdate req) {
         return testRepository.findById(id).map(test -> {
@@ -98,6 +111,11 @@ public class AdminService {
         });
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = "testsByCategory", allEntries = true),
+        @CacheEvict(value = "testsByTopic", allEntries = true),
+        @CacheEvict(value = "adminStats", allEntries = true)
+    })
     @Transactional
     public boolean deleteTest(Long id) {
         if (testRepository.existsById(id)) {
@@ -454,6 +472,11 @@ public class AdminService {
         return evaluationTestRepository.findById(id);
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = "testsByCategory", allEntries = true),
+        @CacheEvict(value = "testsByTopic", allEntries = true),
+        @CacheEvict(value = "adminStats", allEntries = true)
+    })
     @Transactional
     public EvaluationTestEntity createEvaluationTest(AdminDtos.EvaluationTestCreate req) {
         EvaluationTestEntity test = new EvaluationTestEntity();
@@ -466,6 +489,11 @@ public class AdminService {
         return evaluationTestRepository.save(test);
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = "testsByCategory", allEntries = true),
+        @CacheEvict(value = "testsByTopic", allEntries = true),
+        @CacheEvict(value = "adminStats", allEntries = true)
+    })
     @Transactional
     public Optional<EvaluationTestEntity> updateEvaluationTest(Long id, AdminDtos.EvaluationTestUpdate req) {
         return evaluationTestRepository.findById(id).map(test -> {
@@ -480,6 +508,11 @@ public class AdminService {
         });
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = "testsByCategory", allEntries = true),
+        @CacheEvict(value = "testsByTopic", allEntries = true),
+        @CacheEvict(value = "adminStats", allEntries = true)
+    })
     @Transactional
     public boolean deleteEvaluationTest(Long id) {
         if (evaluationTestRepository.existsById(id)) {
@@ -489,6 +522,7 @@ public class AdminService {
         return false;
     }
 
+    @Cacheable(value = "adminStats")
     @Transactional(readOnly = true)
     public Map<String, Object> getStatistics() {
         Map<String, Object> stats = new HashMap<>();
