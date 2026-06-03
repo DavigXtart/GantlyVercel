@@ -232,7 +232,7 @@ function Dashboard({ role, logout, onStartTest }: {
   if (role === 'ADMIN') {
     return (
       <div>
-        <nav>
+        <nav className="nav-legacy">
           <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <img src={LogoSvg} alt="Gantly" className="h-7 cursor-pointer" onClick={() => navigate('/')} />
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
@@ -299,7 +299,7 @@ function TestPage({ onBack }: { onBack: () => void }) {
 
   return (
     <div>
-      <nav>
+      <nav className="nav-legacy">
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <img src={LogoSvg} alt="Gantly" className="h-7 cursor-pointer" onClick={() => navigate('/')} />
           <button onClick={handleBack} className="btn-secondary">Volver</button>
@@ -478,7 +478,7 @@ function App() {
         {/* Initial test */}
         <Route path="/initial-test" element={
           <div>
-            <nav>
+            <nav className="nav-legacy">
               <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <img src={LogoSvg} alt="Gantly" className="h-7 cursor-pointer" onClick={() => navigate('/')} />
                 <button onClick={() => navigate('/')} className="btn-secondary">Volver</button>
