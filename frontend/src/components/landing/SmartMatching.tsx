@@ -7,9 +7,9 @@ import ScrollReveal from './shared/ScrollReveal';
 const stats = [
   {
     icon: Brain,
-    value: '16',
-    label: 'Factores de personalidad',
-    desc: 'Test 16PF clínicamente validado',
+    value: 'Smart',
+    label: 'Algoritmo de compatibilidad',
+    desc: 'Preferencias, personalidad y necesidades',
   },
   {
     icon: ShieldCheck,
@@ -25,9 +25,9 @@ const stats = [
   },
   {
     icon: Clock,
-    value: '<24h',
+    value: 'Instantáneo',
     label: 'Tiempo de matching',
-    desc: 'Desde que completas el test',
+    desc: 'Resultados en tiempo real',
   },
 ];
 

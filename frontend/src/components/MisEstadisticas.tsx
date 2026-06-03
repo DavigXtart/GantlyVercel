@@ -49,7 +49,7 @@ export default function MisEstadisticas({ onViewTest }: MisEstadisticasProps = {
       const entry = moodEntries.find((e: any) => e.entryDate === dateStr);
       days.push({
         date: dateStr,
-        label: d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
+        label: d.toLocaleDateString('es-ES', { day: '2-digit', month: 'long' }),
         mood: entry ? entry.moodRating : null,
       });
     }

@@ -675,7 +675,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
             : (() => {
                 const ws = startOfWeek(currentDate);
                 const we = addDays(ws, 6);
-                return `${ws.getDate()} ${ws.toLocaleDateString('es-ES', { month: 'short' })} – ${we.getDate()} ${we.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })}`;
+                return `${ws.getDate()} ${ws.toLocaleDateString('es-ES', { month: 'long' })} – ${we.getDate()} ${we.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
               })()
           }
         </h3>

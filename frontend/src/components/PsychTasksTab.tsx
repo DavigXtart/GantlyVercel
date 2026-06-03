@@ -150,14 +150,14 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
             <div className="rounded-xl px-4 py-3 bg-slate-50 border border-slate-100">
               <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Creada</div>
               <div className="text-sm font-medium text-slate-900">
-                {selectedTask.createdAt ? new Date(selectedTask.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                {selectedTask.createdAt ? new Date(selectedTask.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
               </div>
             </div>
             {selectedTask.dueDate && (
               <div className={`rounded-xl px-4 py-3 border ${isOverdue ? 'bg-red-50 border-red-100' : 'bg-amber-50/50 border-amber-100'}`}>
                 <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Vence</div>
                 <div className={`text-sm font-medium ${isOverdue ? 'text-red-700' : 'text-slate-900'}`}>
-                  {new Date(selectedTask.dueDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  {new Date(selectedTask.dueDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
                 </div>
                 {!selectedTask.completedAt && !isOverdue && (
                   <div className="text-[10px] text-slate-500 mt-0.5">
@@ -244,7 +244,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                     <div className="flex justify-between items-center mb-1">
                       <span className="text-sm font-medium text-slate-900">{c.userName}</span>
                       <span className="text-[11px] text-slate-500">
-                        {c.createdAt ? new Date(c.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
+                        {c.createdAt ? new Date(c.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : ''}
                       </span>
                     </div>
                     <div className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{c.content}</div>
@@ -273,7 +273,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                 <ShieldCheck className="text-emerald-600" size={18} />
                 <span className="text-sm font-medium text-emerald-700">Completada</span>
                 <span className="text-xs text-slate-500 ml-1">
-                  {new Date(selectedTask.completedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  {new Date(selectedTask.completedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
                 </span>
               </div>
               <button onClick={async () => {
@@ -347,7 +347,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                     {t.dueDate && !done && (
                       <div className={`text-[11px] mt-1 flex items-center gap-1 ${overdue ? 'text-red-500' : 'text-slate-500'}`}>
                         <ClockIcon size={12} />
-                        {new Date(t.dueDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                        {new Date(t.dueDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
                       </div>
                     )}
                   </div>

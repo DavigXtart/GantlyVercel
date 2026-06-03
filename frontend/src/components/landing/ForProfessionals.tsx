@@ -62,12 +62,18 @@ export default function ForProfessionals({ onJoin }: ForProfessionalsProps) {
         </div>
 
         <ScrollReveal>
-          <div className="text-center mt-12">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-12">
             <button
               onClick={onJoin}
               className="px-8 py-3.5 rounded-xl bg-gantly-gold text-gantly-navy font-heading font-semibold text-base hover:bg-gantly-gold/90 transition-all duration-200 cursor-pointer"
             >
               {t('landing.professionals.cta')}
+            </button>
+            <button
+              onClick={onJoin}
+              className="px-8 py-3.5 rounded-xl border-2 border-white/20 text-white/80 font-heading font-semibold text-base hover:border-white/40 hover:text-white transition-all duration-200 cursor-pointer"
+            >
+              {t('landing.professionals.cta_info')}
             </button>
           </div>
         </ScrollReveal>

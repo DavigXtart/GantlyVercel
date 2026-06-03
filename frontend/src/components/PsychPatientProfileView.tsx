@@ -46,7 +46,7 @@ function formatTime(dateStr?: string | null): string {
 function formatDateTime(dateStr?: string | null): string {
   if (!dateStr) return '--';
   const d = new Date(dateStr);
-  return `${d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} ${d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
+  return `${d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })} ${d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
 }
 
 function genderLabel(gender?: string): string {
@@ -276,6 +276,22 @@ export default function PsychPatientProfileView({
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-600">
                         <CalendarCheck size={11} />
                         Ultima sesion: {formatDateShort(lastSession.startTime)}
+                      </span>
+                    )}
+                    {patientDetails.consentStatus === 'SIGNED' ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-600">
+                        <FileText size={11} />
+                        Consentimiento firmado
+                      </span>
+                    ) : patientDetails.consentStatus === 'SENT' || patientDetails.consentStatus === 'PENDING' ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-600">
+                        <FileText size={11} />
+                        Consentimiento pendiente
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-500">
+                        <FileText size={11} />
+                        Sin consentimiento
                       </span>
                     )}
                   </div>

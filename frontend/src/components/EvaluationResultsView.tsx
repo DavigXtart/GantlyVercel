@@ -206,7 +206,7 @@ export default function EvaluationResultsView({ results, testCode, testTitle, on
                         </div>
                         <span className="text-xs text-slate-400 flex-shrink-0">
                           {new Date(r.completedAt).toLocaleDateString('es-ES', {
-                            day: '2-digit', month: 'short', year: '2-digit'
+                            day: '2-digit', month: 'long', year: '2-digit'
                           })}
                         </span>
                         {isLatest && (

@@ -499,7 +499,7 @@ function EquipoTab({ psychologists, onRefresh }: { psychologists: Psychologist[]
                                 className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isFree ? 'bg-gantly-blue' : isConfirmed ? 'bg-gantly-emerald' : 'bg-gantly-gold'}`}
                               />
                               <span className="text-slate-700 text-xs">
-                                {new Date(slot.startTime).toLocaleDateString('es-ES', { weekday: 'short', day: '2-digit', month: 'short' })}
+                                {new Date(slot.startTime).toLocaleDateString('es-ES', { weekday: 'short', day: '2-digit', month: 'long' })}
                                 {' · '}
                                 {new Date(slot.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                                 {' – '}

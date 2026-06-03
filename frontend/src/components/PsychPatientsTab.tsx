@@ -158,7 +158,7 @@ export default function PsychPatientsTab({
                         {p.lastVisit && (
                           <div className="text-xs text-emerald-600 font-medium mt-1.5 flex items-center gap-1">
                             <CalendarCheck size={12} />
-                            Ultima visita: {new Date(p.lastVisit).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            Ultima visita: {new Date(p.lastVisit).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
                           </div>
                         )}
                         {!p.lastVisit && (
@@ -309,7 +309,7 @@ export default function PsychPatientsTab({
                         {p.lastVisit && (
                           <div className="text-xs text-emerald-600 font-medium mt-1.5 flex items-center gap-1">
                             <CalendarCheck size={12} />
-                            Ultima visita: {new Date(p.lastVisit).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            Ultima visita: {new Date(p.lastVisit).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
                           </div>
                         )}
                         {!p.lastVisit && (

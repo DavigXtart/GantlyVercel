@@ -14,7 +14,7 @@ import ConfirmDialog from './ui/ConfirmDialog';
 function fmtDate(iso?: string): string {
   if (!iso) return '--';
   try {
-    return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+    return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
   } catch {
     return iso;
   }

@@ -98,7 +98,7 @@ function generatePsychInvoicePdf(
 
       doc.setFontSize(8);
       doc.setTextColor(15, 23, 42);
-      const dateStr = new Date(a.startTime).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+      const dateStr = new Date(a.startTime).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
       doc.text(dateStr, margin + 2, y);
       doc.text((a.user?.name || 'Paciente').substring(0, 30), margin + 35, y);
       doc.text(base.toFixed(2) + ' \u20AC', margin + 95, y, { align: 'right' });
@@ -153,7 +153,7 @@ function generatePsychInvoicePdf(
 function exportPsychCsv(items: Appointment[], psychologistName: string) {
   const headers = ['Fecha', 'Hora inicio', 'Hora fin', 'Paciente', 'Base', 'IVA exento', 'Tipo IVA', 'IVA', 'Total', 'Estado pago'];
   const rows = items.map(a => [
-    new Date(a.startTime).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }),
+    new Date(a.startTime).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }),
     new Date(a.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
     new Date(a.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
     a.user?.name ?? '',
@@ -216,7 +216,7 @@ export default function PsychBillingTab({ appointments, loading, onRefresh, psyc
 
   const formatDate = (iso: string) => {
     const d = new Date(iso);
-    return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+    return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
   };
 
   const formatTime = (iso: string) => {

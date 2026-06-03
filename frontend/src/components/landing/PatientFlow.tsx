@@ -19,9 +19,9 @@ function TestMockup() {
           <div className="w-7 h-7 rounded-lg bg-gantly-blue/10 flex items-center justify-center">
             <ClipboardList size={14} className="text-gantly-blue" />
           </div>
-          <span className="font-heading text-sm font-semibold text-slate-700">Test de Personalidad 16PF</span>
+          <span className="font-heading text-sm font-semibold text-slate-700">Test de Compatibilidad Gantly</span>
         </div>
-        <span className="text-xs font-body text-slate-500">Pregunta 12 de 45</span>
+        <span className="text-xs font-body text-slate-500">Pregunta 8 de 20</span>
       </div>
 
       {/* Progress bar */}
@@ -114,7 +114,7 @@ function MatchingMockup() {
           </div>
           <div className="flex-1">
             <div className="text-xs font-heading font-semibold text-slate-700">Tu perfil analizado</div>
-            <div className="text-[11px] text-slate-500 font-body">16 factores de personalidad evaluados</div>
+            <div className="text-[11px] text-slate-500 font-body">Perfil de compatibilidad analizado</div>
           </div>
           <CheckCircle2 size={18} className="text-emerald-500" />
         </div>
@@ -185,15 +185,20 @@ function SessionMockup() {
     <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-xl">
       {/* Video area */}
       <div className="relative aspect-video bg-gradient-to-br from-slate-800 to-slate-900 p-4">
-        <div className="absolute inset-4 rounded-xl bg-gradient-to-br from-gantly-blue/15 to-cyan-500/10 flex items-center justify-center">
-          <div className="w-16 h-16 rounded-full bg-gantly-blue/20 flex items-center justify-center">
-            <span className="font-heading text-xl text-gantly-blue/80 font-bold">P</span>
+        <div className="absolute inset-4 rounded-xl bg-gradient-to-br from-gantly-blue/15 to-cyan-500/10 flex flex-col items-center justify-center gap-2">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gantly-blue/30 to-cyan-400/20 flex items-center justify-center border-2 border-white/20">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="20" cy="14" r="8" fill="#2E93CC" fillOpacity="0.5" />
+              <path d="M6 36c0-8 6-14 14-14s14 6 14 14" fill="#2E93CC" fillOpacity="0.4" />
+              <path d="M14 10c0-1 1-4 6-4s6 3 6 4c0 2-1 3-2 4" stroke="#2E93CC" strokeOpacity="0.6" strokeWidth="1.5" fill="none" />
+            </svg>
           </div>
+          <span className="text-xs text-white/60 font-heading font-medium">Dra. López</span>
         </div>
-        {/* Therapist PiP */}
+        {/* Self PiP */}
         <div className="absolute bottom-6 right-6 w-28 h-20 rounded-lg bg-slate-700/80 border border-white/20 flex items-center justify-center shadow-lg">
-          <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
-            <span className="font-heading text-xs text-emerald-400 font-bold">Dr</span>
+          <div className="w-8 h-8 rounded-full bg-gantly-blue/20 flex items-center justify-center">
+            <span className="font-heading text-xs text-gantly-blue/80 font-bold">Tú</span>
           </div>
         </div>
         {/* Session timer */}

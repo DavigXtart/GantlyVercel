@@ -146,7 +146,7 @@ export default function UserCalendarTab({
                         {new Date(apt.startTime).toLocaleDateString('es-ES', {
                           weekday: 'short',
                           day: '2-digit',
-                          month: 'short',
+                          month: 'long',
                         })}
                         {' - '}
                         {new Date(apt.startTime).toLocaleTimeString('es-ES', {

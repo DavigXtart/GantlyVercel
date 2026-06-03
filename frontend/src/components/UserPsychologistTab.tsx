@@ -248,7 +248,7 @@ export default function UserPsychologistTab({
                     {psych.psychologist?.name}
                   </h2>
                   <p className="text-sm font-body text-white/70 mb-3">
-                    {psych.psychologist?.email}
+                    Psicólogo/a asignado/a
                   </p>
                   <button
                     type="button"

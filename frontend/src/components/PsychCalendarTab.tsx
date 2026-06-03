@@ -393,7 +393,7 @@ export default function PsychCalendarTab({
                   {new Date(req.appointment.startTime).toLocaleDateString('es-ES', {
                     weekday: 'short',
                     day: '2-digit',
-                    month: 'short',
+                    month: 'long',
                   })}
                 </div>
                 <div className="text-sm text-slate-500 mb-2">
@@ -456,7 +456,7 @@ export default function PsychCalendarTab({
                     {new Date(apt.startTime).toLocaleDateString('es-ES', {
                       weekday: 'short',
                       day: '2-digit',
-                      month: 'short',
+                      month: 'long',
                     })}
                   </div>
                   <div className="text-sm text-slate-500 mb-3">
@@ -511,9 +511,9 @@ export default function PsychCalendarTab({
                 >
                   <div className="flex-1">
                     <div className="text-sm font-medium text-slate-800">
-                      {new Date(ab.startTime).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                      {new Date(ab.startTime).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
                       {' - '}
-                      {new Date(ab.endTime).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                      {new Date(ab.endTime).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
                     </div>
                     <div className="text-[11px] text-slate-500 mt-0.5">
                       {new Date(ab.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}

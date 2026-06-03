@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, UsersRound, CheckSquare, Brain, Calendar, MessageCircle, History, Receipt, FileCheck, LogOut, X, type LucideIcon } from 'lucide-react';
+import { Home, UsersRound, CheckSquare, Brain, Calendar, MessageCircle, History, Receipt, FileCheck, LogOut, X, Menu, type LucideIcon } from 'lucide-react';
 import api, { profileService, psychService, calendarService, tasksService, assignedTestsService, testService, resultsService, matchingService, jitsiService } from '../services/api';
 import NotificationBell from './ui/NotificationBell';
 import JitsiVideoCall from './JitsiVideoCall';
@@ -31,6 +31,7 @@ type Tab = 'perfil' | 'pacientes' | 'calendario' | 'tareas' | 'chat' | 'citas-pa
 export default function PsychDashboard() {
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('perfil');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [me, setMe] = useState<any>(null);
   const [patients, setPatients] = useState<any[]>([]);
   const [slots, setSlots] = useState<any[]>([]);
@@ -456,11 +457,19 @@ export default function PsychDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 dark:text-slate-100 flex">
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/40 z-[55] lg:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex-shrink-0 fixed inset-y-0 left-0 z-50 flex flex-col">
+      <aside className={`w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex-shrink-0 fixed inset-y-0 left-0 z-[60] flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
         {/* Logo */}
-        <div className="px-6 py-5 border-b border-slate-100">
+        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
           <img src={LogoSvg} alt="Gantly" className="h-7 cursor-pointer" onClick={() => navigate('/')} />
+          <button className="lg:hidden p-1 text-slate-400 hover:text-slate-600 cursor-pointer" onClick={() => setSidebarOpen(false)}>
+            <X size={20} />
+          </button>
         </div>
 
         {/* Nav items */}
@@ -473,7 +482,7 @@ export default function PsychDashboard() {
                 {group.items.map((t) => (
                   <button
                     key={t.id}
-                    onClick={() => setTab(t.id as Tab)}
+                    onClick={() => { setTab(t.id as Tab); setSidebarOpen(false); }}
                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors duration-200 border-none ${
                       activeTabGroup === t.id
                         ? 'bg-gantly-blue/10 text-gantly-blue'
@@ -524,12 +533,17 @@ export default function PsychDashboard() {
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 ml-64">
+      <div className="flex-1 lg:ml-64">
         {/* Top bar */}
-        <header className="sticky top-0 z-40 bg-white border-b border-slate-200 px-8 py-3.5 flex items-center justify-between">
-          <h2 className="text-sm font-heading font-semibold text-slate-800">
-            {mainTabs.find(t => t.id === activeTabGroup)?.label || 'Dashboard'}
-          </h2>
+        <header className="sticky top-0 z-40 bg-white border-b border-slate-200 px-4 sm:px-8 py-3.5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button className="lg:hidden p-2 -ml-2 text-slate-500 hover:text-slate-700 cursor-pointer" onClick={() => setSidebarOpen(true)}>
+              <Menu size={20} />
+            </button>
+            <h2 className="text-sm font-heading font-semibold text-slate-800">
+              {mainTabs.find(t => t.id === activeTabGroup)?.label || 'Dashboard'}
+            </h2>
+          </div>
           <div className="flex items-center gap-3">
             <NotificationBell onNavigate={(type) => {
               const tabMap: Record<string, Tab> = {
@@ -548,7 +562,7 @@ export default function PsychDashboard() {
           </div>
         </header>
 
-        <div className="px-8 py-6">
+        <div className="px-4 sm:px-6 lg:px-8 py-6 pb-24 lg:pb-6">
           {/* Ratings Modal */}
           {showRatingsModal && (
             <div
@@ -769,6 +783,36 @@ export default function PsychDashboard() {
           })()}
         </div>
       </div>
+
+      {/* Mobile bottom nav */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 lg:hidden">
+        <div className="flex items-center justify-around py-1.5 px-2">
+          {[
+            { id: 'perfil', icon: Home, label: 'Inicio' },
+            { id: 'pacientes', icon: UsersRound, label: 'Pacientes' },
+            { id: 'calendario', icon: Calendar, label: 'Agenda' },
+            { id: 'chat', icon: MessageCircle, label: 'Chat' },
+          ].map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTabGroup === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => { setTab(item.id as Tab); setSidebarOpen(false); }}
+                className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg cursor-pointer transition-colors min-w-[64px] border-none bg-transparent ${
+                  isActive ? 'text-gantly-blue' : 'text-slate-400'
+                }`}
+              >
+                <span className="relative">
+                  <Icon size={20} />
+                  {item.id === 'chat' && hasUnreadChat && <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />}
+                </span>
+                <span className="text-[10px] font-medium">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }

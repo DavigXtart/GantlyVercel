@@ -8,14 +8,19 @@ function VideoMockup() {
   return (
     <div className="rounded-2xl bg-gantly-navy overflow-hidden border border-white/10 shadow-2xl">
       <div className="relative aspect-video bg-gradient-to-br from-gantly-navy to-gantly-blue/20 p-4">
-        <div className="absolute inset-4 rounded-xl bg-gradient-to-br from-gantly-blue/10 to-gantly-cyan/5 flex items-center justify-center">
-          <div className="w-16 h-16 rounded-full bg-gantly-blue/20 flex items-center justify-center">
-            <span className="font-heading text-xl text-gantly-blue font-bold">P</span>
+        <div className="absolute inset-4 rounded-xl bg-gradient-to-br from-gantly-blue/10 to-gantly-cyan/5 flex flex-col items-center justify-center gap-2">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gantly-blue/30 to-gantly-cyan/20 flex items-center justify-center border-2 border-white/10">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="20" cy="14" r="8" fill="#2E93CC" fillOpacity="0.5" />
+              <path d="M6 36c0-8 6-14 14-14s14 6 14 14" fill="#2E93CC" fillOpacity="0.4" />
+              <path d="M14 10c0-1 1-4 6-4s6 3 6 4c0 2-1 3-2 4" stroke="#2E93CC" strokeOpacity="0.6" strokeWidth="1.5" fill="none" />
+            </svg>
           </div>
+          <span className="text-xs text-white/50 font-heading font-medium">Dra. López</span>
         </div>
         <div className="absolute bottom-6 right-6 w-28 h-20 rounded-lg bg-gantly-navy/80 border border-white/10 flex items-center justify-center">
-          <div className="w-8 h-8 rounded-full bg-gantly-gold/20 flex items-center justify-center">
-            <span className="font-heading text-xs text-gantly-gold font-bold">Dr</span>
+          <div className="w-8 h-8 rounded-full bg-gantly-blue/20 flex items-center justify-center">
+            <span className="font-heading text-xs text-gantly-blue font-bold">Tú</span>
           </div>
         </div>
       </div>
@@ -80,9 +85,18 @@ export default function VideoChat() {
         <ScrollReveal direction="right" className="lg:col-span-2">
           <ChatMockup />
           <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: 1.8, duration: 0.4 }}
-            className="flex items-center gap-2 mt-4 bg-gantly-emerald/10 border border-gantly-emerald/20 rounded-xl px-4 py-2.5 w-fit">
-            <Shield size={16} className="text-gantly-emerald" />
-            <span className="font-body text-sm font-medium text-gantly-emerald">{t('landing.videochat.badge')}</span>
+            className="mt-4 space-y-2">
+            <div className="flex items-center gap-2 bg-gantly-emerald/10 border border-gantly-emerald/20 rounded-xl px-4 py-2.5 w-fit">
+              <Shield size={16} className="text-gantly-emerald" />
+              <span className="font-body text-sm font-medium text-gantly-emerald">{t('landing.videochat.badge')}</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {['AES-256-GCM', 'RGPD', 'Servidores EU', 'Sin grabación'].map((tag) => (
+                <span key={tag} className="font-body text-[11px] text-gantly-emerald/80 bg-gantly-emerald/5 border border-gantly-emerald/10 rounded-full px-3 py-1">
+                  {tag}
+                </span>
+              ))}
+            </div>
           </motion.div>
         </ScrollReveal>
       </div>

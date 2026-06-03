@@ -24,19 +24,21 @@ interface SoyProfesionalProps {
 /* ─── Stats data ─── */
 const stats = [
   { value: '100%', label: 'Psicólogos titulados, colegiados y habilitados' },
-  { value: '+300K', label: 'Sesiones realizadas de forma segura' },
   { value: '+92%', label: 'Profesionales que recomiendan Gantly' },
-  { value: '+8', label: 'Años de experiencia en telepsicología' },
+  { value: '24/7', label: 'Soporte técnico y acompañamiento' },
+  { value: '0%', label: 'Comisión los primeros 3 meses' },
 ];
 
 /* ─── Advantage cards ─── */
 const advantages = [
   { icon: Users, color: '#2E93CC', title: 'Amplia tu cartera', desc: 'Accede a pacientes que buscan exactamente tu especialidad gracias a nuestro matching inteligente.' },
   { icon: Calendar, color: '#22D3EE', title: 'Horario flexible', desc: 'Trabaja cuando quieras, desde donde quieras. Tu agenda, tus reglas.' },
-  { icon: Sparkles, color: '#F0C930', title: 'Asistente IA', desc: 'Resumenes automatizados de sesiones, sugerencias de seguimiento y notas clinicas asistidas.' },
+  { icon: ClipboardCheck, color: '#F0C930', title: 'Tareas personalizadas', desc: 'Asigna tareas terapéuticas entre sesiones y haz seguimiento del progreso de cada paciente.' },
   { icon: Receipt, color: '#059669', title: 'Cobro automatico', desc: 'Olvida perseguir pagos. Stripe gestiona todo automaticamente antes de cada sesion.' },
   { icon: Video, color: '#2E93CC', title: 'Videollamada integrada', desc: 'Jitsi Meet privado, sin descargas, con encriptación de extremo a extremo.' },
-  { icon: ClipboardCheck, color: '#22D3EE', title: 'Tests y evaluacion', desc: 'Baterias de tests clinicos integradas. Asigna, recoge resultados y genera informes en un clic.' },
+  { icon: Brain, color: '#22D3EE', title: 'Tests y evaluacion', desc: 'Baterias de tests clinicos integradas. Asigna, recoge resultados y genera informes en un clic.' },
+  { icon: Shield, color: '#059669', title: 'Consentimientos informados', desc: 'Gestiona consentimientos informados digitales con firma electrónica integrada.' },
+  { icon: HeartPulse, color: '#2E93CC', title: 'Trae tus pacientes', desc: 'Importa tu cartera de pacientes actual y gestiona toda tu consulta desde un solo lugar.' },
 ];
 
 /* ─── Steps ─── */
@@ -74,7 +76,7 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
     <div className="overflow-x-hidden bg-gantly-cloud min-h-screen">
       <SEO
         title="Para profesionales - Únete como psicólogo"
-        description="Gestiona tu consulta desde Gantly: agenda inteligente, tests clínicos validados (16PF, TCA), facturación automática y panel de pacientes. Únete gratis."
+        description="Gestiona tu consulta desde Gantly: agenda inteligente, tests clínicos validados, facturación automática y panel de pacientes. Únete gratis."
         path="/soy-profesional"
         jsonLd={breadcrumbSchema([
           { name: 'Inicio', url: 'https://gantly.es/' },
@@ -455,18 +457,6 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
         </div>
       </SectionWrapper>
 
-      {/* ─── COP Badge + CTA (dark section) ─── */}
-      <SectionWrapper dark className="bg-[#0F172A] !py-20 lg:!py-24">
-        <ScrollReveal>
-          <div className="flex items-center justify-center gap-4 px-6 py-5 bg-white/5 rounded-2xl border border-white/10 max-w-3xl mx-auto mb-12">
-            <Shield size={28} className="text-gantly-emerald flex-shrink-0" />
-            <p className="font-body text-sm text-white/70 leading-relaxed">
-              Gantly se adhiere al Código de Conducta de Buenas Prácticas en Telepsicología del Colegio Oficial de Psicólogos de Madrid.
-            </p>
-          </div>
-        </ScrollReveal>
-      </SectionWrapper>
-
       {/* ─── Final CTA ─── */}
       <section className="relative py-28 lg:py-36 overflow-hidden bg-[#0F172A]">
         <div
@@ -505,6 +495,18 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
           </ScrollReveal>
         </div>
       </section>
+
+      {/* ─── COP Badge ─── */}
+      <SectionWrapper dark className="bg-[#0F172A] !py-16 lg:!py-20">
+        <ScrollReveal>
+          <div className="flex items-center justify-center gap-4 px-6 py-5 bg-white/5 rounded-2xl border border-white/10 max-w-3xl mx-auto">
+            <Shield size={28} className="text-gantly-emerald flex-shrink-0" />
+            <p className="font-body text-sm text-white/70 leading-relaxed">
+              Gantly se adhiere al Código de Conducta de Buenas Prácticas en Telepsicología del Colegio Oficial de Psicólogos de Madrid.
+            </p>
+          </div>
+        </ScrollReveal>
+      </SectionWrapper>
 
       <Footer />
     </div>

@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Check } from 'lucide-react';
+import { Check, Send, X } from 'lucide-react';
 import SectionWrapper from './shared/SectionWrapper';
 import ScrollReveal from './shared/ScrollReveal';
 
@@ -55,9 +56,13 @@ function DashboardPreview() {
 export default function ForClinics() {
   const { t } = useTranslation();
   const features = ['feature1', 'feature2', 'feature3', 'feature4', 'feature5'];
+  const [showDemoForm, setShowDemoForm] = useState(false);
+  const [demoEmail, setDemoEmail] = useState('');
+  const [demoName, setDemoName] = useState('');
+  const [demoSent, setDemoSent] = useState(false);
 
   return (
-    <SectionWrapper id="clinics">
+    <SectionWrapper id="clinics" className="!pb-16 lg:!pb-20">
       <div className="grid lg:grid-cols-2 gap-12 items-center">
         <div>
           <ScrollReveal>
@@ -86,10 +91,70 @@ export default function ForClinics() {
           </div>
 
           <ScrollReveal>
-            <button className="mt-8 px-8 py-3.5 rounded-xl border-2 border-gantly-blue text-gantly-blue font-heading font-semibold hover:bg-gantly-blue/5 transition-all duration-200 cursor-pointer">
+            <button
+              onClick={() => setShowDemoForm(true)}
+              className="mt-8 px-8 py-3.5 rounded-xl border-2 border-gantly-blue text-gantly-blue font-heading font-semibold hover:bg-gantly-blue/5 transition-all duration-200 cursor-pointer"
+            >
               {t('landing.clinics.cta')}
             </button>
           </ScrollReveal>
+
+          {/* Demo request form */}
+          {showDemoForm && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-6 bg-white rounded-2xl border border-slate-200 p-6 shadow-lg max-w-md"
+            >
+              {demoSent ? (
+                <div className="text-center py-4">
+                  <div className="w-12 h-12 rounded-full bg-gantly-emerald/10 flex items-center justify-center mx-auto mb-3">
+                    <Check size={24} className="text-gantly-emerald" />
+                  </div>
+                  <p className="font-heading font-semibold text-gantly-text">¡Solicitud enviada!</p>
+                  <p className="font-body text-sm text-slate-500 mt-1">Nos pondremos en contacto contigo pronto.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-heading font-semibold text-gantly-text">{t('landing.clinics.cta')}</h4>
+                    <button onClick={() => setShowDemoForm(false)} className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer">
+                      <X size={18} />
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      placeholder="Nombre de la clínica"
+                      value={demoName}
+                      onChange={(e) => setDemoName(e.target.value)}
+                      className="w-full h-9 px-3 rounded-md border border-slate-200 font-body text-sm focus:outline-none focus:border-gantly-blue focus:ring-1 focus:ring-gantly-blue/20"
+                    />
+                    <input
+                      type="email"
+                      placeholder="Email de contacto"
+                      value={demoEmail}
+                      onChange={(e) => setDemoEmail(e.target.value)}
+                      className="w-full h-9 px-3 rounded-md border border-slate-200 font-body text-sm focus:outline-none focus:border-gantly-blue focus:ring-1 focus:ring-gantly-blue/20"
+                    />
+                    <button
+                      onClick={() => {
+                        if (demoEmail) {
+                          window.open(`mailto:info@gantly.es?subject=Solicitud demo clínica&body=Clínica: ${demoName}%0AEmail: ${demoEmail}`, '_self');
+                          setDemoSent(true);
+                        }
+                      }}
+                      disabled={!demoEmail}
+                      className="w-full h-9 bg-gantly-blue text-white font-heading font-semibold text-sm rounded-md hover:bg-sky-600 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      <Send size={14} />
+                      Enviar solicitud
+                    </button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          )}
         </div>
 
         <ScrollReveal direction="right">

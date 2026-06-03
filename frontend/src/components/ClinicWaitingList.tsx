@@ -302,7 +302,7 @@ export default function ClinicWaitingList() {
                     <td className="px-4 py-3">
                       <span className="text-xs text-slate-500 flex items-center gap-1">
                         <Clock size={11} />
-                        {new Date(entry.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        {new Date(entry.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}
                       </span>
                     </td>
                     {/* Actions */}

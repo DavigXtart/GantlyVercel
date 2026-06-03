@@ -250,7 +250,7 @@ export default function UserClinicPortalTab({ hasClinic }: UserClinicPortalTabPr
                     return (
                       <tr key={appt.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                         <td className="px-4 py-2.5 text-slate-700 whitespace-nowrap">
-                          {start.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                          {start.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}
                         </td>
                         <td className="px-4 py-2.5 text-slate-600 whitespace-nowrap flex items-center gap-1">
                           <Clock size={12} className="text-slate-400" />
@@ -308,7 +308,7 @@ export default function UserClinicPortalTab({ hasClinic }: UserClinicPortalTabPr
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-slate-700 truncate">{doc.originalName}</p>
                     <p className="text-[11px] text-slate-500">
-                      {new Date(doc.uploadedAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      {new Date(doc.uploadedAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}
                       {doc.fileSize != null && ` \u00B7 ${formatFileSize(doc.fileSize)}`}
                     </p>
                   </div>

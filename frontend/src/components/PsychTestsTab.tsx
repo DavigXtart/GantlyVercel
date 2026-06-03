@@ -350,13 +350,13 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                                   {at.assignedAt && (
                                     <span className="text-xs text-slate-500 flex items-center gap-1">
                                       <CalendarDays size={12} />
-                                      Asignado: {new Date(at.assignedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                      Asignado: {new Date(at.assignedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
                                     </span>
                                   )}
                                   {at.completedAt && (
                                     <span className="text-xs text-slate-500 flex items-center gap-1">
                                       <CheckCircle size={12} />
-                                      Completado: {new Date(at.completedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                      Completado: {new Date(at.completedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
                                     </span>
                                   )}
                                 </div>

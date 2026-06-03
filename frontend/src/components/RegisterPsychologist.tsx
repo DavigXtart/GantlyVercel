@@ -43,6 +43,10 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
     'TDAH', 'Trastornos alimentarios', 'Adicciones', 'Duelo', 'Autoestima',
     'Terapia infantojuvenil', 'Terapia familiar', 'TOC', 'Fobias', 'Sexología',
     'Neuropsicología', 'Psicología perinatal', 'Coaching y desarrollo personal',
+    'Trastornos del sueño', 'Dolor crónico', 'Psicología del deporte',
+    'Psicología forense', 'Intervención en crisis', 'Psicología organizacional',
+    'Mindfulness y meditación', 'Terapia de grupo', 'Orientación vocacional',
+    'Psicooncología', 'Discapacidad e inclusión', 'Psicología gerontológica',
   ];
   const [specOpen, setSpecOpen] = useState(false);
   const specRef = useRef<HTMLDivElement>(null);
@@ -491,7 +495,9 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
                         <option value="6-10">6-10 años</option>
                         <option value="11-15">11-15 años</option>
                         <option value="16-20">16-20 años</option>
-                        <option value="20+">Más de 20 años</option>
+                        <option value="21-30">21-30 años</option>
+                        <option value="31-40">31-40 años</option>
+                        <option value="40+">Más de 40 años</option>
                       </select>
                     </div>
 

@@ -141,7 +141,7 @@ export default function UserClinicChatTab({ hasClinic }: UserClinicChatTabProps)
                       <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                       <p className={`text-[10px] mt-1.5 text-right ${msg.sender === 'PATIENT' ? 'text-white/60' : 'text-slate-500'}`}>
                         {new Date(msg.createdAt).toLocaleString('es-ES', {
-                          day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+                          day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit',
                         })}
                       </p>
                     </div>

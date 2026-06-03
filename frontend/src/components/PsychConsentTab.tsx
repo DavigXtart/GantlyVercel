@@ -125,7 +125,7 @@ export default function PsychConsentTab({ patients }: PsychConsentTabProps) {
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '-';
-    return new Date(dateStr).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+    return new Date(dateStr).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
   };
 
   const inputCls = 'w-full h-9 px-3 rounded-md border border-slate-200 text-sm text-slate-900 outline-none focus:border-gantly-blue focus:ring-2 focus:ring-gantly-blue/10 transition-all duration-200';

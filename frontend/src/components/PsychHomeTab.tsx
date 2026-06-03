@@ -91,7 +91,7 @@ export default function PsychHomeTab({
               <p className="text-white/70 mt-1 text-sm font-body truncate">
                 {me?.email}
                 {me?.createdAt && (
-                  <span> · Miembro desde {new Date(me.createdAt).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })}</span>
+                  <span> · Miembro desde {new Date(me.createdAt).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}</span>
                 )}
               </p>
               {myRating && myRating.averageRating !== null && (
@@ -186,7 +186,7 @@ export default function PsychHomeTab({
             {upcomingAppointment ? (
               <>
                 <p className="text-2xl font-heading font-bold text-gantly-text">
-                  {new Date(upcomingAppointment.startTime).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })}
+                  {new Date(upcomingAppointment.startTime).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                 </p>
                 <p className="text-sm text-gantly-muted mt-1 font-body">
                   {new Date(upcomingAppointment.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}

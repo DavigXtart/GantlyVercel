@@ -1,36 +1,7 @@
-import { useRef, useEffect, useState } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import SectionWrapper from './shared/SectionWrapper';
 import ScrollReveal from './shared/ScrollReveal';
-
-function AnimatedCounter({ target, label }: { target: number; label: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true });
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    if (!inView) return;
-    let start = 0;
-    const duration = 2000;
-    const step = target / (duration / 16);
-    const timer = setInterval(() => {
-      start += step;
-      if (start >= target) { setCount(target); clearInterval(timer); }
-      else setCount(Math.floor(start));
-    }, 16);
-    return () => clearInterval(timer);
-  }, [inView, target]);
-
-  return (
-    <div ref={ref} className="text-center">
-      <div className="font-heading text-4xl lg:text-5xl font-bold text-gantly-blue">
-        {count.toLocaleString()}+
-      </div>
-      <div className="font-body text-gantly-muted mt-1 text-sm">{label}</div>
-    </div>
-  );
-}
 
 export default function WhatIsGantly() {
   const { t } = useTranslation();
@@ -60,9 +31,18 @@ export default function WhatIsGantly() {
 
         <ScrollReveal>
           <div className="grid grid-cols-3 gap-8">
-            <AnimatedCounter target={2000} label={t('landing.what.stat_patients')} />
-            <AnimatedCounter target={500} label={t('landing.what.stat_psychologists')} />
-            <AnimatedCounter target={15000} label={t('landing.what.stat_sessions')} />
+            <div className="text-center">
+              <div className="font-heading text-4xl lg:text-5xl font-bold text-gantly-blue">100%</div>
+              <div className="font-body text-gantly-muted mt-1 text-sm">{t('landing.what.stat_psychologists')}</div>
+            </div>
+            <div className="text-center">
+              <div className="font-heading text-4xl lg:text-5xl font-bold text-gantly-blue">E2E</div>
+              <div className="font-body text-gantly-muted mt-1 text-sm">{t('landing.what.stat_sessions')}</div>
+            </div>
+            <div className="text-center">
+              <div className="font-heading text-4xl lg:text-5xl font-bold text-gantly-blue">RGPD</div>
+              <div className="font-body text-gantly-muted mt-1 text-sm">{t('landing.what.stat_patients')}</div>
+            </div>
           </div>
         </ScrollReveal>
       </div>

@@ -56,7 +56,7 @@ function getMatchColor(p: number) {
 
 function formatDate(iso: string) {
   try {
-    return new Date(iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+    return new Date(iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
   } catch {
     return iso;
   }

@@ -40,7 +40,7 @@ function endOfMonth(offset = 0): string {
 function fmtDate(iso?: string): string {
   if (!iso) return '—';
   try {
-    return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+    return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'long' });
   } catch {
     return iso;
   }
@@ -49,7 +49,7 @@ function fmtDate(iso?: string): string {
 function fmtDateFull(iso?: string): string {
   if (!iso) return '—';
   try {
-    return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+    return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
   } catch {
     return iso;
   }

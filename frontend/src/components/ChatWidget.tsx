@@ -782,7 +782,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
                 <p className="text-sm text-slate-800">
                   {new Date(patientContext.lastAppointment).toLocaleDateString('es-ES', {
                     day: '2-digit',
-                    month: 'short',
+                    month: 'long',
                     year: 'numeric',
                   })}
                 </p>
@@ -794,7 +794,7 @@ export default function ChatWidget({ mode, otherId }: Props) {
                 <p className="text-sm text-slate-800">
                   {new Date(patientContext.assignedAt).toLocaleDateString('es-ES', {
                     day: '2-digit',
-                    month: 'short',
+                    month: 'long',
                     year: 'numeric',
                   })}
                 </p>

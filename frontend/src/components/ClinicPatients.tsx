@@ -22,7 +22,7 @@ function initials(name: string): string {
 function fmtDate(iso?: string): string {
   if (!iso) return '—';
   try {
-    return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+    return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
   } catch {
     return iso;
   }
@@ -33,7 +33,7 @@ function fmtDateTime(iso?: string): string {
   try {
     const d = new Date(iso);
     return (
-      d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) +
+      d.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }) +
       ' · ' +
       d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
     );

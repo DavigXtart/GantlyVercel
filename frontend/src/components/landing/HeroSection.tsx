@@ -117,20 +117,16 @@ export default function HeroSection({ onPatient }: HeroSectionProps) {
               </button>
             </motion.div>
 
-            {/* Stats — clean, factual */}
+            {/* Trust badges — factual */}
             <motion.div
               variants={fadeUp}
               className="flex flex-wrap items-center justify-center lg:justify-start gap-x-5 gap-y-1 text-sm font-body text-white/55"
             >
-              <span>
-                <strong className="text-white/90 font-semibold">2,000+</strong> {t('landing.hero.social_patients')}
-              </span>
+              <span className="text-white/70">{t('landing.hero.trust_badge')}</span>
               <span className="text-white/25">·</span>
-              <span>
-                <strong className="text-white/90 font-semibold">500+</strong> {t('landing.hero.social_psychologists')}
-              </span>
+              <span className="text-white/70">{t('landing.hero.social_psychologists')}</span>
               <span className="text-white/25">·</span>
-              <span className="text-white/55">{t('landing.hero.trust_badge')}</span>
+              <span className="text-white/70">{t('landing.hero.social_satisfaction')}</span>
             </motion.div>
           </motion.div>
 

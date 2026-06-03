@@ -1,17 +1,18 @@
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { Brain, Heart, Search } from 'lucide-react';
 import SectionWrapper from './shared/SectionWrapper';
 import ScrollReveal from './shared/ScrollReveal';
 
 const radarData = [
-  { label: 'A', value: 8 },
-  { label: 'E', value: 7 },
-  { label: 'F', value: 5 },
-  { label: 'G', value: 7 },
-  { label: 'H', value: 8 },
-  { label: 'I', value: 4 },
-  { label: 'L', value: 6 },
-  { label: 'M', value: 8 },
+  { label: 'Ansiedad', value: 8 },
+  { label: 'Estrés', value: 7 },
+  { label: 'Ánimo', value: 5 },
+  { label: 'Autoestima', value: 7 },
+  { label: 'Bienestar', value: 8 },
+  { label: 'Social', value: 4 },
+  { label: 'Resiliencia', value: 6 },
+  { label: 'Sueño', value: 8 },
 ];
 
 function RadarChart() {
@@ -69,9 +70,9 @@ function RadarChart() {
       ))}
       {/* Labels */}
       {radarData.map((d, i) => {
-        const p = getPoint(i, 12);
+        const p = getPoint(i, 12.5);
         return (
-          <text key={i} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="middle" className="fill-gantly-muted text-xs font-heading font-bold">
+          <text key={i} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="middle" className="fill-gantly-muted font-heading font-bold" style={{ fontSize: '8px' }}>
             {d.label}
           </text>
         );
@@ -120,11 +121,11 @@ export default function TestsPreview() {
 
         <ScrollReveal direction="right">
           <div className="space-y-4">
-            <BipolarBar label="Reservado" value={8} maxLabel="Abierto" />
-            <BipolarBar label="Sumiso" value={7} maxLabel="Dominante" />
-            <BipolarBar label="Serio" value={5} maxLabel="Animado" />
-            <BipolarBar label="Práctico" value={8} maxLabel="Imaginativo" />
-            <BipolarBar label="Sereno" value={4} maxLabel="Aprensivo" />
+            <BipolarBar label="Introvertido" value={8} maxLabel="Extrovertido" />
+            <BipolarBar label="Analítico" value={7} maxLabel="Creativo" />
+            <BipolarBar label="Cauteloso" value={5} maxLabel="Espontáneo" />
+            <BipolarBar label="Independiente" value={8} maxLabel="Cooperativo" />
+            <BipolarBar label="Relajado" value={4} maxLabel="Perfeccionista" />
           </div>
 
           <div className="flex flex-wrap gap-3 mt-8">
@@ -136,6 +137,37 @@ export default function TestsPreview() {
           </div>
 
           <p className="font-body text-gantly-muted mt-6">{t('landing.tests.description')}</p>
+        </ScrollReveal>
+      </div>
+
+      {/* Test types */}
+      <div className="grid sm:grid-cols-3 gap-6 max-w-4xl mx-auto mt-16">
+        <ScrollReveal>
+          <div className="text-center p-6 rounded-2xl bg-white/60 border border-slate-100">
+            <div className="w-10 h-10 rounded-xl bg-gantly-blue/10 flex items-center justify-center mx-auto mb-3">
+              <Search size={20} className="text-gantly-blue" />
+            </div>
+            <h4 className="font-heading font-bold text-gantly-text text-sm mb-1">Autoconocimiento</h4>
+            <p className="font-body text-xs text-gantly-muted">Descubre tu perfil de personalidad y preferencias terapéuticas</p>
+          </div>
+        </ScrollReveal>
+        <ScrollReveal>
+          <div className="text-center p-6 rounded-2xl bg-white/60 border border-slate-100">
+            <div className="w-10 h-10 rounded-xl bg-gantly-emerald/10 flex items-center justify-center mx-auto mb-3">
+              <Heart size={20} className="text-gantly-emerald" />
+            </div>
+            <h4 className="font-heading font-bold text-gantly-text text-sm mb-1">Evaluación clínica</h4>
+            <p className="font-body text-xs text-gantly-muted">Tests validados de ansiedad, depresión y estrés para seguimiento</p>
+          </div>
+        </ScrollReveal>
+        <ScrollReveal>
+          <div className="text-center p-6 rounded-2xl bg-white/60 border border-slate-100">
+            <div className="w-10 h-10 rounded-xl bg-gantly-gold/10 flex items-center justify-center mx-auto mb-3">
+              <Brain size={20} className="text-gantly-gold" />
+            </div>
+            <h4 className="font-heading font-bold text-gantly-text text-sm mb-1">Aptitudes cognitivas</h4>
+            <p className="font-body text-xs text-gantly-muted">Evalúa capacidades de razonamiento, memoria y atención</p>
+          </div>
         </ScrollReveal>
       </div>
     </SectionWrapper>

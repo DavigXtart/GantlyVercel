@@ -112,7 +112,7 @@ export default function UserAppointmentsTab({ setTab }: UserAppointmentsTabProps
                         {new Date(apt.startTime).toLocaleDateString('es-ES', {
                           weekday: 'short',
                           day: '2-digit',
-                          month: 'short',
+                          month: 'long',
                           year: 'numeric',
                         })}
                         {' - '}

@@ -185,7 +185,7 @@ export default function UserHomeTab({
             {upcomingAppointment ? (
               <>
                 <p className="text-2xl font-heading font-bold text-gantly-text">
-                  {new Date(upcomingAppointment.startTime).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })}
+                  {new Date(upcomingAppointment.startTime).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                 </p>
                 <p className="text-sm text-gantly-muted mt-1 font-body">
                   {new Date(upcomingAppointment.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
