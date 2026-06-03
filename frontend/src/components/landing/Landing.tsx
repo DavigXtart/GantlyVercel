@@ -17,9 +17,10 @@ interface LandingProps {
   onLogin: () => void;
   onShowAbout: () => void;
   onShowSoyProfesional: () => void;
+  onShowParaProfesionales: () => void;
 }
 
-export default function Landing({ onGetStarted, onLogin, onShowAbout: _onShowAbout, onShowSoyProfesional }: LandingProps) {
+export default function Landing({ onGetStarted, onLogin, onShowAbout: _onShowAbout, onShowSoyProfesional, onShowParaProfesionales }: LandingProps) {
   return (
     <div className="font-body">
       <SEO
@@ -35,7 +36,7 @@ export default function Landing({ onGetStarted, onLogin, onShowAbout: _onShowAbo
         <PatientFlow />
         <SmartMatching />
         <VideoChat />
-        <ForProfessionals onJoin={onShowSoyProfesional} />
+        <ForProfessionals onJoin={onShowSoyProfesional} onLearnMore={onShowParaProfesionales} />
         <ForClinics />
         <TestsPreview />
         <TrustSecurity />

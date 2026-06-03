@@ -14,9 +14,10 @@ const cards = [
 
 interface ForProfessionalsProps {
   onJoin: () => void;
+  onLearnMore: () => void;
 }
 
-export default function ForProfessionals({ onJoin }: ForProfessionalsProps) {
+export default function ForProfessionals({ onJoin, onLearnMore }: ForProfessionalsProps) {
   const { t } = useTranslation();
 
   return (
@@ -70,7 +71,7 @@ export default function ForProfessionals({ onJoin }: ForProfessionalsProps) {
               {t('landing.professionals.cta')}
             </button>
             <button
-              onClick={onJoin}
+              onClick={onLearnMore}
               className="px-8 py-3.5 rounded-xl border-2 border-white/20 text-white/80 font-heading font-semibold text-base hover:border-white/40 hover:text-white transition-all duration-200 cursor-pointer"
             >
               {t('landing.professionals.cta_info')}
