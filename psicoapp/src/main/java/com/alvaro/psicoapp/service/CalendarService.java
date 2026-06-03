@@ -510,6 +510,47 @@ public class CalendarService {
         );
     }
 
+    @Transactional
+    public CalendarDtos.InternalSlotResponse createInternalSlot(UserEntity psychologist, CalendarDtos.CreateInternalSlotRequest req) {
+        requirePsychologist(psychologist);
+        validateSlotTimes(req.start, req.end);
+        validateNoOverlap(psychologist.getId(), req.start, req.end, null);
+
+        AppointmentEntity appointment = new AppointmentEntity();
+        appointment.setPsychologist(psychologist);
+        appointment.setStartTime(req.start);
+        appointment.setEndTime(req.end);
+        appointment.setService("INTERNAL");
+
+        if (req.notes != null && !req.notes.isBlank()) {
+            appointment.setNotes(req.notes.trim().length() > 500 ? req.notes.trim().substring(0, 500) : req.notes.trim());
+        }
+
+        if (req.userId != null) {
+            var rel = userPsychologistRepository.findByUserId(req.userId);
+            if (rel.isEmpty() || !rel.get().getPsychologist().getId().equals(psychologist.getId())) {
+                throw new IllegalArgumentException("Este usuario no es tu paciente");
+            }
+            var user = userRepository.findById(req.userId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+            appointment.setUser(user);
+            appointment.setStatus(AppointmentStatusEnum.BOOKED);
+            appointment.setPaymentStatus(PaymentStatusEnum.PAID);
+        } else {
+            appointment.setStatus(AppointmentStatusEnum.BOOKED);
+            appointment.setPaymentStatus(PaymentStatusEnum.PAID);
+        }
+
+        appointment.setConfirmedAt(Instant.now());
+        var saved = appointmentRepository.save(appointment);
+        auditService.logCalendarAction("INTERNAL_SLOT_CREATED", saved.getId(), psychologist.getId(),
+                req.userId != null ? req.userId : psychologist.getId());
+
+        return new CalendarDtos.InternalSlotResponse(
+                saved.getId(), saved.getStartTime().toString(), saved.getEndTime().toString(),
+                saved.getStatus().name(), saved.getNotes(), req.userId);
+    }
+
     @Transactional(readOnly = true)
     public List<CalendarDtos.PastAppointmentDto> getPastAppointments(UserEntity user) {
         Instant now = Instant.now();

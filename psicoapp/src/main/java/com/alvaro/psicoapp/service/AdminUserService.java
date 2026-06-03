@@ -23,13 +23,16 @@ public class AdminUserService {
     private final UserRepository userRepository;
     private final UserPsychologistRepository userPsychologistRepository;
     private final EntityManager entityManager;
+    private final ConsentService consentService;
 
     public AdminUserService(UserRepository userRepository,
                             UserPsychologistRepository userPsychologistRepository,
-                            EntityManager entityManager) {
+                            EntityManager entityManager,
+                            ConsentService consentService) {
         this.userRepository = userRepository;
         this.userPsychologistRepository = userPsychologistRepository;
         this.entityManager = entityManager;
+        this.consentService = consentService;
     }
 
     @Transactional
@@ -86,6 +89,13 @@ public class AdminUserService {
             var verify = userPsychologistRepository.findByUserId(userId);
             if (verify.isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "La relación no se guardó correctamente");
+            }
+
+            // Auto-send informed consent
+            try {
+                consentService.autoSendInformedConsent(psych, user);
+            } catch (Exception e) {
+                logger.warn("Error al enviar consentimiento automático: {}", e.getMessage());
             }
 
             return new AdminDtos.AssignPsychologistResponse(true, verify.get().getUserId(), verify.get().getPsychologist().getId());

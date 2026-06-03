@@ -67,6 +67,8 @@ public class AuthService {
 		24 * 60 * 60  // 4th+: 24 hours
 	};
 
+	private final ConsentService consentService;
+
 	public AuthService(UserRepository userRepository, CompanyRepository companyRepository,
 			UserPsychologistRepository userPsychologistRepository,
 			PsychologistProfileRepository psychologistProfileRepository,
@@ -74,7 +76,8 @@ public class AuthService {
 			JwtService jwtService, TemporarySessionService sessionService, TestResultService testResultService,
 			TestRepository testRepository, EmailService emailService, TotpService totpService,
 			ClinicInvitationRepository clinicInvitationRepository,
-			SecurityBreachService securityBreachService) {
+			SecurityBreachService securityBreachService,
+			ConsentService consentService) {
 		this.userRepository = userRepository;
 		this.companyRepository = companyRepository;
 		this.userPsychologistRepository = userPsychologistRepository;
@@ -88,6 +91,7 @@ public class AuthService {
 		this.totpService = totpService;
 		this.clinicInvitationRepository = clinicInvitationRepository;
 		this.securityBreachService = securityBreachService;
+		this.consentService = consentService;
 	}
 
 	@Transactional
@@ -244,12 +248,19 @@ public class AuthService {
 		}
 
 		if (hasPsychologistReferral) {
+			final UserEntity registeredUser = u;
 			userRepository.findByReferralCode(psychologistSlug).ifPresent(psych -> {
 				UserPsychologistEntity rel = new UserPsychologistEntity();
-				rel.setUser(u);
+				rel.setUser(registeredUser);
 				rel.setPsychologist(psych);
 				rel.setStatus("ACTIVE");
 				userPsychologistRepository.save(rel);
+				// Auto-send informed consent
+				try {
+					consentService.autoSendInformedConsent(psych, registeredUser);
+				} catch (Exception e) {
+					logger.warn("Error al enviar consentimiento automático: {}", e.getMessage());
+				}
 			});
 		}
 

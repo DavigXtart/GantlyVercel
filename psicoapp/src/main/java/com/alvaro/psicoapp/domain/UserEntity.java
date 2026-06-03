@@ -127,6 +127,21 @@ public class UserEntity {
 	@Column(name = "chief_complaint", length = 1000)
 	private String chiefComplaint;
 
+	@Column(name = "preferred_language", length = 200)
+	private String preferredLanguage;
+
+	@Column(name = "preferred_schedule", length = 500)
+	private String preferredSchedule;
+
+	@Column(name = "preferred_budget", length = 100)
+	private String preferredBudget;
+
+	@Column(name = "therapy_urgency", length = 100)
+	private String therapyUrgency;
+
+	@Column(name = "preferred_psych_gender", length = 50)
+	private String preferredPsychGender;
+
 	public Long getId() { return id; }
 	public void setId(Long id) { this.id = id; }
 	public String getName() { return name; }
@@ -203,4 +218,14 @@ public class UserEntity {
 	public void setReferralSource(String referralSource) { this.referralSource = referralSource; }
 	public String getChiefComplaint() { return chiefComplaint; }
 	public void setChiefComplaint(String chiefComplaint) { this.chiefComplaint = chiefComplaint; }
+	public String getPreferredLanguage() { return preferredLanguage; }
+	public void setPreferredLanguage(String preferredLanguage) { this.preferredLanguage = preferredLanguage; }
+	public String getPreferredSchedule() { return preferredSchedule; }
+	public void setPreferredSchedule(String preferredSchedule) { this.preferredSchedule = preferredSchedule; }
+	public String getPreferredBudget() { return preferredBudget; }
+	public void setPreferredBudget(String preferredBudget) { this.preferredBudget = preferredBudget; }
+	public String getTherapyUrgency() { return therapyUrgency; }
+	public void setTherapyUrgency(String therapyUrgency) { this.therapyUrgency = therapyUrgency; }
+	public String getPreferredPsychGender() { return preferredPsychGender; }
+	public void setPreferredPsychGender(String preferredPsychGender) { this.preferredPsychGender = preferredPsychGender; }
 }

@@ -160,6 +160,14 @@ public class CalendarController {
         return ResponseEntity.ok(calendarService.createForPatient(currentUser(principal), req));
     }
 
+    @PostMapping("/internal-slot")
+    @Operation(summary = "Crear cita interna", description = "Crea una cita interna/bloqueada sin que el paciente reserve (solo psicólogos)")
+    @ApiResponse(responseCode = "200", description = "Cita interna creada")
+    public ResponseEntity<CalendarDtos.InternalSlotResponse> createInternalSlot(Principal principal,
+                                                            @Valid @RequestBody CalendarDtos.CreateInternalSlotRequest req) {
+        return ResponseEntity.ok(calendarService.createInternalSlot(currentUser(principal), req));
+    }
+
     @GetMapping("/past-appointments")
     @Transactional(readOnly = true)
     @Operation(summary = "Obtener citas pasadas", description = "Obtiene el historial de citas pasadas del usuario")

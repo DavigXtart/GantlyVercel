@@ -327,6 +327,44 @@ public class ConsentService {
         return s == null ? "" : s;
     }
 
+    /**
+     * Auto-send INFORMED_CONSENT to a patient when assigned to a psychologist.
+     * Silently skips if no INFORMED_CONSENT template exists or if already sent.
+     */
+    @Transactional
+    public void autoSendInformedConsent(UserEntity psychologist, UserEntity patient) {
+        if (psychologist == null || patient == null) return;
+        if (!RoleConstants.PSYCHOLOGIST.equals(psychologist.getRole())) return;
+
+        // Check if consent already sent for this pair
+        boolean alreadySent = consentRequestRepository.existsByPsychologist_IdAndUser_IdAndStatus(
+                psychologist.getId(), patient.getId(), ConsentRequestStatus.SENT);
+        boolean alreadySigned = consentRequestRepository.existsByPsychologist_IdAndUser_IdAndStatus(
+                psychologist.getId(), patient.getId(), ConsentRequestStatus.SIGNED);
+        if (alreadySent || alreadySigned) return;
+
+        var docTypeOpt = documentTypeRepository.findByCode("INFORMED_CONSENT");
+        if (docTypeOpt.isEmpty()) return;
+        ConsentDocumentTypeEntity docType = docTypeOpt.get();
+        if (docType.getActive() == null || !docType.getActive()) return;
+
+        try {
+            ConsentRequestEntity consent = new ConsentRequestEntity();
+            consent.setPsychologist(psychologist);
+            consent.setUser(patient);
+            consent.setDocumentType(docType);
+            consent.setStatus(ConsentRequestStatus.SENT);
+            consent.setSentAt(Instant.now());
+
+            String rendered = renderTemplate(docType.getTemplate(), psychologist, patient, consent, null);
+            consent.setRenderedContent(rendered);
+
+            consentRequestRepository.save(consent);
+        } catch (Exception e) {
+            // Silently ignore — auto-consent should not break assignment flow
+        }
+    }
+
     private void requirePsychologist(UserEntity user) {
         if (user == null || !RoleConstants.PSYCHOLOGIST.equals(user.getRole())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);

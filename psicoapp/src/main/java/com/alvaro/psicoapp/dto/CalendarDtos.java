@@ -85,4 +85,15 @@ public class CalendarDtos {
         @NotNull(message = "La nueva fecha de fin es requerida")
         public Instant newEndTime;
     }
+
+    public static class CreateInternalSlotRequest {
+        @NotNull(message = "La fecha de inicio es requerida")
+        public Instant start;
+        @NotNull(message = "La fecha de fin es requerida")
+        public Instant end;
+        public String notes;
+        public Long userId; // optional — if provided, assigns the slot to a patient
+    }
+
+    public record InternalSlotResponse(Long id, String startTime, String endTime, String status, String notes, Long userId) {}
 }

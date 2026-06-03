@@ -254,7 +254,7 @@ public class TestResultService {
 	}
 
 	/**
-	 * Extract profile fields (chiefComplaint, age) from the user's INITIAL test answers.
+	 * Extract profile fields from the user's INITIAL test answers.
 	 * Called after transferring session answers to the user during registration.
 	 */
 	@Transactional
@@ -266,11 +266,37 @@ public class TestResultService {
 				.filter(ua -> ua.getQuestion().getTest().getId().equals(test.getId()))
 				.collect(Collectors.toList());
 		boolean changed = false;
+
+		// Collect multi-answer fields
+		List<String> languages = new ArrayList<>();
+		List<String> schedules = new ArrayList<>();
+
 		for (UserAnswerEntity ua : answers) {
 			int pos = ua.getQuestion().getPosition();
-			// Position 1: chief complaint (single answer from predefined list)
-			if (pos == 1 && ua.getAnswer() != null && user.getChiefComplaint() == null) {
-				user.setChiefComplaint(ua.getAnswer().getText());
+			String answerText = ua.getAnswer() != null ? ua.getAnswer().getText() : null;
+
+			// Position 1: chief complaint
+			if (pos == 1 && answerText != null && user.getChiefComplaint() == null) {
+				user.setChiefComplaint(answerText);
+				changed = true;
+			}
+			// Position 2: preferred psychologist gender
+			if (pos == 2 && answerText != null && user.getPreferredPsychGender() == null) {
+				user.setPreferredPsychGender(answerText);
+				changed = true;
+			}
+			// Position 10: availability (MULTI — collect all)
+			if (pos == 10 && answerText != null) {
+				schedules.add(answerText);
+			}
+			// Position 12: budget
+			if (pos == 12 && answerText != null && user.getPreferredBudget() == null) {
+				user.setPreferredBudget(answerText);
+				changed = true;
+			}
+			// Position 13: urgency
+			if (pos == 13 && answerText != null && user.getTherapyUrgency() == null) {
+				user.setTherapyUrgency(answerText);
 				changed = true;
 			}
 			// Position 14: age (numeric)
@@ -278,7 +304,21 @@ public class TestResultService {
 				user.setAge(ua.getNumericValue().intValue());
 				changed = true;
 			}
+			// Position 15: language preference (MULTI — collect all)
+			if (pos == 15 && answerText != null) {
+				languages.add(answerText);
+			}
 		}
+
+		if (!schedules.isEmpty() && user.getPreferredSchedule() == null) {
+			user.setPreferredSchedule(String.join(", ", schedules));
+			changed = true;
+		}
+		if (!languages.isEmpty() && user.getPreferredLanguage() == null) {
+			user.setPreferredLanguage(String.join(", ", languages));
+			changed = true;
+		}
+
 		if (changed) {
 			userRepository.save(user);
 		}
