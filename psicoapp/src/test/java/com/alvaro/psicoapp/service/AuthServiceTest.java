@@ -9,6 +9,7 @@ import com.alvaro.psicoapp.repository.TestRepository;
 import com.alvaro.psicoapp.repository.UserPsychologistRepository;
 import com.alvaro.psicoapp.repository.UserRepository;
 import com.alvaro.psicoapp.security.JwtService;
+import com.alvaro.psicoapp.service.ConsentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -69,6 +70,9 @@ class AuthServiceTest {
     @Mock
     private SecurityBreachService securityBreachService;
 
+    @Mock
+    private ConsentService consentService;
+
     private AuthService authService;
 
     private UserEntity testUser;
@@ -89,7 +93,8 @@ class AuthServiceTest {
                 emailService,
                 totpService,
                 clinicInvitationRepository,
-                securityBreachService
+                securityBreachService,
+                consentService
         );
 
         testUser = new UserEntity();
