@@ -27,7 +27,7 @@ export default function BillingPortal() {
       const data = await stripeService.getPaymentHistory();
       setPayments(data);
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Error al cargar el historial de pagos');
+      setError('No se pudo cargar el historial de pagos. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -39,7 +39,7 @@ export default function BillingPortal() {
       const { url } = await stripeService.createBillingPortal();
       window.open(url, '_blank');
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Error al abrir el portal de facturacion');
+      setError('No se pudo abrir el portal de facturación. Inténtalo de nuevo.');
     } finally {
       setPortalLoading(false);
     }

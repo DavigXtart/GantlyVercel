@@ -272,6 +272,7 @@ public class StripeService {
         }
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public Map<String, String> verifyAppointmentPayment(Long appointmentId, String userEmail) {
         if (!isStripeConfigured()) {
             throw new RuntimeException("Stripe no está configurado");

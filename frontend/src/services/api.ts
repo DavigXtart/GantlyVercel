@@ -86,9 +86,9 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // Manejar errores comunes sin depender de toast (evitar importación circular)
+    // Manejar errores de red con mensaje amigable
     if (error.code === 'ECONNREFUSED' || error.message.includes('Network Error')) {
-      error.message = 'No se pudo conectar al servidor. Verifica que el backend esté corriendo.';
+      error.message = 'Error de conexión. Comprueba tu conexión a internet.';
       return Promise.reject(error);
     }
 

@@ -34,7 +34,7 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
   const handleAddComment = async (taskId: number) => {
     if (!newComment.trim()) return;
     try { await tasksService.addComment(taskId, newComment); setNewComment(''); await loadTaskComments(taskId); }
-    catch (error: any) { toast.error('Error al agregar el comentario: ' + (error.response?.data?.error || error.message)); }
+    catch (_error: any) { toast.error('No se pudo agregar el comentario. Inténtalo de nuevo.'); }
   };
   const handleCompleteTask = async (taskId: number) => {
     try {
@@ -43,8 +43,8 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
       toast.success('Tarea finalizada correctamente');
       await onRefresh();
       setSelectedTask(await tasksService.get(taskId));
-    } catch (error: any) {
-      toast.error('Error al finalizar la tarea: ' + (error.response?.data?.error || error.message));
+    } catch (_error: any) {
+      toast.error('No se pudo finalizar la tarea. Inténtalo de nuevo.');
     } finally { setSubmitting(false); }
   };
 
@@ -139,7 +139,7 @@ const UserTasksTab = ({ tasks, onRefresh }: UserTasksTabProps) => {
                     const file = e.target.files?.[0];
                     if (file && selectedTaskId) {
                       try { await tasksService.uploadFile(selectedTaskId, file); await loadTaskFiles(selectedTaskId); }
-                      catch (error: any) { toast.error('Error: ' + (error.response?.data?.error || error.response?.data?.message || error.message)); }
+                      catch (_error: any) { toast.error('No se pudo subir el archivo. Inténtalo de nuevo.'); }
                       e.target.value = '';
                     }
                   }} />

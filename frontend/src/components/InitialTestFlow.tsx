@@ -108,7 +108,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
       }
       setTest(testData);
     } catch (err: any) {
-      toast.error('Error al cargar el test inicial: ' + (err.response?.data?.message || err.message));
+      toast.error('No se pudo cargar el test inicial. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -340,7 +340,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
       await initialTestService.submitAnswers(sessionId, submitData);
       onComplete(sessionId);
     } catch (err: any) {
-      toast.error('Error al enviar las respuestas: ' + (err.response?.data?.message || err.message));
+      toast.error('No se pudieron enviar las respuestas. Inténtalo de nuevo.');
     } finally {
       setSubmitting(false);
     }

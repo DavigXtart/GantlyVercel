@@ -315,7 +315,7 @@ public class CalendarService {
     @Transactional
     public void confirmAppointment(UserEntity psychologist, Long requestId) {
         requirePsychologist(psychologist);
-        var request = appointmentRequestRepository.findById(requestId)
+        var request = appointmentRequestRepository.findByIdForUpdate(requestId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Solicitud no encontrada"));
         var appointment = request.getAppointment();
 

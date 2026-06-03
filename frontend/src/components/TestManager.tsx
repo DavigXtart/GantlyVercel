@@ -3,6 +3,8 @@ import { adminService, testService } from '../services/api';
 import TestImporter from './TestImporter';
 import ConfirmDialog from './ui/ConfirmDialog';
 import { Pencil, Trash2 } from 'lucide-react';
+import { handleError } from '../utils/errorHandler';
+import { toast } from './ui/Toast';
 
 interface TestManagerProps {
   testId: number;
@@ -96,8 +98,7 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
       }
       setAnswersByQuestion(answersMap);
     } catch (err: any) {
-      const errorMsg = err.response?.data?.message || err.message || 'Error desconocido';
-      alert(`Error al cargar las preguntas: ${errorMsg}`);
+      handleError(err, 'No se pudieron cargar las preguntas. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -138,7 +139,7 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
       setShowFactorForm(false);
       (e.target as HTMLFormElement).reset();
     } catch (err: any) {
-      alert('Error al crear factor: ' + (err.response?.data?.message || err.message));
+      handleError(err, 'No se pudo crear el factor. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -175,7 +176,7 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
       setSelectedFactorForSubfactor('');
       (e.target as HTMLFormElement).reset();
     } catch (err: any) {
-      alert('Error al crear subfactor: ' + (err.response?.data?.message || err.message));
+      handleError(err, 'No se pudo crear el subfactor. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -229,7 +230,7 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
       setSelectedSubfactorId('');
       (e.target as HTMLFormElement).reset();
     } catch (err: any) {
-      alert('Error al crear pregunta: ' + (err.response?.data?.message || err.message));
+      handleError(err, 'No se pudo crear la pregunta. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -251,7 +252,7 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
       setEditingQuestion(null);
       (e.target as HTMLFormElement).reset();
     } catch (err: any) {
-      alert('Error al actualizar pregunta: ' + (err.response?.data?.message || err.message));
+      handleError(err, 'No se pudo actualizar la pregunta. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -263,7 +264,7 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
       await adminService.deleteQuestion(id);
       await loadQuestions();
     } catch (err: any) {
-      alert('Error al eliminar pregunta: ' + (err.response?.data?.message || err.message));
+      handleError(err, 'No se pudo eliminar la pregunta. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -290,7 +291,7 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
       setShowAnswerForm(null);
       (e.target as HTMLFormElement).reset();
     } catch (err: any) {
-      alert('Error al crear respuesta: ' + (err.response?.data?.message || err.message));
+      handleError(err, 'No se pudo crear la respuesta. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -312,7 +313,7 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
       setEditingAnswer(null);
       (e.target as HTMLFormElement).reset();
     } catch (err: any) {
-      alert('Error al actualizar respuesta: ' + (err.response?.data?.message || err.message));
+      handleError(err, 'No se pudo actualizar la respuesta. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -324,7 +325,7 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
       await adminService.deleteAnswer(answerId);
       await loadQuestions();
     } catch (err: any) {
-      alert('Error al eliminar respuesta: ' + (err.response?.data?.message || err.message));
+      handleError(err, 'No se pudo eliminar la respuesta. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -347,7 +348,7 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
       setUserAnswers(data);
       setShowUserAnswers(true);
     } catch (err) {
-      alert('Error al cargar las respuestas de usuarios');
+      toast.error('No se pudieron cargar las respuestas de usuarios.');
     } finally {
       setLoading(false);
     }
@@ -963,7 +964,7 @@ export default function TestManager({ testId, onBack }: TestManagerProps) {
                               await adminService.setQuestionSubfactor(question.id, v === '' ? undefined : Number(v));
                               await loadQuestionSubfactors();
                             } catch (err) {
-                              alert('Error al actualizar subfactor');
+                              toast.error('No se pudo actualizar el subfactor.');
                             }
                           }}
                           style={{ padding: '6px 8px', border: '1px solid var(--border)', borderRadius: 8, fontSize: 13 }}

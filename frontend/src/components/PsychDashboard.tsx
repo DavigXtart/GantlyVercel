@@ -213,7 +213,7 @@ export default function PsychDashboard() {
       const appointments = await calendarService.getPsychologistPastAppointments();
       setPastAppointmentsPsych(appointments);
     } catch (err: any) {
-      toast.error('Error al cargar las citas pasadas: ' + (err.response?.data?.error || err.message));
+      toast.error('No se pudieron cargar las citas pasadas. Inténtalo de nuevo.');
     } finally {
       setLoadingPastAppointmentsPsych(false);
     }
@@ -225,7 +225,7 @@ export default function PsychDashboard() {
       const appointments = await calendarService.getBillingAppointments();
       setBillingAppointments(appointments);
     } catch (err: any) {
-      toast.error('Error al cargar datos de facturacion: ' + (err.response?.data?.error || err.message));
+      toast.error('No se pudieron cargar los datos de facturación. Inténtalo de nuevo.');
     } finally {
       setLoadingBillingAppointments(false);
     }
@@ -289,7 +289,7 @@ export default function PsychDashboard() {
         // silent
       }
     } catch (err: any) {
-      toast.error('Error al cargar los detalles del paciente: ' + (err.response?.data?.error || err.message));
+      toast.error('No se pudieron cargar los detalles del paciente. Inténtalo de nuevo.');
     } finally {
       setLoadingPatientDetails(false);
     }
@@ -304,7 +304,7 @@ export default function PsychDashboard() {
       const statsData = await resultsService.getUserTest(patientId, testId);
       setTestDetailsData(statsData);
     } catch (err: any) {
-      toast.error('Error al cargar los detalles del test: ' + (err.response?.data?.error || err.message));
+      toast.error('No se pudieron cargar los detalles del test. Inténtalo de nuevo.');
     } finally {
       setLoadingTestDetails(false);
     }
@@ -316,7 +316,7 @@ export default function PsychDashboard() {
       setPatients(patients.map(p => p.id === patientId ? { ...p, status } : p));
       toast.success(`Paciente ${status === 'ACTIVE' ? 'reactivado' : 'dado de alta'} exitosamente`);
     } catch (err: any) {
-      toast.error('Error al actualizar el status: ' + (err.response?.data?.error || err.message));
+      toast.error('No se pudo actualizar el estado del paciente. Inténtalo de nuevo.');
     }
   };
 
@@ -333,7 +333,7 @@ export default function PsychDashboard() {
       setMe({ ...me, avatarUrl: res.avatarUrl });
       toast.success('Avatar actualizado exitosamente');
     } catch (error: any) {
-      toast.error('Error al subir el avatar: ' + (error.response?.data?.message || error.message || 'Error desconocido'));
+      toast.error('No se pudo subir el avatar. Inténtalo de nuevo.');
     } finally {
       input.value = '';
     }
@@ -473,7 +473,7 @@ export default function PsychDashboard() {
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 px-3 py-4 overflow-y-auto">
+        <div className="flex-1 px-3 py-4 overflow-y-auto">
           {tabGroups.map((group, gi) => (
             <div key={group.group}>
               {gi > 0 && <div className="mx-3 my-1.5 border-t border-slate-100" />}
@@ -499,7 +499,7 @@ export default function PsychDashboard() {
               </div>
             </div>
           ))}
-        </nav>
+        </div>
 
         {/* User info + logout */}
         <div className="px-4 py-4 border-t border-slate-100">
@@ -785,7 +785,7 @@ export default function PsychDashboard() {
       </div>
 
       {/* Mobile bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 lg:hidden">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 lg:hidden">
         <div className="flex items-center justify-around py-1.5 px-2">
           {[
             { id: 'perfil', icon: Home, label: 'Inicio' },
@@ -812,7 +812,7 @@ export default function PsychDashboard() {
             );
           })}
         </div>
-      </nav>
+      </div>
     </div>
   );
 }

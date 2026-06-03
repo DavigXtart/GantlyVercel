@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { adminService } from '../services/api';
+import { toast } from './ui/Toast';
+import { handleError } from '../utils/errorHandler';
 
 type User = { id: number; name: string; email: string; role: 'USER'|'ADMIN'|'PSYCHOLOGIST'; psychologistId?: number | null; psychologistName?: string | null };
 
@@ -36,29 +38,14 @@ export default function AdminUsersPanel() {
   const onAssign = async (userId: number) => {
     const psychologistId = assign[userId];
     if (!psychologistId) {
-      alert('Selecciona un psicólogo antes de asignar');
+      toast.warning('Selecciona un psicólogo antes de asignar');
       return;
     }
     try {
       await adminService.assignPsychologist(userId, psychologistId);
       await load();
     } catch (e: any) {
-      let msg = 'Error desconocido';
-      if (e?.response?.data) {
-        const data = e.response.data;
-        if (typeof data === 'string') {
-          msg = data;
-        } else if (data.message) {
-          msg = data.message;
-        } else if (data.error) {
-          msg = `${data.error}: ${data.message || 'Error desconocido'}`;
-        } else {
-          msg = JSON.stringify(data);
-        }
-      } else if (e?.message) {
-        msg = e.message;
-      }
-      alert(`No se pudo asignar: ${msg}`);
+      handleError(e, 'No se pudo asignar el psicólogo. Inténtalo de nuevo.');
     }
   };
 
@@ -67,22 +54,7 @@ export default function AdminUsersPanel() {
       await adminService.unassignPsychologist(userId);
       await load();
     } catch (e: any) {
-      let msg = 'Error desconocido';
-      if (e?.response?.data) {
-        const data = e.response.data;
-        if (typeof data === 'string') {
-          msg = data;
-        } else if (data.message) {
-          msg = data.message;
-        } else if (data.error) {
-          msg = `${data.error}: ${data.message || 'Error desconocido'}`;
-        } else {
-          msg = JSON.stringify(data);
-        }
-      } else if (e?.message) {
-        msg = e.message;
-      }
-      alert(`No se pudo desvincular: ${msg}`);
+      handleError(e, 'No se pudo desvincular al psicólogo. Inténtalo de nuevo.');
     }
   };
 

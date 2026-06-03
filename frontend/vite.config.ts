@@ -14,6 +14,17 @@ export default defineConfig({
     },
   },
   assetsInclude: ['**/*.lottie'],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          animation: ['framer-motion'],
+          i18n: ['i18next', 'react-i18next'],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     proxy: {

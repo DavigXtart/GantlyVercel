@@ -61,6 +61,10 @@ public class MatchingService {
         TestEntity psychologistTest = testRepository.findByCode(PSYCHOLOGIST_MATCHING_TEST_CODE)
             .orElseThrow(() -> new RuntimeException("Test de matching de psicólogo no encontrado"));
 
+        // Pre-load question lists once to avoid re-querying in passesAbsoluteFilters/calculateAffinityScore
+        List<QuestionEntity> patientQuestions = questionRepository.findByTestOrderByPositionAsc(patientTest);
+        List<QuestionEntity> psychQuestions = questionRepository.findByTestOrderByPositionAsc(psychologistTest);
+
         List<UserEntity> allPsychologists = userRepository.findByRole(RoleConstants.PSYCHOLOGIST);
 
         // Only include approved psychologists
@@ -68,28 +72,41 @@ public class MatchingService {
             .map(p -> p.getUser().getId())
             .collect(Collectors.toSet());
 
-        List<MatchingResult> results = new ArrayList<>();
+        // Filter eligible psychologist IDs (approved + not full)
+        List<Long> eligiblePsychIds = allPsychologists.stream()
+            .filter(p -> approvedPsychIds.contains(p.getId()))
+            .filter(p -> !(p.getIsFull() != null && p.getIsFull()))
+            .map(UserEntity::getId)
+            .collect(Collectors.toList());
 
-        for (UserEntity psychologist : allPsychologists) {
-
-            if (!approvedPsychIds.contains(psychologist.getId())) {
-                continue;
-            }
-
-            if (psychologist.getIsFull() != null && psychologist.getIsFull()) {
-                continue;
-            }
-            List<UserAnswerEntity> psychologistAnswers = userAnswerRepository.findByUser(psychologist).stream()
+        // Bulk-load all psychologist answers for the psychologist matching test
+        List<UserAnswerEntity> allPsychAnswers = eligiblePsychIds.isEmpty()
+            ? Collections.emptyList()
+            : userAnswerRepository.findByUserIdIn(eligiblePsychIds).stream()
                 .filter(ua -> ua.getQuestion().getTest().getCode().equals(PSYCHOLOGIST_MATCHING_TEST_CODE))
                 .collect(Collectors.toList());
+
+        // Group by psychologist ID
+        Map<Long, List<UserAnswerEntity>> psychAnswersByUserId = allPsychAnswers.stream()
+            .collect(Collectors.groupingBy(ua -> ua.getUser().getId()));
+
+        Map<Long, UserEntity> psychMap = allPsychologists.stream()
+            .collect(Collectors.toMap(UserEntity::getId, p -> p));
+
+        List<MatchingResult> results = new ArrayList<>();
+
+        for (Long psychId : eligiblePsychIds) {
+            List<UserAnswerEntity> psychologistAnswers = psychAnswersByUserId.getOrDefault(psychId, Collections.emptyList());
 
             if (psychologistAnswers.isEmpty()) {
                 continue;
             }
 
-            double affinityScore = calculateAffinityScore(patientAnswers, psychologistAnswers, patient, psychologist);
+            UserEntity psychologist = psychMap.get(psychId);
 
-            boolean passesFilters = passesAbsoluteFilters(patientAnswers, psychologistAnswers, patient);
+            double affinityScore = calculateAffinityScore(patientAnswers, psychologistAnswers, patient, psychologist, patientQuestions, psychQuestions);
+
+            boolean passesFilters = passesAbsoluteFilters(patientAnswers, psychologistAnswers, patient, patientQuestions, psychQuestions);
 
             if (!passesFilters) {
                 // Psychologist fails absolute filters — exclude entirely
@@ -114,18 +131,15 @@ public class MatchingService {
 
     private boolean passesAbsoluteFilters(List<UserAnswerEntity> patientAnswers,
                                          List<UserAnswerEntity> psychologistAnswers,
-                                         UserEntity patient) {
+                                         UserEntity patient,
+                                         List<QuestionEntity> patientQuestions,
+                                         List<QuestionEntity> psychQuestions) {
 
         Map<Long, List<UserAnswerEntity>> patientAnswersByQuestion = patientAnswers.stream()
             .collect(Collectors.groupingBy(ua -> ua.getQuestion().getId()));
 
         Map<Long, List<UserAnswerEntity>> psychologistAnswersByQuestion = psychologistAnswers.stream()
             .collect(Collectors.groupingBy(ua -> ua.getQuestion().getId()));
-
-        List<QuestionEntity> psychQuestions = questionRepository.findByTestOrderByPositionAsc(
-            testRepository.findByCode(PSYCHOLOGIST_MATCHING_TEST_CODE).get());
-        List<QuestionEntity> patientQuestions = questionRepository.findByTestOrderByPositionAsc(
-            testRepository.findByCode(PATIENT_MATCHING_TEST_CODE).get());
 
         QuestionEntity modalityQuestion = psychQuestions.stream()
             .filter(q -> q.getPosition() == 1)
@@ -294,7 +308,9 @@ public class MatchingService {
     private double calculateAffinityScore(List<UserAnswerEntity> patientAnswers,
                                          List<UserAnswerEntity> psychologistAnswers,
                                          UserEntity patient,
-                                         UserEntity psychologist) {
+                                         UserEntity psychologist,
+                                         List<QuestionEntity> patientQuestions,
+                                         List<QuestionEntity> psychQuestions) {
 
         double totalScore = 0.0;
         double maxPossibleScore = 0.0;
@@ -304,11 +320,6 @@ public class MatchingService {
 
         Map<Long, List<UserAnswerEntity>> psychologistAnswersByQuestion = psychologistAnswers.stream()
             .collect(Collectors.groupingBy(ua -> ua.getQuestion().getId()));
-
-        List<QuestionEntity> patientQuestions = questionRepository.findByTestOrderByPositionAsc(
-            testRepository.findByCode(PATIENT_MATCHING_TEST_CODE).get());
-        List<QuestionEntity> psychQuestions = questionRepository.findByTestOrderByPositionAsc(
-            testRepository.findByCode(PSYCHOLOGIST_MATCHING_TEST_CODE).get());
 
         QuestionEntity psychExpQuestion = psychQuestions.stream()
             .filter(q -> q.getPosition() == 4).findFirst().orElse(null);

@@ -26,10 +26,7 @@ export default function UserAppointmentsTab({ setTab }: UserAppointmentsTabProps
       const appointments = await calendarService.getPastAppointments();
       setPastAppointments(appointments || []);
     } catch (err: any) {
-      toast.error(
-        'Error al cargar las citas pasadas: ' +
-          (err.response?.data?.error || err.message),
-      );
+      toast.error('No se pudieron cargar las citas pasadas. Inténtalo de nuevo.');
     } finally {
       setLoadingPastAppointments(false);
     }
@@ -190,7 +187,7 @@ export default function UserAppointmentsTab({ setTab }: UserAppointmentsTabProps
             toast.success('Cita cancelada correctamente');
             await loadPastAppointments();
           } catch (err: any) {
-            toast.error(err.response?.data?.error || 'Error al cancelar la cita');
+            toast.error('No se pudo cancelar la cita. Inténtalo de nuevo.');
           }
         }}
         title="Cancelar cita"
@@ -217,7 +214,7 @@ export default function UserAppointmentsTab({ setTab }: UserAppointmentsTabProps
             await loadPastAppointments();
             setRescheduleAppointment(null);
           } catch (err: any) {
-            toast.error(err.response?.data?.message || err.response?.data?.error || 'Error al reagendar la cita');
+            toast.error('No se pudo reagendar la cita. Inténtalo de nuevo.');
             throw err;
           } finally {
             setRescheduling(false);

@@ -133,7 +133,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate, onShowOnboardi
                         onMeUpdate({ ...me, avatarUrl: res.avatarUrl });
                         toast.success('Foto actualizada');
                       } catch (err: any) {
-                        toast.error(err.response?.data?.error || 'Error al subir la foto');
+                        toast.error('No se pudo subir la foto. Inténtalo de nuevo.');
                       } finally {
                         setUploadingAvatar(false);
                         e.target.value = '';
@@ -277,7 +277,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate, onShowOnboardi
                       onMeUpdate(updated);
                       toast.success('Perfil actualizado');
                     } catch (err: any) {
-                      toast.error(err.response?.data?.error || 'Error al guardar');
+                      toast.error('No se pudieron guardar los cambios. Inténtalo de nuevo.');
                     } finally {
                       setSavingProfile(false);
                     }
@@ -376,7 +376,7 @@ export default function UserSettingsTab({ me, onBack, onMeUpdate, onShowOnboardi
                       });
                       toast.success('Datos m\u00e9dicos actualizados');
                     } catch (err: any) {
-                      toast.error(err.response?.data?.error || 'Error al guardar');
+                      toast.error('No se pudieron guardar los datos médicos. Inténtalo de nuevo.');
                     } finally {
                       setSavingIntake(false);
                     }

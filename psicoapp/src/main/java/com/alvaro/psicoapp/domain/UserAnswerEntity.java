@@ -4,16 +4,19 @@ import jakarta.persistence.*;
 import java.time.Instant;
 
 @Entity
-@Table(name = "user_answers")
+@Table(name = "user_answers", indexes = {
+    @Index(name = "idx_ua_user", columnList = "user_id"),
+    @Index(name = "idx_ua_question", columnList = "question_id")
+})
 public class UserAnswerEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	@ManyToOne @JoinColumn(name = "user_id") private UserEntity user;
-	@ManyToOne(optional = false) @JoinColumn(name = "question_id") private QuestionEntity question;
-	@ManyToOne @JoinColumn(name = "answer_id") private AnswerEntity answer;
+	@ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "user_id") private UserEntity user;
+	@ManyToOne(optional = false, fetch = FetchType.LAZY) @JoinColumn(name = "question_id") private QuestionEntity question;
+	@ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "answer_id") private AnswerEntity answer;
 	private Double numericValue;
-	@ManyToOne @JoinColumn(name = "session_id") private TemporarySessionEntity session;
+	@ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "session_id") private TemporarySessionEntity session;
 	@Column(name = "text_value", length = 1000) private String textValue;
 	@Column(name = "created_at", nullable = false, updatable = false) private Instant createdAt = Instant.now();
 	public Long getId() { return id; } public void setId(Long id) { this.id = id; }

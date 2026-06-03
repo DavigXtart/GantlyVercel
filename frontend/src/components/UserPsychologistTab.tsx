@@ -89,10 +89,7 @@ export default function UserPsychologistTab({
       const appointments = await calendarService.getPastAppointments();
       setPastAppointments(appointments || []);
     } catch (err: any) {
-      toast.error(
-        'Error al cargar las citas pasadas: ' +
-          (err.response?.data?.error || err.message),
-      );
+      toast.error('No se pudieron cargar las citas pasadas. Inténtalo de nuevo.');
     } finally {
       setLoadingPastAppointments(false);
     }
@@ -116,7 +113,7 @@ export default function UserPsychologistTab({
         window.location.reload();
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Error al usar el código de referencia');
+      toast.error('No se pudo usar el código de referencia. Verifica que sea correcto.');
     } finally {
       setUsingReferralCode(false);
     }
@@ -208,7 +205,7 @@ export default function UserPsychologistTab({
                               const list = await consentService.getMyRequests();
                               setPendingConsents(Array.isArray(list) ? list : []);
                             } catch (err: any) {
-                              toast.error(err.response?.data?.error || 'Error al firmar');
+                              toast.error('No se pudo completar la firma. Inténtalo de nuevo.');
                             } finally {
                               setSigningConsentId(null);
                             }

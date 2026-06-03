@@ -57,7 +57,7 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
       }
       setTest(testData);
     } catch (error: any) {
-      toast.error('Error al cargar el test: ' + (error.response?.data?.error || error.message));
+      toast.error('No se pudo cargar el test. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -291,7 +291,7 @@ export default function PsychologistMatchingTest({ onComplete, onBack }: Psychol
       toast.success('Test completado correctamente');
       onComplete();
     } catch (error: any) {
-      toast.error('Error al enviar el test: ' + (error.response?.data?.error || error.message));
+      toast.error('No se pudieron enviar las respuestas. Inténtalo de nuevo.');
     } finally {
       setSubmitting(false);
     }

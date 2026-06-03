@@ -179,10 +179,7 @@ public class PatientDataRetentionService {
 
     private void deleteUnverifiedAccounts() {
         Instant cutoff = Instant.now().minus(30, ChronoUnit.DAYS);
-        List<UserEntity> unverified = userRepository.findAll().stream()
-            .filter(u -> !Boolean.TRUE.equals(u.getEmailVerified()))
-            .filter(u -> u.getCreatedAt() != null && u.getCreatedAt().isBefore(cutoff))
-            .toList();
+        List<UserEntity> unverified = userRepository.findByEmailVerifiedFalseAndCreatedAtBefore(cutoff);
 
         if (!unverified.isEmpty()) {
             logger.info("RGPD retention: eliminando {} cuentas no verificadas (>30 dias)", unverified.size());
@@ -198,22 +195,15 @@ public class PatientDataRetentionService {
 
     private void deleteOldNotifications() {
         Instant cutoff = Instant.now().minus(90, ChronoUnit.DAYS);
-        List<com.alvaro.psicoapp.domain.NotificationEntity> old = notificationRepository.findAll().stream()
-            .filter(n -> n.getCreatedAt() != null && n.getCreatedAt().isBefore(cutoff))
-            .toList();
-
-        if (!old.isEmpty()) {
-            logger.info("RGPD retention: eliminando {} notificaciones antiguas (>90 dias)", old.size());
-            notificationRepository.deleteAll(old);
+        int deleted = notificationRepository.deleteByCreatedAtBefore(cutoff);
+        if (deleted > 0) {
+            logger.info("RGPD retention: eliminando {} notificaciones antiguas (>90 dias)", deleted);
         }
     }
 
     private void cleanupDeletedAccounts() {
         Instant cutoff = Instant.now().minus(30, ChronoUnit.DAYS);
-        List<UserEntity> deleted = userRepository.findAll().stream()
-            .filter(u -> u.getEmail() != null && u.getEmail().endsWith("@deleted.local"))
-            .filter(u -> u.getCreatedAt() != null && u.getCreatedAt().isBefore(cutoff))
-            .toList();
+        List<UserEntity> deleted = userRepository.findByEmailEndingWithAndCreatedAtBefore("@deleted.local", cutoff);
 
         if (!deleted.isEmpty()) {
             logger.info("RGPD retention: limpiando {} cuentas anonimizadas (>30 dias)", deleted.size());

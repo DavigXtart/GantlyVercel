@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { adminService } from '../services/api';
+import { handleError } from '../utils/errorHandler';
 
 interface AddQuestionsProps {
   testId: number;
@@ -26,7 +27,7 @@ export default function AddQuestions({ testId, onBack }: AddQuestionsProps) {
       setShowAddQuestion(false);
       e.currentTarget.reset();
     } catch (err: any) {
-      alert('Error al crear pregunta: ' + (err.response?.data?.message || err.message));
+      handleError(err, 'No se pudo crear la pregunta. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -47,7 +48,7 @@ export default function AddQuestions({ testId, onBack }: AddQuestionsProps) {
       // Opción de respuesta añadida (sin pop-up)
       e.currentTarget.reset();
     } catch (err: any) {
-      alert('Error al crear opción: ' + (err.response?.data?.message || err.message));
+      handleError(err, 'No se pudo crear la opción. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }

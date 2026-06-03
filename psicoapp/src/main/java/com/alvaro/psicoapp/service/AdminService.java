@@ -353,27 +353,10 @@ public class AdminService {
     @Transactional(readOnly = true)
     public Page<AdminDtos.UserListDto> listUsersPaged(String search, String role, Pageable pageable) {
         if (search != null && !search.isBlank()) {
-            // PII fields (name, email) are encrypted at rest, so LIKE queries at DB
-            // level won't match. Load all users filtered by role, then apply text
-            // search in memory on the decrypted values.
-            String lowerSearch = search.toLowerCase(java.util.Locale.ROOT);
-            List<UserEntity> allByRole;
-            if (role == null || role.isBlank()) {
-                allByRole = userRepository.findAll();
-            } else {
-                allByRole = userRepository.findByRole(role);
-            }
-            List<AdminDtos.UserListDto> filtered = allByRole.stream()
-                    .filter(u -> (u.getName() != null && u.getName().toLowerCase(java.util.Locale.ROOT).contains(lowerSearch))
-                              || (u.getEmail() != null && u.getEmail().toLowerCase(java.util.Locale.ROOT).contains(lowerSearch)))
-                    .map(this::toUserListDto)
-                    .collect(Collectors.toList());
-            int start = (int) pageable.getOffset();
-            int end = Math.min(start + pageable.getPageSize(), filtered.size());
-            List<AdminDtos.UserListDto> pageContent = start < filtered.size()
-                    ? filtered.subList(start, end)
-                    : Collections.emptyList();
-            return new org.springframework.data.domain.PageImpl<>(pageContent, pageable, filtered.size());
+            // PII encryption is NOT active yet — use DB-level LIKE search.
+            // When PII encryption is activated, switch back to in-memory filtering.
+            Page<UserEntity> usersPage = userRepository.searchByNameOrEmail(search, role, pageable);
+            return usersPage.map(this::toUserListDto);
         }
         // No text search — filter by role at DB level with pagination
         Page<UserEntity> usersPage = userRepository.findAllByRole(role, pageable);
@@ -427,9 +410,7 @@ public class AdminService {
 
         List<QuestionEntity> questions = questionRepository.findByTestOrderByPositionAsc(test);
         Set<Long> questionIds = questions.stream().map(QuestionEntity::getId).collect(Collectors.toSet());
-        List<UserAnswerEntity> allUserAnswers = userAnswerRepository.findAll().stream()
-                .filter(ua -> questionIds.contains(ua.getQuestion().getId()))
-                .collect(Collectors.toList());
+        List<UserAnswerEntity> allUserAnswers = userAnswerRepository.findByQuestionIdIn(questionIds);
 
         Map<Long, Map<Long, java.util.List<AdminDtos.AnswerInfoDto>>> usersTestsMap = new HashMap<>();
         Map<Long, String> userNames = new HashMap<>();
@@ -512,9 +493,9 @@ public class AdminService {
     public Map<String, Object> getStatistics() {
         Map<String, Object> stats = new HashMap<>();
         long totalUsers = userRepository.count();
-        long users = userRepository.findByRole(RoleConstants.USER).size();
-        long psychologists = userRepository.findByRole(RoleConstants.PSYCHOLOGIST).size();
-        long admins = userRepository.findByRole(RoleConstants.ADMIN).size();
+        long users = userRepository.countByRole(RoleConstants.USER);
+        long psychologists = userRepository.countByRole(RoleConstants.PSYCHOLOGIST);
+        long admins = userRepository.countByRole(RoleConstants.ADMIN);
         stats.put("totalUsers", totalUsers);
         stats.put("users", users);
         stats.put("psychologists", psychologists);
@@ -522,16 +503,12 @@ public class AdminService {
         stats.put("totalTests", testRepository.count());
         stats.put("evaluationTests", evaluationTestRepository.count());
         long totalAppointments = appointmentRepository.count();
-        long bookedAppointments = appointmentRepository.findAll().stream()
-                .filter(apt -> "BOOKED".equals(apt.getStatus()) || "CONFIRMED".equals(apt.getStatus()))
-                .count();
+        long bookedAppointments = appointmentRepository.countBookedOrConfirmed();
         stats.put("totalAppointments", totalAppointments);
         stats.put("bookedAppointments", bookedAppointments);
         stats.put("totalUserAnswers", userAnswerRepository.count());
         stats.put("assignedRelations", userPsychologistRepository.count());
-        long verifiedUsers = userRepository.findAll().stream()
-                .filter(u -> Boolean.TRUE.equals(u.getEmailVerified()))
-                .count();
+        long verifiedUsers = userRepository.countByEmailVerifiedTrue();
         stats.put("verifiedUsers", verifiedUsers);
         return stats;
     }

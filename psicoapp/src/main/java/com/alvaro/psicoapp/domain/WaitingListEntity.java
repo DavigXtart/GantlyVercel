@@ -13,7 +13,7 @@ public class WaitingListEntity {
     @Column(name = "company_id", nullable = false)
     private Long companyId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patient_id")
     private UserEntity patient;
 
@@ -26,11 +26,11 @@ public class WaitingListEntity {
     @Column(name = "patient_phone", length = 30)
     private String patientPhone;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "requested_service_id")
     private ClinicServiceEntity requestedService;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "psychologist_preference_id")
     private UserEntity psychologistPreference;
 
@@ -52,7 +52,7 @@ public class WaitingListEntity {
     @Column(name = "contacted_at")
     private Instant contactedAt;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scheduled_appointment_id")
     private AppointmentEntity scheduledAppointment;
 

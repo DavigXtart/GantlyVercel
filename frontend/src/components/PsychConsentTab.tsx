@@ -91,7 +91,7 @@ export default function PsychConsentTab({ patients }: PsychConsentTabProps) {
       setPlace('');
       await loadRequests();
     } catch (err: any) {
-      toast.error('Error al enviar: ' + (err.response?.data?.error || err.message));
+      toast.error('No se pudo enviar el consentimiento. Inténtalo de nuevo.');
     } finally {
       setSending(false);
     }

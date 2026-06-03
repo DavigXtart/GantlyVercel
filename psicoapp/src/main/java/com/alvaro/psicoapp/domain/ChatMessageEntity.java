@@ -4,17 +4,20 @@ import jakarta.persistence.*;
 import java.time.Instant;
 
 @Entity
-@Table(name = "chat_messages")
+@Table(name = "chat_messages", indexes = {
+    @Index(name = "idx_chat_psych_user", columnList = "psychologist_id, user_id"),
+    @Index(name = "idx_chat_created", columnList = "created_at")
+})
 public class ChatMessageEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "psychologist_id")
     private UserEntity psychologist;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private UserEntity user;
 

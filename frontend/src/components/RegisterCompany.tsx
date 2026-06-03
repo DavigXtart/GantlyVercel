@@ -37,7 +37,7 @@ export default function RegisterCompany({ onBack, onLogin, onSuccess }: Register
       await companyAuthService.register(name.trim(), email.trim(), password);
       onSuccess();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al registrarse. Intenta de nuevo.');
+      setError('No se pudo completar el registro. Verifica los datos e inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }

@@ -132,7 +132,7 @@ export default function UserConsentTab({ userName }: UserConsentTabProps) {
       setSelectedRequest(null);
       await loadRequests();
     } catch (err: any) {
-      toast.error('Error al firmar: ' + (err.response?.data?.error || err.message));
+      toast.error('No se pudo enviar la firma. Inténtalo de nuevo.');
     } finally {
       setSigning(false);
     }

@@ -115,7 +115,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
       const response = await personalAgendaService.getUserEntries();
       setEntries(response.entries || []);
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Error al cargar entradas');
+      toast.error('No se pudieron cargar las entradas. Inténtalo de nuevo.');
     }
   };
 
@@ -207,8 +207,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
       await loadEntries(); // Recargar entradas después de guardar
       setShowCalendar(true);
     } catch (error: any) {
-      const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message || 'Error al guardar la entrada';
-      toast.error(errorMessage);
+      toast.error('No se pudo guardar la entrada. Inténtalo de nuevo.');
       setSaving(false);
     }
   };
@@ -756,7 +755,7 @@ export default function AgendaPersonal({ onComplete: _onComplete }: AgendaPerson
             const response = await personalAgendaService.getUserEntries();
             setEntries(response.entries || []);
           } catch (err: any) {
-            toast.error(err.response?.data?.error || 'Error al eliminar');
+            toast.error('No se pudo eliminar la entrada. Inténtalo de nuevo.');
           }
         }}
         title="Eliminar entrada"

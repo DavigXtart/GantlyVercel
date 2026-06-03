@@ -39,10 +39,7 @@ public class EvaluationTestService {
     public List<EvaluationTestEntity> getTestsByCategory(String category) {
         List<EvaluationTestEntity> evaluationTests = evaluationTestRepository.findByCategoryAndActiveTrue(category);
 
-        List<TestEntity> testsWithCategory = testRepository.findAll().stream()
-            .filter(t -> t.getActive() != null && t.getActive()
-                && t.getCategory() != null && t.getCategory().equals(category))
-            .collect(Collectors.toList());
+        List<TestEntity> testsWithCategory = testRepository.findByActiveTrueAndCategory(category);
 
         List<EvaluationTestEntity> convertedTests = testsWithCategory.stream()
             .map(this::convertTestToEvaluationTest)
@@ -70,11 +67,7 @@ public class EvaluationTestService {
     public List<EvaluationTestEntity> getTestsByTopic(String category, String topic) {
         List<EvaluationTestEntity> evaluationTests = evaluationTestRepository.findByCategoryAndTopicAndActiveTrue(category, topic);
 
-        List<TestEntity> testsWithCategoryAndTopic = testRepository.findAll().stream()
-            .filter(t -> t.getActive() != null && t.getActive()
-                && t.getCategory() != null && t.getCategory().equals(category)
-                && t.getTopic() != null && t.getTopic().equals(topic))
-            .collect(Collectors.toList());
+        List<TestEntity> testsWithCategoryAndTopic = testRepository.findByActiveTrueAndCategoryAndTopic(category, topic);
 
         List<EvaluationTestEntity> convertedTests = testsWithCategoryAndTopic.stream()
             .map(this::convertTestToEvaluationTest)

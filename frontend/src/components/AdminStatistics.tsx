@@ -17,7 +17,7 @@ export default function AdminStatistics() {
       const data = await adminService.getStatistics();
       setStats(data);
     } catch (error: any) {
-      toast.error('Error al cargar estadísticas: ' + (error.response?.data?.error || error.message));
+      toast.error('No se pudieron cargar las estadísticas. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }

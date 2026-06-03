@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { clinicService } from '../services/api';
 import type { ClinicBillingItem } from '../services/api';
+import { toast } from './ui/Toast';
 import {
   ArrowUpRight, ArrowDownRight, Calendar, ChevronDown, Download,
   FileText, Search, TrendingUp, Wallet, X, Shield, CreditCard,
@@ -253,7 +254,7 @@ function generateInvoicePdf(item: {
 
     doc.save(`${invoiceNum}.pdf`);
   }).catch(() => {
-    alert('Error al generar la factura.');
+    toast.error('No se pudo generar la factura. Inténtalo de nuevo.');
   });
 }
 

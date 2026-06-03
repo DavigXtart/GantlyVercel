@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import api from '../services/api';
+import { handleError } from '../utils/errorHandler';
 import {
   ChevronLeft, ChevronRight, Plus, X, Search, RefreshCw,
   Clock, User, CreditCard, FileText, Calendar, MapPin,
@@ -340,7 +341,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
       });
       setAppointments(res.data || []);
     } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Error al cargar la agenda');
+      setError('No se pudo cargar la agenda. Comprueba tu conexión e inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -478,7 +479,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
       }
       closePanel(); await loadAppointments(); onAppointmentChange();
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Error al guardar la cita');
+      handleError(err, 'No se pudo guardar la cita. Inténtalo de nuevo.');
     } finally { setSaving(false); }
   }
 
@@ -489,7 +490,7 @@ export default function ClinicAgenda({ psychologists, onAppointmentChange }: Pro
       await api.delete(`/clinic/appointments/${editingAppointment.id}`);
       closePanel(); await loadAppointments(); onAppointmentChange();
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Error al cancelar la cita');
+      handleError(err, 'No se pudo cancelar la cita. Inténtalo de nuevo.');
     } finally { setCancelling(false); setShowCancelConfirm(false); }
   }
 

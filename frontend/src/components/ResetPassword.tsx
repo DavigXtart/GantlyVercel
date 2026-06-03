@@ -47,10 +47,10 @@ export default function ResetPassword({ token, onSuccess, onBack }: ResetPasswor
           if (onSuccess) onSuccess();
         }, 2000);
       } else {
-        toast.error(response.message || 'Error al restablecer la contraseña');
+        toast.error('No se pudo restablecer la contraseña. Inténtalo de nuevo.');
       }
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.message || 'Error al restablecer la contraseña';
+    } catch (_err: any) {
+      const errorMsg = 'No se pudo restablecer la contraseña. Inténtalo de nuevo.';
       toast.error(errorMsg);
       setErrors({ newPassword: errorMsg });
     } finally {

@@ -2,7 +2,9 @@ package com.alvaro.psicoapp.repository;
 
 import com.alvaro.psicoapp.domain.AppointmentRequestEntity;
 import com.alvaro.psicoapp.domain.RequestStatusEnum;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -16,6 +18,10 @@ public interface AppointmentRequestRepository extends JpaRepository<AppointmentR
     List<AppointmentRequestEntity> findByAppointment_IdAndStatus(Long appointmentId, RequestStatusEnum status);
     List<AppointmentRequestEntity> findByUser_IdOrderByRequestedAtDesc(Long userId);
     long deleteByUser_Id(Long userId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT ar FROM AppointmentRequestEntity ar WHERE ar.id = :id")
+    Optional<AppointmentRequestEntity> findByIdForUpdate(@Param("id") Long id);
 
     @Query("SELECT ar FROM AppointmentRequestEntity ar WHERE ar.appointment.id = :appointmentId AND ar.user.id = :userId")
     Optional<AppointmentRequestEntity> findByAppointment_IdAndUser_Id(@Param("appointmentId") Long appointmentId, @Param("userId") Long userId);

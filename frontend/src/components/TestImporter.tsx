@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { adminService } from '../services/api';
+import { toast } from './ui/Toast';
 
 interface ParsedAnswer {
   text: string;
@@ -50,7 +51,7 @@ export default function TestImporter({ onImported, onCancel }: TestImporterProps
       setTitle(result.detectedTitle || '');
       setCode(result.detectedTitle?.toUpperCase().replace(/\s+/g, '_').substring(0, 50) || '');
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Error al parsear el archivo');
+      setError('No se pudo procesar el archivo. Verifica que el formato sea correcto e inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -90,10 +91,10 @@ export default function TestImporter({ onImported, onCancel }: TestImporterProps
         testType,
         questions: parseResult.questions
       });
-      alert(`Test importado: ${result.questionsCreated} preguntas, ${result.answersCreated} respuestas`);
+      toast.success(`Test importado: ${result.questionsCreated} preguntas, ${result.answersCreated} respuestas`);
       onImported();
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Error al importar');
+      setError('No se pudo importar el test. Verifica los datos e inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }

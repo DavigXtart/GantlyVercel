@@ -7,13 +7,15 @@ import java.time.Instant;
 @Entity
 @Table(name = "daily_mood_entries", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"user_id", "entry_date"})
+}, indexes = {
+    @Index(name = "idx_mood_user_date", columnList = "user_id, entry_date")
 })
 public class DailyMoodEntryEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private UserEntity user;
 

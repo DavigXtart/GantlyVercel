@@ -73,9 +73,21 @@ public class PsychologistService {
         }
         var consentStatusMap = consentService.statusForPatients(psychologist, patientIds, minorMap);
 
+        // Batch-load last completed appointments for all patients in a single query
+        Map<Long, Instant> lastVisitMap = new HashMap<>();
+        if (!patientIds.isEmpty()) {
+            List<com.alvaro.psicoapp.domain.AppointmentEntity> allLastAppts =
+                appointmentRepository.findLastCompletedAppointments(psychologist.getId(), patientIds, now);
+            // Group by patient and take the first (most recent) for each
+            for (var appt : allLastAppts) {
+                if (appt.getUser() != null) {
+                    lastVisitMap.putIfAbsent(appt.getUser().getId(), appt.getEndTime());
+                }
+            }
+        }
+
         for (var r : rels) {
-            var lastAppts = appointmentRepository.findLastCompletedAppointment(psychologist.getId(), r.getUser().getId(), now);
-            Instant lastVisit = lastAppts.isEmpty() ? null : lastAppts.get(0).getEndTime();
+            Instant lastVisit = lastVisitMap.get(r.getUser().getId());
             var cs = consentStatusMap.get(r.getUser().getId());
             out.add(new PsychologistDtos.PatientSummaryDto(
                     r.getUser().getId(),

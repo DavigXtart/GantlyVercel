@@ -3,6 +3,7 @@ import { clinicService, fileService } from '../services/api';
 import type { ClinicPatientSummary, ClinicPatientDetail, UpdatePatientReq } from '../services/api';
 import { Search, Mail, Phone, CalendarX, Link as LinkIcon, Pencil, Upload, FolderOpen, FileText, Download, Trash2, MessageCircle, Send } from 'lucide-react';
 import LoadingSpinner from './ui/LoadingSpinner';
+import { handleError } from '../utils/errorHandler';
 
 interface Props {
   onBack?: () => void;
@@ -293,7 +294,7 @@ function DetailView({
       const result = await clinicService.sendPaymentLink(appointmentId);
       window.open(result.url, '_blank');
     } catch (e: unknown) {
-      alert((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Error al generar el link de pago');
+      handleError(e, 'No se pudo generar el enlace de pago. Inténtalo de nuevo.');
     } finally {
       setPaymentLinkLoading(null);
     }

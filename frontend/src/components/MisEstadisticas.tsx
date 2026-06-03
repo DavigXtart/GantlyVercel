@@ -32,7 +32,7 @@ export default function MisEstadisticas({ onViewTest }: MisEstadisticasProps = {
       setTestStats(testData);
       setMoodEntries(entriesData.entries || []);
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Error al cargar estadisticas');
+      toast.error('No se pudieron cargar las estadísticas. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }

@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import java.time.Instant;
 
 @Entity
-@Table(name = "user_psychologist")
+@Table(name = "user_psychologist", indexes = {
+    @Index(name = "idx_up_psychologist", columnList = "psychologist_id")
+})
 public class UserPsychologistEntity {
     @Id
     private Long userId;

@@ -86,7 +86,7 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
         setPsychologists(sorted.slice(0, 3));
       }
     } catch (error: any) {
-      toast.error('Error al cargar psicólogos: ' + (error.response?.data?.error || error.message));
+      toast.error('No se pudieron cargar los psicólogos disponibles. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -99,7 +99,7 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
       toast.success('Psicólogo seleccionado correctamente');
       if (onSelect) onSelect(psychologistId);
     } catch (error: any) {
-      toast.error('Error al seleccionar psicólogo: ' + (error.response?.data?.error || error.message));
+      toast.error('No se pudo seleccionar al psicólogo. Inténtalo de nuevo.');
     } finally {
       setSelecting(null);
     }
@@ -121,7 +121,7 @@ export default function MatchingPsychologists({ onSelect, onBack }: MatchingPsyc
 
       setSelectedPsychologist(psychologistId);
     } catch (err: any) {
-      toast.error('Error al cargar el perfil del psicólogo: ' + (err.response?.data?.error || err.message));
+      toast.error('No se pudo cargar el perfil del psicólogo. Inténtalo de nuevo.');
     } finally {
       setLoadingProfile(false);
     }

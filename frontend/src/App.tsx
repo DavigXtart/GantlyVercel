@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, useNavigate, useSearchParams, useLocation } fr
 import * as Sentry from '@sentry/react';
 import Login from './components/Login';
 import Register from './components/Register';
-import Landing from './components/landing/Landing';
+const Landing = lazy(() => import('./components/landing/Landing'));
 import { authService, gdprService, safeStorage } from './services/api';
 import { ToastContainer, toast } from './components/ui/Toast';
 import GlobalLoader from './components/ui/GlobalLoader';
@@ -271,7 +271,7 @@ function Dashboard({ role, logout, onStartTest }: {
       <div className="container" style={{ maxWidth: '1200px', marginTop: 24, padding: '40px', textAlign: 'center' }}>
         <LoadingSpinner />
         <div style={{ fontSize: '14px', color: '#6b7280', marginTop: '12px' }}>
-          Si esto tarda mucho, verifica que el backend esté funcionando correctamente.
+          Si esto tarda mucho, comprueba tu conexión a internet o recarga la página.
         </div>
       </div>
       <GlobalLoader />
@@ -553,13 +553,15 @@ function App() {
         {/* Landing / catch-all */}
         <Route path="/" element={
           isAuthenticated ? <Navigate to="/dashboard" replace /> :
-            <Landing
-              onGetStarted={() => navigate('/initial-test')}
-              onLogin={() => navigate('/login')}
-              onShowAbout={() => navigate('/about')}
-              onShowSoyProfesional={() => navigate('/soy-profesional')}
-              onShowParaProfesionales={() => navigate('/para-profesionales')}
-            />
+            <Suspense fallback={<LazyFallback />}>
+              <Landing
+                onGetStarted={() => navigate('/initial-test')}
+                onLogin={() => navigate('/login')}
+                onShowAbout={() => navigate('/about')}
+                onShowSoyProfesional={() => navigate('/soy-profesional')}
+                onShowParaProfesionales={() => navigate('/para-profesionales')}
+              />
+            </Suspense>
         } />
 
         {/* OAuth callback route: shows loading while code is exchanged for tokens */}

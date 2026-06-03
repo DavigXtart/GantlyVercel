@@ -245,8 +245,12 @@ export default function ChatWidget({ mode, otherId }: Props) {
     };
 
     client.onConnect = () => {
+      // Show reconnection toast only if this is a reconnect (was previously connected)
+      setReconnecting(prev => {
+        if (prev) toast.success('Conexión restablecida.');
+        return false;
+      });
       setConnected(true);
-      setReconnecting(false);
       // Reset delay on successful connection
       reconnectDelayRef.current = INITIAL_RECONNECT_DELAY;
       const topic = `/topic/chat/${psychologistId}/${uId}`;
@@ -299,7 +303,10 @@ export default function ChatWidget({ mode, otherId }: Props) {
     };
 
     client.onDisconnect = () => {
-      setConnected(false);
+      setConnected(prev => {
+        if (prev) toast.warning('Se ha perdido la conexión del chat. Reconectando...');
+        return false;
+      });
       setReconnecting(true);
       // Exponential backoff with jitter to prevent thundering herd
       const jitter = Math.random() * 1000;

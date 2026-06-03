@@ -198,15 +198,8 @@ export default function PsychTestsTab({ patients, assignedTests, onRefresh, onVi
                     setShowAssignTestForm(false);
                     setAssignTestForm({ userId: '', testId: '' });
                     setTestSearchTerm('');
-                  } catch (error: any) {
-                    let errorMessage = 'Error desconocido al asignar el test';
-                    if (error.response?.data) {
-                      errorMessage = error.response.data.error || error.response.data.message || JSON.stringify(error.response.data);
-                    } else if (error.message) {
-                      errorMessage = error.message;
-                    }
-
-                    toast.error(`Error al asignar el test: ${errorMessage}`);
+                  } catch (_error: any) {
+                    toast.error('No se pudo asignar el test. Inténtalo de nuevo.');
                   }
                 }}
                 className="px-5 py-2.5 bg-gradient-to-r from-gantly-blue to-gantly-blue-600 text-white border-none rounded-xl font-medium cursor-pointer text-sm hover:shadow-lg hover:shadow-gantly-blue/25 transition-all duration-300"

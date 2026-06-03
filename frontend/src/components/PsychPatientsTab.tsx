@@ -414,7 +414,7 @@ export default function PsychPatientsTab({
                     setShowConsentModal(false);
                     await onRefresh();
                   } catch (err: any) {
-                    toast.error(err.response?.data?.error || err.response?.data?.message || 'Error al enviar el consentimiento');
+                    toast.error('No se pudo enviar el consentimiento. Inténtalo de nuevo.');
                   } finally {
                     setSendingConsent(false);
                   }

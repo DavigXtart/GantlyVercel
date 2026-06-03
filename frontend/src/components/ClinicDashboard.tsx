@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { clinicService } from '../services/api';
+import { toast } from './ui/Toast';
 import type { ClinicAdmin } from '../services/api';
 import ClinicAgenda from './ClinicAgenda';
 import ClinicPatients from './ClinicPatients';
@@ -419,7 +420,7 @@ function EquipoTab({ psychologists, onRefresh }: { psychologists: Psychologist[]
       setEmail('');
       loadInvitations();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al enviar la invitacion');
+      setError('No se pudo enviar la invitación. Verifica el email e inténtalo de nuevo.');
     } finally { setSending(false); }
   };
 
@@ -829,7 +830,7 @@ function ConfigTab({ clinicInfo, psychologists, onClinicInfoUpdate }: { clinicIn
       setAddingForPsychId(null);
       setNewRoomName('');
     } catch {
-      alert('Error al crear el despacho');
+      toast.error('No se pudo crear el despacho. Inténtalo de nuevo.');
     } finally {
       setSavingRoom(false);
     }
@@ -1542,7 +1543,7 @@ export default function ClinicDashboard() {
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <div className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
             <button
               key={item.id}
@@ -1558,7 +1559,7 @@ export default function ClinicDashboard() {
               {item.label}
             </button>
           ))}
-        </nav>
+        </div>
 
         {/* User info + logout at bottom */}
         <div className="px-4 py-4 border-t border-slate-100">

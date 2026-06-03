@@ -3,6 +3,7 @@ import { adminService } from '../services/api';
 import TestManager from './TestManager';
 import TestImporter from './TestImporter';
 import ConfirmDialog from './ui/ConfirmDialog';
+import { handleError } from '../utils/errorHandler';
 
 interface Test {
   id: number;
@@ -55,8 +56,7 @@ export default function AdminPanel() {
 
       setTests(allTestsCombined);
     } catch (err: any) {
-      const errorMsg = err.response?.data?.message || err.message || 'Error desconocido';
-      alert(`Error al cargar los tests: ${errorMsg}\n\nVerifica que:\n- El backend esté corriendo\n- Estés autenticado como ADMIN`);
+      handleError(err, 'No se pudieron cargar los tests. Verifica tu conexión e inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -77,7 +77,7 @@ export default function AdminPanel() {
       setShowCreateForm(false);
       (e.target as HTMLFormElement).reset();
     } catch (err: any) {
-      alert('Error al crear test: ' + (err.response?.data?.message || err.message));
+      handleError(err, 'No se pudo crear el test. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -113,7 +113,7 @@ export default function AdminPanel() {
       setEditingTest(null);
       (e.target as HTMLFormElement).reset();
     } catch (err: any) {
-      alert('Error al actualizar test: ' + (err.response?.data?.message || err.message));
+      handleError(err, 'No se pudo actualizar el test. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -135,7 +135,7 @@ export default function AdminPanel() {
         setSelectedTestId(null);
       }
     } catch (err: any) {
-      alert('Error al eliminar test: ' + (err.response?.data?.message || err.message));
+      handleError(err, 'No se pudo eliminar el test. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -159,7 +159,7 @@ export default function AdminPanel() {
       setTests(prev => prev.map(t =>
         t.id === test.id && t._source === test._source ? { ...t, active: test.active } : t
       ));
-      alert('Error al actualizar test: ' + (err.response?.data?.message || err.message));
+      handleError(err, 'No se pudo actualizar el test. Inténtalo de nuevo.');
     }
   };
 

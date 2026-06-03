@@ -104,7 +104,7 @@ export default function PsychCalendarTab({
       await calendarService.saveWeeklySchedule(weeklySchedule);
       toast.success(t('weeklySchedule.saved'));
     } catch (e: any) {
-      toast.error(e?.response?.data?.error || 'Error al guardar el horario');
+      toast.error('No se pudo guardar el horario. Inténtalo de nuevo.');
     } finally {
       setSavingSchedule(false);
     }
@@ -117,7 +117,7 @@ export default function PsychCalendarTab({
       toast.success(t('weeklySchedule.generated', { created: result.slotsCreated, skipped: result.slotsSkipped }));
       await onReloadSlots();
     } catch (e: any) {
-      toast.error(e?.response?.data?.error || 'Error al generar slots');
+      toast.error('No se pudieron generar las citas. Inténtalo de nuevo.');
     } finally {
       setGeneratingSlots(false);
     }
@@ -151,7 +151,7 @@ export default function PsychCalendarTab({
             await onReloadPendingRequests();
             toast.success(recurrenceRule ? 'Serie de citas creada exitosamente' : 'Cita creada exitosamente');
           } catch (e: any) {
-            toast.error(e?.response?.data?.error || 'Error al crear el slot');
+            toast.error('No se pudo crear la cita. Inténtalo de nuevo.');
           }
         }}
         onDeleteRecurrenceGroup={async (groupId) => {
@@ -168,7 +168,7 @@ export default function PsychCalendarTab({
             await onReloadPendingRequests();
             toast.success(`${slotsRange.length} citas creadas exitosamente`);
           } catch (e: any) {
-            toast.error(e?.response?.data?.error || 'Error al crear los slots');
+            toast.error('No se pudieron crear las citas. Inténtalo de nuevo.');
             throw e;
           }
         }}
@@ -181,7 +181,7 @@ export default function PsychCalendarTab({
             await onReloadSlots();
             await onReloadPendingRequests();
           } catch (e: any) {
-            toast.error(e?.response?.data?.error || 'Error al asignar la cita');
+            toast.error('No se pudo asignar la cita. Inténtalo de nuevo.');
             throw e;
           }
         }}
@@ -201,7 +201,7 @@ export default function PsychCalendarTab({
             await onReloadPendingRequests();
             toast.success('Cita actualizada exitosamente');
           } catch (e: any) {
-            toast.error(e?.response?.data?.error || 'Error al actualizar la cita');
+            toast.error('No se pudo actualizar la cita. Inténtalo de nuevo.');
           }
         }}
       />
@@ -615,7 +615,7 @@ export default function PsychCalendarTab({
                 await onReloadAbsences();
                 await onReloadSlots();
               } catch (e: any) {
-                toast.error(e?.response?.data?.error || 'Error al registrar la ausencia');
+                toast.error('No se pudo registrar la ausencia. Inténtalo de nuevo.');
               } finally {
                 setSavingAbsence(false);
               }
@@ -639,7 +639,7 @@ export default function PsychCalendarTab({
             await onReloadSlots();
             await onReloadPendingRequests();
           } catch (e: any) {
-            toast.error(e?.response?.data?.error || 'Error al confirmar la cita');
+            toast.error('No se pudo confirmar la cita. Inténtalo de nuevo.');
             throw e;
           }
         }}
@@ -660,7 +660,7 @@ export default function PsychCalendarTab({
             await onReloadSlots();
             await onReloadPendingRequests();
           } catch (e: any) {
-            toast.error(e?.response?.data?.error || 'Error al cancelar la cita');
+            toast.error('No se pudo cancelar la cita. Inténtalo de nuevo.');
             throw e;
           }
         }}
@@ -680,7 +680,7 @@ export default function PsychCalendarTab({
             toast.success('Ausencia eliminada');
             await onReloadAbsences();
           } catch (e: any) {
-            toast.error(e?.response?.data?.error || 'Error al eliminar la ausencia');
+            toast.error('No se pudo eliminar la ausencia. Inténtalo de nuevo.');
             throw e;
           }
         }}

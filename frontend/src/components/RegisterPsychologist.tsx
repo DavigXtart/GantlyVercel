@@ -198,10 +198,10 @@ export default function RegisterPsychologist({ onBack, onLogin }: RegisterPsycho
         toast.success('Email verificado correctamente');
         setRegistered(true);
       } else {
-        toast.error(res.message || 'Código inválido o expirado');
+        toast.error('Código inválido o expirado. Inténtalo de nuevo.');
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Error al verificar el código');
+    } catch (_err: any) {
+      toast.error('No se pudo verificar el código. Inténtalo de nuevo.');
     } finally {
       setVerifying(false);
     }

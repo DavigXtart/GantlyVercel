@@ -48,7 +48,7 @@ export default function Descubrimiento({ onStartTest }: DescubrimientoProps) {
       );
       setTests(filteredTests);
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Error al cargar tests');
+      toast.error('No se pudieron cargar los tests. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }

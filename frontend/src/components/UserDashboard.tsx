@@ -164,10 +164,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
       setPsychologistProfile(profile);
       setTab('perfil-psicologo');
     } catch (err: any) {
-      toast.error(
-        'Error al cargar el perfil del psicólogo:' +
-          (err.response?.data?.error || err.message),
-      );
+      toast.error('No se pudo cargar el perfil del psicólogo. Inténtalo de nuevo.');
     } finally {
       setLoadingPsychologistProfile(false);
     }

@@ -158,7 +158,7 @@ export default function PsychHomeTab({
                     }
                   } catch (error: any) {
                     onSetMe({ ...me, isFull: previousValue });
-                    toast.error('Error al actualizar: ' + (error.response?.data?.error || error.message));
+                    toast.error('No se pudo actualizar la disponibilidad. Inténtalo de nuevo.');
                   }
                 }}
                 className="sr-only"
@@ -211,7 +211,7 @@ export default function PsychHomeTab({
                       const roomInfo = await jitsiService.getRoomInfo(upcomingAppointment.user.email);
                       onStartVideoCall(roomInfo.roomName, { email: roomInfo.otherUser.email, name: roomInfo.otherUser.name });
                     } catch (error: any) {
-                      toast.error(error.response?.data?.error || 'No tienes permiso para iniciar esta videollamada');
+                      toast.error('No se pudo iniciar la videollamada. Verifica que tengas una cita activa.');
                     }
                   }
                 }}
@@ -328,7 +328,7 @@ export default function PsychHomeTab({
                   toast.error('No se pudo obtener el código de referencia.');
                 }
               } catch (error: any) {
-                toast.error('Error: ' + (error.response?.data?.error || error.message));
+                toast.error('No se pudo obtener el enlace de referencia. Inténtalo de nuevo.');
               }
             }}
             className="group relative bg-white rounded-2xl p-5 shadow-sm hover:shadow-xl hover:shadow-gantly-navy/5 transition-all duration-300 cursor-pointer border border-gray-100 hover:border-gantly-navy/20 text-left overflow-hidden"

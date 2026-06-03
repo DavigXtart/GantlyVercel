@@ -98,7 +98,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
       toast.success('Perfil profesional actualizado exitosamente');
       onBack();
     } catch (error: any) {
-      toast.error('Error al guardar el perfil profesional: ' + (error.response?.data?.error || error.message));
+      toast.error('No se pudo guardar el perfil profesional. Inténtalo de nuevo.');
     } finally {
       setLoadingPsychProfile(false);
     }
@@ -111,7 +111,7 @@ export default function PsychEditProfileTab({ onBack }: PsychEditProfileTabProps
       toast.success('Solicitud de revisión enviada. Un administrador revisará tu perfil.');
       await loadPsychologistProfile();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Error al solicitar revisión');
+      toast.error('No se pudo solicitar la revisión. Inténtalo de nuevo.');
     } finally {
       setRequestingReview(false);
     }

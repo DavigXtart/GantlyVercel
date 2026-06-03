@@ -3,6 +3,8 @@ import { adminService, calendarService, resultsService } from '../services/api';
 import BarChart from './BarChart';
 import FactorChart from './FactorChart';
 import InitialTestSummary from './InitialTestSummary';
+import { toast } from './ui/Toast';
+import { handleError } from '../utils/errorHandler';
 
 // --- Pending psychologist types & helpers ---
 interface PendingPsychologist {
@@ -139,7 +141,7 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
       setSelectedPendingId(null);
       loadUsers();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Error al aprobar');
+      handleError(err, 'No se pudo aprobar al psicólogo. Inténtalo de nuevo.');
     }
   };
 
@@ -151,7 +153,7 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
       setSelectedPendingId(null);
       loadPendingPsychologists();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Error al rechazar');
+      handleError(err, 'No se pudo rechazar al psicólogo. Inténtalo de nuevo.');
     }
   };
 
@@ -174,7 +176,7 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
       const data = await adminService.listUsers();
       setUsers(data);
     } catch (err) {
-      alert('Error al cargar los usuarios');
+      toast.error('No se pudieron cargar los usuarios. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -195,7 +197,7 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
       const data = await resultsService.getUserTest(userId, testId);
       setUserStats(data);
     } catch (err) {
-      alert('Error al cargar estadísticas');
+      toast.error('No se pudieron cargar las estadísticas. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -208,7 +210,7 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
       const data = await adminService.getPsychologistSummary(psychologistId);
       setPsychologistSummary(data);
     } catch (err) {
-      alert('Error al cargar los datos del psicólogo');
+      toast.error('No se pudieron cargar los datos del psicólogo.');
     } finally {
       setLoading(false);
     }
@@ -250,7 +252,7 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
         // error handled silently
       }
     } catch (err) {
-      alert('Error al cargar los detalles del usuario');
+      toast.error('No se pudieron cargar los detalles del usuario.');
     } finally {
       setLoading(false);
     }
@@ -717,7 +719,7 @@ export default function UsersManager({ filterRole }: UsersManagerProps = {}) {
                     a.click();
                     window.URL.revokeObjectURL(url);
                   } catch (e) {
-                    alert('Error al exportar los datos del paciente');
+                    toast.error('No se pudieron exportar los datos del paciente.');
                   }
                 }}
               >

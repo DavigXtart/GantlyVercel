@@ -100,7 +100,7 @@ export default function Login({
     } catch (err: any) {
       const status = err.response?.status;
       const backendMessage: string | undefined = err.response?.data?.message;
-      let friendlyMessage = backendMessage || 'Error al iniciar sesión';
+      let friendlyMessage = 'Error al iniciar sesión. Inténtalo de nuevo.';
 
       // Email not verified — show verification code screen
       if (backendMessage?.includes('EMAIL_NOT_VERIFIED')) {
@@ -180,10 +180,10 @@ export default function Login({
           toast.success('Email verificado. Por favor inicia sesión.');
         }
       } else {
-        toast.error(res.message || 'Código inválido o expirado');
+        toast.error('Código inválido o expirado. Inténtalo de nuevo.');
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Error al verificar el código');
+      toast.error('No se pudo verificar el código. Inténtalo de nuevo.');
     } finally {
       setVerifying(false);
     }

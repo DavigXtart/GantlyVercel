@@ -81,8 +81,7 @@ public class ReminderScheduler {
     public void sendMoodReminders() {
         LocalDate threeDaysAgo = LocalDate.now().minusDays(3);
 
-        userRepository.findAll().forEach(user -> {
-            if (!"USER".equals(user.getRole())) return;
+        userRepository.findByRole("USER").forEach(user -> {
             try {
                 var recentEntry = dailyMoodEntryRepository.findByUser_IdAndEntryDate(user.getId(), threeDaysAgo);
                 var todayEntry = dailyMoodEntryRepository.findByUser_IdAndEntryDate(user.getId(), LocalDate.now());

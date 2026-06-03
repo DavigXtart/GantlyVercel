@@ -58,7 +58,7 @@ export default function AdminSectionsManager() {
 
       setAllTests(allTestsCombined);
     } catch (error: any) {
-      toast.error('Error al cargar tests: ' + (error.response?.data?.message || error.message));
+      toast.error('No se pudieron cargar los tests. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -145,7 +145,7 @@ export default function AdminSectionsManager() {
       setNewTopicName('');
       toast.success(`Sección "${topicName}" creada. Ahora puedes arrastrar tests aquí o hacer clic en tests sin asignar para agregarlos.`);
     } catch (error: any) {
-      toast.error('Error al crear sección: ' + (error.response?.data?.message || error.message));
+      toast.error('No se pudo crear la sección. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -179,7 +179,7 @@ export default function AdminSectionsManager() {
       await loadAllTests();
       toast.success('Test actualizado exitosamente');
     } catch (error: any) {
-      toast.error('Error al actualizar test: ' + (error.response?.data?.message || error.message));
+      toast.error('No se pudo actualizar el test. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -274,7 +274,7 @@ export default function AdminSectionsManager() {
           : `Sección "${topic}" eliminada.`
       );
     } catch (error: any) {
-      toast.error('Error al eliminar sección: ' + (error.response?.data?.message || error.message));
+      toast.error('No se pudo eliminar la sección. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }

@@ -2,6 +2,7 @@ package com.alvaro.psicoapp.domain;
 
 import com.alvaro.psicoapp.config.PiiDeterministicConverter;
 import com.alvaro.psicoapp.config.PiiEncryptConverter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -22,6 +23,7 @@ public class UserEntity {
 	@Column(nullable = false, unique = true, length = 500)
 	private String email;
 
+	@JsonIgnore
 	@Column(name = "password_hash", length = 255)
 	private String passwordHash;
 
@@ -54,18 +56,23 @@ public class UserEntity {
 	@Column(name = "email_verified")
 	private Boolean emailVerified = false;
 
+	@JsonIgnore
 	@Column(name = "verification_token", length = 255)
 	private String verificationToken;
 
+	@JsonIgnore
 	@Column(name = "verification_code", length = 6)
 	private String verificationCode;
 
+	@JsonIgnore
 	@Column(name = "verification_token_expires_at")
 	private Instant verificationTokenExpiresAt;
 
+	@JsonIgnore
 	@Column(name = "password_reset_token", length = 255)
 	private String passwordResetToken;
 
+	@JsonIgnore
 	@Column(name = "password_reset_token_expires_at")
 	private Instant passwordResetTokenExpiresAt;
 
@@ -78,15 +85,19 @@ public class UserEntity {
 	@Column(name = "referral_code", unique = true, length = 100)
 	private String referralCode;
 
+	@JsonIgnore
 	@Column(name = "failed_login_attempts", nullable = false)
 	private Integer failedLoginAttempts = 0;
 
+	@JsonIgnore
 	@Column(name = "account_locked_until")
 	private Instant accountLockedUntil;
 
+	@JsonIgnore
 	@Column(name = "lockout_count", nullable = false)
 	private Integer lockoutCount = 0;
 
+	@JsonIgnore
 	// @Convert(converter = PiiEncryptConverter.class)
 	@Column(name = "totp_secret", length = 500)
 	private String totpSecret;

@@ -126,7 +126,7 @@ export default function TestFlow({ testId, onBack, onComplete, previewOnly }: Te
     const loadTestWithTimeout = async () => {
       timeoutId = setTimeout(() => {
         if (isMounted && !test) {
-          toast.error('El test esta tardando demasiado en cargar. Verifica que el backend este corriendo.');
+          toast.error('El test está tardando demasiado en cargar. Comprueba tu conexión e inténtalo de nuevo.');
           if (onBack) onBack();
         }
       }, 10000);
@@ -163,8 +163,7 @@ export default function TestFlow({ testId, onBack, onComplete, previewOnly }: Te
       }
       setTest(data);
     } catch (err: any) {
-      const errorMsg = err.response?.data?.message || err.message || 'Error desconocido';
-      toast.error('Error al cargar el test: ' + errorMsg);
+      toast.error('No se pudo cargar el test. Inténtalo de nuevo.');
       if (onBack) onBack();
     } finally {
       setLoading(false);
@@ -228,7 +227,7 @@ export default function TestFlow({ testId, onBack, onComplete, previewOnly }: Te
       toast.success('Test completado correctamente');
       onComplete();
     } catch (err: any) {
-      toast.error('Error al enviar las respuestas: ' + (err.response?.data?.message || err.message));
+      toast.error('No se pudieron enviar las respuestas. Inténtalo de nuevo.');
     } finally {
       setSubmitting(false);
     }

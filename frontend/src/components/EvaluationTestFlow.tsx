@@ -76,7 +76,7 @@ export default function EvaluationTestFlow({ test, definition, onClose, onComple
 
       setPhase('results');
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Error al enviar resultados');
+      toast.error('No se pudieron enviar los resultados. Inténtalo de nuevo.');
       setPhase('questions');
     }
   };

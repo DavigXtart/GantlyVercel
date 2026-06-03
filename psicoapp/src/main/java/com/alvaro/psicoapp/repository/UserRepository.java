@@ -21,6 +21,25 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 	Optional<UserEntity> findByReferralCode(String referralCode);
 	List<UserEntity> findByCompanyId(Long companyId);
 
+	long countByRole(String role);
+
+	long countByEmailVerifiedTrue();
+
+	List<UserEntity> findByEmailVerifiedFalseAndCreatedAtBefore(Instant cutoff);
+
+	List<UserEntity> findByEmailEndingWithAndCreatedAtBefore(String emailSuffix, Instant cutoff);
+
+	/**
+	 * DB-level search on name/email (PII encryption NOT active yet).
+	 * When PII encryption is activated, switch back to in-memory filtering.
+	 */
+	@Query("SELECT u FROM UserEntity u WHERE " +
+		   "(:role IS NULL OR :role = '' OR u.role = :role) AND " +
+		   "(LOWER(u.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')))")
+	Page<UserEntity> searchByNameOrEmail(@Param("search") String search,
+										 @Param("role") String role,
+										 Pageable pageable);
+
 	/**
 	 * Filter by role only. Text search on encrypted PII fields (name, email) must
 	 * be performed in the service layer after decryption.

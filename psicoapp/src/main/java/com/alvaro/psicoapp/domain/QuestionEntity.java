@@ -9,7 +9,7 @@ public class QuestionEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@ManyToOne(optional = false)
+	@ManyToOne(optional = false, fetch = FetchType.LAZY)
 	@JoinColumn(name = "test_id")
 	private TestEntity test;
 
@@ -22,7 +22,7 @@ public class QuestionEntity {
 	@Column(nullable = false)
 	private Integer position;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "subfactor_id")
 	private SubfactorEntity subfactor;
 

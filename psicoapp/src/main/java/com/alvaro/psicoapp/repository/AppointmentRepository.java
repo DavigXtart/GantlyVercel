@@ -102,6 +102,18 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
         @Param("toTime") Instant toTime,
         Pageable pageable);
 
+    @Query("SELECT COUNT(a) FROM AppointmentEntity a WHERE a.status IN ('BOOKED', 'CONFIRMED')")
+    long countBookedOrConfirmed();
+
+    @Query("SELECT a FROM AppointmentEntity a WHERE a.psychologist.id = :psychologistId " +
+           "AND a.user.id IN :userIds AND a.endTime < :now AND (a.status = 'CONFIRMED' OR a.status = 'BOOKED') " +
+           "ORDER BY a.endTime DESC")
+    List<AppointmentEntity> findLastCompletedAppointments(
+        @Param("psychologistId") Long psychologistId,
+        @Param("userIds") List<Long> userIds,
+        @Param("now") Instant now
+    );
+
     // RGPD-11: Clear Stripe session IDs from paid appointments older than cutoff (PCI scope reduction)
     @Modifying
     @Query("UPDATE AppointmentEntity a SET a.stripeSessionId = null WHERE a.stripeSessionId IS NOT NULL AND a.paymentStatus = 'PAID' AND a.createdAt < :cutoff")

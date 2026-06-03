@@ -468,7 +468,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
           await onAssignToPatient(panelSlot.id, parseInt(panelPatientId));
           toast.success('Cita asignada exitosamente');
         } catch (error: any) {
-          toast.error(error?.response?.data?.error || 'Error al asignar la cita');
+          toast.error('No se pudo asignar la cita. Inténtalo de nuevo.');
           return;
         }
       }
@@ -483,7 +483,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
       await calendarNotesService.updateNotes(panelSlot.id, panelNotes);
       toast.success('Notas guardadas');
     } catch (err: any) {
-      toast.error(err?.response?.data?.error || 'Error al guardar las notas');
+      toast.error('No se pudieron guardar las notas. Inténtalo de nuevo.');
     } finally {
       setPanelNotesSaving(false);
     }
@@ -980,7 +980,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                                               await onDeleteRecurrenceGroup(s.recurrenceGroupId);
                                               toast.success('Serie eliminada');
                                             } catch (err: any) {
-                                              toast.error(err?.response?.data?.message || 'Error al eliminar serie');
+                                              toast.error('No se pudo eliminar la serie. Inténtalo de nuevo.');
                                             }
                                           }
                                         }}
@@ -1119,7 +1119,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                                               await onDeleteRecurrenceGroup(s.recurrenceGroupId);
                                               toast.success('Serie eliminada');
                                             } catch (err: any) {
-                                              toast.error(err?.response?.data?.message || 'Error al eliminar serie');
+                                              toast.error('No se pudo eliminar la serie. Inténtalo de nuevo.');
                                             }
                                           }
                                         }}

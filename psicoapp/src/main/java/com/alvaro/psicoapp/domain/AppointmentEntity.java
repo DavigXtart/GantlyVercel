@@ -8,17 +8,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "appointments")
+@Table(name = "appointments", indexes = {
+    @Index(name = "idx_appt_psych_start", columnList = "psychologist_id, start_time"),
+    @Index(name = "idx_appt_user", columnList = "user_id"),
+    @Index(name = "idx_appt_status", columnList = "status")
+})
 public class AppointmentEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "psychologist_id")
     private UserEntity psychologist;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private UserEntity user;
 
@@ -63,7 +67,7 @@ public class AppointmentEntity {
     @Column(name = "payment_status", length = 20)
     private PaymentStatusEnum paymentStatus = PaymentStatusEnum.PENDING;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "confirmed_by_user_id")
     private UserEntity confirmedByUser;
 
@@ -91,12 +95,15 @@ public class AppointmentEntity {
     @Column(name = "recurrence_rule", length = 20)
     private String recurrenceRule;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "insurance_policy_id")
     private InsurancePatientPolicyEntity insurancePolicy;
 
     @Column(name = "billing_type", length = 20)
     private String billingType = "PRIVATE"; // PRIVATE, INSURANCE
+
+    @Version
+    private Long version;
 
     @JsonIgnore
     @OneToMany(mappedBy = "appointment", cascade = CascadeType.REMOVE, orphanRemoval = true)
@@ -158,4 +165,6 @@ public class AppointmentEntity {
     public void setInsurancePolicy(InsurancePatientPolicyEntity insurancePolicy) { this.insurancePolicy = insurancePolicy; }
     public String getBillingType() { return billingType; }
     public void setBillingType(String billingType) { this.billingType = billingType; }
+    public Long getVersion() { return version; }
+    public void setVersion(Long version) { this.version = version; }
 }

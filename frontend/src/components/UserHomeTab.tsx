@@ -213,7 +213,7 @@ export default function UserHomeTab({
                       setVideoCallOtherUser({ email: roomInfo.otherUser.email, name: roomInfo.otherUser.name });
                       setShowVideoCall(true);
                     } catch (error: any) {
-                      toast.error(error.response?.data?.error || 'No tienes permiso para iniciar esta videollamada');
+                      toast.error('No se pudo iniciar la videollamada. Verifica que tengas una cita activa.');
                     }
                   }
                 }}

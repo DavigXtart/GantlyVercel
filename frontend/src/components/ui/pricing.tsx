@@ -9,6 +9,7 @@ import { useState, useRef } from "react";
 import confetti from "canvas-confetti";
 import NumberFlow from "@number-flow/react";
 import { stripeService } from "@/services/api";
+import { toast } from "@/components/ui/Toast";
 
 export interface PricingPlan {
   name: string;
@@ -55,13 +56,13 @@ export function Pricing({
       // Validate Stripe URL before redirecting
       if (!response.url || !response.url.startsWith('https://checkout.stripe.com')) {
         console.error('Invalid Stripe URL:', response.url);
-        alert('Error: URL de pago no valida');
+        toast.error('No se pudo procesar el pago. Inténtalo de nuevo.');
         setLoading(null);
         return;
       }
       window.location.href = response.url;
     } catch (error) {
-      alert("Error al procesar el pago. Por favor, intenta de nuevo.");
+      toast.error('Error al procesar el pago. Por favor, inténtalo de nuevo.');
       setLoading(null);
     }
   };

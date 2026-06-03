@@ -39,7 +39,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
   const handleAddComment = async (taskId: number) => {
     if (!newComment.trim()) return;
     try { await tasksService.addComment(taskId, newComment); setNewComment(''); await loadTaskComments(taskId); }
-    catch (error: any) { toast.error('Error al agregar el comentario: ' + (error.response?.data?.error || error.message)); }
+    catch (_error: any) { toast.error('No se pudo agregar el comentario. Inténtalo de nuevo.'); }
   };
 
   const tasksByPatient = tasks.reduce((acc: Record<number, any[]>, task: any) => {
@@ -98,7 +98,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                     dueDate: taskForm.dueDate ? new Date(taskForm.dueDate).toISOString() : undefined });
                   await onRefresh(); setShowTaskForm(false);
                   setTaskForm({ userId: '', title: '', description: '', dueDate: '' });
-                } catch (error: any) { toast.error('Error: ' + (error.response?.data?.message || error.message)); }
+                } catch (_error: any) { toast.error('No se pudo crear la tarea. Inténtalo de nuevo.'); }
               }}
               className="px-5 py-2.5 rounded-xl bg-gantly-blue text-white text-sm font-semibold hover:bg-gantly-blue/90 transition-colors cursor-pointer border-none">
               Crear tarea
@@ -198,7 +198,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                   const file = e.target.files?.[0];
                   if (file) {
                     try { await tasksService.uploadFile(selectedTaskId, file); await loadTaskFiles(selectedTaskId); }
-                    catch (error: any) { toast.error('Error: ' + (error.response?.data?.error || error.response?.data?.message || error.message)); }
+                    catch (_error: any) { toast.error('No se pudo subir el archivo. Inténtalo de nuevo.'); }
                     e.target.value = '';
                   }
                 }} />
@@ -279,7 +279,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
               <button onClick={async () => {
                 try { await tasksService.reopen(selectedTask.id); toast.success('Tarea reabierta'); await onRefresh();
                   setSelectedTask(await tasksService.get(selectedTask.id));
-                } catch (error: any) { toast.error(error.response?.data?.error || 'Error al reabrir'); }
+                } catch (_error: any) { toast.error('No se pudo reabrir la tarea. Inténtalo de nuevo.'); }
               }} className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg cursor-pointer hover:bg-amber-100 transition-colors">
                 Reabrir
               </button>
@@ -354,7 +354,7 @@ export default function PsychTasksTab({ me, tasks, patients, onRefresh }: PsychT
                   {done && (
                     <button onClick={e => { e.stopPropagation(); (async () => {
                       try { await tasksService.reopen(t.id); toast.success('Reabierta'); await onRefresh(); }
-                      catch (err: any) { toast.error(err.response?.data?.error || 'Error'); }
+                      catch (_err: any) { toast.error('No se pudo reabrir la tarea.'); }
                     })(); }} className="px-2.5 py-1 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg cursor-pointer hover:bg-amber-100 transition-colors">
                       Reabrir
                     </button>
