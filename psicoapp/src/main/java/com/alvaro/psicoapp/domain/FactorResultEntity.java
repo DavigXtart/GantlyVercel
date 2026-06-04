@@ -10,15 +10,15 @@ public class FactorResultEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@ManyToOne(optional = false, fetch = FetchType.LAZY)
+	@ManyToOne(optional = false)
 	@JoinColumn(name = "user_id")
 	private UserEntity user;
 
-	@ManyToOne(optional = false, fetch = FetchType.LAZY)
+	@ManyToOne(optional = false)
 	@JoinColumn(name = "test_id")
 	private TestEntity test;
 
-	@ManyToOne(optional = false, fetch = FetchType.LAZY)
+	@ManyToOne(optional = false)
 	@JoinColumn(name = "factor_id")
 	private FactorEntity factor;
 

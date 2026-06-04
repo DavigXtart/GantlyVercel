@@ -18,11 +18,11 @@ public class AppointmentEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "psychologist_id")
     private UserEntity psychologist;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "user_id")
     private UserEntity user;
 
@@ -67,7 +67,7 @@ public class AppointmentEntity {
     @Column(name = "payment_status", length = 20)
     private PaymentStatusEnum paymentStatus = PaymentStatusEnum.PENDING;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "confirmed_by_user_id")
     private UserEntity confirmedByUser;
 
@@ -95,7 +95,7 @@ public class AppointmentEntity {
     @Column(name = "recurrence_rule", length = 20)
     private String recurrenceRule;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "insurance_policy_id")
     private InsurancePatientPolicyEntity insurancePolicy;
 

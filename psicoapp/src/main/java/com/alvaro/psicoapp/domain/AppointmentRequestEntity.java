@@ -12,11 +12,11 @@ public class AppointmentRequestEntity {
     private Long id;
 
     @JsonIgnore
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "appointment_id")
     private AppointmentEntity appointment;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "user_id")
     private UserEntity user;
 

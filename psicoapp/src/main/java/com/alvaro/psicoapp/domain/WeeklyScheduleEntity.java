@@ -12,7 +12,7 @@ public class WeeklyScheduleEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "psychologist_id")
     private UserEntity psychologist;
 

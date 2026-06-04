@@ -11,7 +11,7 @@ public class SubfactorEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@ManyToOne(optional = false, fetch = FetchType.LAZY)
+	@ManyToOne(optional = false)
 	@JoinColumn(name = "test_id")
 	private TestEntity test;
 
@@ -24,7 +24,7 @@ public class SubfactorEntity {
 	@Column(columnDefinition = "TEXT")
 	private String description;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne
 	@JoinColumn(name = "factor_id")
 	private FactorEntity factor;
 

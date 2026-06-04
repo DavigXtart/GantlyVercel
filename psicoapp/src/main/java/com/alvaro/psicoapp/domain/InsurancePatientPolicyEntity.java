@@ -11,11 +11,11 @@ public class InsurancePatientPolicyEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "patient_id")
     private UserEntity patient;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "insurance_company_id")
     private InsuranceCompanyEntity insuranceCompany;
 

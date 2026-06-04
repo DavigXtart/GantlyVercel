@@ -12,11 +12,11 @@ public class UserAnswerEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	@ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "user_id") private UserEntity user;
-	@ManyToOne(optional = false, fetch = FetchType.LAZY) @JoinColumn(name = "question_id") private QuestionEntity question;
-	@ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "answer_id") private AnswerEntity answer;
+	@ManyToOne @JoinColumn(name = "user_id") private UserEntity user;
+	@ManyToOne(optional = false) @JoinColumn(name = "question_id") private QuestionEntity question;
+	@ManyToOne @JoinColumn(name = "answer_id") private AnswerEntity answer;
 	private Double numericValue;
-	@ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "session_id") private TemporarySessionEntity session;
+	@ManyToOne @JoinColumn(name = "session_id") private TemporarySessionEntity session;
 	@Column(name = "text_value", length = 1000) private String textValue;
 	@Column(name = "created_at", nullable = false, updatable = false) private Instant createdAt = Instant.now();
 	public Long getId() { return id; } public void setId(Long id) { this.id = id; }

@@ -10,7 +10,7 @@ public class PsychologistProfileEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private UserEntity user;
 
