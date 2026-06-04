@@ -1,9 +1,6 @@
 package com.alvaro.psicoapp.service;
 
-import com.alvaro.psicoapp.domain.PsychologistProfileEntity;
-import com.alvaro.psicoapp.domain.RoleConstants;
-import com.alvaro.psicoapp.domain.UserAnswerEntity;
-import com.alvaro.psicoapp.domain.UserEntity;
+import com.alvaro.psicoapp.domain.*;
 import com.alvaro.psicoapp.dto.PsychologistDtos;
 import com.alvaro.psicoapp.repository.*;
 import com.alvaro.psicoapp.util.ReferralCodeUtil;
@@ -35,6 +32,7 @@ public class PsychologistService {
     private final AuditService auditService;
     private final ConsentService consentService;
     private final NotificationService notificationService;
+    private final EvaluationTestResultRepository evaluationTestResultRepository;
 
     public PsychologistService(UserRepository userRepository, UserPsychologistRepository userPsychologistRepository,
                                UserAnswerRepository userAnswerRepository, TestRepository testRepository,
@@ -44,7 +42,8 @@ public class PsychologistService {
                                TaskRepository taskRepository,
                                AuditService auditService,
                                ConsentService consentService,
-                               NotificationService notificationService) {
+                               NotificationService notificationService,
+                               EvaluationTestResultRepository evaluationTestResultRepository) {
         this.userRepository = userRepository;
         this.userPsychologistRepository = userPsychologistRepository;
         this.userAnswerRepository = userAnswerRepository;
@@ -56,6 +55,7 @@ public class PsychologistService {
         this.auditService = auditService;
         this.consentService = consentService;
         this.notificationService = notificationService;
+        this.evaluationTestResultRepository = evaluationTestResultRepository;
     }
 
     @Transactional(readOnly = true)
@@ -116,6 +116,8 @@ public class PsychologistService {
         auditService.logPatientDataAccess(psychologist.getId(), patientId, "PATIENT_DETAILS", "READ");
 
         var patient = userRepository.findById(patientId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        // Personality tests (TestEntity system)
         var allAnswers = userAnswerRepository.findByUserOrderByCreatedAtDesc(patient);
         Map<Long, PsychologistDtos.TestWithAnswersDto> testsMap = new LinkedHashMap<>();
 
@@ -125,6 +127,22 @@ public class PsychologistService {
                     testId, ua.getQuestion().getTest().getCode(), ua.getQuestion().getTest().getTitle(), new ArrayList<>()));
             testsMap.get(testId).answers().add(toAnswerInfo(ua));
         }
+
+        // Evaluation tests (EvaluationTestEntity system)
+        var evalResults = evaluationTestResultRepository.findByUser_IdOrderByCompletedAtDesc(patientId);
+        List<PsychologistDtos.EvaluationTestSummaryDto> evalTests = evalResults.stream()
+                .map(r -> new PsychologistDtos.EvaluationTestSummaryDto(
+                        r.getId(),
+                        r.getTest().getId(),
+                        r.getTest().getCode(),
+                        r.getTest().getTitle(),
+                        r.getTest().getCategory(),
+                        r.getTest().getTopic(),
+                        r.getScore(),
+                        r.getLevel(),
+                        r.getCompletedAt()
+                ))
+                .collect(Collectors.toList());
 
         return new PsychologistDtos.PatientDetailDto(
                 patient.getId(),
@@ -136,7 +154,8 @@ public class PsychologistService {
                 patient.getAge(),
                 patient.getBirthDate(),
                 patient.getAvatarUrl(),
-                new ArrayList<>(testsMap.values())
+                new ArrayList<>(testsMap.values()),
+                evalTests
         );
     }
 

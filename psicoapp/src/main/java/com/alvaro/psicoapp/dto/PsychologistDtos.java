@@ -47,6 +47,18 @@ public final class PsychologistDtos {
             List<AnswerInfoDto> answers
     ) {}
 
+    public record EvaluationTestSummaryDto(
+            Long resultId,
+            Long testId,
+            String testCode,
+            String testTitle,
+            String category,
+            String topic,
+            BigDecimal score,
+            String level,
+            Instant completedAt
+    ) {}
+
     public record PatientDetailDto(
             Long id,
             String name,
@@ -57,7 +69,8 @@ public final class PsychologistDtos {
             Integer age,
             LocalDate birthDate,
             String avatarUrl,
-            List<TestWithAnswersDto> tests
+            List<TestWithAnswersDto> tests,
+            List<EvaluationTestSummaryDto> evaluationTests
     ) {}
 
     public record PatientTestAnswersDto(

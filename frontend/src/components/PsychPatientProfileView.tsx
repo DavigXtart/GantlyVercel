@@ -540,21 +540,22 @@ export default function PsychPatientProfileView({
                 <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
                   <BarChart3 size={15} className="text-indigo-500" />
                   <h3 className="m-0 text-sm font-heading font-semibold text-slate-800">Tests realizados</h3>
-                  {patientDetails.tests?.length > 0 && (
-                    <span className="text-[11px] text-slate-400 font-medium">({patientDetails.tests.length})</span>
+                  {((patientDetails.tests?.length || 0) + (patientDetails.evaluationTests?.length || 0)) > 0 && (
+                    <span className="text-[11px] text-slate-400 font-medium">({(patientDetails.tests?.length || 0) + (patientDetails.evaluationTests?.length || 0)})</span>
                   )}
                 </div>
                 <div className="p-5">
-                  {!patientDetails.tests || patientDetails.tests.length === 0 ? (
+                  {(!patientDetails.tests || patientDetails.tests.length === 0) && (!patientDetails.evaluationTests || patientDetails.evaluationTests.length === 0) ? (
                     <div className="text-center py-4">
                       <BarChart3 size={28} className="mx-auto text-slate-300 mb-2" />
                       <p className="text-sm text-slate-500 m-0">Sin tests realizados</p>
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      {patientDetails.tests.map((test: any) => (
+                      {/* Personality tests */}
+                      {patientDetails.tests?.map((test: any) => (
                         <div
-                          key={test.testId}
+                          key={`test-${test.testId}`}
                           className="flex items-center gap-3 p-3 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 transition-colors"
                         >
                           <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
@@ -575,6 +576,43 @@ export default function PsychPatientProfileView({
                           >
                             Ver resultados
                           </button>
+                        </div>
+                      ))}
+                      {/* Evaluation tests */}
+                      {patientDetails.evaluationTests?.map((et: any) => (
+                        <div
+                          key={`eval-${et.resultId}`}
+                          className="flex items-center gap-3 p-3 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 transition-colors"
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
+                            <ClipboardList size={14} className="text-emerald-500" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-slate-800 truncate">
+                              {et.testTitle || et.testCode}
+                            </div>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              {et.category && (
+                                <span className="text-[11px] text-slate-400">{et.category}</span>
+                              )}
+                              {et.level && (
+                                <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-full ${
+                                  et.level === 'ALTO' || et.level === 'SEVERO' ? 'bg-red-50 text-red-600' :
+                                  et.level === 'MODERADO' ? 'bg-amber-50 text-amber-600' :
+                                  et.level === 'LEVE' ? 'bg-yellow-50 text-yellow-600' :
+                                  'bg-green-50 text-green-600'
+                                }`}>{et.level}</span>
+                              )}
+                              {et.score != null && (
+                                <span className="text-[11px] text-slate-400">({et.score} pts)</span>
+                              )}
+                            </div>
+                          </div>
+                          {et.completedAt && (
+                            <span className="text-[11px] text-slate-400 flex-shrink-0">
+                              {new Date(et.completedAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
+                            </span>
+                          )}
                         </div>
                       ))}
                     </div>
