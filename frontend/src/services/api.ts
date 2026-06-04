@@ -728,8 +728,8 @@ export const assignedTestsService = {
 
 // Calendario
 export const calendarService = {
-  createSlot: async (start: string, end: string, price?: number, recurrenceRule?: string, recurrenceCount?: number) => {
-    const { data } = await api.post('/calendar/slots', { start, end, price, recurrenceRule, recurrenceCount });
+  createSlot: async (start: string, end: string, price?: number, recurrenceRule?: string, recurrenceCount?: number, extras?: { service?: string; modality?: string; notes?: string; paymentMethod?: string }) => {
+    const { data } = await api.post('/calendar/slots', { start, end, price, recurrenceRule, recurrenceCount, ...extras });
     return data as any;
   },
   mySlots: async (from: string, to: string) => {

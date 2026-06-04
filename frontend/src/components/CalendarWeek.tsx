@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef, useCallback, Fragment } from 'react';
-import { ChevronLeft, ChevronRight, CalendarCheck, CheckCircle, Clock, CreditCard, Calendar, UserPlus, Pencil, X, PlusCircle, Plus, Info, CalendarOff, Repeat, FileText, Search, Check, Wallet } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarCheck, CheckCircle, Clock, CreditCard, Calendar, UserPlus, Pencil, X, PlusCircle, Plus, Info, CalendarOff, Repeat, FileText, Search, Check, Wallet, Video, Building2 } from 'lucide-react';
 import { toast } from './ui/Toast';
 import { calendarNotesService } from '../services/api';
 
@@ -20,7 +20,7 @@ type Props = {
   mode: 'PSYCHO' | 'USER';
   slots: Slot[];
   myAppointments?: Array<{ id: number; startTime: string; endTime: string; status: string }>; // Citas reservadas por el usuario
-  onCreateSlot?: (startIso: string, endIso: string, price?: number, recurrenceRule?: string, recurrenceCount?: number) => void;
+  onCreateSlot?: (startIso: string, endIso: string, price?: number, recurrenceRule?: string, recurrenceCount?: number, extras?: { service?: string; modality?: string; notes?: string; paymentMethod?: string }) => void;
   onCreateSlotsRange?: (slots: Array<{ start: string; end: string; price: number }>) => Promise<void>; // Para crear múltiples slots
   onBook?: (appointmentId: number) => void;
   onDeleteSlot?: (appointmentId: number) => void;
@@ -100,6 +100,9 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
   const [panelPatientId, setPanelPatientId] = useState('');
   const [panelPatientSearch, setPanelPatientSearch] = useState('');
   const [panelPaymentMethod, setPanelPaymentMethod] = useState<'stripe' | 'efectivo'>('stripe');
+  const [panelModality, setPanelModality] = useState<'ONLINE' | 'PRESENCIAL'>('ONLINE');
+  const [panelService, setPanelService] = useState('');
+  const [panelCreateNotes, setPanelCreateNotes] = useState('');
   const [panelRecurrence, setPanelRecurrence] = useState('');
   const [panelRecurrenceCount, setPanelRecurrenceCount] = useState('4');
   const [panelNotes, setPanelNotes] = useState('');
@@ -336,6 +339,9 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
     setPanelPatientSearch('');
     setPanelPatientId('');
     setPanelPaymentMethod('stripe');
+    setPanelModality('ONLINE');
+    setPanelService('');
+    setPanelCreateNotes('');
     setPanelNotesSaving(false);
 
     if (mode === 'create') {
@@ -389,6 +395,9 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
     setPanelPatientId('');
     setPanelPatientSearch('');
     setPanelPaymentMethod('stripe');
+    setPanelModality('ONLINE');
+    setPanelService('');
+    setPanelCreateNotes('');
     setPanelRecurrence('');
     setPanelRecurrenceCount('4');
     setPanelNotes('');
@@ -448,7 +457,12 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
       } else if (pendingSlot && onCreateSlot) {
         const rRule = panelRecurrence || undefined;
         const rCount = panelRecurrence && panelRecurrenceCount ? parseInt(panelRecurrenceCount, 10) : undefined;
-        onCreateSlot(pendingSlot.start, pendingSlot.end, price!, rRule, rCount);
+        const extras: { service?: string; modality?: string; notes?: string; paymentMethod?: string } = {};
+        if (panelModality) extras.modality = panelModality;
+        if (panelService.trim()) extras.service = panelService.trim();
+        if (panelCreateNotes.trim()) extras.notes = panelCreateNotes.trim();
+        if (panelPaymentMethod === 'efectivo') extras.paymentMethod = 'CASH';
+        onCreateSlot(pendingSlot.start, pendingSlot.end, price!, rRule, rCount, extras);
         closePanel();
       }
     } else if (panelMode === 'edit' && panelSlot) {
@@ -474,7 +488,7 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
       }
       closePanel();
     }
-  }, [panelMode, panelSlot, panelRange, panelSessionType, panelPrice, panelPatientId, panelRecurrence, panelRecurrenceCount, pendingSlot, onCreateSlot, onCreateSlotsRange, onUpdateSlot, onAssignToPatient, closePanel]);
+  }, [panelMode, panelSlot, panelRange, panelSessionType, panelPrice, panelPatientId, panelRecurrence, panelRecurrenceCount, panelModality, panelService, panelCreateNotes, panelPaymentMethod, pendingSlot, onCreateSlot, onCreateSlotsRange, onUpdateSlot, onAssignToPatient, closePanel]);
 
   const handlePanelSaveNotes = useCallback(async () => {
     if (!panelSlot) return;
@@ -1255,6 +1269,37 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                     </div>
                   )}
 
+                  {/* Modality — create mode only */}
+                  {panelMode === 'create' && (
+                    <>
+                      <div className="h-px bg-slate-100 mx-4" />
+                      <div className="px-4 pt-2.5 pb-2">
+                        <div className="flex items-center gap-1.5 mb-2">
+                          <Video size={13} className="text-slate-400" />
+                          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Modalidad</span>
+                        </div>
+                        <div className="flex gap-1.5">
+                          {([
+                            { val: 'ONLINE' as const, icon: Video, label: 'Online' },
+                            { val: 'PRESENCIAL' as const, icon: Building2, label: 'Presencial' },
+                          ]).map(({ val, icon: Icon, label }) => (
+                            <button
+                              key={val}
+                              onClick={() => setPanelModality(val)}
+                              className={`flex-1 h-8 rounded-md flex items-center justify-center gap-1.5 text-[11px] font-semibold cursor-pointer border transition-all ${
+                                panelModality === val
+                                  ? 'bg-slate-800 border-slate-800 text-white'
+                                  : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
+                              }`}
+                            >
+                              <Icon size={13} /> {label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
                   <div className="h-px bg-slate-100 mx-4" />
 
                   {/* Patient section — create mode or edit FREE/REQUESTED */}
@@ -1359,6 +1404,18 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                             className={`w-full h-8 px-2 rounded-md border border-slate-200 text-[13px] font-body outline-none focus:border-gantly-blue transition-all ${panelSessionType ? 'bg-slate-50 text-slate-400' : 'bg-white'}`}
                           />
                         </div>
+                        {panelMode === 'create' && (
+                          <div className="mt-2">
+                            <label className="text-[11px] text-slate-500 font-medium mb-1 block">Servicio</label>
+                            <input
+                              type="text"
+                              value={panelService}
+                              onChange={(e) => setPanelService(e.target.value)}
+                              placeholder="Ej: Psicoterapia individual"
+                              className="w-full h-8 px-2 rounded-md border border-slate-200 text-[13px] font-body outline-none focus:border-gantly-blue bg-white transition-all"
+                            />
+                          </div>
+                        )}
                       </div>
                     </>
                   )}
@@ -1429,6 +1486,26 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                             </p>
                           </div>
                         )}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Notes — create mode */}
+                  {panelMode === 'create' && (
+                    <>
+                      <div className="h-px bg-slate-100 mx-4" />
+                      <div className="px-4 pt-2.5 pb-3">
+                        <div className="flex items-center gap-1.5 mb-2">
+                          <FileText size={13} className="text-slate-400" />
+                          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Notas</span>
+                        </div>
+                        <textarea
+                          value={panelCreateNotes}
+                          onChange={(e) => setPanelCreateNotes(e.target.value)}
+                          placeholder="Observaciones internas..."
+                          rows={2}
+                          className="w-full px-2 py-1.5 rounded-md border border-slate-200 text-[13px] font-body outline-none resize-y leading-relaxed focus:border-gantly-blue focus:ring-1 focus:ring-gantly-blue/20 transition-all"
+                        />
                       </div>
                     </>
                   )}

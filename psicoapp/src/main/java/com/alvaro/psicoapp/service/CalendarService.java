@@ -113,6 +113,10 @@ public class CalendarService {
             a.setPrice(req.price);
             a.setRecurrenceGroupId(groupId);
             a.setRecurrenceRule(req.recurrenceRule);
+            if (req.service != null && !req.service.isBlank()) a.setService(req.service);
+            if (req.modality != null && !req.modality.isBlank()) a.setModality(req.modality);
+            if (req.notes != null && !req.notes.isBlank()) a.setNotes(req.notes);
+            if (req.paymentMethod != null && !req.paymentMethod.isBlank()) a.setPaymentMethod(req.paymentMethod);
             calculateTax(a);
             created.add(appointmentRepository.save(a));
         }

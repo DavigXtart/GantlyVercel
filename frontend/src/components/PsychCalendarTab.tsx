@@ -137,7 +137,7 @@ export default function PsychCalendarTab({
         onWeekChange={onCalendarWeekChange}
         sessionPrices={psychologistProfile?.sessionPrices ? JSON.parse(psychologistProfile.sessionPrices) : null}
         patients={patients.map((p: any) => ({ id: p.id, name: p.name, email: p.email }))}
-        onCreateSlot={async (start, end, price, recurrenceRule, recurrenceCount) => {
+        onCreateSlot={async (start, end, price, recurrenceRule, recurrenceCount, extras) => {
           try {
             const slotDate = new Date(start);
             const day = (slotDate.getDay() + 6) % 7;
@@ -146,7 +146,7 @@ export default function PsychCalendarTab({
             slotWeekStart.setHours(0, 0, 0, 0);
             onCalendarWeekChange(slotWeekStart);
 
-            await calendarService.createSlot(start, end, price, recurrenceRule, recurrenceCount);
+            await calendarService.createSlot(start, end, price, recurrenceRule, recurrenceCount, extras);
             await onReloadSlots();
             await onReloadPendingRequests();
             toast.success(recurrenceRule ? 'Serie de citas creada exitosamente' : 'Cita creada exitosamente');

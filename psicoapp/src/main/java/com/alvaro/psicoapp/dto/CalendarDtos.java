@@ -51,6 +51,10 @@ public class CalendarDtos {
         @Min(value = 1, message = "El numero de repeticiones debe ser al menos 1")
         @Max(value = 52, message = "El numero maximo de repeticiones es 52")
         public Integer recurrenceCount;
+        public String service;        // e.g. "Psicoterapia individual"
+        public String modality;       // ONLINE or PRESENCIAL
+        public String notes;
+        public String paymentMethod;  // STRIPE or CASH
     }
 
     public record DeleteRecurrenceResponse(String message, int deleted, int skipped) {}
