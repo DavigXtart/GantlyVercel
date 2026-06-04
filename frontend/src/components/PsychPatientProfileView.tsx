@@ -843,6 +843,36 @@ export default function PsychPatientProfileView({
                     </div>
                   ))}
                 </div>
+              ) : selectedTestResult.subfactors?.length > 0 ? (
+                <div className="space-y-4">
+                  {selectedTestResult.subfactors.map((sf: any, i: number) => {
+                    const pct = sf.percentage ?? sf.score ?? 0;
+                    return (
+                      <div key={i}>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-sm font-medium text-slate-700">{sf.name}</span>
+                          <span className="text-sm font-bold text-slate-800">
+                            {sf.score != null && sf.maxScore != null
+                              ? `${sf.score}/${sf.maxScore}`
+                              : `${Math.round(pct)}%`}
+                          </span>
+                        </div>
+                        <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-gantly-blue transition-all duration-500"
+                            style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
+                          />
+                        </div>
+                        {(sf.minLabel || sf.maxLabel) && (
+                          <div className="flex items-center justify-between mt-1">
+                            <span className="text-[11px] text-slate-400">{sf.minLabel}</span>
+                            <span className="text-[11px] text-slate-400">{sf.maxLabel}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               ) : (
                 <div className="text-center py-6">
                   <BarChart3 size={32} className="mx-auto text-slate-300 mb-2" />
