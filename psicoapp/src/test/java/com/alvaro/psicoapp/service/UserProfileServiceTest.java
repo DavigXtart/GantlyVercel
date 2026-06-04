@@ -299,16 +299,23 @@ class UserProfileServiceTest {
     }
 
     @Test
-    @DisplayName("deleteAccount - throws 403 for PSYCHOLOGIST role")
-    void deleteAccount_psychologistRole_throwsForbidden() {
+    @DisplayName("deleteAccount - delegates to patientDataRetentionService for PSYCHOLOGIST role")
+    void deleteAccount_psychologistRole_delegatesToRetentionService() {
         testUser.setRole(RoleConstants.PSYCHOLOGIST);
 
-        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
-                () -> userProfileService.deleteAccount(testUser));
+        userProfileService.deleteAccount(testUser);
 
-        assertEquals(403, ex.getStatusCode().value());
-        assertTrue(ex.getReason().contains("Solo usuarios"));
-        verify(patientDataRetentionService, never()).eraseOneUserInNewTx(any());
+        verify(patientDataRetentionService).eraseOneUserInNewTx(1L);
+    }
+
+    @Test
+    @DisplayName("deleteAccount - delegates to patientDataRetentionService for EMPRESA role")
+    void deleteAccount_empresaRole_delegatesToRetentionService() {
+        testUser.setRole(RoleConstants.EMPRESA);
+
+        userProfileService.deleteAccount(testUser);
+
+        verify(patientDataRetentionService).eraseOneUserInNewTx(1L);
     }
 
     @Test

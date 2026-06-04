@@ -17,6 +17,7 @@ public interface AppointmentRatingRepository extends JpaRepository<AppointmentRa
     List<AppointmentRatingEntity> findByPsychologist_IdOrderByCreatedAtDesc(Long psychologistId);
 
     long deleteByUser_Id(Long userId);
+    long deleteByPsychologist_Id(Long psychologistId);
 
     @Query("SELECT AVG(r.rating) FROM AppointmentRatingEntity r WHERE r.psychologist.id = :psychologistId")
     Double findAverageRatingByPsychologistId(@Param("psychologistId") Long psychologistId);

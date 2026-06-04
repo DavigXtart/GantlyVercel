@@ -329,8 +329,8 @@ public class UserProfileService {
 
     @Transactional
     public void deleteAccount(UserEntity user) {
-        if (!RoleConstants.USER.equals(user.getRole())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo usuarios pueden eliminar su cuenta desde aquí");
+        if (RoleConstants.ADMIN.equals(user.getRole())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Las cuentas de administrador no pueden eliminarse desde aqui");
         }
         patientDataRetentionService.eraseOneUserInNewTx(user.getId());
     }

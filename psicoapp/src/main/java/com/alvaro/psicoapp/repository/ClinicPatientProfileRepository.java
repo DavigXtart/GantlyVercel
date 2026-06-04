@@ -11,4 +11,6 @@ public interface ClinicPatientProfileRepository extends JpaRepository<ClinicPati
     Optional<ClinicPatientProfileEntity> findByCompanyIdAndPatientId(Long companyId, Long patientId);
     List<ClinicPatientProfileEntity> findByCompanyId(Long companyId);
     int countByCompanyId(Long companyId);
+
+    void deleteByPatientId(Long patientId);
 }

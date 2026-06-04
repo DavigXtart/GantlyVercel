@@ -18,6 +18,7 @@ public interface AppointmentRequestRepository extends JpaRepository<AppointmentR
     List<AppointmentRequestEntity> findByAppointment_IdAndStatus(Long appointmentId, RequestStatusEnum status);
     List<AppointmentRequestEntity> findByUser_IdOrderByRequestedAtDesc(Long userId);
     long deleteByUser_Id(Long userId);
+    long deleteByAppointment_Psychologist_Id(Long psychologistId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT ar FROM AppointmentRequestEntity ar WHERE ar.id = :id")

@@ -16,4 +16,5 @@ public interface ConsentRequestRepository extends JpaRepository<ConsentRequestEn
     List<ConsentRequestEntity> findByPsychologist_IdOrderByCreatedAtDesc(Long psychologistId);
 
     void deleteByUser_Id(Long userId);
+    void deleteByPsychologist_Id(Long psychologistId);
 }

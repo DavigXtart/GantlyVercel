@@ -19,4 +19,6 @@ public interface PsychologistProfileRepository extends JpaRepository<Psychologis
     /** Finds profiles pending review: rejected (false) or resubmitted (null) */
     @Query("SELECT p FROM PsychologistProfileEntity p WHERE p.approved = false OR p.approved IS NULL ORDER BY p.updatedAt DESC")
     List<PsychologistProfileEntity> findPendingReviewOrderByUpdatedAtDesc();
+
+    void deleteByUser_Id(Long userId);
 }

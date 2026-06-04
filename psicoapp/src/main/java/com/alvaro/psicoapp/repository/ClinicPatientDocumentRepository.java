@@ -5,4 +5,7 @@ import java.util.List;
 public interface ClinicPatientDocumentRepository extends JpaRepository<ClinicPatientDocumentEntity, Long> {
     List<ClinicPatientDocumentEntity> findByCompanyIdAndPatientIdOrderByUploadedAtDesc(Long companyId, Long patientId);
     boolean existsByCompanyIdAndFileName(Long companyId, String fileName);
+
+    List<ClinicPatientDocumentEntity> findByPatientId(Long patientId);
+    void deleteByPatientId(Long patientId);
 }

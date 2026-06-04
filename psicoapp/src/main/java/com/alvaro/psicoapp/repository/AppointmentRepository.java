@@ -22,6 +22,7 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
     List<AppointmentEntity> findByPsychologist_IdAndStartTimeBetweenOrderByStartTimeAsc(Long psychologistId, Instant from, Instant to);
     List<AppointmentEntity> findByUser_IdOrderByStartTimeAsc(Long userId);
     long deleteByUser_Id(Long userId);
+    long deleteByPsychologist_Id(Long psychologistId);
 
     @Query("SELECT a FROM AppointmentEntity a WHERE a.user.id = :userId AND a.status = 'BOOKED' ORDER BY a.startTime ASC")
     List<AppointmentEntity> findBookedByUser_IdOrderByStartTimeAsc(@Param("userId") Long userId);

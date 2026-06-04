@@ -198,8 +198,9 @@ public class GdprService {
 
     @Transactional
     public void deleteUserAccount(UserEntity user, String password) {
-        if (!RoleConstants.USER.equals(user.getRole())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo usuarios pueden eliminar su cuenta desde aqui");
+        // ADMIN accounts cannot self-delete (use admin panel instead)
+        if (RoleConstants.ADMIN.equals(user.getRole())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Las cuentas de administrador no pueden eliminarse desde aqui");
         }
 
         // If user has a password (not OAuth-only), require password confirmation

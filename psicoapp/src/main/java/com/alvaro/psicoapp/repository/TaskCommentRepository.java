@@ -10,4 +10,5 @@ import java.util.List;
 public interface TaskCommentRepository extends JpaRepository<TaskCommentEntity, Long> {
     List<TaskCommentEntity> findByTask_IdOrderByCreatedAtAsc(Long taskId);
     long deleteByTask_User_Id(Long userId);
+    long deleteByTask_Psychologist_Id(Long psychologistId);
 }

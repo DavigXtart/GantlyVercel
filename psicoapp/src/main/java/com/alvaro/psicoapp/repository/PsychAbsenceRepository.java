@@ -15,4 +15,6 @@ public interface PsychAbsenceRepository extends JpaRepository<PsychAbsenceEntity
 
     @Query("SELECT a FROM PsychAbsenceEntity a WHERE a.psychologist.id = :psychId AND a.startTime < :end AND a.endTime > :start")
     List<PsychAbsenceEntity> findOverlapping(@Param("psychId") Long psychId, @Param("start") Instant start, @Param("end") Instant end);
+
+    void deleteByPsychologist_Id(Long psychologistId);
 }

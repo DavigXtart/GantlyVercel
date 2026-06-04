@@ -12,4 +12,5 @@ public interface ClinicChatMessageRepository extends JpaRepository<ClinicChatMes
             Long companyId, Long patientId, Instant after);
 
     void deleteByPatientId(Long patientId);
+    void deleteByCompanyId(Long companyId);
 }

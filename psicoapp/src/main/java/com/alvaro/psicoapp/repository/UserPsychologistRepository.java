@@ -20,6 +20,10 @@ public interface UserPsychologistRepository extends JpaRepository<UserPsychologi
     int deleteByUserId(@Param("userId") Long userId);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(value = "DELETE FROM user_psychologist WHERE psychologist_id = :psychologistId", nativeQuery = true)
+    int deleteByPsychologistId(@Param("psychologistId") Long psychologistId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = "INSERT INTO user_psychologist (user_id, psychologist_id, assigned_at) VALUES (:userId, :psychologistId, CURRENT_TIMESTAMP)", nativeQuery = true)
     int insertRelation(@Param("userId") Long userId, @Param("psychologistId") Long psychologistId);
 }

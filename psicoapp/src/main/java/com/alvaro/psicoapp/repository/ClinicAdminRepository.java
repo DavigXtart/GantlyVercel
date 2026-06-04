@@ -10,4 +10,6 @@ public interface ClinicAdminRepository extends JpaRepository<ClinicAdminEntity, 
     List<ClinicAdminEntity> findByCompanyIdOrderByInvitedAtDesc(Long companyId);
     Optional<ClinicAdminEntity> findByCompanyIdAndUserId(Long companyId, Long userId);
     Optional<ClinicAdminEntity> findByUserIdAndStatus(Long userId, String status);
+
+    void deleteByUserId(Long userId);
 }

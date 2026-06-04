@@ -12,4 +12,5 @@ public interface ChatConversationRepository extends JpaRepository<ChatConversati
     List<ChatConversationEntity> findByUserId(Long userId);
 
     void deleteByUserId(Long userId);
+    void deleteByPsychologistId(Long psychologistId);
 }
