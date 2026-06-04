@@ -84,8 +84,29 @@ Sesion enfocada en implementar las recomendaciones de 3 auditorias paralelas (se
 
 ---
 
-### 4. Cascade delete de cuenta (en progreso)
-- Implementacion completa de borrado de cuenta con todas las relaciones FK
+### 4. `cb5e323` — feat: complete cascade delete for account deletion + session docs
+**24 ficheros, 443 inserciones, 23 eliminaciones**
+
+#### Cascade delete completo por rol
+- **USER**: Tasks (comments→files→tasks), appointments (ratings→requests→appointments), chat (messages→conversations), tests (answers→eval results→test results→factor results→assigned tests), mood entries, notifications, subscriptions, consent requests, insurance policies, waiting list, clinic profiles/documents, user-psychologist relationships
+- **PSYCHOLOGIST**: Profile, weekly schedules, absences, tasks, appointments, chat, assigned tests, consent requests. Desvincula pacientes (NO borra sus cuentas). Nullifica asignacion en clinic rooms y preferencias en waiting list
+- **EMPRESA**: Clinic admin role, notifications, subscriptions
+- **ADMIN**: No puede auto-borrarse (403)
+
+#### Repositorios modificados (19)
+- Nuevos metodos delete en: AppointmentRatingRepository, AppointmentRepository, AppointmentRequestRepository, AssignedTestRepository, ChatConversationRepository, ChatMessageRepository, ClinicAdminRepository, ClinicChatMessageRepository, ClinicPatientDocumentRepository, ClinicPatientProfileRepository, ClinicRoomRepository, ConsentRequestRepository, PsychAbsenceRepository, PsychologistProfileRepository, TaskCommentRepository, TaskFileRepository, TaskRepository, UserPsychologistRepository, WaitingListRepository
+
+#### Servicios modificados
+- PatientDataRetentionService: reescrito con erasePatientData(), erasePsychologistData(), eraseEmpresaData()
+- GdprService: permite borrado para USER, PSYCHOLOGIST, EMPRESA (solo ADMIN bloqueado)
+- UserProfileService: misma logica de roles
+
+#### Decisiones de diseno
+- Usuarios anonimizados (no hard-delete) para mantener integridad referencial
+- Orden FK correcto: hijos mas profundos primero
+- Waiting list scheduled_appointment y psychologist_preference nullificados antes de borrar
+- Clinic room assigned_psychologist_id limpiado al borrar psicologo
+- Limpieza de archivos fisicos (task files, clinic documents, avatars)
 
 ## SQL ejecutado en Supabase
 ```sql
@@ -110,6 +131,7 @@ Sesion enfocada en implementar las recomendaciones de 3 auditorias paralelas (se
 - Verificar deploy de Vercel
 
 ### P0 (codigo)
+- ~~Borrado de cuenta completo~~ ✅ Hecho
 - PII encryption: descomentar @Convert en UserEntity + migrar datos
 
 ### P1 (primer mes post-launch)
