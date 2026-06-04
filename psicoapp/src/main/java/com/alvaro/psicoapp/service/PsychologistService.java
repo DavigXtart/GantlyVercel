@@ -33,6 +33,7 @@ public class PsychologistService {
     private final ConsentService consentService;
     private final NotificationService notificationService;
     private final EvaluationTestResultRepository evaluationTestResultRepository;
+    private final TestResultRepository testResultRepository;
 
     public PsychologistService(UserRepository userRepository, UserPsychologistRepository userPsychologistRepository,
                                UserAnswerRepository userAnswerRepository, TestRepository testRepository,
@@ -43,7 +44,8 @@ public class PsychologistService {
                                AuditService auditService,
                                ConsentService consentService,
                                NotificationService notificationService,
-                               EvaluationTestResultRepository evaluationTestResultRepository) {
+                               EvaluationTestResultRepository evaluationTestResultRepository,
+                               TestResultRepository testResultRepository) {
         this.userRepository = userRepository;
         this.userPsychologistRepository = userPsychologistRepository;
         this.userAnswerRepository = userAnswerRepository;
@@ -56,6 +58,7 @@ public class PsychologistService {
         this.consentService = consentService;
         this.notificationService = notificationService;
         this.evaluationTestResultRepository = evaluationTestResultRepository;
+        this.testResultRepository = testResultRepository;
     }
 
     @Transactional(readOnly = true)
@@ -118,9 +121,20 @@ public class PsychologistService {
         var patient = userRepository.findById(patientId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         // Personality tests (TestEntity system)
-        var allAnswers = userAnswerRepository.findByUserOrderByCreatedAtDesc(patient);
+        // Build the list primarily from computed results (test_results), since raw answers
+        // (user_answers) are not always persisted but the scored results are. This is the same
+        // source the patient sees in their own results view, ensuring parity.
         Map<Long, PsychologistDtos.TestWithAnswersDto> testsMap = new LinkedHashMap<>();
 
+        for (TestResultEntity tr : testResultRepository.findByUser(patient)) {
+            TestEntity test = tr.getTest();
+            if (test == null) continue;
+            testsMap.putIfAbsent(test.getId(), new PsychologistDtos.TestWithAnswersDto(
+                    test.getId(), test.getCode(), test.getTitle(), new ArrayList<>()));
+        }
+
+        // Also include any tests that have raw answers (older data), and attach those answers.
+        var allAnswers = userAnswerRepository.findByUserOrderByCreatedAtDesc(patient);
         for (UserAnswerEntity ua : allAnswers) {
             Long testId = ua.getQuestion().getTest().getId();
             testsMap.putIfAbsent(testId, new PsychologistDtos.TestWithAnswersDto(
