@@ -150,13 +150,13 @@ Ver `.env` (gitignored) para valores actuales. Variables principales:
 ## Pendiente para Producción Final
 
 ### P0 — Bloqueantes
-- [ ] **Email**: Configurar Gmail SMTP (generar App Password desde userapprovalgantly@gmail.com)
-- [ ] **Stripe webhook**: Crear endpoint en Stripe dashboard → `https://gantlyvercel.onrender.com/api/stripe/webhook`
-- [ ] **Jitsi**: Configurar en Hetzner VPS con dominio propio (video.gantly.com)
-- [ ] **Dominio**: Comprar gantly.com/gantly.es, configurar DNS en Vercel + Render
-- [ ] **PII encryption**: Activar @Convert en UserEntity (descomentar, migrar datos existentes)
-- [ ] **DPAs**: Firmar con Stripe, Supabase, Render, Google, Sentry, Hetzner
-- [ ] **Borrado cuenta**: Completar cascade delete (chat, relaciones, tests asignados)
+- [x] **Email**: Configurado en Render (SMTP) ✅
+- [x] **Dominio**: gantly.es + api.gantly.es con DNS configurado ✅
+- [x] **Borrado cuenta**: Cascade delete completo (chat, relaciones, tests asignados) ✅
+- [ ] **Stripe webhook**: Crear endpoint en Stripe dashboard → `https://api.gantly.es/api/stripe/webhook` + `STRIPE_WEBHOOK_SECRET` *(config, no-código)*
+- [ ] **Jitsi**: Configurar en Hetzner VPS con dominio propio (video.gantly.es) *(infra, no-código)*
+- [ ] **PII encryption**: Activar @Convert en UserEntity (descomentar L18/L22/L101) — **requiere migración previa de datos existentes en claro** (email con converter determinista para búsquedas/login). Único P0 de código. Riesgo alto: hacer con plan.
+- [ ] **DPAs**: Firmar con Stripe, Supabase, Render, Google, Sentry, Hetzner *(legal, no-código)*
 
 ### P1 — Primer mes post-launch
 - [ ] Notas de sesión UI para psicólogos (backend existe, falta frontend)
@@ -189,6 +189,13 @@ Ver `.env` (gitignored) para valores actuales. Variables principales:
 ### Deuda técnica
 - Dos sistemas de tests paralelos (TestEntity vs EvaluationTestEntity)
 - File storage: filesystem local → migrar a Supabase Storage
+- `user_answers` no se persiste para muchos tests antiguos (solo quedan `test_results`). El perfil del paciente ya lee `test_results` como fuente principal, pero el detalle de respuestas crudas no existe para esos casos.
+
+## Estado verificado en producción (2026-06-04)
+- 0 registros en `evaluation_test_results` (sistema clínico sin uso real aún)
+- Mayoría de pacientes: 0 `user_answers` pero sí `test_results` (datos de la época local)
+- 323 `user_answers` con `user_id` NULL (tests de matching/initial anónimos)
+- Acceso a BD de prod para diagnóstico: psycopg2 + credenciales de `.env` (host pooler Supabase). NUNCA commitear scripts con credenciales.
 
 ## Build & Run
 - **Maven**: `/c/Program Files (x86)/Apache/Maven/bin/mvn` (no wrapper)
