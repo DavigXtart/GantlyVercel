@@ -2,12 +2,14 @@ import { useState, useEffect, useMemo } from 'react';
 import {
   User, ArrowLeft, Calendar, CalendarCheck, Clock, CheckCircle2,
   ClipboardList, Heart, FileText, ChevronDown, ChevronUp,
-  Smile, Frown, Meh, X, BarChart3
+  Smile, Frown, Meh, BarChart3
 } from 'lucide-react';
 import { calendarNotesService, psychPatientService, resultsService, API_BASE_URL } from '../services/api';
 import LoadingSpinner from './ui/LoadingSpinner';
 import EmptyState from './ui/EmptyState';
 import { toast } from './ui/Toast';
+import TestResultsView from './TestResultsView';
+import type { TestReportData } from './TestReport';
 
 interface PsychPatientProfileViewProps {
   viewingPatientId: number;
@@ -224,7 +226,31 @@ export default function PsychPatientProfileView({
     try {
       setLoadingTestResult(true);
       const result = await resultsService.getUserTest(viewingPatientId, testId);
-      setSelectedTestResult(result);
+      const subs = result.subfactors || result.subfactorResults || [];
+      const facs = result.factors || result.factorResults || [];
+      const mapped: TestReportData = {
+        testTitle: result.testTitle || result.testCode || 'Test',
+        userName: patientDetails?.name || patientDetails?.email || 'Paciente',
+        subfactors: subs.map((sf: any) => ({
+          code: sf.subfactorCode || sf.code || '',
+          name: sf.subfactorName || sf.name || sf.code || '',
+          score: Number(sf.score) || 0,
+          maxScore: Number(sf.maxScore) || 0,
+          percentage: Number(sf.percentage ?? ((sf.score / (sf.maxScore || 1)) * 100)) || 0,
+          minLabel: sf.minLabel,
+          maxLabel: sf.maxLabel,
+        })),
+        factors: facs.map((f: any) => ({
+          code: f.factorCode || f.code || '',
+          name: f.factorName || f.name || f.code || '',
+          score: Number(f.score) || 0,
+          maxScore: Number(f.maxScore) || 0,
+          percentage: Number(f.percentage ?? ((f.score / (f.maxScore || 1)) * 100)) || 0,
+          minLabel: f.minLabel,
+          maxLabel: f.maxLabel,
+        })),
+      };
+      setSelectedTestResult(mapped);
     } catch {
       toast.error('Error al cargar los resultados del test');
     } finally {
@@ -781,106 +807,10 @@ export default function PsychPatientProfileView({
         </div>
       )}
 
-      {/* ===== MODAL: Test Results ===== */}
+      {/* ===== Test Results overlay (reuses the patient TestResultsView) ===== */}
       {selectedTestResult && (
-        <div
-          className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40"
-          onClick={() => setSelectedTestResult(null)}
-        >
-          <div
-            className="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
-              <h3 className="m-0 text-base font-heading font-bold text-slate-800">
-                {selectedTestResult.testTitle || 'Resultados del test'}
-              </h3>
-              <button
-                onClick={() => setSelectedTestResult(null)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors cursor-pointer bg-transparent border-none text-slate-400 hover:text-slate-600"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            {/* Body */}
-            <div className="p-6 overflow-y-auto">
-              {selectedTestResult.factors?.length > 0 ? (
-                <div className="space-y-4">
-                  {selectedTestResult.factors.map((factor: any, i: number) => (
-                    <div key={i}>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-sm font-medium text-slate-700">{factor.name}</span>
-                        <span className="text-sm font-bold text-slate-800">{Math.round(factor.percentage ?? factor.score ?? 0)}%</span>
-                      </div>
-                      <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-gantly-blue transition-all duration-500"
-                          style={{ width: `${Math.min(100, Math.max(0, factor.percentage ?? factor.score ?? 0))}%` }}
-                        />
-                      </div>
-                      {/* Subfactors */}
-                      {selectedTestResult.subfactors?.filter((sf: any) => sf.factorName === factor.name).length > 0 && (
-                        <div className="mt-2 ml-3 space-y-2">
-                          {selectedTestResult.subfactors
-                            .filter((sf: any) => sf.factorName === factor.name)
-                            .map((sf: any, j: number) => (
-                              <div key={j}>
-                                <div className="flex items-center justify-between mb-1">
-                                  <span className="text-xs text-slate-500">{sf.name}</span>
-                                  <span className="text-xs font-semibold text-slate-600">{Math.round(sf.percentage ?? sf.score ?? 0)}%</span>
-                                </div>
-                                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                  <div
-                                    className="h-full rounded-full bg-cyan-400 transition-all duration-500"
-                                    style={{ width: `${Math.min(100, Math.max(0, sf.percentage ?? sf.score ?? 0))}%` }}
-                                  />
-                                </div>
-                              </div>
-                            ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : selectedTestResult.subfactors?.length > 0 ? (
-                <div className="space-y-4">
-                  {selectedTestResult.subfactors.map((sf: any, i: number) => {
-                    const pct = sf.percentage ?? sf.score ?? 0;
-                    return (
-                      <div key={i}>
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-sm font-medium text-slate-700">{sf.name}</span>
-                          <span className="text-sm font-bold text-slate-800">
-                            {sf.score != null && sf.maxScore != null
-                              ? `${sf.score}/${sf.maxScore}`
-                              : `${Math.round(pct)}%`}
-                          </span>
-                        </div>
-                        <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-gantly-blue transition-all duration-500"
-                            style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
-                          />
-                        </div>
-                        {(sf.minLabel || sf.maxLabel) && (
-                          <div className="flex items-center justify-between mt-1">
-                            <span className="text-[11px] text-slate-400">{sf.minLabel}</span>
-                            <span className="text-[11px] text-slate-400">{sf.maxLabel}</span>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center py-6">
-                  <BarChart3 size={32} className="mx-auto text-slate-300 mb-2" />
-                  <p className="text-sm text-slate-500 m-0">No se encontraron resultados para este test</p>
-                </div>
-              )}
-            </div>
-          </div>
+        <div className="fixed inset-0 z-[1000] overflow-y-auto bg-slate-50">
+          <TestResultsView data={selectedTestResult} onBack={() => setSelectedTestResult(null)} />
         </div>
       )}
     </div>

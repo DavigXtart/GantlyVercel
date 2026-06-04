@@ -340,14 +340,15 @@ function DetailPanel({ item }: { item: TestReportSubfactor | TestReportFactor })
 
 /* ── Main Component (Full Page) ─────────────────────────────────── */
 
-export default function TestResultsView() {
+export default function TestResultsView({ data: dataProp, onBack }: { data?: TestReportData; onBack?: () => void } = {}) {
   const location = useLocation();
   const navigate = useNavigate();
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const data = location.state as TestReportData | undefined;
+  const data = dataProp ?? (location.state as TestReportData | undefined);
+  const goBack = onBack ?? (() => navigate(-1));
 
   const handleExportPdf = async () => {
     if (!contentRef.current || !data) return;
@@ -397,7 +398,7 @@ export default function TestResultsView() {
           <h2 className="text-lg font-heading font-bold text-gantly-text mb-2">Sin datos de resultados</h2>
           <p className="text-sm text-slate-500 font-body mb-6">Vuelve a tu dashboard y selecciona un test completado.</p>
           <button
-            onClick={() => navigate(-1)}
+            onClick={goBack}
             className="px-5 py-2.5 bg-gantly-blue text-white rounded-xl font-heading font-medium text-sm cursor-pointer border-none hover:opacity-90 transition-opacity"
           >
             Volver
@@ -432,7 +433,7 @@ export default function TestResultsView() {
       <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-slate-100">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
           <button
-            onClick={() => navigate(-1)}
+            onClick={goBack}
             className="flex items-center gap-1.5 text-sm font-heading font-medium text-slate-600 hover:text-gantly-blue transition-colors cursor-pointer bg-transparent border-none p-0"
             aria-label="Volver a tests"
           >
