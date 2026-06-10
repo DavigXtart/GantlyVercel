@@ -51,8 +51,6 @@ public class TemporarySessionService {
 
 	@Transactional
 	public void cleanupExpiredSessions() {
-		sessionRepository.findAll().stream()
-				.filter(s -> s.getExpiresAt().isBefore(Instant.now()))
-				.forEach(sessionRepository::delete);
+		sessionRepository.deleteExpiredBefore(Instant.now());
 	}
 }

@@ -27,6 +27,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private static final int MAX_REQUESTS_PER_MINUTE_SENSITIVE = 5;
     private static final int MAX_REQUESTS_PER_MINUTE_GLOBAL = 300;
     private static final long TIME_WINDOW_MS = 60_000;
+    private static final int MAX_TRACKED_KEYS = 10_000;
+    private static final int MAX_TRACKED_IPS = 5_000;
 
     private final SecurityBreachService securityBreachService;
 
@@ -38,7 +40,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
     }
 
     private final AtomicLong lastCleanup = new AtomicLong(System.currentTimeMillis());
-    private static final long CLEANUP_INTERVAL_MS = 300_000;
+    private static final long CLEANUP_INTERVAL_MS = 60_000;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -121,13 +123,23 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private void cleanupOldCounters() {
         long now = System.currentTimeMillis();
         long last = lastCleanup.get();
-        if (now - last > CLEANUP_INTERVAL_MS && lastCleanup.compareAndSet(last, now)) {
+        boolean timeToClean = now - last > CLEANUP_INTERVAL_MS;
+        boolean overCapacity = requestCounters.size() > MAX_TRACKED_KEYS || globalIpCounters.size() > MAX_TRACKED_IPS;
+
+        if ((timeToClean || overCapacity) && lastCleanup.compareAndSet(last, now)) {
             requestCounters.entrySet().removeIf(entry ->
                 now - entry.getValue().getFirstRequestTime() > TIME_WINDOW_MS * 2
             );
             globalIpCounters.entrySet().removeIf(entry ->
                 now - entry.getValue().getFirstRequestTime() > TIME_WINDOW_MS * 2
             );
+            // Hard cap: if still over capacity after time-based cleanup, clear all
+            if (requestCounters.size() > MAX_TRACKED_KEYS) {
+                requestCounters.clear();
+            }
+            if (globalIpCounters.size() > MAX_TRACKED_IPS) {
+                globalIpCounters.clear();
+            }
         }
     }
 
