@@ -20,7 +20,7 @@ type Props = {
   mode: 'PSYCHO' | 'USER';
   slots: Slot[];
   myAppointments?: Array<{ id: number; startTime: string; endTime: string; status: string }>; // Citas reservadas por el usuario
-  onCreateSlot?: (startIso: string, endIso: string, price?: number, recurrenceRule?: string, recurrenceCount?: number, extras?: { service?: string; modality?: string; notes?: string; paymentMethod?: string }) => void;
+  onCreateSlot?: (startIso: string, endIso: string, price?: number, recurrenceRule?: string, recurrenceCount?: number, extras?: { service?: string; modality?: string; notes?: string; paymentMethod?: string; patientId?: number }) => void;
   onCreateSlotsRange?: (slots: Array<{ start: string; end: string; price: number }>) => Promise<void>; // Para crear múltiples slots
   onBook?: (appointmentId: number) => void;
   onDeleteSlot?: (appointmentId: number) => void;
@@ -457,11 +457,12 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
       } else if (pendingSlot && onCreateSlot) {
         const rRule = panelRecurrence || undefined;
         const rCount = panelRecurrence && panelRecurrenceCount ? parseInt(panelRecurrenceCount, 10) : undefined;
-        const extras: { service?: string; modality?: string; notes?: string; paymentMethod?: string } = {};
+        const extras: { service?: string; modality?: string; notes?: string; paymentMethod?: string; patientId?: number } = {};
         if (panelModality) extras.modality = panelModality;
         if (panelService.trim()) extras.service = panelService.trim();
         if (panelCreateNotes.trim()) extras.notes = panelCreateNotes.trim();
         if (panelPaymentMethod === 'efectivo') extras.paymentMethod = 'CASH';
+        if (panelPatientId) extras.patientId = parseInt(panelPatientId);
         onCreateSlot(pendingSlot.start, pendingSlot.end, price!, rRule, rCount, extras);
         closePanel();
       }
@@ -1314,11 +1315,11 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
                         <span className="text-[12px] font-medium text-emerald-800 flex-1 truncate">{panelSlot.user.name}</span>
                       </div>
                     </div>
-                  ) : (panelMode === 'edit' && panelSlot && (panelSlot.status === 'FREE' || panelSlot.status === 'REQUESTED') && onAssignToPatient && patients.length > 0) ? (
+                  ) : ((panelMode === 'create' || (panelMode === 'edit' && panelSlot && (panelSlot.status === 'FREE' || panelSlot.status === 'REQUESTED'))) && (panelMode === 'create' ? patients.length > 0 : onAssignToPatient && patients.length > 0)) ? (
                     <div className="px-4 pt-2.5 pb-2">
                       <div className="flex items-center gap-1.5 mb-2">
                         <UserPlus size={13} className="text-slate-400" />
-                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Paciente</span>
+                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Paciente {panelMode === 'create' && <span className="normal-case text-slate-400 font-normal">(opcional)</span>}</span>
                       </div>
                       <div className="relative">
                         <Search size={13} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 z-10" />

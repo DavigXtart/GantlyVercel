@@ -230,10 +230,15 @@ export default function PsychCalendarTab({
             slotWeekStart.setHours(0, 0, 0, 0);
             onCalendarWeekChange(slotWeekStart);
 
-            await calendarService.createSlot(start, end, price, recurrenceRule, recurrenceCount, extras);
+            if (extras?.patientId) {
+              const { patientId, paymentMethod, ...rest } = extras;
+              await calendarService.createForPatient(patientId, start, end, price, rest);
+            } else {
+              await calendarService.createSlot(start, end, price, recurrenceRule, recurrenceCount, extras);
+            }
             await onReloadSlots();
             await onReloadPendingRequests();
-            toast.success(recurrenceRule ? 'Serie de citas creada exitosamente' : 'Cita creada exitosamente');
+            toast.success(extras?.patientId ? 'Cita asignada exitosamente' : recurrenceRule ? 'Serie de citas creada exitosamente' : 'Cita creada exitosamente');
           } catch (e: any) {
             toast.error('No se pudo crear la cita. Inténtalo de nuevo.');
           }
