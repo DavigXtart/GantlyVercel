@@ -46,6 +46,19 @@ export default function PsychCalendarTab({
   const [cancelAppointmentId, setCancelAppointmentId] = useState<number | null>(null);
   const [deleteAbsenceId, setDeleteAbsenceId] = useState<number | null>(null);
 
+  // New appointment modal state
+  const [showNewAppointment, setShowNewAppointment] = useState(false);
+  const [newAptPatientId, setNewAptPatientId] = useState<number | ''>('');
+  const [newAptDate, setNewAptDate] = useState('');
+  const [newAptTime, setNewAptTime] = useState('09:00');
+  const [newAptDuration, setNewAptDuration] = useState(50);
+  const [newAptServiceIdx, setNewAptServiceIdx] = useState<number | ''>('');
+  const [newAptModality, setNewAptModality] = useState<'ONLINE' | 'PRESENCIAL'>('PRESENCIAL');
+  const [newAptOfficeIdx, setNewAptOfficeIdx] = useState<number | ''>('');
+  const [newAptPrice, setNewAptPrice] = useState<number | ''>('');
+  const [newAptNotes, setNewAptNotes] = useState('');
+  const [savingNewApt, setSavingNewApt] = useState(false);
+
   // Weekly schedule state
   const [showWeeklySchedule, setShowWeeklySchedule] = useState(false);
   const [weeklySchedule, setWeeklySchedule] = useState<DaySchedule[]>([]);
@@ -123,12 +136,83 @@ export default function PsychCalendarTab({
     }
   };
 
+  // Parse services and offices from profile
+  const profileServices: Array<{ name: string; price: number; durationMinutes: number }> = (() => {
+    try { return psychologistProfile?.services ? JSON.parse(psychologistProfile.services) : []; } catch { return []; }
+  })();
+  const profileOffices: Array<{ name: string; color: string }> = (() => {
+    try { return psychologistProfile?.offices ? JSON.parse(psychologistProfile.offices) : []; } catch { return []; }
+  })();
+
+  const APT_TIME_OPTIONS: string[] = [];
+  for (let h = 7; h <= 22; h++) {
+    for (let m = 0; m < 60; m += 30) {
+      if (h === 22 && m > 0) break;
+      APT_TIME_OPTIONS.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+    }
+  }
+
+  const handleCreateAppointment = async () => {
+    if (!newAptPatientId || !newAptDate) {
+      toast.warning('Selecciona un paciente y una fecha');
+      return;
+    }
+    const [year, month, day] = newAptDate.split('-').map(Number);
+    const [hour, minute] = newAptTime.split(':').map(Number);
+    const start = new Date(year, month - 1, day, hour, minute);
+    const end = new Date(start.getTime() + newAptDuration * 60 * 1000);
+    const price = newAptPrice !== '' ? Number(newAptPrice) : undefined;
+    const service = newAptServiceIdx !== '' ? profileServices[newAptServiceIdx]?.name : undefined;
+    const officeName = newAptOfficeIdx !== '' ? profileOffices[newAptOfficeIdx]?.name : undefined;
+    const notes = [newAptNotes, officeName ? `Despacho: ${officeName}` : ''].filter(Boolean).join(' | ') || undefined;
+
+    setSavingNewApt(true);
+    try {
+      await calendarService.createForPatient(
+        Number(newAptPatientId),
+        start.toISOString(),
+        end.toISOString(),
+        price,
+        { service, modality: newAptModality, notes }
+      );
+      toast.success('Cita creada exitosamente');
+      setShowNewAppointment(false);
+      // Reset form
+      setNewAptPatientId('');
+      setNewAptDate('');
+      setNewAptTime('09:00');
+      setNewAptDuration(50);
+      setNewAptServiceIdx('');
+      setNewAptModality('PRESENCIAL');
+      setNewAptOfficeIdx('');
+      setNewAptPrice('');
+      setNewAptNotes('');
+      await onReloadSlots();
+    } catch (e: any) {
+      const msg = e.response?.data?.message || e.response?.data?.error || 'No se pudo crear la cita';
+      toast.error(msg);
+    } finally {
+      setSavingNewApt(false);
+    }
+  };
+
   if (loadingSlots) {
     return <LoadingSpinner />;
   }
 
   return (
     <div>
+      {/* Nueva cita button */}
+      <div className="mb-4 flex justify-end">
+        <button
+          onClick={() => setShowNewAppointment(true)}
+          className="flex items-center gap-1.5 px-4 py-2 bg-gantly-blue text-white rounded-md text-sm font-medium cursor-pointer border-none hover:bg-gantly-blue/90 transition-colors duration-200"
+        >
+          <Plus size={15} />
+          Nueva cita
+        </button>
+      </div>
+
       <CalendarWeek
         mode="PSYCHO"
         slots={slots}
@@ -623,6 +707,186 @@ export default function PsychCalendarTab({
             className="px-4 py-2 bg-gantly-blue text-white rounded-md text-sm font-medium cursor-pointer border-none hover:bg-gantly-blue/90 transition-colors duration-200 disabled:opacity-60"
           >
             {savingAbsence ? 'Guardando...' : 'Registrar ausencia'}
+          </button>
+        </div>
+      </Modal>
+
+      {/* Modal nueva cita */}
+      <Modal
+        open={showNewAppointment}
+        onClose={() => setShowNewAppointment(false)}
+        title="Nueva cita"
+        maxWidth="max-w-[520px]"
+      >
+        <div className="flex flex-col gap-3">
+          {/* Paciente */}
+          <div>
+            <label className="block mb-1 text-[11px] text-slate-500 font-medium">Paciente <span className="text-red-500">*</span></label>
+            <select
+              value={newAptPatientId}
+              onChange={e => setNewAptPatientId(e.target.value ? Number(e.target.value) : '')}
+              className="w-full h-9 px-3 rounded-md border border-slate-200 text-sm text-slate-700 bg-white outline-none focus:border-gantly-blue cursor-pointer"
+            >
+              <option value="">Seleccionar paciente</option>
+              {patients.filter((p: any) => p.status !== 'DISCHARGED').map((p: any) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Fecha + Hora */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block mb-1 text-[11px] text-slate-500 font-medium">Fecha <span className="text-red-500">*</span></label>
+              <input
+                type="date"
+                value={newAptDate}
+                onChange={e => setNewAptDate(e.target.value)}
+                className="w-full h-9 px-3 rounded-md border border-slate-200 text-sm outline-none focus:border-gantly-blue"
+              />
+            </div>
+            <div>
+              <label className="block mb-1 text-[11px] text-slate-500 font-medium">Hora</label>
+              <select
+                value={newAptTime}
+                onChange={e => setNewAptTime(e.target.value)}
+                className="w-full h-9 px-3 rounded-md border border-slate-200 text-sm text-slate-700 bg-white outline-none focus:border-gantly-blue cursor-pointer"
+              >
+                {APT_TIME_OPTIONS.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Duración + Servicio */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block mb-1 text-[11px] text-slate-500 font-medium">Duración</label>
+              <select
+                value={newAptDuration}
+                onChange={e => setNewAptDuration(Number(e.target.value))}
+                className="w-full h-9 px-3 rounded-md border border-slate-200 text-sm text-slate-700 bg-white outline-none focus:border-gantly-blue cursor-pointer"
+              >
+                {[30, 45, 50, 60, 90].map(d => (
+                  <option key={d} value={d}>{d} min</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block mb-1 text-[11px] text-slate-500 font-medium">Servicio</label>
+              <select
+                value={newAptServiceIdx}
+                onChange={e => {
+                  const idx = e.target.value !== '' ? Number(e.target.value) : '';
+                  setNewAptServiceIdx(idx);
+                  if (idx !== '' && profileServices[idx]) {
+                    setNewAptPrice(profileServices[idx].price);
+                    setNewAptDuration(profileServices[idx].durationMinutes);
+                  }
+                }}
+                className="w-full h-9 px-3 rounded-md border border-slate-200 text-sm text-slate-700 bg-white outline-none focus:border-gantly-blue cursor-pointer"
+              >
+                <option value="">Sin servicio</option>
+                {profileServices.map((s, i) => (
+                  <option key={i} value={i}>{s.name} ({s.price}€)</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Modalidad + Despacho/Precio */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block mb-1 text-[11px] text-slate-500 font-medium">Modalidad</label>
+              <div className="flex gap-1 bg-slate-100 rounded-md p-0.5">
+                {(['PRESENCIAL', 'ONLINE'] as const).map(m => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => { setNewAptModality(m); if (m === 'ONLINE') setNewAptOfficeIdx(''); }}
+                    className={`flex-1 py-1.5 text-[12px] font-medium rounded cursor-pointer transition-all duration-200 border-none ${
+                      newAptModality === m
+                        ? 'bg-white text-slate-800 shadow-sm'
+                        : 'bg-transparent text-slate-500'
+                    }`}
+                  >
+                    {m === 'PRESENCIAL' ? 'Presencial' : 'Online'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {newAptModality === 'PRESENCIAL' && profileOffices.length > 0 ? (
+              <div>
+                <label className="block mb-1 text-[11px] text-slate-500 font-medium">Despacho</label>
+                <select
+                  value={newAptOfficeIdx}
+                  onChange={e => setNewAptOfficeIdx(e.target.value !== '' ? Number(e.target.value) : '')}
+                  className="w-full h-9 px-3 rounded-md border border-slate-200 text-sm text-slate-700 bg-white outline-none focus:border-gantly-blue cursor-pointer"
+                >
+                  <option value="">Sin despacho</option>
+                  {profileOffices.map((o, i) => (
+                    <option key={i} value={i}>{o.name}</option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div>
+                <label className="block mb-1 text-[11px] text-slate-500 font-medium">Precio (€)</label>
+                <input
+                  type="number"
+                  value={newAptPrice}
+                  onChange={e => setNewAptPrice(e.target.value ? Number(e.target.value) : '')}
+                  min={0}
+                  placeholder="0"
+                  className="w-full h-9 px-3 rounded-md border border-slate-200 text-sm outline-none focus:border-gantly-blue"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Precio (when office is shown) */}
+          {newAptModality === 'PRESENCIAL' && profileOffices.length > 0 && (
+            <div>
+              <label className="block mb-1 text-[11px] text-slate-500 font-medium">Precio (€)</label>
+              <input
+                type="number"
+                value={newAptPrice}
+                onChange={e => setNewAptPrice(e.target.value ? Number(e.target.value) : '')}
+                min={0}
+                placeholder="0"
+                className="w-full h-9 px-3 rounded-md border border-slate-200 text-sm outline-none focus:border-gantly-blue"
+              />
+            </div>
+          )}
+
+          {/* Notas */}
+          <div>
+            <label className="block mb-1 text-[11px] text-slate-500 font-medium">Notas (opcional)</label>
+            <textarea
+              value={newAptNotes}
+              onChange={e => setNewAptNotes(e.target.value)}
+              rows={2}
+              maxLength={500}
+              placeholder="Notas sobre la cita..."
+              className="w-full px-3 py-2 rounded-md border border-slate-200 text-sm outline-none resize-none focus:border-gantly-blue focus:ring-1 focus:ring-gantly-blue/20"
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-3 justify-end mt-5">
+          <button
+            onClick={() => setShowNewAppointment(false)}
+            className="px-4 py-2 border border-slate-200 text-slate-600 rounded-md text-sm font-medium hover:bg-slate-50 transition-colors duration-200 cursor-pointer bg-white"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleCreateAppointment}
+            disabled={savingNewApt}
+            className="px-4 py-2 bg-gantly-blue text-white rounded-md text-sm font-medium cursor-pointer border-none hover:bg-gantly-blue/90 transition-colors duration-200 disabled:opacity-60"
+          >
+            {savingNewApt ? 'Creando...' : 'Crear cita'}
           </button>
         </div>
       </Modal>

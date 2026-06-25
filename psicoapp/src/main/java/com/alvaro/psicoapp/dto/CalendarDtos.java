@@ -73,6 +73,9 @@ public class CalendarDtos {
         @NotNull(message = "La fecha de fin es requerida")
         public Instant end;
         public BigDecimal price;
+        public String service;
+        public String modality;
+        public String notes;
     }
 
     public static class RateAppointmentRequest {

@@ -55,7 +55,7 @@ frontend/src/
 ├── components/                (60+ .tsx components)
 │   ├── Auth: Login, Register, ForgotPassword, ResetPassword
 │   ├── Dashboards: UserDashboard, PsychDashboard, AdminPanel, ClinicDashboard
-│   ├── Dashboard Tabs: Psych* (6 tabs), User* (3 tabs)
+│   ├── Dashboard Tabs: Psych* (7 tabs incl. PsychSettingsTab), User* (3 tabs)
 │   ├── Flows: TestFlow, InitialTestFlow, AgendaPersonal, PatientMatchingTest
 │   ├── Landing (modular): 12 section components + shared/ utilities
 │   └── UI: ChatWidget, CalendarWeek, Modal, ConfirmDialog, SignaturePad

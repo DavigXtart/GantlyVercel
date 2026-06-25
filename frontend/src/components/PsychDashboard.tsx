@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, UsersRound, CheckSquare, Brain, Calendar, MessageCircle, History, Receipt, FileCheck, LogOut, X, Menu, type LucideIcon } from 'lucide-react';
+import { Home, UsersRound, CheckSquare, Brain, Calendar, MessageCircle, History, Receipt, FileCheck, Settings, LogOut, X, Menu, type LucideIcon } from 'lucide-react';
 import api, { profileService, psychService, calendarService, tasksService, assignedTestsService, testService, resultsService, matchingService, jitsiService } from '../services/api';
 import NotificationBell from './ui/NotificationBell';
 import JitsiVideoCall from './JitsiVideoCall';
@@ -25,8 +25,9 @@ import PsychChatTab from './PsychChatTab';
 import PsychPatientProfileView from './PsychPatientProfileView';
 import PsychTestDetailsView from './PsychTestDetailsView';
 import PsychConsentTab from './PsychConsentTab';
+import PsychSettingsTab from './PsychSettingsTab';
 
-type Tab = 'perfil' | 'pacientes' | 'calendario' | 'tareas' | 'chat' | 'citas-pasadas' | 'tests-asignados' | 'patient-profile' | 'test-details' | 'editar-perfil-profesional' | 'matching-test' | 'facturacion' | 'consentimientos';
+type Tab = 'perfil' | 'pacientes' | 'calendario' | 'tareas' | 'chat' | 'citas-pasadas' | 'tests-asignados' | 'patient-profile' | 'test-details' | 'editar-perfil-profesional' | 'matching-test' | 'facturacion' | 'consentimientos' | 'ajustes';
 
 export default function PsychDashboard() {
   const navigate = useNavigate();
@@ -401,6 +402,7 @@ export default function PsychDashboard() {
     history: History,
     receipt_long: Receipt,
     file_check: FileCheck,
+    settings: Settings,
   };
 
   const tabGroups = [
@@ -428,12 +430,18 @@ export default function PsychDashboard() {
         { id: 'facturacion', label: 'Facturacion', icon: 'receipt_long' },
       ],
     },
+    {
+      group: 'Cuenta',
+      items: [
+        { id: 'ajustes', label: 'Ajustes', icon: 'settings' },
+      ],
+    },
   ];
 
   const mainTabs = tabGroups.flatMap(g => g.items);
 
   const activeTabGroup = (() => {
-    if (tab === 'editar-perfil-profesional' || tab === 'matching-test') return 'perfil';
+    if (tab === 'editar-perfil-profesional' || tab === 'matching-test') return 'ajustes';
     if (tab === 'patient-profile') return 'pacientes';
     if (tab === 'test-details') return 'tests-asignados';
     return tab;
@@ -552,6 +560,7 @@ export default function PsychDashboard() {
                 PAYMENT: 'facturacion',
                 REMINDER: 'calendario',
                 MESSAGE: 'chat',
+                CLINIC_CHAT: 'chat',
                 APPROVAL: 'perfil',
                 CRISIS: 'pacientes',
                 WARNING: 'perfil',
@@ -749,6 +758,10 @@ export default function PsychDashboard() {
 
           {tab === 'consentimientos' && (
             <PsychConsentTab patients={patients} />
+          )}
+
+          {tab === 'ajustes' && (
+            <PsychSettingsTab />
           )}
 
           {tab === 'facturacion' && (

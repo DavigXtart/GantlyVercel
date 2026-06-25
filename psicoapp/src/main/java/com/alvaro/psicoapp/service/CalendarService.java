@@ -484,6 +484,9 @@ public class CalendarService {
         appointment.setEndTime(req.end);
         appointment.setStatus(AppointmentStatusEnum.CONFIRMED);
         appointment.setPrice(req.price);
+        if (req.service != null && !req.service.isBlank()) appointment.setService(req.service);
+        if (req.modality != null && !req.modality.isBlank()) appointment.setModality(req.modality);
+        if (req.notes != null && !req.notes.isBlank()) appointment.setNotes(req.notes);
         calculateTax(appointment);
         Instant now = Instant.now();
         appointment.setConfirmedAt(now);

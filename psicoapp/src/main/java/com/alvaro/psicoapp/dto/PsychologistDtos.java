@@ -98,6 +98,8 @@ public final class PsychologistDtos {
             String linkedinUrl,
             String website,
             String sessionPrices,
+            String services,
+            String offices,
             Instant updatedAt,
             Boolean approved,
             String rejectionReason
@@ -113,7 +115,9 @@ public final class PsychologistDtos {
             String languages,
             String linkedinUrl,
             String website,
-            String sessionPrices
+            String sessionPrices,
+            String services,
+            String offices
     ) {}
 
     public record UpdateIsFullRequest(Boolean isFull) {}

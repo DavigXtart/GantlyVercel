@@ -215,6 +215,8 @@ public class PsychologistService {
                 profile.map(PsychologistProfileEntity::getLinkedinUrl).orElse(null),
                 profile.map(PsychologistProfileEntity::getWebsite).orElse(null),
                 profile.map(PsychologistProfileEntity::getSessionPrices).orElse(null),
+                profile.map(PsychologistProfileEntity::getServices).orElse(null),
+                profile.map(PsychologistProfileEntity::getOffices).orElse(null),
                 profile.map(PsychologistProfileEntity::getUpdatedAt).orElse(null),
                 profile.map(PsychologistProfileEntity::getApproved).orElse(false),
                 profile.map(PsychologistProfileEntity::getRejectionReason).orElse(null)
@@ -241,6 +243,8 @@ public class PsychologistService {
         if (req.linkedinUrl() != null) profile.setLinkedinUrl(req.linkedinUrl());
         if (req.website() != null) profile.setWebsite(req.website());
         if (req.sessionPrices() != null) profile.setSessionPrices(req.sessionPrices());
+        if (req.services() != null) profile.setServices(req.services());
+        if (req.offices() != null) profile.setOffices(req.offices());
         profile.setUpdatedAt(Instant.now());
         psychologistProfileRepository.save(profile);
         return new PsychologistDtos.MessageResponse("Perfil actualizado exitosamente");

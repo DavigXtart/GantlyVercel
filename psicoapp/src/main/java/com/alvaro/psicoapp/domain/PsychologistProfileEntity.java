@@ -44,6 +44,12 @@ public class PsychologistProfileEntity {
     @Column(name = "session_prices", columnDefinition = "TEXT")
     private String sessionPrices;
 
+    @Column(name = "services", columnDefinition = "TEXT")
+    private String services; // JSON: [{"name":"Terapia individual","price":60,"durationMinutes":50}]
+
+    @Column(name = "offices", columnDefinition = "TEXT")
+    private String offices; // JSON: [{"name":"Despacho 1","color":"#2E93CC"}]
+
     @Column(name = "approved")
     private Boolean approved = false;
 
@@ -83,6 +89,10 @@ public class PsychologistProfileEntity {
     public void setWebsite(String website) { this.website = website; }
     public String getSessionPrices() { return sessionPrices; }
     public void setSessionPrices(String sessionPrices) { this.sessionPrices = sessionPrices; }
+    public String getServices() { return services; }
+    public void setServices(String services) { this.services = services; }
+    public String getOffices() { return offices; }
+    public void setOffices(String offices) { this.offices = offices; }
     public Boolean getApproved() { return approved; }
     public void setApproved(Boolean approved) { this.approved = approved; }
     public Instant getApprovedAt() { return approvedAt; }

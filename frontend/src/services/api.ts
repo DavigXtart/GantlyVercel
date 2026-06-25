@@ -760,8 +760,8 @@ export const calendarService = {
     const { data } = await api.post(`/calendar/cancel/${appointmentId}`);
     return data;
   },
-  createForPatient: async (userId: number, start: string, end: string, price?: number) => {
-    const { data } = await api.post('/calendar/create-for-patient', { userId, start, end, price });
+  createForPatient: async (userId: number, start: string, end: string, price?: number, extras?: { service?: string; modality?: string; notes?: string }) => {
+    const { data } = await api.post('/calendar/create-for-patient', { userId, start, end, price, ...extras });
     return data;
   },
   deleteSlot: async (appointmentId: number) => {
@@ -896,6 +896,8 @@ export const psychService = {
     linkedinUrl?: string;
     website?: string;
     sessionPrices?: string;
+    services?: string;
+    offices?: string;
   }) => {
     const { data } = await api.put('/psych/profile', profile);
     return data;
