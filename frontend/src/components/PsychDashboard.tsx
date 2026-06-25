@@ -441,7 +441,7 @@ export default function PsychDashboard() {
   const mainTabs = tabGroups.flatMap(g => g.items);
 
   const activeTabGroup = (() => {
-    if (tab === 'editar-perfil-profesional' || tab === 'matching-test') return 'ajustes';
+    if (tab === 'editar-perfil-profesional' || tab === 'matching-test') return 'perfil';
     if (tab === 'patient-profile') return 'pacientes';
     if (tab === 'test-details') return 'tests-asignados';
     return tab;

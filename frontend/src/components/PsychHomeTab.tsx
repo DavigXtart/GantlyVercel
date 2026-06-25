@@ -121,7 +121,7 @@ export default function PsychHomeTab({
                   type="button"
                   onClick={async () => {
                     await onLoadPsychologistProfile();
-                    onNavigateTab('ajustes');
+                    onNavigateTab('editar-perfil-profesional');
                   }}
                   className="bg-white/15 hover:bg-white/25 text-white backdrop-blur-sm rounded-xl px-4 py-2 text-sm font-heading font-semibold cursor-pointer transition-all duration-200 border border-white/20 flex items-center gap-2"
                 >
