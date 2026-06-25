@@ -422,6 +422,7 @@ export default function UserDashboard({ onStartTest }: UserDashboardProps = {}) 
                 REMINDER: 'mis-citas',
                 MESSAGE: 'chat',
                 CLINIC_CHAT: 'clinica',
+                WAITING_LIST: 'mis-citas',
                 APPROVAL: 'perfil',
                 CRISIS: 'perfil',
                 WARNING: 'perfil',

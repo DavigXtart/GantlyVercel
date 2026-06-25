@@ -92,15 +92,15 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
         }`}
         style={{ backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
       >
-        <div className="flex items-center justify-between px-5 py-3">
+        <div className="flex items-center px-5 py-3">
           <img
             src={LogoSvg}
             alt="Gantly"
-            className={`h-7 cursor-pointer transition-all duration-300 ${scrolled ? '' : 'brightness-0 invert'}`}
+            className={`h-7 cursor-pointer transition-all duration-300 flex-shrink-0 ${scrolled ? '' : 'brightness-0 invert'}`}
             onClick={onBack}
           />
 
-          <ul className="hidden lg:flex items-center gap-7">
+          <ul className="hidden lg:flex items-center gap-7 flex-1 justify-center">
             {[
               { label: 'Ventajas', id: 'ventajas' },
               { label: 'Como funciona', id: 'pasos' },
@@ -119,7 +119,7 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
             ))}
           </ul>
 
-          <div className="hidden lg:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
             <button
               onClick={onLogin}
               className={`text-[15px] font-semibold font-body transition-colors px-5 py-2 rounded-xl border cursor-pointer ${
@@ -214,23 +214,11 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
             <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
               {/* Left — Copy */}
               <div>
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gantly-blue/8 border border-gantly-blue/15 mb-6"
-                >
-                  <Brain size={14} className="text-gantly-blue" />
-                  <span className="text-xs font-semibold font-body text-gantly-blue tracking-wide uppercase">
-                    Para profesionales
-                  </span>
-                </motion.div>
-
                 <motion.h1
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.35, ease: 'easeOut' }}
-                  className="font-heading text-4xl sm:text-5xl lg:text-[3.5rem] font-bold text-[#0A1628] leading-[1.12] mb-5"
+                  transition={{ duration: 0.6, delay: 0.25, ease: 'easeOut' }}
+                  className="font-heading text-4xl sm:text-5xl lg:text-[3.5rem] font-bold text-[#0A1628] leading-[1.1] tracking-tight mb-5"
                 >
                   Haz crecer tu practica clinica con Gantly
                 </motion.h1>
@@ -238,8 +226,8 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
                 <motion.p
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.55 }}
-                  className="font-body text-lg text-slate-500 leading-relaxed mb-8 max-w-lg"
+                  transition={{ duration: 0.5, delay: 0.45 }}
+                  className="font-body text-lg text-slate-600 leading-[1.7] mb-8 max-w-lg"
                 >
                   Dedicarte a lo que importa: tus pacientes. Nosotros nos encargamos de la agenda, los pagos, la tecnologia y la seguridad.
                 </motion.p>
@@ -282,7 +270,7 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
                     </div>
                     <div>
                       <p className="font-heading font-semibold text-[15px] text-[#0A1628]">Plataforma verificada</p>
-                      <p className="font-body text-xs text-slate-400">Código de Buenas Prácticas COP Madrid</p>
+                      <p className="font-body text-xs text-slate-500">Código de Buenas Prácticas COP Madrid</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -319,10 +307,10 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
       <SectionWrapper id="ventajas">
         <div className="text-center mb-16">
           <ScrollReveal>
-            <h2 className="font-heading text-3xl lg:text-5xl font-bold text-gantly-text mb-4">
+            <h2 className="font-heading text-3xl lg:text-[2.75rem] font-bold text-gantly-text mb-4 tracking-tight">
               Todo lo que necesitas, en un solo lugar
             </h2>
-            <p className="font-body text-lg text-slate-500 max-w-2xl mx-auto">
+            <p className="font-body text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
               Herramientas disenadas para que te centres en la terapia mientras Gantly gestiona el resto.
             </p>
           </ScrollReveal>
@@ -340,10 +328,10 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
                   >
                     <Icon size={22} style={{ color: card.color }} />
                   </div>
-                  <h3 className="font-heading text-lg font-semibold text-gantly-text mb-2">
+                  <h3 className="font-heading text-[17px] font-semibold text-gantly-text mb-2">
                     {card.title}
                   </h3>
-                  <p className="font-body text-sm text-slate-500 leading-relaxed">
+                  <p className="font-body text-[15px] text-slate-600 leading-[1.65]">
                     {card.desc}
                   </p>
                 </div>
@@ -367,10 +355,10 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
         <div className="relative">
           <div className="text-center mb-16">
             <ScrollReveal>
-              <h2 className="font-heading text-3xl lg:text-5xl font-bold text-white mb-4">
+              <h2 className="font-heading text-3xl lg:text-[2.75rem] font-bold text-white mb-4 tracking-tight">
                 Empieza en tres pasos
               </h2>
-              <p className="font-body text-lg text-white/50">
+              <p className="font-body text-lg text-white/60 leading-relaxed">
                 El proceso es rapido, seguro y 100% online.
               </p>
             </ScrollReveal>
@@ -390,7 +378,7 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
                       <h3 className="font-heading text-lg font-semibold text-white mb-2">
                         {step.title}
                       </h3>
-                      <p className="font-body text-sm text-white/60 leading-relaxed">
+                      <p className="font-body text-[15px] text-white/65 leading-[1.65]">
                         {step.desc}
                       </p>
                     </GlowCard>
@@ -406,10 +394,10 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
       <SectionWrapper id="requisitos">
         <div className="grid md:grid-cols-2 gap-16 items-center max-w-5xl mx-auto">
           <ScrollReveal direction="left">
-            <h2 className="font-heading text-3xl lg:text-5xl font-bold text-gantly-text mb-4">
+            <h2 className="font-heading text-3xl lg:text-[2.75rem] font-bold text-gantly-text mb-4 tracking-tight">
               ¿Qué necesitas para unirte?
             </h2>
-            <p className="font-body text-lg text-slate-500 mb-8 leading-relaxed">
+            <p className="font-body text-lg text-slate-600 mb-8 leading-[1.7]">
               Verificaremos que cumples los requisitos esenciales para ejercer legalmente como psicólogo sanitario online.
             </p>
             <div className="flex flex-col gap-4">
@@ -423,7 +411,7 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
                   className="flex items-center gap-3"
                 >
                   <CheckCircle2 size={20} className="text-gantly-emerald flex-shrink-0" />
-                  <span className="font-body text-base text-gantly-text">{req}</span>
+                  <span className="font-body text-[15px] text-slate-700">{req}</span>
                 </motion.div>
               ))}
             </div>
@@ -448,7 +436,7 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-3">
                     <div className="w-1.5 h-1.5 rounded-full bg-gantly-blue mt-2 flex-shrink-0" />
-                    <span className="font-body text-sm text-slate-500">{item}</span>
+                    <span className="font-body text-[15px] text-slate-600">{item}</span>
                   </li>
                 ))}
               </ul>
@@ -469,10 +457,10 @@ export default function SoyProfesional({ onBack, onLogin, onGetStarted, onRegist
 
         <div className="relative z-10 mx-auto max-w-3xl px-6 text-center">
           <ScrollReveal>
-            <h2 className="font-heading text-4xl lg:text-5xl font-bold text-white mb-4">
+            <h2 className="font-heading text-4xl lg:text-5xl font-bold text-white mb-4 tracking-tight">
               Tu consultorio, sin límites
             </h2>
-            <p className="font-body text-lg text-white/50 mb-10 max-w-xl mx-auto">
+            <p className="font-body text-lg text-white/60 mb-10 max-w-xl mx-auto leading-relaxed">
               Únete a la comunidad de profesionales que ya confían en Gantly para transformar su práctica clínica.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">

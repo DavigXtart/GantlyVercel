@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { companyAuthService } from '../services/api';
 import FormField from './ui/FormField';
 import { Building2, Users, BarChart3, Mail, Shield, CheckCircle } from 'lucide-react';
+import LogoSvg from '../assets/logo-gantly.svg';
 
 interface RegisterCompanyProps {
   onBack: () => void;
@@ -10,6 +12,7 @@ interface RegisterCompanyProps {
 }
 
 export default function RegisterCompany({ onBack, onLogin, onSuccess }: RegisterCompanyProps) {
+  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -56,9 +59,12 @@ export default function RegisterCompany({ onBack, onLogin, onSuccess }: Register
       <div className="w-full max-w-[1000px] grid grid-cols-1 md:grid-cols-[minmax(300px,1fr)_minmax(320px,1fr)] gap-12 relative z-[1]">
         {/* Panel izquierdo - Información */}
         <div className="bg-white/90 border border-gantly-blue-100 rounded-2xl p-12 flex flex-col gap-6 shadow-card">
-          <div className="font-heading text-[32px] font-bold text-gantly-blue-500 tracking-tight mb-2">
-            Gantly
-          </div>
+          <img
+            src={LogoSvg}
+            alt="Gantly"
+            className="h-8 cursor-pointer mb-2"
+            onClick={() => navigate('/')}
+          />
           <h1 className="m-0 text-4xl leading-tight text-gantly-text font-heading font-bold">
             Gestiona tu clínica
           </h1>

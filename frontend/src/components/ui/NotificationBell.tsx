@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { notificationService } from '../../services/api';
-import { Bell, CheckSquare, CalendarDays, MessageCircle, Siren, AlarmClock, CreditCard, ShieldCheck, AlertTriangle, BellDot, Building2, type LucideIcon } from 'lucide-react';
+import { Bell, CheckSquare, CalendarDays, MessageCircle, Siren, AlarmClock, CreditCard, ShieldCheck, AlertTriangle, BellDot, Building2, ChevronRight, Clock, type LucideIcon } from 'lucide-react';
 
 interface Notification {
   id: number;
@@ -96,6 +96,7 @@ export default function NotificationBell({ onNavigate }: NotificationBellProps =
     APPROVAL: ShieldCheck,
     WARNING: AlertTriangle,
     CLINIC_CHAT: Building2,
+    WAITING_LIST: Clock,
   };
 
   return (
@@ -157,9 +158,14 @@ export default function NotificationBell({ onNavigate }: NotificationBellProps =
                     <p className="text-xs text-slate-500 truncate m-0">{n.message}</p>
                     <p className="text-[10px] text-slate-500 mt-1 m-0">{timeAgo(n.createdAt)}</p>
                   </div>
-                  {!n.read && (
-                    <span className="w-2 h-2 rounded-full bg-gantly-blue mt-2 flex-shrink-0" />
-                  )}
+                  <div className="flex flex-col items-center gap-1 flex-shrink-0 ml-1">
+                    {!n.read && (
+                      <span className="w-2 h-2 rounded-full bg-gantly-blue" />
+                    )}
+                    {onNavigate && (
+                      <ChevronRight className="text-slate-300" size={14} />
+                    )}
+                  </div>
                 </button>
               ))
             )}

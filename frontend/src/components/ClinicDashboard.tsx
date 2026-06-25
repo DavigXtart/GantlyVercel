@@ -12,6 +12,7 @@ import ClinicWaitingList from './ClinicWaitingList';
 import ClinicReports from './ClinicReports';
 import AuditLogViewer from './AuditLogViewer';
 import ConfirmDialog from './ui/ConfirmDialog';
+import NotificationBell from './ui/NotificationBell';
 import LogoSvg from '../assets/logo-gantly.svg';
 import {
   Building2, Users, Calendar, UsersRound, Receipt, BarChart3, Settings, Home,
@@ -1603,6 +1604,22 @@ export default function ClinicDashboard() {
             {currentTabLabel}
           </h2>
           <div className="flex-1" />
+          <NotificationBell onNavigate={(type) => {
+            const tabMap: Record<string, NavTab> = {
+              APPOINTMENT: 'agenda',
+              PAYMENT: 'facturacion',
+              REMINDER: 'agenda',
+              MESSAGE: 'pacientes',
+              CLINIC_CHAT: 'pacientes',
+              WAITING_LIST: 'lista-espera',
+              APPROVAL: 'configuracion',
+              WARNING: 'configuracion',
+              TASK: 'inicio',
+              CRISIS: 'pacientes',
+            };
+            const target = tabMap[type];
+            if (target) setActiveTab(target);
+          }} />
         </header>
 
         {/* Pacientes renders full-bleed (no padding wrapper) */}
