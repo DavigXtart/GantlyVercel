@@ -898,6 +898,8 @@ export const psychService = {
     sessionPrices?: string;
     services?: string;
     offices?: string;
+    defaultService?: string;
+    defaultPrice?: string;
   }) => {
     const { data } = await api.put('/psych/profile', profile);
     return data;

@@ -32,6 +32,7 @@ type Props = {
   sessionPrices?: SessionPrices | null; // Precios predefinidos del psicólogo
   patients?: Patient[]; // Lista de pacientes para asignar citas directamente
   absences?: Absence[]; // Periodos de ausencia del psicologo
+  psychologistProfile?: any; // Para pre-rellenar servicio y precio por defecto
 };
 
 function startOfWeek(d: Date) {
@@ -44,7 +45,7 @@ function startOfWeek(d: Date) {
 
 function addDays(d: Date, n: number) { const x = new Date(d); x.setDate(x.getDate()+n); return x; }
 
-export default function CalendarWeek({ mode, slots, myAppointments = [], onCreateSlot, onCreateSlotsRange, onBook, onDeleteSlot, onDeleteRecurrenceGroup, onUpdateSlot, onAssignToPatient, initialWeekStart, onWeekChange, sessionPrices, patients = [], absences = [] }: Props) {
+export default function CalendarWeek({ mode, slots, myAppointments = [], onCreateSlot, onCreateSlotsRange, onBook, onDeleteSlot, onDeleteRecurrenceGroup, onUpdateSlot, onAssignToPatient, initialWeekStart, onWeekChange, sessionPrices, patients = [], absences = [], psychologistProfile }: Props) {
   const [weekStart, setWeekStart] = useState(initialWeekStart || startOfWeek(new Date()));
   const [savedWeekStart, setSavedWeekStart] = useState<Date | null>(null); // Guardar semana al abrir modal (solo para cancelar)
 
@@ -357,6 +358,13 @@ export default function CalendarWeek({ mode, slots, myAppointments = [], onCreat
         setPanelSessionType(singleType);
         const price = sessionPrices[singleType];
         if (price) setPanelPrice(price.toString());
+      }
+      // Pre-fill defaults from profile
+      if (psychologistProfile?.defaultService) {
+        setPanelService(psychologistProfile.defaultService);
+      }
+      if (psychologistProfile?.defaultPrice) {
+        setPanelPrice(String(psychologistProfile.defaultPrice));
       }
     } else if (mode === 'edit' && slot) {
       setPanelPrice(slot.price?.toString() || '');

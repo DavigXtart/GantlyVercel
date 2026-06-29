@@ -205,7 +205,18 @@ export default function PsychCalendarTab({
       {/* Nueva cita button */}
       <div className="mb-4 flex justify-end">
         <button
-          onClick={() => setShowNewAppointment(true)}
+          onClick={() => {
+            // Pre-fill defaults from profile
+            if (psychologistProfile?.defaultPrice) {
+              setNewAptPrice(Number(psychologistProfile.defaultPrice));
+            }
+            if (psychologistProfile?.defaultService) {
+              const profileServices = (() => { try { return psychologistProfile?.services ? JSON.parse(psychologistProfile.services) : []; } catch { return []; } })();
+              const idx = profileServices.findIndex((s: any) => s.name === psychologistProfile.defaultService);
+              if (idx >= 0) setNewAptServiceIdx(idx);
+            }
+            setShowNewAppointment(true);
+          }}
           className="flex items-center gap-1.5 px-4 py-2 bg-gantly-blue text-white rounded-md text-sm font-medium cursor-pointer border-none hover:bg-gantly-blue/90 transition-colors duration-200"
         >
           <Plus size={15} />
@@ -220,6 +231,7 @@ export default function PsychCalendarTab({
         initialWeekStart={calendarWeekStart || undefined}
         onWeekChange={onCalendarWeekChange}
         sessionPrices={psychologistProfile?.sessionPrices ? JSON.parse(psychologistProfile.sessionPrices) : null}
+        psychologistProfile={psychologistProfile}
         patients={patients.map((p: any) => ({ id: p.id, name: p.name, email: p.email }))}
         onCreateSlot={async (start, end, price, recurrenceRule, recurrenceCount, extras) => {
           try {

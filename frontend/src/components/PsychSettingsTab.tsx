@@ -25,6 +25,8 @@ export default function PsychSettingsTab() {
   const [offices, setOffices] = useState<OfficeItem[]>([]);
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [defaultService, setDefaultService] = useState('');
+  const [defaultPrice, setDefaultPrice] = useState<number | ''>('');
 
   // Password
   const [currentPassword, setCurrentPassword] = useState('');
@@ -47,6 +49,8 @@ export default function PsychSettingsTab() {
       if (profile.offices) {
         try { setOffices(JSON.parse(profile.offices)); } catch { /* ignore */ }
       }
+      if (profile.defaultService) setDefaultService(profile.defaultService);
+      if (profile.defaultPrice) setDefaultPrice(Number(profile.defaultPrice));
       setLoaded(true);
     } catch {
       toast.error('Error al cargar ajustes');
@@ -56,7 +60,11 @@ export default function PsychSettingsTab() {
   const saveServices = async (updated: ServiceItem[]) => {
     setSaving(true);
     try {
-      await psychService.updateProfile({ services: JSON.stringify(updated) });
+      await psychService.updateProfile({
+        services: JSON.stringify(updated),
+        defaultService,
+        defaultPrice: defaultPrice !== '' ? String(defaultPrice) : undefined,
+      });
       setServices(updated);
       toast.success('Servicios guardados');
     } catch {
@@ -241,19 +249,55 @@ export default function PsychSettingsTab() {
               </div>
             )}
             {services.length > 0 && (
-              <div className="mt-4 flex justify-end">
-                <button
-                  onClick={() => {
-                    const valid = services.filter(s => s.name.trim());
-                    saveServices(valid);
-                  }}
-                  disabled={saving}
-                  className="flex items-center gap-2 px-4 py-2 bg-gantly-blue text-white rounded-md text-sm font-medium cursor-pointer border-none hover:bg-gantly-blue/90 transition-colors duration-200 disabled:opacity-60"
-                >
-                  <Check size={15} />
-                  {saving ? 'Guardando...' : 'Guardar servicios'}
-                </button>
-              </div>
+              <>
+                {/* Defaults section */}
+                <div className="mt-6 pt-4 border-t border-slate-200/80">
+                  <h4 className="text-sm font-semibold text-slate-700 mb-3">Valores por defecto al crear citas</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1">Servicio por defecto</label>
+                      <select
+                        value={defaultService}
+                        onChange={(e) => setDefaultService(e.target.value)}
+                        className="w-full h-9 px-3 rounded-md border border-slate-200 text-sm text-slate-700 bg-white outline-none focus:border-gantly-blue cursor-pointer"
+                      >
+                        <option value="">Ninguno</option>
+                        {services.map((s, i) => (
+                          <option key={i} value={s.name}>{s.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1">Precio por defecto</label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={defaultPrice}
+                          onChange={(e) => setDefaultPrice(e.target.value ? Number(e.target.value) : '')}
+                          placeholder="0"
+                          min="0"
+                          step="5"
+                          className="w-full h-9 px-3 pr-7 rounded-md border border-slate-200 text-sm text-slate-700 outline-none focus:border-gantly-blue"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">€</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 flex justify-end">
+                  <button
+                    onClick={() => {
+                      const valid = services.filter(s => s.name.trim());
+                      saveServices(valid);
+                    }}
+                    disabled={saving}
+                    className="flex items-center gap-2 px-4 py-2 bg-gantly-blue text-white rounded-md text-sm font-medium cursor-pointer border-none hover:bg-gantly-blue/90 transition-colors duration-200 disabled:opacity-60"
+                  >
+                    <Check size={15} />
+                    {saving ? 'Guardando...' : 'Guardar servicios'}
+                  </button>
+                </div>
+              </>
             )}
           </div>
         </div>
