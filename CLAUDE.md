@@ -19,7 +19,7 @@ Plataforma de salud mental que conecta pacientes con psicólogos.
 
 ## Tech Stack
 - **Backend**: Spring Boot 3.4.7, Spring Security, JWT (JJWT 0.11.5), WebSocket STOMP/SockJS, JPA/Hibernate
-- **Frontend**: React 18.3.1, TypeScript 5.6.3, Vite 5.4.10, Tailwind 3.4.18, React Router 7, Axios, Framer Motion, i18next, Stripe JS, GSAP, Three.js/@react-three
+- **Frontend**: React 18.3.1, TypeScript 5.6.3, Vite 5.4.10, Tailwind 3.4.18, React Router 7, Axios, Framer Motion, i18next, Stripe JS
 - **DB**: PostgreSQL 17, 27+ entidades JPA, 43+ tablas
 - **PDF Export**: html2canvas + jsPDF (frontend)
 - **Excel Import**: Apache POI 5.2.5 (backend)
@@ -159,7 +159,7 @@ Ver `.env` (gitignored) para valores actuales. Variables principales:
 - [ ] **DPAs**: Firmar con Stripe, Supabase, Render, Google, Sentry, Hetzner *(legal, no-código)*
 
 ### P1 — Primer mes post-launch
-- [ ] Notas de sesión UI para psicólogos (backend existe, falta frontend)
+- [x] Notas de sesión UI para psicólogos ✅ (chat sidebar + perfil paciente)
 - [ ] Retirada consentimiento Art. 9 (UI + endpoint)
 - [ ] Completar GDPR export (chat messages, clinic docs)
 - [ ] Redactar PII en logs
