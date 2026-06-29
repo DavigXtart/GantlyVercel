@@ -122,13 +122,16 @@ public final class PsychologistDtos {
 
     public record UpdateIsFullRequest(Boolean isFull) {}
 
-    public record UpdatePatientStatusRequest(String status) {}
+    public record UpdatePatientStatusRequest(String status, String reason) {}
 
     public record MessageResponse(String message) {}
 
     public record UpdateIsFullResponse(String message, Boolean isFull) {}
 
     public record UpdatePatientStatusResponse(String message, String status) {}
+
+    public record UpdatePatientNotesRequest(String notes) {}
+    public record PatientNotesResponse(String notes) {}
 
     public record ReferralUrlResponse(String referralCode, String fullUrl) {}
 

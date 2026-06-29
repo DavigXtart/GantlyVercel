@@ -26,6 +26,15 @@ public class UserPsychologistEntity {
     @Column(name = "status", length = 20)
     private String status = "ACTIVE";
 
+    @Column(name = "psychologist_notes", columnDefinition = "TEXT")
+    private String psychologistNotes;
+
+    @Column(name = "discharge_reason", columnDefinition = "TEXT")
+    private String dischargeReason;
+
+    @Column(name = "discharged_at")
+    private Instant dischargedAt;
+
     @PrePersist
     protected void onCreate() {
         if (assignedAt == null) {
@@ -55,4 +64,13 @@ public class UserPsychologistEntity {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public String getPsychologistNotes() { return psychologistNotes; }
+    public void setPsychologistNotes(String psychologistNotes) { this.psychologistNotes = psychologistNotes; }
+
+    public String getDischargeReason() { return dischargeReason; }
+    public void setDischargeReason(String dischargeReason) { this.dischargeReason = dischargeReason; }
+
+    public Instant getDischargedAt() { return dischargedAt; }
+    public void setDischargedAt(Instant dischargedAt) { this.dischargedAt = dischargedAt; }
 }

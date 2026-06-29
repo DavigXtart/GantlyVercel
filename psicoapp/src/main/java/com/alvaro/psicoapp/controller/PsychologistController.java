@@ -117,4 +117,20 @@ public class PsychologistController {
             Principal principal, @PathVariable Long patientId) {
         return ResponseEntity.ok(psychologistService.getPatientTasks(currentUserService.getCurrentUser(principal), patientId));
     }
+
+    @GetMapping("/patients/{patientId}/notes")
+    @Operation(summary = "Obtener notas del psicologo sobre un paciente")
+    public ResponseEntity<PsychologistDtos.PatientNotesResponse> getPatientNotes(
+            Principal principal, @PathVariable Long patientId) {
+        return ResponseEntity.ok(psychologistService.getPatientNotes(currentUserService.getCurrentUser(principal), patientId));
+    }
+
+    @PutMapping("/patients/{patientId}/notes")
+    @Operation(summary = "Actualizar notas del psicologo sobre un paciente")
+    public ResponseEntity<PsychologistDtos.PatientNotesResponse> updatePatientNotes(
+            Principal principal, @PathVariable Long patientId,
+            @RequestBody PsychologistDtos.UpdatePatientNotesRequest req) {
+        return ResponseEntity.ok(psychologistService.updatePatientNotes(currentUserService.getCurrentUser(principal), patientId, req));
+    }
+
 }

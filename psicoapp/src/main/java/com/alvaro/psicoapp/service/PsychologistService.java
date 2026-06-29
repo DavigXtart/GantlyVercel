@@ -275,6 +275,13 @@ public class PsychologistService {
         }
         var rel = relOpt.get();
         rel.setStatus(req.status());
+        if ("DISCHARGED".equals(req.status())) {
+            rel.setDischargeReason(req.reason());
+            rel.setDischargedAt(Instant.now());
+        } else {
+            rel.setDischargeReason(null);
+            rel.setDischargedAt(null);
+        }
         userPsychologistRepository.save(rel);
         return new PsychologistDtos.UpdatePatientStatusResponse("Status del paciente actualizado exitosamente", rel.getStatus());
     }
@@ -400,6 +407,31 @@ public class PsychologistService {
                         t.getCreatedBy()
                 ))
                 .collect(Collectors.toList());
+    }
+
+
+    @Transactional(readOnly = true)
+    public PsychologistDtos.PatientNotesResponse getPatientNotes(UserEntity psychologist, Long patientId) {
+        requirePsychologist(psychologist);
+        var relOpt = userPsychologistRepository.findByUserId(patientId);
+        if (relOpt.isEmpty() || !relOpt.get().getPsychologist().getId().equals(psychologist.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Este usuario no es tu paciente");
+        }
+        String notes = relOpt.get().getPsychologistNotes();
+        return new PsychologistDtos.PatientNotesResponse(notes != null ? notes : "");
+    }
+
+    @Transactional
+    public PsychologistDtos.PatientNotesResponse updatePatientNotes(UserEntity psychologist, Long patientId, PsychologistDtos.UpdatePatientNotesRequest req) {
+        requirePsychologist(psychologist);
+        var relOpt = userPsychologistRepository.findByUserId(patientId);
+        if (relOpt.isEmpty() || !relOpt.get().getPsychologist().getId().equals(psychologist.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Este usuario no es tu paciente");
+        }
+        var rel = relOpt.get();
+        rel.setPsychologistNotes(req.notes());
+        userPsychologistRepository.save(rel);
+        return new PsychologistDtos.PatientNotesResponse(rel.getPsychologistNotes());
     }
 
     private void requirePsychologist(UserEntity user) {

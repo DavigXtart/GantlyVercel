@@ -1,6 +1,7 @@
 package com.alvaro.psicoapp.domain;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
@@ -65,6 +66,12 @@ public class PsychologistProfileEntity {
     @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
 
+    @Column(name = "default_service", length = 100)
+    private String defaultService;
+
+    @Column(name = "default_price", precision = 10, scale = 2)
+    private BigDecimal defaultPrice;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public UserEntity getUser() { return user; }
@@ -103,4 +110,8 @@ public class PsychologistProfileEntity {
     public void setLicenseNumber(String licenseNumber) { this.licenseNumber = licenseNumber; }
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+    public String getDefaultService() { return defaultService; }
+    public void setDefaultService(String defaultService) { this.defaultService = defaultService; }
+    public BigDecimal getDefaultPrice() { return defaultPrice; }
+    public void setDefaultPrice(BigDecimal defaultPrice) { this.defaultPrice = defaultPrice; }
 }
