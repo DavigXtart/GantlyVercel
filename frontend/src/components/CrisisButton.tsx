@@ -126,6 +126,26 @@ export default function CrisisButton() {
                 </div>
               </a>
 
+              {/* Violencia de genero 016 */}
+              <a
+                href="tel:016"
+                className="flex items-center gap-3.5 px-4 py-3.5 rounded-2xl bg-gantly-blue/[0.04] border border-gantly-blue/10 no-underline text-gantly-navy hover:bg-gantly-blue/10 hover:border-gantly-blue/20 transition-all"
+              >
+                <div className="w-10 h-10 rounded-xl bg-purple-600 flex items-center justify-center shrink-0">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="font-semibold text-[15px] text-gantly-navy">
+                    Violencia de genero
+                  </div>
+                  <div className="text-xl font-bold text-purple-600">
+                    016
+                  </div>
+                </div>
+              </a>
+
               {/* Chat de Crisis */}
               <a
                 href="https://www.telefonodelaesperanza.org"

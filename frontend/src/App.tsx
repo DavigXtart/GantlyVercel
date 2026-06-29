@@ -575,6 +575,7 @@ function App() {
         <Route path="*" element={<ReferralRedirect />} />
       </Routes>
       <CookieBanner onPrivacyClick={() => navigate('/privacidad')} />
+      {isAuthenticated && role === 'USER' && <CrisisButton />}
       {isAuthenticated && consentRequired && (
         <ConsentRenewalModal onAccept={() => setConsentRequired(false)} />
       )}
