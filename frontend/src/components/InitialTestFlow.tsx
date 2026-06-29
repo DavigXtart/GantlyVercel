@@ -82,6 +82,7 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
   const [answers, setAnswers] = useState<Record<number, QuestionResponse>>({});
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [showCrisisInfo, setShowCrisisInfo] = useState(true);
 
   useEffect(() => {
     initializeTest();
@@ -565,6 +566,80 @@ export default function InitialTestFlow({ onComplete, onBack }: InitialTestFlowP
     if (currentQuestion.type === 'SCALE') return renderScaleOptions();
     return renderSingleOptions();
   };
+
+
+  if (showCrisisInfo) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 py-8" style={{ background: 'linear-gradient(135deg, #f0f7ff 0%, #e8f4f8 50%, #f5f0ff 100%)' }}>
+        <div className="w-full max-w-lg">
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 sm:p-8">
+            <div className="flex items-start gap-3 mb-5">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0 mt-0.5">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="font-heading text-lg font-bold text-slate-800 m-0">Antes de empezar</h2>
+                <p className="text-sm text-slate-500 mt-1 mb-0 leading-relaxed">
+                  Si estás pasando por una situación de crisis o emergencia, estos servicios pueden ayudarte de forma inmediata.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2 mb-6">
+              <a href="tel:024" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200/80 no-underline text-slate-800 hover:bg-slate-100 transition-colors">
+                <div className="w-8 h-8 rounded-lg bg-gantly-blue flex items-center justify-center shrink-0">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <span className="font-semibold text-sm">Teléfono de la Esperanza</span>
+                  <span className="text-gantly-blue font-bold ml-2">024</span>
+                </div>
+              </a>
+
+              <a href="tel:112" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200/80 no-underline text-slate-800 hover:bg-slate-100 transition-colors">
+                <div className="w-8 h-8 rounded-lg bg-amber-600 flex items-center justify-center shrink-0">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <span className="font-semibold text-sm">Emergencias</span>
+                  <span className="text-amber-600 font-bold ml-2">112</span>
+                </div>
+              </a>
+
+              <a href="tel:016" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200/80 no-underline text-slate-800 hover:bg-slate-100 transition-colors">
+                <div className="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center shrink-0">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <span className="font-semibold text-sm">Violencia de género</span>
+                  <span className="text-purple-600 font-bold ml-2">016</span>
+                </div>
+              </a>
+            </div>
+
+            <button
+              onClick={() => setShowCrisisInfo(false)}
+              className="w-full py-2.5 rounded-md bg-gantly-blue text-white font-semibold text-sm hover:bg-gantly-blue/90 transition-colors"
+            >
+              Continuar con el test
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
