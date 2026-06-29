@@ -917,7 +917,15 @@ export const psychService = {
   requestReview: async () => {
     const { data } = await api.post('/psych/request-review');
     return data as { message: string };
-  }
+  },
+  getPatientNotes: async (patientId: number) => {
+    const { data } = await api.get(`/psych/patients/${patientId}/notes`);
+    return data as { notes: string };
+  },
+  updatePatientNotes: async (patientId: number, notes: string) => {
+    const { data } = await api.put(`/psych/patients/${patientId}/notes`, { notes });
+    return data as { notes: string };
+  },
 };
 
 // Patient detail endpoints for psychologist view

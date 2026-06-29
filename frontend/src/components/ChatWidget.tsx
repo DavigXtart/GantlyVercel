@@ -3,7 +3,7 @@ import { MessageCircle, Users, User, Stethoscope, PanelRightOpen, PanelRightClos
 import { Client } from '@stomp/stompjs';
 import type { IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import api, { profileService, psychService, calendarService, safeStorage, API_BASE_URL } from '../services/api';
+import api, { profileService, psychService, psychPatientService, calendarService, calendarNotesService, safeStorage, API_BASE_URL } from '../services/api';
 import axios from 'axios';
 import { toast } from './ui/Toast';
 
@@ -57,6 +57,11 @@ export default function ChatWidget({ mode, otherId }: Props) {
     assignedAt?: string;
     status?: string;
   } | null>(null);
+  const [patientNotes, setPatientNotes] = useState('');
+  const [patientNotesOriginal, setPatientNotesOriginal] = useState('');
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [sessionNotesList, setSessionNotesList] = useState<Array<{ date: string; notes: string }>>([]);
+  const [showSessionNotes, setShowSessionNotes] = useState(false);
 
   useEffect(() => {
     // Limpiar conexión anterior solo si cambian los IDs
@@ -182,11 +187,51 @@ export default function ChatWidget({ mode, otherId }: Props) {
           assignedAt: patientInfo?.assignedAt,
           status: patientInfo?.status,
         });
+
+        // Load free-form patient notes
+        try {
+          const notesRes = await psychService.getPatientNotes(otherId);
+          setPatientNotes(notesRes.notes || '');
+          setPatientNotesOriginal(notesRes.notes || '');
+        } catch { /* silent */ }
+
+        // Load session notes from past appointments
+        try {
+          const appts = await psychPatientService.getAppointments(otherId);
+          const pastAppts = (appts || [])
+            .filter((a: any) => new Date(a.startTime) <= new Date() && a.status !== 'CANCELLED')
+            .sort((a: any, b: any) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime())
+            .slice(0, 5);
+          const notesList: Array<{ date: string; notes: string }> = [];
+          await Promise.all(pastAppts.map(async (a: any) => {
+            try {
+              const res = await calendarNotesService.getNotes(a.id);
+              if (res?.notes) notesList.push({ date: a.startTime, notes: res.notes });
+            } catch { /* silent */ }
+          }));
+          notesList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          setSessionNotesList(notesList);
+        } catch { /* silent */ }
+
       } catch {
         // silent — context is optional
       }
     })();
   }, [mode, otherId]);
+
+  const handleSavePatientNotes = async () => {
+    if (!patientContext || !otherId) return;
+    setSavingNotes(true);
+    try {
+      await psychService.updatePatientNotes(otherId, patientNotes);
+      setPatientNotesOriginal(patientNotes);
+      toast.success('Notas guardadas');
+    } catch {
+      toast.error('Error al guardar notas');
+    } finally {
+      setSavingNotes(false);
+    }
+  };
 
   const connect = (psychologistId: number, uId: number) => {
     const token = safeStorage.get('token');
@@ -808,6 +853,59 @@ export default function ChatWidget({ mode, otherId }: Props) {
               </div>
             )}
           </div>
+
+          {/* Notas del psicologo sobre el paciente */}
+          <div className="mt-4">
+            <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Notas sobre el paciente</h4>
+            <textarea
+              value={patientNotes}
+              onChange={(e) => setPatientNotes(e.target.value)}
+              placeholder="Escribe notas sobre este paciente..."
+              className="w-full h-24 px-3 py-2 rounded-md border border-slate-200 text-sm text-slate-700 resize-none focus:outline-none focus:ring-2 focus:ring-gantly-blue/20 focus:border-gantly-blue"
+            />
+            {patientNotes !== patientNotesOriginal && (
+              <button
+                onClick={handleSavePatientNotes}
+                disabled={savingNotes}
+                className="mt-1.5 w-full py-1.5 rounded-md bg-gantly-blue text-white text-xs font-semibold hover:bg-gantly-blue/90 transition-colors disabled:opacity-50"
+              >
+                {savingNotes ? 'Guardando...' : 'Guardar notas'}
+              </button>
+            )}
+          </div>
+
+          {/* Notas de sesion */}
+          {sessionNotesList.length > 0 && (
+            <div className="mt-4">
+              <button
+                onClick={() => setShowSessionNotes(!showSessionNotes)}
+                className="flex items-center justify-between w-full text-left"
+              >
+                <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  Notas de sesion ({sessionNotesList.length})
+                </h4>
+                <svg
+                  width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                  className={`text-slate-400 transition-transform ${showSessionNotes ? 'rotate-180' : ''}`}
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+              {showSessionNotes && (
+                <div className="mt-2 space-y-2 max-h-48 overflow-y-auto">
+                  {sessionNotesList.map((sn, i) => (
+                    <div key={i} className="p-2 rounded-lg bg-slate-50 border border-slate-100">
+                      <p className="text-[10px] text-slate-400 mb-1">
+                        {new Date(sn.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </p>
+                      <p className="text-xs text-slate-600 m-0 line-clamp-3">{sn.notes}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
         </div>
       </div>
     )}
