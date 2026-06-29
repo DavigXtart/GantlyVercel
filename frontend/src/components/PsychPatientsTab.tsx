@@ -173,12 +173,7 @@ export default function PsychPatientsTab({
                       >
                         Abrir Chat
                       </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); onUpdateStatus(p.id, 'DISCHARGED'); }}
-                        className="w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-500 border border-slate-200 rounded-xl font-medium cursor-pointer text-xs transition-all duration-300"
-                      >
-                        Dar de Alta
-                      </button>
+
                     </div>
                   </div>
                 ))}
@@ -246,7 +241,7 @@ export default function PsychPatientsTab({
                           Abrir Chat
                         </button>
 
-                        {!consentSigned ? (
+                        {!consentSigned && (
                           <button
                             onClick={async (e) => {
                               e.stopPropagation();
@@ -263,13 +258,6 @@ export default function PsychPatientsTab({
                             className="w-full py-2 bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border border-amber-200 rounded-xl font-medium cursor-pointer text-xs transition-all duration-300 hover:shadow-md"
                           >
                             Adjuntar consentimiento
-                          </button>
-                        ) : (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); onUpdateStatus(p.id, 'DISCHARGED'); }}
-                            className="w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-500 border border-slate-200 rounded-xl font-medium cursor-pointer text-xs transition-all duration-300"
-                          >
-                            Dar de Alta
                           </button>
                         )}
                       </div>

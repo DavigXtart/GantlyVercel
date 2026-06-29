@@ -4,7 +4,7 @@ import {
   ClipboardList, Heart, FileText, ChevronDown, ChevronUp,
   Smile, Frown, Meh, BarChart3
 } from 'lucide-react';
-import { calendarNotesService, psychPatientService, resultsService, API_BASE_URL } from '../services/api';
+import { calendarNotesService, psychPatientService, psychService, resultsService, API_BASE_URL } from '../services/api';
 import LoadingSpinner from './ui/LoadingSpinner';
 import EmptyState from './ui/EmptyState';
 import { toast } from './ui/Toast';
@@ -125,6 +125,9 @@ export default function PsychPatientProfileView({
   const [showAllNotes, setShowAllNotes] = useState(false);
   const [selectedTestResult, setSelectedTestResult] = useState<any | null>(null);
   const [loadingTestResult, setLoadingTestResult] = useState(false);
+  const [showDischargeModal, setShowDischargeModal] = useState(false);
+  const [dischargeReason, setDischargeReason] = useState('');
+  const [dischargingPatient, setDischargingPatient] = useState(false);
 
   // Load appointments and tasks via dedicated patient endpoints
   useEffect(() => {
@@ -261,6 +264,23 @@ export default function PsychPatientProfileView({
   // Avatar
   const avatarUrl = resolveAvatar(patientDetails?.avatarUrl);
 
+  const handleDischarge = async () => {
+    if (dischargeReason.trim().length < 10) {
+      toast.warning('El motivo debe tener al menos 10 caracteres');
+      return;
+    }
+    setDischargingPatient(true);
+    try {
+      await psychService.updatePatientStatus(viewingPatientId, 'DISCHARGED', dischargeReason.trim());
+      toast.success('Paciente dado de alta');
+      onBack();
+    } catch {
+      toast.error('Error al dar de alta al paciente');
+    } finally {
+      setDischargingPatient(false);
+    }
+  };
+
   return (
     <div>
       {loadingPatientDetails ? (
@@ -323,13 +343,23 @@ export default function PsychPatientProfileView({
                   </div>
                 </div>
               </div>
-              <button
-                onClick={onBack}
-                className="flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors duration-200 cursor-pointer bg-white flex-shrink-0"
-              >
-                <ArrowLeft size={14} />
-                Volver
-              </button>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {(patientDetails?.status || 'ACTIVE') === 'ACTIVE' && (
+                  <button
+                    onClick={() => setShowDischargeModal(true)}
+                    className="px-3 py-1.5 rounded-md border border-red-200 text-red-600 text-xs font-medium hover:bg-red-50 transition-colors"
+                  >
+                    Dar de alta
+                  </button>
+                )}
+                <button
+                  onClick={onBack}
+                  className="flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors duration-200 cursor-pointer bg-white"
+                >
+                  <ArrowLeft size={14} />
+                  Volver
+                </button>
+              </div>
             </div>
           </div>
 
@@ -811,6 +841,44 @@ export default function PsychPatientProfileView({
       {selectedTestResult && (
         <div className="fixed inset-0 z-[1000] overflow-y-auto bg-slate-50">
           <TestResultsView data={selectedTestResult} onBack={() => setSelectedTestResult(null)} />
+        </div>
+      )}
+
+      {/* ===== Discharge Modal ===== */}
+      {showDischargeModal && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 p-6" role="dialog" aria-modal="true">
+            <h3 className="font-heading text-lg font-bold text-slate-800 mb-2">Dar de alta al paciente</h3>
+            <p className="text-sm text-slate-500 mb-4">
+              Esta accion desvinculara al paciente de tu agenda. Podras reactivarlo mas tarde si es necesario.
+            </p>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Motivo del alta <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              value={dischargeReason}
+              onChange={(e) => setDischargeReason(e.target.value)}
+              placeholder="Describe el motivo del alta (minimo 10 caracteres)..."
+              rows={3}
+              className="w-full px-3 py-2 rounded-md border border-slate-200 text-sm text-slate-700 resize-none focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-300"
+            />
+            <p className="text-xs text-slate-400 mt-1 mb-4">{dischargeReason.length}/10 caracteres minimo</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setShowDischargeModal(false); setDischargeReason(''); }}
+                className="flex-1 py-2 rounded-md border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDischarge}
+                disabled={dischargingPatient || dischargeReason.trim().length < 10}
+                className="flex-1 py-2 rounded-md bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {dischargingPatient ? 'Procesando...' : 'Confirmar alta'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -908,8 +908,8 @@ export const psychService = {
     const { data } = await api.put('/psych/is-full', { isFull });
     return data;
   },
-  updatePatientStatus: async (patientId: number, status: 'ACTIVE' | 'DISCHARGED') => {
-    const { data } = await api.put(`/psych/patients/${patientId}/status`, { status });
+  updatePatientStatus: async (patientId: number, status: 'ACTIVE' | 'DISCHARGED', reason?: string) => {
+    const { data } = await api.put(`/psych/patients/${patientId}/status`, { status, reason });
     return data;
   },
   getReferralUrl: async () => {
